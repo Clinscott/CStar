@@ -10,16 +10,23 @@
 ## Authority Order
 - Registry and runtime contracts outrank prose.
 - Treat `.agents/skill_registry.json` as the capability source of truth.
-- Prefer Hall discovery before broad local scans.
+- Prefer `cstar-kernel` MCP surfaces before shell launchers or broad local scans.
+- Use `cstar_bead` for bead lifecycle when it is available.
 
 ## Launcher Contract
+- Use `cstar-kernel` MCP tools first for CStar control-plane work.
 - `./cstar <command>`
 - `node bin/cstar.js <command>`
 - `./cstar hall "<query>"`
 
 ## Host Behavior
 - Read `AGENTS.qmd` at session start before making structural claims.
-- Use `./cstar hall "<query>"` for estate discovery before ad hoc search.
+- Use `cstar_hall_search` for estate discovery before ad hoc search; use `./cstar hall "<query>"` only when MCP cannot provide the needed primitive.
+- Use `cstar_bead` for bead get/list/create/claim/status/block/resolve operations when available.
+- If the MCP surface is degraded or unavailable, report the exact failure and remain read-only for control-plane state; do not mutate Hall or SQLite directly.
+- Route implementation ownership through CoS -> Corvus - MM -> PMT -> worker. Treat this session as a controlled exception only when that chain is explicitly blocked.
+- Treat the Researcher thread as a special monitored pipeline, not a normal PMT worker.
+- Preserve operator gates for acceptance, dispatch, commit, push, merge, deletion, restarts, and publish actions.
 - Keep reasoning, planning, critique, and recovery in the host session when the registry marks a capability host-executable.
 - Keep deterministic local primitives in the kernel; do not fork Gemini-specific capability definitions.
 - Treat `native-session` and `exec-bridge` capabilities as host-routed, and treat `supported` capabilities as kernel-backed launch surfaces.
@@ -68,7 +75,7 @@ Directive: Route only. Consult targets before choosing a path. Do not echo.
 
 ## Kernel MCP Tools (20)
 
-The `cstar-kernel` MCP server is the authoritative kernel surface — invoke these tools directly via MCP rather than shelling out to `./cstar`. Every handler is deterministic; no LLM inference in the tool execution path. Full API reference: `docs/integrations/cstar-kernel-mcp.md`.
+The `cstar-kernel` MCP server is the authoritative kernel surface — invoke these tools directly via MCP rather than shelling out to `./cstar` whenever the needed primitive exists. Every handler is deterministic; no LLM inference in the tool execution path. Full API reference: `docs/integrations/cstar-kernel-mcp.md`.
 
 - `cstar_handoff` — Compact active state from Augury/handoff logic.
 - `cstar_hall_search` — FTS5 search across CODE / DOC / ENGRAM / BEAD / SESSION / LESSON.
@@ -97,4 +104,4 @@ The `cstar-kernel` MCP server is the authoritative kernel surface — invoke the
 ## Notes
 - This extension is generated from the registry-backed distribution builder.
 - Capabilities marked `policy-only` or `unsupported` are intentionally omitted.
-- The `cstar-kernel` MCP server is wired up by `mcpServers` in `gemini-extension.json` — invoke kernel tools directly through MCP, not via shell.
+- The `cstar-kernel` MCP server is wired up by `mcpServers` in `gemini-extension.json` — invoke kernel tools directly through MCP, not via shell, whenever the needed primitive exists.

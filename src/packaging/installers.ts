@@ -88,8 +88,9 @@ function buildCodexPluginMcpConfig(projectRoot: string): Record<string, unknown>
                 cwd: projectRoot,
                 env: {
                     GEMINI_CLI_ACTIVE: 'true',
+                    CSTAR_KERNEL_DISABLE_WATCH: '1',
                 },
-                note: 'CStar kernel MCP — six-tool surface (handoff, hall_search, augury, doctor, verify_plan, record_result).',
+                note: 'CStar kernel MCP — authoritative CStar control-plane surface. Prefer MCP tools for Hall, Augury, bead lifecycle, verification, and result recording.',
             },
         },
     };

@@ -1,11 +1,15 @@
 /**
  * Integration test for `bin/cstar-kernel-mcp.js`.
  *
- * Spawns the launcher as a child process, completes the MCP `initialize`
- * handshake, then exercises `tools/list` and `tools/call` (cstar_status)
- * over stdio JSON-RPC. This catches a class of regression invisible to the
- * unit tests: loader resolution, env propagation, schema validity at
+ * Spawns the launcher as a child process, completes the current SDK stdio
+ * `initialize` handshake, then exercises `tools/list` and `tools/call`
+ * (cstar_status) over JSON-RPC. This catches a class of regression invisible
+ * to the unit tests: loader resolution, env propagation, schema validity at
  * registration time, and the actual stdio framing of the SDK.
+ *
+ * The handshake is transport compatibility, not CStar application state. Tool
+ * handlers must keep cross-call state in explicit domain handles so the same
+ * schemas can survive MCP's 2026-07-28 stateless protocol direction.
  */
 
 import { describe, it, after } from 'node:test';
@@ -38,19 +42,55 @@ interface JsonRpcResponse {
     error?: { code: number; message: string };
 }
 
+const PROTOCOL_STATE_ARG_NAMES = new Set([
+    '_meta',
+    'clientInfo',
+    'client_info',
+    'clientCapabilities',
+    'client_capabilities',
+    'mcpSessionId',
+    'mcp_session_id',
+    'Mcp-Session-Id',
+    'protocolVersion',
+    'protocol_version',
+    'sessionId',
+    'session_id',
+]);
+
+function collectSchemaPropertyNames(schema: unknown, seen = new Set<unknown>()): string[] {
+    if (!schema || typeof schema !== 'object' || seen.has(schema)) {
+        return [];
+    }
+    seen.add(schema);
+    const record = schema as Record<string, unknown>;
+    const ownProperties = record.properties && typeof record.properties === 'object'
+        ? Object.keys(record.properties as Record<string, unknown>)
+        : [];
+    const nestedKeys = ['$defs', 'definitions', 'items', 'additionalProperties', 'oneOf', 'anyOf', 'allOf']
+        .flatMap((key) => {
+            const value = record[key];
+            if (Array.isArray(value)) {
+                return value.flatMap((entry) => collectSchemaPropertyNames(entry, seen));
+            }
+            return collectSchemaPropertyNames(value, seen);
+        });
+    return [...ownProperties, ...nestedKeys];
+}
+
 class StdioMcpClient {
     private buffer = '';
     private readonly pending = new Map<number, (resp: JsonRpcResponse) => void>();
     public readonly proc: ChildProcessWithoutNullStreams;
     private nextId = 1;
 
-    constructor() {
+    constructor(extraEnv: Record<string, string> = {}) {
         this.proc = spawn('node', [LAUNCHER], {
             cwd: PROJECT_ROOT,
             env: {
                 ...process.env,
                 CSTAR_KERNEL_MCP: '1',
                 NODE_OPTIONS: '--max-old-space-size=2048',
+                ...extraEnv,
             },
             stdio: ['pipe', 'pipe', 'pipe'],
         });
@@ -128,8 +168,8 @@ class StdioMcpClient {
 // The launcher uses `process.execve` on Unix (replacing the JS process with the
 // underlying TSX-loaded MCP server). Some environments (older glibc, certain
 // containers) reject execve; the test must not hang in that case.
-async function launchClient(): Promise<StdioMcpClient | null> {
-    const client = new StdioMcpClient();
+async function launchClient(extraEnv: Record<string, string> = {}): Promise<StdioMcpClient | null> {
+    const client = new StdioMcpClient(extraEnv);
     // Probe with `initialize` and a generous timeout. If the launcher failed
     // to boot, the request times out — we skip the tests.
     try {
@@ -159,7 +199,7 @@ describe('cstar-kernel-mcp stdio launcher', () => {
         }
     });
 
-    it('boots, handshakes, and exposes a non-empty tools list including cstar_status', async () => {
+    it('boots, handshakes, and exposes the documented tool inventory exactly', async () => {
         client = await launchClient();
         if (!client) {
             // Launcher unavailable in this environment — make the failure
@@ -171,21 +211,67 @@ describe('cstar-kernel-mcp stdio launcher', () => {
         assert.ok(listResp.result, `tools/list returned error: ${JSON.stringify(listResp.error)}`);
         assert.ok(Array.isArray(listResp.result.tools), 'tools/list result must contain a tools array');
         const tools = listResp.result.tools as Array<{ name: string }>;
-        assert.ok(tools.length >= 15, `expected >= 15 registered tools, got ${tools.length}`);
-
-        // Spot-check every tool added by Phase-1/2 and the second hardening pass.
-        const names = new Set(tools.map((t) => t.name));
-        for (const expected of [
-            'cstar_handoff',
+        const actualNames = tools.map((t) => t.name).sort();
+        const expectedNames = [
+            'cstar_augury',
+            'cstar_autobot',
+            'cstar_bead',
             'cstar_doctor',
-            'cstar_status',
+            'cstar_engram_record',
             'cstar_evolve',
-            'cstar_spoke',
+            'cstar_forge_execute',
+            'cstar_forge_request',
+            'cstar_hall_maintenance',
+            'cstar_hall_search',
+            'cstar_handoff',
             'cstar_intent_route',
-            'cstar_warden',
+            'cstar_manifest',
+            'cstar_record_result',
+            'cstar_researcher_request',
+            'cstar_skill_info',
+            'cstar_spoke',
+            'cstar_spoke_bead_import',
+            'cstar_spoke_journal',
+            'cstar_status',
             'cstar_telemetry',
-        ]) {
-            assert.ok(names.has(expected), `tools/list missing ${expected}; got: ${[...names].sort().join(', ')}`);
+            'cstar_verify_plan',
+            'cstar_war_game_score',
+            'cstar_warden',
+        ].sort();
+
+        assert.deepStrictEqual(
+            actualNames,
+            expectedNames,
+            `tools/list drifted from the documented inventory; got: ${actualNames.join(', ')}`,
+        );
+        assert.ok(actualNames.includes('cstar_autobot'), 'cstar_autobot must be registered for host agents by default');
+    });
+
+    it('keeps tool schemas independent of protocol session state for stateless MCP readiness', async () => {
+        if (!client) {
+            assert.fail('client was not initialized by prior test');
+        }
+
+        const listResp = await client.request('tools/list', {});
+        assert.ok(listResp.result, `tools/list returned error: ${JSON.stringify(listResp.error)}`);
+        const tools = listResp.result.tools as Array<{
+            name: string;
+            inputSchema?: { type?: string; required?: unknown; properties?: Record<string, unknown> };
+        }>;
+
+        for (const tool of tools) {
+            assert.ok(tool.inputSchema, `${tool.name} must expose an inputSchema`);
+            assert.strictEqual(tool.inputSchema.type, 'object', `${tool.name} inputSchema must have an object root`);
+
+            const required = Array.isArray(tool.inputSchema.required) ? tool.inputSchema.required : [];
+            const propertyNames = collectSchemaPropertyNames(tool.inputSchema);
+            const forbiddenRequired = required.filter((name): name is string =>
+                typeof name === 'string' && PROTOCOL_STATE_ARG_NAMES.has(name),
+            );
+            const forbiddenProperties = propertyNames.filter((name) => PROTOCOL_STATE_ARG_NAMES.has(name));
+
+            assert.deepStrictEqual(forbiddenRequired, [], `${tool.name} must not require protocol/session state args`);
+            assert.deepStrictEqual(forbiddenProperties, [], `${tool.name} must not model protocol/session state as tool args`);
         }
     });
 
@@ -219,5 +305,39 @@ describe('cstar-kernel-mcp stdio launcher', () => {
         assert.strictEqual(body.status, 'ok');
         assert.strictEqual(body.section, 'usage');
         assert.ok(body.usage);
+    });
+
+    it('can explicitly disable cstar_autobot with CSTAR_KERNEL_ENABLE_AUTOBOT=0', async () => {
+        const testClient = await launchClient({ CSTAR_KERNEL_ENABLE_AUTOBOT: '0' });
+        if (!testClient) {
+            assert.fail('cstar-kernel-mcp launcher did not respond to initialize');
+        }
+        try {
+            const listResp = await testClient.request('tools/list', {});
+            assert.ok(listResp.result);
+            const tools = listResp.result.tools as Array<{ name: string }>;
+            const names = tools.map((t) => t.name);
+            assert.ok(!names.includes('cstar_autobot'), 'cstar_autobot must not be registered when explicitly disabled');
+        } finally {
+            await testClient.close();
+        }
+    });
+
+    it('does not register cstar_autobot when HERMES_AUTOBOT_DELEGATED=1 is set', async () => {
+        const testClient = await launchClient({
+            HERMES_AUTOBOT_DELEGATED: '1',
+        });
+        if (!testClient) {
+            assert.fail('cstar-kernel-mcp launcher did not respond to initialize');
+        }
+        try {
+            const listResp = await testClient.request('tools/list', {});
+            assert.ok(listResp.result);
+            const tools = listResp.result.tools as Array<{ name: string }>;
+            const names = tools.map((t) => t.name);
+            assert.ok(!names.includes('cstar_autobot'), 'cstar_autobot must not be registered when HERMES_AUTOBOT_DELEGATED=1');
+        } finally {
+            await testClient.close();
+        }
     });
 });

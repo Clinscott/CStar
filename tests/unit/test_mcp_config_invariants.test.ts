@@ -37,10 +37,29 @@ describe('MCP config invariants', () => {
             assert.equal(server.command, 'node');
             assert.ok(Array.isArray(server.args));
             assert.ok(server.args.length >= 1);
+            assert.equal(
+                server.env?.CSTAR_KERNEL_DISABLE_WATCH,
+                '1',
+                `${configPath} must disable source-watch auto-exit for host-launched MCP`,
+            );
 
             const launcher = resolveMcpArg(configPath, server.args[0]);
             assert.equal(fs.existsSync(launcher), true, `${configPath} launcher missing: ${launcher}`);
             assert.equal(path.basename(launcher), 'cstar-kernel-mcp.js');
+            assert.equal(
+                launcher.includes(`${path.sep}dist${path.sep}`),
+                false,
+                `${configPath} must not route Codex/Gemini MCP through stale dist bundle artifacts`,
+            );
         });
     }
+
+    it('bin/cstar-kernel-mcp.js launches the TypeScript source surface through tsx', () => {
+        const launcherPath = path.join(PROJECT_ROOT, 'bin', 'cstar-kernel-mcp.js');
+        const launcher = fs.readFileSync(launcherPath, 'utf-8');
+
+        assert.match(launcher, /node_modules['"], ['"]tsx['"], ['"]dist['"], ['"]loader\.mjs/);
+        assert.match(launcher, /src['"], ['"]tools['"], ['"]cstar-kernel-mcp\.ts/);
+        assert.doesNotMatch(launcher, /dist['"], ['"]cstar-kernel-mcp\.bundle\.js/);
+    });
 });

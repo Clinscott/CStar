@@ -198,7 +198,7 @@ describe('One Mind broker scaffold', () => {
             prompt: 'Investigate the bounded issue.',
             metadata: {
                 task_kind: 'research',
-                subagent_profile: 'architect',
+                subagent_profile: 'brooks',
                 target_paths: ['src/example.ts'],
             },
             created_at: now,
@@ -295,7 +295,7 @@ describe('One Mind broker scaffold', () => {
             target_path: 'src/example.ts',
             rationale: 'Investigate the activation closure path.',
             status: 'IN_PROGRESS',
-            assigned_agent: 'ARCHITECT',
+            assigned_agent: 'BROOKS',
             created_at: now,
             updated_at: now,
         });
@@ -305,7 +305,7 @@ describe('One Mind broker scaffold', () => {
             bead_id: 'bead-research-1',
             skill_id: 'research',
             adapter_id: 'weave:research',
-            role: 'architect',
+            role: 'brooks',
             status: 'ACTIVE',
             intent: 'Investigate the activation closure path.',
             target_path: 'src/example.ts',
@@ -327,7 +327,7 @@ describe('One Mind broker scaffold', () => {
             metadata: {
                 provider: 'codex',
                 task_kind: 'research',
-                subagent_profile: 'architect',
+                subagent_profile: 'brooks',
                 target_paths: [tmpRoot],
                 runtime_weave: 'weave:research',
                 activation_id: 'activation:research:1',

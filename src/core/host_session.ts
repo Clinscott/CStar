@@ -2,6 +2,8 @@ import { createHash } from 'node:crypto';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
+import { buildPersonaAdvice } from './persona_advice.js';
+
 export type HostProvider = 'gemini' | 'codex' | 'claude' | 'droid';
 export type AugurySteeringMode = 'full' | 'lite';
 export type HostSupportStatus =
@@ -129,7 +131,7 @@ export interface AuguryLearningEvent {
 
 export const AUGURY_STEERING_BLOCK_VERSION = 2;
 export const AUGURY_CORVUS_STANDARD_VERSION = 1;
-const AUGURY_PROMPT_CONSULT_LIMIT = 3;
+export const AUGURY_PROMPT_CONSULT_LIMIT = 3;
 
 export interface AugurySteeringContext {
     mode?: AugurySteeringMode;
@@ -866,6 +868,7 @@ export function formatAugurySteeringBlock(
         ].filter(Boolean).join('\n');
     }
 
+    const personaAdvice = buildPersonaAdvice(intentCategory);
     return [
         '[CORVUS_STAR_AUGURY]',
         'Mode: full',
@@ -878,6 +881,8 @@ export function formatAugurySteeringBlock(
         antiBehavior.length > 0 ? `Guardrails: ${antiBehavior.join(' | ')}` : '',
         'Corvus Standard: CStar is the engine; spokes are managed extensions; keep work Hall/Mimir traceable.',
         buildAuguryQualityLine(intentCategory.toUpperCase()),
+        `Persona Advice: [${personaAdvice.persona}] ${compactSingleLine(personaAdvice.direction, 240)}`,
+        `Persona Tone: ${compactSingleLine(personaAdvice.tone_directive, 200)}`,
         trajectoryStatus && trajectoryStatus !== 'STABLE'
             ? `Trajectory: ${trajectoryStatus}${trajectoryReason ? `: ${trajectoryReason}` : ''}`
             : '',

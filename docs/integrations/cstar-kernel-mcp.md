@@ -54,9 +54,39 @@ Every tool returns an MCP content envelope:
 
 The `text` field is always a JSON string. Parse it before consuming. On failure, `isError: true` is set and the parsed payload contains an `error` field (normalized to one line, capped at 512 chars).
 
+Priority read surfaces include a deterministic `guardrail` object:
+
+```json
+{
+  "guardrail": {
+    "verdict": "allow | caution | block",
+    "action": "continue | recover | repair | verify | refuse",
+    "reason": "<short explanation>",
+    "failed_checks": [],
+    "warning_checks": []
+  },
+  "next_action": "<host-agent instruction>"
+}
+```
+
+Priority write surfaces include a deterministic `mutation` object:
+
+```json
+{
+  "mutation": {
+    "kind": "<mutation family>",
+    "persisted": true,
+    "record_id": "<bead/memory/validation/spoke id>",
+    "guardrail": { "verdict": "allow", "action": "continue", "...": "..." }
+  }
+}
+```
+
+`cstar_autobot` may appear in legacy or compatibility inventories, but AutoBot/Hermes is not the active Corvus routing path. New implementation routing must use the CoS -> Corvus - MM -> PMT -> worker chain and CStar bead lifecycle state. Do not delegate new Corvus work through AutoBot/Hermes unless a future operator-approved contract explicitly reactivates that path.
+
 ---
 
-## Tool Inventory (21)
+## Tool Inventory (24)
 
 | # | Tool | Tier |
 |:---|:---|:---|
@@ -64,29 +94,32 @@ The `text` field is always a JSON string. Parse it before consuming. On failure,
 | 2 | `cstar_hall_search` | Discovery |
 | 3 | `cstar_hall_maintenance` | Discovery |
 | 4 | `cstar_augury` | Routing |
-| 5 | `cstar_autobot` | Legacy AutoBot/Hermes delegation |
-| 6 | `cstar_doctor` | Diagnostics |
-| 7 | `cstar_verify_plan` | Verification |
-| 8 | `cstar_bead` | Bead lifecycle |
-| 9 | `cstar_spoke_bead_import` | Bead lifecycle |
-| 10 | `cstar_record_result` | Verification |
-| 11 | `cstar_engram_record` | Memory write |
-| 12 | `cstar_war_game_score` | War games |
-| 13 | `cstar_manifest` | Capability discovery |
-| 14 | `cstar_skill_info` | Capability discovery |
-| 15 | `cstar_spoke_journal` | Spoke state |
-| 16 | `cstar_status` | Diagnostics |
-| 17 | `cstar_evolve` | Karpathy loop (read-only) |
-| 18 | `cstar_spoke` | Spoke lifecycle |
-| 19 | `cstar_intent_route` | Routing |
-| 20 | `cstar_warden` | Sentinel Wardens |
-| 21 | `cstar_telemetry` | Diagnostics |
+| 5 | `cstar_researcher_request` | Dispatch request |
+| 6 | `cstar_forge_request` | Dispatch request |
+| 7 | `cstar_forge_execute` | Execution gate |
+| 8 | `cstar_autobot` | Legacy AutoBot/Hermes delegation |
+| 9 | `cstar_doctor` | Diagnostics |
+| 10 | `cstar_verify_plan` | Verification |
+| 11 | `cstar_bead` | Bead lifecycle |
+| 12 | `cstar_spoke_bead_import` | Bead lifecycle |
+| 13 | `cstar_record_result` | Verification |
+| 14 | `cstar_engram_record` | Memory write |
+| 15 | `cstar_war_game_score` | War games |
+| 16 | `cstar_manifest` | Capability discovery |
+| 17 | `cstar_skill_info` | Capability discovery |
+| 18 | `cstar_spoke_journal` | Spoke state |
+| 19 | `cstar_status` | Diagnostics |
+| 20 | `cstar_evolve` | Karpathy loop (read-only) |
+| 21 | `cstar_spoke` | Spoke lifecycle |
+| 22 | `cstar_intent_route` | Routing |
+| 23 | `cstar_warden` | Sentinel Wardens |
+| 24 | `cstar_telemetry` | Diagnostics |
 
 ---
 
 ## 1. `cstar_handoff`
 
-Compact active state from Augury/handoff logic. Returns `{ status: 'idle' }` when there is no active session.
+Compact active state from Augury/handoff logic. Returns `{ status: 'idle', guardrail, next_action }` when there is no active session.
 
 **Input:** _(none)_
 
@@ -94,8 +127,10 @@ Compact active state from Augury/handoff logic. Returns `{ status: 'idle' }` whe
 ```json
 {
   "execution_gate": "READY",
+  "status": "active",
   "phase": "FORGE",
   "next_action": "<imperative>",
+  "guardrail": { "verdict": "allow", "action": "continue", "...": "..." },
   "lead_bead_id": "bead:...",
   "target_paths": ["<path>", "..."],
   "checker_shells": ["<command>", "..."],
@@ -112,7 +147,18 @@ Bounded FTS5 search across `CODE / DOC / ENGRAM / BEAD / SESSION / LESSON`.
 - `limit` (number, optional, 1..10, default 5)
 - `types` (string[], optional) — subset of `['CODE','DOC','ENGRAM','BEAD','SESSION','LESSON']`
 
-**Output:** array of `{ type, path_or_id, title, summary, rank }`.
+**Output:**
+```json
+{
+  "status": "matched | empty",
+  "query": "bead",
+  "count": 1,
+  "result_limit": 5,
+  "guardrail": { "verdict": "allow", "action": "continue", "...": "..." },
+  "next_action": "<host-agent instruction>",
+  "results": [{ "type": "CODE", "path_or_id": "src/main.ts", "title": "main.ts", "summary": "...", "rank": 1.0 }]
+}
+```
 
 ## 3. `cstar_hall_maintenance`
 
@@ -189,6 +235,114 @@ cannot safely determine a current route, where active-session continuity is
 explicitly requested but diverges from caller targets, or where the active
 session is the only available context.
 
+## 4b. `cstar_researcher_request` / `cstar_forge_request`
+
+Control-plane request primitives for routing Researcher and Corvus
+Forge/Hermes MiniMax work without falling back to Codex workers. These tools
+validate the request contract and return compact receipts for PMT/MM/CoS
+review. They do not run live Researcher, Forge, Hermes, MiniMax, source
+adapters, browser collection, GitHub mutation, or model spend by themselves.
+
+**Input contract:**
+- `bead_id` or `decision_id` — CStar lifecycle anchor; a decision id is generated when needed.
+- `owner_pmt_thread_id` and `source_callback_thread_id` — review owner and callback destination.
+- `objective`, optional `prompt`, optional `target_paths`, optional `system_under_test`.
+- `scope` and `authority_lane` (`green`, `yellow`, or `red`).
+- `required_metrics[]` with `name` and `threshold` for each metric.
+- `artifact_expectations[]` for expected report/package/evidence outputs.
+- `prohibited_actions[]` and optional `requested_actions[]`; conflicts and red-gate actions are rejected.
+- `spend_policy` (`no_spend`, `dry_run`, or `live_authorized`), optional live-source/retry policy.
+- `callback_contract.expected_packet`.
+- Optional `package_locks[]` with path/hash pairs.
+- Optional `dispatch_surface_ref`; a missing or unauthorized path fails closed.
+
+Default dispatch surfaces:
+
+- Researcher: `.agents/skills/researcher/SKILL.md`
+- Forge: `docs/operations/corvus-forge-skill-spec.md`, falling back to
+  `docs/operations/corvus-forge-pipeline-playbook.md`
+
+**Output posture:**
+
+```json
+{
+  "status": "dry_run_no_spend",
+  "dispatch_kind": "forge",
+  "decision_id": "decision-forge-...",
+  "receipt_id": "dispatch-forge-...",
+  "bead_id": "bead-...",
+  "required_metrics": [{ "name": "artifact_integrity", "threshold": "zero P1/P2" }],
+  "authorized_dispatch_surface": { "found": true, "selected": { "path": "..." } },
+  "dispatch_execution": {
+    "attempted": false,
+    "live_spend": false,
+    "live_source_collection": false,
+    "codex_worker_fallback_allowed": false,
+    "fail_closed_reason": "no_live_dispatch_authority"
+  }
+}
+```
+
+If a required metric, callback packet, prohibited-action list, or dispatch
+surface proof is missing, the tools return `isError: true` with
+`status: "rejected"` or a dry-run receipt with `fail_closed_reason`. Operators
+must not treat these receipts as implementation output; they are dispatch
+authorization and evidence-routing artifacts.
+
+## 4c. `cstar_forge_execute`
+
+Execution primitive for Corvus Forge. It is intentionally separate from
+`cstar_forge_request`: request receipts prove that work is ready to route;
+execution receipts prove that a specific request receipt is linked to, and when
+authorized routed through, an operator-authorized Forge execution contract.
+
+No-op mode does not run Hermes, MiniMax, SwarmForge, Researcher, source
+adapters, browser collection, GitHub mutation, or model spend. Live-authorized
+mode invokes only the approved Forge/Hermes/MiniMax adapter after receipt,
+operator, metrics, callback, retry, and prohibited-action gates pass.
+
+Required fields include all `cstar_forge_request` contract fields plus:
+
+- `forge_request_receipt_id` — must reference a `dispatch-forge-...` receipt.
+- `forge_request_decision_id` — must match `decision_id` when `decision_id` is
+  supplied.
+- `forge_request_bead_id` — must match `bead_id` when both are supplied.
+- `execution_mode` — `no_op` or `live_authorized`.
+- `operator_authorization_ref` — required for `live_authorized`.
+- Optional `execution_adapter_ref` — checked as an adapter proof; missing or
+  unregistered adapters fail closed.
+
+No-op mode returns `status: "validated_noop"` with
+`forge_execution.attempted=false`, `live_spend=false`,
+`live_source_collection=false`, and `codex_worker_fallback_allowed=false`.
+
+Live mode rejects missing operator authorization and blocks with
+`fail_closed_reason: "missing_authorized_execution_adapter"` when the requested
+adapter is unknown. Approved adapter references are:
+
+- `cstar-forge-hermes-minimax-adapter` — response-only; may write only the
+  adapter response artifact and fails closed for build/package/source-mutation
+  requests with `adapter_lacks_implementation_write_capability`.
+- `cstar-forge-hermes-minimax-worker-adapter` — write-capable; asks the Hermes
+  MiniMax delegate for a strict file manifest, validates paths against the
+  sealed intent target roots, applies bounded project files, and emits the same
+  response artifact contract.
+
+Operators must not substitute `cstar_autobot`, Codex workers, or ad hoc shell
+execution for this gate. An executed receipt reports
+the adapter status, whether the adapter observed live spend, and any returned
+ledger or artifact references. For live adapter execution, the model response is persisted
+under `work/forge-executions/<execution_receipt_id>/adapter-response.json` and
+the receipt reports the response artifact path, byte count, and sha256 so PMT
+review does not depend on transient stdout. The persisted adapter response must
+match the Forge execution packet shape: `status`, `summary`, `files_changed`
+array, structured `artifacts`, structured `validation`, structured `metrics`,
+structured `boundaries`, and optional `callback_packet`. Success-like statuses
+must not claim missing changed files or artifact paths; missing path evidence
+fails closed as `adapter_degraded`. Advisory-only packets such as
+`PASS-READY-FOR-PMT-REVIEW` without the required evidence fields also fail
+closed; PMT review remains required before acceptance.
+
 ## 5. `cstar_doctor`
 
 Kernel diagnostics. Returns registry / augury / database health plus telemetry summary.
@@ -219,10 +373,13 @@ Recommended checker shells and the last validation verdict for the active bead.
 ```json
 {
   "recommended_commands": ["<command>", "..."],
+  "status": "ready | empty",
   "reason": "...",
   "bead_id": "bead:...",
   "target_paths": ["..."],
-  "last_validation": { "verdict": "SUCCESS", "recorded_at": 1700000000000, "validation_id": "val-..." }
+  "last_validation": { "verdict": "SUCCESS", "recorded_at": 1700000000000, "validation_id": "val-..." },
+  "guardrail": { "verdict": "allow", "action": "verify", "...": "..." },
+  "next_action": "<host-agent instruction>"
 }
 ```
 
@@ -241,7 +398,7 @@ Bead lifecycle: `get` / `list` / `create` / `update_status` / `claim` / `resolve
 - `assigned_agent`, `resolution_note`, `triage_reason`, `resolved_validation_id`, `contract_refs`, `metadata`
 - `spoke` (string, optional) — anchor the bead to a registered spoke's repo_id
 
-**Output:** `{ status: 'created'|'claimed'|'resolved'|'blocked'|'updated'|'ok', bead: {...} }` or `{ status: 'ok', count, beads: [...] }` for list.
+**Output:** `{ status: 'created'|'claimed'|'resolved'|'blocked'|'updated'|'ok', mutation, bead: {...} }` or `{ status: 'ok', count, beads: [...] }` for list.
 
 ## 8. `cstar_spoke_bead_import`
 
@@ -254,6 +411,8 @@ Rich Bead-import surface for spokes. Hard-rejects unregistered, inactive, quaran
 
 **Optional:** `bead_id`, `design_doc_path`, `wireframe_ref`, `threat_model_summary`, `contract_refs`, `checker_shell`, `target_paths`, `target_kind`, `target_ref`, `augury_block`, `assigned_agent`, `status`, `metadata`.
 
+**Output:** `{ status: 'created', action: 'spoke_bead_import', mutation, spoke, repo_id, bead }`.
+
 ## 9. `cstar_record_result`
 
 Append validation outcome and optionally connect it to a bead. Feeds the Augury token-path sidecar calibration loop.
@@ -264,6 +423,8 @@ Append validation outcome and optionally connect it to a bead. Feeds the Augury 
 - `notes` (string, optional)
 - `token_path_episode_id` (string, optional) — episode id from a prior `cstar_augury` response
 - `token_path_observation` (object, optional) — scenario_class + selected_policy + observed_tokens for sidecar calibration
+
+**Output:** `{ status: 'recorded', mutation, bead_id, verdict, validation_id, token_path_observation_id?, token_path_episode_id? }`.
 
 ## 10. `cstar_engram_record`
 
@@ -276,11 +437,15 @@ Publish an Engram to the Hall. Spokes use this as the dead-drop write surface fo
 - `metadata` (object, optional)
 - `memory_id` (string, optional)
 
+**Output:** `{ status: 'recorded', mutation, memory_id, intent, bead_id, repo_id, score_results? }`.
+
 ## 11. `cstar_war_game_score`
 
 War-game scoring. Actions: `register_contest`, `tally`, `recent`, `by_scenario`, `get_score`, `list_contests`. Scoring fires automatically when `cstar_engram_record` receives an Engram whose intent matches a registered contest defender prefix.
 
 **Input:** `action` (enum), plus action-specific fields (see `tests/integration/war_game_scoring.test.ts` for full examples).
+
+`register_contest` returns `{ status: 'registered', contest_id, mutation }`. Read actions return query envelopes without `mutation`.
 
 ## 12. `cstar_manifest`
 
@@ -345,7 +510,7 @@ Mounted-spoke lifecycle. Completes the spoke surface alongside `cstar_spoke_jour
 - `remote_url`, `branch`, `trust_level`, `write_policy` (optional, link only)
 - `accept_beads` (boolean, optional) — shortcut: forces trust=trusted, write_policy=read_write
 
-**Output (link):** `{ status: 'linked'|'relinked', slug, root_path, trust_level, write_policy, created_at }`. Re-linking an existing slug preserves `created_at` and merges existing metadata.
+**Output (link):** `{ status: 'linked'|'relinked', mutation, slug, root_path, trust_level, write_policy, created_at }`. Re-linking an existing slug preserves `created_at` and merges existing metadata. `unlink` and `project` also include `mutation`; list/inspect/doctor/verify/health stay read-only.
 
 Mounted-spoke records are hub-scoped. The stored `repo_id` identifies the CStar
 hub repository that owns the mounted-spoke row, not the mounted spoke's own git
@@ -369,6 +534,8 @@ Resolve a prompt against the kernel intent grammar (`.agents/skill_registry.json
 {
   "status": "matched" | "unmatched",
   "grammar_source": "registry" | "fallback",
+  "guardrail": { "verdict": "allow", "action": "continue", "...": "..." },
+  "next_action": "<host-agent instruction>",
   "intent_category": "BUILD",
   "default_path": "creation_loop",
   "tier": "WEAVE",
@@ -381,6 +548,8 @@ Resolve a prompt against the kernel intent grammar (`.agents/skill_registry.json
 {
   "status": "matched" | "unmatched",
   "grammar_source": "registry" | "fallback",
+  "guardrail": { "verdict": "allow", "action": "continue", "...": "..." },
+  "next_action": "<host-agent instruction>",
   "match_count": 2,
   "matches": [
     { "intent_category": "BUILD", "default_path": "creation_loop", "tier": "WEAVE", "matched_triggers": ["build"] },
@@ -430,7 +599,9 @@ Read-only MCP telemetry summaries over the last 24h. Source: `.agents/state/csta
   "generated_at": "2026-05-14T12:34:56.000Z",
   "usage": { "total_calls_24h": 0, "failures_24h": 0, "tool_counts_24h": {} },
   "usefulness": { "total_calls_24h": 0, "search_hit_rate": null, "augury_routed_rate": null, "validations_recorded_24h": 0, "usefulness_warnings": [] },
-  "token_path": { "advisor_available": false, "advice_count_24h": 0 }
+  "token_path": { "advisor_available": false, "advice_count_24h": 0 },
+  "guardrail": { "verdict": "allow", "action": "continue", "...": "..." },
+  "next_action": "Use telemetry warnings to pick the next hardening target."
 }
 ```
 

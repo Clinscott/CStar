@@ -17,7 +17,10 @@ export type CouncilExpertId =
     | 'sweeney'
     | 'miyamoto'
     | 'kojima'
-    | 'meier';
+    | 'meier'
+    | 'linscott'
+    | 'brooks'
+    | 'parnas';
 
 export interface CouncilExpertProtocol {
     id: CouncilExpertId;
@@ -27,6 +30,7 @@ export interface CouncilExpertProtocol {
     lens: string;
     anti_behavior: string[];
     root_persona_directive: string;
+    signature_question: string;
     selection_reason?: string;
     selection_score?: number;
     selection_candidates?: CouncilExpertCandidate[];
@@ -61,6 +65,7 @@ const COUNCIL_EXPERTS: Record<CouncilExpertId, CouncilExpertProtocol> = {
             'Do not trade maintainability for cleverness or ceremonial architecture.',
         ],
         root_persona_directive: 'Adapt the root persona into a terse systems maintainer: reject bloat, demand concrete interfaces, and name the smallest durable fix.',
+        signature_question: 'What is the smallest durable change a future maintainer will not curse, and what abstraction are you smuggling in by accident?',
     },
     karpathy: {
         id: 'karpathy',
@@ -74,6 +79,7 @@ const COUNCIL_EXPERTS: Record<CouncilExpertId, CouncilExpertProtocol> = {
             'Do not hide data flow, context construction, or tool contracts behind prose.',
         ],
         root_persona_directive: 'Adapt the root persona into an AI systems engineer: make data loops, evals, tool schemas, and deterministic guardrails explicit.',
+        signature_question: 'Where does model output touch state without a deterministic guard, and what eval would catch the next regression?',
     },
     hamilton: {
         id: 'hamilton',
@@ -87,6 +93,7 @@ const COUNCIL_EXPERTS: Record<CouncilExpertId, CouncilExpertProtocol> = {
             'Do not leave ambiguous partial-success or retry behavior unhandled.',
         ],
         root_persona_directive: 'Adapt the root persona into a fault-tolerance engineer: enforce invariants, fail closed, and require recovery paths before execution.',
+        signature_question: 'What invariant is this change protecting, and what does the rollback look like when something fails halfway through?',
     },
     shannon: {
         id: 'shannon',
@@ -100,6 +107,7 @@ const COUNCIL_EXPERTS: Record<CouncilExpertId, CouncilExpertProtocol> = {
             'Do not collapse distinct states into one status or erase provenance.',
         ],
         root_persona_directive: 'Adapt the root persona into an information theorist: preserve signal, reduce ambiguity, and make provenance observable.',
+        signature_question: 'What signal is being lost, collapsed, or made ambiguous by this design, and how would an outside observer reconstruct what happened?',
     },
     dean: {
         id: 'dean',
@@ -113,6 +121,7 @@ const COUNCIL_EXPERTS: Record<CouncilExpertId, CouncilExpertProtocol> = {
             'Do not ignore stale state, concurrent workers, or partial failure.',
         ],
         root_persona_directive: 'Adapt the root persona into a distributed-systems engineer: reason about concurrency, idempotence, leases, and partial failure.',
+        signature_question: 'What happens when two workers try this at once, the lease expires mid-flight, or the retry lands on a half-applied state?',
     },
     carmack: {
         id: 'carmack',
@@ -126,6 +135,7 @@ const COUNCIL_EXPERTS: Record<CouncilExpertId, CouncilExpertProtocol> = {
             'Do not hide expensive work behind convenience helpers.',
         ],
         root_persona_directive: 'Adapt the root persona into a performance pragmatist: prefer direct mechanisms, measurement, and mechanically simple execution.',
+        signature_question: 'What is the most direct mechanism that does this work, and what measurement would prove the added layer is worth its cost?',
     },
     sakaguchi: {
         id: 'sakaguchi',
@@ -139,6 +149,7 @@ const COUNCIL_EXPERTS: Record<CouncilExpertId, CouncilExpertProtocol> = {
             'Do not ignore the emotional or cinematic quality of the technical solution.',
         ],
         root_persona_directive: 'Adapt the root persona into a visionary architect: unite deep intent with systemic complexity and ensure every subsystem serves the master plan.',
+        signature_question: 'What is the master narrative this subsystem is serving, and does anyone outside the author understand why it exists?',
     },
     nomura: {
         id: 'nomura',
@@ -152,6 +163,7 @@ const COUNCIL_EXPERTS: Record<CouncilExpertId, CouncilExpertProtocol> = {
             'Do not ignore the aesthetic impact of high-fidelity technical interfaces.',
         ],
         root_persona_directive: 'Adapt the root persona into an interface maximalist: enforce high-fidelity aesthetics, visual identity, and absolute interface coherence.',
+        signature_question: 'Does every visible element advance the visual identity, or is it noise the user must learn to ignore?',
     },
     miyazaki: {
         id: 'miyazaki',
@@ -165,6 +177,7 @@ const COUNCIL_EXPERTS: Record<CouncilExpertId, CouncilExpertProtocol> = {
             'Do not overlook the environmental or contextual cues that define the systemic state.',
         ],
         root_persona_directive: 'Adapt the root persona into a systemic orchestrator: enforce spatial coherence, interconnected network logic, and rhythmic systemic integrity.',
+        signature_question: 'How does this module connect to the rest of the graph, and what environmental cue tells the operator they are inside it?',
     },
     adams: {
         id: 'adams',
@@ -178,6 +191,7 @@ const COUNCIL_EXPERTS: Record<CouncilExpertId, CouncilExpertProtocol> = {
             'Do not ignore the depth required for true procedural and historical emergence.',
         ],
         root_persona_directive: 'Adapt the root persona into an agentic simulation expert: prioritize reactive agent loops, procedural history, and deep systemic emergence.',
+        signature_question: 'What memory does each agent carry forward, and what surprise can the system produce that the author did not write directly?',
     },
     wright: {
         id: 'wright',
@@ -191,6 +205,7 @@ const COUNCIL_EXPERTS: Record<CouncilExpertId, CouncilExpertProtocol> = {
             'Do not ignore the value of systemic "toys" and reactive software loops.',
         ],
         root_persona_directive: 'Adapt the root persona into an open-ended simulation designer: prioritize reactive agent loops, spatial UI, and flexible systemic decision-making.',
+        signature_question: 'What can the operator do here that the author did not script, and where does the system stop being a toy and start being a chore?',
     },
     heineman: {
         id: 'heineman',
@@ -204,6 +219,7 @@ const COUNCIL_EXPERTS: Record<CouncilExpertId, CouncilExpertProtocol> = {
             'Do not ignore the technical "heavy lifting" required for cross-platform systemic integrity.',
         ],
         root_persona_directive: 'Adapt the root persona into a technical heavy-lifter: enforce engine optimization, cross-platform portability, and architectural discipline.',
+        signature_question: 'Which platform assumption will break this first, and what part of the porting layer is hiding the most accidental coupling?',
     },
     sweeney: {
         id: 'sweeney',
@@ -217,6 +233,7 @@ const COUNCIL_EXPERTS: Record<CouncilExpertId, CouncilExpertProtocol> = {
             'Do not ignore the orchestration required for managing massive, high-fidelity systemic environments.',
         ],
         root_persona_directive: 'Adapt the root persona into a framework architect: prioritize framework scaling, democratized access, and complex agent orchestration.',
+        signature_question: 'How does this framework behave at 10x the current scale, and what extension point opens it to people who did not build it?',
     },
     miyamoto: {
         id: 'miyamoto',
@@ -230,6 +247,7 @@ const COUNCIL_EXPERTS: Record<CouncilExpertId, CouncilExpertProtocol> = {
             'Do not ignore the value of universal systemic accessibility and interaction polish.',
         ],
         root_persona_directive: 'Adapt the root persona into a master of interaction: enforce fundamental grammar, interaction polish, and universal systemic accessibility.',
+        signature_question: 'What primitive verb is this interaction teaching, and does the smallest possible movement feel correct before any feature is layered on top?',
     },
     kojima: {
         id: 'kojima',
@@ -243,6 +261,7 @@ const COUNCIL_EXPERTS: Record<CouncilExpertId, CouncilExpertProtocol> = {
             'Do not overlook the meta-systemic narrative that emerges from network interactions.',
         ],
         root_persona_directive: 'Adapt the root persona into a meta-systemic designer: prioritize reactive network connections, social-strand logic, and emergent meta-narratives.',
+        signature_question: 'What invisible network of dependencies does this action ripple through, and what story do the connected agents tell about it afterward?',
     },
     meier: {
         id: 'meier',
@@ -256,6 +275,49 @@ const COUNCIL_EXPERTS: Record<CouncilExpertId, CouncilExpertProtocol> = {
             'Do not ignore the global mission control perspective in strategic decision-making.',
         ],
         root_persona_directive: 'Adapt the root persona into a strategic mastermind: prioritize interesting choices, macro-strategic loops, and global mission control logic.',
+        signature_question: 'What is the interesting choice this loop puts in front of the operator, and what happens if every option produces an obviously correct answer?',
+    },
+    linscott: {
+        id: 'linscott',
+        label: 'LINSCOTT',
+        profile: 'linscott',
+        protocol: 'Empirical evaluation at scale, statistical methodology, and refusal to ship unvalidated improvements.',
+        lens: 'Attack unvalidated improvements, weak statistical bounds, small-sample claims, tuning on the test set, ignored variance, and any "this is better" assertion without SPRT-style evidence at the required confidence level.',
+        anti_behavior: [
+            'Do not claim an improvement without statistical evidence — name the SPRT regime, the sample size, and the elo/quality delta bound.',
+            'Do not promote a candidate from a tiny sample or from runs that overlap the tuning corpus.',
+            'Do not collapse variance into a single mean; report the distribution and confidence interval before any verdict.',
+        ],
+        root_persona_directive: 'Adapt the root persona into an empirical evaluation engineer: refuse "this is better" without statistical evidence, name the SPRT regime, and demand reproducible at-scale measurement before promotion.',
+        signature_question: 'What is the SPRT regime that would actually catch this regression, and how many games (or evaluation runs) of evidence do you need at what confidence bound before you trust the delta?',
+    },
+    brooks: {
+        id: 'brooks',
+        label: 'BROOKS',
+        profile: 'brooks',
+        protocol: 'Conceptual integrity, planning phases, and structural decomposition.',
+        lens: 'Attack conceptual drift, speculative features, un-phased schedules, and weak integration interfaces.',
+        anti_behavior: [
+            'Do not add speculative capabilities or features outside the current phase boundary.',
+            'Do not allow implementation to proceed without a clear, serialized plan.',
+            'Do not compromise conceptual integrity for short-term convenience.',
+        ],
+        root_persona_directive: 'Adapt the root persona into a software architect: enforce conceptual integrity, divide work into explicit phases, and reject speculative complexity.',
+        signature_question: 'Does this change preserve the conceptual integrity of the architecture, and what phase of the plan does it belong to?',
+    },
+    parnas: {
+        id: 'parnas',
+        label: 'PARNAS',
+        profile: 'parnas',
+        protocol: 'Information hiding, modular decomposition, and clean interface design.',
+        lens: 'Attack tight coupling, leaky module boundaries, direct FFI access without clean wrappers, and exposed implementation details.',
+        anti_behavior: [
+            'Do not expose internal module representation or data structures directly.',
+            'Do not bypass the FFI wrapper or clean interface for direct system access.',
+            'Do not allow implementation changes to force client-side interface recompilation.',
+        ],
+        root_persona_directive: 'Adapt the root persona into a modular designer: enforce information hiding, wrap FFI interfaces cleanly, and minimize module coupling.',
+        signature_question: 'What implementation detail is this module hiding from the rest of the system, and can we change it without touching other modules?',
     },
 };
 
@@ -271,23 +333,62 @@ function normalizeText(value: unknown): string {
     return typeof value === 'string' ? value.trim().toLowerCase() : '';
 }
 
-function haystack(input: CouncilSelectionInput): string {
-    return [
+/**
+ * Tokenize free-form text into lowercase alphanumeric tokens.
+ * Splits on whitespace, punctuation, and hyphens — so "hot-path",
+ * "fixed-point", and "hot path" all yield the same tokens.
+ * @param value Raw string from any selection field.
+ * @returns Lowercase token list with empties removed.
+ */
+function tokenize(value: string): string[] {
+    return value.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+}
+
+function haystackTokens(input: CouncilSelectionInput): string[] {
+    const parts = [
         input.intent_category,
         input.intent,
         input.selection_tier,
         input.selection_name,
         input.canonical_intent,
         ...(input.mimirs_well ?? []),
-    ].map(normalizeText).filter(Boolean).join(' ');
+    ].map(normalizeText).filter(Boolean);
+    return parts.flatMap(tokenize);
 }
 
-function includesAny(value: string, keywords: string[]): boolean {
-    return keywords.some((keyword) => value.includes(keyword));
+/**
+ * Word-boundary keyword match. A single-token keyword matches when the
+ * haystack contains that exact token; a multi-token keyword matches when
+ * the haystack contains the keyword's tokens as a contiguous sequence.
+ * Eliminates substring traps like "fix" matching "fixed" or "story"
+ * matching "history", and lets "hot path" match "hot-path".
+ * @param tokens Haystack token list.
+ * @param keyword Raw keyword phrase.
+ * @returns True when the keyword's tokens appear contiguously.
+ */
+function matchesKeyword(tokens: string[], keyword: string): boolean {
+    const kwTokens = tokenize(keyword);
+    if (kwTokens.length === 0) return false;
+    if (kwTokens.length === 1) {
+        return tokens.includes(kwTokens[0]);
+    }
+    const limit = tokens.length - kwTokens.length;
+    for (let i = 0; i <= limit; i += 1) {
+        let matched = true;
+        for (let j = 0; j < kwTokens.length; j += 1) {
+            if (tokens[i + j] !== kwTokens[j]) { matched = false; break; }
+        }
+        if (matched) return true;
+    }
+    return false;
 }
 
-function includesAll(value: string, keywordGroups: string[][]): boolean {
-    return keywordGroups.every((keywords) => includesAny(value, keywords));
+function includesAny(tokens: string[], keywords: string[]): boolean {
+    return keywords.some((keyword) => matchesKeyword(tokens, keyword));
+}
+
+function includesAll(tokens: string[], keywordGroups: string[][]): boolean {
+    return keywordGroups.every((keywords) => includesAny(tokens, keywords));
 }
 
 export function getCouncilExpertProtocol(id: CouncilExpertId): CouncilExpertProtocol {
@@ -309,92 +410,134 @@ function candidateOrder(id: CouncilExpertId): number {
 }
 
 function addCandidateScore(
-    scores: Map<CouncilExpertId, { score: number; reasons: string[] }>,
+    scores: Map<CouncilExpertId, { score: number; reasons: string[]; hits: number }>,
     id: CouncilExpertId,
     score: number,
     reason: string,
 ): void {
-    const existing = scores.get(id) ?? { score: 0, reasons: [] };
+    const existing = scores.get(id) ?? { score: 0, reasons: [], hits: 0 };
     existing.score += score;
     existing.reasons.push(reason);
+    existing.hits += 1;
     scores.set(id, existing);
 }
 
 export function scoreCouncilExpertCandidates(input: CouncilSelectionInput): CouncilExpertCandidate[] {
-    const text = haystack(input);
+    const tokens = haystackTokens(input);
     const category = normalizeText(input.intent_category);
     const selectionName = normalizeText(input.selection_name);
-    const scores = new Map<CouncilExpertId, { score: number; reasons: string[] }>();
+    const scores = new Map<CouncilExpertId, { score: number; reasons: string[]; hits: number }>();
 
     // 1. SPECIFIC DOMAIN ARCHITECTS (High Specificity)
-    if (includesAll(text, [['game', 'gaming', 'rpg', 'fallows hallow', 'fallows-hallow', 'fallows_hallow'], ['code', 'engine', 'runtime', 'implementation', 'performance', 'render', 'loop', 'physics']])) {
+    if (includesAll(tokens, [['game', 'gaming', 'rpg', 'fallows hallow'], ['code', 'engine', 'runtime', 'implementation', 'performance', 'render', 'loop', 'physics']])) {
         addCandidateScore(scores, 'carmack', 10, 'game, RPG, engine, or mechanically intensive code work');
     }
-    if (includesAny(text, ['absolute agentic', 'hub and spoke', 'agent memory', 'dwarf fortress', 'adams', 'procgen', 'procedural'])) {
+    if (includesAny(tokens, ['absolute agentic', 'hub and spoke', 'agent memory', 'dwarf fortress', 'adams', 'procgen', 'procedural'])) {
         addCandidateScore(scores, 'adams', 8, 'absolute agentic simulation or procedural history work');
     }
-    if (includesAny(text, ['narrative', 'story', 'cinematic', 'emotional', 'theme', 'fantasy', 'square', 'sakaguchi'])) {
+    if (includesAny(tokens, ['narrative', 'story', 'cinematic', 'emotional', 'theme', 'fantasy', 'square', 'sakaguchi'])) {
         addCandidateScore(scores, 'sakaguchi', 8, 'narrative, cinematic, or emotional-systemic alignment');
     }
-    if (includesAny(text, ['liquid glass', 'neon', 'maximalism', 'visual identity', 'nomura', 'aesthetics'])) {
+    if (includesAny(tokens, ['liquid glass', 'neon', 'maximalism', 'visual identity', 'nomura', 'aesthetics'])) {
         addCandidateScore(scores, 'nomura', 8, 'high-fidelity technical interface or visual identity work');
     }
-    if (includesAny(text, ['spatial lore', 'network graph', 'environmental storytelling', 'rhythmic', 'soulslike', 'miyazaki', 'interconnected'])) {
+    if (includesAny(tokens, ['spatial lore', 'network graph', 'environmental storytelling', 'rhythmic', 'soulslike', 'miyazaki', 'interconnected'])) {
         addCandidateScore(scores, 'miyazaki', 8, 'spatial lore, network graph, or interconnected systemic work');
     }
-    if (includesAny(text, ['software toy', 'reactive agent', 'sims', 'open-ended', 'wright'])) {
+    if (includesAny(tokens, ['software toy', 'reactive agent', 'sims', 'open-ended', 'wright'])) {
         addCandidateScore(scores, 'wright', 8, 'reactive agent loops or open-ended simulation work');
     }
-    if (includesAny(text, ['cross-platform', 'porting', 'heavy lifting', 'heineman', 'legacy debt'])) {
+    if (includesAny(tokens, ['cross-platform', 'porting', 'heavy lifting', 'heineman', 'legacy debt'])) {
         addCandidateScore(scores, 'heineman', 8, 'cross-platform engineering or technical heavy-lifting work');
     }
-    if (includesAny(text, ['framework democratization', 'unreal engine', 'sweeney', 'scaling framework', 'framework'])) {
+    if (includesAny(tokens, ['framework democratization', 'unreal engine', 'sweeney', 'scaling framework', 'framework'])) {
         addCandidateScore(scores, 'sweeney', 8, 'framework orchestration or high-fidelity scaling work');
     }
-    if (includesAny(text, ['interaction polish', 'movement grammar', 'miyamoto', 'universal interaction'])) {
+    if (includesAny(tokens, ['interaction polish', 'movement grammar', 'miyamoto', 'universal interaction'])) {
         addCandidateScore(scores, 'miyamoto', 8, 'fundamental interaction grammar or systemic polish work');
     }
-    if (includesAny(text, ['social strand', 'player-to-ai', 'kojima', 'meta-systemic'])) {
+    if (includesAny(tokens, ['social strand', 'player-to-ai', 'kojima', 'meta-systemic'])) {
         addCandidateScore(scores, 'kojima', 8, 'meta-systemic narrative or reactive network work');
     }
-    if (includesAny(text, ['macro-strategic', '4x', 'mission control', 'civilization', 'meier', 'decision loop'])) {
+    if (includesAny(tokens, ['macro-strategic', '4x', 'mission control', 'civilization', 'meier', 'decision loop'])) {
         addCandidateScore(scores, 'meier', 8, 'macro-strategic decision loops or mission control work');
     }
+    if (includesAny(tokens, [
+        'sprt', 'fishtest', 'elo', 'pentanomial', 'gungnir', 'war game', 'gauntlet',
+        'a b test', 'ab test', 'confidence interval', 'evaluation harness', 'engine match',
+        'sequential probability', 'nnue', 'linscott', 'score', 'gungnir score',
+    ])) {
+        addCandidateScore(scores, 'linscott', 8, 'empirical evaluation, SPRT methodology, or statistical scoring work');
+    }
+    if (includesAny(tokens, ['brooks', 'decomposition', 'sequencing', 'conceptual integrity', 'plan phase', 'roadmap', 'milestone'])) {
+        addCandidateScore(scores, 'brooks', 8, 'conceptual integrity, plan phases, or structural decomposition work');
+    }
+    if (includesAny(tokens, ['parnas', 'modular', 'coupling', 'information hiding', 'module boundary', 'ffi wrapper', 'c-abi', 'c abi'])) {
+        addCandidateScore(scores, 'parnas', 8, 'modular decomposition, information hiding, or FFI boundary work');
+    }
 
-    // 2. CORE SYSTEMS EXPERTS (Medium Specificity)
+    // 2. CATEGORY-LEVEL DEFAULTS (every intent category gets one).
+    // STRONG (+10): the action verb has only one sensible domain, so the
+    // declared intent itself outranks specialist keywords.
+    // SOFT (+6): the action verb is generic; specialist keywords at +8
+    // can and should override the category default.
+    if (category === 'repair') {
+        addCandidateScore(scores, 'torvalds', 10, 'declared repair intent');
+    }
     if (category === 'harden') {
         addCandidateScore(scores, 'hamilton', 10, 'declared hardening intent');
-    }
-    if (includesAny(text, ['security', 'auth', 'secret', 'token', 'policy', 'permission', 'rollback', 'invariant', 'safety', 'fail'])) {
-        addCandidateScore(scores, 'hamilton', 7, 'safety, hardening, invariant, or rollback-sensitive work');
-    }
-    if (includesAny(text, ['ai system', 'ai inference', 'inference', 'llm', 'model', 'prompt', 'eval', 'embedding', 'context window', 'tool schema', 'karpathy'])) {
-        addCandidateScore(scores, 'karpathy', 7, 'AI-system, persona, eval, or model-boundary work');
-    }
-    if (category === 'orchestrate') {
-        addCandidateScore(scores, 'dean', 10, 'declared orchestration intent');
-    }
-    if (includesAny(text, ['orchestrate', 'scheduler', 'queue', 'lease', 'retry', 'distributed', 'parallel', 'concurrent', 'worker', 'spoke', 'dean'])) {
-        addCandidateScore(scores, 'dean', 7, 'orchestration, concurrency, retry, or distributed-state work');
     }
     if (category === 'observe') {
         addCandidateScore(scores, 'shannon', 10, 'declared observation intent');
     }
-    if (includesAny(text, ['trace', 'log', 'signal', 'telemetry', 'observability', 'metadata', 'hall', 'search', 'mimir', 'lineage', 'shannon'])) {
-        addCandidateScore(scores, 'shannon', 7, 'trace, observability, provenance, or signal-quality work');
+    if (category === 'orchestrate') {
+        addCandidateScore(scores, 'dean', 10, 'declared orchestration intent');
     }
-    if (category === 'score' || category === 'evolve') {
-        addCandidateScore(scores, 'carmack', 10, 'declared score or evolve intent');
+    if (category === 'evolve') {
+        addCandidateScore(scores, 'karpathy', 10, 'declared evolve intent — SPRT/eval loop is AI-systems work');
     }
-    if (includesAny(text, ['performance', 'latency', 'throughput', 'hot path', 'memory allocation', 'benchmark', 'score', 'bare metal', 'engine', 'carmack', 'rewrite'])) {
-        addCandidateScore(scores, 'carmack', 7, 'measurement, performance, scoring, engine, or hot-path work');
+    if (category === 'score') {
+        addCandidateScore(scores, 'linscott', 10, 'declared score intent — Gungnir/SPRT-style empirical evaluation');
+    }
+    if (category === 'build') {
+        addCandidateScore(scores, 'sakaguchi', 6, 'soft default for build — visionary architecture; specialists override');
+    }
+    if (category === 'verify') {
+        addCandidateScore(scores, 'hamilton', 6, 'soft default for verify — invariant scrutiny; specialists override');
+    }
+    if (category === 'expand') {
+        addCandidateScore(scores, 'dean', 6, 'soft default for expand — spoke mount is coordination work; specialists override');
+    }
+    if (category === 'guard') {
+        addCandidateScore(scores, 'hamilton', 6, 'soft default for guard — fail-closed invariants; specialists override');
+    }
+    if (category === 'document') {
+        addCandidateScore(scores, 'shannon', 6, 'soft default for document — preserve signal and provenance; specialists override');
     }
 
-    // 3. REPAIR & FALLBACK (Default Maintainer)
-    if (category === 'repair') {
-        addCandidateScore(scores, 'torvalds', 10, 'declared repair intent');
+    // 3. CORE SYSTEMS EXPERTS — secondary keyword paths (Medium Specificity)
+    if (includesAny(tokens, ['security', 'auth', 'secret', 'token', 'policy', 'permission', 'rollback', 'invariant', 'safety', 'fail'])) {
+        addCandidateScore(scores, 'hamilton', 7, 'safety, hardening, invariant, or rollback-sensitive work');
     }
-    if (selectionName === 'restoration' || includesAny(text, ['debug', 'bug', 'broken', 'fix failure', 'root cause', 'torvalds', 'maintainer', 'fix'])) {
+    if (includesAny(tokens, [
+        'ai system', 'ai inference', 'inference', 'llm', 'model', 'prompt', 'eval', 'embedding', 'context window', 'tool schema', 'karpathy',
+        'augury', 'persona', 'agent', 'subagent', 'sub agent', 'tool use', 'guardrail', 'sampling', 'system prompt', 'fine tune', 'rag',
+        'embedding store', 'host agent', 'council expert', 'eval harness',
+    ])) {
+        addCandidateScore(scores, 'karpathy', 7, 'AI-system, persona, eval, or model-boundary work');
+    }
+    if (includesAny(tokens, ['orchestrate', 'scheduler', 'queue', 'lease', 'retry', 'distributed', 'parallel', 'concurrent', 'worker', 'dean'])) {
+        addCandidateScore(scores, 'dean', 7, 'orchestration, concurrency, retry, or distributed-state work');
+    }
+    if (includesAny(tokens, ['trace', 'log', 'signal', 'telemetry', 'observability', 'metadata', 'hall', 'search', 'mimir', 'lineage', 'shannon', 'provenance'])) {
+        addCandidateScore(scores, 'shannon', 7, 'trace, observability, provenance, or signal-quality work');
+    }
+    if (includesAny(tokens, ['performance', 'latency', 'throughput', 'hot path', 'memory allocation', 'zero allocation', 'fixed point', 'benchmark', 'bare metal', 'carmack', 'rewrite'])) {
+        addCandidateScore(scores, 'carmack', 7, 'measurement, performance, engine, or hot-path work');
+    }
+
+    // 4. REPAIR & FALLBACK (Default Maintainer)
+    if (selectionName === 'restoration' || includesAny(tokens, ['debug', 'bug', 'broken', 'fix', 'failure', 'failing', 'root cause', 'torvalds', 'maintainer'])) {
         addCandidateScore(scores, 'torvalds', 7, 'repair or root-cause work needs strict systems-maintainer scrutiny');
     }
     if (scores.size === 0) {
@@ -407,8 +550,18 @@ export function scoreCouncilExpertCandidates(input: CouncilSelectionInput): Coun
             label: COUNCIL_EXPERTS[id].label,
             score: scored.score,
             reason: scored.reasons.join('; '),
+            _hits: scored.hits,
         }))
-        .sort((left, right) => right.score - left.score || candidateOrder(left.id) - candidateOrder(right.id));
+        .sort((left, right) =>
+            right.score - left.score
+            || right._hits - left._hits
+            || candidateOrder(left.id) - candidateOrder(right.id),
+        )
+        .map((candidate) => {
+            const { _hits, ...rest } = candidate;
+            void _hits;
+            return rest;
+        });
 }
 
 export function selectCouncilExpert(input: CouncilSelectionInput): CouncilExpertProtocol {

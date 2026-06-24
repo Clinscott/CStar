@@ -106,7 +106,7 @@ export function planSkillActivationForBead(
         return {
             skill_id: 'research',
             adapter_id: 'weave:research',
-            role: 'architect',
+            role: 'brooks',
             intent: rationale || `Architectural planning for ${bead.id}`,
             target_path: targetPath || undefined,
             payload: {

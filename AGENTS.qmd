@@ -2,7 +2,7 @@
 Corvus Star (C*) operates on a **Host-Native First** development philosophy.
 - **Functional Skills**: All high-level functional capabilities (Taliesin, Analysis, Optimization, Content Generation) MUST be developed as **Host-Native** skills. They reside in the Host Space (Ring 3) and utilize the Synaptic Link directly.
 - **Kernel Space**: The **Node.js Runtime** is reserved exclusively for deterministic kernel primitives: monitoring, assignment, Hall/state cataloging, process control, filesystem locking, orchestration bookkeeping, and bridge management.
-- **Cognitive Decoupling**: We do not collapse host cognition into brittle Node runtime paths unless architectural necessity (Ring 0 primitives) demands it. 
+- **Cognitive Decoupling**: We do not collapse host cognition into brittle Node runtime paths unless architectural necessity (Ring 0 primitives) demands it.
 
 ### ▷ Implementation Mandate
 1. Use `native-session` or `exec-bridge` for all new capability development.
@@ -15,13 +15,19 @@ Corvus Star (C*) operates on a **Host-Native First** development philosophy.
 - Shell routes must fail closed for `host-only` skills. If a shell path appears to work, treat it as architectural drift and repair it.
 - Reference: `docs/integrations/host_native_skill_contract.md`
 
+### ▷ CoS-First Thread Management
+- The operator talks to CoS by default. CoS is the operator-facing route owner and may complete bounded Green/Yellow work directly when safe.
+- PMT threads are durable project knowledge and review authorities by default, not mandatory execution owners. CoS sends compact `STATE_UPDATE` packets to PMTs after meaningful work so future project context can be recovered cleanly.
+- PMTs reply with `STATE_ACCEPTED`, `STATE_CONFLICT`, `AUTHORITY_ESCALATION`, or `BLOCKED_CONTEXT`. PMT-owned execution goals are reserved for explicit CoS delegation, red/high-risk gates, or project processes that require PMT-run monitoring.
+- Operator gates remain sovereign: live spend beyond bounded scope, locked holdout, production readiness, source collection, secrets/config mutation, merge/deploy/restart, destructive cleanup, and broad cross-spoke changes require explicit authorization.
+
 ---
 
 ## 🔱 THE AGENT PROTOCOLS (CORVUS STAR)
 
 > [!CRITICAL]
 > **OPERATIONAL DOMAIN: CORVUS STAR FRAMEWORK**
-> This document is the Supreme Directive for all AI Agents operating within the Corvus Star repository. 
+> This document is the Supreme Directive for all AI Agents operating within the Corvus Star repository.
 > **ADHERENCE IS NON-NEGOTIABLE. DEVIATION IS DEFEAT.**
 >
 > Registry metadata and runtime contracts outrank prose. If this document disagrees with `.agents/skill_registry.json` or runtime behavior, treat this document as stale and follow the registry/runtime.
@@ -29,7 +35,7 @@ Corvus Star (C*) operates on a **Host-Native First** development philosophy.
 ---
 
 ## 0. THE SUPREME TRUTH (ONE MIND HIERARCHY)
-Corvus Star operates as a **Woven Skill Architecture**. 
+Corvus Star operates as a **Woven Skill Architecture**.
 The **One Mind** (You) selects the tier of intervention required:
 
 1.  **SKILL (Atomic)**: Host-native capability activation or bounded primitive use.

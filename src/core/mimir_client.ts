@@ -416,12 +416,19 @@ export class MimirClient {
         }
 
         if (provider === 'gemini' || provider === 'claude') {
+            // [🔱] THE SHIELD: Prevent agy from executing headlessly and destroying OAuth tokens.
+            if (provider === 'gemini' && !process.stdout.isTTY) {
+                console.warn(`[WARNING] Bypassing primary host provider 'agy' in headless mode to prevent OAuth credential corruption. Falling back to codex...`);
+                return await this.invokeHostSession(prompt, 'codex');
+            }
+
             const controller = new AbortController();
             const timer = setTimeout(() => controller.abort(), this.hostSessionTimeoutMs);
 
             try {
+                const cmd = provider === 'gemini' ? 'agy' : provider;
                 const { stdout, stderr } = await this.hostExecRunner(
-                    provider,
+                    cmd,
                     getDefaultCliBridgeArgs(provider, prompt),
                     {
                         cwd: this.projectRoot,
@@ -433,12 +440,17 @@ export class MimirClient {
 
                 const response = stdout.trim() || stderr.trim();
                 if (!response) {
-                    throw new Error(`${provider} returned no output.`);
+                    throw new Error(`${cmd} returned no output.`);
                 }
                 return response;
             } catch (error) {
                 if (error instanceof Error && error.name === 'AbortError') {
                     throw new Error(`${provider} host session timed out after ${this.hostSessionTimeoutMs}ms.`);
+                }
+                if (provider === 'gemini') {
+                    console.warn(`[WARNING] Primary host provider 'agy' failed: ${error instanceof Error ? error.message : String(error)}. Falling back to codex...`);
+                    clearTimeout(timer);
+                    return await this.invokeHostSession(prompt, 'codex');
                 }
                 throw error;
             } finally {

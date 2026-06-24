@@ -1,286 +1,193 @@
 # Corvus Forge Skill Spec
 
-The Corvus Forge skill posture is docs/playbook first. A future skill may make
-the pipeline recallable, but the skill is an operating wrapper, not the engine.
-It must not become a hidden dispatcher, authority bypass, or replacement for
-CStar beads, GitHub review, PMT review, MM summary, or CoS decision gates.
+Corvus Forge is a recallable operating wrapper for CStar-governed build,
+repair, package, and review work. It is not the execution engine and it does
+not replace CStar beads, GitHub issue/branch/PR review, PMT review, MM summary,
+or CoS decision gates.
 
-## Purpose
+## Authorized Dispatch Surface
 
-The future skill should help an agent recall and assemble a Corvus Forge work
-packet from canonical doctrine. It should produce prompts, checklists, and
-review packets that point to CStar and GitHub authority surfaces. It must not
-perform live dispatch, merge, deploy, restart, mutate secrets/config, write
-Hall/SQLite directly, install itself durably, or roll out PMT memory changes
-without separate approval.
+This document, together with
+`docs/operations/corvus-forge-pipeline-playbook.md`, is the authoritative
+Corvus Forge dispatch surface that `cstar_forge_request` may prove before it
+returns a dispatch-ready receipt.
 
-## Codex Runtime Binding
+The surface authorizes only contract validation, routing proof, no-spend dry
+run receipts, and callback packaging. It does not authorize live Hermes,
+MiniMax, SwarmForge, Researcher, browser, GitHub, source-adapter, or model
+spend execution by itself.
 
-CStar is the canonical doctrine source, but Codex follows rules only when they
-are visible in the active runtime. Corvus Forge rules must therefore be bound in
-all three layers:
+`cstar_forge_request` must fail closed when this surface is absent or when a
+request omits required contract fields. It must never substitute a Codex worker,
+ad hoc shell command, direct Hall/SQLite write, or unreviewed chat handoff for
+Corvus Forge.
 
-- Canonical layer: CStar docs define the durable rules and review standard.
-- Recall layer: the local `corvus-forge` Codex skill summarizes the active
-  gates and points back to CStar doctrine.
-- Prompt layer: CoS/MM/PMT/worker delegation packets repeat the relevant gates
-  for the current task, including exact head, dirty-root, live-proof, evidence
-  digest, deep-review, and explicit-file packaging rules.
+## Dispatch Authority Contract
 
-When the CoS thread is rooted outside CStar, such as in Corvus, Codex must still
-load the `corvus-forge` skill for Forge/PR-readiness work and must cite the
-active CStar doctrine in the delegation packet. A Corvus-root `AGENTS.md` may
-point to these rules, but it is a pointer, not the authority source.
+Every Forge dispatch request must provide:
 
-If model-visible runtime instructions conflict with CStar doctrine, stop and
-escalate instead of choosing the weaker rule.
+- CStar bead id or explicit decision id.
+- Owner PMT thread id and source callback thread id.
+- Objective, prompt or work statement, target paths, and system under test when
+  relevant.
+- Scope and authority lane: `green`, `yellow`, or `red`.
+- Required metrics with acceptance thresholds.
+- Artifact, report, package, and callback expectations.
+- Prohibited actions and requested actions.
+- Spend, live-source, and retry policy.
+- Callback contract with expected packet name and callback destination.
+- Package or artifact hash locks when supplied.
 
-## Trigger Signals
+The PMT remains the project owner and final integrator. Forge/Hermes/MiniMax
+workers, when separately authorized, produce bounded worker artifacts or worker
+PRs for PMT review. They do not merge, publish, deploy, restart, mutate
+secrets/config, close CStar lifecycle state, or bypass PMT/MM/CoS gates.
 
-Use the skill only after docs/runtime surfaces are accepted and CoS separately
-approves skill installation. Candidate trigger signals:
+## Required Metrics Schema
 
-- `Corvus Forge`
-- `SwarmForge dispatch packet`
-- `temporary production readiness`
-- `Researcher/PPR -> CStar bead -> GitHub issue`
-- `worker PR -> PMT review`
-- `live-fire proof`
-- `finalizer manifest sidecar`
+Metrics are mandatory. Each metric must include a stable `name` and explicit
+`threshold`. Recommended metric classes:
 
-## Inputs
+- `artifact_integrity`: required files, manifests, hashes, and receipt fields
+  are present.
+- `contract_compliance`: bead, issue, branch, target, authority lane, and
+  callback fields match the accepted packet.
+- `validation_evidence`: local checks, CStar result ids, and witness receipts
+  satisfy the task gate.
+- `safety_boundary`: prohibited actions, live-source limits, no-main/no-master,
+  and dirty-root isolation are preserved.
+- `quality_bar`: output is usable for PMT review without stale lifecycle claims,
+  unverified finalizer assertions, or hidden model/source spend.
 
-Required inputs:
+Requests with no metrics or missing thresholds are rejected before any dispatch
+surface proof can be treated as usable.
 
-- CStar bead id and status.
-- GitHub issue link.
-- Corvus Focus Charter scope classification: `active`,
-  `business-separated`, `parked/watch-only`, or `reactivation-requested`.
-- PMT work branch.
-- Worker branch and worker PR target branch.
-- Decision id and decision scope.
-- Retry budget and retry spent.
-- Isolated repo root and prohibited repo roots.
-- YOLO/headless policy.
-- Validation commands.
-- Expected receipts, artifact manifest, and CStar Console witness evidence.
-- Escalation class.
-- Proof artifact class: real code/test or docs/evidence.
-- `finalizer_source_mode`, with `packet_repo_root` for real code/test proofs
-  when the finalizer reads selected artifacts from the isolated packet repo.
-- Selected source/test target files and docs/evidence target files, kept as
-  separate lists.
-- JS/MJS/CJS syntax check commands such as `node --check <file>` for selected
-  runtime source/test targets.
-- Current MM thread id and PMT reporting path health.
-- Quota/runtime availability evidence, including appended turns without agent
-  response and any `systemError` or runtime failure text.
-- Authorized PR/package exact head SHA for any live-fire request.
-- Current PR/package head SHA and head drift classification.
-- Dirty-root status for each relevant repo and the isolated exact-head worktree
-  or clone used for validation.
-- MongoDB/host-sync mode, which defaults to non-mutating `ENV_GATED`, plus
-  explicit live authorization, `CSTAR_MONGO_URI`, and the required live flag when
-  live Mongo proof is requested.
-- Selected target artifact list and generated manifest sidecar list.
-- Finalizer-result proof fields: status/completion, finalizer-worker worktree,
-  worker branch, commit hash, `push_ok`, PR URL/state, changed files, target
-  paths, artifact source/root metadata, `isolated_runtime_root`, and
-  `prohibited_repo_roots`.
-- Manifest sidecar runtime fields: schema/version id, bead id, decision id,
-  finalizer id, source role, isolated runtime root, prohibited repo roots,
-  path/hash metadata, branch metadata, commit hash, push state, and PR state.
-- Exactly one complete allowed role artifact source for deterministic handoff.
+## Artifact And Callback Contract
 
-Optional inputs:
+A Forge dispatch packet must declare the artifacts expected from the worker or
+dry-run receipt. Acceptable artifacts include:
 
-- Prior worker receipts.
-- Existing CStar result ids.
-- PR #26 and PR #28 disposition notes.
-- Local bare-remote and fake-gh non-live integration test location.
-- Prior author/reviewer context when it is relevant and safe to summarize.
-- Skill inventory or hygiene report when changing Forge, Corvus, or PMT skills.
+- Dispatch receipt.
+- Worker boot packet.
+- Worker receipt.
+- Artifact manifest or generated manifest sidecar.
+- Local validation transcript or summary.
+- Worker PR link when live worker execution is separately authorized.
+- PMT review packet.
+- MM summary packet.
+- CoS decision packet.
 
-## Outputs
+Callbacks must name the expected packet and callback thread. Large logs should
+be packaged as bounded artifacts or digests; callbacks should carry the receipt
+id, changed-file scope, validation commands/results, CStar result ids when
+available, residual risk, and next gate.
 
-Allowed outputs:
+## Prohibited Actions Enforcement
 
-- Dispatch packet draft.
-- Worker boot packet draft.
-- PMT review checklist.
-- MM summary template.
-- CoS decision packet template.
-- Production-readiness checklist instance.
-- Stop-condition report.
-- Proposed CStar result closeout text.
-- Selected-artifact trailing whitespace, conflict marker, and selected-file diff
-  safety checklist.
-- Prefinalizer syntax/output-quality checklist.
-- Manifest sidecar schema checklist.
-- Finalizer-result truthfulness checklist.
-- Deep PR review packet: behavior, root cause or ownership boundary, fix
-  quality, proof checked, residual risk, and provenance when traceable.
-- Redacted evidence digest for public or durable handoff surfaces.
-- Decision-ready owner brief with recommendation, proof, tradeoffs, residual
-  risk, and exact choices.
-- Skill hygiene checklist for duplicate triggers, stale skills, unused workflow
-  rules, and prompt-budget pressure.
+The request must list prohibited actions. The following are prohibited by
+default unless the operator separately authorizes the exact action:
 
-Disallowed outputs:
-
-- Live dispatch.
-- GitHub merge or main/master publication.
-- Deploy/restart.
-- Secret/config mutation.
-- Destructive cleanup/reset/history rewrite.
-- Direct Hall/SQLite write.
-- Branch protection change.
-- Broad PMT memory rollout.
-- Durable skill installation.
+- Live Researcher, Forge, Hermes, MiniMax, browser, source-adapter, GitHub, RSS,
+  Grok/X, or model spend.
+- Merge, main/master publication, deploy, restart, branch protection change, or
+  broad PMT rollout.
+- Secret/config/token inspection, output, or mutation.
+- Destructive cleanup, reset, stash, deletion, checkout-over, or history
+  rewrite.
+- Direct Hall/SQLite write or CStar lifecycle bypass.
 - Dirty spoke-root mutation.
-- Treating MM/PMT non-response, quota exhaustion, or `systemError` as a PMT
-  verdict, design acceptance, or live-fire bypass.
-- Live-fire/model-spend during a coordination/runtime availability outage unless
-  CoS explicitly approves a narrow yellow exception.
-- Packet generation or model spend after exact-head/head drift is detected.
-- Cleanup, reset, stash, deletion, checkout over, overwrite, or mutation of
-  user-owned dirty-root work, including MongoDB/host-sync work in
-  `/home/morderith/Corvus/cstar-console`.
-- Live MongoDB proof without explicit authorization, `CSTAR_MONGO_URI`, and the
-  required live flag.
-- Counting docs/evidence or lint-only artifacts as the required real code/test
-  proof.
-- Forcing operational proof prose into runtime source/test files.
-- Proceeding with missing `finalizer_source_mode`, ambiguous default source
-  selection, or multiple possible artifact sources.
-- Running a finalizer command, mutating a worker worktree, committing, pushing,
-  or opening a worker PR after JS/MJS/CJS syntax, trailing whitespace, conflict
-  marker, selected-file diff safety, manifest, or verified finalization failure.
+- Codex-worker fallback or ad hoc shell execution as implementation.
 
-## Gates
+If requested actions conflict with prohibited actions or red-gate patterns, the
+request is rejected. If live spend is requested without operator authorization,
+the receipt remains `dry_run_no_spend` with fail-closed semantics.
 
-- Green: draft packets, docs-only checklist instances, local validation command
-  recommendations, PR body templates, and review summaries.
-- Yellow: CStar control-plane behavior, automation behavior, MCP degraded
-  fallback, SwarmForge dispatch, branch/PR routing, generated sidecar policy,
-  evidence consistency exceptions, and any live-fire preparation.
-- Red: merge/main publication, deploy/restart, secret/config mutation,
-  destructive cleanup, direct Hall/SQLite write, branch protection changes,
-  runtime authority model changes, broad rollout, or live-fire without CoS/CEO
-  approval.
+## No-Spend And Live-Spend Semantics
+
+The default mode is no spend. In no-spend or dry-run mode,
+`cstar_forge_request` may return a receipt proving that the contract is complete
+and this authorized surface exists, but `dispatch_execution.attempted` remains
+`false`, `live_spend` remains `false`, `live_source_collection` remains `false`,
+and `codex_worker_fallback_allowed` remains `false`.
+
+Live Forge execution requires all of the following:
+
+- Operator authorization reference in the spend policy.
+- Accepted CStar bead or decision id.
+- Current PMT owner and callback thread.
+- Complete required metrics and artifact expectations.
+- Explicit prohibited-action list.
+- Exact branch/PR/target and validation gates when source work is involved.
+- PMT/MM/CoS approval for any yellow/red action.
+
+Even when live authorization exists, execution must occur only through the
+authorized Corvus Forge/Hermes/MiniMax dispatch surface. The MCP request
+primitive returns a compact receipt; the execution primitive consumes that
+receipt and may invoke the approved adapter only after the contract is proven.
+
+## Execution Primitive Contract
+
+`cstar_forge_execute` is the dedicated execution-gate primitive. It consumes or
+references a `cstar_forge_request` receipt and revalidates the bead, decision,
+owner PMT thread, callback thread, required metrics, artifact expectations,
+prohibited actions, package/hash locks, retry policy, and spend policy before
+any execution can be considered.
+
+No-op mode is allowed for contract proof only. It must return a receipt showing
+no live spend, no live source collection, no adapter invocation, and no
+Codex-worker fallback.
+
+Live-authorized mode requires an explicit operator authorization reference and
+a registered Forge/Hermes/MiniMax execution adapter. Approved adapter
+references are `cstar-forge-hermes-minimax-adapter` for response-only evidence
+packets and `cstar-forge-hermes-minimax-worker-adapter` for bounded file-manifest
+worker execution. Both are backed by this spec and the pipeline playbook, and
+both explicitly forbid Codex-worker fallback.
+
+If the adapter is missing, unapproved, or not registered, `cstar_forge_execute`
+must fail closed with a machine-readable blocker instead of calling
+`cstar_autobot`, a Codex worker, or an ad hoc shell command. If the adapter is
+registered and live authorization is supplied, the execution primitive invokes
+the adapter through the sealed Forge intent packet. The adapter result is
+reported as execution evidence. The response-only adapter may write the adapter
+response artifact, cost ledger, and lock only. It must fail closed with
+`adapter_lacks_implementation_write_capability` for build/package/source-mutation
+requests. The worker adapter must validate a strict file manifest, keep all
+writes inside the sealed project/target roots, and then emit the same execution
+packet contract. Live adapter output must be captured as a
+durable response artifact with path, bytes, and sha256 in the execution receipt;
+the response must carry the Forge execution packet fields `status`, `summary`,
+`files_changed` as an array, structured `artifacts`, structured `validation`,
+structured `metrics`, structured `boundaries`, and optional `callback_packet`.
+Success-like statuses must not claim changed files or artifact paths that are
+missing from the bounded evidence roots. Missing path evidence and advisory-only
+PMT-review packets fail closed as `adapter_degraded`.
+PMT review and the callback contract remain required before any acceptance
+claim.
+
+The execution primitive must reject mismatched request receipt linkage,
+mismatched bead or decision ids, conflicting requested/prohibited actions,
+missing metrics, missing callback contract, inconsistent package locks, and
+retry-policy violations.
 
 ## Operating Rules
 
-- The skill must preserve the route:
+- Preserve route:
   `Researcher/PPR -> CStar bead -> GitHub issue -> PMT work branch -> Hermes MiniMax SwarmForge -> worker branch -> worker PR -> PMT review -> MM summary -> CoS decision`.
-- The skill must require Corvus Focus Charter scope classification before
-  packet assembly. Parked/watch-only work cannot enter live-fire, PMT, or
-  worker execution unless Morderith explicitly reactivates it and CStar can
-  represent the reactivation gate.
-- The skill must require packaging mode: `PR_REQUIRED`,
+- Require packaging mode: `PR_REQUIRED`,
   `LOCAL_EXCEPTION_WITH_FOLLOWUP_PR`, or `NO_GITHUB_DOCS_ONLY`.
-- The skill must state that GitHub Actions are advisory/non-blocking unless a
-  repo separately opts into them.
-- The skill must prefer PMT local validation, CStar result ids, and CStar
-  Console witness receipts/status as primary evidence.
-- The skill must enforce one finalizer, branch ownership lock, retry
-  budget/spent, explicit YOLO/headless policy, and no worker PR target to
-  `main` or `master`.
-- The skill must require that finalizer manifest sidecars stay constrained,
-  validated, reviewed, and excluded from operator `max_changed_files` only when
-  they are generated from derived target paths.
-- The skill must require direct whitespace and conflict-marker scans over
-  selected target artifacts and generated manifest sidecars, including
-  untracked role-worktree artifacts, before finalizer success, commit, push, or
-  PR creation.
-- The skill must distinguish real code/test proof targets from docs/evidence
-  targets. Real code/test targets may be source/test files and generated
-  manifest sidecars; docs/evidence targets remain subject to stricter proof
-  narrative, stale-lifecycle, retry/decision, finalizer truthfulness, and
-  manifest evidence strictness.
-- The skill must not count docs/evidence or lint-only work as the required
-  Proof 3 real code/test proof, and must not require operational proof prose
-  inside runtime source/test files.
-- The skill must require `finalizer_source_mode` when proof shape depends on
-  artifact source selection. Real code/test proofs normally declare
-  `packet_repo_root`. Missing source mode, default source selection ambiguity, or
-  multiple source candidates stop before finalizer mutation.
-- The skill must require safe prefinalizer JS/MJS/CJS syntax gates such as
-  `node --check <file>` before finalizer command execution, worker worktree
-  mutation, commit, push, or worker PR creation. Runnable non-live tests should
-  run when dependency-safe; live MongoDB, secrets, config, and host-sync paths
-  remain `ENV_GATED`.
-- The skill must require selected-file safety directly over selected targets and
-  manifest sidecars: trailing whitespace, conflict marker text, selected-file
-  diff safety, and allowed target scope independent of Git tracking state.
-- The skill must make finalizer templates mirror prefinalizer syntax and
-  selected-file safety checks before staging, commit, push, or PR creation.
-- The skill must reject role-authored unverified finalizer success claims. No
-  finalizer success is accepted without finalizer-result status/completion,
-  verified finalization, `finalizer_source_mode`, `packet_repo_root` when used,
-  finalizer-worker worktree, worker branch, commit hash, `push_ok`, PR URL/state,
-  changed files, target paths, artifact source/root metadata,
-  `isolated_runtime_root`, and `prohibited_repo_roots`.
-- The skill must preserve the metadata/access split: prohibited roots remain
-  evidence metadata while worker-facing access paths and commands use isolated
-  runtime roots.
-- The skill must hand exactly one complete allowed role artifact source to the
-  finalizer. Zero sources, multiple sources, missing runtime metadata, or guard
-  failures stop before PR creation.
-- The skill must name local bare-remote plus fake-gh coverage for
-  finalizer-worker branch ownership, commit, push, and PR mechanics before any
-  live-fire proof is counted.
-- The skill must classify appended MM/PMT turns without agent response, quota
-  exhaustion evidence, or `systemError` runtime failure as a yellow
-  coordination/runtime availability gate. Non-response is never acceptance.
-- The skill must stop live-fire/model-spend until the MM/PMT reporting path is
-  healthy or CoS explicitly approves a narrow yellow exception. Non-live,
-  read-only, and docs consolidation may continue under CoS direction during the
-  outage.
-- The skill must require every live-fire authorization to name an exact
-  PR/package head SHA, compare it immediately before prelaunch, and fail before
-  packet generation or model spend if head drift is detected.
-- The skill must classify user-owned branch advancement and revalidate it in an
-  isolated exact-head environment before treating it as a new base.
-- The skill must protect dirty roots and user-owned work from cleanup, reset,
-  stash, deletion, checkout-over, overwrite, or mutation. Review and prelaunch
-  use isolated clones or worktrees when local roots are dirty or shifting.
-- The skill must keep MongoDB/host-sync checks non-mutating/`ENV_GATED` unless
-  live Mongo proof is separately authorized with `CSTAR_MONGO_URI` and the
-  required live flag. Forge live-fire and docs validation do not imply live Mongo
-  authorization.
-- The skill must require a deep PR review packet before accepting non-trivial
-  PMT/worker PRs or CoS merge decisions. The packet must state the behavior or
-  bug class, the root cause or ownership boundary when known, the best bounded
-  fix, proof checked, residual risk, and provenance when traceable.
-- The skill must produce redacted evidence digests instead of raw transcripts
-  for public PR bodies, CStar ledgers, or durable review artifacts. Evidence
-  digests may include visible decisions, validation commands, result ids,
-  artifact hashes, PR links, and blockers; they must exclude secrets, raw tool
-  dumps, unrelated local paths, private session content, and hidden prompts.
-- The skill must make owner questions decision-ready. It must not ask for
-  `merge`, `close`, `waive`, or `provide access` using only a URL or status
-  label; it must include recommendation, proof, tradeoffs, residual risk, and
-  exact choices.
-- The skill must preserve explicit-file packaging discipline. Commits,
-  finalizer staging, and generated manifest sidecars must name exact target
-  paths. Broad staging such as `git add .` is not acceptable for Forge-controlled
-  work.
-- The skill must include skill hygiene before broad rollout or skill mutation:
-  check duplicate triggers, stale local copies, unused rules, and prompt-budget
-  pressure, then keep only rules that improve the active Corvus route.
-- The skill must preserve runtime binding. Any CoS/MM/PMT/worker prompt that
-  asks for Forge review, PR readiness, live-fire, or merge decisions must carry
-  the relevant CStar gates inline, because downstream agents may not read the
-  full CStar docs. If a thread cannot see the local `corvus-forge` skill or the
-  CStar docs, it must receive the exact gate excerpt in the prompt.
+- Treat GitHub Actions as advisory/non-blocking unless a repo explicitly opts
+  into them.
+- Use PMT local validation, CStar result ids, and CStar Console witness receipts
+  as primary validation evidence.
+- Require exact-head validation and dirty-root isolation.
+- Require branch ownership locks and no worker PR target to `main` or `master`.
+- Preserve ENV_GATED handling for MongoDB, secrets, config, host-sync, or other
+  live-system checks.
 
 ## Installation Posture
 
-Do not install this as a durable Codex skill yet. The acceptance order is:
-
-1. Review and accept these docs.
-2. Accept required CStar/cstar-console runtime surfaces.
-3. Validate non-live proof flows.
-4. Obtain separate CoS approval for skill installation.
-5. Install as a recall wrapper only, with no hidden execution authority.
+Do not install or treat Corvus Forge as a durable hidden dispatcher from this
+document alone. Durable skill installation, live dispatch, and broad PMT rollout
+require separate CoS/user approval after docs/runtime surfaces and non-live
+proofs are accepted.

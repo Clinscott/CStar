@@ -23,6 +23,8 @@ dotenv.config({ path: path.join(PROJECT_ROOT, '.env') });
 
 import { registry } from './pennyone/pathRegistry.js';
 import { selectCouncilExpert } from '../core/council_experts.js';
+import { buildPersonaAdvice, type PersonaAdvice } from '../core/persona_advice.js';
+import { activePersona, resolvePersonaPolicy } from './pennyone/personaRegistry.js';
 import { 
     buildTraceAgentHandoffPayload, 
     resolveActivePlanningSession,
@@ -172,6 +174,49 @@ interface McpTextResponse {
     isError?: boolean;
 }
 
+type McpGuardrailVerdict = 'allow' | 'caution' | 'block';
+type McpGuardrailAction = 'continue' | 'recover' | 'repair' | 'verify' | 'refuse';
+
+interface McpGuardrailPayload {
+    verdict: McpGuardrailVerdict;
+    action: McpGuardrailAction;
+    reason: string;
+    failed_checks: string[];
+    warning_checks: string[];
+}
+
+interface McpMutationPayload {
+    kind: string;
+    persisted: boolean;
+    record_id?: string;
+    guardrail: McpGuardrailPayload;
+}
+
+function mcpGuardrail(
+    verdict: McpGuardrailVerdict,
+    action: McpGuardrailAction,
+    reason: string,
+    failedChecks: string[] = [],
+    warningChecks: string[] = [],
+): McpGuardrailPayload {
+    return {
+        verdict,
+        action,
+        reason,
+        failed_checks: failedChecks,
+        warning_checks: warningChecks,
+    };
+}
+
+function mcpMutation(kind: string, recordId: string | undefined, reason: string): McpMutationPayload {
+    return {
+        kind,
+        persisted: true,
+        ...(recordId ? { record_id: recordId } : {}),
+        guardrail: mcpGuardrail('allow', 'continue', reason),
+    };
+}
+
 type KernelCouncilExpert = {
     signature_question?: string;
     anti_behavior?: string[];
@@ -252,6 +297,849 @@ interface SpokeAnchor {
     repoId: string;
     spoke: HallMountedSpokeRecord | null;
     metadata: Record<string, unknown> | null;
+}
+
+type DispatchRequestKind = 'researcher' | 'forge';
+type DispatchSpendMode = 'no_spend' | 'dry_run' | 'live_authorized';
+
+interface DispatchMetricContract {
+    name: string;
+    threshold: string;
+    acceptance_rule?: string;
+    unit?: string;
+}
+
+interface DispatchSpendPolicy {
+    mode: DispatchSpendMode;
+    max_retries?: number;
+    live_source_allowed?: boolean;
+    operator_authorization_ref?: string;
+}
+
+interface DispatchPackageLock {
+    path: string;
+    sha256: string;
+}
+
+interface DispatchCallbackContract {
+    expected_packet: string;
+    callback_required?: boolean;
+    callback_thread_id?: string;
+}
+
+interface DispatchRequestArgs {
+    bead_id?: string;
+    decision_id?: string;
+    owner_pmt_thread_id: string;
+    source_callback_thread_id: string;
+    objective: string;
+    prompt?: string;
+    target_paths?: string[];
+    system_under_test?: string;
+    scope: string;
+    authority_lane: 'green' | 'yellow' | 'red';
+    required_metrics: DispatchMetricContract[];
+    artifact_expectations: string[];
+    prohibited_actions: string[];
+    requested_actions?: string[];
+    spend_policy: DispatchSpendPolicy;
+    live_source_policy?: string;
+    retry_policy?: {
+        budget: number;
+        spent?: number;
+    };
+    callback_contract: DispatchCallbackContract;
+    package_locks?: DispatchPackageLock[];
+    dispatch_surface_ref?: string;
+}
+
+type ForgeExecutionMode = 'no_op' | 'live_authorized';
+
+interface ForgeExecutionArgs extends DispatchRequestArgs {
+    forge_request_receipt_id: string;
+    forge_request_decision_id: string;
+    forge_request_bead_id?: string;
+    execution_mode: ForgeExecutionMode;
+    execution_adapter_ref?: string;
+    operator_authorization_ref?: string;
+}
+
+const FORGE_EXECUTION_ADAPTERS = [
+    {
+        ref: 'cstar-forge-hermes-minimax-adapter',
+        name: 'CStar Forge Hermes MiniMax adapter',
+        contract_surface: 'docs/operations/corvus-forge-skill-spec.md',
+        playbook_surface: 'docs/operations/corvus-forge-pipeline-playbook.md',
+        invocation: 'operator_authorized_live_gate',
+        default_script: '.agents/skills/autobot/scripts/delegate.py',
+        write_capability: 'response_only',
+        codex_worker_fallback_allowed: false,
+    },
+    {
+        ref: 'cstar-forge-hermes-minimax-worker-adapter',
+        name: 'CStar Forge Hermes MiniMax worker adapter',
+        contract_surface: 'docs/operations/corvus-forge-skill-spec.md',
+        playbook_surface: 'docs/operations/corvus-forge-pipeline-playbook.md',
+        invocation: 'operator_authorized_live_gate',
+        default_script: '.agents/skills/corvus-forge/scripts/forge_worker_adapter.py',
+        write_capability: 'project_files',
+        codex_worker_fallback_allowed: false,
+    },
+];
+
+const DISPATCH_RED_ACTION_PATTERNS = [
+    /\bmerge\b/i,
+    /\bpush\b/i,
+    /\bmain\b/i,
+    /\bmaster\b/i,
+    /\bdeploy\b/i,
+    /\brestart\b/i,
+    /\bsecret\b/i,
+    /\bconfig\b/i,
+    /\bdirect\s+hall\b/i,
+    /\bsqlite\b/i,
+    /\bdelete\b/i,
+    /\bdestructive\b/i,
+];
+
+function makeDispatchDecisionId(kind: DispatchRequestKind, args: DispatchRequestArgs): string {
+    if (args.decision_id?.trim()) {
+        return args.decision_id.trim();
+    }
+    const base = (args.bead_id || args.objective || kind)
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 48) || kind;
+    return `decision-${kind}-${base}-${Date.now().toString(36)}`;
+}
+
+function normalizeActionList(values: string[] | undefined): string[] {
+    return (values ?? [])
+        .map((value) => value.trim())
+        .filter(Boolean);
+}
+
+function findDispatchValidationError(args: DispatchRequestArgs): string | null {
+    if (!args.bead_id?.trim() && !args.decision_id?.trim()) {
+        return 'bead_id or decision_id is required';
+    }
+    if (!args.owner_pmt_thread_id?.trim()) {
+        return 'owner_pmt_thread_id is required';
+    }
+    if (!args.source_callback_thread_id?.trim()) {
+        return 'source_callback_thread_id is required';
+    }
+    if (!args.objective?.trim()) {
+        return 'objective is required';
+    }
+    if (!args.scope?.trim()) {
+        return 'scope is required';
+    }
+    if (!Array.isArray(args.required_metrics) || args.required_metrics.length === 0) {
+        return 'required_metrics must include at least one metric with an acceptance threshold';
+    }
+    for (const metric of args.required_metrics) {
+        if (!metric.name?.trim() || !metric.threshold?.trim()) {
+            return 'each required_metrics entry needs name and threshold';
+        }
+    }
+    if (!Array.isArray(args.artifact_expectations) || args.artifact_expectations.filter(Boolean).length === 0) {
+        return 'artifact_expectations must include at least one expected artifact/report/package';
+    }
+    if (!Array.isArray(args.prohibited_actions) || args.prohibited_actions.filter(Boolean).length === 0) {
+        return 'prohibited_actions must explicitly list blocked actions';
+    }
+    if (!args.callback_contract?.expected_packet?.trim()) {
+        return 'callback_contract.expected_packet is required';
+    }
+    const retryBudget = args.retry_policy?.budget;
+    const retrySpent = args.retry_policy?.spent ?? 0;
+    if (retryBudget !== undefined && (retryBudget < 0 || retrySpent < 0 || retrySpent > retryBudget)) {
+        return 'retry_policy must have non-negative budget/spent and spent must not exceed budget';
+    }
+    const requested = normalizeActionList(args.requested_actions).map((value) => value.toLowerCase());
+    const prohibited = normalizeActionList(args.prohibited_actions).map((value) => value.toLowerCase());
+    const conflictingAction = requested.find((action) =>
+        prohibited.some((blocked) => action.includes(blocked) || blocked.includes(action))
+            || DISPATCH_RED_ACTION_PATTERNS.some((pattern) => pattern.test(action)),
+    );
+    if (conflictingAction) {
+        return `requested action is prohibited or red-gated: ${conflictingAction}`;
+    }
+    const liveRequested = args.spend_policy.mode === 'live_authorized'
+        || args.spend_policy.live_source_allowed === true;
+    if (liveRequested && !args.spend_policy.operator_authorization_ref?.trim()) {
+        return 'live spend/source policy requires operator_authorization_ref';
+    }
+    return null;
+}
+
+function resolveDispatchSurface(kind: DispatchRequestKind, args: DispatchRequestArgs, root: string) {
+    const candidates = args.dispatch_surface_ref
+        ? [args.dispatch_surface_ref]
+        : kind === 'researcher'
+            ? ['.agents/skills/researcher/SKILL.md']
+            : [
+                'docs/operations/corvus-forge-skill-spec.md',
+                'docs/operations/corvus-forge-pipeline-playbook.md',
+            ];
+    const proofs = candidates.map((candidate) => {
+        const absolute = path.resolve(root, candidate);
+        return {
+            ref: candidate,
+            path: absolute,
+            exists: fs.existsSync(absolute),
+            inside_project: isPathInside(absolute, root) || absolute === path.resolve(root),
+        };
+    });
+    const found = proofs.find((proof) => proof.exists && proof.inside_project) ?? null;
+    return {
+        requested_ref: args.dispatch_surface_ref ?? null,
+        found: found !== null,
+        selected: found,
+        checked: proofs,
+    };
+}
+
+function hasDuplicatePackageLockMismatch(locks: DispatchPackageLock[] | undefined): boolean {
+    const seen = new Map<string, string>();
+    for (const lock of locks ?? []) {
+        const key = lock.path.trim();
+        const value = lock.sha256.trim();
+        const existing = seen.get(key);
+        if (existing !== undefined && existing !== value) {
+            return true;
+        }
+        seen.set(key, value);
+    }
+    return false;
+}
+
+function findForgeExecutionValidationError(args: ForgeExecutionArgs): string | null {
+    const baseError = findDispatchValidationError(args);
+    if (baseError) {
+        return baseError;
+    }
+    if (!args.forge_request_receipt_id?.trim()) {
+        return 'forge_request_receipt_id is required';
+    }
+    if (!args.forge_request_receipt_id.startsWith('dispatch-forge-')) {
+        return 'forge_request_receipt_id must reference a cstar_forge_request receipt';
+    }
+    if (!args.forge_request_decision_id?.trim()) {
+        return 'forge_request_decision_id is required';
+    }
+    if (args.decision_id?.trim() && args.decision_id.trim() !== args.forge_request_decision_id.trim()) {
+        return 'decision_id must match forge_request_decision_id';
+    }
+    if (args.bead_id?.trim() && args.forge_request_bead_id?.trim() && args.bead_id.trim() !== args.forge_request_bead_id.trim()) {
+        return 'bead_id must match forge_request_bead_id';
+    }
+    if (hasDuplicatePackageLockMismatch(args.package_locks)) {
+        return 'package_locks contain inconsistent hashes for the same path';
+    }
+    if (args.execution_mode === 'live_authorized' && !args.operator_authorization_ref?.trim()) {
+        return 'live Forge execution requires operator_authorization_ref';
+    }
+    return null;
+}
+
+function resolveForgeExecutionAdapter(args: ForgeExecutionArgs) {
+    const requested = args.execution_adapter_ref?.trim() || null;
+    const proofs = FORGE_EXECUTION_ADAPTERS.map((adapter) => ({
+        ...adapter,
+        requested: requested === adapter.ref,
+        authorized: requested === adapter.ref,
+    }));
+    const selected = requested
+        ? proofs.find((adapter) => adapter.ref === requested && adapter.authorized) ?? null
+        : null;
+    return {
+        requested_ref: requested,
+        found: selected !== null,
+        selected,
+        checked: requested
+            ? proofs.length > 0
+                ? proofs
+                : [{ ref: requested, authorized: false, reason: 'no approved Forge/Hermes/MiniMax execution adapter is registered' }]
+            : proofs.map((adapter) => ({ ...adapter, authorized: false, reason: 'execution_adapter_ref is required for live execution' })),
+    };
+}
+
+function inferForgeAdapterProjectRoot(args: ForgeExecutionArgs, root: string): string {
+    for (const target of args.target_paths ?? []) {
+        const absolute = path.isAbsolute(target) ? target : path.resolve(root, target);
+        try {
+            const stat = fs.existsSync(absolute) ? fs.statSync(absolute) : null;
+            const gitRoot = findNearestGitRoot(stat?.isFile() ? path.dirname(absolute) : absolute);
+            if (gitRoot) {
+                return gitRoot;
+            }
+            if (stat?.isDirectory()) {
+                return absolute;
+            }
+            if (stat?.isFile()) {
+                return path.dirname(absolute);
+            }
+        } catch {
+            continue;
+        }
+    }
+    return root;
+}
+
+function findNearestGitRoot(start: string): string | null {
+    let current = path.resolve(start);
+    while (true) {
+        if (fs.existsSync(path.join(current, '.git'))) {
+            return current;
+        }
+        const parent = path.dirname(current);
+        if (parent === current) {
+            return null;
+        }
+        current = parent;
+    }
+}
+
+function forgeExecutionPathSegment(value: string): string {
+    return value.replace(/[^A-Za-z0-9._-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 160) || 'forge-execution';
+}
+
+function forgeAdapterResponsePath(root: string, executionReceiptId: string): string {
+    const artifactRoot = process.env.CSTAR_FORGE_EXECUTION_ARTIFACT_ROOT?.trim()
+        || path.join(root, 'work', 'forge-executions');
+    return path.join(artifactRoot, forgeExecutionPathSegment(executionReceiptId), 'adapter-response.json');
+}
+
+function buildForgeAdapterIntent(
+    args: ForgeExecutionArgs,
+    decisionId: string,
+    executionReceiptId: string,
+    root: string,
+    adapterResponsePath: string,
+): Record<string, unknown> {
+    const expectedPacket = args.callback_contract.expected_packet;
+    const intentLines = [
+        'You are the approved Corvus Forge Hermes MiniMax adapter for a CStar-controlled Forge execution.',
+        'Execute only the bounded assignment below and return a compact JSON execution packet.',
+        '',
+        `Decision id: ${decisionId}`,
+        `Bead id: ${args.bead_id ?? args.forge_request_bead_id ?? 'none'}`,
+        `Forge request receipt: ${args.forge_request_receipt_id}`,
+        `Forge execute receipt: ${executionReceiptId}`,
+        `Owner PMT thread: ${args.owner_pmt_thread_id}`,
+        `Source callback thread: ${args.source_callback_thread_id}`,
+        `Objective: ${args.objective}`,
+        args.prompt ? `Prompt: ${args.prompt}` : '',
+        `Scope: ${args.scope}`,
+        `Authority lane: ${args.authority_lane}`,
+        '',
+        'Required metrics:',
+        ...args.required_metrics.map((metric) => `- ${metric.name}: ${metric.threshold}${metric.unit ? ` ${metric.unit}` : ''}${metric.acceptance_rule ? ` (${metric.acceptance_rule})` : ''}`),
+        '',
+        'Artifact expectations:',
+        ...normalizeActionList(args.artifact_expectations).map((item) => `- ${item}`),
+        '',
+        'Requested actions:',
+        ...normalizeActionList(args.requested_actions).map((item) => `- ${item}`),
+        '',
+        'Prohibited actions:',
+        ...normalizeActionList(args.prohibited_actions).map((item) => `- ${item}`),
+        '',
+        `Callback packet: ${expectedPacket}`,
+        'Do not use Codex-worker fallback. Do not collect live sources unless explicitly authorized. Do not mutate secrets/config. Do not write Hall/SQLite directly.',
+        `Your JSON response will be persisted by the adapter at: ${adapterResponsePath}`,
+        '',
+        'Return JSON only with: status, summary, files_changed, artifacts, validation, metrics, boundaries, callback_packet.',
+    ].filter(Boolean);
+
+    return {
+        intent: intentLines.join('\n'),
+        project_root: inferForgeAdapterProjectRoot(args, root),
+        target_paths: args.target_paths ?? [],
+        payload: {
+            hermes_profile: 'cstar-hub',
+            model: 'MiniMax-M3',
+            expected_output: 'json',
+            max_chars: 8000,
+            session_name: null,
+            write_to: adapterResponsePath,
+            append_with_separator: null,
+            tags: [
+                'cstar-forge-execute',
+                args.bead_id ?? args.forge_request_bead_id ?? 'no-bead',
+                decisionId,
+            ],
+            timeout_seconds: Math.max(300, Math.min(1800, (args.retry_policy?.budget ?? args.spend_policy.max_retries ?? 1) * 300 + 300)),
+        },
+    };
+}
+
+function parseAdapterEnvelope(stdout: string): Record<string, any> | null {
+    try {
+        const parsed = JSON.parse(stdout);
+        return parsed && typeof parsed === 'object' ? parsed as Record<string, any> : null;
+    } catch {
+        return null;
+    }
+}
+
+function forgeExecutionRequiresImplementationWrites(args: ForgeExecutionArgs): boolean {
+    const text = [
+        args.objective,
+        args.prompt ?? '',
+        ...normalizeActionList(args.requested_actions),
+        ...normalizeActionList(args.artifact_expectations),
+    ].join('\n').toLowerCase();
+    return /\b(build|implement|create|edit|modify|mutate|write|generate|package|tarball)\b/.test(text);
+}
+
+function isStructuredEvidenceField(value: unknown): value is Record<string, unknown> | unknown[] {
+    return (Array.isArray(value) || (!!value && typeof value === 'object'));
+}
+
+function structuredEvidenceCount(value: Record<string, unknown> | unknown[]): number {
+    return Array.isArray(value) ? value.length : Object.keys(value).length;
+}
+
+function isSuccessAdapterStatus(status: string): boolean {
+    return ['accepted', 'ok', 'pass', 'passed', 'success', 'succeeded'].includes(status.trim().toLowerCase());
+}
+
+function looksLikePathClaim(value: string): boolean {
+    const trimmed = value.trim();
+    if (!trimmed || /^[a-f0-9]{64}$/i.test(trimmed)) {
+        return false;
+    }
+    return trimmed.includes('/') || trimmed.includes('\\') || trimmed.startsWith('.') || /^[A-Za-z]:[\\/]/.test(trimmed);
+}
+
+function collectArtifactPathClaims(value: unknown): string[] {
+    if (typeof value === 'string') {
+        return looksLikePathClaim(value) ? [value] : [];
+    }
+    if (Array.isArray(value)) {
+        return value.flatMap((entry) => collectArtifactPathClaims(entry));
+    }
+    if (value && typeof value === 'object') {
+        return Object.values(value as Record<string, unknown>).flatMap((entry) => collectArtifactPathClaims(entry));
+    }
+    return [];
+}
+
+function claimedPathExists(claim: string, evidenceRoots: string[]): boolean {
+    const candidates = path.isAbsolute(claim)
+        ? [claim]
+        : evidenceRoots.map((root) => path.resolve(root, claim));
+    return candidates.some((candidate) => {
+        try {
+            return fs.existsSync(candidate);
+        } catch {
+            return false;
+        }
+    });
+}
+
+function validateForgeAdapterResponseContract(
+    raw: string,
+    evidenceRoots: string[],
+): { ok: boolean; error: string | null; summary: Record<string, unknown> | null } {
+    let parsed: unknown;
+    try {
+        parsed = JSON.parse(raw);
+    } catch {
+        return { ok: false, error: 'adapter_response_not_json', summary: null };
+    }
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        return { ok: false, error: 'adapter_response_not_object', summary: null };
+    }
+    const obj = parsed as Record<string, unknown>;
+    if (typeof obj.status !== 'string' || !obj.status.trim()) {
+        return { ok: false, error: 'adapter_response_missing_status', summary: null };
+    }
+    if (typeof obj.summary !== 'string' || !obj.summary.trim()) {
+        return { ok: false, error: 'adapter_response_missing_summary', summary: null };
+    }
+    if (!Array.isArray(obj.files_changed)) {
+        return { ok: false, error: 'adapter_response_missing_files_changed', summary: null };
+    }
+    for (const field of ['artifacts', 'validation', 'metrics', 'boundaries']) {
+        if (!isStructuredEvidenceField(obj[field])) {
+            return { ok: false, error: `adapter_response_missing_${field}`, summary: null };
+        }
+    }
+    if (obj.callback_packet !== undefined && typeof obj.callback_packet !== 'string') {
+        return { ok: false, error: 'adapter_response_invalid_callback_packet', summary: null };
+    }
+    const filesChanged = obj.files_changed as unknown[];
+    if (!filesChanged.every((entry) => typeof entry === 'string')) {
+        return { ok: false, error: 'adapter_response_invalid_files_changed', summary: null };
+    }
+    if (isSuccessAdapterStatus(obj.status)) {
+        const claimedPaths = [
+            ...filesChanged,
+            ...collectArtifactPathClaims(obj.artifacts),
+        ].map((entry) => String(entry).trim()).filter(Boolean);
+        const missingClaims = claimedPaths.filter((claim) => !claimedPathExists(claim, evidenceRoots));
+        if (missingClaims.length > 0) {
+            return {
+                ok: false,
+                error: 'adapter_response_missing_claimed_path',
+                summary: {
+                    status: obj.status,
+                    missing_claimed_paths: missingClaims.slice(0, 10),
+                    missing_claimed_path_count: missingClaims.length,
+                },
+            };
+        }
+    }
+    const artifacts = obj.artifacts as Record<string, unknown> | unknown[];
+    const validation = obj.validation as Record<string, unknown> | unknown[];
+    const metrics = obj.metrics as Record<string, unknown> | unknown[];
+    const boundaries = obj.boundaries as Record<string, unknown> | unknown[];
+    return {
+        ok: true,
+        error: null,
+        summary: {
+            status: obj.status,
+            files_changed_count: filesChanged.length,
+            artifacts_count: structuredEvidenceCount(artifacts),
+            validation_count: structuredEvidenceCount(validation),
+            metrics_count: structuredEvidenceCount(metrics),
+            boundaries_count: structuredEvidenceCount(boundaries),
+            callback_packet: obj.callback_packet ?? null,
+        },
+    };
+}
+
+async function invokeForgeHermesMinimaxAdapter(
+    args: ForgeExecutionArgs,
+    decisionId: string,
+    executionReceiptId: string,
+    root: string,
+    selectedAdapter: Record<string, any>,
+) {
+    const os = await import('node:os');
+    const fsp = await import('node:fs/promises');
+    const cp = await import('node:child_process');
+    const crypto = await import('node:crypto');
+    const tmpDir = await fsp.mkdtemp(path.join(os.tmpdir(), 'cstar-forge-execute-'));
+    const intentPath = path.join(tmpDir, 'forge-adapter-intent.json');
+    const responsePath = forgeAdapterResponsePath(root, executionReceiptId);
+    const intent = buildForgeAdapterIntent(args, decisionId, executionReceiptId, root, responsePath);
+    const projectRoot = typeof intent.project_root === 'string' ? intent.project_root : inferForgeAdapterProjectRoot(args, root);
+    await fsp.writeFile(intentPath, JSON.stringify(intent, null, 2));
+
+    const scriptPath = process.env.CSTAR_FORGE_HERMES_MINIMAX_ADAPTER_SCRIPT?.trim()
+        || path.join(root, selectedAdapter.default_script);
+    const timeoutSec = Number((intent.payload as Record<string, any>).timeout_seconds ?? 600);
+    const env = {
+        ...process.env,
+        CSTAR_FORGE_EXECUTE_RECEIPT_ID: executionReceiptId,
+        CSTAR_FORGE_REQUEST_RECEIPT_ID: args.forge_request_receipt_id,
+        CSTAR_FORGE_EXECUTE_DECISION_ID: decisionId,
+        CSTAR_FORGE_EXECUTE_ADAPTER_REF: selectedAdapter.ref,
+        HERMES_AUTOBOT_DELEGATED: '',
+        NODE_OPTIONS: '--max-old-space-size=2048 --expose-gc',
+    };
+
+    const result = cp.spawnSync('python3', [scriptPath, '--intent-file', intentPath], {
+        cwd: root,
+        encoding: 'utf-8',
+        timeout: (timeoutSec + 30) * 1000,
+        env,
+    });
+
+    try { await fsp.rm(tmpDir, { recursive: true, force: true }); } catch { /* best-effort */ }
+
+    const envelope = parseAdapterEnvelope(result.stdout || '');
+    let adapterStatus = envelope?.status ?? (result.error ? 'spawn_error' : result.status === 0 ? 'unknown' : 'nonzero_exit');
+    let responseArtifact: Record<string, unknown> | null = null;
+    let responseContract: Record<string, unknown> | null = null;
+    let artifactError: string | null = null;
+    const wroteTo = typeof envelope?.wrote_to === 'string' && envelope.wrote_to.trim()
+        ? envelope.wrote_to.trim()
+        : null;
+    if (wroteTo) {
+        try {
+            const data = await fsp.readFile(wroteTo);
+            const contract = validateForgeAdapterResponseContract(data.toString('utf-8'), [projectRoot, root]);
+            responseArtifact = {
+                path: wroteTo,
+                bytes: data.byteLength,
+                sha256: crypto.createHash('sha256').update(data).digest('hex'),
+            };
+            if (contract.ok) {
+                responseContract = contract.summary;
+            } else {
+                artifactError = contract.error;
+            }
+        } catch (err) {
+            artifactError = err instanceof Error ? err.message : String(err);
+        }
+    }
+    if (adapterStatus === 'ok' && !responseArtifact) {
+        adapterStatus = 'degraded';
+        artifactError = artifactError ?? 'adapter_response_artifact_missing';
+    }
+    if (adapterStatus === 'ok' && !responseContract) {
+        adapterStatus = 'degraded';
+        artifactError = artifactError ?? 'adapter_response_contract_invalid';
+    }
+    const liveSpend = typeof envelope?.live_spend === 'boolean'
+        ? envelope.live_spend
+        : adapterStatus === 'ok';
+    return {
+        adapter_ref: selectedAdapter.ref,
+        adapter_script: scriptPath,
+        invoked: true,
+        exit_status: result.status,
+        signal: result.signal,
+        status: adapterStatus,
+        live_spend: liveSpend,
+        live_source_collection: envelope?.live_source_collection === true,
+        envelope: envelope
+            ? {
+                status: envelope.status ?? null,
+                intent_id: envelope.intent_id ?? null,
+                duration_ms: envelope.duration_ms ?? null,
+                response_chars: envelope.response_chars ?? null,
+                est_prompt_tokens: envelope.est_prompt_tokens ?? null,
+                est_response_tokens: envelope.est_response_tokens ?? null,
+                model: envelope.model ?? null,
+                hermes_profile: envelope.hermes_profile ?? null,
+                wrote_to: envelope.wrote_to ?? null,
+                response_artifact: responseArtifact,
+                response_contract: responseContract,
+                ledger_entry: envelope.ledger_entry ?? null,
+                degraded_reason: envelope.degraded_reason ?? null,
+                live_spend: envelope.live_spend ?? null,
+                live_source_collection: envelope.live_source_collection ?? null,
+            }
+            : null,
+        error: result.error ? result.error.message : artifactError,
+        stderr_tail: (result.stderr || '').slice(-500),
+        stdout_tail: envelope ? null : (result.stdout || '').slice(-500),
+    };
+}
+
+export async function handleDispatchRequest(
+    kind: DispatchRequestKind,
+    args: DispatchRequestArgs,
+): Promise<McpTextResponse> {
+    try {
+        const validationError = findDispatchValidationError(args);
+        const decisionId = makeDispatchDecisionId(kind, args);
+        if (validationError) {
+            return textResponse({
+                status: 'rejected',
+                dispatch_kind: kind,
+                decision_id: decisionId,
+                bead_id: args.bead_id ?? null,
+                error: validationError,
+                guardrail: mcpGuardrail(
+                    'block',
+                    'refuse',
+                    'Dispatch request failed the CStar control-plane request contract.',
+                    ['dispatch_contract'],
+                    ['request_validation'],
+                ),
+            }, true);
+        }
+
+        const root = registry.getRoot();
+        const surface = resolveDispatchSurface(kind, args, root);
+        const liveAuthority = args.spend_policy.mode === 'live_authorized'
+            && Boolean(args.spend_policy.operator_authorization_ref)
+            && surface.found;
+        const receiptId = `dispatch-${kind}-${decisionId}-${Date.now().toString(36)}`;
+        const failClosedReason = !surface.found
+            ? 'missing_authorized_dispatch_surface'
+            : liveAuthority
+                ? null
+                : 'no_live_dispatch_authority';
+
+        return textResponse({
+            status: failClosedReason ? 'dry_run_no_spend' : 'ready_for_authorized_dispatch',
+            dispatch_kind: kind,
+            decision_id: decisionId,
+            receipt_id: receiptId,
+            bead_id: args.bead_id ?? null,
+            owner_pmt_thread_id: args.owner_pmt_thread_id,
+            source_callback_thread_id: args.source_callback_thread_id,
+            objective: args.objective,
+            prompt: args.prompt ?? null,
+            target_paths: args.target_paths ?? [],
+            system_under_test: args.system_under_test ?? null,
+            scope: args.scope,
+            authority_lane: args.authority_lane,
+            required_metrics: args.required_metrics,
+            artifact_expectations: args.artifact_expectations,
+            prohibited_actions: normalizeActionList(args.prohibited_actions),
+            requested_actions: normalizeActionList(args.requested_actions),
+            spend_policy: {
+                ...args.spend_policy,
+                live_source_allowed: args.spend_policy.live_source_allowed === true,
+            },
+            live_source_policy: args.live_source_policy ?? 'no live source collection unless separately authorized',
+            retry_policy: args.retry_policy ?? { budget: args.spend_policy.max_retries ?? 0, spent: 0 },
+            callback_contract: {
+                ...args.callback_contract,
+                callback_required: args.callback_contract.callback_required !== false,
+                callback_thread_id: args.callback_contract.callback_thread_id ?? args.source_callback_thread_id,
+            },
+            package_locks: args.package_locks ?? [],
+            authorized_dispatch_surface: surface,
+            dispatch_execution: {
+                attempted: false,
+                live_spend: false,
+                live_source_collection: false,
+                codex_worker_fallback_allowed: false,
+                fail_closed_reason: failClosedReason,
+            },
+            guardrail: mcpGuardrail(
+                failClosedReason ? 'caution' : 'allow',
+                failClosedReason ? 'verify' : 'continue',
+                failClosedReason
+                    ? 'Request recorded as a no-spend receipt; live dispatch is blocked until an authorized surface and operator approval are present.'
+                    : 'Request contract is complete and an authorized surface exists; live dispatch still requires the supplied operator authorization.',
+                failClosedReason ? [failClosedReason] : [],
+                ['dispatch_authority'],
+            ),
+            next_action: failClosedReason
+                ? 'Route this receipt to PMT/MM/CoS; do not substitute a Codex worker or ad hoc shell path.'
+                : `Dispatch through the authorized ${kind} surface only, then record CStar validation/result evidence.`,
+        });
+    } catch (error) {
+        return errorResponse(error);
+    }
+}
+
+export async function handleResearcherRequest(args: DispatchRequestArgs): Promise<McpTextResponse> {
+    return handleDispatchRequest('researcher', args);
+}
+
+export async function handleForgeRequest(args: DispatchRequestArgs): Promise<McpTextResponse> {
+    return handleDispatchRequest('forge', args);
+}
+
+export async function handleForgeExecute(args: ForgeExecutionArgs): Promise<McpTextResponse> {
+    try {
+        const validationError = findForgeExecutionValidationError(args);
+        const decisionId = args.forge_request_decision_id?.trim() || makeDispatchDecisionId('forge', args);
+        if (validationError) {
+            return textResponse({
+                status: 'rejected',
+                execution_kind: 'forge',
+                decision_id: decisionId,
+                bead_id: args.bead_id ?? args.forge_request_bead_id ?? null,
+                forge_request_receipt_id: args.forge_request_receipt_id ?? null,
+                error: validationError,
+                guardrail: mcpGuardrail(
+                    'block',
+                    'refuse',
+                    'Forge execution request failed the CStar execution contract.',
+                    ['forge_execution_contract'],
+                    ['request_validation'],
+                ),
+            }, true);
+        }
+
+        const root = registry.getRoot();
+        const surface = resolveDispatchSurface('forge', args, root);
+        const adapter = resolveForgeExecutionAdapter(args);
+        const failClosedReason = !surface.found
+            ? 'missing_authorized_dispatch_surface'
+            : args.execution_mode === 'no_op'
+                ? null
+                : !adapter.found
+                    ? 'missing_authorized_execution_adapter'
+                    : adapter.selected?.write_capability === 'response_only' && forgeExecutionRequiresImplementationWrites(args)
+                        ? 'adapter_lacks_implementation_write_capability'
+                    : null;
+        const status = args.execution_mode === 'no_op'
+            ? 'validated_noop'
+            : failClosedReason
+                ? 'blocked'
+                : 'ready_for_authorized_execution';
+        const executionReceiptId = `forge-execute-${decisionId}-${Date.now().toString(36)}`;
+        const adapterInvocation = (!failClosedReason && args.execution_mode === 'live_authorized' && adapter.selected)
+            ? await invokeForgeHermesMinimaxAdapter(args, decisionId, executionReceiptId, root, adapter.selected)
+            : null;
+        const finalStatus = adapterInvocation
+            ? adapterInvocation.status === 'ok'
+                ? 'executed'
+                : 'adapter_degraded'
+            : status;
+        const finalFailClosedReason = adapterInvocation && adapterInvocation.status !== 'ok'
+            ? `adapter_${adapterInvocation.status}`
+            : failClosedReason;
+        const isError = (finalFailClosedReason !== null && args.execution_mode !== 'no_op')
+            || finalStatus === 'adapter_degraded';
+
+        return textResponse({
+            status: finalStatus,
+            execution_kind: 'forge',
+            decision_id: decisionId,
+            execution_receipt_id: executionReceiptId,
+            forge_request_receipt_id: args.forge_request_receipt_id,
+            bead_id: args.bead_id ?? args.forge_request_bead_id ?? null,
+            owner_pmt_thread_id: args.owner_pmt_thread_id,
+            source_callback_thread_id: args.source_callback_thread_id,
+            objective: args.objective,
+            target_paths: args.target_paths ?? [],
+            scope: args.scope,
+            authority_lane: args.authority_lane,
+            required_metrics: args.required_metrics,
+            artifact_expectations: args.artifact_expectations,
+            prohibited_actions: normalizeActionList(args.prohibited_actions),
+            requested_actions: normalizeActionList(args.requested_actions),
+            spend_policy: {
+                ...args.spend_policy,
+                live_source_allowed: args.spend_policy.live_source_allowed === true,
+                operator_authorization_ref: args.operator_authorization_ref ?? args.spend_policy.operator_authorization_ref,
+            },
+            retry_policy: args.retry_policy ?? { budget: args.spend_policy.max_retries ?? 0, spent: 0 },
+            callback_contract: {
+                ...args.callback_contract,
+                callback_required: args.callback_contract.callback_required !== false,
+                callback_thread_id: args.callback_contract.callback_thread_id ?? args.source_callback_thread_id,
+            },
+            package_locks: args.package_locks ?? [],
+            authorized_dispatch_surface: surface,
+            authorized_execution_adapter: adapter,
+            forge_execution: {
+                mode: args.execution_mode,
+                attempted: adapterInvocation !== null,
+                live_spend: adapterInvocation?.live_spend === true,
+                live_source_collection: adapterInvocation?.live_source_collection === true,
+                codex_worker_fallback_allowed: false,
+                adapter_invoked: adapterInvocation !== null,
+                adapter_result: adapterInvocation,
+                fail_closed_reason: finalFailClosedReason,
+            },
+            guardrail: mcpGuardrail(
+                finalFailClosedReason ? 'block' : 'allow',
+                finalFailClosedReason ? 'refuse' : 'continue',
+                finalFailClosedReason
+                    ? 'Forge execution failed closed before an acceptable Forge adapter result was produced.'
+                    : args.execution_mode === 'no_op'
+                        ? 'Forge execution contract is validated without live spend.'
+                        : 'Forge execution ran through the approved adapter path under the supplied operator authorization.',
+                finalFailClosedReason ? [finalFailClosedReason] : [],
+                ['forge_execution_authority'],
+            ),
+            next_action: finalFailClosedReason
+                ? 'Do not substitute cstar_autobot, Codex workers, or ad hoc shell. Route the missing adapter repair to CStar PMT/CoS.'
+                : args.execution_mode === 'no_op'
+                    ? 'Use this no-op receipt as contract proof only; live Forge execution still requires a registered adapter and separate operator authorization.'
+                    : 'Review the adapter result, package artifacts, and callback packet through the owning PMT before acceptance.',
+        }, isError);
+    } catch (error) {
+        return errorResponse(error);
+    }
 }
 
 function textResponse(payload: unknown, isError = false): McpTextResponse {
@@ -393,9 +1281,9 @@ export function resolveAuguryCurrentIntentCategory(
     return matches[0] ?? null;
 }
 
-function callerRequestedActiveSessionContinuity(prompt: string, inferredIntent?: string): boolean {
+export function callerRequestedActiveSessionContinuity(prompt: string, inferredIntent?: string): boolean {
     const text = `${prompt} ${inferredIntent ?? ''}`.toLowerCase();
-    return /\b(active[- ]session|session continuity|continue active|resume active|use active handoff)\b/.test(text);
+    return /\b(session continuity|continue (?:the )?active (?:session|handoff|mission)|resume (?:the )?active (?:session|handoff|mission)|use (?:the )?active (?:session|handoff))\b/.test(text);
 }
 
 export function decideAugurySessionRouting(params: {
@@ -403,6 +1291,7 @@ export function decideAugurySessionRouting(params: {
     hasExplicitTargetPaths: boolean;
     targetDiverged: boolean;
     deterministicAvailable: boolean;
+    currentRouteDiverged?: boolean;
     activeSessionContinuityRequested?: boolean;
 }): AugurySessionRoutingDecision {
     if (!params.hasSessionRoute) {
@@ -446,6 +1335,29 @@ export function decideAugurySessionRouting(params: {
             stale_session_demoted: true,
             stale_session_divergence_blocker: false,
             divergence_warnings: ['stale_session_target_divergence'],
+        };
+    }
+
+    if (params.currentRouteDiverged) {
+        if (!params.deterministicAvailable || params.activeSessionContinuityRequested) {
+            return {
+                source: 'blocked',
+                use_session_as_primary: false,
+                stale_session_demoted: false,
+                stale_session_divergence_blocker: true,
+                divergence_warnings: ['stale_session_intent_divergence'],
+                required_operator_decision: params.activeSessionContinuityRequested
+                    ? 'Caller requested active-session continuity, but the active session intent diverges from the current deterministic route. Select the intended session or clear the stale one.'
+                    : 'Clarify the prompt so Augury can derive a safe current mission route.',
+            };
+        }
+
+        return {
+            source: 'deterministic',
+            use_session_as_primary: false,
+            stale_session_demoted: true,
+            stale_session_divergence_blocker: false,
+            divergence_warnings: ['stale_session_intent_divergence'],
         };
     }
 
@@ -1270,7 +2182,10 @@ export function deriveMcpUsefulnessEvent(
     }
 
     if (base.tool === 'cstar_hall_search') {
-        const count = Array.isArray(payload) ? payload.length : 0;
+        const searchResults = Array.isArray(payload)
+            ? payload
+            : (Array.isArray(payload?.results) ? payload.results : []);
+        const count = searchResults.length;
         event.outcome_kind = count > 0 ? 'search_hit' : 'search_miss';
         event.result_count = count;
         event.has_results = count > 0;
@@ -1314,6 +2229,9 @@ export function deriveMcpUsefulnessEvent(
         event.token_path_episode_id = typeof payload?.token_path_episode_id === 'string'
             ? payload.token_path_episode_id
             : undefined;
+    } else if (base.tool === 'cstar_researcher_request' || base.tool === 'cstar_forge_request') {
+        event.outcome_kind = payload?.error ? 'dispatch_request_error' : `dispatch_${payload?.status ?? 'unknown'}`;
+        event.bead_id = typeof payload?.bead_id === 'string' ? payload.bead_id : event.bead_id;
     }
 
     return event;
@@ -1392,14 +2310,43 @@ export async function handleHandoff() {
         const handoff = buildTraceAgentHandoffPayload(session, root);
         
         if (!handoff) {
-            return textResponse({ status: 'idle' });
+            return textResponse({
+                status: 'idle',
+                guardrail: mcpGuardrail(
+                    'caution',
+                    'recover',
+                    'No active handoff is available; route through Augury or create a bead before execution.',
+                    [],
+                    ['handoff'],
+                ),
+                next_action: 'Run cstar_augury with a bounded mission or create a Hall bead before execution.',
+            });
         }
 
         // Compact the handoff according to the mandate
         const compactHandoff = {
+            status: 'active',
             execution_gate: handoff.execution_gate,
             phase: handoff.phase,
             next_action: handoff.next_action,
+            route: handoff.designation ? {
+                intent_category: handoff.designation.intent_category,
+                selection_tier: handoff.designation.selection_tier,
+                selection_name: handoff.designation.selection_name,
+            } : undefined,
+            guardrail: handoff.execution_gate === 'execution_guarded'
+                ? mcpGuardrail(
+                    'caution',
+                    'verify',
+                    'Execution is staged; operator release and verification evidence are required before follow-on work.',
+                    [],
+                    ['execution_gate'],
+                )
+                : mcpGuardrail(
+                    'allow',
+                    'continue',
+                    'Active handoff is available.',
+                ),
             lead_bead_id: handoff.lead_bead_id,
             target_paths: handoff.target_paths.slice(0, 5),
             checker_shells: handoff.checker_shells.slice(0, 3),
@@ -1455,7 +2402,25 @@ export async function handleHallSearch({ query, limit, types }: { query: string,
             rank: r.rank
         }));
 
-        return textResponse(output);
+        return textResponse({
+            status: output.length > 0 ? 'matched' : 'empty',
+            query,
+            count: output.length,
+            result_limit: actualLimit,
+            guardrail: output.length > 0
+                ? mcpGuardrail('allow', 'continue', 'Hall search returned bounded results.')
+                : mcpGuardrail(
+                    'caution',
+                    'recover',
+                    'Hall search returned no results; refine the query or use Augury for routing.',
+                    [],
+                    ['search'],
+                ),
+            next_action: output.length > 0
+                ? 'Inspect the returned Hall records and keep follow-up reads bounded.'
+                : 'Refine the Hall query or route the mission through Augury.',
+            results: output,
+        });
     } catch (error: any) {
         return textResponse({ error: error.message }, true);
     }
@@ -1518,11 +2483,17 @@ export async function handleAugury({ prompt, inferred_intent, target_paths, scop
             }
             : null;
         const targetDivergence = detectAuguryTargetDivergence(target_paths, sessionTargetPaths, root);
+        const intentDivergence = Boolean(
+            sessionProvenance
+                && deterministicProvenance
+                && sessionProvenance.intent_category !== deterministicProvenance.intent_category,
+        );
         const routingDecision = decideAugurySessionRouting({
             hasSessionRoute: Boolean(sessionProvenance),
             hasExplicitTargetPaths: (target_paths ?? []).length > 0,
             targetDiverged: targetDivergence.diverged,
             deterministicAvailable: Boolean(deterministicProvenance),
+            currentRouteDiverged: intentDivergence,
             activeSessionContinuityRequested: callerRequestedActiveSessionContinuity(prompt, inferred_intent),
         });
 
@@ -1567,7 +2538,15 @@ export async function handleAugury({ prompt, inferred_intent, target_paths, scop
                     source: 'blocked',
                     deterministic: deterministicProvenance,
                     session: sessionProvenance,
-                    diverged: true,
+                    diverged: intentDivergence || targetDivergence.diverged,
+                    ...(intentDivergence ? {
+                        intent_divergence: {
+                            kind: 'intent_category',
+                            deterministic_intent_category: deterministicProvenance?.intent_category,
+                            session_intent_category: sessionProvenance?.intent_category,
+                            reason: 'Active session intent category diverges from the current deterministic route.',
+                        },
+                    } : {}),
                     divergence: {
                         kind: 'target_paths',
                         ...targetDivergence,
@@ -1656,7 +2635,7 @@ export async function handleAugury({ prompt, inferred_intent, target_paths, scop
                 selection_name: selectionName,
             };
         } else {
-            // Fallback for idle/missing state
+            // Neither session nor grammar matched. Last-resort ORCHESTRATE fallback.
             resolvedIntentCategory = 'ORCHESTRATE';
             routingSource = 'fallback';
             const selectedExpert = selectCouncilExpert({
@@ -1677,9 +2656,9 @@ export async function handleAugury({ prompt, inferred_intent, target_paths, scop
                 expert_signature_question: selectedExpert.signature_question ?? '',
                 expert_guardrails: selectedExpert.anti_behavior.slice(0, 3),
                 mimir_targets: (target_paths || []).slice(0, 3),
-                next_action: 'Perform handoff to verify active state.',
+                next_action: 'No deterministic grammar match and no active session. Clarify the prompt or run cstar_handoff.',
                 council_candidates: selectedExpert.selection_candidates?.slice(0, 3) ?? [],
-                confidence: 0.9
+                confidence: 0.6
             };
             routingInput = {
                 prompt,
@@ -1694,10 +2673,8 @@ export async function handleAugury({ prompt, inferred_intent, target_paths, scop
 
         // Routing provenance: deterministic grammar vs session selection.
         const diverged = Boolean(
-            sessionProvenance
-                && deterministicProvenance
-                && sessionProvenance.intent_category !== deterministicProvenance.intent_category,
-        ) || targetDivergence.diverged;
+            intentDivergence || targetDivergence.diverged,
+        );
         result.current_mission_route = {
             source: routingSource,
             prompt: prompt.substring(0, 240),
@@ -1727,6 +2704,14 @@ export async function handleAugury({ prompt, inferred_intent, target_paths, scop
             session: sessionProvenance,
             diverged,
             active_session_authority: routingDecision.use_session_as_primary ? 'primary' : 'background',
+            ...(intentDivergence ? {
+                intent_divergence: {
+                    kind: 'intent_category',
+                    deterministic_intent_category: deterministicProvenance?.intent_category,
+                    session_intent_category: sessionProvenance?.intent_category,
+                    reason: 'Active session intent category diverges from the current deterministic route.',
+                },
+            } : {}),
             ...(targetDivergence.diverged ? {
                 divergence: {
                     kind: 'target_paths',
@@ -1734,6 +2719,10 @@ export async function handleAugury({ prompt, inferred_intent, target_paths, scop
                 },
             } : {}),
         };
+
+        // Persona Advice — wires the active CStar persona into the Augury payload.
+        const advice: PersonaAdvice = buildPersonaAdvice(resolvedIntentCategory);
+        result.persona_advice = advice;
 
         const tokenPath = await runTokenPathAdvisor(routingInput);
         if (tokenPath) {
@@ -1749,7 +2738,7 @@ export async function handleAugury({ prompt, inferred_intent, target_paths, scop
 
 server.tool(
     'cstar_augury',
-    'Route one mission without claiming host pre-inference control.',
+    'Resolve a mission to a route with full kernel context. Layered on top of cstar_intent_route: runs the deterministic grammar resolver first, then enriches with active planning session, council expert, Mimir targets, and persona advice from the active CStar persona (ODIN/ALFRED). Response includes routing_provenance (deterministic vs session selection, plus diverged flag) and persona_advice (direction + tone for the resolved intent category). Use cstar_intent_route directly when you only need the deterministic grammar match without context.',
     {
         prompt: z.string().describe('The user prompt or mission statement'),
         inferred_intent: z.string().optional().describe('Optional inferred intent'),
@@ -1822,12 +2811,28 @@ export async function handleVerifyPlan() {
             }
         }
 
+        const commandCount = handoff?.checker_shells.length ?? 0;
         const result = {
+            status: commandCount > 0 || last_validation ? 'ready' : 'empty',
             recommended_commands: (handoff?.checker_shells || []).slice(0, 3),
-            reason: 'Verified from active bead checker shells.',
+            reason: commandCount > 0
+                ? 'Verified from active bead checker shells.'
+                : 'No checker_shell is attached to the active bead.',
             bead_id: handoff?.lead_bead_id,
             target_paths: handoff?.target_paths || [],
             last_validation,
+            guardrail: commandCount > 0 || last_validation
+                ? mcpGuardrail('allow', 'verify', 'Verification path is available.')
+                : mcpGuardrail(
+                    'caution',
+                    'repair',
+                    'No checker command or prior validation is available for the active bead.',
+                    [],
+                    ['verification'],
+                ),
+            next_action: commandCount > 0
+                ? 'Run the recommended checker command before recording the result.'
+                : 'Add checker_shell evidence to the bead or record a validation result before resolving work.',
         };
 
         return textResponse(result);
@@ -1970,6 +2975,7 @@ export async function handleBead(args: BeadToolArgs) {
             return textResponse({
                 status: 'created',
                 action: 'create',
+                mutation: mcpMutation('hall_bead_create', beadId, 'Hall bead was persisted through the MCP write surface.'),
                 spoke: anchor.spoke?.slug,
                 repo_id: repoId,
                 bead: compactBead(database.getHallBead(beadId)),
@@ -2008,6 +3014,7 @@ export async function handleBead(args: BeadToolArgs) {
             return textResponse({
                 status: 'updated',
                 action: 'update_status',
+                mutation: mcpMutation('hall_bead_update_status', beadId, 'Hall bead status was persisted through the MCP write surface.'),
                 bead: compactBead(updated),
                 ...(sterlingPatch !== null ? { sterling_mandate: sterlingPatch } : {}),
             });
@@ -2028,6 +3035,7 @@ export async function handleBead(args: BeadToolArgs) {
             return textResponse({
                 status: 'claimed',
                 action: 'claim',
+                mutation: mcpMutation('hall_bead_claim', beadId, 'Hall bead claim was persisted through the MCP write surface.'),
                 bead: compactBead(updated),
             });
         }
@@ -2048,6 +3056,7 @@ export async function handleBead(args: BeadToolArgs) {
             return textResponse({
                 status: 'resolved',
                 action: 'resolve',
+                mutation: mcpMutation('hall_bead_resolve', beadId, 'Hall bead resolution was persisted after Sterling Mandate evaluation.'),
                 bead: compactBead(updated),
                 sterling_mandate: sterlingPatch,
             });
@@ -2068,6 +3077,7 @@ export async function handleBead(args: BeadToolArgs) {
             return textResponse({
                 status: 'blocked',
                 action: 'block',
+                mutation: mcpMutation('hall_bead_block', beadId, 'Hall bead blocker state was persisted through the MCP write surface.'),
                 bead: compactBead(updated),
             });
         }
@@ -2207,6 +3217,7 @@ export async function handleSpokeBeadImport(args: SpokeBeadImportArgs) {
         return textResponse({
             status: 'created',
             action: 'spoke_bead_import',
+            mutation: mcpMutation('spoke_bead_import', beadId, 'Spoke bead import was validated and persisted through the MCP write surface.'),
             spoke: anchor.spoke.slug,
             repo_id: anchor.repoId,
             bead: compactBead(database.getHallBead(beadId)),
@@ -2296,7 +3307,13 @@ export async function handleRecordResult({ bead_id, verdict, notes, token_path_e
             linkedTokenPathEpisodeId = observationPayload.token_path_episode_id || linkedTokenPathEpisodeId;
         }
 
-        const response: Record<string, unknown> = { status: 'recorded', bead_id, verdict, validation_id: validationId };
+        const response: Record<string, unknown> = {
+            status: 'recorded',
+            bead_id,
+            verdict,
+            validation_id: validationId,
+            mutation: mcpMutation('validation_result_record', validationId, 'Validation result was persisted through the MCP write surface.'),
+        };
         if (validationError) {
             response.validation_warning = validationError;
         }
@@ -2421,6 +3438,7 @@ export async function handleEngramRecord(args: EngramRecordArgs) {
             intent,
             bead_id: beadId,
             repo_id: anchor.repoId,
+            mutation: mcpMutation('engram_record', memoryId, 'Engram was persisted through the MCP write surface.'),
             score_results: scoreResults.length > 0 ? scoreResults : undefined,
         });
     } catch (error: any) {
@@ -2499,7 +3517,11 @@ export async function handleWarGameScore(args: WarGameScoreArgs) {
                     scenario_compatibility_map: args.scenario_compatibility_map,
                     metadata: args.metadata,
                 });
-                return textResponse({ status: 'registered', contest_id: contestId });
+                return textResponse({
+                    status: 'registered',
+                    contest_id: contestId,
+                    mutation: mcpMutation('war_game_contest_register', contestId, 'War-game contest was persisted through the MCP write surface.'),
+                });
             }
             case 'tally': {
                 if (args.contest_id) {
@@ -2777,6 +3799,8 @@ export async function handleStatus(): Promise<McpTextResponse> {
             ? Math.max(0, Math.floor((Date.now() - fw.last_awakening) / 1000))
             : null;
 
+        const personaPolicy = resolvePersonaPolicy(fw.active_persona ?? activePersona?.name);
+
         return textResponse({
             framework: {
                 status: fw.status,
@@ -2788,6 +3812,14 @@ export async function handleStatus(): Promise<McpTextResponse> {
                 bead_id: fw.bead_id,
                 gungnir_score: fw.gungnir_score,
                 intent_integrity: fw.intent_integrity,
+            },
+            persona: {
+                name: fw.active_persona,
+                planning_stance: personaPolicy.planning.stance,
+                risk_tolerance: personaPolicy.planning.riskTolerance,
+                execution_gate: personaPolicy.planning.executionGate,
+                investigation_stance: personaPolicy.investigation.stance,
+                repair_bias: personaPolicy.investigation.repairBias,
             },
             workspace: root,
             hall_reachable: hallReachable,
@@ -3080,7 +4112,11 @@ export async function handleSpoke({
             if (!removed) {
                 return textResponse({ error: `spoke not registered: ${normalized}` }, true);
             }
-            return textResponse({ status: 'unlinked', slug: normalized });
+            return textResponse({
+                status: 'unlinked',
+                slug: normalized,
+                mutation: mcpMutation('spoke_unlink', normalized, 'Mounted spoke row was removed through the MCP write surface.'),
+            });
         }
         if (action === 'link') {
             if (!slug) {
@@ -3190,6 +4226,7 @@ export async function handleSpoke({
             return textResponse({
                 status: existing ? 'relinked' : 'linked',
                 slug: normalizedSlug,
+                mutation: mcpMutation(existing ? 'spoke_relink' : 'spoke_link', normalizedSlug, 'Mounted spoke row was persisted through the MCP write surface.'),
                 root_path: absolutePath.replace(/\\/g, '/'),
                 trust_level: resolvedTrust,
                 write_policy: resolvedWritePolicy,
@@ -3279,6 +4316,7 @@ export async function handleSpoke({
             return textResponse({
                 status: 'projected',
                 slug: normalized,
+                mutation: mcpMutation('spoke_project', normalized, 'Mounted spoke projection metadata was persisted through the MCP write surface.'),
                 root_path: found.root_path,
                 projection: {
                     primary_stack: projection.projection.primary_stack,
@@ -3425,6 +4463,18 @@ export async function handleIntentRoute({
             return textResponse({
                 status: matches.length > 0 ? 'matched' : 'unmatched',
                 grammar_source: grammarSource,
+                guardrail: matches.length > 0
+                    ? mcpGuardrail('allow', 'continue', 'Intent grammar matched one or more categories.')
+                    : mcpGuardrail(
+                        'caution',
+                        'recover',
+                        'Intent grammar did not match; use Augury or provide clearer trigger language.',
+                        [],
+                        ['intent_route'],
+                    ),
+                next_action: matches.length > 0
+                    ? 'Use the matched categories as deterministic routing evidence.'
+                    : 'Clarify the prompt or call cstar_augury for host-routed interpretation.',
                 tokens: tokens.slice(0, 32),
                 match_count: matches.length,
                 matches,
@@ -3437,6 +4487,14 @@ export async function handleIntentRoute({
             return textResponse({
                 status: 'unmatched',
                 grammar_source: grammarSource,
+                guardrail: mcpGuardrail(
+                    'caution',
+                    'recover',
+                    'Intent grammar did not match; use Augury or provide clearer trigger language.',
+                    [],
+                    ['intent_route'],
+                ),
+                next_action: 'Clarify the prompt or call cstar_augury for host-routed interpretation.',
                 tokens: tokens.slice(0, 32),
                 available_categories: Object.keys(grammar),
             });
@@ -3444,6 +4502,8 @@ export async function handleIntentRoute({
         return textResponse({
             status: 'matched',
             grammar_source: grammarSource,
+            guardrail: mcpGuardrail('allow', 'continue', 'Intent grammar matched a deterministic route.'),
+            next_action: 'Use this route as deterministic evidence; use cstar_augury when host context is needed.',
             intent_category: match.category,
             default_path: match.default_path,
             tier: match.tier,
@@ -3456,7 +4516,7 @@ export async function handleIntentRoute({
 
 server.tool(
     'cstar_intent_route',
-    'Resolve a prompt against the kernel intent grammar (.agents/skill_registry.json#intent_grammar). action=match returns the first winner; action=explain returns every category whose triggers intersect the tokens. Response includes grammar_source ("registry" if the registry loaded, "fallback" for the in-code defaults). Deterministic; no LLM inference.',
+    'Deterministic grammar-only routing. Resolves a prompt against the kernel intent grammar (.agents/skill_registry.json#intent_grammar) with no session, council, Mimir, or persona enrichment. action=match returns the first winner; action=explain returns every category whose triggers intersect the tokens. Response includes grammar_source ("registry" if the registry loaded, "fallback" for the in-code defaults). Prefer cstar_augury when you also need session context, council expert, Mimir targets, or persona advice — it layers this resolver underneath and exposes both selections via routing_provenance.',
     {
         prompt: z.string().describe('Prompt or mission text to tokenize and match against the intent grammar'),
         action: z.enum(['match', 'explain']).optional().default('match').describe('match returns the first hit; explain enumerates every matching category'),
@@ -3720,6 +4780,8 @@ export async function handleTelemetry({
             section: which,
             workspace: registry.getRoot(),
             generated_at: new Date().toISOString(),
+            guardrail: mcpGuardrail('allow', 'continue', 'Telemetry was read successfully.'),
+            next_action: 'Use telemetry warnings to tune MCP usage or token-path observation coverage.',
         };
         if (which === 'all' || which === 'usage') {
             payload.usage = summarizeRecentMcpUsage();
@@ -3756,6 +4818,90 @@ server.tool(
     instrumentTool('cstar_warden', handleWarden),
 );
 
+const dispatchMetricSchema = z.object({
+    name: z.string().min(1).describe('Metric name, e.g. precision, pass_rate, artifact_integrity'),
+    threshold: z.string().min(1).describe('Acceptance threshold, e.g. >= 0.95 or zero P1/P2 blockers'),
+    acceptance_rule: z.string().optional().describe('How PMT/CoS should judge this metric'),
+    unit: z.string().optional().describe('Metric unit if applicable'),
+});
+
+const dispatchPackageLockSchema = z.object({
+    path: z.string().min(1).describe('Artifact/package path under review'),
+    sha256: z.string().min(1).describe('Expected sha256 hash for the package/artifact'),
+});
+
+const dispatchSpendPolicySchema = z.object({
+    mode: z.enum(['no_spend', 'dry_run', 'live_authorized']).describe('No-spend by default; live_authorized still requires operator_authorization_ref'),
+    max_retries: z.number().int().min(0).optional().describe('Maximum retry budget'),
+    live_source_allowed: z.boolean().optional().describe('Whether live source collection is authorized'),
+    operator_authorization_ref: z.string().optional().describe('Explicit operator approval reference for live spend/source paths'),
+});
+
+const dispatchCallbackSchema = z.object({
+    expected_packet: z.string().min(1).describe('Required final report packet name'),
+    callback_required: z.boolean().optional().describe('Defaults true'),
+    callback_thread_id: z.string().optional().describe('Destination callback thread; defaults to source_callback_thread_id'),
+});
+
+const dispatchRetrySchema = z.object({
+    budget: z.number().int().min(0).describe('Allowed retry budget'),
+    spent: z.number().int().min(0).optional().describe('Retries already spent'),
+});
+
+const dispatchRequestSchema = {
+    bead_id: z.string().optional().describe('CStar bead id anchoring the request'),
+    decision_id: z.string().optional().describe('Decision id; generated if absent and bead_id is present'),
+    owner_pmt_thread_id: z.string().min(1).describe('Pinned PMT thread that owns review/package state'),
+    source_callback_thread_id: z.string().min(1).describe('Thread that must receive the compact callback packet'),
+    objective: z.string().min(1).describe('Bounded work objective'),
+    prompt: z.string().optional().describe('Prompt/mission text for the authorized surface'),
+    target_paths: z.array(z.string()).optional().describe('Bounded target files/repos/paths'),
+    system_under_test: z.string().optional().describe('System under test when relevant'),
+    scope: z.string().min(1).describe('Scope boundary and project/spoke context'),
+    authority_lane: z.enum(['green', 'yellow', 'red']).describe('Authority/risk lane'),
+    required_metrics: z.array(dispatchMetricSchema).min(1).describe('Required metrics with thresholds'),
+    artifact_expectations: z.array(z.string().min(1)).min(1).describe('Expected artifacts/reports/packages'),
+    prohibited_actions: z.array(z.string().min(1)).min(1).describe('Actions explicitly forbidden to the dispatched surface'),
+    requested_actions: z.array(z.string().min(1)).optional().describe('Actions the request asks the surface to perform; checked against prohibited_actions/red gates'),
+    spend_policy: dispatchSpendPolicySchema.describe('Spend/live-source policy and retry cap'),
+    live_source_policy: z.string().optional().describe('Additional live-source/source-adapter policy text'),
+    retry_policy: dispatchRetrySchema.optional().describe('Decision retry budget/spent contract'),
+    callback_contract: dispatchCallbackSchema.describe('Callback packet contract'),
+    package_locks: z.array(dispatchPackageLockSchema).optional().describe('Optional package/hash locks'),
+    dispatch_surface_ref: z.string().optional().describe('Optional explicit authorized surface path; missing paths fail closed'),
+};
+
+const forgeExecuteSchema = {
+    ...dispatchRequestSchema,
+    forge_request_receipt_id: z.string().min(1).describe('Receipt id returned by cstar_forge_request; must start with dispatch-forge-'),
+    forge_request_decision_id: z.string().min(1).describe('Decision id from the cstar_forge_request receipt'),
+    forge_request_bead_id: z.string().optional().describe('Bead id from the cstar_forge_request receipt; must match bead_id when both are supplied'),
+    execution_mode: z.enum(['no_op', 'live_authorized']).describe('no_op validates the execution contract without live spend; live_authorized invokes an approved adapter after all gates pass'),
+    execution_adapter_ref: z.string().optional().describe('Explicit approved Forge/Hermes/MiniMax adapter reference; unregistered adapters fail closed'),
+    operator_authorization_ref: z.string().optional().describe('Explicit operator approval reference required for live Forge execution'),
+};
+
+server.tool(
+    'cstar_researcher_request',
+    'Create a CStar-native no-spend Researcher request receipt with required metrics, artifact expectations, prohibited actions, callback metadata, and dispatch-surface proof. Fails closed; never falls back to Codex workers or ad hoc shell.',
+    dispatchRequestSchema,
+    instrumentTool('cstar_researcher_request', handleResearcherRequest),
+);
+
+server.tool(
+    'cstar_forge_request',
+    'Create a CStar-native no-spend Corvus Forge/Hermes MiniMax request receipt with required metrics, artifact expectations, prohibited actions, callback metadata, and dispatch-surface proof. Fails closed; never falls back to Codex workers or ad hoc shell.',
+    dispatchRequestSchema,
+    instrumentTool('cstar_forge_request', handleForgeRequest),
+);
+
+server.tool(
+    'cstar_forge_execute',
+    'Execute a CStar-native Corvus Forge contract linked to a cstar_forge_request receipt. No-op mode proves the contract without spend; live mode invokes only an approved Forge/Hermes/MiniMax adapter after all gates pass. Never falls back to Codex workers or ad hoc shell.',
+    forgeExecuteSchema,
+    instrumentTool('cstar_forge_execute', handleForgeExecute),
+);
+
 interface AutobotArgs {
     intent: string;
     project_root?: string;
@@ -3773,7 +4919,15 @@ interface AutobotArgs {
     };
 }
 
-export async function handleAutobot(args: AutobotArgs) {
+function isAutobotMcpEnabled(): boolean {
+    return process.env.CSTAR_KERNEL_ENABLE_AUTOBOT !== '0' && process.env.HERMES_AUTOBOT_DELEGATED !== '1';
+}
+
+export async function handleAutobot(args: AutobotArgs): Promise<McpTextResponse> {
+    if (!isAutobotMcpEnabled()) {
+        return errorResponse(new Error('Unauthorized tool call: cstar_autobot is disabled or blocked in this context.'));
+    }
+
     try {
         const root = registry.getRoot();
         const projectRoot = args.project_root || root;
@@ -3784,7 +4938,6 @@ export async function handleAutobot(args: AutobotArgs) {
             payload: args.payload || {},
         };
 
-        // Write the intent to a temp file the python helper consumes
         const os = await import('node:os');
         const fsp = await import('node:fs/promises');
         const path = await import('node:path');
@@ -3796,17 +4949,12 @@ export async function handleAutobot(args: AutobotArgs) {
 
         const scriptPath = path.join(root, '.agents', 'skills', 'autobot', 'scripts', 'delegate.py');
         const timeoutSec = args.payload?.timeout_seconds ?? 300;
-        // Subprocess timeout is the delegate's own timeout + 30s slack so the
-        // caller never out-times the helper's own bookkeeping.
         const subprocessTimeoutMs = (timeoutSec + 30) * 1000;
 
-        // [Ω] STABILITY: Constrain sub-agent resource usage to prevent system OOM in WSL2.
-        // We lower the JS heap cap for any Node.js processes spawned by the sub-agent
-        // (e.g., agent-browser) and ensure the environment is clean.
         const constrainedEnv = {
             ...process.env,
             NODE_OPTIONS: '--max-old-space-size=2048 --expose-gc',
-            HERMES_AUTOBOT_DELEGATED: '', // Force-clear the nested-delegation guard
+            HERMES_AUTOBOT_DELEGATED: '',
         };
 
         const result = cp.spawnSync(
@@ -3819,7 +4967,6 @@ export async function handleAutobot(args: AutobotArgs) {
             },
         );
 
-        // Cleanup the tmp intent file regardless of outcome
         try { await fsp.rm(tmpDir, { recursive: true, force: true }); } catch { /* best-effort */ }
 
         if (result.error) {
@@ -3830,13 +4977,11 @@ export async function handleAutobot(args: AutobotArgs) {
             }, true);
         }
         if (result.status === 2) {
-            // Invalid intent — delegate.py reported the validation error to stderr
             return textResponse({
                 status: 'invalid_intent',
                 error: result.stderr.trim() || 'unknown_validation_error',
             }, true);
         }
-        // Both ok (exit 0) and degraded (exit 1) write the envelope to stdout
         try {
             const envelope = JSON.parse(result.stdout);
             const isError = envelope.status !== 'ok';
@@ -3850,31 +4995,33 @@ export async function handleAutobot(args: AutobotArgs) {
             }, true);
         }
     } catch (error: any) {
-        return textResponse({ status: 'fail', error: error.message }, true);
+        return errorResponse(error);
     }
 }
 
-server.tool(
-    'cstar_autobot',
-    'Delegate a bounded task from this host (the calling LLM) to a Hermes-managed sub-agent (default MiniMax-M2.7). Wraps `.agents/skills/autobot/scripts/delegate.py`. Use for bulk synthesis, classification, summarization, self-reflection, or queue-draining work where M2.7 is genuinely good enough and 10-50x cheaper than the host LLM. Every call is cost-audited to .agents/state/autobot-cost-ledger.jsonl. Returns a structured result envelope with status (ok|degraded|invalid_intent), duration_ms, est tokens, and the artifact path if `payload.write_to` was set. Honest degraded states — never falls back to other providers.',
-    {
-        intent: z.string().min(1).describe('One-sentence task statement for the sub-agent. Treat as the prompt\'s "your job" line.'),
-        project_root: z.string().optional().describe('Anchors relative target_paths. Defaults to the active CStar project root.'),
-        target_paths: z.array(z.string()).optional().describe('Files to read into the prompt as context. Each capped at 32 KB.'),
-        payload: z.object({
-            hermes_profile: z.string().optional().describe('Hermes profile to load. Default cstar-hub.'),
-            model: z.string().optional().describe('Hermes model id. Default MiniMax-M2.7.'),
-            expected_output: z.enum(['markdown', 'json', 'plain']).optional().describe('Output format the sub-agent must produce. Default markdown.'),
-            max_chars: z.number().int().positive().optional().describe('Soft length cap surfaced in the prompt. Default 4000.'),
-            session_name: z.string().nullable().optional().describe('If set, uses `hermes chat --continue <name>` for cross-call continuity.'),
-            write_to: z.string().nullable().optional().describe('If set, response is written here; else returned in the envelope.'),
-            append_with_separator: z.string().nullable().optional().describe('If set, response is appended after this separator (e.g., "§" for Hermes MEMORY.md).'),
-            tags: z.array(z.string()).optional().describe('Logged to the ledger for filtering.'),
-            timeout_seconds: z.number().int().positive().optional().describe('Subprocess timeout. Default 300.'),
-        }).optional().describe('Optional payload — defaults are sane for "summarize a few files into MEMORY.md."'),
-    },
-    instrumentTool('cstar_autobot', handleAutobot),
-);
+if (isAutobotMcpEnabled()) {
+    server.tool(
+        'cstar_autobot',
+        'Delegate a bounded task from this host (the calling LLM) to a Hermes-managed sub-agent (default MiniMax-M3). Wraps `.agents/skills/autobot/scripts/delegate.py`. Use for bulk synthesis, classification, summarization, self-reflection, or queue-draining work where MiniMax is cost-effective enough and 10-50x cheaper than the host LLM. Every call is cost-audited to .agents/state/autobot-cost-ledger.jsonl. Returns a structured result envelope with status (ok|degraded|invalid_intent), duration_ms, est tokens, and the artifact path if `payload.write_to` was set. Honest degraded states — never falls back to other providers.',
+        {
+            intent: z.string().min(1).describe('One-sentence task statement for the sub-agent. Treat as the prompt\'s "your job" line.'),
+            project_root: z.string().optional().describe('Anchors relative target_paths. Defaults to the active CStar project root.'),
+            target_paths: z.array(z.string()).optional().describe('Files to read into the prompt as context. Each capped at 32 KB.'),
+            payload: z.object({
+                hermes_profile: z.string().optional().describe('Hermes profile to load. Default cstar-hub.'),
+                model: z.string().optional().describe('Hermes model id. Default MiniMax-M3.'),
+                expected_output: z.enum(['markdown', 'json', 'plain']).optional().describe('Output format the sub-agent must produce. Default markdown.'),
+                max_chars: z.number().int().positive().optional().describe('Soft length cap surfaced in the prompt. Default 4000.'),
+                session_name: z.string().nullable().optional().describe('If set, uses `hermes chat --continue <name>` for cross-call continuity.'),
+                write_to: z.string().nullable().optional().describe('If set, response is written here; else returned in the envelope.'),
+                append_with_separator: z.string().nullable().optional().describe('If set, response is appended after this separator (e.g., "§" for Hermes MEMORY.md).'),
+                tags: z.array(z.string()).optional().describe('Logged to the ledger for filtering.'),
+                timeout_seconds: z.number().int().positive().optional().describe('Subprocess timeout. Default 300.'),
+            }).optional().describe('Optional payload — defaults are sane for "summarize a few files into MEMORY.md."'),
+        },
+        instrumentTool('cstar_autobot', handleAutobot),
+    );
+}
 
 
 /**

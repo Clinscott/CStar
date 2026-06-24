@@ -8,15 +8,15 @@ import {
 } from '../../src/core/host_subagents.js';
 
 describe('Host subagent routing', () => {
-    it('routes workflow and architecture beads to the architect profile', () => {
+    it('routes workflow and architecture beads to the brooks profile', () => {
         const profile = resolveHostSubagentProfile({
             target_kind: 'WORKFLOW',
             target_path: 'src/node/core/runtime/weaves/orchestrate.ts',
             rationale: 'Architectural decomposition and provider-fit planning.',
         } as any);
 
-        assert.equal(profile, 'architect');
-        assert.equal(getHostSubagentSpec(profile).title, 'Architecture Orchestrator');
+        assert.equal(profile, 'brooks');
+        assert.equal(getHostSubagentSpec(profile).title, 'Brooks Protocol (Architecture Orchestrator)');
     });
 
     it('routes UI beads to the frontend profile', () => {

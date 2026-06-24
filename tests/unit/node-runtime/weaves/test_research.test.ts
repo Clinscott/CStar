@@ -67,7 +67,7 @@ describe('ResearchWeave Unit Tests', () => {
 
         const result = await weave.execute({
             weave_id: 'weave:research',
-            payload: { intent: 'test', subagent_profile: 'architect', cwd: '.' }
+            payload: { intent: 'test', subagent_profile: 'brooks', cwd: '.' }
         } as any, { workspace_root: '.', env: {} } as any);
 
         assert.equal(result.status, 'FAILURE');
@@ -87,7 +87,7 @@ describe('ResearchWeave Unit Tests', () => {
 
         const result = await weave.execute({
             weave_id: 'weave:research',
-            payload: { intent: 'test', subagent_profile: 'architect', cwd: '.' }
+            payload: { intent: 'test', subagent_profile: 'brooks', cwd: '.' }
         } as any, { workspace_root: '.', env: {} } as any);
 
         assert.equal(result.status, 'FAILURE');

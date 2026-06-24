@@ -7,7 +7,20 @@ import {
     recordAuguryLearningEvent,
     resolveHostProvider,
 } from  './host_session.js';
+import { enrichTraceContractWithCouncil } from './council_experts.js';
+import { AUGURY_PROMPT_CONSULT_LIMIT } from './host_session.js';
 import { loadCascadingContext } from './context_loader.js';
+function ensureAuguryContractValidity(contract: Record<string, unknown> | undefined): Record<string, unknown> | undefined {
+    if (!contract) return contract;
+    let enriched = contract as any;
+    if (!enriched.council_expert) {
+        enriched = enrichTraceContractWithCouncil(enriched);
+    }
+    if (Array.isArray(enriched.mimirs_well)) {
+        enriched = { ...enriched, mimirs_well: enriched.mimirs_well.slice(0, AUGURY_PROMPT_CONSULT_LIMIT) };
+    }
+    return enriched;
+}
 
 export interface HostTextRequest {
     prompt: string;
@@ -222,19 +235,20 @@ export async function requestHostText(
 
     const cascadingContext = loadCascadingContext(request.projectRoot);
     const auguryContract = (request.metadata?.augury_contract ?? request.metadata?.trace_contract) as Record<string, unknown> | undefined;
+    const sanitizedContract = ensureAuguryContractValidity(auguryContract);
     const targetDomain = typeof request.metadata?.target_domain === 'string' ? request.metadata.target_domain : undefined;
     const spokeName = typeof request.metadata?.spoke_name === 'string' ? request.metadata.spoke_name : undefined;
     const requestedRoot = typeof request.metadata?.requested_root === 'string' ? request.metadata.requested_root : undefined;
     const existingLearningMetadata = asMetadataRecord(request.metadata?.augury_learning_metadata);
-    const provisionalLearningMetadata = auguryContract
-        ? existingLearningMetadata ?? buildAuguryLearningMetadata(auguryContract)
+    const provisionalLearningMetadata = sanitizedContract
+        ? existingLearningMetadata ?? buildAuguryLearningMetadata(sanitizedContract)
         : undefined;
-    const auguryDecision = auguryContract
+    const auguryDecision = sanitizedContract
         ? resolveAugurySteeringMode(request, provisionalLearningMetadata, env)
         : undefined;
     const auguryMode = auguryDecision?.mode ?? 'full';
     const auguryPromptKey = auguryDecision?.promptKey ?? null;
-    const auguryBlock = formatAugurySteeringBlock(auguryContract, {
+    const auguryBlock = formatAugurySteeringBlock(sanitizedContract, {
         mode: auguryMode,
         project_root: request.projectRoot,
         target_domain: targetDomain,
@@ -246,7 +260,7 @@ export async function requestHostText(
         request.systemPrompt,
         cascadingContext,
     ].filter((entry) => typeof entry === 'string' && entry.trim().length > 0).join('\n\n');
-    const auguryLearningMetadata = auguryContract ? buildAuguryLearningMetadata(auguryContract, {
+    const auguryLearningMetadata = sanitizedContract ? buildAuguryLearningMetadata(sanitizedContract, {
         session_id: typeof request.metadata?.session_id === 'string'
             ? request.metadata.session_id
             : typeof request.metadata?.planning_session_id === 'string'

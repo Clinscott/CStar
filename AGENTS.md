@@ -8,6 +8,13 @@
 - **Trace First**: Begin agentic responses with a Corvus Star Trace block (see `AGENTS.qmd` §1).
 - **Bead-Driven**: Anchor all work to Beads in the Hall of Records.
 - **Sterling Mandate**: Changes require Lore (.feature contract), Isolation (unit test), and Audit (Gungnir score).
+- **CoS-First Thread Management**: The user talks to CoS by default. CoS owns bounded execution and final operator closeout; PMTs are durable project knowledge and review authorities unless CoS explicitly delegates execution ownership or a red/high-risk gate requires PMT authority.
+
+## CoS / PMT State Model
+- CoS may complete bounded Green/Yellow diagnostics, non-live repairs, packaging, validation, and CStar recording directly, then send the relevant PMT a compact `STATE_UPDATE` for durable project memory.
+- PMTs answer state packets with `STATE_ACCEPTED`, `STATE_CONFLICT`, `AUTHORITY_ESCALATION`, or `BLOCKED_CONTEXT`. They should not reopen CoS-owned work unless the packet is inconsistent, unsafe, or outside authority.
+- PMT-owned execution goals remain valid for explicit CoS delegation, red/high-risk gates, or project processes that require PMT-run monitoring. In those cases the PMT owns local goal setup, worker callback, package validation, and compact callback to CoS.
+- Operator gates remain intact: live spend beyond the bounded scope, locked holdout, production readiness, source collection, secrets/config mutation, merge/deploy/restart, destructive cleanup, and broad cross-spoke changes require explicit authorization.
 
 ## Skill Discovery
 Skills live in `.agents/skills/*/SKILL.md`. Each SKILL.md has YAML frontmatter:

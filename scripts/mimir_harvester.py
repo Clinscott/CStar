@@ -112,7 +112,87 @@ class MimirHarvester:
             lessons_created += 1
             
         self.conn.commit()
+        try:
+            self.project_worktree()
+            print("[INFO] Searchable worktree projected successfully.")
+        except Exception as e:
+            print(f"[WARNING] Failed to project worktree: {e}")
         return lessons_created
+
+    def sanitize_filename(self, filename):
+        return "".join([c for c in filename if c.isalnum() or c in (' ', '.', '_', '-')]).strip().replace(' ', '_')
+
+    def project_worktree(self):
+        from pathlib import Path
+        project_root = Path(self.project_root)
+        lessons_root = project_root / ".lore" / "lessons"
+
+        # Ensure lessons root exists
+        lessons_root.mkdir(parents=True, exist_ok=True)
+
+        self.cur.execute("SELECT lesson_id, parent_lesson_id, level, title, content, created_at FROM hall_lessons")
+        lessons = self.cur.fetchall()
+
+        lesson_map = {l[0]: l for l in lessons}
+        levels = ["TREE", "LIMB", "BRANCH", "LEAF", "CELL"]
+
+        for lid, pid, level, title, content, created_at in lessons:
+            # Build the path
+            path_parts = []
+            curr_pid = pid
+            while curr_pid:
+                p_node = lesson_map.get(curr_pid)
+                if p_node:
+                    path_parts.insert(0, self.sanitize_filename(p_node[3]))
+                    curr_pid = p_node[1]
+                else:
+                    break
+
+            target_dir = lessons_root.joinpath(*path_parts)
+            target_dir.mkdir(parents=True, exist_ok=True)
+
+            filename = f"{self.sanitize_filename(title)}.md"
+            file_path = target_dir / filename
+
+            with open(file_path, "w", encoding="utf-8") as f:
+                f.write(f"# {title}\n\n")
+                f.write(f"> **Level**: {level}  \n")
+                f.write(f"> **Created**: {created_at}\n\n")
+                f.write("## Content\n\n")
+                f.write(f"{content}\n\n")
+
+                # Add backlink to parent
+                if pid:
+                    p_node = lesson_map.get(pid)
+                    if p_node:
+                        f.write(f"---\n**Parent**: [{p_node[3]}](../{self.sanitize_filename(p_node[3])}.md)\n")
+
+        # Generate Root Index
+        index_path = lessons_root / "index.md"
+        with open(index_path, "w", encoding="utf-8") as f:
+            f.write("# 🏛️ The Hall of Lessons: Searchable Worktree\n\n")
+            f.write("This worktree is a projection of the Corvus Star Memory Plane.\n\n")
+            f.write("## ◈ Lesson Hierarchy\n\n")
+
+            # Helper to get full parent path for sorting
+            def get_full_path(node_id):
+                parts = []
+                curr = node_id
+                while curr:
+                    n = lesson_map.get(curr)
+                    if n:
+                        parts.insert(0, n[3])
+                        curr = n[1]
+                    else:
+                        break
+                return parts
+
+            # Sort by hierarchical levels and paths
+            sorted_lessons = sorted(lessons, key=lambda x: (get_full_path(x[0]), levels.index(x[2]) if x[2] in levels else 99))
+            for lid, pid, level, title, content, created_at in sorted_lessons:
+                indent = "  " * (levels.index(level) if level in levels else 0)
+                f.write(f"{indent}- {title} ({level})\n")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Mimir Harvester: Study and record memory engrams.")

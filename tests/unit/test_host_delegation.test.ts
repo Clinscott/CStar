@@ -45,7 +45,7 @@ describe('Host delegated execution bridge', () => {
                 result_path: '/tmp/result.json',
                 project_root: '/repo/root',
                 provider: 'codex',
-                subagent_profile: 'architect',
+                subagent_profile: 'brooks',
             },
         );
 
@@ -60,7 +60,7 @@ describe('Host delegated execution bridge', () => {
             '--provider',
             'codex',
             '--role',
-            'architect',
+            'brooks',
         ]);
     });
 
@@ -157,7 +157,7 @@ describe('Host delegated execution bridge', () => {
                 repo_root: '/tmp/corvus-no-bridge',
                 boundary: 'subagent',
                 task_kind: 'research',
-                subagent_profile: 'architect',
+                subagent_profile: 'brooks',
                 prompt: 'Investigate the bounded issue.',
             },
             {
@@ -169,7 +169,7 @@ describe('Host delegated execution bridge', () => {
                     assert.equal(command, 'codex');
                     assert.ok(args.includes('exec'));
                     const prompt = args[args.length - 1] ?? '';
-                    assert.match(prompt, /SPECIALIST ROLE: Architecture Orchestrator \(architect\)/);
+                    assert.match(prompt, /SPECIALIST ROLE: Brooks Protocol \(Architecture Orchestrator\) \(brooks\)/);
                     assert.match(prompt, /Investigate the bounded issue\./);
                     return {
                         stdout: '```json\n{"result":"native"}\n```',
@@ -182,7 +182,7 @@ describe('Host delegated execution bridge', () => {
         assert.equal(result.provider, 'codex');
         assert.equal(result.status, 'completed');
         assert.match(result.raw_text ?? '', /native/);
-        assert.equal(result.metadata?.subagent_profile, 'architect');
+        assert.equal(result.metadata?.subagent_profile, 'brooks');
     });
 
     it('resolves a delegated handle through a configured poll bridge', async () => {
@@ -194,7 +194,7 @@ describe('Host delegated execution bridge', () => {
                 request_id: 'req-queued',
                 repo_root: tmpRoot,
                 provider: 'codex',
-                subagent_profile: 'architect',
+                subagent_profile: 'brooks',
             },
             {
                 CODEX_SHELL: '1',

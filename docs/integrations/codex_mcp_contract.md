@@ -15,9 +15,43 @@ Corvus Star supports exactly one Codex runtime integration surface:
    - `cstar_doctor`
    - `cstar_handoff`
    - `cstar_hall_search`
+   - `cstar_hall_maintenance`
    - `cstar_augury`
    - `cstar_verify_plan`
+   - `cstar_bead`
+   - `cstar_spoke_bead_import`
    - `cstar_record_result`
+   - `cstar_engram_record`
+   - `cstar_war_game_score`
+   - `cstar_manifest`
+   - `cstar_skill_info`
+   - `cstar_spoke_journal`
+   - `cstar_status`
+   - `cstar_evolve`
+   - `cstar_spoke`
+   - `cstar_intent_route`
+   - `cstar_warden`
+   - `cstar_telemetry`
+
+The exhaustive API reference is `docs/integrations/cstar-kernel-mcp.md`. If a
+tool inventory test and this list disagree, fix the prose; runtime registration
+and the integration test are the authoritative inventory.
+
+## MCP 2026-07-28 Readiness Rule
+
+Codex should treat the current stdio `initialize` handshake as transport
+compatibility only. It is not a CStar application session.
+
+Future MCP transports must keep CStar tool calls self-contained:
+- protocol version, client metadata, trace context, and transport routing belong
+  in MCP request metadata/headers, not in CStar tool arguments
+- cross-call continuity belongs in explicit CStar handles such as `bead_id`,
+  `validation_id`, `spoke`, `memory_id`, or `token_path_episode_id`
+- Roots, Sampling, and Logging must not be introduced as Codex MCP dependencies;
+  use tool parameters, host-native provider integration, stderr/bootstrap logs,
+  and CStar telemetry instead
+- Tasks and MCP Apps are optional future extensions; they must not replace Hall
+  bead authority or expand `cstar-kernel` into host cognition
 
 ### Optional `token_path_observation` (v3.1+)
 
@@ -50,6 +84,8 @@ It must stay narrow:
 - bounded Augury routing
 - verification hints
 - validation/result recording
+- explicit bead/spoke/capability lifecycle primitives that preserve the
+  Host-Native First contract
 
 Do not expand it into a shell-dispatch surface, workflow forge surface, or host-cognition proxy.
 

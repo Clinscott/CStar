@@ -1,6 +1,6 @@
 ---
 name: autobot
-description: Delegate a bounded task from the host-native agent (Claude / Gemini / Codex in their harness) to a Hermes-managed sub-agent (default MiniMax-M2.7). Cost-audited, structured-intent, file-locked. Use when bulk synthesis / classification / summarization can be done by a cheaper model than the operator's host LLM.
+description: Delegate a bounded task from the host-native agent (Claude / Gemini / Codex in their harness) to a Hermes-managed sub-agent (default MiniMax-M3). Cost-audited, structured-intent, file-locked. Use when bulk synthesis / classification / summarization can be done by a cheaper model than the operator's host LLM.
 tier: SKILL
 risk: low
 intent_category: ORCHESTRATE
@@ -10,7 +10,7 @@ terminal_required: false
 
 # 🤖 SKILL: AUTOBOT (v1.0)
 
-Host-native agent → directs Hermes sub-agent. The Opus/Sonnet/Gemini host LLM you're running this skill from keeps reasoning + judgment + code review. The Hermes sub-agent (default `MiniMax-M2.7`) does the bulk execution. Every delegation is cost-audited and produces durable artifacts.
+Host-native agent → directs Hermes sub-agent. The Opus/Sonnet/Gemini host LLM you're running this skill from keeps reasoning + judgment + code review. The Hermes sub-agent (default `MiniMax-M3`) does the bulk execution. Every delegation is cost-audited and produces durable artifacts.
 
 ## 💎 WHEN TO USE
 
@@ -50,7 +50,7 @@ The host LLM constructs a JSON intent object:
   ],
   "payload": {
     "hermes_profile": "cstar-hub",
-    "model": "MiniMax-M2.7",
+    "model": "MiniMax-M3",
     "expected_output": "markdown",
     "max_chars": 2000,
     "session_name": null,
@@ -86,7 +86,7 @@ The skill never fakes success. If Hermes fails, the result envelope reports `sta
 | `project_root` | string | yes | Anchors relative `target_paths`. |
 | `target_paths` | string[] | no | Files to read into the prompt as context. Each capped at 32 KB. |
 | `payload.hermes_profile` | string | no, default `cstar-hub` | Hermes profile loaded for the sub-agent run. |
-| `payload.model` | string | no, default `MiniMax-M2.7` | Hermes model id. |
+| `payload.model` | string | no, default `MiniMax-M3` | Hermes model id. |
 | `payload.expected_output` | enum | no, default `markdown` | `markdown` \| `json` \| `plain`. |
 | `payload.max_chars` | int | no, default `4000` | Soft cap surfaced in the prompt; not enforced post-hoc. |
 | `payload.session_name` | string\|null | no, default `null` | Sets `hermes chat --continue <name>` for cross-call continuity. |
@@ -106,7 +106,7 @@ The skill never fakes success. If Hermes fails, the result envelope reports `sta
   "response_chars": 1843,
   "est_prompt_tokens": 612,
   "est_response_tokens": 461,
-  "model": "MiniMax-M2.7",
+  "model": "MiniMax-M3",
   "hermes_profile": "cstar-hub",
   "wrote_to": "/home/morderith/.hermes/memories/MEMORY.md",
   "ledger_entry": ".agents/state/autobot-cost-ledger.jsonl#L17"
@@ -117,7 +117,7 @@ The skill never fakes success. If Hermes fails, the result envelope reports `sta
 
 1. **No nested delegation.** An autobot task may not enqueue more autobot tasks. (Prevents runaway loops.) Enforced by setting `HERMES_AUTOBOT_DELEGATED=1` in the subprocess env; nested `delegate.py` invocations refuse to run when this is set.
 2. **No writes outside `payload.write_to`.** The skill never touches files other than the explicit `write_to` target + the cost ledger + the lock file + the queue (Phase 3).
-3. **No bypass of Hermes/MiniMax-M2.7.** Even if MiniMax is degraded, the skill does NOT silently route to Anthropic or another provider. It returns degraded.
+3. **No bypass of Hermes/MiniMax-M3.** Even if MiniMax is degraded, the skill does NOT silently route to Anthropic or another provider. It returns degraded.
 4. **Cost is auditable post-hoc.** Every delegation appends one ledger record. `wc -l .agents/state/autobot-cost-ledger.jsonl` is the canonical "how many delegations have we done" answer.
 5. **Lock granularity = (project_root, intent_hash).** Two different intents in the same project may run in parallel. The same intent can't double-fire from cron + manual.
 
@@ -130,10 +130,10 @@ The skill never fakes success. If Hermes fails, the result envelope reports `sta
 
 ## 🎬 DEMO
 
-`demos/self_reflect.json` — replays the M2.7 cleanup-pass self-reflection we ran manually on 2026-05-15 19:00 UTC, but as a formal autobot delegation. Run with:
+`demos/self_reflect.json` — replays the MiniMax cleanup-pass self-reflection we ran manually on 2026-05-15 19:00 UTC, but as a formal autobot delegation. Run with:
 
 ```bash
 python3 .agents/skills/autobot/scripts/delegate.py --intent-file .agents/skills/autobot/demos/self_reflect.json
 ```
 
-Expected: same kind of memory entry M2.7 produced manually, written to `~/.hermes/memories/MEMORY.md` with `§` separator, plus one ledger entry, plus a result envelope on stdout.
+Expected: same kind of memory entry MiniMax produced manually, written to `~/.hermes/memories/MEMORY.md` with `§` separator, plus one ledger entry, plus a result envelope on stdout.

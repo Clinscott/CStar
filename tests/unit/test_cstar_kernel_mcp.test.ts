@@ -83,8 +83,12 @@ import {
     handleIntentRoute,
     handleWarden,
     handleTelemetry,
+    handleResearcherRequest,
+    handleForgeRequest,
+    handleForgeExecute,
     detectAuguryTargetDivergence,
     decideAugurySessionRouting,
+    callerRequestedActiveSessionContinuity,
     resolveAuguryCurrentIntentCategory,
 } from '../../src/tools/cstar-kernel-mcp.js';
 
@@ -110,7 +114,170 @@ describe('🔱 CStar Kernel MCP Tools', () => {
     beforeEach(() => {
         beadStore.clear();
         spokeStore.clear();
+        delete process.env.CSTAR_FORGE_HERMES_MINIMAX_ADAPTER_SCRIPT;
+        delete process.env.CSTAR_FORGE_EXECUTION_ARTIFACT_ROOT;
+        delete process.env.CSTAR_FORGE_WORKER_MODEL_RESPONSE;
+        delete process.env.CSTAR_FORGE_WORKER_DELEGATE_SCRIPT;
     });
+
+    function validDispatchRequest(overrides: Record<string, any> = {}) {
+        return {
+            bead_id: 'bead-test-dispatch',
+            owner_pmt_thread_id: '019e92ea-f551-7d50-928e-f67f6253ee36',
+            source_callback_thread_id: '019e9063-56e8-7831-a7ee-9241badce6c5',
+            objective: 'Produce a bounded no-spend dispatch receipt',
+            prompt: 'Review the target and report findings',
+            target_paths: ['src/tools/cstar-kernel-mcp.ts'],
+            system_under_test: 'cstar-kernel MCP',
+            scope: 'CStar control plane',
+            authority_lane: 'yellow',
+            required_metrics: [
+                { name: 'artifact_integrity', threshold: 'zero missing required fields' },
+            ],
+            artifact_expectations: ['compact callback packet', 'validation receipt'],
+            prohibited_actions: ['merge', 'push to main/master', 'live model spend', 'direct Hall/SQLite write'],
+            requested_actions: ['dry-run request receipt'],
+            spend_policy: { mode: 'no_spend', max_retries: 0, live_source_allowed: false },
+            live_source_policy: 'no live source collection',
+            retry_policy: { budget: 0, spent: 0 },
+            callback_contract: {
+                expected_packet: 'TEST_DISPATCH_PACKET',
+                callback_required: true,
+            },
+            package_locks: [
+                { path: 'work/packages/test.tar.gz', sha256: 'abc123' },
+            ],
+            ...overrides,
+        };
+    }
+
+    function validForgeExecuteRequest(overrides: Record<string, any> = {}) {
+        return validDispatchRequest({
+            decision_id: 'decision-forge-execute-test',
+            spend_policy: {
+                mode: 'live_authorized',
+                max_retries: 1,
+                live_source_allowed: false,
+                operator_authorization_ref: 'operator-run-it-test',
+            },
+            requested_actions: ['execute through approved Forge adapter'],
+            forge_request_receipt_id: 'dispatch-forge-decision-forge-execute-test-receipt',
+            forge_request_decision_id: 'decision-forge-execute-test',
+            forge_request_bead_id: 'bead-test-dispatch',
+            execution_mode: 'live_authorized',
+            operator_authorization_ref: 'operator-run-it-test',
+            execution_adapter_ref: 'cstar-forge-hermes-minimax-adapter',
+            ...overrides,
+        });
+    }
+
+    function writeFakeForgeAdapter(): string {
+        const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fake-forge-adapter-'));
+        const scriptPath = path.join(tmpDir, 'adapter.py');
+        fs.writeFileSync(scriptPath, [
+            '#!/usr/bin/env python3',
+            'import argparse, json, os',
+            'parser = argparse.ArgumentParser()',
+            'parser.add_argument("--intent-file", required=True)',
+            'args = parser.parse_args()',
+            'with open(args.intent_file) as f:',
+            '    intent = json.load(f)',
+            'write_to = intent["payload"].get("write_to")',
+            'response = {"status": "pass", "summary": "fake forge adapter output", "files_changed": [], "artifacts": {"response": write_to}, "validation": {"mock": "pass"}, "metrics": {"mock": 1}, "boundaries": {"codex_worker_fallback_allowed": False}}',
+            'if write_to:',
+            '    os.makedirs(os.path.dirname(write_to), exist_ok=True)',
+            '    with open(write_to, "w") as out:',
+            '        out.write(json.dumps(response))',
+            'print(json.dumps({',
+            '    "status": "ok",',
+            '    "intent_id": "fake-forge-intent",',
+            '    "duration_ms": 7,',
+            '    "response_chars": 123,',
+            '    "est_prompt_tokens": 45,',
+            '    "est_response_tokens": 12,',
+            '    "model": intent["payload"]["model"],',
+            '    "hermes_profile": intent["payload"]["hermes_profile"],',
+            '    "wrote_to": write_to,',
+            '    "ledger_entry": "fake-ledger#L1",',
+            '    "live_spend": False,',
+            '    "live_source_collection": False',
+            '}))',
+            '',
+        ].join('\n'));
+        return scriptPath;
+    }
+
+    function writeMissingClaimForgeAdapter(): string {
+        const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fake-forge-missing-claim-adapter-'));
+        const scriptPath = path.join(tmpDir, 'adapter.py');
+        fs.writeFileSync(scriptPath, [
+            '#!/usr/bin/env python3',
+            'import argparse, json, os',
+            'parser = argparse.ArgumentParser()',
+            'parser.add_argument("--intent-file", required=True)',
+            'args = parser.parse_args()',
+            'with open(args.intent_file) as f:',
+            '    intent = json.load(f)',
+            'response = {"status": "success", "summary": "fake success with missing evidence", "files_changed": ["missing-generated-file.txt"], "artifacts": {"tarball": "/tmp/cstar-definitely-missing-forge-artifact.tar.gz"}, "validation": {"mock": "pass"}, "metrics": {"fixture_coverage": 13}, "boundaries": {"codex_worker_fallback_allowed": False}}',
+            'write_to = intent["payload"].get("write_to")',
+            'if write_to:',
+            '    os.makedirs(os.path.dirname(write_to), exist_ok=True)',
+            '    with open(write_to, "w") as out:',
+            '        out.write(json.dumps(response))',
+            'print(json.dumps({',
+            '    "status": "ok",',
+            '    "intent_id": "fake-missing-claim-intent",',
+            '    "duration_ms": 7,',
+            '    "response_chars": 123,',
+            '    "est_prompt_tokens": 45,',
+            '    "est_response_tokens": 12,',
+            '    "model": intent["payload"]["model"],',
+            '    "hermes_profile": intent["payload"]["hermes_profile"],',
+            '    "wrote_to": write_to,',
+            '    "ledger_entry": "fake-ledger#L1",',
+            '    "live_spend": False,',
+            '    "live_source_collection": False',
+            '}))',
+            '',
+        ].join('\n'));
+        return scriptPath;
+    }
+
+    function writeAdvisoryOnlyForgeAdapter(): string {
+        const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fake-forge-advisory-adapter-'));
+        const scriptPath = path.join(tmpDir, 'adapter.py');
+        fs.writeFileSync(scriptPath, [
+            '#!/usr/bin/env python3',
+            'import argparse, json, os',
+            'parser = argparse.ArgumentParser()',
+            'parser.add_argument("--intent-file", required=True)',
+            'args = parser.parse_args()',
+            'with open(args.intent_file) as f:',
+            '    intent = json.load(f)',
+            'response = {"name": "CORVUSEYE_TRUTH_VERIFICATION_RED_TEAM_SUITE_LIVE_FORGE_BUILD_RESULT", "verdict": "PASS-READY-FOR-PMT-REVIEW", "next_gate": "PMT review"}',
+            'write_to = intent["payload"].get("write_to")',
+            'if write_to:',
+            '    os.makedirs(os.path.dirname(write_to), exist_ok=True)',
+            '    with open(write_to, "w") as out:',
+            '        out.write(json.dumps(response))',
+            'print(json.dumps({',
+            '    "status": "ok",',
+            '    "intent_id": "fake-advisory-intent",',
+            '    "duration_ms": 7,',
+            '    "response_chars": 123,',
+            '    "est_prompt_tokens": 45,',
+            '    "est_response_tokens": 12,',
+            '    "model": intent["payload"]["model"],',
+            '    "hermes_profile": intent["payload"]["hermes_profile"],',
+            '    "wrote_to": write_to,',
+            '    "ledger_entry": "fake-ledger#L1",',
+            '    "live_spend": False,',
+            '    "live_source_collection": False',
+            '}))',
+            '',
+        ].join('\n'));
+        return scriptPath;
+    }
 
     it('cstar_handoff tool handler should return a valid MCP response', async () => {
         const result = await handleHandoff();
@@ -118,24 +285,392 @@ describe('🔱 CStar Kernel MCP Tools', () => {
         const parsed = JSON.parse(result.content[0].text);
         if (parsed.error) console.error('Handoff Error:', parsed.error);
         assert.ok(parsed.status === 'idle' || parsed.execution_gate || parsed.error === undefined);
+        assert.ok(parsed.guardrail);
+        assert.ok(['allow', 'caution', 'block'].includes(parsed.guardrail.verdict));
+        assert.ok(['continue', 'recover', 'repair', 'verify', 'refuse'].includes(parsed.guardrail.action));
     });
 
-    it('cstar_hall_search tool handler should return a list of results and filter by type', async () => {
+    it('cstar_hall_search tool handler should return a guarded result envelope and filter by type', async () => {
         // Test base search
         const result = await handleHallSearch({ query: 'test' });
         assert.ok(result.content);
         const parsed = JSON.parse(result.content[0].text);
-        assert.strictEqual(parsed.length, 3);
-        assert.strictEqual(parsed[0].type, 'CODE');
+        assert.strictEqual(parsed.status, 'matched');
+        assert.strictEqual(parsed.count, 3);
+        assert.strictEqual(parsed.results.length, 3);
+        assert.strictEqual(parsed.results[0].type, 'CODE');
+        assert.strictEqual(parsed.guardrail.verdict, 'allow');
 
         // Test filtering
         const filteredResult = await handleHallSearch({ query: 'test', types: ['DOC'] });
         const filteredParsed = JSON.parse(filteredResult.content[0].text);
-        assert.strictEqual(filteredParsed.length, 1);
-        assert.strictEqual(filteredParsed[0].type, 'DOC');
+        assert.strictEqual(filteredParsed.status, 'matched');
+        assert.strictEqual(filteredParsed.count, 1);
+        assert.strictEqual(filteredParsed.results.length, 1);
+        assert.strictEqual(filteredParsed.results[0].type, 'DOC');
+    });
+
+    it('cstar_researcher_request returns a no-spend receipt with callback and metric metadata', async () => {
+        const result = await handleResearcherRequest(validDispatchRequest({
+            dispatch_surface_ref: 'docs/integrations/cstar-kernel-mcp.md',
+        }));
+        assert.ok(result.content);
+        const parsed = JSON.parse(result.content[0].text);
+        assert.strictEqual(parsed.status, 'dry_run_no_spend');
+        assert.strictEqual(parsed.dispatch_kind, 'researcher');
+        assert.strictEqual(parsed.bead_id, 'bead-test-dispatch');
+        assert.ok(parsed.decision_id.startsWith('decision-researcher-'));
+        assert.strictEqual(parsed.owner_pmt_thread_id, '019e92ea-f551-7d50-928e-f67f6253ee36');
+        assert.strictEqual(parsed.callback_contract.expected_packet, 'TEST_DISPATCH_PACKET');
+        assert.strictEqual(parsed.callback_contract.callback_thread_id, '019e9063-56e8-7831-a7ee-9241badce6c5');
+        assert.strictEqual(parsed.dispatch_execution.attempted, false);
+        assert.strictEqual(parsed.dispatch_execution.live_spend, false);
+        assert.strictEqual(parsed.dispatch_execution.codex_worker_fallback_allowed, false);
+        assert.strictEqual(parsed.authorized_dispatch_surface.found, true);
+        assert.strictEqual(parsed.required_metrics[0].name, 'artifact_integrity');
+    });
+
+    it('cstar_researcher_request proves the default authorized surface but blocks live dispatch without operator authorization', async () => {
+        const result = await handleResearcherRequest(validDispatchRequest());
+        assert.ok(result.content);
+        const parsed = JSON.parse(result.content[0].text);
+        assert.strictEqual(parsed.status, 'dry_run_no_spend');
+        assert.strictEqual(parsed.dispatch_kind, 'researcher');
+        assert.strictEqual(parsed.authorized_dispatch_surface.found, true);
+        assert.strictEqual(
+            parsed.authorized_dispatch_surface.selected.ref,
+            '.agents/skills/researcher/SKILL.md',
+        );
+        assert.strictEqual(parsed.dispatch_execution.attempted, false);
+        assert.strictEqual(parsed.dispatch_execution.live_spend, false);
+        assert.strictEqual(parsed.dispatch_execution.live_source_collection, false);
+        assert.strictEqual(parsed.dispatch_execution.codex_worker_fallback_allowed, false);
+        assert.strictEqual(parsed.dispatch_execution.fail_closed_reason, 'no_live_dispatch_authority');
+    });
+
+    it('cstar_researcher_request marks complete live-authorized receipts as ready without executing', async () => {
+        const result = await handleResearcherRequest(validDispatchRequest({
+            spend_policy: {
+                mode: 'live_authorized',
+                max_retries: 1,
+                live_source_allowed: false,
+                operator_authorization_ref: 'operator-test-live-researcher',
+            },
+            retry_policy: { budget: 1, spent: 0 },
+        }));
+        assert.ok(result.content);
+        const parsed = JSON.parse(result.content[0].text);
+        assert.strictEqual(parsed.status, 'ready_for_authorized_dispatch');
+        assert.strictEqual(parsed.dispatch_kind, 'researcher');
+        assert.strictEqual(parsed.authorized_dispatch_surface.found, true);
+        assert.strictEqual(
+            parsed.authorized_dispatch_surface.selected.ref,
+            '.agents/skills/researcher/SKILL.md',
+        );
+        assert.strictEqual(parsed.dispatch_execution.attempted, false);
+        assert.strictEqual(parsed.dispatch_execution.live_spend, false);
+        assert.strictEqual(parsed.dispatch_execution.live_source_collection, false);
+        assert.strictEqual(parsed.dispatch_execution.codex_worker_fallback_allowed, false);
+        assert.strictEqual(parsed.dispatch_execution.fail_closed_reason, null);
+    });
+
+    it('cstar_forge_request honors explicit decision ids and fails closed on missing dispatch surface', async () => {
+        const result = await handleForgeRequest(validDispatchRequest({
+            bead_id: undefined,
+            decision_id: 'decision-explicit-forge-test',
+            dispatch_surface_ref: 'missing/forge/surface.md',
+        }));
+        assert.ok(result.content);
+        const parsed = JSON.parse(result.content[0].text);
+        assert.strictEqual(parsed.status, 'dry_run_no_spend');
+        assert.strictEqual(parsed.dispatch_kind, 'forge');
+        assert.strictEqual(parsed.decision_id, 'decision-explicit-forge-test');
+        assert.strictEqual(parsed.bead_id, null);
+        assert.strictEqual(parsed.authorized_dispatch_surface.found, false);
+        assert.strictEqual(parsed.dispatch_execution.fail_closed_reason, 'missing_authorized_dispatch_surface');
+    });
+
+    it('cstar_forge_request proves the default authorized surface but blocks live dispatch without operator authorization', async () => {
+        const result = await handleForgeRequest(validDispatchRequest());
+        assert.ok(result.content);
+        const parsed = JSON.parse(result.content[0].text);
+        assert.strictEqual(parsed.status, 'dry_run_no_spend');
+        assert.strictEqual(parsed.dispatch_kind, 'forge');
+        assert.strictEqual(parsed.authorized_dispatch_surface.found, true);
+        assert.match(
+            parsed.authorized_dispatch_surface.selected.ref,
+            /^docs\/operations\/corvus-forge-(skill-spec|pipeline-playbook)\.md$/,
+        );
+        assert.strictEqual(parsed.dispatch_execution.attempted, false);
+        assert.strictEqual(parsed.dispatch_execution.live_spend, false);
+        assert.strictEqual(parsed.dispatch_execution.live_source_collection, false);
+        assert.strictEqual(parsed.dispatch_execution.codex_worker_fallback_allowed, false);
+        assert.strictEqual(parsed.dispatch_execution.fail_closed_reason, 'no_live_dispatch_authority');
+    });
+
+    it('dispatch requests reject missing required metrics', async () => {
+        const result = await handleResearcherRequest(validDispatchRequest({ required_metrics: [] }));
+        assert.strictEqual(result.isError, true);
+        const parsed = JSON.parse(result.content[0].text);
+        assert.strictEqual(parsed.status, 'rejected');
+        assert.match(parsed.error, /required_metrics/);
+    });
+
+    it('dispatch requests reject prohibited or red-gated requested actions', async () => {
+        const result = await handleForgeRequest(validDispatchRequest({
+            requested_actions: ['merge to master'],
+        }));
+        assert.strictEqual(result.isError, true);
+        const parsed = JSON.parse(result.content[0].text);
+        assert.strictEqual(parsed.status, 'rejected');
+        assert.match(parsed.error, /prohibited|red-gated/);
+    });
+
+    it('dispatch requests require live authorization before live spend or live source collection', async () => {
+        const result = await handleForgeRequest(validDispatchRequest({
+            spend_policy: { mode: 'live_authorized', max_retries: 1, live_source_allowed: true },
+            live_source_policy: 'live source collection requested',
+        }));
+        assert.strictEqual(result.isError, true);
+        const parsed = JSON.parse(result.content[0].text);
+        assert.strictEqual(parsed.status, 'rejected');
+        assert.match(parsed.error, /operator_authorization_ref/);
+    });
+
+    it('cstar_forge_execute validates a no-op execution receipt without live spend', async () => {
+        const result = await handleForgeExecute(validForgeExecuteRequest({
+            spend_policy: { mode: 'no_spend', max_retries: 0, live_source_allowed: false },
+            requested_actions: ['no-op execution contract proof'],
+            execution_mode: 'no_op',
+            operator_authorization_ref: undefined,
+            execution_adapter_ref: undefined,
+        }));
+        assert.ok(result.content);
+        const parsed = JSON.parse(result.content[0].text);
+        assert.strictEqual(parsed.status, 'validated_noop');
+        assert.strictEqual(parsed.execution_kind, 'forge');
+        assert.strictEqual(parsed.forge_request_receipt_id, 'dispatch-forge-decision-forge-execute-test-receipt');
+        assert.strictEqual(parsed.authorized_dispatch_surface.found, true);
+        assert.strictEqual(parsed.forge_execution.mode, 'no_op');
+        assert.strictEqual(parsed.forge_execution.attempted, false);
+        assert.strictEqual(parsed.forge_execution.live_spend, false);
+        assert.strictEqual(parsed.forge_execution.codex_worker_fallback_allowed, false);
+        assert.strictEqual(parsed.forge_execution.fail_closed_reason, null);
+    });
+
+    it('cstar_forge_execute rejects live execution without operator authorization', async () => {
+        const result = await handleForgeExecute(validForgeExecuteRequest({
+            spend_policy: { mode: 'live_authorized', max_retries: 1, live_source_allowed: false },
+            operator_authorization_ref: undefined,
+        }));
+        assert.strictEqual(result.isError, true);
+        const parsed = JSON.parse(result.content[0].text);
+        assert.strictEqual(parsed.status, 'rejected');
+        assert.match(parsed.error, /operator_authorization_ref/);
+    });
+
+    it('cstar_forge_execute rejects mismatched receipt linkage', async () => {
+        const result = await handleForgeExecute(validForgeExecuteRequest({
+            decision_id: 'decision-other',
+        }));
+        assert.strictEqual(result.isError, true);
+        const parsed = JSON.parse(result.content[0].text);
+        assert.strictEqual(parsed.status, 'rejected');
+        assert.match(parsed.error, /decision_id must match/);
+    });
+
+    it('cstar_forge_execute rejects inconsistent package locks', async () => {
+        const result = await handleForgeExecute(validForgeExecuteRequest({
+            package_locks: [
+                { path: 'work/packages/forge.tar.gz', sha256: 'abc123' },
+                { path: 'work/packages/forge.tar.gz', sha256: 'def456' },
+            ],
+        }));
+        assert.strictEqual(result.isError, true);
+        const parsed = JSON.parse(result.content[0].text);
+        assert.strictEqual(parsed.status, 'rejected');
+        assert.match(parsed.error, /package_locks/);
+    });
+
+    it('cstar_forge_execute invokes the approved adapter under live authorization without Codex fallback', async () => {
+        process.env.CSTAR_FORGE_HERMES_MINIMAX_ADAPTER_SCRIPT = writeFakeForgeAdapter();
+        const artifactRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'fake-forge-artifacts-'));
+        process.env.CSTAR_FORGE_EXECUTION_ARTIFACT_ROOT = artifactRoot;
+        const result = await handleForgeExecute(validForgeExecuteRequest());
+        assert.ok(result.content);
+        const parsed = JSON.parse(result.content[0].text);
+        assert.strictEqual(parsed.status, 'executed');
+        assert.strictEqual(parsed.authorized_dispatch_surface.found, true);
+        assert.strictEqual(parsed.authorized_execution_adapter.found, true);
+        assert.strictEqual(parsed.authorized_execution_adapter.selected.ref, 'cstar-forge-hermes-minimax-adapter');
+        assert.strictEqual(parsed.authorized_execution_adapter.selected.codex_worker_fallback_allowed, false);
+        assert.strictEqual(parsed.forge_execution.attempted, true);
+        assert.strictEqual(parsed.forge_execution.live_spend, false);
+        assert.strictEqual(parsed.forge_execution.adapter_invoked, true);
+        assert.strictEqual(parsed.forge_execution.codex_worker_fallback_allowed, false);
+        assert.strictEqual(parsed.forge_execution.fail_closed_reason, null);
+        assert.strictEqual(parsed.forge_execution.adapter_result.status, 'ok');
+        assert.strictEqual(parsed.forge_execution.adapter_result.envelope.model, 'MiniMax-M3');
+        assert.strictEqual(parsed.forge_execution.adapter_result.envelope.hermes_profile, 'cstar-hub');
+        assert.ok(parsed.forge_execution.adapter_result.envelope.wrote_to.startsWith(artifactRoot));
+        assert.match(parsed.forge_execution.adapter_result.envelope.response_artifact.sha256, /^[a-f0-9]{64}$/);
+        assert.ok(parsed.forge_execution.adapter_result.envelope.response_artifact.bytes > 0);
+        assert.strictEqual(parsed.forge_execution.adapter_result.envelope.response_contract.status, 'pass');
+        assert.strictEqual(parsed.forge_execution.adapter_result.envelope.response_contract.files_changed_count, 0);
+        assert.strictEqual(parsed.forge_execution.adapter_result.envelope.response_contract.artifacts_count, 1);
+        assert.strictEqual(parsed.forge_execution.adapter_result.envelope.response_contract.validation_count, 1);
+    });
+
+    it('cstar_forge_execute blocks response-only adapters before spend for implementation builds', async () => {
+        process.env.CSTAR_FORGE_HERMES_MINIMAX_ADAPTER_SCRIPT = writeFakeForgeAdapter();
+        const result = await handleForgeExecute(validForgeExecuteRequest({
+            objective: 'Build the CorvusEye deterministic truth-verification red-team suite',
+            requested_actions: ['build deterministic suite files', 'package validation artifacts'],
+            artifact_expectations: ['changed source files', 'tarball package', 'dashboard artifacts'],
+        }));
+        assert.strictEqual(result.isError, true);
+        const parsed = JSON.parse(result.content[0].text);
+        assert.strictEqual(parsed.status, 'blocked');
+        assert.strictEqual(parsed.authorized_execution_adapter.found, true);
+        assert.strictEqual(parsed.authorized_execution_adapter.selected.write_capability, 'response_only');
+        assert.strictEqual(parsed.forge_execution.attempted, false);
+        assert.strictEqual(parsed.forge_execution.adapter_invoked, false);
+        assert.strictEqual(parsed.forge_execution.live_spend, false);
+        assert.strictEqual(parsed.forge_execution.codex_worker_fallback_allowed, false);
+        assert.strictEqual(parsed.forge_execution.fail_closed_reason, 'adapter_lacks_implementation_write_capability');
+    });
+
+    it('cstar_forge_execute invokes the write-capable Forge worker adapter on bounded target roots', async () => {
+        const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-worker-project-'));
+        const suiteRoot = path.join(projectRoot, 'tests', 'truth-verification-red-team');
+        fs.mkdirSync(suiteRoot, { recursive: true });
+        const modelResponse = path.join(projectRoot, 'model-response.json');
+        fs.writeFileSync(modelResponse, JSON.stringify({
+            status: 'success',
+            summary: 'Applied bounded test fixture.',
+            files: [
+                { path: 'generated-fixture.json', content: '{"ok":true}\n' },
+            ],
+            artifacts: {},
+            validation: { unit: 'pass' },
+            metrics: { files_written: 1 },
+            boundaries: { no_codex_worker_fallback: true },
+            callback_packet: 'TEST_FORGE_WORKER_PACKET',
+        }));
+        process.env.CSTAR_FORGE_WORKER_MODEL_RESPONSE = modelResponse;
+        const artifactRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'fake-forge-artifacts-'));
+        process.env.CSTAR_FORGE_EXECUTION_ARTIFACT_ROOT = artifactRoot;
+        const result = await handleForgeExecute(validForgeExecuteRequest({
+            objective: 'Build bounded test fixture through the Forge worker adapter',
+            target_paths: [suiteRoot],
+            requested_actions: ['build deterministic suite files'],
+            artifact_expectations: ['changed source files'],
+            execution_adapter_ref: 'cstar-forge-hermes-minimax-worker-adapter',
+        }));
+        assert.ok(result.content);
+        const parsed = JSON.parse(result.content[0].text);
+        const generatedPath = path.join(suiteRoot, 'generated-fixture.json');
+        assert.strictEqual(parsed.status, 'executed');
+        assert.strictEqual(parsed.authorized_execution_adapter.selected.write_capability, 'project_files');
+        assert.strictEqual(parsed.forge_execution.attempted, true);
+        assert.strictEqual(parsed.forge_execution.adapter_invoked, true);
+        assert.strictEqual(parsed.forge_execution.live_source_collection, false);
+        assert.strictEqual(parsed.forge_execution.codex_worker_fallback_allowed, false);
+        assert.strictEqual(parsed.forge_execution.fail_closed_reason, null);
+        assert.strictEqual(parsed.forge_execution.adapter_result.status, 'ok');
+        assert.strictEqual(parsed.forge_execution.adapter_result.envelope.response_contract.status, 'success');
+        assert.strictEqual(parsed.forge_execution.adapter_result.envelope.response_contract.files_changed_count, 1);
+        assert.strictEqual(fs.readFileSync(generatedPath, 'utf-8'), '{"ok":true}\n');
+    });
+
+    it('cstar_forge_execute worker adapter does not let a file target authorize sibling writes', async () => {
+        const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-worker-project-'));
+        const exactTarget = path.join(projectRoot, 'package.json');
+        fs.writeFileSync(exactTarget, '{}\n');
+        const modelResponse = path.join(projectRoot, 'model-response.json');
+        fs.writeFileSync(modelResponse, JSON.stringify({
+            status: 'success',
+            summary: 'Attempt unsafe sibling write.',
+            files: [
+                { path: 'not-package.json', content: '{"bad":true}\n' },
+            ],
+            artifacts: {},
+            validation: {},
+            metrics: {},
+            boundaries: {},
+        }));
+        process.env.CSTAR_FORGE_WORKER_MODEL_RESPONSE = modelResponse;
+        const artifactRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'fake-forge-artifacts-'));
+        process.env.CSTAR_FORGE_EXECUTION_ARTIFACT_ROOT = artifactRoot;
+        const result = await handleForgeExecute(validForgeExecuteRequest({
+            objective: 'Build bounded package update through the Forge worker adapter',
+            target_paths: [exactTarget],
+            requested_actions: ['build package update'],
+            artifact_expectations: ['changed source file'],
+            execution_adapter_ref: 'cstar-forge-hermes-minimax-worker-adapter',
+        }));
+        assert.strictEqual(result.isError, true);
+        const parsed = JSON.parse(result.content[0].text);
+        assert.strictEqual(parsed.status, 'adapter_degraded');
+        assert.strictEqual(parsed.forge_execution.adapter_invoked, true);
+        assert.strictEqual(parsed.forge_execution.live_spend, false);
+        assert.match(parsed.forge_execution.adapter_result.envelope.degraded_reason, /outside authorized target roots/);
+        assert.strictEqual(fs.existsSync(path.join(projectRoot, 'not-package.json')), false);
+    });
+
+    it('cstar_forge_execute fails closed when the adapter returns only an advisory packet', async () => {
+        process.env.CSTAR_FORGE_HERMES_MINIMAX_ADAPTER_SCRIPT = writeAdvisoryOnlyForgeAdapter();
+        const artifactRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'fake-forge-artifacts-'));
+        process.env.CSTAR_FORGE_EXECUTION_ARTIFACT_ROOT = artifactRoot;
+        const result = await handleForgeExecute(validForgeExecuteRequest());
+        assert.strictEqual(result.isError, true);
+        const parsed = JSON.parse(result.content[0].text);
+        assert.strictEqual(parsed.status, 'adapter_degraded');
+        assert.strictEqual(parsed.forge_execution.attempted, true);
+        assert.strictEqual(parsed.forge_execution.adapter_invoked, true);
+        assert.strictEqual(parsed.forge_execution.codex_worker_fallback_allowed, false);
+        assert.strictEqual(parsed.forge_execution.fail_closed_reason, 'adapter_degraded');
+        assert.strictEqual(parsed.forge_execution.adapter_result.status, 'degraded');
+        assert.strictEqual(parsed.forge_execution.adapter_result.error, 'adapter_response_missing_status');
+        assert.match(parsed.forge_execution.adapter_result.envelope.response_artifact.sha256, /^[a-f0-9]{64}$/);
+        assert.strictEqual(parsed.forge_execution.adapter_result.envelope.response_contract, null);
+    });
+
+    it('cstar_forge_execute fails closed when a success packet claims missing artifacts', async () => {
+        process.env.CSTAR_FORGE_HERMES_MINIMAX_ADAPTER_SCRIPT = writeMissingClaimForgeAdapter();
+        const artifactRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'fake-forge-artifacts-'));
+        process.env.CSTAR_FORGE_EXECUTION_ARTIFACT_ROOT = artifactRoot;
+        const result = await handleForgeExecute(validForgeExecuteRequest());
+        assert.strictEqual(result.isError, true);
+        const parsed = JSON.parse(result.content[0].text);
+        assert.strictEqual(parsed.status, 'adapter_degraded');
+        assert.strictEqual(parsed.forge_execution.fail_closed_reason, 'adapter_degraded');
+        assert.strictEqual(parsed.forge_execution.adapter_result.status, 'degraded');
+        assert.strictEqual(parsed.forge_execution.adapter_result.error, 'adapter_response_missing_claimed_path');
+        assert.match(parsed.forge_execution.adapter_result.envelope.response_artifact.sha256, /^[a-f0-9]{64}$/);
+        assert.strictEqual(parsed.forge_execution.adapter_result.envelope.response_contract, null);
+    });
+
+    it('cstar_forge_execute fails closed when an unknown execution adapter is requested', async () => {
+        const result = await handleForgeExecute(validForgeExecuteRequest({
+            execution_adapter_ref: 'unknown-forge-adapter',
+        }));
+        assert.strictEqual(result.isError, true);
+        const parsed = JSON.parse(result.content[0].text);
+        assert.strictEqual(parsed.status, 'blocked');
+        assert.strictEqual(parsed.authorized_dispatch_surface.found, true);
+        assert.strictEqual(parsed.authorized_execution_adapter.found, false);
+        assert.strictEqual(parsed.forge_execution.attempted, false);
+        assert.strictEqual(parsed.forge_execution.live_spend, false);
+        assert.strictEqual(parsed.forge_execution.adapter_invoked, false);
+        assert.strictEqual(parsed.forge_execution.codex_worker_fallback_allowed, false);
+        assert.strictEqual(parsed.forge_execution.fail_closed_reason, 'missing_authorized_execution_adapter');
     });
 
     it('cstar_augury tool handler should return routing advice', async () => {
+        // Prompt with the 'test' trigger word should resolve VERIFY via the
+        // deterministic grammar resolver (no session active), not the legacy
+        // blind ORCHESTRATE fallback.
         const result = await handleAugury({ prompt: 'test mission' });
         assert.ok(result.content);
         const parsed = JSON.parse(result.content[0].text);
@@ -146,8 +681,37 @@ describe('🔱 CStar Kernel MCP Tools', () => {
         assert.ok(typeof parsed.expert_lens === 'string');
         assert.ok(typeof parsed.expert_signature_question === 'string');
         assert.ok(Array.isArray(parsed.expert_guardrails));
+
+        // routing_provenance exposes both the deterministic match and the
+        // (absent) session selection so callers can detect divergence.
+        assert.ok(parsed.routing_provenance);
         assert.strictEqual(parsed.routing_provenance.source, 'deterministic');
+        assert.ok(parsed.routing_provenance.deterministic);
         assert.strictEqual(parsed.routing_provenance.deterministic.intent_category, 'VERIFY');
+        assert.strictEqual(parsed.routing_provenance.session, null);
+        assert.strictEqual(parsed.routing_provenance.diverged, false);
+
+        // persona_advice carries the active CStar persona's direction.
+        assert.ok(parsed.persona_advice);
+        assert.ok(['ODIN', 'ALFRED'].includes(parsed.persona_advice.persona));
+        assert.strictEqual(parsed.persona_advice.intent_category, 'VERIFY');
+        assert.ok(typeof parsed.persona_advice.direction === 'string');
+        assert.ok(parsed.persona_advice.direction.length > 0);
+        assert.ok(typeof parsed.persona_advice.tone_directive === 'string');
+        assert.ok(['low', 'medium', 'high'].includes(parsed.persona_advice.risk_tolerance));
+    });
+
+    it('cstar_augury falls back to ORCHESTRATE when no grammar trigger and no session exist', async () => {
+        // 'xyzzy noise' contains no grammar trigger word, so the deterministic
+        // resolver returns null and the handler should use the ORCHESTRATE
+        // fallback path (source='fallback', confidence=0.6).
+        const result = await handleAugury({ prompt: 'xyzzy noise' });
+        const parsed = JSON.parse(result.content[0].text);
+        assert.strictEqual(parsed.intent_category, 'ORCHESTRATE');
+        assert.strictEqual(parsed.routing_provenance.source, 'fallback');
+        assert.strictEqual(parsed.routing_provenance.deterministic, null);
+        assert.strictEqual(parsed.routing_provenance.session, null);
+        assert.ok(parsed.persona_advice);
     });
 
     it('detects stale Augury session target divergence', () => {
@@ -206,6 +770,58 @@ describe('🔱 CStar Kernel MCP Tools', () => {
         assert.deepStrictEqual(decision.divergence_warnings, ['stale_session_target_divergence']);
     });
 
+    it('routes deterministic prompt intent instead of unrelated active session without target paths', () => {
+        const decision = decideAugurySessionRouting({
+            hasSessionRoute: true,
+            hasExplicitTargetPaths: false,
+            targetDiverged: false,
+            deterministicAvailable: true,
+            currentRouteDiverged: true,
+        });
+
+        assert.strictEqual(decision.source, 'deterministic');
+        assert.strictEqual(decision.use_session_as_primary, false);
+        assert.strictEqual(decision.stale_session_demoted, true);
+        assert.strictEqual(decision.stale_session_divergence_blocker, false);
+        assert.deepStrictEqual(decision.divergence_warnings, ['stale_session_intent_divergence']);
+    });
+
+    it('blocks active-session continuity when deterministic prompt intent diverges', () => {
+        const decision = decideAugurySessionRouting({
+            hasSessionRoute: true,
+            hasExplicitTargetPaths: false,
+            targetDiverged: false,
+            deterministicAvailable: true,
+            currentRouteDiverged: true,
+            activeSessionContinuityRequested: true,
+        });
+
+        assert.strictEqual(decision.source, 'blocked');
+        assert.strictEqual(decision.use_session_as_primary, false);
+        assert.strictEqual(decision.stale_session_demoted, false);
+        assert.strictEqual(decision.stale_session_divergence_blocker, true);
+        assert.deepStrictEqual(decision.divergence_warnings, ['stale_session_intent_divergence']);
+        assert.match(decision.required_operator_decision ?? '', /active session intent diverges/);
+    });
+
+    it('does not treat active-session bug descriptions as continuity requests', () => {
+        assert.strictEqual(
+            callerRequestedActiveSessionContinuity(
+                'Repair CStar Augury stale active-session routing so unrelated active sessions cannot override deterministic prompt intent.',
+            ),
+            false,
+        );
+
+        assert.strictEqual(
+            callerRequestedActiveSessionContinuity('Use the active session for this continuation.'),
+            true,
+        );
+        assert.strictEqual(
+            callerRequestedActiveSessionContinuity('Resume active handoff.'),
+            true,
+        );
+    });
+
     it('blocks stale session divergence only when no safe current route exists', () => {
         const decision = decideAugurySessionRouting({
             hasSessionRoute: true,
@@ -258,6 +874,9 @@ describe('🔱 CStar Kernel MCP Tools', () => {
         assert.strictEqual(parsed.bead.bead_id, 'bead:mcp:test-create');
         assert.strictEqual(parsed.bead.status, 'OPEN');
         assert.strictEqual(parsed.bead.target_kind, 'FILE');
+        assert.strictEqual(parsed.mutation.kind, 'hall_bead_create');
+        assert.strictEqual(parsed.mutation.persisted, true);
+        assert.strictEqual(parsed.mutation.guardrail.verdict, 'allow');
 
         const listResult = await handleBead({ action: 'list', statuses: ['OPEN'] });
         const listParsed = JSON.parse(listResult.content[0].text);
@@ -308,6 +927,8 @@ describe('🔱 CStar Kernel MCP Tools', () => {
         assert.strictEqual(resolveParsed.bead.status, 'RESOLVED');
         assert.strictEqual(resolveParsed.bead.resolved_validation_id, 'validation-1');
         assert.strictEqual(resolveParsed.sterling_mandate.verdict, 'EXEMPT');
+        assert.strictEqual(resolveParsed.mutation.kind, 'hall_bead_resolve');
+        assert.strictEqual(resolveParsed.mutation.persisted, true);
     });
 
     it('cstar_bead rejects missing beads and invalid create payloads', async () => {
@@ -324,7 +945,7 @@ describe('🔱 CStar Kernel MCP Tools', () => {
         const searchEvent = deriveMcpUsefulnessEvent(
             { ts: new Date().toISOString(), tool: 'cstar_hall_search', ok: true, duration_ms: 3, root: '/tmp/cstar' },
             { query: 'bead' },
-            { content: [{ type: 'text', text: JSON.stringify([{ type: 'CODE' }]) }] },
+            { content: [{ type: 'text', text: JSON.stringify({ status: 'matched', results: [{ type: 'CODE' }] }) }] },
         );
         assert.strictEqual(searchEvent.outcome_kind, 'search_hit');
         assert.strictEqual(searchEvent.result_count, 1);
@@ -373,6 +994,8 @@ describe('🔱 CStar Kernel MCP Tools', () => {
         assert.strictEqual(parsed.status, 'recorded');
         assert.strictEqual(parsed.token_path_observation_id, undefined,
             'no observation_id when token_path_observation is absent');
+        assert.strictEqual(parsed.mutation.kind, 'validation_result_record');
+        assert.strictEqual(parsed.mutation.persisted, true);
     });
 
     it('cstar_augury includes a token_path block when the sidecar is reachable', async () => {
@@ -383,21 +1006,32 @@ describe('🔱 CStar Kernel MCP Tools', () => {
         });
         assert.ok(result.content);
         const parsed = JSON.parse(result.content[0].text);
-        // Token-path advice is best-effort; absent means sidecar isn't checked
-        // out next to CStar. When present, validate the contract.
-        if (parsed.token_path) {
-            assert.strictEqual(parsed.token_path.advisor, 'augury-token-path');
-            assert.strictEqual(parsed.token_path.schema_version, 1);
-            assert.ok(typeof parsed.token_path.scenario_class === 'string');
-            assert.ok(typeof parsed.token_path.mode === 'string');
-            assert.ok(typeof parsed.token_path.selected_policy === 'string');
-            assert.ok(typeof parsed.token_path.expected_billable_tokens === 'number');
-            assert.ok(typeof parsed.token_path.expected_raw_tokens === 'number');
-            assert.ok(parsed.token_path.budget && typeof parsed.token_path.budget === 'object');
-            assert.ok(parsed.token_path.context_strategy && typeof parsed.token_path.context_strategy === 'object');
-            assert.ok(typeof parsed.token_path.episode_id === 'string');
-            assert.match(parsed.token_path.episode_id, /^mcp-tp-/);
-        }
+        assert.ok(parsed.token_path, 'token_path should be present when the sidecar is reachable');
+        assert.strictEqual(parsed.token_path.advisor, 'augury-token-path');
+        assert.strictEqual(parsed.token_path.schema_version, 1);
+        assert.ok(typeof parsed.token_path.scenario_class === 'string');
+        assert.ok(typeof parsed.token_path.mode === 'string');
+        assert.ok(typeof parsed.token_path.selected_policy === 'string');
+        assert.ok(typeof parsed.token_path.expected_billable_tokens === 'number');
+        assert.ok(typeof parsed.token_path.expected_raw_tokens === 'number');
+        assert.ok(parsed.token_path.budget && typeof parsed.token_path.budget === 'object');
+        assert.ok(parsed.token_path.context_strategy && typeof parsed.token_path.context_strategy === 'object');
+        assert.ok(typeof parsed.token_path.episode_id === 'string');
+        assert.match(parsed.token_path.episode_id, /^mcp-tp-/);
+    });
+
+    it('cstar_augury escalates ambiguous prompts toward ask-first or defer-escalate', async () => {
+        const result = await handleAugury({
+            prompt: 'Maybe figure out something better here?',
+            inferred_intent: 'REPAIR',
+        });
+        assert.ok(result.content);
+        const parsed = JSON.parse(result.content[0].text);
+        assert.ok(parsed.token_path, 'token_path should be present');
+        assert.ok(
+            parsed.token_path.mode === 'ask-first' || parsed.token_path.mode === 'defer-escalate',
+            `expected ask-first/defer-escalate for ambiguous prompt, got ${parsed.token_path.mode}`
+        );
     });
 
     it('cstar_record_result can auto-link a token_path_episode_id from recent advice', async () => {

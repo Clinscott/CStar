@@ -1,7 +1,8 @@
 import type { SovereignBead } from '../types/bead.js';
 
 export type HostSubagentProfile =
-    | 'architect'
+    | 'brooks'
+    | 'parnas'
     | 'backend'
     | 'frontend'
     | 'reviewer'
@@ -30,7 +31,8 @@ export type HostSubagentProfile =
     | 'sweeney'
     | 'miyamoto'
     | 'kojima'
-    | 'meier';
+    | 'meier'
+    | 'linscott';
 
 export interface HostSubagentSpec {
     id: HostSubagentProfile;
@@ -39,10 +41,15 @@ export interface HostSubagentSpec {
 }
 
 const HOST_SUBAGENT_SPECS: Record<HostSubagentProfile, HostSubagentSpec> = {
-    architect: {
-        id: 'architect',
-        title: 'Architecture Orchestrator',
-        instruction: 'Own decomposition, boundaries, sequencing, and provider-fit decisions. Prefer crisp plans, bounded edits, and explicit invariants over speculative prose.',
+    brooks: {
+        id: 'brooks',
+        title: 'Brooks Protocol (Architecture Orchestrator)',
+        instruction: 'Own decomposition, boundaries, sequencing, and conceptual integrity. Reject speculative code, demand crisp plan phases, and enforce clear invariants.',
+    },
+    parnas: {
+        id: 'parnas',
+        title: 'Parnas Protocol (Modular Boundaries)',
+        instruction: 'Enforce information hiding, wrap FFI interfaces cleanly, and minimize module coupling. Keep internals isolated behind clean public interfaces.',
     },
     backend: {
         id: 'backend',
@@ -189,6 +196,11 @@ const HOST_SUBAGENT_SPECS: Record<HostSubagentProfile, HostSubagentSpec> = {
         title: 'Meier Protocol',
         instruction: 'Apply a Meier-style macro-strategic decision loop critique. Focus on series of interesting choices and global mission control loops.',
     },
+    linscott: {
+        id: 'linscott',
+        title: 'Linscott Protocol',
+        instruction: 'Apply a Linscott-style empirical-evaluation critique. Attack unvalidated improvements, small-sample claims, ignored variance, and any "this is better" assertion without SPRT-style evidence. Demand the test regime, the sample size, and the confidence bound.',
+    },
 };
 
 function hasKeyword(value: string, keywords: string[]): boolean {
@@ -265,8 +277,12 @@ export function resolveHostSubagentProfile(bead: SovereignBead): HostSubagentPro
         return 'droid';
     }
 
-    if (bead.target_kind === 'WORKFLOW' || bead.target_kind === 'REPOSITORY' || hasKeyword(beadText, ['architecture', 'phase', 'decomposition', 'provider-fit', 'scheduler'])) {
-        return 'architect';
+    if (hasKeyword(beadText, ['modular', 'coupling', 'information hiding', 'module boundary', 'ffi wrapper'])) {
+        return 'parnas';
+    }
+
+    if (bead.target_kind === 'WORKFLOW' || bead.target_kind === 'REPOSITORY' || hasKeyword(beadText, ['architecture', 'phase', 'decomposition', 'conceptual integrity', 'provider-fit', 'scheduler'])) {
+        return 'brooks';
     }
 
     if (checker || (Array.isArray(bead.contract_refs) && bead.contract_refs.length > 0) || hasKeyword(beadText, ['verify', 'test', 'acceptance'])) {

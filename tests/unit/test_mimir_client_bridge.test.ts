@@ -93,7 +93,7 @@ describe('TypeScript Mimir client bridge (CS-P1-02)', () => {
 
         assert.strictEqual(response.status, 'error');
         assert.strictEqual(response.trace.transport_mode, 'host_session');
-        assert.match(response.error ?? '', /gemini returned no output/i);
+        assert.match(response.error ?? '', /(gemini|agy|codex) returned no output/i);
     });
 
     it('routes getFileIntent through the canonical request path', async () => {
@@ -191,21 +191,38 @@ describe('TypeScript Mimir client bridge (CS-P1-02)', () => {
             },
         });
 
-        const response = await client.request({
-            prompt: 'Explain the current bridge.',
-            caller: { source: 'test-suite' },
+        const originalIsTTY = process.stdout.isTTY;
+        Object.defineProperty(process.stdout, 'isTTY', {
+            value: true,
+            configurable: true,
         });
 
-        assert.strictEqual(response.status, 'success');
-        assert.strictEqual(response.trace.transport_mode, 'host_session');
-        assert.strictEqual(response.raw_text, 'Gemini host response');
-        assert.deepStrictEqual(calls, [
-            {
-                command: 'gemini',
-                args: ['--approval-mode', 'plan', '-p', 'Explain the current bridge.'],
-                cwd: tmpRoot,
-            },
-        ]);
+        try {
+            const response = await client.request({
+                prompt: 'Explain the current bridge.',
+                caller: { source: 'test-suite' },
+            });
+
+            assert.strictEqual(response.status, 'success');
+            assert.strictEqual(response.trace.transport_mode, 'host_session');
+            assert.strictEqual(response.raw_text, 'Gemini host response');
+            assert.deepStrictEqual(calls, [
+                {
+                    command: 'agy',
+                    args: ['--approval-mode', 'plan', '-p', 'Explain the current bridge.'],
+                    cwd: tmpRoot,
+                },
+            ]);
+        } finally {
+            if (originalIsTTY === undefined) {
+                delete (process.stdout as any).isTTY;
+            } else {
+                Object.defineProperty(process.stdout, 'isTTY', {
+                    value: originalIsTTY,
+                    configurable: true,
+                });
+            }
+        }
     });
 
     it('uses the structured Codex exec bridge when no host-session invoker is supplied', async () => {

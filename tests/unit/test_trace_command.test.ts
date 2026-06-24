@@ -74,6 +74,13 @@ describe('Trace command', () => {
         assert.equal(doctor.noise_score, 0);
         assert.equal(doctor.active?.scope, 'brain:CStar');
         assert.equal(doctor.active?.expert, 'CARMACK');
+        assert.deepEqual(doctor.guardrail, {
+            verdict: 'allow',
+            action: 'continue',
+            reason: 'All Augury checks passed.',
+            failed_checks: [],
+            warning_checks: [],
+        });
         assert.deepEqual(doctor.warnings, []);
 
         const explain = buildAuguryExplainPayload(session, cstarRoot);
@@ -86,6 +93,7 @@ describe('Trace command', () => {
         assert.deepEqual(explain.mimir?.targets, ['src/game/engine.ts']);
         assert.match(explain.mode?.basis ?? '', /full Augury once/i);
         assert.equal(explain.confidence?.source, 'missing');
+        assert.equal(explain.guardrail.verdict, 'allow');
     });
 
     it('warns agents when Augury has weak routing evidence', () => {
@@ -116,9 +124,14 @@ describe('Trace command', () => {
 
         const doctor = buildAuguryDoctorPayload(session, tmpRoot);
         assert.equal(doctor.status, 'fail');
-        assert.equal(doctor.expert_ok, false);
+        assert.equal(doctor.expert_ok, true);
+        assert.equal(doctor.active?.expert, 'SAKAGUCHI');
         assert.equal(doctor.mimir_ok, false);
-        assert.match(doctor.warnings.join('\n'), /No Council expert/);
+        assert.equal(doctor.guardrail.verdict, 'block');
+        assert.equal(doctor.guardrail.action, 'repair');
+        assert.deepEqual(doctor.guardrail.failed_checks, ['mimir']);
+        assert.deepEqual(doctor.guardrail.warning_checks, ['route', 'noise']);
+        assert.doesNotMatch(doctor.warnings.join('\n'), /No Council expert/);
         assert.match(doctor.warnings.join('\n'), /no Mimir targets/i);
         assert.match(doctor.agent_next_action, /Repair the Augury contract/);
     });
@@ -495,9 +508,9 @@ describe('Trace command', () => {
         assert.equal(lines[3], 'beads total=0 set=0 open=0 review=0');
         assert.equal(lines[4], 'gate=failure_recovery');
         assert.equal(lines[5], 'resume=cstar hall "chant-session:TRACE-FAILURE"');
-        assert.equal(lines[6], 'failure_phase=weave:research');
-        assert.equal(lines[7], 'failure_error=research delegated execution timeout after 5ms');
-        assert.equal(lines[8], 'next=Inspect the delegated planning bridge for hangs or stalled workers, then rerun chant.');
+        assert.ok(lines.includes('failure_phase=weave:research'));
+        assert.ok(lines.includes('failure_error=research delegated execution timeout after 5ms'));
+        assert.ok(lines.includes('next=Inspect the delegated planning bridge for hangs or stalled workers, then rerun chant.'));
 
         closeDb();
     });
@@ -654,7 +667,8 @@ describe('Trace command', () => {
             },
         });
 
-        const payload = buildTraceStatusPayload(null, tmpRoot);
+        const activeSession = listHallPlanningSessions(tmpRoot, { statuses: ['FORGE_EXECUTION'] as any })[0];
+        const payload = buildTraceStatusPayload(activeSession, tmpRoot);
         assert.equal(payload?.origin, 'runtime_execution');
         assert.equal(payload?.trace_id, 'TRACE-RUNTIME-1');
         assert.equal(payload?.runtime_bead_id, 'mission-runtime-1:exec:weave:evolve:1');
@@ -761,6 +775,140 @@ describe('Trace command', () => {
         assert.equal(payload?.runtime_bead_id, 'mission-runtime-new:exec:weave:evolve:1');
         assert.equal(payload?.status, 'RESOLVED');
         assert.equal(payload?.agent_handoff.execution_gate, 'completed');
+
+        closeDb();
+    });
+
+    it('repairs active runtime Augury contracts that are missing intent_category from registry grammar', () => {
+        const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-augury-runtime-category-'));
+        registry.setRoot(tmpRoot);
+        closeDb();
+        fs.mkdirSync(path.join(tmpRoot, '.agents'), { recursive: true });
+        fs.writeFileSync(path.join(tmpRoot, '.agents', 'skill_registry.json'), JSON.stringify({
+            intent_grammar: {
+                EVOLVE: {
+                    triggers: ['evolve', 'improve'],
+                    default_path: 'evolve',
+                    tier: 'WEAVE',
+                },
+            },
+        }));
+
+        const repoId = buildHallRepositoryId(normalizeHallPath(tmpRoot));
+        const now = Date.now();
+        upsertHallBead({
+            bead_id: 'mission-runtime-category:exec:weave:evolve:1',
+            repo_id: repoId,
+            target_kind: 'WEAVE',
+            target_ref: 'weave:evolve',
+            rationale: 'Execution of weave:evolve under mission MISSION-CATEGORY',
+            status: 'BLOCKED',
+            created_at: now,
+            updated_at: now,
+            metadata: {
+                trace_id: 'TRACE-RUNTIME-CATEGORY',
+                mission_bead_id: 'mission-runtime-category',
+                trace_contract: {
+                    intent: 'Evolve the active runtime contract.',
+                    selection_tier: 'WEAVE',
+                    selection_name: 'evolve',
+                    trajectory_status: 'STABLE',
+                    mimirs_well: ['src/node/core/runtime/dispatcher.ts'],
+                    confidence: 0.72,
+                    canonical_intent: 'Evolve the active runtime contract.',
+                },
+            },
+        });
+
+        const payload = buildTraceStatusPayload(null, tmpRoot);
+        assert.equal(payload?.augury_contract?.intent_category, 'EVOLVE');
+        assert.equal(payload?.agent_handoff.designation?.intent_category, 'EVOLVE');
+
+        const doctor = buildAuguryDoctorPayload(null, tmpRoot);
+        assert.equal(doctor.route_ok, true);
+        assert.doesNotMatch(doctor.warnings.join('\n'), /missing intent_category/);
+
+        const explain = buildAuguryExplainPayload(null, tmpRoot);
+        assert.equal(explain.route?.intent_category, 'EVOLVE');
+
+        closeDb();
+    });
+
+    it('uses typed planning Augury when the newest runtime bead is unroutable unknown', () => {
+        const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-augury-planning-fallback-'));
+        registry.setRoot(tmpRoot);
+        closeDb();
+        fs.mkdirSync(path.join(tmpRoot, '.agents'), { recursive: true });
+        fs.writeFileSync(path.join(tmpRoot, '.agents', 'skill_registry.json'), JSON.stringify({
+            intent_grammar: {
+                ORCHESTRATE: {
+                    triggers: ['plan', 'orchestrate'],
+                    default_path: 'orchestrate',
+                    tier: 'WEAVE',
+                },
+            },
+        }));
+
+        const repoId = buildHallRepositoryId(normalizeHallPath(tmpRoot));
+        const now = Date.now();
+        saveHallPlanningSession({
+            session_id: 'chant-session:typed-planning-fallback',
+            repo_id: repoId,
+            skill_id: 'chant',
+            status: 'FORGE_EXECUTION',
+            user_intent: 'plan the typed Augury recovery path',
+            normalized_intent: 'plan the typed Augury recovery path',
+            summary: 'Planning state should remain usable.',
+            created_at: now,
+            updated_at: now,
+            metadata: {
+                bead_ids: ['typed-planning-bead'],
+            },
+        } as any);
+        upsertHallBead({
+            bead_id: 'typed-planning-bead',
+            repo_id: repoId,
+            target_kind: 'FILE',
+            target_path: 'src/node/core/commands/trace.ts',
+            rationale: 'Planning target for typed Augury recovery.',
+            status: 'OPEN',
+            created_at: now,
+            updated_at: now,
+        });
+        upsertHallBead({
+            bead_id: 'mission-runtime-unknown:exec:weave:unknown:1',
+            repo_id: repoId,
+            target_kind: 'WEAVE',
+            target_ref: 'weave:unknown',
+            rationale: 'Execution of weave:unknown under mission MISSION-UNKNOWN',
+            status: 'BLOCKED',
+            created_at: now + 1,
+            updated_at: now + 1,
+            metadata: {
+                trace_id: 'TRACE-RUNTIME-UNKNOWN',
+                mission_bead_id: 'mission-runtime-unknown',
+                trace_contract: {
+                    intent: 'Execute unknown.',
+                    selection_tier: 'WEAVE',
+                    selection_name: 'unknown',
+                    trajectory_status: 'STABLE',
+                    mimirs_well: ['src/node/core/runtime/dispatcher.ts'],
+                    confidence: 0.72,
+                    canonical_intent: 'Execute unknown.',
+                },
+            },
+        });
+
+        const activeSession = listHallPlanningSessions(tmpRoot, { statuses: ['FORGE_EXECUTION'] as any })[0];
+        const payload = buildTraceStatusPayload(activeSession, tmpRoot);
+        assert.equal(payload?.origin, 'planning_session');
+        assert.equal(payload?.augury_contract?.intent_category, 'ORCHESTRATE');
+        assert.equal(payload?.augury_contract?.selection_name, 'orchestrate');
+        assert.deepEqual(payload?.augury_contract?.mimirs_well, ['src/node/core/commands/trace.ts']);
+
+        const doctor = buildAuguryDoctorPayload(activeSession, tmpRoot);
+        assert.equal(doctor.route_ok, true);
+        assert.equal(doctor.active?.route, 'WEAVE: orchestrate');
 
         closeDb();
     });

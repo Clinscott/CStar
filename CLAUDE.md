@@ -23,7 +23,7 @@ Source of truth: `src/tools/cstar-kernel-mcp.ts` (search for `server.tool(`).
 | `cstar_handoff` | Compact active state from Augury/handoff logic. |
 | `cstar_hall_search` | Bounded FTS5 search across CODE / DOC / ENGRAM / BEAD / SESSION / LESSON. |
 | `cstar_hall_maintenance` | `study` / `harvest` engram lessons. |
-| `cstar_augury` | Augury route resolution. |
+| `cstar_augury` | Augury route resolution layered on `cstar_intent_route`. Payload includes `routing_provenance` (deterministic grammar match + session selection + `diverged` flag) and `persona_advice` (active CStar persona → direction + tone for the resolved intent category). |
 | `cstar_doctor` | Kernel diagnostics. |
 | `cstar_verify_plan` | Plan verification gate. |
 | `cstar_bead` | Bead lifecycle ops. |
@@ -34,10 +34,10 @@ Source of truth: `src/tools/cstar-kernel-mcp.ts` (search for `server.tool(`).
 | `cstar_manifest` | Capability discovery — kernel registry merged with spoke-local manifests (announce-only per BEAD-CSTAR-SPOKE-DISCOVERY-001). |
 | `cstar_skill_info` | Per-capability contract: `<slug>:<id>` for spoke, bare id for hub. |
 | `cstar_spoke_journal` | Four-file journal state for a registered spoke (memory / tasks / wireframe / DEV_JOURNAL). |
-| `cstar_status` | Deterministic framework snapshot from `StateRegistry`: status, persona, gungnir score, managed spokes, agent presence. |
+| `cstar_status` | Deterministic framework snapshot from `StateRegistry`: status, persona, gungnir score, managed spokes, agent presence. Also returns a `persona` block (planning_stance, risk_tolerance, execution_gate, investigation_stance, repair_bias) derived from the active CStar persona. |
 | `cstar_evolve` | Read-only inspection of Karpathy-loop artifacts: `list_proposals`, `get_proposal`, `list_sprt_history`. Proposal generation and adversarial critique stay host-native. |
 | `cstar_spoke` | Mounted-spoke lifecycle: `list` / `link` / `unlink` / `inspect`. Completes the spoke surface alongside `cstar_spoke_journal` and `cstar_spoke_bead_import`. |
-| `cstar_intent_route` | Resolve a prompt against the kernel intent grammar (`.agents/skill_registry.json#intent_grammar`). `action=match` returns the first hit; `action=explain` enumerates every matching category. Response includes `grammar_source` (`registry` if the registry loaded, `fallback` for the in-code defaults). |
+| `cstar_intent_route` | **Deterministic grammar-only resolver.** Tokenizes the prompt and matches it against `.agents/skill_registry.json#intent_grammar`. No session, council, Mimir, or persona context — use it when you want a pure routing lookup (spoke tooling, CI, deterministic tests). `action=match` returns the first hit; `action=explain` enumerates every matching category. Response includes `grammar_source` (`registry` / `fallback`). `cstar_augury` layers session + council + persona on top of this resolver; prefer `cstar_augury` when calling as a host LLM. |
 | `cstar_warden` | On-demand Sentinel Warden invocation. `list` shells out to `scripts/run_warden.py --list-wardens` (driver is the source of truth), `bounties` returns the cached `tech_debt_ledger.json`, `scan` invokes a named Python warden. Structured `dependency_missing` envelope when a transitive Python dep is unavailable. |
 | `cstar_telemetry` | Read-only MCP telemetry summaries over the last 24h. `section=usage` returns raw call counts, `section=usefulness` returns outcome-derived rates (search hit, bead transitions, validation, augury routing), `section=token_path` returns the token-path advisor integration summary, `section=all` (default) returns every block. Sourced from `.agents/state/cstar-kernel-mcp-*.jsonl`. |
 

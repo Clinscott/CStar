@@ -212,23 +212,30 @@ class MimirClient:
             return configured_response
 
         if provider in {"gemini", "claude"}:
-            completed = await asyncio.to_thread(
-                subprocess.run,
-                [provider, *_default_cli_bridge_args(provider, prompt)],
-                cwd=str(self.project_root),
-                capture_output=True,
-                text=True,
-                check=False,
-                env={**self.env},
-            )
-            if completed.returncode != 0:
-                stderr = completed.stderr.strip() or completed.stdout.strip() or f"Unknown {provider} failure."
-                raise RuntimeError(stderr)
+            cmd = "agy" if provider == "gemini" else provider
+            try:
+                completed = await asyncio.to_thread(
+                    subprocess.run,
+                    [cmd, *_default_cli_bridge_args(provider, prompt)],
+                    cwd=str(self.project_root),
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                    env={**self.env},
+                )
+                if completed.returncode != 0:
+                    stderr = completed.stderr.strip() or completed.stdout.strip() or f"Unknown {cmd} failure."
+                    raise RuntimeError(stderr)
 
-            response = completed.stdout.strip() or completed.stderr.strip()
-            if not response:
-                raise RuntimeError(f"{provider} returned no output.")
-            return response
+                response = completed.stdout.strip() or completed.stderr.strip()
+                if not response:
+                    raise RuntimeError(f"{cmd} returned no output.")
+                return response
+            except Exception as exc:
+                if provider == "gemini":
+                    print(f"[WARNING] Primary host provider 'agy' failed: {exc}. Falling back to codex...", file=sys.stderr)
+                    return await self._invoke_host_session(prompt, "codex")
+                raise exc
 
         if provider != "codex":
             raise RuntimeError(

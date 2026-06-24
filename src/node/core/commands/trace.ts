@@ -6,6 +6,13 @@ import type { SovereignBead } from '../../../types/bead.js';
 import type { HallOneMindBranchDigest, HallPlanningSessionRecord, HallPlanningSessionStatus } from '../../../types/hall.js';
 import { compactPlanningHandle, formatPlanningDigestBadge } from '../operator_resume.js';
 import { resolveWorkspaceRoot, type WorkspaceRootSource } from '../runtime/invocation.js';
+import {
+    getRegistryIntentCategories,
+    loadRegistryManifest,
+    resolveIntentCategoryFromGrammar,
+    tokenize,
+} from '../runtime/host_workflows/chant_parser.js';
+import { selectCouncilExpert } from '../../../core/council_experts.js';
 
 const ACTIVE_PLANNING_STATUSES: HallPlanningSessionStatus[] = [
     'INTENT_RECEIVED',
@@ -163,12 +170,22 @@ export interface TraceFailuresPayload {
 }
 
 type AuguryDiagnosticStatus = 'pass' | 'warn' | 'fail';
+type AuguryGuardrailVerdict = 'allow' | 'caution' | 'block';
+type AuguryGuardrailAction = 'continue' | 'recover' | 'repair';
 
 export interface AuguryDiagnosticCheck {
     status: AuguryDiagnosticStatus;
     ok: boolean;
     message: string;
     details?: Record<string, unknown>;
+}
+
+export interface AuguryGuardrailPayload {
+    verdict: AuguryGuardrailVerdict;
+    action: AuguryGuardrailAction;
+    reason: string;
+    failed_checks: string[];
+    warning_checks: string[];
 }
 
 export interface AuguryDoctorPayload {
@@ -179,6 +196,7 @@ export interface AuguryDoctorPayload {
     expert_ok: boolean;
     mimir_ok: boolean;
     noise_score: number;
+    guardrail: AuguryGuardrailPayload;
     agent_next_action: string;
     warnings: string[];
     active?: {
@@ -239,6 +257,7 @@ export interface AuguryExplainPayload {
         source: 'explicit_or_stored' | 'missing';
         basis: string;
     };
+    guardrail: AuguryGuardrailPayload;
     agent_next_action: string;
     warnings: string[];
 }
@@ -491,6 +510,130 @@ export function getTraceContract(session: HallPlanningSessionRecord): TraceContr
     return getTraceContractFromMetadata(session.metadata as Record<string, unknown> | undefined);
 }
 
+function inferIntentCategoryFromContract(
+    contract: TraceContractPayload | undefined,
+    rootPath: string,
+): string | undefined {
+    if (!contract) {
+        return undefined;
+    }
+    if (contract.intent_category?.trim()) {
+        return contract.intent_category.trim();
+    }
+
+    const grammar = getRegistryIntentCategories(loadRegistryManifest(rootPath));
+    const selectionName = contract.selection_name?.trim();
+    if (selectionName) {
+        const normalizedSelection = selectionName.toLowerCase();
+        for (const [category, config] of Object.entries(grammar)) {
+            if (config.default_path.toLowerCase() === normalizedSelection) {
+                return category;
+            }
+        }
+    }
+
+    const routeText = [
+        contract.intent,
+        contract.canonical_intent,
+        contract.selection_name,
+        ...(contract.mimirs_well ?? []),
+    ].filter(Boolean).join(' ');
+    const resolved = resolveIntentCategoryFromGrammar(tokenize(routeText), grammar);
+    return resolved?.category;
+}
+
+function normalizeAuguryContractForActiveState(
+    contract: TraceContractPayload | undefined,
+    rootPath: string,
+): TraceContractPayload | undefined {
+    if (!contract) {
+        return undefined;
+    }
+    const intentCategory = inferIntentCategoryFromContract(contract, rootPath);
+    return intentCategory && !contract.intent_category
+        ? { ...contract, intent_category: intentCategory }
+        : contract;
+}
+
+function attachCouncilExpertToAuguryContract(
+    contract: TraceContractPayload | undefined,
+): TraceContractPayload | undefined {
+    if (!contract) {
+        return undefined;
+    }
+    const normalized: TraceContractPayload = { ...contract };
+    if (!normalized.council_expert?.label && !normalized.council_expert?.id) {
+        const expert = selectCouncilExpert({
+            intent_category: normalized.intent_category,
+            intent: normalized.intent,
+            selection_tier: normalized.selection_tier,
+            selection_name: normalized.selection_name,
+            canonical_intent: normalized.canonical_intent,
+            mimirs_well: normalized.mimirs_well,
+        });
+        normalized.council_expert = {
+            id: expert.id,
+            label: expert.label,
+            profile: expert.profile,
+            protocol: expert.protocol,
+            lens: expert.lens,
+            anti_behavior: expert.anti_behavior,
+            root_persona_directive: expert.root_persona_directive,
+            selection_reason: expert.selection_reason,
+        };
+    }
+    return normalized;
+}
+
+function isUsableActiveAuguryContract(
+    contract: TraceContractPayload | undefined,
+    rootPath: string,
+): boolean {
+    const normalized = normalizeAuguryContractForActiveState(contract, rootPath);
+    if (!normalized?.intent_category || !normalized.intent || !normalized.selection_tier || !normalized.selection_name) {
+        return false;
+    }
+    return normalized.selection_name.trim().toLowerCase() !== 'unknown';
+}
+
+function resolveSelectionTierForAugury(tier: string | undefined): string {
+    const normalized = tier?.trim().toUpperCase();
+    return normalized === 'WEAVE' || normalized === 'SPELL' ? normalized : 'SKILL';
+}
+
+function synthesizePlanningAuguryContract(
+    session: HallPlanningSessionRecord,
+    rootPath: string,
+    mimirsWell: string[],
+): TraceContractPayload | undefined {
+    const grammar = getRegistryIntentCategories(loadRegistryManifest(rootPath));
+    const routeText = [
+        session.user_intent,
+        session.normalized_intent,
+        session.summary,
+        session.latest_question,
+    ].filter(Boolean).join(' ');
+    const resolved = resolveIntentCategoryFromGrammar(tokenize(routeText), grammar);
+    const category = resolved?.category ?? (session.skill_id === 'chant' ? 'ORCHESTRATE' : undefined);
+    if (!category) {
+        return undefined;
+    }
+
+    const config = grammar[category];
+    const selectionName = config?.default_path || session.skill_id || 'chant';
+    return {
+        intent_category: category,
+        intent: session.user_intent || session.normalized_intent || 'Resume active planning session.',
+        selection_tier: resolveSelectionTierForAugury(config?.tier ?? 'WEAVE'),
+        selection_name: selectionName,
+        trajectory_status: 'STABLE',
+        trajectory_reason: 'Active planning state synthesized a typed Augury route from registry intent grammar.',
+        mimirs_well: mimirsWell.length > 0 ? mimirsWell : ['AGENTS.qmd'],
+        confidence: 0.68,
+        canonical_intent: session.normalized_intent || session.user_intent,
+    };
+}
+
 function formatTraceDesignation(contract: TraceContractPayload | undefined): string | undefined {
     if (!contract) {
         return undefined;
@@ -543,7 +686,10 @@ function resolveLatestRuntimeTraceBead(rootPath: string): SovereignBead | null {
         .filter((bead) => bead.id.includes(':exec:'))
         .filter((bead) => bead.status !== 'ARCHIVED' && bead.status !== 'SUPERSEDED')
         .filter((bead) => (bead.metadata as Record<string, unknown> | undefined)?.archived !== true)
-        .filter((bead) => getTraceContractFromMetadata(bead.metadata as Record<string, unknown> | undefined))
+        .filter((bead) => isUsableActiveAuguryContract(
+            getTraceContractFromMetadata(bead.metadata as Record<string, unknown> | undefined),
+            rootPath,
+        ))
         .sort((left, right) => {
             const updatedDiff = Number(right.updated_at ?? 0) - Number(left.updated_at ?? 0);
             if (updatedDiff !== 0) {
@@ -594,10 +740,13 @@ function buildRuntimeNextAction(bead: SovereignBead, hostContext: TraceHostConte
     }
 }
 
-function buildRuntimeTraceHandoffPayload(bead: SovereignBead): TraceAgentHandoffPayload {
+function buildRuntimeTraceHandoffPayload(bead: SovereignBead, rootPath: string): TraceAgentHandoffPayload {
     const metadata = bead.metadata as Record<string, unknown> | undefined;
     const hostContext = getHostContextFromMetadata(metadata);
-    const traceContract = getTraceContractFromMetadata(metadata);
+    const traceContract = normalizeAuguryContractForActiveState(
+        getTraceContractFromMetadata(metadata),
+        rootPath,
+    );
     const missionBeadId = typeof metadata?.mission_bead_id === 'string' && metadata.mission_bead_id.trim()
         ? metadata.mission_bead_id.trim()
         : undefined;
@@ -627,10 +776,13 @@ function buildRuntimeTraceHandoffPayload(bead: SovereignBead): TraceAgentHandoff
     };
 }
 
-function buildRuntimeTraceStatusPayload(bead: SovereignBead): TraceStatusPayload {
+function buildRuntimeTraceStatusPayload(bead: SovereignBead, rootPath: string): TraceStatusPayload {
     const metadata = bead.metadata as Record<string, unknown> | undefined;
-    const handoff = buildRuntimeTraceHandoffPayload(bead);
-    const traceContract = getTraceContractFromMetadata(metadata);
+    const handoff = buildRuntimeTraceHandoffPayload(bead, rootPath);
+    const traceContract = normalizeAuguryContractForActiveState(
+        getTraceContractFromMetadata(metadata),
+        rootPath,
+    );
     const failureError = typeof metadata?.execution_error === 'string' && metadata.execution_error.trim()
         ? metadata.execution_error.trim()
         : undefined;
@@ -823,13 +975,12 @@ export function buildTraceAgentHandoffPayload(
     const hydrated = hydratePlanningSession(session, rootPath);
     if (!hydrated) {
         const runtimeBead = resolveLatestRuntimeTraceBead(rootPath);
-        return runtimeBead ? buildRuntimeTraceHandoffPayload(runtimeBead) : null;
+        return runtimeBead ? buildRuntimeTraceHandoffPayload(runtimeBead, rootPath) : null;
     }
 
     const digest = getPlanningBranchDigest(hydrated);
     const failure = getFailureDiagnostics(hydrated);
     const hostContext = getHostContext(hydrated);
-    const traceContract = getTraceContract(hydrated);
     const beads = getSessionBeads(rootPath, hydrated);
     const workItems = buildTraceWorkItems(beads);
     const beadIds = uniqueStrings(asStringArray(hydrated.metadata?.bead_ids));
@@ -839,6 +990,9 @@ export function buildTraceAgentHandoffPayload(
     const checkerShells = uniqueStrings(workItems.map((item) => item.checker_shell ?? '').filter(Boolean));
     const nextAction = hostContext?.note || buildDefaultNextAction(hydrated, gate, failure);
     const validationCommand = checkerShells[0];
+    const targetPaths = collectTargetPaths(rootPath, beads, digest);
+    const traceContract = normalizeAuguryContractForActiveState(getTraceContract(hydrated), rootPath)
+        ?? synthesizePlanningAuguryContract(hydrated, rootPath, targetPaths);
 
     return {
         execution_gate: gate,
@@ -849,7 +1003,7 @@ export function buildTraceAgentHandoffPayload(
         resume_command: buildResumeCommand(hydrated, leadBeadId),
         validation_command: validationCommand,
         lead_bead_id: leadBeadId,
-        target_paths: collectTargetPaths(rootPath, beads, digest),
+        target_paths: targetPaths,
         checker_shells: checkerShells,
         proposal_ids: proposalIds,
         bead_ids: beadIds,
@@ -1124,8 +1278,55 @@ function getAuguryWarnings(checks: Record<string, AuguryDiagnosticCheck>): strin
         .map((check) => check.message);
 }
 
+function buildAuguryGuardrail(
+    checks: Record<string, AuguryDiagnosticCheck>,
+    status: AuguryDiagnosticStatus,
+): AuguryGuardrailPayload {
+    const failedChecks = Object.entries(checks)
+        .filter(([, check]) => check.status === 'fail')
+        .map(([name]) => name);
+    const warningChecks = Object.entries(checks)
+        .filter(([, check]) => check.status === 'warn')
+        .map(([name]) => name);
+
+    if (status === 'fail') {
+        return {
+            verdict: 'block',
+            action: 'repair',
+            reason: failedChecks.length > 0
+                ? `Blocked by failed Augury checks: ${failedChecks.join(', ')}.`
+                : 'Blocked by failed Augury diagnostics.',
+            failed_checks: failedChecks,
+            warning_checks: warningChecks,
+        };
+    }
+    if (status === 'warn') {
+        return {
+            verdict: 'caution',
+            action: 'recover',
+            reason: warningChecks.length > 0
+                ? `Proceed only after reviewing warning checks: ${warningChecks.join(', ')}.`
+                : 'Proceed with caution after reviewing Augury diagnostics.',
+            failed_checks: failedChecks,
+            warning_checks: warningChecks,
+        };
+    }
+    return {
+        verdict: 'allow',
+        action: 'continue',
+        reason: 'All Augury checks passed.',
+        failed_checks: [],
+        warning_checks: [],
+    };
+}
+
 function buildAuguryDoctorFromStatus(payload: TraceStatusPayload | null, rootPath: string): AuguryDoctorPayload {
-    const contract = payload?.augury_contract ?? payload?.trace_contract ?? payload?.agent_handoff.designation;
+    const contract = attachCouncilExpertToAuguryContract(
+        normalizeAuguryContractForActiveState(
+            payload?.augury_contract ?? payload?.trace_contract ?? payload?.agent_handoff.designation,
+            rootPath,
+        ),
+    );
     const scope = buildScopeCheck(payload, rootPath);
     const route = buildRouteCheck(contract);
     const expert = buildExpertCheck(contract);
@@ -1144,6 +1345,7 @@ function buildAuguryDoctorFromStatus(payload: TraceStatusPayload | null, rootPat
         : statuses.includes('warn') ? 'warn' : 'pass';
     const score = Math.max(0, 100 - noise.noiseScore);
     const inferredScope = inferAuguryScope(payload, rootPath);
+    const guardrail = buildAuguryGuardrail(checks, status);
 
     return {
         status,
@@ -1153,6 +1355,7 @@ function buildAuguryDoctorFromStatus(payload: TraceStatusPayload | null, rootPat
         expert_ok: expert.status === 'pass',
         mimir_ok: mimir.status === 'pass',
         noise_score: noise.noiseScore,
+        guardrail,
         agent_next_action: status === 'fail'
             ? 'Repair the Augury contract before editing or dispatching work.'
             : payload?.agent_handoff.next_action ?? 'Run cstar augury handoff --json and choose the next bounded action.',
@@ -1181,12 +1384,19 @@ export function buildAuguryDoctorPayload(
 }
 
 function buildAuguryExplainFromStatus(payload: TraceStatusPayload | null, rootPath: string): AuguryExplainPayload {
-    const contract = payload?.augury_contract ?? payload?.trace_contract ?? payload?.agent_handoff.designation;
+    const contract = attachCouncilExpertToAuguryContract(
+        normalizeAuguryContractForActiveState(
+            payload?.augury_contract ?? payload?.trace_contract ?? payload?.agent_handoff.designation,
+            rootPath,
+        ),
+    );
     const scope = inferAuguryScope(payload, rootPath);
-    const warnings = buildAuguryDoctorFromStatus(payload, rootPath).warnings;
+    const doctor = buildAuguryDoctorFromStatus(payload, rootPath);
+    const warnings = doctor.warnings;
     if (!payload || !contract) {
         return {
             status: 'missing',
+            guardrail: doctor.guardrail,
             agent_next_action: 'Create or recover an Augury contract before routing agent work.',
             warnings: warnings.length > 0 ? warnings : ['No active Augury contract was found.'],
         };
@@ -1233,6 +1443,7 @@ function buildAuguryExplainFromStatus(payload: TraceStatusPayload | null, rootPa
             source: typeof contract.confidence === 'number' ? 'explicit_or_stored' : 'missing',
             basis: 'Confidence is retained for learning metadata and is not displayed in Augury prompt blocks.',
         },
+        guardrail: doctor.guardrail,
         agent_next_action: payload.agent_handoff.next_action,
         warnings,
     };
@@ -1280,13 +1491,13 @@ export function buildTraceStatusPayload(session: HallPlanningSessionRecord | nul
     const hydrated = hydratePlanningSession(session, rootPath);
     if (!hydrated) {
         const runtimeBead = resolveLatestRuntimeTraceBead(rootPath);
-        return runtimeBead ? buildRuntimeTraceStatusPayload(runtimeBead) : null;
+        return runtimeBead ? buildRuntimeTraceStatusPayload(runtimeBead, rootPath) : null;
     }
 
     const digest = getPlanningBranchDigest(hydrated);
     const failure = getFailureDiagnostics(hydrated);
     const handoff = buildTraceAgentHandoffPayload(hydrated, rootPath)!;
-    const traceContract = getTraceContract(hydrated);
+    const traceContract = handoff.designation;
     const lineage = getTraceLineageFromMetadata(
         hydrated.metadata as Record<string, unknown> | undefined,
         'planning_session',
@@ -1332,7 +1543,7 @@ export function buildTraceStatusPayload(session: HallPlanningSessionRecord | nul
 function resolveActiveTraceStatusPayload(rootPath: string): TraceStatusPayload | null {
     const planningPayload = buildTraceStatusPayload(resolveActivePlanningSession(rootPath), rootPath);
     const runtimeBead = resolveLatestRuntimeTraceBead(rootPath);
-    const runtimePayload = runtimeBead ? buildRuntimeTraceStatusPayload(runtimeBead) : null;
+    const runtimePayload = runtimeBead ? buildRuntimeTraceStatusPayload(runtimeBead, rootPath) : null;
 
     if (!planningPayload) {
         return runtimePayload;

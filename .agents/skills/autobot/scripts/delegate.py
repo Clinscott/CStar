@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""autobot — delegate a single bounded task to a Hermes/MiniMax-M2.7 sub-agent.
+"""autobot — delegate a single bounded task to a Hermes/MiniMax-M3 sub-agent.
 
 Host-native skill bridge contract:
   https://github.com/morderith/Corvus  →  CStar/docs/host-native-skill-bridge.md
@@ -27,6 +27,7 @@ import fcntl
 import hashlib
 import json
 import os
+import shutil
 import subprocess
 import sys
 import time
@@ -34,7 +35,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 CHARS_PER_TOKEN_ESTIMATE = 4
-DEFAULT_MODEL = "MiniMax-M2.7"
+DEFAULT_MODEL = "MiniMax-M3"
 DEFAULT_PROFILE = "cstar-hub"
 DEFAULT_EXPECTED_OUTPUT = "markdown"
 DEFAULT_MAX_CHARS = 4000
@@ -81,6 +82,34 @@ class InvalidIntent(ValueError):
 VALID_OUTPUTS = {"markdown", "json", "plain"}
 
 
+def translate_path(p_str: str) -> str:
+    """Translate Windows-style paths (UNC, drive letters) to native Linux paths."""
+    if not p_str:
+        return p_str
+
+    # Standardize to forward slashes for easier manipulation
+    p_str = p_str.replace('\\', '/')
+
+    # 1. Check if it's a UNC path to WSL: //wsl.localhost/Ubuntu/ or //wsl$/Ubuntu/
+    for prefix in ["//wsl.localhost/Ubuntu", "//wsl$/Ubuntu"]:
+        if p_str.startswith(prefix):
+            res = p_str[len(prefix):]
+            return res if res.startswith('/') else '/' + res
+
+    # 2. Check if it's mapped to Z: drive (Z:/...)
+    if p_str.lower().startswith("z:"):
+        res = p_str[2:]
+        return res if res.startswith('/') else '/' + res
+
+    # 3. Check if it's a C: drive path (C:/...)
+    if p_str.lower().startswith("c:"):
+        res = p_str[2:]
+        # Convert C:/Users/... to /mnt/c/Users/...
+        return "/mnt/c" + (res if res.startswith('/') else '/' + res)
+
+    return p_str
+
+
 def validate_intent(raw: dict) -> dict:
     """Validate + normalize the intent dict. Raises InvalidIntent on failure."""
     if not isinstance(raw, dict):
@@ -92,9 +121,15 @@ def validate_intent(raw: dict) -> dict:
     if not isinstance(project_root, str) or not project_root.strip():
         raise InvalidIntent("intent.project_root must be a non-empty string path")
 
+    # Translate project_root
+    project_root = translate_path(project_root)
+
     target_paths = raw.get("target_paths", []) or []
     if not isinstance(target_paths, list) or not all(isinstance(p, str) for p in target_paths):
         raise InvalidIntent("intent.target_paths must be a list of strings")
+
+    # Translate target_paths
+    target_paths = [translate_path(p) for p in target_paths]
 
     payload = raw.get("payload", {}) or {}
     if not isinstance(payload, dict):
@@ -103,6 +138,11 @@ def validate_intent(raw: dict) -> dict:
     expected_output = payload.get("expected_output", DEFAULT_EXPECTED_OUTPUT)
     if expected_output not in VALID_OUTPUTS:
         raise InvalidIntent(f"payload.expected_output must be one of {sorted(VALID_OUTPUTS)}")
+
+    # Translate write_to
+    write_to = payload.get("write_to")
+    if write_to:
+        write_to = translate_path(write_to)
 
     return {
         "intent": intent.strip(),
@@ -114,7 +154,7 @@ def validate_intent(raw: dict) -> dict:
             "expected_output": expected_output,
             "max_chars": int(payload.get("max_chars", DEFAULT_MAX_CHARS)),
             "session_name": payload.get("session_name"),
-            "write_to": payload.get("write_to"),
+            "write_to": write_to,
             "append_with_separator": payload.get("append_with_separator"),
             "tags": list(payload.get("tags", []) or []),
             "timeout_seconds": int(payload.get("timeout_seconds", DEFAULT_TIMEOUT)),
@@ -227,6 +267,35 @@ def get_minimax_key() -> str:
     return mk
 
 
+def resolve_hermes_bin() -> str:
+    """Resolve Hermes from MCP-safe paths.
+
+    Codex/Node MCP subprocesses do not always inherit the interactive shell PATH,
+    so relying on plain "hermes" can degrade even when Hermes is installed.
+    """
+    candidates = []
+    env_bin = os.environ.get("HERMES_BIN", "").strip()
+    if env_bin:
+        candidates.append(Path(env_bin).expanduser())
+
+    found = shutil.which("hermes")
+    if found:
+        candidates.append(Path(found))
+
+    candidates.extend([
+        Path.home() / ".local" / "bin" / "hermes",
+        Path.home() / "Corvus" / "AutoBot" / "hermes-agent" / ".venv" / "bin" / "hermes",
+    ])
+
+    for candidate in candidates:
+        try:
+            if candidate.is_file() and os.access(candidate, os.X_OK):
+                return str(candidate)
+        except OSError:
+            continue
+    return "hermes"
+
+
 def _hermes_profile_exists(profile: str) -> bool:
     """Quick filesystem check — Hermes profiles live at ~/.hermes/profiles/<name>/.
     A missing profile would otherwise fail deep in the subprocess with a
@@ -251,7 +320,7 @@ def invoke_hermes(intent: dict, prompt: str) -> dict:
                 "duration_ms": int((time.time() - started) * 1000)}
 
     base_cmd = [
-        "hermes", "--profile", p["hermes_profile"],
+        resolve_hermes_bin(), "--profile", p["hermes_profile"],
         "--provider", "minimax", "--model", p["model"],
         "chat", "-q", prompt, "--quiet",
     ]
@@ -545,7 +614,7 @@ def _load_intent_from_args(args) -> dict:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="autobot — delegate a task to Hermes/MiniMax-M2.7")
+    parser = argparse.ArgumentParser(description="autobot — delegate a task to Hermes/MiniMax-M3")
     parser.add_argument("--intent-file", help="path to JSON intent file")
     parser.add_argument("--intent", help="intent statement (when not using --intent-file)")
     parser.add_argument("--project-root", help="project root path (with --intent)")

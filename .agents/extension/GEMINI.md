@@ -39,7 +39,7 @@ Route: <Intent Category> -> <SKILL|WEAVE|SPELL>: <selection>
 Scope: brain:CStar | spoke:<name> (<root>)
 Intent: <goal>
 Mimir's Well: <primary> | <secondary> | <tertiary>
-Council Expert: <CARMACK|KARPATHY|DEAN|SHANNON|HAMILTON|TORVALDS|...>
+Council Expert: <CARMACK|KARPATHY|DEAN|SHANNON|HAMILTON|TORVALDS|BROOKS|PARNAS|...>
 Council Lens: <expert-specific critique lens>
 Guardrails: <expert-specific anti-behavior>
 Corvus Standard: CStar is the engine; spokes are managed extensions; keep work Hall/Mimir traceable.
@@ -62,6 +62,21 @@ Council Expert: <selected expert>
 Directive: Route only. Consult targets before choosing a path. Do not echo.
 [/CORVUS_STAR_AUGURY]
 ```
+
+### Council Expert Selection Rules
+- **NEVER use "Grand Vizier" as the Council Expert.** It is the dispatcher name, not a specialist.
+- If no expert is assigned, use the correct fallback expert:
+  - Sim physics, params, telemetry → `CARMACK` (backup: `HAMILTON`)
+  - Brain / orchestrator / schemas → `KARPATHY` (backup: `DEAN`)
+  - Flight kernel (`corvus-kernel`) → `TORVALDS` (backup: `HAMILTON`)
+  - Integration / FFI loop → `DEAN` (backup: `TORVALDS`)
+  - Viewer / Three.js → `CARMACK` (backup: `BROOKS`)
+  - Refactoring or skill/doc work → `BROOKS` (backup: `SHANNON`)
+  - Statistical/SPRT/scoring work → `LINSCOTT`
+  - General fallback → `TORVALDS`
+- **PARNAS is kept in reserve** for modular decomposition, FFI boundaries, and information hiding.
+
+
 
 ## 🛑 OPERATING PROCEDURE
 1. Read `AGENTS.md`/`AGENTS.qmd` and `.agents/skill_registry.json` before structural claims.

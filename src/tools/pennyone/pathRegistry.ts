@@ -15,6 +15,26 @@ function normalizeSeparators(input: string): string {
     return input.replace(/\\/g, '/');
 }
 
+function translatePath(p: string): string {
+    if (!p) return p;
+    let res = p.replace(/\\/g, '/');
+    if (process.platform !== 'win32') {
+        // 1. Remove UNC prefixes like //wsl.localhost/Ubuntu or //wsl$/Ubuntu
+        for (const prefix of ['//wsl.localhost/Ubuntu', '//wsl$/Ubuntu']) {
+            if (res.startsWith(prefix)) {
+                const sub = res.slice(prefix.length);
+                return sub.startsWith('/') ? sub : '/' + sub;
+            }
+        }
+        // 2. Remove Z: drive mapping (Z:/...)
+        if (res.toLowerCase().startsWith('z:')) {
+            const sub = res.slice(2);
+            return sub.startsWith('/') ? sub : '/' + sub;
+        }
+    }
+    return res;
+}
+
 function usesWindowsPathApi(input: string): boolean {
     return /^[A-Za-z]:[\\/]/.test(input) || /^[\\/]{2}[^\\/]+[\\/][^\\/]+/.test(input);
 }
@@ -95,7 +115,7 @@ export class PathRegistry {
                 throw new Error('PathRegistry could not derive an initial project-root candidate.');
             }
 
-            let currentDir = initialCandidate;
+            let currentDir = translatePath(initialCandidate);
             
             // [🔱] THE ONE MIND: Cross-platform Sanitization
             if (process.platform !== 'win32' && /^[A-Za-z]:/.test(currentDir)) {
@@ -131,9 +151,10 @@ export class PathRegistry {
         }
 
         const fallback = startPath ? path.resolve(startPath) : process.cwd();
-        const normalizedFallback = fs.existsSync(fallback) && fs.statSync(fallback).isDirectory()
-            ? fallback
-            : dirnameForPath(fallback);
+        const translatedFallback = translatePath(fallback);
+        const normalizedFallback = fs.existsSync(translatedFallback) && fs.statSync(translatedFallback).isDirectory()
+            ? translatedFallback
+            : dirnameForPath(translatedFallback);
         console.warn('[WARNING] PathRegistry could not determine true project root via ascension. Falling back to the requested workspace path.');
         return normalizedFallback.replace(/\\/g, '/');
     }
@@ -151,9 +172,10 @@ export class PathRegistry {
      * @param {string} newRoot - The new root path
      */
     public setRoot(newRoot: string): void {
-        const resolvedRoot = isAbsolutePath(newRoot)
-            ? normalizeSeparators(newRoot)
-            : path.resolve(newRoot).replace(/\\/g, '/');
+        const translated = translatePath(newRoot);
+        const resolvedRoot = isAbsolutePath(translated)
+            ? normalizeSeparators(translated)
+            : path.resolve(translated).replace(/\\/g, '/');
         if (shouldEmitPennyOneDebugLogs()) {
             console.log(`[DEBUG] PathRegistry.setRoot: ${resolvedRoot}`);
         }
@@ -231,8 +253,9 @@ export class PathRegistry {
      */
     public normalize(p: string): string {
         if (!p) return '';
-        const normalized = normalizeSeparators(p);
-        if (isAbsolutePath(p) || isAbsolutePath(normalized)) {
+        const translated = translatePath(p);
+        const normalized = normalizeSeparators(translated);
+        if (isAbsolutePath(translated) || isAbsolutePath(normalized)) {
             return normalized;
         }
         return joinWithBase(this.root, normalized).replace(/\\/g, '/');

@@ -229,7 +229,7 @@ class TestLedgerRecord:
         rec = delegate_mod.make_ledger_entry(intent, "intent-1", "prompt", "response", "ok", None, 1234)
         assert rec["status"] == "ok"
         assert rec["duration_ms"] == 1234
-        assert rec["model"] == "MiniMax-M2.7"
+        assert rec["model"] == "MiniMax-M3"
         assert rec["tags"] == ["t"]
         # Token estimates use ceil(chars/4)
         assert rec["est_prompt_tokens"] == 2  # len("prompt")=6, ceil(6/4)=2

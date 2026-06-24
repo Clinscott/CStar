@@ -32,7 +32,8 @@ export const deps = {
 };
 
 const RESEARCH_SUBAGENT_PROFILES = new Set<HostSubagentProfile>([
-    'architect',
+    'brooks',
+    'parnas',
     'backend',
     'frontend',
     'reviewer',
@@ -134,7 +135,7 @@ function normalizeResearchSubagentProfile(value: unknown, fallback: HostSubagent
 function buildResearchCouncilBranches(payload: ResearchWeavePayload): ResearchCouncilBranch[] {
     const explicitQuestions = payload.subquestions?.map((question) => question.trim()).filter(Boolean) ?? [];
     if (explicitQuestions.length > 0) {
-        const explicitProfile = normalizeResearchSubagentProfile(payload.subagent_profile, 'architect');
+        const explicitProfile = normalizeResearchSubagentProfile(payload.subagent_profile, 'brooks');
         return explicitQuestions.map((question) => ({
             label: question,
             question,

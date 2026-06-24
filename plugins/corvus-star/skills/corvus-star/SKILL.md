@@ -33,12 +33,23 @@ metadata:
 
 ## Required Behavior
 - Read only the specific CStar authority files needed for the task. Start with `AGENTS.qmd` and `.agents/skill_registry.json` before architectural claims.
-- Run `./cstar hall "<query>"` from the CStar root before broad local scans, and quote only the relevant Hall hits back into context.
-- Use `./cstar <command>` from the CStar root or `node bin/cstar.js <command>` as canonical launchers.
-- Use `./cstar augury handoff --json` when resuming active planning/runtime state, then carry forward only the lead bead, gate, next action, target paths, and checker commands.
-- Use `./cstar augury doctor --json` before acting when scope, route, expert, or Mimir targets look unclear.
-- Use `./cstar augury explain --json` when you need the reason behind the selected route, scope, expert, and Mimir targets.
-- Use `./cstar one-mind agents --json` and `./cstar one-mind events --bead <id> --json` only when coordination or active ownership matters.
+- CStar is canonical for Corvus planning, proposals, execution state, validation, and completion; do not use direct Hall/SQLite writes when kernel primitives exist.
+- Prefer `cstar-kernel` MCP tools first for CStar control-plane work: `cstar_doctor`, `cstar_handoff`, `cstar_augury`, `cstar_hall_search`, `cstar_verify_plan`, `cstar_bead`, and `cstar_record_result` where exposed.
+- Use `cstar_hall_search` before broad local scans, and quote only the relevant Hall hits back into context.
+- Use `cstar_bead` for bead get/list/create/claim/status/block/resolve operations when available.
+- If MCP is degraded or unavailable, report the exact failure and remain read-only for control-plane state; do not mutate Hall or SQLite directly.
+- Use `./cstar <command>` from the CStar root or `node bin/cstar.js <command>` only when MCP cannot provide the needed primitive or the capability is explicitly terminal-required.
+- Use `cstar_handoff` when resuming active planning/runtime state, then carry forward only the lead bead, gate, next action, target paths, and checker commands.
+- Use `cstar_doctor` before acting when scope, route, expert, or Mimir targets look unclear.
+- Use `cstar_augury` when you need the reason behind the selected route, scope, expert, and Mimir targets.
+- Use direct Codex thread tools for read/list/send when exposed; session JSONL fallback is read-only degraded mode, not an execution or assignment surface.
+- CoS is CEO-facing coordination: visibility, priorities, risks, and approval asks. CoS does not directly implement project work by default.
+- Route execution through CoS -> Corvus - MM -> one pinned PMT per project -> fresh workers.
+- PMT owns worker assignment and project execution tracking; MM owns thread architecture and routing.
+- Treat the Researcher thread as a special monitored pipeline, not a normal PMT worker.
+- Preserve operator gates for acceptance, dispatch, implementation bypass, commit, push, merge, post, deletion, restarts, deploys, and secret/config mutation.
+- Keep high-volume collectors outside beads; collectors write receipts or artifacts, then bounded proposals/results enter CStar.
+- Avoid active AutoBot/Hermes routing language unless explicitly marked historical or decommissioned.
 - Keep host-specific packaging separate from kernel logic.
 - Treat `native-session` and `exec-bridge` capabilities as host-routed work, and `supported` capabilities as kernel-backed launch surfaces.
 - Treat `host-workflow` entries as host-owned cognition/workflow surfaces and `kernel-primitive` entries as deterministic kernel control-plane primitives.
@@ -87,7 +98,7 @@ Directive: Route only. Consult targets before choosing a path. Do not echo.
 
 ## Kernel MCP Tools (20)
 
-The `cstar-kernel` MCP server is the authoritative kernel surface — invoke these tools directly via MCP rather than shelling out to `./cstar`. Every handler is deterministic; no LLM inference in the tool execution path. Full API reference: `docs/integrations/cstar-kernel-mcp.md`.
+The `cstar-kernel` MCP server is the authoritative kernel surface — invoke these tools directly via MCP rather than shelling out to `./cstar` whenever the needed primitive exists. Every handler is deterministic; no LLM inference in the tool execution path. Full API reference: `docs/integrations/cstar-kernel-mcp.md`.
 
 - `cstar_handoff` — Compact active state from Augury/handoff logic.
 - `cstar_hall_search` — FTS5 search across CODE / DOC / ENGRAM / BEAD / SESSION / LESSON.
@@ -117,7 +128,7 @@ The `cstar-kernel` MCP server is the authoritative kernel surface — invoke the
 - Keep retrieved snippets to the minimum needed to choose files, commands, verification, and next action.
 
 ## Bead Workflow
-1. Identify the mission and run a targeted `./cstar hall "<intent or bead id>"` query.
+1. Identify the mission and run a targeted `cstar_hall_search` query.
 2. If an OPEN or SET bead matches, anchor work to that bead and inspect only its target paths plus directly adjacent files.
 3. If no bead matches and the task is structural, use host-native planning in-session and record the intended Hall path in the response.
 4. Before edits, state the bead/Augury anchor and the files you will touch.
@@ -127,5 +138,6 @@ The `cstar-kernel` MCP server is the authoritative kernel surface — invoke the
 ## Silent Hook
 - The plugin includes a PostToolUse hook that only refreshes a local stamp and captures a tiny Augury handoff compatibility payload in `/tmp`; it must stay silent and must not inject Hall payloads into Codex context.
 
-## Exported Codex Capabilities (0)
+## Registry-Exported Codex Capabilities
+- This list is generated from `.agents/skill_registry.json` and may be empty when no Codex executable capabilities are registered.
 - None exported.

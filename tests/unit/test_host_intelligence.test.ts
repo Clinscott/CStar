@@ -231,6 +231,8 @@ describe('Host intelligence bridge (CS-P1-02)', () => {
         assert.match(firstSystemPrompt, /Code Standard:/);
         assert.match(firstSystemPrompt, /Council Lens:/);
         assert.match(firstSystemPrompt, /Guardrails:/);
+        assert.match(firstSystemPrompt, /Persona Advice: \[(ODIN|ALFRED)\] /);
+        assert.match(firstSystemPrompt, /Persona Tone: /);
         assert.match(secondSystemPrompt, /Mode: lite/);
         assert.match(secondSystemPrompt, /Route: BUILD -> SKILL: hall/);
         assert.match(secondSystemPrompt, /Mimir's Well: FallowsHallow-RPG\/src\/combat\/engine\.ts/);
@@ -239,6 +241,8 @@ describe('Host intelligence bridge (CS-P1-02)', () => {
         assert.doesNotMatch(secondSystemPrompt, /Code Standard:/);
         assert.doesNotMatch(secondSystemPrompt, /Council Lens:/);
         assert.doesNotMatch(secondSystemPrompt, /Guardrails:/);
+        assert.doesNotMatch(secondSystemPrompt, /Persona Advice:/);
+        assert.doesNotMatch(secondSystemPrompt, /Persona Tone:/);
         assert.equal((capturedRequests[0].metadata as Record<string, any>).augury_steering_mode, 'full');
         assert.equal((capturedRequests[1].metadata as Record<string, any>).augury_steering_mode, 'lite');
         assert.equal((capturedRequests[0].metadata as Record<string, any>).augury_learning_metadata.steering_mode, 'full');
