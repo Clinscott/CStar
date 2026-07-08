@@ -100,6 +100,8 @@ export function upsertHallBead(record: HallBeadRecord): void {
             source_kind = excluded.source_kind,
             triage_reason = excluded.triage_reason,
             resolution_note = excluded.resolution_note,
+            resolved_validation_id = COALESCE(excluded.resolved_validation_id, hall_beads.resolved_validation_id),
+            superseded_by = COALESCE(excluded.superseded_by, hall_beads.superseded_by),
             architect_opinion = excluded.architect_opinion,
             critique_payload_json = excluded.critique_payload_json,
             metadata_json = excluded.metadata_json,

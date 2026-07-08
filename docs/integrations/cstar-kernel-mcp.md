@@ -14,6 +14,8 @@
 
 The driver `bin/cstar-kernel-mcp.js` re-execs Node with the TSX loader against `src/tools/cstar-kernel-mcp.ts`. The server keeps stdin open and exits cleanly on `SIGTERM` or stdin close.
 
+For Codex Desktop-on-WSL, `/home/morderith/.codex/bin/wsl/cstar-kernel-mcp-wrapper` should launch `bin/cstar-kernel-mcp-bridge.js`. The bridge proxies stdio through the local CStar TCP daemon when it is available, then falls back to the direct source launcher. This keeps the Codex-side MCP process alive across child refreshes and prevents stale direct-launch children from pinning old tool schemas.
+
 ## Operational Mandates
 
 1. **Host-Agent Run First.** MCP handlers wrap deterministic work only. Any LLM inference per iteration must be driven by the host agent or a spawned sub-agent — never by an MCP tool calling back out to an LLM.
@@ -395,8 +397,15 @@ Bead lifecycle: `get` / `list` / `create` / `update_status` / `claim` / `resolve
 - `target_path`, `target_ref` (strings, optional)
 - `status` (enum: `OPEN|SET-PENDING|SET|IN_PROGRESS|READY_FOR_REVIEW|NEEDS_TRIAGE|BLOCKED|RESOLVED|ARCHIVED|SUPERSEDED`)
 - `statuses` (enum[], optional) — filter for list
-- `assigned_agent`, `resolution_note`, `triage_reason`, `resolved_validation_id`, `contract_refs`, `metadata`
+- `assigned_agent`, `resolution_note`, `triage_reason`, `resolved_validation_id`, `validation_id`, `contract_refs`, `metadata`
 - `spoke` (string, optional) — anchor the bead to a registered spoke's repo_id
+
+`resolved_validation_id` is the canonical output/readback field for resolved beads.
+`validation_id` is accepted as a short input alias on `resolve` and
+`update_status` with `status=RESOLVED`; `mandate_evidence.audit.validation_id`
+is also accepted as the resolution id fallback. Resolved ids are persisted both
+in the Hall column and in bead metadata so a later readback can verify the
+timeline even if one storage surface is stale.
 
 **Output:** `{ status: 'created'|'claimed'|'resolved'|'blocked'|'updated'|'ok', mutation, bead: {...} }` or `{ status: 'ok', count, beads: [...] }` for list.
 
@@ -632,13 +641,17 @@ That handshake is not a CStar application session. Future Streamable HTTP adapte
 
 ## Adding a New Tool
 
-1. Add a `server.tool('cstar_<name>', '<description>', { /* Zod schema */ }, instrumentTool('cstar_<name>', handler))` registration in `src/tools/cstar-kernel-mcp.ts`.
-2. Add a `{ name, purpose }` entry to `KERNEL_MCP_TOOLS` in `src/packaging/distributions.ts` (this propagates into `GEMINI.md` and the Codex `SKILL.md` on the next `npm run build:distributions`).
-3. Add an entry to this file in tool-number order.
-4. Add unit tests in `tests/unit/test_cstar_kernel_mcp.test.ts`.
-5. Add an assertion to the stdio integration test's "expected tools" list in `tests/integration/cstar_kernel_mcp_stdio.test.ts`.
-6. Confirm the new input schema is object-rooted and does not introduce protocol/session/client metadata as tool arguments.
-7. Run `npm run test:node` and `npm run validate:distributions` before committing.
+1. Add the handler to a focused module under `src/tools/cstar-kernel-mcp/tools/` or a narrower domain folder. Do not add behavior to the root `src/tools/cstar-kernel-mcp.ts` entrypoint.
+2. Add or reuse a Zod schema in `src/tools/cstar-kernel-mcp/contracts/` when the schema is shared; otherwise keep the schema beside the registration code.
+3. Register the tool through `src/tools/cstar-kernel-mcp/register_core_tools.ts` using `server.tool('cstar_<name>', mcpToolDescription(...), schema, instrumentTool('cstar_<name>', handler))`.
+4. Re-export the handler from `src/tools/cstar-kernel-mcp.ts` only when tests or host-facing code need a direct import.
+5. Add a `{ name, purpose }` entry to `KERNEL_MCP_TOOLS` in `src/packaging/distributions.ts` (this propagates into `GEMINI.md` and the Codex `SKILL.md` on the next `npm run build:distributions`).
+6. Add an entry to this file in tool-number order.
+7. Add focused unit tests under `tests/unit/cstar-kernel-mcp/`, then import them from `tests/unit/test_cstar_kernel_mcp.test.ts` so legacy checker commands still run the full suite.
+8. Add an assertion to the stdio integration test's "expected tools" list in `tests/integration/cstar_kernel_mcp_stdio.test.ts`.
+9. Confirm the new input schema is object-rooted and does not introduce protocol/session/client metadata as tool arguments.
+10. Keep every production MCP file and focused test file under 500 lines; `tests/unit/cstar-kernel-mcp/test_file_size_contract.test.ts` enforces this.
+11. Run the focused unit suite, stdio integration suite, `node --check bin/cstar-kernel-mcp.js`, and `git diff --check` before committing.
 
 ## What Does Not Belong on This Surface
 

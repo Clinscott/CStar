@@ -17,10 +17,13 @@ import assert from 'node:assert';
 import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { once } from 'node:events';
 
 const __filename = fileURLToPath(import.meta.url);
 const PROJECT_ROOT = path.resolve(path.dirname(__filename), '..', '..');
 const LAUNCHER = path.join(PROJECT_ROOT, 'bin', 'cstar-kernel-mcp.js');
+const BRIDGE_LAUNCHER = path.join(PROJECT_ROOT, 'bin', 'cstar-kernel-mcp-bridge.js');
+const TCP_DAEMON = path.join(PROJECT_ROOT, 'scripts', 'cstar-mcp-tcp-daemon.js');
 
 interface JsonRpcRequest {
     jsonrpc: '2.0';
@@ -83,8 +86,8 @@ class StdioMcpClient {
     public readonly proc: ChildProcessWithoutNullStreams;
     private nextId = 1;
 
-    constructor(extraEnv: Record<string, string> = {}) {
-        this.proc = spawn('node', [LAUNCHER], {
+    constructor(extraEnv: Record<string, string> = {}, launcher: string = LAUNCHER) {
+        this.proc = spawn('node', [launcher], {
             cwd: PROJECT_ROOT,
             env: {
                 ...process.env,
@@ -168,8 +171,8 @@ class StdioMcpClient {
 // The launcher uses `process.execve` on Unix (replacing the JS process with the
 // underlying TSX-loaded MCP server). Some environments (older glibc, certain
 // containers) reject execve; the test must not hang in that case.
-async function launchClient(extraEnv: Record<string, string> = {}): Promise<StdioMcpClient | null> {
-    const client = new StdioMcpClient(extraEnv);
+async function launchClient(extraEnv: Record<string, string> = {}, launcher: string = LAUNCHER): Promise<StdioMcpClient | null> {
+    const client = new StdioMcpClient(extraEnv, launcher);
     // Probe with `initialize` and a generous timeout. If the launcher failed
     // to boot, the request times out — we skip the tests.
     try {
@@ -338,6 +341,49 @@ describe('cstar-kernel-mcp stdio launcher', () => {
             assert.ok(!names.includes('cstar_autobot'), 'cstar_autobot must not be registered when HERMES_AUTOBOT_DELEGATED=1');
         } finally {
             await testClient.close();
+        }
+    });
+
+    it('bridges through a TCP daemon and exposes tools/list', async () => {
+        const port = String(18_731 + (process.pid % 1000));
+        const daemon = spawn('node', [TCP_DAEMON], {
+            cwd: PROJECT_ROOT,
+            env: {
+                ...process.env,
+                CSTAR_KERNEL_MCP_TCP_HOST: '127.0.0.1',
+                CSTAR_KERNEL_MCP_TCP_PORT: port,
+                CSTAR_KERNEL_DISABLE_WATCH: '1',
+            },
+            stdio: ['ignore', 'pipe', 'pipe'],
+        });
+        daemon.stdout.setEncoding('utf-8');
+        daemon.stderr.setEncoding('utf-8');
+        const startup = Promise.race([
+            once(daemon.stdout, 'data'),
+            once(daemon, 'exit').then(([code]) => {
+                throw new Error(`TCP daemon exited before startup with code ${code}`);
+            }),
+        ]);
+        await startup;
+
+        const testClient = await launchClient({
+            CSTAR_KERNEL_MCP_TRANSPORT: 'tcp',
+            CSTAR_KERNEL_MCP_TCP_HOST: '127.0.0.1',
+            CSTAR_KERNEL_MCP_TCP_PORT: port,
+            CSTAR_KERNEL_DISABLE_WATCH: '1',
+        }, BRIDGE_LAUNCHER);
+        if (!testClient) {
+            daemon.kill('SIGTERM');
+            assert.fail('cstar-kernel-mcp bridge did not respond to initialize through TCP daemon');
+        }
+        try {
+            const listResp = await testClient.request('tools/list', {});
+            assert.ok(listResp.result, `bridge tools/list returned error: ${JSON.stringify(listResp.error)}`);
+            const tools = listResp.result.tools as Array<{ name: string }>;
+            assert.ok(tools.some((tool) => tool.name === 'cstar_bead'), 'bridge must expose cstar_bead through TCP daemon');
+        } finally {
+            await testClient.close();
+            daemon.kill('SIGTERM');
         }
     });
 });

@@ -109,6 +109,8 @@ Inside Corvus or a Corvus spoke:
 3. use `cstar_handoff`
 4. use one bounded `cstar_hall_search`
 
+Codex Desktop-on-WSL should load `cstar-kernel` through `/home/morderith/.codex/bin/wsl/cstar-kernel-mcp-wrapper`, and that wrapper should launch `bin/cstar-kernel-mcp-bridge.js`. The bridge uses the local CStar TCP daemon when available and falls back to the direct source launcher, so a refreshed source-backed child does not strand the active Codex transport.
+
 Use `corvus-codex` only when you explicitly want startup repair or verbose drift reporting before Codex launches.
 
 Use shell `./cstar ...` only when MCP does not expose the needed primitive or the capability is explicitly terminal-required.

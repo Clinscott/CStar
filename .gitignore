@@ -80,6 +80,9 @@ logs/self-healing-*.md
 tsconfig.tsbuildinfo
 .agents/chroma_db_new/
 .agents/state/*.jsonl
+.agents/state/*.lock
+work/
+queue/
 tmp_*/
 err
 out

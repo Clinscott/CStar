@@ -7,6 +7,7 @@
 - **Authority Order**: Registry and runtime contracts outrank prose. If a document disagrees with `skill_registry.json` or runtime behavior, treat the document as stale.
 - **Trace First**: Begin agentic responses with a Corvus Star Trace block (see `AGENTS.qmd` §1).
 - **Bead-Driven**: Anchor all work to Beads in the Hall of Records.
+- **MCP Separation of Concerns**: Keep `src/tools/cstar-kernel-mcp.ts` as a small bootstrap/export surface. Tool behavior belongs in focused files under `src/tools/cstar-kernel-mcp/`, with focused tests under `tests/unit/cstar-kernel-mcp/`. No production or focused test file should exceed 500 lines.
 - **Sterling Mandate**: Changes require Lore (.feature contract), Isolation (unit test), and Audit (Gungnir score).
 - **CoS-First Thread Management**: The user talks to CoS by default. CoS owns bounded execution and final operator closeout; PMTs are durable project knowledge and review authorities unless CoS explicitly delegates execution ownership or a red/high-risk gate requires PMT authority.
 
@@ -26,6 +27,11 @@ risk: safe | high-authority | safety-critical
 ```
 
 Read the SKILL.md to understand **when** and **how** to use each capability.
+
+## Researcher Metric Category Audits
+- Researcher truth-verifier category review uses the reusable skill at `/home/morderith/.hermes/profiles/cstar-hub/workspace/research-vault/skills/researcher-metric-category-auditor`.
+- Use it after a sealed scorecard freeze to audit perfect-score categories structurally, queue below-threshold categories for one-at-a-time repair planning, emit companion docs, and produce dashboard JSONL/CSV rows.
+- The consumed holdout is root-cause evidence only. Do not use this skill to tune, claim production readiness, or reuse a consumed locked holdout.
 
 ## Hierarchy of Power
 1. **PRIME** — Atomic operations (read, score, write, isolate).
@@ -69,8 +75,9 @@ Confidence: [0.0 - 1.0]
 1. **Initialization**: At the start of every session or new mission, you MUST read [AGENTS.qmd](./AGENTS.qmd) to synchronize with the current Supreme Directive and Framework state.
 2. **Trace First**: Begin agentic responses with a Trace block (see above).
 3. **Bead-Driven**: Anchor all work to Beads in the Hall of Records.
-4. **Sterling Mandate**: Changes require Lore (.feature contract), Isolation (unit test), and Audit (Gungnir score).
-5. **Spells Are Not Generic Runtime Commands**: If a spell is selected, verify its registry classification before treating it as executable.
+4. **MCP Separation of Concerns**: Do not put new MCP behavior into the root MCP entrypoint. Add or update a focused module, register it through the MCP registration composition layer, and keep focused tests under 500 lines.
+5. **Sterling Mandate**: Changes require Lore (.feature contract), Isolation (unit test), and Audit (Gungnir score).
+6. **Spells Are Not Generic Runtime Commands**: If a spell is selected, verify its registry classification before treating it as executable.
 
 ## Key Files
 - `AGENTS.qmd` — Supreme directive
