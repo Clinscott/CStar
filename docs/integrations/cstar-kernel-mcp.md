@@ -206,6 +206,7 @@ Route one mission and return routing advice + Council expert + Mimir targets + t
 - `inferred_intent` (string, optional)
 - `target_paths` (string[], optional)
 - `scope` (string, optional)
+- `bead_id` (string, optional) — links token-path advice to later `cstar_record_result` observation feedback
 
 **Output (matched):**
 ```json
@@ -459,7 +460,20 @@ Append validation outcome and optionally connect it to a bead. Feeds the Augury 
 - `token_path_episode_id` (string, optional) — episode id from a prior `cstar_augury` response
 - `token_path_observation` (object, optional) — scenario_class + selected_policy + observed_tokens for sidecar calibration
 
-**Output:** `{ status: 'recorded', mutation, bead_id, verdict, validation_id, token_path_observation_id?, token_path_episode_id? }`.
+When `token_path_observation` is not supplied, the tool attempts to auto-link
+recent `cstar_augury` token-path advice by explicit episode id, bead id, or bead
+target path. Every response reports `token_path_observation_status`. A missing
+observation is explicit, not silent.
+
+**Output:** `{ status: 'recorded', mutation, bead_id, verdict, validation_id, token_path_observation_status, token_path_observation_id?, token_path_observation_source?, token_path_observation_warning?, token_path_episode_id? }`.
+
+**Observation statuses:**
+- `recorded` — an explicit payload or auto-linked recent advice wrote an observation row.
+- `not_recorded` — no usable advice/payload was available; inspect `token_path_observation_warning`.
+
+Common warnings include `no_recent_token_path_advice_linked`,
+`token_path_episode_id_not_found`, and
+`malformed_token_path_observation_skipped`.
 
 ## 10. `cstar_engram_record`
 

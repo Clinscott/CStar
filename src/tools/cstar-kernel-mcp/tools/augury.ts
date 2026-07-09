@@ -32,7 +32,7 @@ type KernelCouncilExpert = {
     selection_candidates?: unknown[];
 };
 
-export async function handleAugury({ prompt, inferred_intent, target_paths, scope }: { prompt: string, inferred_intent?: string, target_paths?: string[], scope?: string }) {
+export async function handleAugury({ prompt, inferred_intent, target_paths, scope, bead_id }: { prompt: string, inferred_intent?: string, target_paths?: string[], scope?: string, bead_id?: string }) {
     try {
         let explain: ReturnType<typeof buildAuguryExplainPayload> = {
             status: 'missing',
@@ -320,7 +320,7 @@ export async function handleAugury({ prompt, inferred_intent, target_paths, scop
 
         const tokenPath = await runTokenPathAdvisor(routingInput);
         if (tokenPath) {
-            appendTokenPathAdvice(routingInput, tokenPath);
+            appendTokenPathAdvice(routingInput, tokenPath, bead_id);
             result.token_path = tokenPath;
         }
 

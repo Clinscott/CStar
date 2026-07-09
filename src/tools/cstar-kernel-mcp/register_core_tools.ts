@@ -67,6 +67,7 @@ export function registerCoreTools(server: ServerWithTool, instrumentTool: Instru
             inferred_intent: z.string().optional().describe('Optional inferred intent'),
             target_paths: z.array(z.string()).optional().describe('Optional target paths'),
             scope: z.string().optional().describe('Optional scope'),
+            bead_id: z.string().optional().describe('Optional bead id used to link token-path advice to later validation observations'),
         },
         instrumentTool('cstar_augury', handleAugury),
     );

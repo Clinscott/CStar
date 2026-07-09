@@ -369,6 +369,8 @@ it('cstar_record_result tool handler should record a result', async () => {
     assert.strictEqual(parsed.status, 'recorded');
     assert.strictEqual(parsed.token_path_observation_id, undefined,
         'no observation_id when token_path_observation is absent');
+    assert.strictEqual(parsed.token_path_observation_status, 'not_recorded');
+    assert.strictEqual(parsed.token_path_observation_warning, 'no_recent_token_path_advice_linked');
     assert.strictEqual(parsed.mutation.kind, 'validation_result_record');
     assert.strictEqual(parsed.mutation.persisted, true);
 });
@@ -429,6 +431,8 @@ it('cstar_record_result can auto-link a token_path_episode_id from recent advice
     const parsed = JSON.parse(result.content[0].text);
     assert.strictEqual(parsed.status, 'recorded');
     assert.strictEqual(parsed.token_path_episode_id, auguryParsed.token_path.episode_id);
+    assert.strictEqual(parsed.token_path_observation_status, 'recorded');
+    assert.strictEqual(parsed.token_path_observation_source, 'auto_linked_recent_advice');
     assert.ok(typeof parsed.token_path_observation_id === 'string');
     assert.match(parsed.token_path_observation_id, /^mcp-obs-/);
 });
@@ -453,6 +457,8 @@ it('cstar_record_result accepts an optional token_path_observation payload', asy
     const parsed = JSON.parse(result.content[0].text);
     if (parsed.error) console.error('Record Result+Observation Error:', parsed.error);
     assert.strictEqual(parsed.status, 'recorded');
+    assert.strictEqual(parsed.token_path_observation_status, 'recorded');
+    assert.strictEqual(parsed.token_path_observation_source, 'explicit_payload');
     assert.ok(typeof parsed.token_path_observation_id === 'string',
         `expected token_path_observation_id string, got ${parsed.token_path_observation_id}`);
     assert.match(parsed.token_path_observation_id, /^mcp-obs-/);
@@ -469,5 +475,7 @@ it('cstar_record_result ignores malformed token_path_observation without failing
     assert.strictEqual(parsed.status, 'recorded');
     assert.strictEqual(parsed.token_path_observation_id, undefined,
         'malformed observation must be skipped, verdict still recorded');
+    assert.strictEqual(parsed.token_path_observation_status, 'not_recorded');
+    assert.strictEqual(parsed.token_path_observation_warning, 'malformed_token_path_observation_skipped');
 });
 });

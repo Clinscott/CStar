@@ -10,6 +10,16 @@ import {
     type TokenPathObservationPayload,
 } from '../telemetry/token_path.js';
 
+function beadTargetPaths(beadId: string): string[] {
+    try {
+        const bead = database.getHallBead(beadId);
+        const targetPath = typeof bead?.target_path === 'string' ? bead.target_path : undefined;
+        return targetPath ? [targetPath] : [];
+    } catch {
+        return [];
+    }
+}
+
 export async function handleRecordResult({ bead_id, verdict, notes, token_path_episode_id, token_path_observation }: {
     bead_id: string,
     verdict: string,
@@ -43,12 +53,25 @@ export async function handleRecordResult({ bead_id, verdict, notes, token_path_e
         let observationId: string | null = null;
         let observationPayload = token_path_observation;
         let linkedTokenPathEpisodeId = token_path_episode_id;
-        if (!observationPayload && token_path_episode_id) {
-            const advice = findRecentTokenPathAdvice(token_path_episode_id, bead_id);
+        let observationSource: string | undefined;
+        let observationWarning: string | undefined;
+        if (!observationPayload) {
+            const advice = findRecentTokenPathAdvice({
+                episodeId: token_path_episode_id,
+                beadId: bead_id,
+                targetPaths: beadTargetPaths(bead_id),
+            });
             if (advice) {
                 observationPayload = buildObservationFromAdvice(advice, notes);
                 linkedTokenPathEpisodeId = advice.episode_id;
+                observationSource = 'auto_linked_recent_advice';
+            } else if (token_path_episode_id) {
+                observationWarning = 'token_path_episode_id_not_found';
+            } else {
+                observationWarning = 'no_recent_token_path_advice_linked';
             }
+        } else {
+            observationSource = 'explicit_payload';
         }
         if (observationPayload
             && typeof observationPayload.scenario_class === 'string'
@@ -62,6 +85,8 @@ export async function handleRecordResult({ bead_id, verdict, notes, token_path_e
             }
             observationId = appendTokenPathObservation(bead_id, observationPayload, verdict);
             linkedTokenPathEpisodeId = observationPayload.token_path_episode_id || linkedTokenPathEpisodeId;
+        } else if (observationPayload) {
+            observationWarning = 'malformed_token_path_observation_skipped';
         }
 
         const response: Record<string, unknown> = {
@@ -69,6 +94,7 @@ export async function handleRecordResult({ bead_id, verdict, notes, token_path_e
             bead_id,
             verdict,
             validation_id: validationId,
+            token_path_observation_status: observationId ? 'recorded' : 'not_recorded',
             mutation: mcpMutation('validation_result_record', validationId, 'Validation result was persisted through the MCP write surface.'),
         };
         if (validationError) {
@@ -76,6 +102,12 @@ export async function handleRecordResult({ bead_id, verdict, notes, token_path_e
         }
         if (observationId) {
             response.token_path_observation_id = observationId;
+        }
+        if (observationSource) {
+            response.token_path_observation_source = observationSource;
+        }
+        if (!observationId && observationWarning) {
+            response.token_path_observation_warning = observationWarning;
         }
         if (linkedTokenPathEpisodeId) {
             response.token_path_episode_id = linkedTokenPathEpisodeId;

@@ -57,7 +57,7 @@ export interface TokenPathObservationPayload {
     notes?: string;
 }
 
-interface TokenPathAdviceRecord {
+export interface TokenPathAdviceRecord {
     schema_version: '1.0.0';
     ts: string;
     episode_id: string;
@@ -75,6 +75,12 @@ interface TokenPathAdviceRecord {
     requires_followup?: boolean;
     execution_deferred?: boolean;
     confidence?: number;
+}
+
+export interface TokenPathAdviceLookup {
+    episodeId?: string;
+    beadId?: string;
+    targetPaths?: string[];
 }
 
 const TOKEN_PATH_OBSERVATIONS_RELATIVE_PATH = path.join(
@@ -226,17 +232,52 @@ export function appendTokenPathAdvice(
     }
 }
 
-export function findRecentTokenPathAdvice(episodeId?: string, beadId?: string): TokenPathAdviceRecord | null {
+function normalizeTokenPathTarget(candidate: string): string | null {
+    const value = candidate.trim();
+    if (!value) return null;
+    const slashNormalized = value.replace(/\\/g, '/');
+    const resolved = path.isAbsolute(slashNormalized)
+        ? slashNormalized
+        : path.resolve(PROJECT_ROOT, slashNormalized);
+    return resolved.replace(/\/+$/, '');
+}
+
+function tokenTargetsOverlap(left: string, right: string): boolean {
+    const normalizedLeft = normalizeTokenPathTarget(left);
+    const normalizedRight = normalizeTokenPathTarget(right);
+    if (!normalizedLeft || !normalizedRight) return false;
+    if (normalizedLeft === normalizedRight) return true;
+    const projectRoot = normalizeTokenPathTarget(PROJECT_ROOT);
+    if (normalizedLeft === projectRoot || normalizedRight === projectRoot) return false;
+    return normalizedLeft.startsWith(`${normalizedRight}/`) || normalizedRight.startsWith(`${normalizedLeft}/`);
+}
+
+function recordTargetsMatch(record: TokenPathAdviceRecord, targetPaths?: string[]): boolean {
+    if (!targetPaths || targetPaths.length === 0 || !record.target_paths || record.target_paths.length === 0) {
+        return false;
+    }
+    return targetPaths.some((targetPath) => record.target_paths?.some((recordPath) => tokenTargetsOverlap(targetPath, recordPath)));
+}
+
+export function findRecentTokenPathAdvice(
+    episodeOrLookup?: string | TokenPathAdviceLookup,
+    beadId?: string,
+): TokenPathAdviceRecord | null {
+    const lookup: TokenPathAdviceLookup = typeof episodeOrLookup === 'object'
+        ? episodeOrLookup
+        : { episodeId: episodeOrLookup, beadId };
     const advice = readRecentProjectJsonl<TokenPathAdviceRecord>(TOKEN_PATH_ADVICE_RELATIVE_PATH, MCP_USAGE_LOOKBACK_MS);
     const sorted = [...advice].sort((a, b) => Date.parse(b.occurred_at) - Date.parse(a.occurred_at));
-    if (episodeId) {
-        const byEpisode = sorted.find((record) => record.episode_id === episodeId);
+    if (lookup.episodeId) {
+        const byEpisode = sorted.find((record) => record.episode_id === lookup.episodeId);
         if (byEpisode) return byEpisode;
     }
-    if (beadId) {
-        const byBead = sorted.find((record) => record.bead_id === beadId);
+    if (lookup.beadId) {
+        const byBead = sorted.find((record) => record.bead_id === lookup.beadId);
         if (byBead) return byBead;
     }
+    const byTarget = sorted.find((record) => recordTargetsMatch(record, lookup.targetPaths));
+    if (byTarget) return byTarget;
     return null;
 }
 
