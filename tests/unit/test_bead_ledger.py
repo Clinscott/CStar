@@ -192,13 +192,17 @@ def test_claim_next_bead_is_atomic_under_concurrent_agents(tmp_path):
         acceptance_criteria="Raise the baseline above 5.0.",
     )
 
-    barrier = threading.Barrier(2)
+    barrier = threading.Barrier(2, timeout=5)
     results: list[dict[str, object] | None] = []
+    errors: list[BaseException] = []
 
     def runner(agent_id: str) -> None:
-        local_ledger = BeadLedger(tmp_path)
-        barrier.wait()
-        results.append(local_ledger.claim_next_bead(agent_id))
+        try:
+            barrier.wait()
+            local_ledger = BeadLedger(tmp_path)
+            results.append(local_ledger.claim_next_bead(agent_id))
+        except BaseException as exc:
+            errors.append(exc)
 
     threads = [
         threading.Thread(target=runner, args=("RAVEN-A",)),
@@ -207,7 +211,10 @@ def test_claim_next_bead_is_atomic_under_concurrent_agents(tmp_path):
     for thread in threads:
         thread.start()
     for thread in threads:
-        thread.join()
+        thread.join(timeout=10)
+
+    assert all(not thread.is_alive() for thread in threads), "Concurrent bead claim threads must not hang"
+    assert errors == []
 
     claimed = [result for result in results if result is not None]
     assert len(claimed) == 1

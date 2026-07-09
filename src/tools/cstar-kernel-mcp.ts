@@ -34,6 +34,7 @@ export {
 export {
     handleHallMaintenance,
     handleHandoff,
+    buildHandoffMcpPayload,
     handleHallSearch,
     handleDoctor,
     handleVerifyPlan,

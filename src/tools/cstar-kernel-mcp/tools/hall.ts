@@ -7,6 +7,7 @@ import {
     buildAuguryDoctorPayload,
 } from '../../../node/core/commands/trace.js';
 import { mcpGuardrail, textResponse } from '../contracts/responses.js';
+import { detectAuguryTargetDivergence } from './augury_routing.js';
 import {
     summarizeRecentMcpUsage,
     summarizeRecentMcpUsefulness,
@@ -36,54 +37,94 @@ export async function handleHallMaintenance({ action, limit, memory_id }: { acti
     }
 }
 
-export async function handleHandoff() {
+export interface HandoffArgs {
+    prompt?: string;
+    scope?: string;
+    target_paths?: string[];
+}
+
+function compactHandoffSession(handoff: any) {
+    return {
+        execution_gate: handoff.execution_gate,
+        phase: handoff.phase,
+        next_action: handoff.next_action,
+        route: handoff.designation ? {
+            intent_category: handoff.designation.intent_category,
+            selection_tier: handoff.designation.selection_tier,
+            selection_name: handoff.designation.selection_name,
+        } : undefined,
+        lead_bead_id: handoff.lead_bead_id,
+        target_paths: handoff.target_paths.slice(0, 5),
+        checker_shells: handoff.checker_shells.slice(0, 3),
+        work_items: handoff.work_items.slice(0, 3).map((w: any) => ({
+            bead_id: w.bead_id,
+            status: w.status,
+            target_path: w.target_path,
+        })),
+    };
+}
+
+export function buildHandoffMcpPayload(handoff: any, root: string, args: HandoffArgs = {}) {
+    if (!handoff) {
+        return {
+            status: 'idle',
+            guardrail: mcpGuardrail(
+                'caution',
+                'recover',
+                'No active handoff is available; route through Augury or create a bead before execution.',
+                [],
+                ['handoff'],
+            ),
+            next_action: 'Run cstar_augury with a bounded mission or create a Hall bead before execution.',
+        };
+    }
+
+    const requestedTargets = args.target_paths ?? [];
+    const divergence = detectAuguryTargetDivergence(requestedTargets, handoff.target_paths, root);
+    if (requestedTargets.length > 0 && divergence.diverged) {
+        return {
+            status: 'background_active_session',
+            authoritative: false,
+            stale_session_demoted: true,
+            active_session_authority: 'background',
+            requested_prompt: args.prompt ?? null,
+            requested_scope: args.scope ?? null,
+            requested_target_paths: requestedTargets,
+            divergence,
+            guardrail: mcpGuardrail(
+                'caution',
+                'verify',
+                'Active handoff targets diverge from the caller targets; active session is background context, not current mission truth.',
+                [],
+                ['stale_session_target_divergence'],
+            ),
+            next_action: 'Run cstar_augury with the current prompt/target_paths or create/claim a matching bead before execution.',
+            active_session_suggestion: compactHandoffSession(handoff),
+        };
+    }
+
+    return {
+        status: 'active',
+        authoritative: true,
+        ...compactHandoffSession(handoff),
+        guardrail: handoff.execution_gate === 'execution_guarded'
+            ? mcpGuardrail(
+                'caution',
+                'verify',
+                'Execution is staged; operator release and verification evidence are required before follow-on work.',
+                [],
+                ['execution_gate'],
+            )
+            : mcpGuardrail('allow', 'continue', 'Active handoff is available.'),
+    };
+}
+
+export async function handleHandoff(args: HandoffArgs = {}) {
     try {
         const root = registry.getRoot();
         const session = resolveActivePlanningSession(root);
         const handoff = buildTraceAgentHandoffPayload(session, root);
-
-        if (!handoff) {
-            return textResponse({
-                status: 'idle',
-                guardrail: mcpGuardrail(
-                    'caution',
-                    'recover',
-                    'No active handoff is available; route through Augury or create a bead before execution.',
-                    [],
-                    ['handoff'],
-                ),
-                next_action: 'Run cstar_augury with a bounded mission or create a Hall bead before execution.',
-            });
-        }
-
-        return textResponse({
-            status: 'active',
-            execution_gate: handoff.execution_gate,
-            phase: handoff.phase,
-            next_action: handoff.next_action,
-            route: handoff.designation ? {
-                intent_category: handoff.designation.intent_category,
-                selection_tier: handoff.designation.selection_tier,
-                selection_name: handoff.designation.selection_name,
-            } : undefined,
-            guardrail: handoff.execution_gate === 'execution_guarded'
-                ? mcpGuardrail(
-                    'caution',
-                    'verify',
-                    'Execution is staged; operator release and verification evidence are required before follow-on work.',
-                    [],
-                    ['execution_gate'],
-                )
-                : mcpGuardrail('allow', 'continue', 'Active handoff is available.'),
-            lead_bead_id: handoff.lead_bead_id,
-            target_paths: handoff.target_paths.slice(0, 5),
-            checker_shells: handoff.checker_shells.slice(0, 3),
-            work_items: handoff.work_items.slice(0, 3).map((w) => ({
-                bead_id: w.bead_id,
-                status: w.status,
-                target_path: w.target_path,
-            })),
-        });
+        return textResponse(buildHandoffMcpPayload(handoff, root, args));
     } catch (error: any) {
         return textResponse({ error: error.message }, true);
     }

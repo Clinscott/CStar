@@ -16,6 +16,7 @@ import {
     writeAdvisoryOnlyForgeAdapter,
     writeInspectingForgeWorkerDelegate,
     handleHandoff,
+    buildHandoffMcpPayload,
     handleHallSearch,
     handleAugury,
     handleDoctor,
@@ -51,6 +52,38 @@ it('cstar_handoff tool handler should return a valid MCP response', async () => 
     assert.ok(parsed.guardrail);
     assert.ok(['allow', 'caution', 'block'].includes(parsed.guardrail.verdict));
     assert.ok(['continue', 'recover', 'repair', 'verify', 'refuse'].includes(parsed.guardrail.action));
+});
+
+it('cstar_handoff demotes stale active sessions when caller targets diverge', () => {
+    const payload = buildHandoffMcpPayload({
+        execution_gate: 'execution_guarded',
+        phase: 'FORGE_EXECUTION',
+        next_action: 'Continue stale registry work',
+        designation: {
+            intent_category: 'ORCHESTRATE',
+            selection_tier: 'WEAVE',
+            selection_name: 'orchestrate',
+        },
+        lead_bead_id: 'registry-separation-rule',
+        target_paths: ['.agents/skill_registry.json', 'src/packaging/distributions.ts'],
+        checker_shells: [],
+        work_items: [
+            { bead_id: 'registry-separation-rule', status: 'OPEN', target_path: '.agents/skill_registry.json' },
+        ],
+    }, '/home/morderith/Corvus/CStar', {
+        prompt: 'Repair Researcher CorvusEye malformed output pipeline',
+        scope: 'spoke:cstar-console',
+        target_paths: ['/home/morderith/Corvus/CorvusEye/tests/truth-verification-red-team'],
+    });
+
+    assert.strictEqual(payload.status, 'background_active_session');
+    assert.strictEqual(payload.authoritative, false);
+    assert.strictEqual(payload.stale_session_demoted, true);
+    assert.strictEqual(payload.active_session_authority, 'background');
+    assert.strictEqual(payload.guardrail.verdict, 'caution');
+    assert.deepStrictEqual(payload.guardrail.warning_checks, ['stale_session_target_divergence']);
+    assert.strictEqual(payload.active_session_suggestion.lead_bead_id, 'registry-separation-rule');
+    assert.ok(!('lead_bead_id' in payload), 'stale active bead must not be top-level current mission truth');
 });
 
 it('cstar_hall_search tool handler should return a guarded result envelope and filter by type', async () => {

@@ -168,6 +168,38 @@ class StdioMcpClient {
     }
 }
 
+const validDispatchRequest = {
+    bead_id: 'bead-mcp-stdio-smoke',
+    owner_pmt_thread_id: 'thread-owner',
+    source_callback_thread_id: 'thread-callback',
+    objective: 'Verify the MCP request surface without live spend',
+    prompt: 'Produce a no-spend receipt only',
+    target_paths: ['src/tools/cstar-kernel-mcp.ts'],
+    system_under_test: 'cstar-kernel MCP',
+    scope: 'brain:CStar',
+    authority_lane: 'yellow',
+    required_metrics: [{ name: 'artifact_integrity', threshold: 'schema valid' }],
+    artifact_expectations: ['receipt'],
+    prohibited_actions: ['live model spend', 'source collection', 'repo mutation'],
+    requested_actions: ['dry-run request receipt'],
+    spend_policy: { mode: 'no_spend', max_retries: 0, live_source_allowed: false },
+    retry_policy: { budget: 0, spent: 0 },
+    callback_contract: { expected_packet: 'MCP_STDIO_SMOKE_PACKET', callback_required: true },
+};
+
+function parseToolBody(resp: JsonRpcResponse): any {
+    if (resp.error) {
+        return { jsonrpc_error: resp.error.message };
+    }
+    const content = resp.result?.content as Array<{ text: string }> | undefined;
+    assert.ok(content?.[0]?.text, `tool response must include text content: ${JSON.stringify(resp)}`);
+    try {
+        return JSON.parse(content[0].text);
+    } catch {
+        return { raw_text: content[0].text };
+    }
+}
+
 // The launcher uses `process.execve` on Unix (replacing the JS process with the
 // underlying TSX-loaded MCP server). Some environments (older glibc, certain
 // containers) reject execve; the test must not hang in that case.
@@ -215,6 +247,7 @@ describe('cstar-kernel-mcp stdio launcher', () => {
         assert.ok(Array.isArray(listResp.result.tools), 'tools/list result must contain a tools array');
         const tools = listResp.result.tools as Array<{ name: string }>;
         const actualNames = tools.map((t) => t.name).sort();
+        const duplicateNames = actualNames.filter((name, index) => actualNames.indexOf(name) !== index);
         const expectedNames = [
             'cstar_augury',
             'cstar_autobot',
@@ -244,6 +277,7 @@ describe('cstar-kernel-mcp stdio launcher', () => {
             'cstar_warden',
         ].sort();
 
+        assert.deepStrictEqual(duplicateNames, [], `tools/list must not expose duplicate tool names: ${duplicateNames.join(', ')}`);
         assert.deepStrictEqual(
             actualNames,
             expectedNames,
@@ -310,6 +344,62 @@ describe('cstar-kernel-mcp stdio launcher', () => {
         assert.strictEqual(body.status, 'ok');
         assert.strictEqual(body.section, 'usage');
         assert.ok(body.usage);
+    });
+
+    it('smoke-calls every non-legacy public tool with safe success or fail-closed inputs', async () => {
+        if (!client) {
+            assert.fail('client was not initialized by prior test');
+        }
+
+        const forgeExecuteRequest = {
+            ...validDispatchRequest,
+            decision_id: 'decision-mcp-stdio-smoke',
+            forge_request_receipt_id: 'dispatch-forge-decision-mcp-stdio-smoke-receipt',
+            forge_request_decision_id: 'decision-mcp-stdio-smoke',
+            forge_request_bead_id: 'bead-mcp-stdio-smoke',
+            execution_mode: 'no_op',
+        };
+        const cases: Array<{ name: string; args: Record<string, unknown>; expectError?: boolean }> = [
+            { name: 'cstar_hall_maintenance', args: { action: 'harvest', limit: 1 } },
+            { name: 'cstar_handoff', args: {} },
+            { name: 'cstar_hall_search', args: { query: 'mcp smoke', limit: 1 } },
+            { name: 'cstar_augury', args: { prompt: 'Audit CStar MCP smoke contracts', target_paths: ['src/tools/cstar-kernel-mcp.ts'] } },
+            { name: 'cstar_doctor', args: {} },
+            { name: 'cstar_verify_plan', args: {} },
+            { name: 'cstar_bead', args: { action: 'list', limit: 1 } },
+            { name: 'cstar_spoke_bead_import', args: { spoke: 'missing-spoke', intent: 'smoke', acceptance_criteria: 'fail closed', lore_path: 'missing.feature' }, expectError: true },
+            { name: 'cstar_record_result', args: {}, expectError: true },
+            { name: 'cstar_engram_record', args: {}, expectError: true },
+            { name: 'cstar_war_game_score', args: { action: 'list_contests' } },
+            { name: 'cstar_manifest', args: { scope: 'hub' } },
+            { name: 'cstar_skill_info', args: { id: 'bookmark-weaver' } },
+            { name: 'cstar_spoke_journal', args: { spoke: 'missing-spoke' } },
+            { name: 'cstar_pennyone_context', args: { action: 'status' } },
+            { name: 'cstar_mongo_mailbox', args: { action: 'status' } },
+            { name: 'cstar_status', args: {} },
+            { name: 'cstar_evolve', args: { action: 'list_proposals', limit: 1 } },
+            { name: 'cstar_spoke', args: { action: 'list' } },
+            { name: 'cstar_intent_route', args: { prompt: 'build audit harness', action: 'match' } },
+            { name: 'cstar_warden', args: { action: 'list' } },
+            { name: 'cstar_telemetry', args: { section: 'usage' } },
+            { name: 'cstar_researcher_request', args: validDispatchRequest },
+            { name: 'cstar_forge_request', args: validDispatchRequest },
+            { name: 'cstar_forge_execute', args: forgeExecuteRequest },
+        ];
+
+        for (const testCase of cases) {
+            const resp = await client.request('tools/call', {
+                name: testCase.name,
+                arguments: testCase.args,
+            }, 12_000);
+            const body = parseToolBody(resp);
+            if (testCase.expectError) {
+                assert.ok(resp.error || resp.result?.isError || body.error || body.jsonrpc_error, `${testCase.name} must fail closed`);
+            } else {
+                assert.ok(resp.result, `${testCase.name} returned JSON-RPC error: ${JSON.stringify(resp.error)}`);
+                assert.notStrictEqual(resp.result.isError, true, `${testCase.name} should not be an MCP error: ${JSON.stringify(body)}`);
+            }
+        }
     });
 
     it('can explicitly disable cstar_autobot with CSTAR_KERNEL_ENABLE_AUTOBOT=0', async () => {

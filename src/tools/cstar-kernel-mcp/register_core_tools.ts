@@ -40,7 +40,11 @@ export function registerCoreTools(server: ServerWithTool, instrumentTool: Instru
     server.tool(
         'cstar_handoff',
         mcpToolDescription('READ', 'Return compact active state from Augury/handoff logic.'),
-        {},
+        {
+            prompt: z.string().optional().describe('Optional current mission prompt used to label target-aware handoff checks'),
+            scope: z.string().optional().describe('Optional current mission scope used to label target-aware handoff checks'),
+            target_paths: z.array(z.string()).optional().describe('Optional current mission targets; diverging active sessions are demoted to background'),
+        },
         instrumentTool('cstar_handoff', handleHandoff),
     );
 

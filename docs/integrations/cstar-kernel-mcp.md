@@ -125,13 +125,17 @@ Priority write surfaces include a deterministic `mutation` object:
 
 Compact active state from Augury/handoff logic. Returns `{ status: 'idle', guardrail, next_action }` when there is no active session.
 
-**Input:** _(none)_
+**Input:**
+- `prompt` (string, optional) — current mission prompt label for target-aware handoff checks
+- `scope` (string, optional) — current mission scope label
+- `target_paths` (string[], optional) — current mission targets; if they diverge from the active session, the active session is demoted to background context
 
 **Output (active):**
 ```json
 {
   "execution_gate": "READY",
   "status": "active",
+  "authoritative": true,
   "phase": "FORGE",
   "next_action": "<imperative>",
   "guardrail": { "verdict": "allow", "action": "continue", "...": "..." },
@@ -139,6 +143,26 @@ Compact active state from Augury/handoff logic. Returns `{ status: 'idle', guard
   "target_paths": ["<path>", "..."],
   "checker_shells": ["<command>", "..."],
   "work_items": [{ "bead_id": "...", "status": "IN_PROGRESS", "target_path": "..." }]
+}
+```
+
+**Output (stale/background active session):**
+```json
+{
+  "status": "background_active_session",
+  "authoritative": false,
+  "stale_session_demoted": true,
+  "active_session_authority": "background",
+  "guardrail": {
+    "verdict": "caution",
+    "action": "verify",
+    "warning_checks": ["stale_session_target_divergence"]
+  },
+  "next_action": "Run cstar_augury with the current prompt/target_paths or create/claim a matching bead before execution.",
+  "active_session_suggestion": {
+    "lead_bead_id": "<stale bead>",
+    "target_paths": ["<stale target>", "..."]
+  }
 }
 ```
 

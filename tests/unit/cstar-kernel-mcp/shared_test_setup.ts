@@ -67,6 +67,7 @@ mock.method(database, 'getDb', () => ({
 
 import {
     handleHandoff,
+    buildHandoffMcpPayload,
     handleHallSearch,
     handleAugury,
     handleDoctor,
@@ -115,6 +116,7 @@ export function makeSpoke(overrides: Partial<HallMountedSpokeRecord> = {}): Hall
 export { assert, fs, os, path, mock, database };
 export {
     handleHandoff,
+    buildHandoffMcpPayload,
     handleHallSearch,
     handleAugury,
     handleDoctor,
