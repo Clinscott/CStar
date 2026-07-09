@@ -16,6 +16,8 @@ The driver `bin/cstar-kernel-mcp.js` re-execs Node with the TSX loader against `
 
 For Codex Desktop-on-WSL, `/home/morderith/.codex/bin/wsl/cstar-kernel-mcp-wrapper` should launch `bin/cstar-kernel-mcp-bridge.js`. The bridge proxies stdio through the local CStar TCP daemon when it is available, then falls back to the direct source launcher. This keeps the Codex-side MCP process alive across child refreshes and prevents stale direct-launch children from pinning old tool schemas.
 
+Hermes gateway MCP registrations should follow the same rule: launch the source-backed bridge or `bin/cstar-kernel-mcp.js`, never `dist/cstar-kernel-mcp.bundle.js`. A gateway-supervised dist child can respawn after manual process retirement and reintroduce stale schemas.
+
 ## Operational Mandates
 
 1. **Host-Agent Run First.** MCP handlers wrap deterministic work only. Any LLM inference per iteration must be driven by the host agent or a spawned sub-agent — never by an MCP tool calling back out to an LLM.

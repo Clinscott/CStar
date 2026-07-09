@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 
-import { getHallBeads, getHallPlanningSession, listHallPlanningSessions } from '../../../tools/pennyone/intel/database.js';
+import { database } from '../../../tools/pennyone/intel/database.js';
 import type { SovereignBead } from '../../../types/bead.js';
 import type { HallOneMindBranchDigest, HallPlanningSessionRecord, HallPlanningSessionStatus } from '../../../types/hall.js';
 import { compactPlanningHandle, formatPlanningDigestBadge } from '../operator_resume.js';
@@ -651,16 +651,16 @@ export function hydratePlanningSession(
     if (!session) {
         return null;
     }
-    return getHallPlanningSession(session.session_id, rootPath) ?? session;
+    return database.getHallPlanningSession(session.session_id, rootPath) ?? session;
 }
 
 export function resolveActivePlanningSession(rootPath: string): HallPlanningSessionRecord | null {
-    const active = listHallPlanningSessions(rootPath, { statuses: ACTIVE_PLANNING_STATUSES });
-    return hydratePlanningSession(active[0] ?? listHallPlanningSessions(rootPath)[0] ?? null, rootPath);
+    const active = database.listHallPlanningSessions(rootPath, { statuses: ACTIVE_PLANNING_STATUSES });
+    return hydratePlanningSession(active[0] ?? database.listHallPlanningSessions(rootPath)[0] ?? null, rootPath);
 }
 
 function resolveFailedPlanningSessions(rootPath: string, limit: number): HallPlanningSessionRecord[] {
-    return listHallPlanningSessions(rootPath, { statuses: FAILED_PLANNING_STATUSES })
+    return database.listHallPlanningSessions(rootPath, { statuses: FAILED_PLANNING_STATUSES })
         .slice(0, limit)
         .map((session) => hydratePlanningSession(session, rootPath) ?? session);
 }
@@ -682,7 +682,7 @@ function rankRuntimeTraceBead(bead: SovereignBead): number {
 }
 
 function resolveLatestRuntimeTraceBead(rootPath: string): SovereignBead | null {
-    const beads = getHallBeads(rootPath)
+    const beads = database.getHallBeads(rootPath)
         .filter((bead) => bead.id.includes(':exec:'))
         .filter((bead) => bead.status !== 'ARCHIVED' && bead.status !== 'SUPERSEDED')
         .filter((bead) => (bead.metadata as Record<string, unknown> | undefined)?.archived !== true)
@@ -847,7 +847,7 @@ function getSessionBeads(rootPath: string, session: HallPlanningSessionRecord): 
     if (beadIds.size === 0) {
         return [];
     }
-    return getHallBeads(rootPath).filter((bead) => beadIds.has(bead.id));
+    return database.getHallBeads(rootPath).filter((bead) => beadIds.has(bead.id));
 }
 
 function isPathLikeArtifact(value: string): boolean {
@@ -1556,7 +1556,7 @@ function resolveActiveTraceStatusPayload(rootPath: string): TraceStatusPayload |
         : planningPayload;
 }
 
-function resolveActiveTraceHandoffPayload(rootPath: string): TraceAgentHandoffPayload | null {
+export function resolveActiveTraceHandoffPayload(rootPath: string): TraceAgentHandoffPayload | null {
     return resolveActiveTraceStatusPayload(rootPath)?.agent_handoff ?? null;
 }
 

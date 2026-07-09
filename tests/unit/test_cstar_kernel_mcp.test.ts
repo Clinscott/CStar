@@ -9,6 +9,7 @@ import './cstar-kernel-mcp/test_response_contracts.test.js';
 import './cstar-kernel-mcp/test_tool_classes.test.js';
 import './cstar-kernel-mcp/test_augury_bead_result.test.js';
 import './cstar-kernel-mcp/test_token_path_result_feedback.test.js';
+import './cstar-kernel-mcp/test_handoff_runtime_state.test.js';
 import './cstar-kernel-mcp/test_dispatch_requests.test.js';
 import './cstar-kernel-mcp/test_kernel_surfaces_core.test.js';
 import './cstar-kernel-mcp/test_pennyone_mongo_context.test.js';

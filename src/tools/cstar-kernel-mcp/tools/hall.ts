@@ -4,6 +4,7 @@ import { database } from '../../pennyone/intel/database.js';
 import {
     buildTraceAgentHandoffPayload,
     resolveActivePlanningSession,
+    resolveActiveTraceHandoffPayload,
     buildAuguryDoctorPayload,
 } from '../../../node/core/commands/trace.js';
 import { mcpGuardrail, textResponse } from '../contracts/responses.js';
@@ -122,8 +123,7 @@ export function buildHandoffMcpPayload(handoff: any, root: string, args: Handoff
 export async function handleHandoff(args: HandoffArgs = {}) {
     try {
         const root = registry.getRoot();
-        const session = resolveActivePlanningSession(root);
-        const handoff = buildTraceAgentHandoffPayload(session, root);
+        const handoff = resolveActiveTraceHandoffPayload(root);
         return textResponse(buildHandoffMcpPayload(handoff, root, args));
     } catch (error: any) {
         return textResponse({ error: error.message }, true);

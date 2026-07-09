@@ -1,4 +1,4 @@
-import { after, describe, it } from 'node:test';
+import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
 import net from 'node:net';
@@ -140,25 +140,61 @@ function startFakeDaemon(): Promise<{ port: number; close: () => Promise<void>; 
 }
 
 describe('cstar-kernel MCP TCP bridge launcher', () => {
-    let client: LineClient | null = null;
-    let daemon: Awaited<ReturnType<typeof startFakeDaemon>> | null = null;
+    it('proxies newline JSON-RPC from stdio to the configured TCP daemon', async () => {
+        const daemon = await startFakeDaemon();
+        const client = new LineClient(daemon.port);
 
-    after(async () => {
-        if (client) await client.close();
-        if (daemon) await daemon.close();
+        try {
+            const response = await client.request('initialize', {
+                protocolVersion: '2024-11-05',
+                capabilities: {},
+                clientInfo: { name: 'bridge-test', version: '1.0.0' },
+            });
+
+            assert.deepEqual(response.result, { ok: true, method: 'initialize' });
+            assert.deepEqual(daemon.seenMethods, ['initialize']);
+        } finally {
+            await client.close();
+            await daemon.close();
+        }
     });
 
-    it('proxies newline JSON-RPC from stdio to the configured TCP daemon', async () => {
-        daemon = await startFakeDaemon();
-        client = new LineClient(daemon.port);
-
-        const response = await client.request('initialize', {
-            protocolVersion: '2024-11-05',
-            capabilities: {},
-            clientInfo: { name: 'bridge-test', version: '1.0.0' },
+    it('flushes pending responses when stdin closes after a piped request', async () => {
+        const daemon = await startFakeDaemon();
+        const proc = spawn('node', [BRIDGE], {
+            cwd: PROJECT_ROOT,
+            env: {
+                ...process.env,
+                CSTAR_KERNEL_MCP_TRANSPORT: 'tcp',
+                CSTAR_KERNEL_MCP_TCP_HOST: '127.0.0.1',
+                CSTAR_KERNEL_MCP_TCP_PORT: String(daemon.port),
+                CSTAR_KERNEL_MCP_STDIN_CLOSE_GRACE_MS: '25',
+            },
+            stdio: ['pipe', 'pipe', 'pipe'],
         });
 
-        assert.deepEqual(response.result, { ok: true, method: 'initialize' });
-        assert.deepEqual(daemon.seenMethods, ['initialize']);
+        try {
+            let stdout = '';
+            proc.stdout.setEncoding('utf8');
+            proc.stdout.on('data', (chunk: string) => { stdout += chunk; });
+            proc.stdin.write(JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'initialize', params: {} }) + '\n');
+            proc.stdin.end();
+
+            await new Promise<void>((resolve, reject) => {
+                const timer = setTimeout(() => reject(new Error('bridge did not exit after piped stdin close')), 1000);
+                proc.once('exit', () => {
+                    clearTimeout(timer);
+                    resolve();
+                });
+            });
+
+            const line = stdout.trim().split('\n').find(Boolean);
+            assert.ok(line, 'bridge should flush the pending response before exit');
+            const response = JSON.parse(line) as JsonRpcResponse;
+            assert.deepEqual(response.result, { ok: true, method: 'initialize' });
+        } finally {
+            if (proc.exitCode === null) proc.kill('SIGTERM');
+            await daemon.close();
+        }
     });
 });

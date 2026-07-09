@@ -25,6 +25,7 @@ const PORT = Number.parseInt(process.env.CSTAR_KERNEL_MCP_TCP_PORT ?? '8000', 10
 const CONNECT_TIMEOUT_MS = Number.parseInt(process.env.CSTAR_KERNEL_MCP_TCP_CONNECT_TIMEOUT_MS ?? '400', 10);
 const RECONNECT_DELAY_MS = Number.parseInt(process.env.CSTAR_KERNEL_MCP_TCP_RECONNECT_DELAY_MS ?? '150', 10);
 const MAX_RECONNECT_ATTEMPTS = Number.parseInt(process.env.CSTAR_KERNEL_MCP_TCP_RECONNECT_ATTEMPTS ?? '3', 10);
+const STDIN_CLOSE_GRACE_MS = Number.parseInt(process.env.CSTAR_KERNEL_MCP_STDIN_CLOSE_GRACE_MS ?? '500', 10);
 
 function log(message) {
     process.stderr.write(`[cstar-kernel-bridge] ${message}\n`);
@@ -102,6 +103,16 @@ async function startTcpProxy(initialSocket) {
     let socket = initialSocket;
     let responseBuffer = '';
     const pending = new Set();
+    let stdinClosed = false;
+    let shutdownTimer = null;
+
+    const scheduleShutdown = () => {
+        if (!stdinClosed || pending.size > 0 || shutdownTimer) return;
+        shutdownTimer = setTimeout(() => {
+            if (socket && !socket.destroyed) socket.end();
+            process.exit(0);
+        }, STDIN_CLOSE_GRACE_MS);
+    };
 
     const clearPending = (message) => {
         for (const id of pending) {
@@ -124,6 +135,7 @@ async function startTcpProxy(initialSocket) {
                     const id = parseId(trimmed);
                     if (id !== null) pending.delete(id);
                     process.stdout.write(trimmed + '\n');
+                    scheduleShutdown();
                 }
                 nl = responseBuffer.indexOf('\n');
             }
@@ -176,8 +188,8 @@ async function startTcpProxy(initialSocket) {
     });
 
     rl.on('close', () => {
-        if (socket && !socket.destroyed) socket.end();
-        process.exit(0);
+        stdinClosed = true;
+        scheduleShutdown();
     });
 }
 
