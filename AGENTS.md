@@ -17,6 +17,7 @@
 - PMTs answer state packets with `STATE_ACCEPTED`, `STATE_CONFLICT`, `AUTHORITY_ESCALATION`, or `BLOCKED_CONTEXT`. They should not reopen CoS-owned work unless the packet is inconsistent, unsafe, or outside authority.
 - PMT-owned execution goals remain valid for explicit CoS delegation, red/high-risk gates, or project processes that require PMT-run monitoring. In those cases the PMT owns local goal setup, worker callback, package validation, and compact callback to CoS.
 - Operator gates remain intact: live spend beyond the bounded scope, locked holdout, production readiness, source collection, secrets/config mutation, merge/deploy/restart, destructive cleanup, and broad cross-spoke changes require explicit authorization.
+- Fresh CoS thread handoffs use the pointer contract in `docs/operations/cos-context-refresh-primer-gpt-5-6-sol.md`; keep the root instructions compact and put refresh schema details there.
 
 ## Skill Discovery
 Skills live in `.agents/skills/*/SKILL.md`. Each SKILL.md has YAML frontmatter:
