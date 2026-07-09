@@ -8,7 +8,7 @@
 - **Trace First**: Begin agentic responses with a Corvus Star Trace block (see `AGENTS.qmd` §1).
 - **Bead-Driven**: Anchor all work to Beads in the Hall of Records.
 - **MCP Separation of Concerns**: Keep `src/tools/cstar-kernel-mcp.ts` as a small bootstrap/export surface. Tool behavior belongs in focused files under `src/tools/cstar-kernel-mcp/`, with focused tests under `tests/unit/cstar-kernel-mcp/`. No production or focused test file should exceed 500 lines.
-- **MCP Data Surfaces**: PennyOne/Hall is the source-of-truth context surface. Mongo is a mailbox/cache/mirror surface for dashboards and host processes. Expose only named, schema-validated MCP actions; never add arbitrary SQL, arbitrary Mongo queries, or caller-selected collection passthrough.
+- **MCP Data Surfaces**: Follow `docs/integrations/codex_mcp_contract.md#data-surface-rule` for PennyOne/Hall, Mongo mailbox/cache, and no arbitrary database passthrough rules.
 - **Sterling Mandate**: Changes require Lore (.feature contract), Isolation (unit test), and Audit (Gungnir score).
 - **CoS-First Thread Management**: The user talks to CoS by default. CoS owns bounded execution and final operator closeout; PMTs are durable project knowledge and review authorities unless CoS explicitly delegates execution ownership or a red/high-risk gate requires PMT authority.
 
