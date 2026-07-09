@@ -26,6 +26,8 @@ Corvus Star supports exactly one Codex runtime integration surface:
    - `cstar_manifest`
    - `cstar_skill_info`
    - `cstar_spoke_journal`
+   - `cstar_pennyone_context`
+   - `cstar_mongo_mailbox`
    - `cstar_status`
    - `cstar_evolve`
    - `cstar_spoke`
@@ -88,6 +90,20 @@ It must stay narrow:
   Host-Native First contract
 
 Do not expand it into a shell-dispatch surface, workflow forge surface, or host-cognition proxy.
+
+## Data Surface Rule
+
+`cstar-kernel` may expose bounded data surfaces only when they preserve CStar
+authority:
+- PennyOne/Hall is the source-of-truth context surface for bead, validation,
+  repository, and project-state summaries.
+- Mongo is a mailbox/cache/mirror surface for dashboards and host processes,
+  not the source of truth for bead lifecycle state.
+- Tools must expose named actions with schema-validated arguments. Do not add
+  arbitrary SQL, arbitrary Mongo queries, caller-selected collection names, or
+  direct Hall/SQLite bypasses.
+- Mutating mailbox actions require explicit operator authorization references
+  and must emit small auditable receipts.
 
 ## Legacy Surface
 

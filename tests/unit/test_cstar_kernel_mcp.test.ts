@@ -10,6 +10,7 @@ import './cstar-kernel-mcp/test_tool_classes.test.js';
 import './cstar-kernel-mcp/test_augury_bead_result.test.js';
 import './cstar-kernel-mcp/test_dispatch_requests.test.js';
 import './cstar-kernel-mcp/test_kernel_surfaces_core.test.js';
+import './cstar-kernel-mcp/test_pennyone_mongo_context.test.js';
 import './cstar-kernel-mcp/test_kernel_surfaces_spoke_telemetry.test.js';
 import './cstar-kernel-mcp/test_spoke_anchor.test.js';
 import './cstar-kernel-mcp/test_spoke_import.test.js';

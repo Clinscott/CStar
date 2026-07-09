@@ -12,6 +12,8 @@ import { handleForgeRequest, handleResearcherRequest } from './tools/dispatch_re
 import { handleDoctor, handleHallMaintenance, handleHallSearch, handleHandoff, handleVerifyPlan } from './tools/hall.js';
 import { handleEngramRecord, handleWarGameScore } from './tools/war_game.js';
 import { handleIntentRoute } from './tools/intent_route.js';
+import { handleMongoMailbox } from './tools/mongo_mailbox.js';
+import { handlePennyOneContext } from './tools/pennyone_context.js';
 import { handleRecordResult } from './tools/result.js';
 import { HALL_BEAD_STATUSES, HALL_BEAD_TARGET_KINDS } from './tools/shared.js';
 import { handleSpoke } from './tools/spoke.js';
@@ -231,6 +233,32 @@ export function registerCoreTools(server: ServerWithTool, instrumentTool: Instru
             spoke: z.string().describe('Slug of a registered spoke'),
         },
         instrumentTool('cstar_spoke_journal', handleSpokeJournal),
+    );
+
+    server.tool(
+        'cstar_pennyone_context',
+        mcpToolDescription('READ', 'Bounded PennyOne/Hall state summaries. No arbitrary SQL is accepted.'),
+        {
+            action: z.enum(['status', 'bead_summary', 'validation_summary', 'repository_summary']).optional().default('status').describe('Named read surface'),
+            limit: z.number().min(1).max(50).optional().default(10).describe('Returned item cap'),
+            statuses: z.array(z.enum(HALL_BEAD_STATUSES as [HallBeadStatus, ...HallBeadStatus[]])).optional().describe('Optional bead status filter'),
+            bead_id: z.string().optional().describe('Required for validation_summary'),
+        },
+        instrumentTool('cstar_pennyone_context', handlePennyOneContext),
+    );
+
+    server.tool(
+        'cstar_mongo_mailbox',
+        mcpToolDescription('MUTATION', 'Mongo mailbox status/counts and bounded operator-intent enqueue. No arbitrary Mongo query is accepted.'),
+        {
+            action: z.enum(['status', 'mirror_counts', 'enqueue_operator_intent']).optional().default('status').describe('Named Mongo mailbox operation'),
+            intent_action: z.enum(['accept', 'decline', 'refine', 'dispatch', 'edit']).optional().describe('Required for enqueue_operator_intent'),
+            proposal_id: z.string().optional().describe('Required for enqueue_operator_intent'),
+            payload: z.record(z.string(), z.unknown()).nullable().optional().describe('Optional bounded intent payload'),
+            actor: z.string().optional().describe('Operator or system actor label'),
+            operator_authorization_ref: z.string().optional().describe('Required for Mongo mailbox writes'),
+        },
+        instrumentTool('cstar_mongo_mailbox', handleMongoMailbox),
     );
 
     server.tool(

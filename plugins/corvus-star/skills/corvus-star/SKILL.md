@@ -96,7 +96,7 @@ Directive: Route only. Consult targets before choosing a path. Do not echo.
 [/CORVUS_STAR_AUGURY]
 ```
 
-## Kernel MCP Tools (20)
+## Kernel MCP Tools (26)
 
 The `cstar-kernel` MCP server is the authoritative kernel surface — invoke these tools directly via MCP rather than shelling out to `./cstar` whenever the needed primitive exists. Every handler is deterministic; no LLM inference in the tool execution path. Full API reference: `docs/integrations/cstar-kernel-mcp.md`.
 
@@ -104,6 +104,10 @@ The `cstar-kernel` MCP server is the authoritative kernel surface — invoke the
 - `cstar_hall_search` — FTS5 search across CODE / DOC / ENGRAM / BEAD / SESSION / LESSON.
 - `cstar_hall_maintenance` — Engram lesson study / harvest queue.
 - `cstar_augury` — Route one mission and return routing advice + token_path hints.
+- `cstar_researcher_request` — No-spend request receipt for Researcher routing with metric and callback contracts.
+- `cstar_forge_request` — No-spend request receipt for Corvus Forge routing with metric and callback contracts.
+- `cstar_forge_execute` — Forge execution gate that links a request receipt to approved no-op or live-authorized adapter execution.
+- `cstar_autobot` — Legacy AutoBot/Hermes delegation surface; disabled for new Corvus routing unless explicitly reactivated.
 - `cstar_doctor` — Kernel diagnostics: registry, augury, database checks + telemetry summary.
 - `cstar_verify_plan` — Recommended checker shells + last validation verdict for the active bead.
 - `cstar_bead` — Bead lifecycle: get / list / create / update_status / claim / resolve / block.
@@ -114,6 +118,8 @@ The `cstar-kernel` MCP server is the authoritative kernel surface — invoke the
 - `cstar_manifest` — Capability discovery (hub registry + spoke-local manifests, announce-only).
 - `cstar_skill_info` — Per-capability contract: <slug>:<id> for spoke skills, bare id for hub.
 - `cstar_spoke_journal` — Four-file journal state for a registered spoke (memory/tasks/wireframe/DEV_JOURNAL).
+- `cstar_pennyone_context` — Bounded PennyOne/Hall summaries for bead, validation, repository, and project-state context.
+- `cstar_mongo_mailbox` — Mongo mailbox/cache status, mirror counts, and bounded operator-intent enqueue.
 - `cstar_status` — Deterministic framework snapshot: status, persona, gungnir score, spokes, agents, hall_reachable.
 - `cstar_evolve` — Read-only inspection of evolve proposals + SPRT history (no LLM-driven propose/promote).
 - `cstar_spoke` — Mounted-spoke lifecycle: list / link / unlink / inspect.

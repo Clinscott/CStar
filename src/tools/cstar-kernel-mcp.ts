@@ -55,6 +55,8 @@ export { handleSpokeBeadImport, type SpokeBeadImportArgs } from './cstar-kernel-
 export { handleRecordResult } from './cstar-kernel-mcp/tools/result.js';
 export { handleEngramRecord, handleWarGameScore } from './cstar-kernel-mcp/tools/war_game.js';
 export { handleManifest, handleSkillInfo, handleSpokeJournal } from './cstar-kernel-mcp/tools/capability.js';
+export { handleMongoMailbox, type MongoMailboxArgs } from './cstar-kernel-mcp/tools/mongo_mailbox.js';
+export { handlePennyOneContext, type PennyOneContextArgs } from './cstar-kernel-mcp/tools/pennyone_context.js';
 export { handleStatus } from './cstar-kernel-mcp/tools/status.js';
 export { handleEvolve } from './cstar-kernel-mcp/tools/evolve.js';
 export { handleSpoke } from './cstar-kernel-mcp/tools/spoke.js';

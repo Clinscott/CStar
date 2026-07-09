@@ -16,11 +16,13 @@ describe('CStar MCP tool class contract', () => {
     });
 
     it('classifies the full public tool inventory', () => {
-        assert.equal(Object.keys(CSTAR_KERNEL_TOOL_CLASSES).length, 24);
+        assert.equal(Object.keys(CSTAR_KERNEL_TOOL_CLASSES).length, 26);
         assert.equal(CSTAR_KERNEL_TOOL_CLASSES.cstar_forge_request, 'REQUEST');
         assert.equal(CSTAR_KERNEL_TOOL_CLASSES.cstar_forge_execute, 'EXECUTION');
         assert.equal(CSTAR_KERNEL_TOOL_CLASSES.cstar_autobot, 'LEGACY');
         assert.equal(CSTAR_KERNEL_TOOL_CLASSES.cstar_bead, 'MUTATION');
         assert.equal(CSTAR_KERNEL_TOOL_CLASSES.cstar_doctor, 'READ');
+        assert.equal(CSTAR_KERNEL_TOOL_CLASSES.cstar_pennyone_context, 'READ');
+        assert.equal(CSTAR_KERNEL_TOOL_CLASSES.cstar_mongo_mailbox, 'MUTATION');
     });
 });

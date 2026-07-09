@@ -88,7 +88,7 @@ Priority write surfaces include a deterministic `mutation` object:
 
 ---
 
-## Tool Inventory (24)
+## Tool Inventory (26)
 
 | # | Tool | Tier |
 |:---|:---|:---|
@@ -110,12 +110,14 @@ Priority write surfaces include a deterministic `mutation` object:
 | 16 | `cstar_manifest` | Capability discovery |
 | 17 | `cstar_skill_info` | Capability discovery |
 | 18 | `cstar_spoke_journal` | Spoke state |
-| 19 | `cstar_status` | Diagnostics |
-| 20 | `cstar_evolve` | Karpathy loop (read-only) |
-| 21 | `cstar_spoke` | Spoke lifecycle |
-| 22 | `cstar_intent_route` | Routing |
-| 23 | `cstar_warden` | Sentinel Wardens |
-| 24 | `cstar_telemetry` | Diagnostics |
+| 19 | `cstar_pennyone_context` | Data context |
+| 20 | `cstar_mongo_mailbox` | Data mailbox |
+| 21 | `cstar_status` | Diagnostics |
+| 22 | `cstar_evolve` | Karpathy loop (read-only) |
+| 23 | `cstar_spoke` | Spoke lifecycle |
+| 24 | `cstar_intent_route` | Routing |
+| 25 | `cstar_warden` | Sentinel Wardens |
+| 26 | `cstar_telemetry` | Diagnostics |
 
 ---
 
@@ -479,7 +481,70 @@ Four-file journal state for a registered spoke: `memory.md`, `tasks.md`, `wirefr
 **Input:**
 - `spoke` (string, required)
 
-## 15. `cstar_status`
+## 15. `cstar_pennyone_context`
+
+Bounded read-only context from PennyOne/Hall. This is the supported MCP path
+for project memory summaries and repository/bead/validation context. It does
+not accept SQL, table names, or arbitrary database filters from the caller.
+
+**Input:**
+- `action` (`status` | `bead_summary` | `validation_summary` | `repository_summary`, required)
+- `limit` (number, optional, 1..50, default 10 for bounded list actions)
+- `statuses` (string[], optional) — bead status filter for `bead_summary`
+- `bead_id` (string, optional) — required to return validation rows in `validation_summary`
+- `spoke` (string, optional) — optional repository summary filter
+
+**Output posture:**
+```json
+{
+  "status": "ok",
+  "source": "pennyone-hall",
+  "action": "bead_summary",
+  "guardrail": { "verdict": "allow", "action": "continue", "...": "..." },
+  "next_action": "Use this bounded context to choose the next CStar bead action.",
+  "count": 3,
+  "beads": [{ "bead_id": "bead-...", "status": "OPEN", "title": "..." }]
+}
+```
+
+Use this tool before asking for broad database exports. If the requested view
+does not fit one of the named actions, add a new named action with its own
+schema, tests, and operator-facing documentation instead of adding raw query
+passthrough.
+
+## 16. `cstar_mongo_mailbox`
+
+Bounded Mongo-backed mailbox/cache surface for external mirrors and operator
+intent queues. Mongo is not a source of truth for CStar lifecycle state; it is a
+transport/mirror layer that can help dashboards and host processes exchange
+state with PennyOne/Hall. The tool fails closed when Mongo is not configured or
+when the optional `mongodb` driver is unavailable.
+
+**Input:**
+- `action` (`status` | `mirror_counts` | `enqueue_operator_intent`, required)
+- `operator_authorization_ref` (string, required for `enqueue_operator_intent`)
+- `intent_action` (`accept` | `decline` | `refine` | `dispatch` | `edit`, required for `enqueue_operator_intent`)
+- `proposal_id` (string, required for `enqueue_operator_intent`)
+- `payload` (object or null, optional)
+- `actor` (string, optional; defaults to `cstar-kernel-mcp`)
+
+**Output posture:**
+```json
+{
+  "status": "disabled" | "ok" | "queued",
+  "source": "mongo-mailbox",
+  "guardrail": { "verdict": "caution", "action": "recover", "...": "..." },
+  "next_action": "Configure CSTAR_MONGO_URI only when a mailbox mirror is required."
+}
+```
+
+`enqueue_operator_intent` is the only mutation action. It requires an explicit
+operator authorization reference and writes a small pending intent envelope to
+the configured intent queue. This tool must never expose credentials, arbitrary
+Mongo queries, collection-selection passthrough, or direct Hall/PennyOne
+mutation bypasses.
+
+## 17. `cstar_status`
 
 Deterministic framework snapshot: status, persona, gungnir score, managed spokes, agent presence, `hall_reachable`, `uptime_seconds`.
 
@@ -496,7 +561,7 @@ Deterministic framework snapshot: status, persona, gungnir score, managed spokes
 }
 ```
 
-## 16. `cstar_evolve`
+## 18. `cstar_evolve`
 
 Read-only inspection of evolve proposals and SPRT history. Proposal generation and adversarial critique are LLM-driven and stay host-native (not exposed here).
 
@@ -507,7 +572,7 @@ Read-only inspection of evolve proposals and SPRT history. Proposal generation a
 
 **Path-traversal guard:** `proposal_id` is rejected if it contains `/`, `\`, or `..`. Maximum proposal size: 512 KB.
 
-## 17. `cstar_spoke`
+## 19. `cstar_spoke`
 
 Mounted-spoke lifecycle. Completes the spoke surface alongside `cstar_spoke_journal` and `cstar_spoke_bead_import`.
 
@@ -528,7 +593,7 @@ repository. `list` and `inspect` expose `hub_repo_id`, `spoke_repo_id`, and
 root identity. `project` refreshes projection metadata and the spoke
 `default_branch` from git metadata where available.
 
-## 18. `cstar_intent_route`
+## 20. `cstar_intent_route`
 
 Resolve a prompt against the kernel intent grammar (`.agents/skill_registry.json#intent_grammar`).
 
@@ -569,7 +634,7 @@ Resolve a prompt against the kernel intent grammar (`.agents/skill_registry.json
 
 `grammar_source: "fallback"` means the registry failed to load and the in-code defaults from `src/node/core/runtime/host_workflows/chant_parser.ts#INTENT_CATEGORIES` were used.
 
-## 19. `cstar_warden`
+## 21. `cstar_warden`
 
 Sentinel Wardens on demand. Python-side scanners are deterministic (AST/text). Driver: `scripts/run_warden.py`.
 
@@ -592,7 +657,7 @@ Sentinel Wardens on demand. Python-side scanners are deterministic (AST/text). D
 
 **Output (bounties):** Reads `.agents/tech_debt_ledger.json` (cached PennyOne sweep).
 
-## 20. `cstar_telemetry`
+## 22. `cstar_telemetry`
 
 Read-only MCP telemetry summaries over the last 24h. Source: `.agents/state/cstar-kernel-mcp-*.jsonl`.
 

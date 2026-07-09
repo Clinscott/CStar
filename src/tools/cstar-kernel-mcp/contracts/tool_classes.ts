@@ -16,6 +16,8 @@ export const CSTAR_KERNEL_TOOL_CLASSES = {
     cstar_handoff: 'READ',
     cstar_intent_route: 'READ',
     cstar_manifest: 'READ',
+    cstar_mongo_mailbox: 'MUTATION',
+    cstar_pennyone_context: 'READ',
     cstar_record_result: 'MUTATION',
     cstar_researcher_request: 'REQUEST',
     cstar_skill_info: 'READ',

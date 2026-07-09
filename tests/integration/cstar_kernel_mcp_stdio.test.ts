@@ -229,6 +229,8 @@ describe('cstar-kernel-mcp stdio launcher', () => {
             'cstar_handoff',
             'cstar_intent_route',
             'cstar_manifest',
+            'cstar_mongo_mailbox',
+            'cstar_pennyone_context',
             'cstar_record_result',
             'cstar_researcher_request',
             'cstar_skill_info',
