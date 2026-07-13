@@ -1,11 +1,12 @@
 {
   "name": "corvusstar",
-  "version": "1.0.0",
-  "description": "c, c+, c++, c#, c*",
+  "version": "1.0.1",
+  "description": "Deterministic control plane and lifecycle ledger for the Corvus estate.",
   "keywords": [
-    "sprt",
-    "gungnir",
-    "calculus"
+    "corvus",
+    "control-plane",
+    "mcp",
+    "agent-governance"
   ],
   "homepage": "https://github.com/Clinscott/CStar#readme",
   "bugs": {
@@ -18,6 +19,10 @@
   "license": "ISC",
   "author": "Craig Linscott",
   "type": "module",
+  "packageManager": "npm@11.11.0",
+  "engines": {
+    "node": ">=22"
+  },
   "bin": {
     "cstar": "./bin/cstar.js",
     "cstar-kernel-mcp": "./bin/cstar-kernel-mcp.js"
@@ -29,8 +34,8 @@
   },
   "scripts": {
     "test": "npm run test:node && npm run test:python",
-    "test:python": "node scripts/run-python.mjs -m pytest tests/unit tests/integration tests/empire_tests tests/crucible",
-    "test:node": "node scripts/run-tsx.mjs --test tests/*.test.ts tests/unit/*.test.ts tests/unit/war_game/*.test.ts tests/unit/spoke_discovery/*.test.ts tests/integration/*.test.ts tests/crucible/*.ts",
+    "test:python": "node scripts/run-python.mjs -m pytest tests/test_*.py tests/unit tests/integration tests/contracts tests/empire_tests tests/crucible",
+    "test:node": "node scripts/run-tsx.mjs --test tests/*.test.ts tests/node/*.test.ts tests/node/pennyone/*.test.ts tests/unit/*.test.ts tests/unit/war_game/*.test.ts tests/unit/spoke_discovery/*.test.ts tests/unit/node-runtime/*.test.ts tests/unit/node-runtime/adapters/*.test.ts tests/unit/node-runtime/weaves/*.test.ts tests/integration/*.test.ts tests/integration/ipc/*.test.ts tests/crucible/*.ts tests/unit/cstar-kernel-mcp/test_augury_semantic_safety.test.ts tests/unit/cstar-kernel-mcp/test_codex_request_identity.test.ts tests/unit/cstar-kernel-mcp/test_forge_adapter_fail_closed.test.ts tests/unit/cstar-kernel-mcp/test_forge_durable_execution.test.ts tests/unit/cstar-kernel-mcp/test_forge_execute_authority.test.ts tests/unit/cstar-kernel-mcp/test_forge_hermes_delegate.test.ts tests/unit/cstar-kernel-mcp/test_forge_receipt_controller.test.ts tests/unit/cstar-kernel-mcp/test_operator_authorization.test.ts tests/unit/cstar-kernel-mcp/test_path_containment.test.ts",
     "test:ipc": "node scripts/run-tsx.mjs --test tests/integration/ipc/*.test.ts",
     "test:empire": "node scripts/run-tsx.mjs --test tests/empire_tests/test_corvus_process_empire.ts tests/empire_tests/test_gateway_empire.ts",
     "build:distributions": "node scripts/run-tsx.mjs scripts/build_distributions.ts",
@@ -40,9 +45,7 @@
     "validate:distributions": "node scripts/run-tsx.mjs scripts/build_distributions.ts --check",
     "install:gemini-local": "node scripts/run-tsx.mjs scripts/install_gemini_extension.ts",
     "install:codex-local": "node scripts/run-tsx.mjs scripts/install_codex_plugin.ts",
-    "install:hosts-local": "node scripts/run-tsx.mjs scripts/install_host_integrations.ts",
-    "setup": "node scripts/run-tsx.mjs src/node/setup.ts",
-    "postinstall": "npm run setup",
+    "setup:local-explicit": "node scripts/run-tsx.mjs src/node/setup.ts",
     "install-os": "node scripts/run-tsx.mjs cstar.ts os install",
     "uninstall-os": "node scripts/run-tsx.mjs cstar.ts os uninstall"
   },
@@ -56,9 +59,10 @@
     "@fastify/websocket": "^11.2.0",
     "@google/genai": "^1.44.0",
     "@modelcontextprotocol/sdk": "^1.27.1",
+    "@napi-rs/keyring": "1.3.0",
     "@react-three/drei": "^9.122.0",
     "@react-three/fiber": "^8.18.0",
-    "@react-three/postprocessing": "^3.0.4",
+    "@react-three/postprocessing": "2.19.1",
     "@sinclair/typebox": "^0.34.14",
     "better-sqlite3": "^12.6.2",
     "chalk": "^5.6.2",
@@ -100,9 +104,11 @@
     "@types/three": "^0.150.2",
     "@types/ws": "^8.18.1",
     "@vitejs/plugin-react": "^5.1.4",
+    "ajv": "^8.18.0",
+    "ajv-formats": "^3.0.1",
     "eslint": "^10.0.2",
     "eslint-plugin-jsdoc": "^62.7.1",
-    "tsx": "^4.19.3",
+    "tsx": "4.23.0",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.56.1",
     "vite": "^7.3.1"

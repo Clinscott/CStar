@@ -1,18 +1,43 @@
+import type Database from 'better-sqlite3';
+
+import { database } from '../../pennyone/intel/database.js';
+import {
+    finalizeForgeAttempt,
+    getForgeRequest,
+    markForgeAttemptStarted,
+    reserveForgeAttempt,
+} from '../../pennyone/intel/forge_receipt_controller.js';
+import { recordForgeDelivery } from '../../pennyone/intel/forge_validation_controller.js';
 import { registry } from '../../pennyone/pathRegistry.js';
 import { errorResponse, mcpGuardrail, textResponse, type McpTextResponse } from '../contracts/responses.js';
+import type { McpRequestContext } from '../contracts/request_context.js';
 import {
     findDispatchValidationError,
     hasDuplicatePackageLockMismatch,
     makeDispatchDecisionId,
     normalizeActionList,
     resolveDispatchSurface,
+    verifyDispatchPackageLocks,
     type DispatchRequestArgs,
 } from './dispatch_request.js';
 import {
+    cleanupPreparedForgeAdapterInvocation,
     forgeExecutionRequiresImplementationWrites,
     invokeForgeHermesMinimaxAdapter,
+    prepareForgeHermesMinimaxAdapterInvocation,
     resolveForgeExecutionAdapter,
+    sealForgeAdapterRuntime,
+    type PreparedForgeAdapterInvocation,
 } from './forge_adapters.js';
+import {
+    assertForgeRequiredOutputsContained,
+    buildForgeExecutionReceiptId,
+    canonicalizeForgeRequest,
+    hashCanonicalForgeRequest,
+    hashForgeTargetPaths,
+    stableJson,
+} from './forge_request_contract.js';
+import { verifyOperatorAuthorization } from './operator_authorization.js';
 
 export type ForgeExecutionMode = 'no_op' | 'live_authorized';
 
@@ -23,22 +48,18 @@ export interface ForgeExecutionArgs extends DispatchRequestArgs {
     execution_mode: ForgeExecutionMode;
     execution_adapter_ref?: string;
     operator_authorization_ref?: string;
+    idempotency_key: string;
+    retry_of_attempt_id?: string;
 }
 
 function findForgeExecutionValidationError(args: ForgeExecutionArgs): string | null {
     const baseError = findDispatchValidationError(args);
-    if (baseError) {
-        return baseError;
-    }
-    if (!args.forge_request_receipt_id?.trim()) {
-        return 'forge_request_receipt_id is required';
-    }
+    if (baseError) return baseError;
+    if (!args.forge_request_receipt_id?.trim()) return 'forge_request_receipt_id is required';
     if (!args.forge_request_receipt_id.startsWith('dispatch-forge-')) {
         return 'forge_request_receipt_id must reference a cstar_forge_request receipt';
     }
-    if (!args.forge_request_decision_id?.trim()) {
-        return 'forge_request_decision_id is required';
-    }
+    if (!args.forge_request_decision_id?.trim()) return 'forge_request_decision_id is required';
     if (args.decision_id?.trim() && args.decision_id.trim() !== args.forge_request_decision_id.trim()) {
         return 'decision_id must match forge_request_decision_id';
     }
@@ -48,13 +69,72 @@ function findForgeExecutionValidationError(args: ForgeExecutionArgs): string | n
     if (hasDuplicatePackageLockMismatch(args.package_locks)) {
         return 'package_locks contain inconsistent hashes for the same path';
     }
-    if (args.execution_mode === 'live_authorized' && !args.operator_authorization_ref?.trim()) {
-        return 'live Forge execution requires operator_authorization_ref';
+    if (!args.idempotency_key?.trim()) return 'idempotency_key is required';
+    if (args.execution_mode === 'live_authorized') {
+        if (!args.operator_authorization_ref?.trim()) {
+            return 'live Forge execution requires operator_authorization_ref';
+        }
+        if (!args.execution_adapter_ref?.trim()) {
+            return 'live Forge execution requires execution_adapter_ref';
+        }
+        const spendRef = args.spend_policy.operator_authorization_ref?.trim();
+        if (spendRef && spendRef !== args.operator_authorization_ref.trim()) {
+            return 'operator_authorization_ref must match spend_policy.operator_authorization_ref';
+        }
     }
     return null;
 }
 
-export async function handleForgeExecute(args: ForgeExecutionArgs): Promise<McpTextResponse> {
+function replayResponse(args: ForgeExecutionArgs, attempt: Record<string, unknown>, requestStatus: string): McpTextResponse {
+    const terminal = ['SUCCEEDED', 'FAILED_RETRYABLE', 'FAILED_FINAL'].includes(String(attempt.status));
+    const success = attempt.status === 'SUCCEEDED';
+    const deliveredPendingValidation = attempt.status === 'STARTED'
+        && String(attempt.result_status ?? '').startsWith('DELIVERED_PENDING_VALIDATION:');
+    const failClosedReason = success
+        ? null
+        : deliveredPendingValidation
+            ? 'independent_validation_required'
+            : `durable_attempt_${String(attempt.status).toLowerCase()}`;
+    return textResponse({
+        status: success
+            ? 'succeeded_replay'
+            : deliveredPendingValidation
+                ? 'delivered_pending_validation_replay'
+                : terminal ? 'terminal_replay' : 'nonterminal_replay',
+        execution_kind: 'forge',
+        decision_id: args.forge_request_decision_id,
+        forge_request_receipt_id: args.forge_request_receipt_id,
+        execution_receipt_id: attempt.execution_receipt_id,
+        attempt_id: attempt.attempt_id,
+        attempt_status: attempt.status,
+        request_status: requestStatus,
+        replayed: true,
+        forge_execution: {
+            attempted: false,
+            adapter_invoked: false,
+            live_spend: false,
+            live_source_collection: false,
+            codex_worker_fallback_allowed: false,
+            fail_closed_reason: failClosedReason,
+        },
+        guardrail: mcpGuardrail(
+            success ? 'allow' : deliveredPendingValidation ? 'caution' : 'block',
+            success ? 'continue' : deliveredPendingValidation ? 'verify' : 'refuse',
+            'The idempotency key already has a durable attempt; the adapter was not invoked again.',
+            failClosedReason ? [failClosedReason] : [],
+            ['forge_execution_idempotency'],
+        ),
+        next_action: deliveredPendingValidation
+            ? 'Independently validate the delivered artifact and record the result; do not invoke the adapter again.'
+            : undefined,
+    }, !success && !deliveredPendingValidation);
+}
+
+export async function handleForgeExecute(args: ForgeExecutionArgs, requestContext?: McpRequestContext): Promise<McpTextResponse> {
+    let hallDb: Database.Database | null = null;
+    let reservedAttemptId: string | null = null;
+    let adapterStarted = false;
+    let preparedInvocation: PreparedForgeAdapterInvocation | null = null;
     try {
         const validationError = findForgeExecutionValidationError(args);
         const decisionId = args.forge_request_decision_id?.trim() || makeDispatchDecisionId('forge', args);
@@ -78,95 +158,285 @@ export async function handleForgeExecute(args: ForgeExecutionArgs): Promise<McpT
 
         const root = registry.getRoot();
         const surface = resolveDispatchSurface('forge', args, root);
-        const adapter = resolveForgeExecutionAdapter(args);
-        const failClosedReason = !surface.found
-            ? 'missing_authorized_dispatch_surface'
-            : args.execution_mode === 'no_op'
-                ? null
-                : !adapter.found
-                    ? 'missing_authorized_execution_adapter'
-                    : adapter.selected?.write_capability === 'response_only' && forgeExecutionRequiresImplementationWrites(args)
-                        ? 'adapter_lacks_implementation_write_capability'
-                    : null;
-        const status = args.execution_mode === 'no_op'
-            ? 'validated_noop'
-            : failClosedReason
-                ? 'blocked'
-                : 'ready_for_authorized_execution';
-        const executionReceiptId = `forge-execute-${decisionId}-${Date.now().toString(36)}`;
-        const adapterInvocation = (!failClosedReason && args.execution_mode === 'live_authorized' && adapter.selected)
-            ? await invokeForgeHermesMinimaxAdapter(args, decisionId, executionReceiptId, root, adapter.selected)
-            : null;
-        const finalStatus = adapterInvocation
-            ? adapterInvocation.status === 'ok'
-                ? 'executed'
-                : 'adapter_degraded'
-            : status;
-        const finalFailClosedReason = adapterInvocation && adapterInvocation.status !== 'ok'
-            ? `adapter_${adapterInvocation.status}`
-            : failClosedReason;
-        const isError = (finalFailClosedReason !== null && args.execution_mode !== 'no_op')
-            || finalStatus === 'adapter_degraded';
+        if (args.execution_mode === 'no_op') {
+            const adapter = resolveForgeExecutionAdapter(args, root);
+            const failClosedReason = !surface.found ? 'missing_authorized_dispatch_surface' : null;
+            return textResponse({
+                status: 'validated_noop',
+                execution_kind: 'forge',
+                decision_id: decisionId,
+                execution_receipt_id: buildForgeExecutionReceiptId(args.forge_request_receipt_id, args.idempotency_key),
+                forge_request_receipt_id: args.forge_request_receipt_id,
+                bead_id: args.bead_id ?? args.forge_request_bead_id ?? null,
+                authorized_dispatch_surface: surface,
+                authorized_execution_adapter: adapter,
+                forge_execution: {
+                    mode: args.execution_mode,
+                    attempted: false,
+                    live_spend: false,
+                    live_source_collection: false,
+                    codex_worker_fallback_allowed: false,
+                    adapter_invoked: false,
+                    fail_closed_reason: failClosedReason,
+                },
+                guardrail: mcpGuardrail(
+                    failClosedReason ? 'block' : 'allow',
+                    failClosedReason ? 'refuse' : 'continue',
+                    'Forge execution contract was validated without reserving an attempt or invoking a model.',
+                    failClosedReason ? [failClosedReason] : [],
+                    ['forge_execution_authority'],
+                ),
+            }, Boolean(failClosedReason));
+        }
+
+        if (!surface.found) throw new Error('missing_authorized_dispatch_surface');
+        hallDb = database.getDb(root);
+        const request = getForgeRequest(hallDb, args.forge_request_receipt_id);
+        if (!request) throw new Error('forge_request_receipt_not_found');
+        const adapter = resolveForgeExecutionAdapter(args, root);
+        if (!adapter.selected) throw new Error('missing_authorized_execution_adapter');
+        if (request.decision_id !== decisionId) throw new Error('forge_request_decision_mismatch');
+        const suppliedBeadId = args.bead_id?.trim() || args.forge_request_bead_id?.trim() || '';
+        if (request.bead_id !== suppliedBeadId) throw new Error('forge_request_bead_mismatch');
+        if (request.operator_authorization_ref !== args.operator_authorization_ref?.trim()) {
+            throw new Error('forge_operator_authorization_reference_mismatch');
+        }
+        if (request.adapter_ref !== adapter.selected.ref) throw new Error('forge_request_adapter_mismatch');
+        if (!request.write_capability) throw new Error('forge_request_write_capability_missing');
+        if (
+            adapter.selected.write_capability === 'response_only'
+            && forgeExecutionRequiresImplementationWrites(args)
+        ) {
+            throw new Error('adapter_lacks_implementation_write_capability');
+        }
+        if (adapter.selected.write_capability === 'project_files') {
+            assertForgeRequiredOutputsContained(root, args.target_paths, args.required_output_paths);
+        }
+        const adapterRuntimeProof = sealForgeAdapterRuntime(adapter.selected);
+
+        const verified = await verifyOperatorAuthorization(args.operator_authorization_ref!, {
+            target_paths: [
+                ...(args.target_paths ?? []),
+                ...(args.required_output_paths ?? []),
+            ],
+            requires_forge_hermes_m3: true,
+            request_context: requestContext,
+        });
+        if (
+            verified.thread_id !== request.operator_thread_id
+            || verified.turn_id !== request.operator_turn_id
+            || verified.message_sha256 !== request.operator_message_sha256
+            || verified.session_record_sha256 !== request.operator_record_sha256
+            || verified.session_record_set_sha256 !== request.operator_record_set_sha256
+            || verified.session_record_count !== request.operator_record_count
+        ) {
+            throw new Error('forge_operator_authorization_attestation_drift');
+        }
+        if (request.expires_at !== verified.expires_at || Date.now() >= verified.expires_at) {
+            throw new Error('forge_operator_authorization_expired');
+        }
+        if (request.live_source_allowed !== 0 || args.spend_policy.live_source_allowed === true) {
+            throw new Error('forge_live_source_not_authorized');
+        }
+        const packageLockProofs = verifyDispatchPackageLocks(args.package_locks, root);
+
+        const canonical = canonicalizeForgeRequest(
+            args,
+            root,
+            decisionId,
+            adapter.selected.ref,
+            request.write_capability,
+            request.max_attempts,
+            adapterRuntimeProof,
+        );
+        const requestSha256 = hashCanonicalForgeRequest(canonical);
+        if (
+            requestSha256 !== request.request_sha256
+            || stableJson(canonical) !== request.request_summary_json
+            || hashForgeTargetPaths(canonical) !== request.target_paths_sha256
+        ) {
+            throw new Error('forge_execution_request_hash_mismatch');
+        }
+
+        // Only durable canonical paths may reach the model-visible adapter
+        // intent. Raw execute arguments can be lexically different while
+        // hashing to the same authority and therefore must not shape prompts.
+        const invocationArgs: ForgeExecutionArgs = {
+            ...args,
+            target_paths: canonical.target_paths,
+            required_output_paths: canonical.required_output_paths,
+        };
+
+        const executionReceiptId = buildForgeExecutionReceiptId(request.request_id, args.idempotency_key.trim());
+        const reservation = reserveForgeAttempt(hallDb, {
+            request_id: request.request_id,
+            idempotency_key: args.idempotency_key.trim(),
+            execution_receipt_id: executionReceiptId,
+            adapter_ref: adapter.selected.ref,
+            provider: 'minimax',
+            requested_model: 'MiniMax-M3',
+            model_source: 'unreported',
+            reasoning_profile: 'forge-private',
+            adapter_version: adapter.selected.ref,
+            retry_of_attempt_id: args.retry_of_attempt_id?.trim() || undefined,
+        });
+        reservedAttemptId = reservation.attempt.attempt_id;
+        if (reservation.replayed) {
+            return replayResponse(args, reservation.attempt as unknown as Record<string, unknown>, reservation.request.status);
+        }
+
+        preparedInvocation = await prepareForgeHermesMinimaxAdapterInvocation(
+            invocationArgs,
+            decisionId,
+            executionReceiptId,
+            root,
+            adapter.selected,
+            adapterRuntimeProof,
+        );
+        markForgeAttemptStarted(hallDb, reservation.attempt.attempt_id);
+        const adapterResult = await invokeForgeHermesMinimaxAdapter(
+            invocationArgs,
+            decisionId,
+            executionReceiptId,
+            root,
+            adapter.selected,
+            adapterRuntimeProof,
+            preparedInvocation,
+        );
+        adapterStarted = preparedInvocation.spendMayHaveStarted;
+        preparedInvocation = null;
+        const sourceViolation = adapterResult.live_source_collection === true;
+        const liveSpendUnknown = adapterResult.live_spend_unknown === true;
+        const delivered = adapterResult.status === 'ok' && !sourceViolation && !liveSpendUnknown;
+        const externalExecutionId = typeof adapterResult.envelope?.intent_id === 'string'
+            ? adapterResult.envelope.intent_id
+            : undefined;
+        const artifactSha256 = typeof adapterResult.envelope?.response_artifact?.sha256 === 'string'
+            ? adapterResult.envelope.response_artifact.sha256
+            : undefined;
+        const durable = delivered
+            ? recordForgeDelivery(hallDb, {
+                attempt_id: reservation.attempt.attempt_id,
+                external_execution_id: externalExecutionId,
+                result_status: String(adapterResult.status),
+                result_artifact_sha256: artifactSha256,
+                provider: typeof adapterResult.envelope?.provider === 'string'
+                    ? adapterResult.envelope.provider : 'minimax',
+                requested_model: typeof adapterResult.envelope?.requested_model === 'string'
+                    ? adapterResult.envelope.requested_model : 'MiniMax-M3',
+                actual_model: typeof adapterResult.envelope?.actual_model === 'string'
+                    ? adapterResult.envelope.actual_model : undefined,
+                model_source: typeof adapterResult.envelope?.model_source === 'string'
+                    ? adapterResult.envelope.model_source : 'unreported',
+                reasoning_profile: 'forge-private',
+                adapter_version: adapter.selected.ref,
+            })
+            : finalizeForgeAttempt(hallDb, {
+                attempt_id: reservation.attempt.attempt_id,
+                status: liveSpendUnknown ? 'UNKNOWN' : 'FAILED_FINAL',
+                external_execution_id: externalExecutionId,
+                result_status: String(adapterResult.status),
+                result_artifact_sha256: artifactSha256,
+                error_code: sourceViolation
+                    ? 'forge_adapter_collected_unauthorized_live_source'
+                    : liveSpendUnknown
+                        ? 'forge_adapter_live_spend_unknown'
+                        : adapterResult.error ?? undefined,
+                provider: typeof adapterResult.envelope?.provider === 'string'
+                    ? adapterResult.envelope.provider : 'minimax',
+                requested_model: typeof adapterResult.envelope?.requested_model === 'string'
+                    ? adapterResult.envelope.requested_model : 'MiniMax-M3',
+                actual_model: typeof adapterResult.envelope?.actual_model === 'string'
+                    ? adapterResult.envelope.actual_model : undefined,
+                model_source: typeof adapterResult.envelope?.model_source === 'string'
+                    ? adapterResult.envelope.model_source : 'unreported',
+                reasoning_profile: 'forge-private',
+                adapter_version: adapter.selected.ref,
+            });
+        reservedAttemptId = null;
 
         return textResponse({
-            status: finalStatus,
+            status: delivered ? 'delivered_unverified' : liveSpendUnknown ? 'ambiguous' : 'failed_final',
             execution_kind: 'forge',
             decision_id: decisionId,
+            bead_id: request.bead_id,
+            forge_request_receipt_id: request.request_id,
             execution_receipt_id: executionReceiptId,
-            forge_request_receipt_id: args.forge_request_receipt_id,
-            bead_id: args.bead_id ?? args.forge_request_bead_id ?? null,
-            owner_pmt_thread_id: args.owner_pmt_thread_id,
-            source_callback_thread_id: args.source_callback_thread_id,
-            objective: args.objective,
-            target_paths: args.target_paths ?? [],
-            scope: args.scope,
-            authority_lane: args.authority_lane,
+            attempt_id: durable.attempt.attempt_id,
+            attempt_status: durable.attempt.status,
+            request_status: durable.request.status,
+            replayed: false,
+            authorized_dispatch_surface: surface,
+            authorized_execution_adapter: adapter,
+            package_lock_proofs: packageLockProofs,
             required_metrics: args.required_metrics,
             artifact_expectations: args.artifact_expectations,
             prohibited_actions: normalizeActionList(args.prohibited_actions),
             requested_actions: normalizeActionList(args.requested_actions),
-            spend_policy: {
-                ...args.spend_policy,
-                live_source_allowed: args.spend_policy.live_source_allowed === true,
-                operator_authorization_ref: args.operator_authorization_ref ?? args.spend_policy.operator_authorization_ref,
-            },
-            retry_policy: args.retry_policy ?? { budget: args.spend_policy.max_retries ?? 0, spent: 0 },
-            callback_contract: {
-                ...args.callback_contract,
-                callback_required: args.callback_contract.callback_required !== false,
-                callback_thread_id: args.callback_contract.callback_thread_id ?? args.source_callback_thread_id,
-            },
-            package_locks: args.package_locks ?? [],
-            authorized_dispatch_surface: surface,
-            authorized_execution_adapter: adapter,
             forge_execution: {
                 mode: args.execution_mode,
-                attempted: adapterInvocation !== null,
-                live_spend: adapterInvocation?.live_spend === true,
-                live_source_collection: adapterInvocation?.live_source_collection === true,
+                attempted: true,
+                adapter_invoked: true,
+                adapter_result: adapterResult,
+                live_spend: liveSpendUnknown ? 'unknown' : adapterResult.live_spend === true,
+                live_source_collection: adapterResult.live_source_collection === true,
                 codex_worker_fallback_allowed: false,
-                adapter_invoked: adapterInvocation !== null,
-                adapter_result: adapterInvocation,
-                fail_closed_reason: finalFailClosedReason,
+                fail_closed_reason: delivered ? null : durable.attempt.error_code ?? 'forge_adapter_failed_final',
             },
             guardrail: mcpGuardrail(
-                finalFailClosedReason ? 'block' : 'allow',
-                finalFailClosedReason ? 'refuse' : 'continue',
-                finalFailClosedReason
-                    ? 'Forge execution failed closed before an acceptable Forge adapter result was produced.'
-                    : args.execution_mode === 'no_op'
-                        ? 'Forge execution contract is validated without live spend.'
-                        : 'Forge execution ran through the approved adapter path under the supplied operator authorization.',
-                finalFailClosedReason ? [finalFailClosedReason] : [],
-                ['forge_execution_authority'],
+                delivered ? 'caution' : 'block',
+                delivered ? 'verify' : 'refuse',
+                delivered
+                    ? 'The adapter delivered a structurally valid artifact; independent validation is still required before success.'
+                    : liveSpendUnknown
+                        ? 'The adapter may have spent before failing; the attempt is UNKNOWN and consumes the one-shot grant.'
+                        : 'The durable attempt is terminal and cannot be replayed as new spend.',
+                delivered ? [] : [durable.attempt.error_code ?? 'forge_adapter_failed_final'],
+                ['forge_execution_authority', 'forge_execution_result', 'independent_validation'],
             ),
-            next_action: finalFailClosedReason
-                ? 'Do not substitute cstar_autobot, Codex workers, or ad hoc shell. Route the missing adapter repair to CStar PMT/CoS.'
-                : args.execution_mode === 'no_op'
-                    ? 'Use this no-op receipt as contract proof only; live Forge execution still requires a registered adapter and separate operator authorization.'
-                    : 'Review the adapter result, package artifacts, and callback packet through the owning PMT before acceptance.',
-        }, isError);
+            next_action: delivered
+                ? 'Run focused independent validation, then call cstar_record_result with this execution_receipt_id.'
+                : 'Do not retry this one-shot request.',
+        }, !delivered);
     } catch (error) {
+        const invocationMayHaveStarted = adapterStarted || preparedInvocation?.spendMayHaveStarted === true;
+        await cleanupPreparedForgeAdapterInvocation(preparedInvocation);
+        if (hallDb && reservedAttemptId) {
+            const message = error instanceof Error ? error.message : String(error);
+            try {
+                const terminal = finalizeForgeAttempt(hallDb, {
+                    attempt_id: reservedAttemptId,
+                    status: invocationMayHaveStarted ? 'UNKNOWN' : 'FAILED_FINAL',
+                    error_code: message,
+                });
+                return textResponse({
+                    status: invocationMayHaveStarted ? 'ambiguous' : 'failed_final',
+                    execution_kind: 'forge',
+                    forge_request_receipt_id: args.forge_request_receipt_id,
+                    attempt_id: terminal.attempt.attempt_id,
+                    attempt_status: terminal.attempt.status,
+                    request_status: terminal.request.status,
+                    error: message,
+                    forge_execution: {
+                        attempted: invocationMayHaveStarted,
+                        adapter_invoked: invocationMayHaveStarted,
+                        live_spend: invocationMayHaveStarted ? 'unknown' : false,
+                        live_source_collection: false,
+                        codex_worker_fallback_allowed: false,
+                        fail_closed_reason: message,
+                    },
+                    guardrail: mcpGuardrail(
+                        'block',
+                        'refuse',
+                        'The durable attempt failed closed; ambiguous attempts consume the grant and never auto-relaunch.',
+                        [message],
+                        ['forge_execution_recovery'],
+                    ),
+                }, true);
+            } catch {
+                // Preserve the original error if receipt finalization itself fails.
+            }
+        }
         return errorResponse(error);
     }
 }

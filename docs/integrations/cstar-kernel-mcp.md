@@ -1,32 +1,134 @@
 # cstar-kernel MCP — API Reference
 
-> The authoritative kernel surface for Corvus Star. Every tool is deterministic — no LLM inference inside the tool execution path. Host agents (Claude, Gemini, Codex) call these tools directly over MCP rather than shelling out to `./cstar`.
+> The authoritative kernel surface for Corvus Star. READ, MUTATION, and REQUEST
+> tools expose bounded kernel primitives and gates. `cstar_forge_execute` is the
+> sole EXECUTION tool: live mode requires a durable immutable request, verified
+> one-shot operator attestation, exact request/output locks, atomic attempt
+> reservation, and a sealed private Hermes/MiniMax-M3 adapter. Delivery remains
+> unverified until independent `cstar_record_result` validation finalizes it.
+> Host agents (Claude, Gemini, Codex) call these tools directly over MCP rather
+> than shelling out to `./cstar`.
 
 ## Source of Truth
 
 - **Server:** `bin/cstar-kernel-mcp.js` → `src/tools/cstar-kernel-mcp.ts`
-- **Registration site:** `server.tool(...)` calls in `cstar-kernel-mcp.ts`
+- **Metadata catalog:** `src/tools/cstar-kernel-mcp/contracts/tool_catalog.ts`
+- **Schema/handler registration:** `src/tools/cstar-kernel-mcp/register_core_tools.ts`
 - **Server name:** `cstar-kernel`
 - **Transport:** stdio (JSON-RPC 2.0, newline-delimited)
 - **Current SDK protocol:** `2024-11-05` over stdio
 - **2026-07-28 readiness posture:** tool handlers are protocol-session independent; cross-call state uses explicit CStar handles
-- **Registry shipped to hosts:** `gemini-extension.json#mcpServers` (Gemini) and `plugins/corvus-star/.mcp.json` (Codex)
+- **Host surfaces:** `gemini-extension.json#mcpServers` registers Gemini directly;
+  Codex uses the global WSL direct-stdio wrapper contract and the Corvus Star
+  plugin supplies a skill only.
 
-The driver `bin/cstar-kernel-mcp.js` re-execs Node with the TSX loader against `src/tools/cstar-kernel-mcp.ts`. The server keeps stdin open and exits cleanly on `SIGTERM` or stdin close.
+The driver `bin/cstar-kernel-mcp.js` spawns Node with the TSX loader against
+`src/tools/cstar-kernel-mcp.ts`, inherits stdio, and exits with the child
+status. It retains a small launcher parent so the child receives the sanitized,
+host-neutral environment before startup. The MCP child keeps stdin open and
+exits cleanly when its transport closes.
 
-For Codex Desktop-on-WSL, `/home/morderith/.codex/bin/wsl/cstar-kernel-mcp-wrapper` should launch `bin/cstar-kernel-mcp-bridge.js`. The bridge proxies stdio through the local CStar TCP daemon when it is available, then falls back to the direct source launcher. This keeps the Codex-side MCP process alive across child refreshes and prevents stale direct-launch children from pinning old tool schemas.
+For Codex Desktop-on-WSL,
+`/home/morderith/.codex/bin/wsl/cstar-kernel-mcp-wrapper` launches the direct
+source stdio lineage. `bin/cstar-kernel-mcp-bridge.js` is compatibility-only
+and may launch the same direct child. TCP mode and
+`scripts/cstar-mcp-tcp-daemon.js` are retired and fail closed; no CStar TCP
+listener is an authorized fallback.
 
-Hermes gateway MCP registrations should follow the same rule: launch the source-backed bridge or `bin/cstar-kernel-mcp.js`, never `dist/cstar-kernel-mcp.bundle.js`. A gateway-supervised dist child can respawn after manual process retirement and reintroduce stale schemas.
+Direct-stdio operator attestation is a local single-user trust boundary. The
+kernel binds an authorization reference to the current thread id and verifies
+the referenced Codex session record and message hash, but it cannot establish a
+cryptographic identity boundary against another process running as the same OS
+user with access to that session store. CStar therefore assumes same-UID local
+processes are inside the operator's trusted computing base. Do not use this
+attestation design as a multi-user or hostile-local-process security boundary.
+
+### Codex steered-turn request identity
+
+A Codex host may persist more than one legitimate root-user message for one
+`turn_id` when the operator steers an active turn. CStar treats those messages
+as one ordered root-user projection, not as an ambiguous match and not as text
+to concatenate. The current MCP request must identify the latest canonical
+root-user cohort. An authorization reference may independently identify an
+earlier contiguous cohort in the same canonical thread. Assistant, reasoning,
+tool-call, tool-output, and event rows remain non-authoritative even when Codex
+stamps them with the selected `turn_id`: they never join, close, timestamp, or
+invalidate a root-user cohort. A selected or later tagged row that explicitly
+claims user role or `user_message` type without the canonical
+`response_item`/`message`/`user` wrapper fails closed. Untagged host event
+duplicates are ignored.
+
+Two hashes serve different compatibility and integrity purposes:
+
+- `turn_record_sha256` remains the SHA-256 of the current request cohort's
+  terminal raw JSONL user record. This preserves the singleton and legacy raw
+  request-record contract.
+- `operator_record_sha256` is the raw-record SHA-256 of the one exact
+  reference-hashed authorization row. That row may occur anywhere in its
+  authorization cohort.
+- `turn_record_set_sha256` / `operator_record_set_sha256` is the SHA-256 of a
+  canonical, domain-separated `cstar.codex_root_user_turn_record_set.v1`
+  object. It binds the thread id, turn id, physical record index, timestamp,
+  and raw-record SHA-256 for every cohort member. The matching record count is
+  bound separately. Records are never sorted, normalized, or deduplicated.
+
+The authorization reference identifies exactly one consent message. Its
+message digest must match the canonical `input_text` content of exactly one
+record, and that record's raw hash must belong to the canonical authorization
+cohort. The consent record need not be terminal or latest: benign same-turn and
+later-turn steering is allowed. Other messages may establish context but are
+never concatenated into or substituted for the reference-hashed consent. An
+authorization turn may not reappear after a different root-user turn (`A/B/A`),
+and any later revocation, stop, or contradictory Forge-lane instruction fails
+closed. Once consent is matched, every later root-user record must also reduce
+to canonical nonblank `input_text`; a later tagged noncanonical user-like
+record also fails as uninspectable. Neither form can conceal a revocation or
+qualifier.
+
+Identity recovery reads one fixed, no-follow session-file snapshot and rejects
+unsafe ownership, mode, link count, type, size, path/descriptor drift, an
+unterminated final line, malformed or non-object JSONL, duplicate selected
+records, record-set limits, and incomplete content. It also requires canonical
+root-user session and record lineage, fresh valid nondecreasing timestamps, and
+a contiguous selected cohort. The current request cohort must remain latest;
+the separately recovered authorization cohort may be historical. Fork, parent,
+or subagent lineage fails closed. When request and authorization reference the
+same turn, their recovered record identities must agree.
+
+An authorized Forge request durably persists the exact authorization-row raw
+hash plus the authorization cohort's ordered record-set digest and count.
+`cstar_forge_execute` independently recovers all three and rejects any drift as
+`forge_operator_authorization_attestation_drift` before attempt reservation,
+adapter invocation, or model spend. The execute call's current request identity
+is separately required to be latest, canonical, and from the same thread. This
+closes accidental ambiguity and post-request authorization drift; it does not
+remove the documented same-UID trust assumption. A hostile process with the
+same OS identity and session-store access remains inside this design's trusted
+computing base.
 
 ## Operational Mandates
 
-1. **Host-Agent Run First.** MCP handlers wrap deterministic work only. Any LLM inference per iteration must be driven by the host agent or a spawned sub-agent — never by an MCP tool calling back out to an LLM.
-2. **Registry outranks prose.** When in-tree docs disagree with `.agents/skill_registry.json` or the runtime, follow the registry/runtime.
-3. **Authority order for capability discovery.** `cstar_manifest` and `cstar_skill_info` are the canonical surfaces. Spoke skills are namespaced `<slug>:<id>`.
+1. **Host-Agent Run First.** Cognition, proposal generation, critique, and
+   oracle sampling stay host-native. Kernel READ, MUTATION, REQUEST, and the
+   narrowly gated Forge EXECUTION tool expose bounded primitives. A tool class,
+   request shape, registry entry, or caller-supplied reference is never
+   execution authority.
+2. **Authority is external to capability.** Platform/operator safety, current
+   explicit grants, global Corvus invariants, nearest repository policy, and
+   current CStar lifecycle state govern in that order. Registries and observed
+   runtime describe capability and evidence; neither may weaken a gate.
+3. **Capability discovery.** `cstar_manifest` and `cstar_skill_info` are the
+   canonical inventory surfaces. Spoke skills are namespaced `<slug>:<id>`.
 4. **Bead anchoring.** Multi-file changes anchor to a Hall bead via `cstar_bead`. The `cstar_handoff` tool returns the active planning state for resuming work.
-5. **Stateless-protocol readiness.** No tool input schema may require protocol session ids, protocol version, or client metadata. If a workflow needs continuity, return and require an explicit domain handle such as `bead_id`, `validation_id`, `spoke`, `memory_id`, or `token_path_episode_id`.
-6. **Routing boundary.** Corvus implementation ownership routes CoS -> Corvus - MM -> PMT -> worker. The Researcher thread is a special monitored pipeline, not a normal PMT worker. Preserve operator gates for acceptance, dispatch, commit, push, merge, deletion, restarts, and publish actions.
+5. **Stateless-protocol readiness.** No tool input schema may require protocol session ids, protocol version, or client metadata. If a workflow needs continuity, return and require an explicit domain handle such as `bead_id`, `validation_id`, `spoke`, or `memory_id`; TokenPath episode ids are compatibility-only while quarantined.
+6. **Routing boundary.** Load the nearest `AGENTS.md` or `AGENTS.qmd` for current
+   ownership, state-repository topology, and operator gates. Do not duplicate
+   mutable estate routing policy in this transport reference.
 7. **Degraded MCP behavior.** If the MCP surface is unavailable or degraded, report the exact failure and remain read-only for control-plane state; do not mutate Hall or SQLite directly.
+8. **Local identity boundary.** Direct-stdio plus session-record verification
+   binds operator evidence within the trusted single-user host. It does not
+   authenticate mutually hostile same-UID processes; a multi-user deployment
+   requires an OS-enforced peer identity or separately authenticated transport.
 
 ## MCP 2026-07-28 Release-Candidate Readiness
 
@@ -35,8 +137,13 @@ The MCP `2026-07-28` release candidate removes the protocol-level `initialize`/`
 CStar's hardening stance:
 
 - Keep the current stdio SDK handshake as compatibility only. It must not become an application state contract.
-- Keep tool handlers deterministic and reentrant. Any request should be satisfiable from the request arguments plus persisted Hall/kernel state.
-- Use explicit CStar handles for stateful application behavior: `bead_id`, `validation_id`, `spoke`, `memory_id`, `token_path_episode_id`, and similar domain ids.
+- Keep kernel primitives and request gates reentrant and satisfiable from the
+  request arguments plus persisted Hall/kernel state. EXECUTION adapters must
+  remain visibly classified and fail closed unless their explicit authorization
+  and receipt contracts are satisfied.
+- Use explicit CStar handles for stateful application behavior: `bead_id`,
+  `validation_id`, `spoke`, `memory_id`, and similar domain ids.
+  `token_path_episode_id` is compatibility-only while TokenPath is quarantined.
 - Do not add Roots, Sampling, or Logging dependencies to the kernel MCP surface. Use tool parameters, host-native provider integration, stderr for stdio bootstrap diagnostics, and existing telemetry files.
 - Treat Tasks and MCP Apps as future optional extensions. CStar beads already provide the canonical long-running work ledger; adopting Tasks should be a transport adapter decision, not a replacement for Hall authority.
 - Keep all tool input schemas object-rooted and avoid external `$ref` dependencies. Output remains a text content envelope today, but structured output additions should be bounded and JSON Schema 2020-12 compatible.
@@ -86,40 +193,48 @@ Priority write surfaces include a deterministic `mutation` object:
 }
 ```
 
-`cstar_autobot` may appear in legacy or compatibility inventories, but AutoBot/Hermes is not the active Corvus routing path. New implementation routing must use the CoS -> Corvus - MM -> PMT -> worker chain and CStar bead lifecycle state. Do not delegate new Corvus work through AutoBot/Hermes unless a future operator-approved contract explicitly reactivates that path.
+`cstar_autobot` is decommissioned and absent from the supported runtime
+inventory. No environment variable reactivates it. Live implementation uses
+only `cstar_forge_request` followed by `cstar_forge_execute` through the sealed
+private Hermes `cstar-hub`/MiniMax-M3 adapter. A model response is evidence, not
+lifecycle state or validation.
 
 ---
 
-## Tool Inventory (26)
+## Tool Inventory (25)
+
+The typed source of truth is
+`src/tools/cstar-kernel-mcp/contracts/tool_catalog.ts`. Runtime registration,
+host packaging, and parity tests consume that metadata directly; this table is
+the reader-facing purpose projection.
 
 | # | Tool | Tier |
 |:---|:---|:---|
 | 1 | `cstar_handoff` | Active state |
 | 2 | `cstar_hall_search` | Discovery |
-| 3 | `cstar_hall_maintenance` | Discovery |
+| 3 | `cstar_hall_maintenance` | Retired compatibility |
 | 4 | `cstar_augury` | Routing |
 | 5 | `cstar_researcher_request` | Dispatch request |
 | 6 | `cstar_forge_request` | Dispatch request |
-| 7 | `cstar_forge_execute` | Execution gate |
-| 8 | `cstar_autobot` | Legacy AutoBot/Hermes delegation |
-| 9 | `cstar_doctor` | Diagnostics |
-| 10 | `cstar_verify_plan` | Verification |
-| 11 | `cstar_bead` | Bead lifecycle |
-| 12 | `cstar_spoke_bead_import` | Bead lifecycle |
-| 13 | `cstar_record_result` | Verification |
-| 14 | `cstar_engram_record` | Memory write |
-| 15 | `cstar_war_game_score` | War games |
-| 16 | `cstar_manifest` | Capability discovery |
-| 17 | `cstar_skill_info` | Capability discovery |
-| 18 | `cstar_spoke_journal` | Spoke state |
-| 19 | `cstar_pennyone_context` | Data context |
-| 20 | `cstar_mongo_mailbox` | Data mailbox |
-| 21 | `cstar_status` | Diagnostics |
-| 22 | `cstar_evolve` | Karpathy loop (read-only) |
-| 23 | `cstar_spoke` | Spoke lifecycle |
-| 24 | `cstar_intent_route` | Routing |
-| 25 | `cstar_warden` | Sentinel Wardens |
-| 26 | `cstar_telemetry` | Diagnostics |
+| 7 | `cstar_forge_execute` | One-shot sealed Forge execution |
+| 8 | `cstar_doctor` | Diagnostics |
+| 9 | `cstar_verify_plan` | Verification |
+| 10 | `cstar_bead` | Bead lifecycle |
+| 11 | `cstar_spoke_bead_import` | Bead lifecycle |
+| 12 | `cstar_record_result` | Verification |
+| 13 | `cstar_engram_record` | Memory write |
+| 14 | `cstar_war_game_score` | War games |
+| 15 | `cstar_manifest` | Capability discovery |
+| 16 | `cstar_skill_info` | Capability discovery |
+| 17 | `cstar_spoke_journal` | Spoke state |
+| 18 | `cstar_pennyone_context` | Data context |
+| 19 | `cstar_mongo_mailbox` | Data mailbox |
+| 20 | `cstar_status` | Diagnostics |
+| 21 | `cstar_evolve` | Karpathy loop (read-only) |
+| 22 | `cstar_spoke` | Spoke lifecycle |
+| 23 | `cstar_intent_route` | Routing |
+| 24 | `cstar_warden` | Sentinel Wardens |
+| 25 | `cstar_telemetry` | Diagnostics |
 
 ---
 
@@ -192,37 +307,57 @@ Bounded FTS5 search across `CODE / DOC / ENGRAM / BEAD / SESSION / LESSON`.
 
 ## 3. `cstar_hall_maintenance`
 
-Engram lesson study / harvest queue.
+Fail-closed compatibility tombstone for the retired model-backed Engram lesson
+study and harvest path. It never reads or writes Hall/SQLite state, invokes a
+model, starts a subprocess, or projects lesson files. Use `cstar_hall_search`
+with `ENGRAM` or `LESSON` filters for bounded read-only inspection.
 
 **Input:**
-- `action` ("study" | "harvest", required)
-- `memory_id` (string, required for study)
-- `limit` (number, optional, default 5)
+- `action` ("study" | "harvest", required) — retained only so stale callers
+  receive a deterministic decommission error
+- `memory_id` and `limit` are accepted but ignored
+
+**Output:** an MCP error payload with `decommissioned: true` and
+`actuated: false`.
 
 ## 4. `cstar_augury`
 
-Route one mission and return routing advice + Council expert + Mimir targets + token_path hints.
+Resolve one mission to deterministic, typed, non-authoritative routing advice,
+an immutable Council critique lens, bounded Mimir targets, and explicit
+TokenPath quarantine status.
 
 **Input:**
 - `prompt` (string, required) — user prompt or mission statement
 - `inferred_intent` (string, optional)
 - `target_paths` (string[], optional)
 - `scope` (string, optional)
-- `bead_id` (string, optional) — links token-path advice to later `cstar_record_result` observation feedback
+- `bead_id` (string, optional) — route provenance only; Augury does not write or
+  link TokenPath advice
 
 **Output (matched):**
 ```json
 {
   "intent_category": "BUILD",
-  "default_path": "creation_loop",
+  "default_path": "cstar_forge_request",
   "expert": "carmack",
   "expert_label": "...",
   "expert_lens": "...",
   "expert_signature_question": "...",
   "expert_guardrails": ["..."],
-  "token_path": { "advisor": "augury-token-path", "episode_id": "mcp-tp-...", "selected_policy": "...", "..." }
+  "actionable": false,
+  "token_path": {
+    "advisor": "augury-token-path",
+    "status": "quarantined",
+    "mode": "shadow-disabled",
+    "actionable": false
+  }
 }
 ```
+
+Augury explains route and scope; it grants no execution, spend, mutation, or
+validation authority. Use it when a route or material scope is ambiguous, not
+as a per-turn ritual. No numeric confidence is emitted unless an independent
+scorer with a real denominator has run.
 
 When the caller supplies a new prompt and explicit `target_paths`,
 `cstar_augury` derives the current mission route from that prompt and target
@@ -270,13 +405,22 @@ session is the only available context.
 
 Control-plane request primitives for routing Researcher and Corvus
 Forge/Hermes MiniMax work without falling back to Codex workers. These tools
-validate the request contract and return compact receipts for PMT/MM/CoS
-review. They do not run live Researcher, Forge, Hermes, MiniMax, source
-adapters, browser collection, GitHub mutation, or model spend by themselves.
+validate the request contract and return compact receipts for CoS plus bounded
+state-update packets. They do not run live Researcher, Forge, Hermes,
+MiniMax, source adapters, browser collection, GitHub mutation, or model spend
+by themselves. `cstar_forge_request` additionally persists an immutable Hall
+request and binds a verified one-shot operator grant when live execution was
+explicitly authorized; `cstar_researcher_request` remains a no-spend request
+receipt rather than an execution surface.
 
 **Input contract:**
 - `bead_id` or `decision_id` — CStar lifecycle anchor; a decision id is generated when needed.
-- `owner_pmt_thread_id` and `source_callback_thread_id` — review owner and callback destination.
+- `state_update_thread_id` (optional) — mapped project information-repository
+  destination for a bounded context/update packet. It is used only when targets
+  are inside that project and never gates execution. The deprecated
+  `owner_pmt_thread_id` alias is accepted for compatibility but grants no
+  ownership or review authority.
+- `source_callback_thread_id` — CoS callback destination.
 - `objective`, optional `prompt`, optional `target_paths`, optional `system_under_test`.
 - `scope` and `authority_lane` (`green`, `yellow`, or `red`).
 - `required_metrics[]` with `name` and `threshold` for each metric.
@@ -293,7 +437,7 @@ Default dispatch surfaces:
 - Forge: `docs/operations/corvus-forge-skill-spec.md`, falling back to
   `docs/operations/corvus-forge-pipeline-playbook.md`
 
-**Output posture:**
+**Representative no-spend output posture:**
 
 ```json
 {
@@ -316,21 +460,21 @@ Default dispatch surfaces:
 
 If a required metric, callback packet, prohibited-action list, or dispatch
 surface proof is missing, the tools return `isError: true` with
-`status: "rejected"` or a dry-run receipt with `fail_closed_reason`. Operators
-must not treat these receipts as implementation output; they are dispatch
-authorization and evidence-routing artifacts.
+`status: "rejected"` or a fail-closed receipt. A request never proves
+implementation. An authorized Forge request is durable execution authority only
+for its exact sealed contract and still requires the separate atomic execute
+gate; all other request receipts are no-spend routing evidence.
 
 ## 4c. `cstar_forge_execute`
 
 Execution primitive for Corvus Forge. It is intentionally separate from
-`cstar_forge_request`: request receipts prove that work is ready to route;
-execution receipts prove that a specific request receipt is linked to, and when
-authorized routed through, an operator-authorized Forge execution contract.
-
-No-op mode does not run Hermes, MiniMax, SwarmForge, Researcher, source
-adapters, browser collection, GitHub mutation, or model spend. Live-authorized
-mode invokes only the approved Forge/Hermes/MiniMax adapter after receipt,
-operator, metrics, callback, retry, and prohibited-action gates pass.
+`cstar_forge_request`. No-op mode validates shape without reserving an attempt,
+running Hermes/MiniMax, mutating source, collecting live data, or spending.
+Live mode requires the matching durable request, a request-bound operator
+attestation recovered from the authorized Codex thread/turn, an unexpired
+one-shot grant, exact canonical request and target hashes, package locks, a
+sealed adapter runtime, and an idempotency key. Attempt reservation is atomic;
+an ambiguous or failed attempt consumes the grant and is never auto-relaunched.
 
 Required fields include all `cstar_forge_request` contract fields plus:
 
@@ -339,7 +483,9 @@ Required fields include all `cstar_forge_request` contract fields plus:
   supplied.
 - `forge_request_bead_id` — must match `bead_id` when both are supplied.
 - `execution_mode` — `no_op` or `live_authorized`.
-- `operator_authorization_ref` — required for `live_authorized`.
+- `operator_authorization_ref` — required for `live_authorized` and must match
+  the attestation stored with the request.
+- `idempotency_key` — stable key used for atomic reservation and replay.
 - Optional `execution_adapter_ref` — checked as an adapter proof; missing or
   unregistered adapters fail closed.
 
@@ -347,9 +493,11 @@ No-op mode returns `status: "validated_noop"` with
 `forge_execution.attempted=false`, `live_spend=false`,
 `live_source_collection=false`, and `codex_worker_fallback_allowed=false`.
 
-Live mode rejects missing operator authorization and blocks with
-`fail_closed_reason: "missing_authorized_execution_adapter"` when the requested
-adapter is unknown. Approved adapter references are:
+Live mode rejects missing, expired, mismatched, or drifted authorization and
+blocks when the requested adapter is unknown or its sealed runtime differs from
+the request. Required outputs must be contained by explicit targets and are
+included in the independently recovered operator-authorization scope before a
+request is accepted. Approved adapter references are:
 
 - `cstar-forge-hermes-minimax-adapter` — response-only; may write only the
   adapter response artifact and fails closed for build/package/source-mutation
@@ -359,24 +507,45 @@ adapter is unknown. Approved adapter references are:
   sealed intent target roots, applies bounded project files, and emits the same
   response artifact contract.
 
-Operators must not substitute `cstar_autobot`, Codex workers, or ad hoc shell
-execution for this gate. An executed receipt reports
-the adapter status, whether the adapter observed live spend, and any returned
-ledger or artifact references. For live adapter execution, the model response is persisted
+The runtime seal covers the adapter, absolute Python/Node interpreters, worker
+safety helper, and private delegate. Verified scripts are materialized in an
+owner-only runtime directory; execution traces use contained no-follow atomic
+writes and are prepared before adapter start. Adapter and Hermes children
+receive minimal allowlisted environments without inherited secret values, and
+Hermes exposes only `clarify` under safe mode for this one-turn build response.
+Caught exceptions restore file bytes/modes and remove adapter-created files and
+directories. Multi-file crash recovery remains inspection-required because the
+worker has no durable write-ahead journal.
+
+Operators must not substitute `cstar_autobot`, Codex workers, direct Hermes, or
+ad hoc shell execution for this gate. The private write-capable adapter invokes
+Hermes through its `cstar-hub` profile pinned to `minimax/MiniMax-M3`; receipts
+record requested and actual model identity separately and do not infer the
+actual model when the provider omits it. For live adapter execution, the model response is persisted
 under `work/forge-executions/<execution_receipt_id>/adapter-response.json` and
-the receipt reports the response artifact path, byte count, and sha256 so PMT
+the receipt reports the response artifact path, byte count, and sha256 so
 review does not depend on transient stdout. The persisted adapter response must
 match the Forge execution packet shape: `status`, `summary`, `files_changed`
 array, structured `artifacts`, structured `validation`, structured `metrics`,
 structured `boundaries`, and optional `callback_packet`. Success-like statuses
 must not claim missing changed files or artifact paths; missing path evidence
-fails closed as `adapter_degraded`. Advisory-only packets such as
-`PASS-READY-FOR-PMT-REVIEW` without the required evidence fields also fail
-closed; PMT review remains required before acceptance.
+fails closed as `adapter_degraded`. Advisory-only packets, including the legacy
+label `PASS-READY-FOR-PMT-REVIEW`, fail closed when required evidence is absent
+and never grant review or acceptance authority.
+
+A structurally valid packet is persisted as `delivered_unverified`; it is not
+success. Independent, hash-verified evidence must be recorded with
+`cstar_record_result`. Positive verified evidence finalizes the attempt as
+`SUCCEEDED`; negative verified evidence finalizes it as `FAILED_FINAL`.
+Validation persistence and Forge finalization are one transaction, so neither
+state change survives alone.
 
 ## 5. `cstar_doctor`
 
-Kernel diagnostics. Returns registry / augury / database health plus telemetry summary.
+Kernel diagnostics. Returns registry / Augury / database health plus telemetry
+summary. `score` is a legacy diagnostic projection only; it is not a quality,
+readiness, execution, or authority verdict. The TokenPath block reports
+quarantine/compatibility telemetry and cannot steer or record observations.
 
 **Input:** _(none)_
 
@@ -436,6 +605,19 @@ is also accepted as the resolution id fallback. Resolved ids are persisted both
 in the Hall column and in bead metadata so a later readback can verify the
 timeline even if one storage surface is stale.
 
+Sterling's Audit leg accepts only evidence already bound to the bead and
+repository by an authoritative Hall receipt:
+
+- `audit.validation_id` must resolve to an `ACCEPTED` or `SUCCESS` validation
+  with `authority_class=verified`, a validator identity, and a valid evidence
+  SHA-256.
+- Each `audit.warden_results[]` entry must reference such a receipt and exactly
+  match its validator identity, evidence digest, timestamp, and normalized
+  verdict while declaring `independent_of_execution=true`.
+- Caller-supplied scalar `gungnir_score` values are rejected. Historical Hall
+  Gungnir/baseline metric fields remain compatibility telemetry and do not
+  authorize bead resolution.
+
 **Output:** `{ status: 'created'|'claimed'|'resolved'|'blocked'|'updated'|'ok', mutation, bead: {...} }` or `{ status: 'ok', count, beads: [...] }` for list.
 
 ## 8. `cstar_spoke_bead_import`
@@ -453,29 +635,37 @@ Rich Bead-import surface for spokes. Hard-rejects unregistered, inactive, quaran
 
 ## 9. `cstar_record_result`
 
-Append validation outcome and optionally connect it to a bead. Feeds the Augury token-path sidecar calibration loop.
+Record validation against a repository-local bead and optionally finalize a
+delivered Forge attempt. Positive reported verdicts without hash-verified,
+independent evidence are stored as `INCONCLUSIVE` rather than authoritative.
 
 **Input:**
 - `bead_id` (string, required)
 - `verdict` (enum: `ACCEPTED|REJECTED|INCONCLUSIVE|SUCCESS|FAILURE`, required)
 - `notes` (string, optional)
-- `token_path_episode_id` (string, optional) — episode id from a prior `cstar_augury` response
-- `token_path_observation` (object, optional) — scenario_class + selected_policy + observed_tokens for sidecar calibration
+- `validation_id` (string, optional) — caller-stable validation identity
+- `forge_execution_receipt_id` (string, optional) — transactionally finalizes
+  the matching delivered attempt
+- `validation_evidence` (object, optional) — independent validator identity plus
+  bounded artifact paths and SHA-256 hashes
+- `token_path_episode_id` / `token_path_observation` (optional compatibility
+  fields) — quarantined and never promoted while TokenPath is disabled
 
-When `token_path_observation` is not supplied, the tool attempts to auto-link
-recent `cstar_augury` token-path advice by explicit episode id, bead id, or bead
-target path. Every response reports `token_path_observation_status`. A missing
-observation is explicit, not silent.
+Validation persistence and Forge finalization are one transaction. If either
+side fails, the validation row is rolled back and the response reports
+`validation_persisted: false`, `validation_authority: "not_persisted"`, and no
+stored verdict. TokenPath does not auto-link advice and performs no write.
 
-**Output:** `{ status: 'recorded', mutation, bead_id, verdict, validation_id, token_path_observation_status, token_path_observation_id?, token_path_observation_source?, token_path_observation_warning?, token_path_episode_id? }`.
+**Output:** `{ status, mutation?, bead_id, reported_verdict, stored_verdict, validation_id, validation_persisted, validation_authority, authoritative, forge_validation?, token_path_observation_status }`.
 
 **Observation statuses:**
-- `recorded` — an explicit payload or auto-linked recent advice wrote an observation row.
-- `not_recorded` — no usable advice/payload was available; inspect `token_path_observation_warning`.
+- `recorded` — reserved for a future promoted, causally linked TokenPath
+  pipeline; it is unreachable while quarantine is active.
+- `not_recorded` — current expected state; inspect
+  `token_path_observation_warning` for quarantine or malformed input.
 
-Common warnings include `no_recent_token_path_advice_linked`,
-`token_path_episode_id_not_found`, and
-`malformed_token_path_observation_skipped`.
+The current valid-measurement warning is
+`token_path_quarantined_no_promoted_episode`.
 
 ## 10. `cstar_engram_record`
 
@@ -578,28 +768,35 @@ when the optional `mongodb` driver is unavailable.
 }
 ```
 
-`enqueue_operator_intent` is the only mutation action. It requires an explicit
-operator authorization reference and writes a small pending intent envelope to
-the configured intent queue. This tool must never expose credentials, arbitrary
-Mongo queries, collection-selection passthrough, or direct Hall/PennyOne
-mutation bypasses.
+`enqueue_operator_intent` is runtime fail-closed with
+`durable_operator_intent_authority_not_implemented`. A caller-supplied
+authorization string is evidence, not authority. Only read-only status and
+bounded mirror counts are available until both producer and consumer verify the
+same durable request-bound grant with replay protection. Never insert directly
+into Mongo to bypass this boundary.
 
 ## 17. `cstar_status`
 
-Deterministic framework snapshot: status, persona, gungnir score, managed spokes, agent presence, `hall_reachable`, `uptime_seconds`.
+Deterministic current-state snapshot. CStar lifecycle state is separated from
+the legacy framework projection; persona is explicitly style-only.
 
 **Input:** _(none)_
 
 **Output:**
 ```json
 {
-  "framework": { "status": "AWAKE", "active_persona": "A.L.F.R.E.D.", "uptime_seconds": 0, "gungnir_score": 0, "intent_integrity": 0 },
+  "framework": { "authority": "compatibility_projection", "status": "AWAKE", "active_persona": "A.L.F.R.E.D.", "process_uptime_seconds": 0, "baseline_gungnir_score": 0 },
+  "current_mission": { "authority": "cstar_lifecycle", "current_bead_id": "bead-...", "target_paths": ["..."] },
+  "persona": { "name": "A.L.F.R.E.D.", "authority": "style_only" },
   "workspace": "/abs/path",
   "hall_reachable": true,
   "managed_spokes": [{ "slug": "...", "mount_status": "active", "trust_level": "trusted", "write_policy": "read_write", "root_path": "..." }],
   "agents": [{ "id": "gemini", "name": "Gemini", "status": "SLEEPING", "last_seen": null }]
 }
 ```
+
+`baseline_gungnir_score` and other compatibility fields are historical
+telemetry, not measured validation, confidence, or readiness evidence.
 
 ## 18. `cstar_evolve`
 
@@ -651,8 +848,8 @@ Resolve a prompt against the kernel intent grammar (`.agents/skill_registry.json
   "guardrail": { "verdict": "allow", "action": "continue", "...": "..." },
   "next_action": "<host-agent instruction>",
   "intent_category": "BUILD",
-  "default_path": "creation_loop",
-  "tier": "WEAVE",
+  "default_path": "cstar_forge_request",
+  "tier": "SKILL",
   "matched_trigger": "build"
 }
 ```
@@ -666,8 +863,8 @@ Resolve a prompt against the kernel intent grammar (`.agents/skill_registry.json
   "next_action": "<host-agent instruction>",
   "match_count": 2,
   "matches": [
-    { "intent_category": "BUILD", "default_path": "creation_loop", "tier": "WEAVE", "matched_triggers": ["build"] },
-    { "intent_category": "OBSERVE", "default_path": "scan", "tier": "PRIME", "matched_triggers": ["status", "check"] }
+    { "intent_category": "BUILD", "default_path": "cstar_forge_request", "tier": "SKILL", "matched_triggers": ["build"] },
+    { "intent_category": "OBSERVE", "default_path": "cstar_status", "tier": "PRIME", "matched_triggers": ["status"] }
   ]
 }
 ```
@@ -748,18 +945,26 @@ That handshake is not a CStar application session. Future Streamable HTTP adapte
 
 1. Add the handler to a focused module under `src/tools/cstar-kernel-mcp/tools/` or a narrower domain folder. Do not add behavior to the root `src/tools/cstar-kernel-mcp.ts` entrypoint.
 2. Add or reuse a Zod schema in `src/tools/cstar-kernel-mcp/contracts/` when the schema is shared; otherwise keep the schema beside the registration code.
-3. Register the tool through `src/tools/cstar-kernel-mcp/register_core_tools.ts` using `server.tool('cstar_<name>', mcpToolDescription(...), schema, instrumentTool('cstar_<name>', handler))`.
-4. Re-export the handler from `src/tools/cstar-kernel-mcp.ts` only when tests or host-facing code need a direct import.
-5. Add a `{ name, purpose }` entry to `KERNEL_MCP_TOOLS` in `src/packaging/distributions.ts` (this propagates into `GEMINI.md` and the Codex `SKILL.md` on the next `npm run build:distributions`).
-6. Add an entry to this file in tool-number order.
-7. Add focused unit tests under `tests/unit/cstar-kernel-mcp/`, then import them from `tests/unit/test_cstar_kernel_mcp.test.ts` so legacy checker commands still run the full suite.
-8. Add an assertion to the stdio integration test's "expected tools" list in `tests/integration/cstar_kernel_mcp_stdio.test.ts`.
+3. Add the tool's `{ name, toolClass, description }` metadata to `CSTAR_KERNEL_TOOL_CATALOG` in `src/tools/cstar-kernel-mcp/contracts/tool_catalog.ts`.
+4. Register its explicit schema and handler through the catalog-backed helper in `src/tools/cstar-kernel-mcp/register_core_tools.ts`; do not repeat its name, class, or description outside the catalog.
+5. Re-export the handler from `src/tools/cstar-kernel-mcp.ts` only when tests or host-facing code need a direct import.
+6. Regenerate and validate host distributions; packaging derives its inventory from the catalog.
+7. Add an entry to this reader-facing table in tool-number order.
+8. Add focused unit tests under `tests/unit/cstar-kernel-mcp/`, then import them from `tests/unit/test_cstar_kernel_mcp.test.ts` so legacy checker commands still run the full suite. The stdio integration test already compares launched-runtime metadata with the catalog.
 9. Confirm the new input schema is object-rooted and does not introduce protocol/session/client metadata as tool arguments.
 10. Keep every production MCP file and focused test file under 500 lines; `tests/unit/cstar-kernel-mcp/test_file_size_contract.test.ts` enforces this.
 11. Run the focused unit suite, stdio integration suite, `node --check bin/cstar-kernel-mcp.js`, and `git diff --check` before committing.
 
 ## What Does Not Belong on This Surface
 
-- **LLM inference per iteration** — proposal generation, critique, oracle sampling, autonomous mutation. These stay host-native.
-- **Terminal-bound flows** — `start`, `tui`, `ravens`, `bifrost`, `os install/uninstall` remain on the legacy `cstar.ts` CLI.
+- **Ungated LLM inference per iteration** — bounded proposal generation and
+  critique stay in the active host when current policy calls for them; generic
+  oracle sampling and autonomous mutation are not alternate execution lanes. A separately
+  classified EXECUTION adapter may invoke an external model only after its
+  durable request and request-bound operator approval are verified. Adapter
+  delivery still requires independent validation before success.
+- **Retired compatibility flows** — `ravens`, One Mind, model-memory workflows,
+  and autonomous `start` behavior remain retired even if legacy CLI names or
+  read-only status projections still parse. Explicit operator-gated setup or OS
+  maintenance commands are separate terminal operations, not skills.
 - **Generic skill dispatch** — a `run_skill` tool would violate the Host-Native Skill Mandate. Use per-skill MCP tools or host-native `SKILL.md` execution.
