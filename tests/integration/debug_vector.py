@@ -13,17 +13,10 @@ def debug():
     engine = SovereignVector()
     engine.load_core_skills()
 
-    # Check if skills_db exists to load global skills
-    import json
-    config_path = os.path.join(PROJECT_ROOT, ".agents", "config.json")
-    try:
-        with open(config_path) as f:
-            config = json.load(f)
-            root = config.get("system", {}).get("framework_root")
-            if root and os.path.exists(os.path.join(root, "skills_db")):
-                engine.load_skills_from_dir(os.path.join(root, "skills_db"), prefix="GLOBAL:")
-    except:
-        pass
+    # Optional global skills are explicit test input; never inspect live config.
+    skills_db = os.environ.get("CSTAR_SKILLS_DB")
+    if skills_db and os.path.isdir(skills_db):
+        engine.load_skills_from_dir(skills_db, prefix="GLOBAL:")
 
     query = "run the browser automation"
     results = engine.search(query)

@@ -1,45 +1,8 @@
-from src.core.engine.vector import SovereignVector
-from src.core.sv_engine import SovereignEngine
+import pytest
+
+from src.core import sv_engine
 
 
-class TestLexiconLift:
-    def test_lexicon_lift_trigger(self, monkeypatch):
-        """
-        Verify that an unknown term triggers the proactive search logic.
-        Note: We mock the search response to avoid API costs.
-        """
-        # Mock BraveSearch
-        class MockBraveSearch:
-            def search(self, query):
-                return [{"description": "A fictional term for testing Bifröst integration."}]
-
-        monkeypatch.setattr("src.core.engine.orchestrator.BraveSearch", MockBraveSearch)
-
-        # Mock Cortex to check if add_node is called
-        added_nodes = []
-        class MockCortex:
-            def __init__(self, *args, **kwargs) -> None: pass
-            def add_node(self, term, data):
-                added_nodes.append((term, data))
-
-        monkeypatch.setattr("src.core.engine.orchestrator.Cortex", MockCortex)
-
-        # Create engine
-        engine = SovereignEngine()
-
-        # Create a mock vector engine that sees 'quasibartle' as unknown
-        class MockVector(SovereignVector):
-            def __init__(self, *args, **kwargs) -> None:
-                self._idf_map = {"tell": 1.0, "me": 1.0, "about": 1.0}
-                self.stopwords = {"the", "and"}
-            def search(self, query):
-                return [{"trigger": "none", "score": 0.1, "is_global": False}]
-
-        mock_vec = MockVector("dummy", "dummy", "dummy")
-
-        # Run the lift logic
-        engine._proactive_lexicon_lift("Tell me about quasibartle", mock_vec)
-
-        assert len(added_nodes) > 0
-        assert "LEXICON:quasibartle" in added_nodes[0][0]
-        assert "fictional term" in added_nodes[0][1]["definition"]
+def test_retired_engine_cannot_trigger_proactive_lexicon_activity() -> None:
+    with pytest.raises(RuntimeError, match=f"^{sv_engine.RETIREMENT_ERROR}$"):
+        sv_engine.SovereignEngine()

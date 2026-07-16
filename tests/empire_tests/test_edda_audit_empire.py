@@ -1,37 +1,11 @@
-import sys
-from pathlib import Path
-
 import pytest
 
-# Ensure project root is in path
-PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-sys.path.append(str(PROJECT_ROOT))
+from src.core.engine.wardens.edda import (
+    LEGACY_PYTHON_AUTONOMOUS_EFFECT_ERROR,
+    EddaWarden,
+)
 
-from src.core.engine.wardens.edda import EddaWarden
-class TestEddaWarden:
-    @pytest.fixture
-    def warden(self, tmp_path):
-        return EddaWarden(tmp_path)
 
-    def test_scan_finds_missing_docstring_function(self, tmp_path, warden):
-        py_path = tmp_path / "logic.py"
-        py_path.write_text("def foo():\n    pass", encoding='utf-8')
-
-        results = warden.scan()
-        assert len(results) == 1
-        assert "foo" in results[0]['action']
-
-    def test_scan_finds_missing_docstring_class(self, tmp_path, warden):
-        py_path = tmp_path / "logic.py"
-        py_path.write_text("class Foo:\n    pass", encoding='utf-8')
-
-        results = warden.scan()
-        assert len(results) == 1
-        assert "Foo" in results[0]['action']
-
-    def test_scan_ignores_existing_docstring(self, tmp_path, warden):
-        py_path = tmp_path / "logic.py"
-        py_path.write_text('def foo():\n    """Doc."""\n    pass', encoding='utf-8')
-
-        results = warden.scan()
-        assert len(results) == 0
+def test_recursive_edda_warden_is_retired_before_source_reads():
+    with pytest.raises(RuntimeError, match=f"^{LEGACY_PYTHON_AUTONOMOUS_EFFECT_ERROR}$"):
+        EddaWarden("synthetic")

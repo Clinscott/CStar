@@ -1,64 +1,48 @@
-"""
-┌────────────────────────────────────────── Ω REDACTOR ENGINE Ω ──────────────────────────────────────────┐
-│ THE SHIELD OF PRIVACY: Automatically masks sensitive runes in logs and displays.                      │
-└──────────────────────────────────────────────────────────────────────────────────────────────────────┘
-"""
-import re
+"""Pure in-memory redaction over explicitly injected synthetic values.
 
-from src.tools.vault import SovereignVault
+The redactor deliberately has no vault, environment, config, or filesystem
+fallback.  Callers that need redaction must supply the exact values for the
+current in-memory operation.
+"""
+
+from __future__ import annotations
+
+import re
+from collections.abc import Mapping
 
 
 class Redactor:
-    """[ALFRED] A diligent filter to ensure no secrets are accidentally exposed."""
+    """Mask explicit values without discovering or persisting secrets."""
 
-    _instance = None
-    _patterns = []
-
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-            cls._instance._initialize()
-        return cls._instance
-
-    def _initialize(self) -> None:
-        """Loads secrets from the Vault and prepares regex patterns."""
-        try:
-            vault = SovereignVault()
-            secrets = vault.get_secrets_map()
-
-            # Create a list of (key_name, sensitive_value)
-            # Sort by length descending to prevent partial matches
-            sorted_secrets = sorted(secrets.items(), key=lambda x: len(x[1]), reverse=True)
-
-            self._patterns = []
-            for key, val in sorted_secrets:
-                # Escape for regex and create a pattern
-                pattern = re.compile(re.escape(val))
-                self._patterns.append((key, pattern))
-        except Exception:
-            self._patterns = []
+    def __init__(self, values: Mapping[str, str] | None = None) -> None:
+        supplied = values or {}
+        ordered = sorted(
+            (
+                (str(key), value)
+                for key, value in supplied.items()
+                if isinstance(value, str) and value
+            ),
+            key=lambda item: len(item[1]),
+            reverse=True,
+        )
+        self._patterns = [
+            (key, re.compile(re.escape(value)))
+            for key, value in ordered
+        ]
 
     def redact(self, text: str) -> str:
-        """Applies all redaction patterns to the provided text."""
-        if not text:
-            return text
+        """Replace only the explicit values supplied to this instance."""
 
-        redacted_text = text
+        redacted = text
         for key, pattern in self._patterns:
-            # Replace with a themed placeholder
-            placeholder = f"[REDACTED_{key}]"
-            redacted_text = pattern.sub(placeholder, redacted_text)
-
-        return redacted_text
+            redacted = pattern.sub(f"[REDACTED_{key}]", redacted)
+        return redacted
 
     @staticmethod
-    def redact_shorthand(text: str) -> str:
-        """Shorthand helper to access the Redactor singleton."""
-        return Redactor().redact(text)
+    def redact_shorthand(
+        text: str,
+        values: Mapping[str, str] | None = None,
+    ) -> str:
+        """Pure shorthand with no implicit value discovery."""
 
-if __name__ == "__main__":
-    # Test Logic
-    sample = "My key is AIzaSyD-fake-key and my brave key is 12345-brave."
-    # For testing, we'd need to mock the vault or have a real .env.local
-    print(f"Original: {sample}")
-    print(f"Redacted: {Redactor.redact_shorthand(sample)}")
+        return Redactor(values).redact(text)

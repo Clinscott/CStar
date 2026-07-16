@@ -14,13 +14,6 @@ import sys
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.append(str(PROJECT_ROOT))
 
-# [ALFRED] Ensure environment is initialized if needed
-try:
-    from src.core.bootstrap import SovereignBootstrap
-    SovereignBootstrap.execute()
-except (ImportError, ValueError, IndexError):
-    pass
-
 from src.games.odin_protocol.engine.models import Chromosome, Item, UniverseState
 
 def get_federated_seed(project_root: str) -> str:

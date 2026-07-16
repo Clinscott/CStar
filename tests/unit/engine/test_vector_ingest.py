@@ -1,66 +1,82 @@
-import unittest
-from unittest.mock import MagicMock, patch
 from pathlib import Path
-from src.core.engine.vector_ingest import VectorIngest
+from unittest.mock import MagicMock, patch
 
-class TestVectorIngest(unittest.TestCase):
-    def setUp(self):
-        self.mock_memory_db = MagicMock()
-        self.ingest = VectorIngest(self.mock_memory_db)
+import pytest
 
-    def test_add_skill(self):
-        self.ingest.add_skill("trigger", "text", "CORE")
-        self.mock_memory_db.upsert_skill.assert_called_once_with("system", "trigger", "text", {"domain": "CORE"})
+from src.core.engine.memory_db import MemoryDB
+from src.core.engine.vector_ingest import (
+    DETACHED_MEMORY_REQUIRED_ERROR,
+    LEGACY_SKILL_DIRECTORY_SCAN_ERROR,
+    VectorIngest,
+    parse_skill_intent,
+)
 
-    def test_batch_add_skills(self):
-        skills = [{"trigger": "s1", "description": "d1"}]
-        self.ingest.batch_add_skills(skills, "UI")
-        self.mock_memory_db.batch_upsert_skills.assert_called_once_with("system", skills)
-        self.assertEqual(skills[0]["metadata"]["domain"], "UI")
 
-    @patch("src.core.engine.vector_ingest.Path.glob")
-    @patch("src.core.engine.vector_ingest.Path.exists")
-    @patch("src.core.engine.vector_ingest.Path.is_file")
-    @patch("src.core.engine.vector_ingest.VectorIngest._read_intent")
-    def test_load_skills_from_dir(self, mock_read, mock_is_file, mock_exists, mock_glob):
-        mock_exists.return_value = True
-        
-        mock_file = MagicMock(spec=Path)
-        mock_file.is_file.return_value = True
-        mock_file.suffix = ".qmd"
-        mock_file.stem = "test_skill"
-        mock_file.name = "test_skill.qmd"
-        
-        mock_glob.return_value = [mock_file]
-        mock_read.return_value = "extracted intent"
-        
-        # Test with a directory that should trigger "CORE" domain
-        with patch("src.core.engine.vector_ingest.Path.name", "core"):
-             self.ingest.load_skills_from_dir("/mock/core")
-        
-        self.mock_memory_db.batch_upsert_skills.assert_called_once()
-        args, kwargs = self.mock_memory_db.batch_upsert_skills.call_args
-        self.assertEqual(args[1][0]["trigger"], "/test_skill")
-        self.assertEqual(args[1][0]["metadata"]["domain"], "CORE")
+@pytest.fixture
+def ingest() -> VectorIngest:
+    return VectorIngest(MemoryDB("/synthetic/root"))
 
-    def test_read_intent_explicit(self):
-        mock_file = MagicMock(spec=Path)
-        mock_file.read_text.return_value = "# Intent: My explicit intent\nSome content"
-        intent = self.ingest._read_intent(mock_file)
-        self.assertEqual(intent, "My explicit intent")
 
-    def test_read_intent_description(self):
-        mock_file = MagicMock(spec=Path)
-        mock_file.read_text.return_value = "description: My description intent\nSome content"
-        intent = self.ingest._read_intent(mock_file)
-        self.assertEqual(intent, "My description intent")
+def test_vector_ingest_requires_real_detached_memory() -> None:
+    with pytest.raises(RuntimeError, match=f"^{DETACHED_MEMORY_REQUIRED_ERROR}$"):
+        VectorIngest(MagicMock())
 
-    def test_read_intent_header(self):
-        mock_file = MagicMock(spec=Path)
-        mock_file.suffix = ".qmd"
-        mock_file.read_text.return_value = "# My Header Intent\nSome content"
-        intent = self.ingest._read_intent(mock_file)
-        self.assertEqual(intent, "My Header Intent")
 
-if __name__ == "__main__":
-    unittest.main()
+def test_add_and_batch_skills_remain_process_local(ingest: VectorIngest) -> None:
+    skills = [{"trigger": "s1", "description": "d1"}]
+
+    ingest.add_skill("trigger", "text", "CORE")
+    ingest.batch_add_skills(skills, "UI")
+
+    assert skills == [{"trigger": "s1", "description": "d1"}]
+    assert ingest.memory_db.search_intent("system", "trigger")[0]["trigger"] == "trigger"
+    assert ingest.memory_db.search_intent("system", "s1")[0]["domain"] == "UI"
+
+
+@pytest.mark.parametrize(
+    ("content", "filename", "suffix", "expected"),
+    [
+        ("# Intent: Explicit intent\nBody", "one.py", ".py", "Explicit intent"),
+        ("# Intent:\n# Next-line intent", "two.py", ".py", "Next-line intent"),
+        ("description: Description intent\nBody", "three.py", ".py", "Description intent"),
+        ("# Header intent\nBody", "four.qmd", ".qmd", "Header intent"),
+        ("plain body", "five.txt", ".txt", "Intent for five.txt"),
+    ],
+)
+def test_parse_skill_intent_is_detached(
+    content,
+    filename,
+    suffix,
+    expected,
+) -> None:
+    assert parse_skill_intent(
+        content,
+        filename=filename,
+        suffix=suffix,
+    ) == expected
+
+
+@patch("pathlib.Path.exists")
+@patch("pathlib.Path.glob")
+@patch("pathlib.Path.read_text")
+def test_directory_loading_fails_before_discovery_or_read(
+    mock_read_text,
+    mock_glob,
+    mock_exists,
+    ingest: VectorIngest,
+) -> None:
+    with pytest.raises(
+        RuntimeError,
+        match=f"^{LEGACY_SKILL_DIRECTORY_SCAN_ERROR}$",
+    ):
+        ingest.load_skills_from_dir("/synthetic/skills")
+
+    with pytest.raises(
+        RuntimeError,
+        match=f"^{LEGACY_SKILL_DIRECTORY_SCAN_ERROR}$",
+    ):
+        ingest._read_intent(Path("/synthetic/skill.qmd"))
+
+    mock_exists.assert_not_called()
+    mock_glob.assert_not_called()
+    mock_read_text.assert_not_called()

@@ -9,6 +9,7 @@ import {
     spokeStore,
     beadStore,
     makeSpoke,
+    bindSyntheticSpokeRoot,
     validDispatchRequest,
     validForgeExecuteRequest,
     writeFakeForgeAdapter,
@@ -42,30 +43,17 @@ import {
 } from './shared_test_setup.js';
 
 describe("CStar MCP rich spoke bead import", () => {
-describe('🜂 (rare) cstar_spoke link rejects empty slug after normalization-only', () => {
-    it('rejects empty slug after normalization', async () => {
-        const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'spoke-empty-slug-'));
-        try {
-            const result = await handleSpoke({
-                action: 'link',
-                slug: '!!!!', // all invalid chars → normalizes to "-" (len 1, still acceptable)
-                root_path: tmpRoot,
-            });
-            // The normalizer collapses to "-" which is 1 char; allowed.
-            // To test the empty-after-normalization branch, use only whitespace.
-            assert.notStrictEqual(result.isError, true);
-
-            const result2 = await handleSpoke({
-                action: 'link',
-                slug: '   ',
-                root_path: tmpRoot,
-            });
-            assert.strictEqual(result2.isError, true);
-            const parsed = JSON.parse(result2.content[0].text);
-            assert.match(parsed.error, /1\.\.64 chars/);
-        } finally {
-            fs.rmSync(tmpRoot, { recursive: true, force: true });
-        }
+describe('cstar_spoke retired mutation compatibility', () => {
+    it('fails before slug or root validation', async () => {
+        const result = await handleSpoke({
+            action: 'link',
+            slug: '   ',
+            root_path: '/home/synthetic/.hermes/private',
+        });
+        assert.strictEqual(result.isError, true);
+        const parsed = JSON.parse(result.content[0].text);
+        assert.strictEqual(parsed.error, 'spoke_mutation_requires_verified_request_scoped_operator_attestation');
+        assert.doesNotMatch(JSON.stringify(parsed), /\.hermes|private/);
     });
 });
 
@@ -76,6 +64,7 @@ describe('🜂 cstar_spoke_bead_import — rich spoke handoff payload', () => {
 
     beforeEach(() => {
         tmpSpokeRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'spoke-bead-test-'));
+        bindSyntheticSpokeRoot(tmpSpokeRoot);
         fs.mkdirSync(path.join(tmpSpokeRoot, 'tests', 'features'), { recursive: true });
         fs.mkdirSync(path.join(tmpSpokeRoot, 'docs', 'design'), { recursive: true });
         lorePath = path.join(tmpSpokeRoot, 'tests', 'features', 'sample.feature');
@@ -114,6 +103,8 @@ describe('🜂 cstar_spoke_bead_import — rich spoke handoff payload', () => {
         );
         assert.strictEqual(stored.metadata.lore_path, 'tests/features/sample.feature');
         assert.strictEqual(stored.metadata.design_doc_path, 'docs/design/SAMPLE.md');
+        assert.strictEqual(stored.metadata.lore_absolute_path, undefined);
+        assert.strictEqual(stored.metadata.design_doc_absolute_path, undefined);
         assert.strictEqual(stored.metadata.wireframe_ref, 'wireframe.md#sample-pane');
         assert.match(stored.metadata.threat_model_summary, /filesystem payloads/);
         assert.match(stored.metadata.augury_block, /BUILD → SKILL: sample/);
@@ -130,7 +121,7 @@ describe('🜂 cstar_spoke_bead_import — rich spoke handoff payload', () => {
         });
         assert.strictEqual(result.isError, true);
         const parsed = JSON.parse(result.content[0].text);
-        assert.match(parsed.error, /lore_path 'tests\/features\/missing.feature' does not exist/);
+        assert.strictEqual(parsed.error, 'spoke_relative_path_invalid:lore_path');
     });
 
     it('rejects an import for an unregistered spoke', async () => {
@@ -172,6 +163,27 @@ describe('🜂 cstar_spoke_bead_import — rich spoke handoff payload', () => {
         assert.strictEqual(result.isError, true);
         const parsed = JSON.parse(result.content[0].text);
         assert.match(parsed.error, /intent is required/);
+    });
+
+    it('rejects absolute targets and unstructured caller metadata', async () => {
+        spokeStore.set('test-spoke', makeSpoke({ root_path: tmpSpokeRoot }));
+        const absolute = await handleSpokeBeadImport({
+            spoke: 'test-spoke',
+            intent: 'Reject an absolute target.',
+            acceptance_criteria: 'No absolute paths persist.',
+            lore_path: 'tests/features/sample.feature',
+            target_paths: ['/home/synthetic/private.ts'],
+        });
+        assert.strictEqual(JSON.parse(absolute.content[0].text).error, 'spoke_relative_path_invalid:target_paths[0]');
+
+        const metadata = await handleSpokeBeadImport({
+            spoke: 'test-spoke',
+            intent: 'Reject arbitrary metadata.',
+            acceptance_criteria: 'No secret-shaped metadata persists.',
+            lore_path: 'tests/features/sample.feature',
+            metadata: { credential: 'synthetic-secret' },
+        });
+        assert.strictEqual(JSON.parse(metadata.content[0].text).error, 'spoke_import_unstructured_metadata_forbidden');
     });
 });
 });

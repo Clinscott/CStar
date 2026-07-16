@@ -1,25 +1,18 @@
-import Database from 'better-sqlite3';
+#!/usr/bin/env node
+
 import path from 'node:path';
-import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
-const statsDir = path.join(process.cwd(), '.stats');
-const dbPath = path.join(statsDir, 'gravity.db');
+export const RETIRED_DIRECT_HALL_SCRIPT_ERROR =
+    'legacy_direct_hall_script_retired_use_cstar_kernel';
 
-if (fs.existsSync(dbPath)) {
-    const db = new Database(dbPath);
-    try {
-        db.exec('ALTER TABLE file_gravity ADD COLUMN git_churn INTEGER DEFAULT 0');
-        db.exec('ALTER TABLE file_gravity ADD COLUMN last_sync INTEGER DEFAULT 0');
-        console.log('[ALFRED]: "Gravity DB schema successfully patched with temporal columns."');
-    } catch (e: any) {
-        if (e.message.includes('duplicate column name')) {
-            console.log('[ALFRED]: "Temporal columns already exist in the Gravity DB."');
-        } else {
-            console.error('[ALFRED]: "Failed to patch Gravity DB:", e.message');
-        }
-    } finally {
-        db.close();
-    }
-} else {
-    console.log('[ALFRED]: "Gravity DB not found. Initializing fresh with temporal support."');
+/** Retired noncanonical gravity database patcher tombstone. */
+export function main(stderr = process.stderr): number {
+    stderr.write(`${RETIRED_DIRECT_HALL_SCRIPT_ERROR}\n`);
+    return 1;
+}
+
+const invokedPath = process.argv[1] ? path.resolve(process.argv[1]) : '';
+if (invokedPath === fileURLToPath(import.meta.url)) {
+    process.exitCode = main();
 }

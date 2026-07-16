@@ -1,31 +1,29 @@
-import type * as hostBridge from '../weaves/host_bridge.js';
-import {
+import type {
     ArchitectServicePayload,
     RuntimeAdapter,
     RuntimeContext,
-    RuntimeDispatchPort,
     WeaveInvocation,
     WeaveResult,
-} from '../contracts.ts';
-import { deps, executeArchitectService } from '../host_workflows/architect_service.js';
+} from '../contracts.js';
+import { buildRetiredRuntimeResult } from '../retired_adapter.js';
 
-/**
- * Compatibility wrapper for legacy direct architect dispatch.
- * Chant planning owns architect synthesis; this adapter preserves older entrypoints.
- */
+/** Retired direct architect host-callback adapter. */
 export class ArchitectCompatibilityAdapter implements RuntimeAdapter<ArchitectServicePayload> {
     public readonly id = 'weave:architect';
 
-    public constructor(
-        private readonly dispatchPort: RuntimeDispatchPort,
-        private readonly hostTextInvoker: hostBridge.HostTextInvoker = deps.defaultHostTextInvoker,
-    ) {}
+    public constructor(..._retiredDependencies: unknown[]) {
+        void _retiredDependencies;
+    }
 
     public async execute(
-        invocation: WeaveInvocation<ArchitectServicePayload>,
-        context: RuntimeContext,
+        _invocation: WeaveInvocation<ArchitectServicePayload>,
+        _context: RuntimeContext,
     ): Promise<WeaveResult> {
-        return executeArchitectService(invocation.payload, context, this.hostTextInvoker);
+        return buildRetiredRuntimeResult({
+            weaveId: this.id,
+            boundary: 'retired-architect-adapter',
+            recommendedTool: 'cstar_handoff',
+        });
     }
 }
 

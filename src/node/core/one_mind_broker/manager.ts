@@ -1,7 +1,6 @@
-import { buildHallRepositoryId, normalizeHallPath, type HallOneMindBrokerRecord } from '../../../types/hall.js';
-import { getHallOneMindBroker, saveHallOneMindBroker } from '../../../tools/pennyone/intel/database.js';
-import { isHostSessionActive, resolveHostProvider } from '../../../core/host_session.js';
-import { getOneMindFulfillmentCapability } from './fulfillment.js';
+/** Stable retirement code for the legacy One Mind broker compatibility API. */
+export const RETIRED_ONE_MIND_COMPATIBILITY_FAILURE =
+    'legacy_one_mind_compatibility_retired_use_cstar_kernel';
 
 export interface OneMindBrokerStatus {
     running: boolean;
@@ -17,89 +16,39 @@ export interface OneMindBrokerStatus {
     bindingState: 'UNBOUND' | 'BOUND' | 'OFFLINE';
 }
 
-function mapRecordToStatus(record: HallOneMindBrokerRecord | null): OneMindBrokerStatus {
-    if (!record || record.status === 'OFFLINE') {
-        return {
-            running: false,
-            responsive: false,
-            fulfillmentReady: false,
-            fulfillmentReason: typeof record?.metadata?.fulfillment_reason === 'string' ? record.metadata.fulfillment_reason : null,
-            fulfillmentMode: typeof record?.metadata?.fulfillment_mode === 'string' ? record.metadata.fulfillment_mode : null,
-            executionSurface: typeof record?.metadata?.execution_surface === 'string' ? record.metadata.execution_surface : null,
-            provider: record?.provider ?? null,
-            sessionId: record?.session_id ?? null,
-            pid: null,
-            port: null,
-            bindingState: 'OFFLINE',
-        };
-    }
-
+function retiredStatus(): OneMindBrokerStatus {
     return {
-        running: true,
-        responsive: true,
-        fulfillmentReady: record.fulfillment_ready,
-        fulfillmentReason: typeof record.metadata?.fulfillment_reason === 'string' ? record.metadata.fulfillment_reason : null,
-        fulfillmentMode: typeof record.metadata?.fulfillment_mode === 'string' ? record.metadata.fulfillment_mode : null,
-        executionSurface: typeof record.metadata?.execution_surface === 'string' ? record.metadata.execution_surface : null,
-        provider: record.provider ?? null,
-        sessionId: record.session_id ?? null,
+        running: false,
+        responsive: false,
+        fulfillmentReady: false,
+        fulfillmentReason: RETIRED_ONE_MIND_COMPATIBILITY_FAILURE,
+        fulfillmentMode: 'retired',
+        executionSurface: null,
+        provider: null,
+        sessionId: null,
         pid: null,
         port: null,
-        bindingState: record.binding_state,
+        bindingState: 'OFFLINE',
     };
 }
 
-function buildRecord(rootPath: string, env: NodeJS.ProcessEnv, status: HallOneMindBrokerRecord['status']): HallOneMindBrokerRecord {
-    const now = Date.now();
-    const hostActive = isHostSessionActive(env);
-    const fulfillment = getOneMindFulfillmentCapability(env);
-    return {
-        repo_id: buildHallRepositoryId(normalizeHallPath(rootPath)),
-        status,
-        binding_state: hostActive ? 'BOUND' : 'UNBOUND',
-        fulfillment_ready: status === 'READY' && hostActive ? fulfillment.ready : false,
-        provider: fulfillment.provider ?? resolveHostProvider(env) ?? undefined,
-        session_id: env.CODEX_THREAD_ID ?? undefined,
-        control_plane: 'hall',
-        metadata: {
-            host_session_active: hostActive,
-            host_provider: resolveHostProvider(env) ?? null,
-            fulfillment_reason: fulfillment.reason,
-            fulfillment_mode: hostActive && fulfillment.ready ? 'host_session' : 'offline',
-            execution_surface: hostActive && fulfillment.ready
-                ? (fulfillment.reason === 'configured-codex-host-bridge' ? 'configured-bridge' : 'host-cli-inference')
-                : 'unavailable',
-        },
-        created_at: now,
-        updated_at: now,
-    };
+/** Read compatibility returns a synthetic offline status without consulting Hall. */
+export async function getOneMindBrokerStatus(_rootPath: string): Promise<OneMindBrokerStatus> {
+    return retiredStatus();
 }
 
-export async function getOneMindBrokerStatus(rootPath: string): Promise<OneMindBrokerStatus> {
-    return mapRecordToStatus(getHallOneMindBroker(rootPath));
+/** Start compatibility is a no-effect tombstone. */
+export async function ensureOneMindBroker(
+    _rootPath: string,
+    _env: NodeJS.ProcessEnv = {},
+): Promise<OneMindBrokerStatus> {
+    return retiredStatus();
 }
 
-export async function ensureOneMindBroker(rootPath: string, env: NodeJS.ProcessEnv = process.env): Promise<OneMindBrokerStatus> {
-    const existing = getHallOneMindBroker(rootPath);
-    const nextRecord = {
-        ...buildRecord(rootPath, env, 'READY'),
-        created_at: existing?.created_at ?? Date.now(),
-    };
-    saveHallOneMindBroker(nextRecord, rootPath);
-    return mapRecordToStatus(nextRecord);
-}
-
-export async function stopOneMindBroker(rootPath: string, env: NodeJS.ProcessEnv = process.env): Promise<boolean> {
-    const existing = getHallOneMindBroker(rootPath);
-    if (!existing || existing.status === 'OFFLINE') {
-        return false;
-    }
-
-    saveHallOneMindBroker({
-        ...buildRecord(rootPath, env, 'OFFLINE'),
-        binding_state: 'UNBOUND',
-        fulfillment_ready: false,
-        created_at: existing.created_at,
-    }, rootPath);
-    return true;
+/** Stop compatibility cannot mutate a broker that no longer exists. */
+export async function stopOneMindBroker(
+    _rootPath: string,
+    _env: NodeJS.ProcessEnv = {},
+): Promise<boolean> {
+    return false;
 }

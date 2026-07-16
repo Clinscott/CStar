@@ -7,54 +7,64 @@ Purpose: Identify unused imports and unreachable code using Vulture.
 from pathlib import Path
 from typing import Any
 
-import vulture
+try:
+    import vulture
+except ImportError:
+    class _UnavailableVulture:
+        Vulture = None
+
+    vulture = _UnavailableVulture()
 
 from src.core.engine.wardens.base import BaseWarden
 
 
+def _require_vulture() -> None:
+    """Fail when dead-code analysis is invoked without its dependency."""
+    if vulture.Vulture is None:
+        raise RuntimeError("optional_dependency_unavailable:vulture")
+
+
 class ValkyrieWarden(BaseWarden):
+    def __init__(self, root: Path, *, confidence_threshold: int = 60) -> None:
+        super().__init__(root)
+        self.confidence_threshold = confidence_threshold
+
     def scan(self) -> list[dict[str, Any]]:
+        _require_vulture()
         targets = []
-        try:
-            v = vulture.Vulture(verbose=False)
-            py_files = []
+        v = vulture.Vulture(verbose=False)
+        py_files = []
 
-            # Scavenge all python files not in ignored dirs
-            for p in self.root.rglob("*.py"):
-                if self._should_ignore(p):
-                    continue
-                py_files.append(str(p))
+        # Scavenge all python files not in ignored dirs
+        for p in self.root.rglob("*.py"):
+            if self._should_ignore(p):
+                continue
+            py_files.append(str(p))
 
-            v.scavenge(py_files)
+        v.scavenge(py_files)
 
-            # Get threshold from config or default to 60 (standard confidence)
-            # The previous code used 20, but user requested it be configurable.
-            min_confidence = self.config.get("VULTURE_CONFIDENCE", 60)
+        raw_items = v.get_unused_code()
 
-            raw_items = v.get_unused_code()
+        for item in raw_items:
+            # Ignore structural files
+            if "__init__.py" in item.filename:
+                continue
 
-            for item in raw_items:
-                # Ignore structural files
-                if "__init__.py" in item.filename:
-                    continue
+            if item.confidence < self.confidence_threshold:
+                continue
 
-                if item.confidence < min_confidence:
-                    continue
+            lineno = getattr(item, "first_lineno", getattr(item, "lineno", 1))
 
-                lineno = getattr(item, "first_lineno", getattr(item, "lineno", 1))
+            try:
+                rel_path = str(Path(item.filename).resolve().relative_to(self.root.resolve()))
+            except ValueError:
+                rel_path = str(item.filename)
 
-                try:
-                    rel_path = str(Path(item.filename).resolve().relative_to(self.root.resolve()))
-                except ValueError:
-                    rel_path = str(item.filename)
-
-                targets.append({
-                    "type": "VALKYRIE_BREACH",
-                    "file": rel_path,
-                    "action": f"Prune Dead Code: {item.message} at line {lineno} (Confidence: {item.confidence}%)",
-                    "severity": "LOW",
-                    "line": lineno
-                })
-        except Exception:
-            pass
+            targets.append({
+                "type": "VALKYRIE_BREACH",
+                "file": rel_path,
+                "action": f"Prune Dead Code: {item.message} at line {lineno} (Confidence: {item.confidence}%)",
+                "severity": "LOW",
+                "line": lineno
+            })
         return targets

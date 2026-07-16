@@ -25,16 +25,16 @@ CStar is retained only where it reduces cognitive load: memory, task state, rout
 
 ## Mission Loop
 
-1. Recover state with `./cstar augury handoff --json`.
-2. Search memory with one bounded `./cstar hall "<query>"`.
+1. Recover state with `cstar_handoff` through `cstar-kernel` MCP.
+2. Search memory with one bounded `cstar_hall_search` call.
 3. Inspect only relevant files.
 4. Make the smallest useful change.
 5. Run the focused checker.
-6. Record or summarize the result.
+6. Record validation with `cstar_record_result` when a bead changed.
 
 ## Failure Loop
 
-1. Run `./cstar augury doctor --json`.
+1. Run `cstar_doctor` through `cstar-kernel` MCP.
 2. Repair the failed kernel surface or explicitly defer it.
 3. Continue the mission loop.
 

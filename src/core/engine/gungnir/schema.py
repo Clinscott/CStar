@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass
-from typing import Any, Mapping
+from typing import Any
 
 GUNGNIR_SCHEMA_VERSION = "1.0"
 LOGGER = logging.getLogger(__name__)

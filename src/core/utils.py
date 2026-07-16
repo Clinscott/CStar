@@ -13,7 +13,10 @@ except ImportError:
     msvcrt = None
 
 def load_config(root_path: str | Path) -> dict:
-    return SovereignUtils.load_config(root_path)
+    del root_path
+    raise RuntimeError(
+        "Direct secret-bearing configuration reads are retired; use a bounded CStar projection."
+    )
 
 def safe_read_json(path: Path | str) -> dict:
     return SovereignUtils.safe_read_json(path)
@@ -26,9 +29,10 @@ class SovereignUtils:
 
     @staticmethod
     def load_config(root_path: str | Path) -> dict:
-        """Securely load the C* configuration using Pathlib."""
-        path = Path(root_path) / ".agents" / "config.json"
-        return SovereignUtils.safe_read_json(path)
+        del root_path
+        raise RuntimeError(
+            "Direct secret-bearing configuration reads are retired; use a bounded CStar projection."
+        )
 
     @staticmethod
     def safe_read_json(path: Path | str) -> dict:

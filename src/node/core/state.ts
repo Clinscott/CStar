@@ -1,18 +1,13 @@
-import fs from 'node:fs';
 import path from 'node:path';
-import { randomUUID } from 'node:crypto';
+
+import { buildDefaultSovereignState } from './state_defaults.js';
+import { database } from '../../tools/pennyone/intel/database.js';
 import { registry } from '../../tools/pennyone/pathRegistry.js';
-import { activePersona } from '../../tools/pennyone/personaRegistry.js';
-import {
-    database,
-} from '../../tools/pennyone/intel/database.ts';
-import {
-    buildHallCoordinationThreadId,
-    buildHallRepositoryId,
-    normalizeHallPath,
-    type HallMountedSpokeRecord,
-    type HallCoordinationEventKind,
-} from  '../../types/hall.js';
+import { readHallPersonaProjection } from '../../tools/pennyone/persona_projection.js';
+import type { HallMountedSpokeRecord } from '../../types/hall.js';
+
+export const STATE_REGISTRY_MUTATION_RETIRED_ERROR =
+    'legacy_state_registry_mutation_retired_use_cstar_kernel';
 
 export interface FrameworkState {
     status: 'AWAKE' | 'DORMANT' | 'AGENT_LOOP';
@@ -48,7 +43,10 @@ export interface HallOfRecordsMetadata {
     };
 }
 
-export type ManagedSpokeProjection = Omit<HallMountedSpokeRecord, 'repo_id' | 'metadata' | 'created_at' | 'updated_at'>;
+export type ManagedSpokeProjection = Omit<
+    HallMountedSpokeRecord,
+    'repo_id' | 'metadata' | 'created_at' | 'updated_at'
+>;
 
 export interface OperatorConsoleProjection {
     default_entrypoint: 'cli' | 'tui';
@@ -87,46 +85,6 @@ export interface SovereignState {
     [key: string]: unknown;
 }
 
-type SovereignProjectionMetadata = {
-    framework?: Partial<FrameworkState>;
-    identity?: SystemIdentity;
-    hall_of_records?: HallOfRecordsMetadata;
-    managed_spokes?: ManagedSpokeProjection[];
-    operator_console?: OperatorConsoleProjection;
-    agents?: Record<string, AgentState>;
-    blackboard?: BlackboardEntry[];
-    terminal_logs?: string[];
-    extras?: Record<string, unknown>;
-};
-
-type SovereignStatePatch = {
-    framework?: Partial<FrameworkState>;
-    identity?: Partial<SystemIdentity>;
-    hall_of_records?: Partial<HallOfRecordsMetadata> & {
-        primary_assets?: Partial<HallOfRecordsMetadata['primary_assets']>;
-    };
-    managed_spokes?: ManagedSpokeProjection[];
-    operator_console?: Partial<OperatorConsoleProjection>;
-    agents?: Record<string, AgentState>;
-    blackboard?: BlackboardEntry[];
-    terminal_logs?: string[];
-    [key: string]: unknown;
-};
-
-function mapBlackboardTypeToCoordinationKind(entryType: BlackboardEntry['type']): HallCoordinationEventKind {
-    switch (entryType) {
-        case 'HANDOFF':
-            return 'HANDOFF';
-        case 'BROADCAST':
-            return 'BROADCAST';
-        case 'ALERT':
-            return 'ALERT';
-        case 'INFO':
-        default:
-            return 'INFO';
-    }
-}
-
 function projectManagedSpoke(record: HallMountedSpokeRecord): ManagedSpokeProjection {
     return {
         spoke_id: record.spoke_id,
@@ -144,368 +102,91 @@ function projectManagedSpoke(record: HallMountedSpokeRecord): ManagedSpokeProjec
     };
 }
 
+/**
+ * Read-only compatibility view over canonical Hall tables.
+ *
+ * The former registry mixed legacy JSON, arbitrary repository metadata, Hall
+ * writes, and file mirroring. Mutations now fail before reading or writing;
+ * callers must use a request-classified cstar-kernel lifecycle tool.
+ */
 export class StateRegistry {
-    private static readonly SOVEREIGN_PROJECTION_KEY = 'sovereign_projection';
     private static getControlRoot(): string {
         const configuredRoot = process.env.CSTAR_CONTROL_ROOT ?? process.env.CSTAR_PROJECT_ROOT;
-        if (configuredRoot?.trim()) {
-            return path.resolve(configuredRoot.trim());
-        }
-        return registry.getRoot();
-    }
-
-    private static getPath() {
-        return path.join(this.getControlRoot(), '.agents', 'sovereign_state.json');
-    }
-
-    private static getDefaultState(): SovereignState {
-        return {
-            framework: {
-                status: 'DORMANT',
-                last_awakening: 0,
-                active_persona: activePersona.name,
-                gungnir_score: 0,
-                intent_integrity: 0
-            },
-            identity: {
-                name: 'Corvus Star (C*)',
-                tagline: 'Synergy is the blood of the Totem. Without it, the system is but clay.',
-                guiding_principles: [
-                    'The One Mind: All intelligence is unified and Host-sampled.',
-                    'Skills-First: Capabilities are evolved, discrete, and self-documenting.',
-                    'Neuralplastic Learning: System behavior evolves through autonomous contract mutation.',
-                    'The Sterling Mandate: Lore, Isolation, and Audit verify all reality.'
-                ],
-                use_systems: {
-                    interface: 'SovereignHUD (Terminal UI) / CStar CLI',
-                    orchestration: 'Gungnir Control Plane (TypeScript/Node.js)',
-                    intelligence: 'The Corvus kernel bridge (one-shot Python execution / MCP sampling)',
-                    memory: "Hall of Records (.stats/pennyone.db) / Mimir's Well (transport only)",
-                    visualization: 'PennyOne (3D Digital Twin)'
-                }
-            },
-            hall_of_records: {
-                description: 'The persistent, high-durability anchor of the frameworks state and history.',
-                primary_assets: {
-                    database: '.stats/pennyone.db (Canonical Hall of Records)',
-                    contracts: '.agents/skills/*.feature (Behavioral Contracts)',
-                    lore: '.agents/lore/ (Architectural Chants)',
-                    history: 'dev_journal.qmd (Timeline of Yggdrasil)'
-                }
-            },
-            managed_spokes: [],
-            operator_console: {
-                default_entrypoint: 'tui',
-                preferred_prompt_position: 'top',
-                verbose_stream: true,
-                theme: 'matrix',
-            },
-            agents: {
-                gemini: { id: 'gemini', name: 'Gemini', status: 'SLEEPING', last_seen: 0 },
-                codex: { id: 'codex', name: 'Codex', status: 'SLEEPING', last_seen: 0 },
-                droid: { id: 'droid', name: 'Droid', status: 'OFFLINE', last_seen: 0 }
-            },
-            blackboard: [],
-            terminal_logs: []
-        };
-    }
-
-    private static readLegacyProjection(): SovereignStatePatch {
-        const projectionPath = this.getPath();
-        if (!fs.existsSync(projectionPath)) {
-            return {};
-        }
-
-        try {
-            return JSON.parse(fs.readFileSync(projectionPath, 'utf-8')) as SovereignStatePatch;
-        } catch {
-            return {};
-        }
-    }
-
-    private static mergeState(
-        base: SovereignState,
-        patch: SovereignStatePatch | undefined,
-    ): SovereignState {
-        if (!patch) {
-            return base;
-        }
-
-        const { framework, identity, hall_of_records, managed_spokes, operator_console, agents, blackboard, terminal_logs, ...extras } = patch;
-        return {
-            ...base,
-            ...extras,
-            framework: framework ? { ...base.framework, ...framework } : base.framework,
-            identity: identity ? { ...base.identity, ...identity } : base.identity,
-            hall_of_records: hall_of_records
-                ? {
-                    ...base.hall_of_records,
-                    ...hall_of_records,
-                    primary_assets: {
-                        ...base.hall_of_records.primary_assets,
-                        ...(hall_of_records.primary_assets ?? {}),
-                    },
-                }
-                : base.hall_of_records,
-            managed_spokes: managed_spokes ?? base.managed_spokes,
-            operator_console: operator_console
-                ? { ...base.operator_console, ...operator_console }
-                : base.operator_console,
-            agents: agents ? { ...base.agents, ...agents } : base.agents,
-            blackboard: blackboard ?? base.blackboard,
-            terminal_logs: terminal_logs ?? base.terminal_logs,
-        };
-    }
-
-    private static readHallMountedSpokes(): ManagedSpokeProjection[] {
-        try {
-            return database.listHallMountedSpokes(this.getControlRoot()).map(projectManagedSpoke);
-        } catch {
-            return [];
-        }
-    }
-
-    private static syncHallMountedSpokes(managedSpokes: ManagedSpokeProjection[]): void {
-        const controlRoot = this.getControlRoot();
-        const repoRecord = database.getHallRepository(controlRoot);
-        const repoId = repoRecord?.repo_id;
-        if (!repoId) {
-            return;
-        }
-
-        const existing = database.listHallMountedSpokes(controlRoot);
-        const existingBySlug = new Map(existing.map((record) => [record.slug, record]));
-        const nextSlugs = new Set<string>();
-
-        for (const spoke of managedSpokes) {
-            nextSlugs.add(spoke.slug);
-            const prior = existingBySlug.get(spoke.slug);
-            database.saveHallMountedSpoke({
-                spoke_id: prior?.spoke_id ?? spoke.spoke_id,
-                repo_id: repoId,
-                slug: spoke.slug,
-                kind: spoke.kind,
-                root_path: spoke.root_path,
-                remote_url: spoke.remote_url,
-                default_branch: spoke.default_branch,
-                mount_status: spoke.mount_status,
-                trust_level: spoke.trust_level,
-                write_policy: spoke.write_policy,
-                projection_status: spoke.projection_status,
-                last_scan_at: spoke.last_scan_at,
-                last_health_at: spoke.last_health_at,
-                metadata: prior?.metadata ?? { source: 'state-registry-projection' },
-                created_at: prior?.created_at ?? Date.now(),
-                updated_at: Date.now(),
-            });
-        }
-
-        for (const stale of existing) {
-            if (!nextSlugs.has(stale.slug)) {
-                database.removeHallMountedSpoke(stale.slug, controlRoot);
-            }
-        }
-    }
-
-    private static syncHallAgentPresence(agents: Record<string, AgentState>): void {
-        const controlRoot = this.getControlRoot();
-        const repoId = database.getHallRepository(controlRoot)?.repo_id
-            ?? buildHallRepositoryId(normalizeHallPath(controlRoot));
-        const now = Date.now();
-
-        for (const [agentKey, agent] of Object.entries(agents ?? {})) {
-            database.saveHallAgentPresence({
-                repo_id: repoId,
-                agent_id: agent.id || agentKey,
-                name: agent.name || agentKey,
-                status: agent.status,
-                current_task: agent.current_task,
-                active_bead_id: agent.active_bead_id,
-                pid: agent.pid,
-                metadata: {
-                    projection_source: 'state_registry',
-                    roster_key: agentKey,
-                },
-                created_at: now,
-                updated_at: agent.last_seen > 0 ? agent.last_seen : now,
-            }, controlRoot);
-        }
-    }
-
-    private static extractHallProjection(): SovereignStatePatch {
-        const record = database.getHallRepository(this.getControlRoot());
-        const metadata = (record?.metadata ?? {}) as Record<string, unknown>;
-        const projection = metadata[this.SOVEREIGN_PROJECTION_KEY] as SovereignProjectionMetadata | undefined;
-
-        if (!projection || typeof projection !== 'object') {
-            return {};
-        }
-
-        return {
-            ...(projection.extras ?? {}),
-            framework: projection.framework,
-            identity: projection.identity,
-            hall_of_records: projection.hall_of_records,
-            managed_spokes: projection.managed_spokes,
-            operator_console: projection.operator_console,
-            agents: projection.agents,
-            blackboard: projection.blackboard,
-            terminal_logs: projection.terminal_logs,
-        };
-    }
-
-    private static buildMetadata(state: SovereignState): Record<string, unknown> {
-        const existingMetadata = (database.getHallRepository(this.getControlRoot())?.metadata ?? {}) as Record<string, unknown>;
-        const { framework, identity, hall_of_records, managed_spokes, operator_console, agents, blackboard, terminal_logs, ...extras } = state;
-        const projectedSpokes = this.readHallMountedSpokes();
-
-        return {
-            ...existingMetadata,
-            source: 'state-registry-projection',
-            [this.SOVEREIGN_PROJECTION_KEY]: {
-                framework: {
-                    last_awakening: framework.last_awakening,
-                    active_task: framework.active_task,
-                    mission_id: framework.mission_id,
-                    bead_id: framework.bead_id,
-                },
-                identity,
-                hall_of_records,
-                managed_spokes: projectedSpokes.length > 0 ? projectedSpokes : managed_spokes,
-                operator_console,
-                agents,
-                blackboard,
-                terminal_logs,
-                extras,
-            },
-        };
-    }
-
-    private static ensureStateShape(state: SovereignState): SovereignState {
-        const defaults = this.getDefaultState();
-        return this.mergeState(defaults, state);
+        return configuredRoot?.trim()
+            ? path.resolve(configuredRoot.trim())
+            : registry.getRoot();
     }
 
     static get(): SovereignState {
-        const defaults = this.getDefaultState();
-        let state = this.mergeState(defaults, this.readLegacyProjection());
-        state = this.mergeState(state, this.extractHallProjection());
-        const mountedSpokes = this.readHallMountedSpokes();
-        if (mountedSpokes.length > 0) {
-            state.managed_spokes = mountedSpokes;
+        const state = buildDefaultSovereignState();
+        const root = this.getControlRoot();
+
+        try {
+            const summary = database.getHallSummary(root);
+            const repository = database.getHallRepository(root);
+            if (summary) {
+                state.framework = {
+                    ...state.framework,
+                    status: summary.status,
+                    last_awakening: repository?.updated_at ?? 0,
+                    active_persona: readHallPersonaProjection(root) ?? '',
+                    gungnir_score: summary.baseline_gungnir_score,
+                    intent_integrity: summary.intent_integrity,
+                };
+            }
+        } catch {
+            // Missing or unsafe Hall state yields the inert compatibility view.
         }
 
         try {
-            const hallSummary = database.getHallSummary(this.getControlRoot());
-            if (hallSummary) {
-                const metadata = (database.getHallRepository(this.getControlRoot())?.metadata ?? {}) as any;
-                const projection = metadata[this.SOVEREIGN_PROJECTION_KEY] as any;
-                
-                state.framework = {
-                    ...state.framework,
-                    status: hallSummary.status,
-                    active_persona: hallSummary.active_persona,
-                    gungnir_score: hallSummary.baseline_gungnir_score,
-                    intent_integrity: hallSummary.intent_integrity,
-                    bead_id: projection?.framework?.bead_id
-                };
-            }
-            // Hall projection is authoritative when available, but state must remain readable without it.
+            state.managed_spokes = database.listHallMountedSpokes(root).map(projectManagedSpoke);
         } catch {
-            // State must remain readable even if Hall is temporarily unavailable.
+            state.managed_spokes = [];
+        }
+
+        try {
+            state.agents = Object.fromEntries(
+                database.listHallAgentPresence(root).map((agent) => [agent.agent_id, {
+                    id: agent.agent_id,
+                    name: agent.name,
+                    status: agent.status,
+                    last_seen: agent.updated_at,
+                    current_task: agent.current_task,
+                    active_bead_id: agent.active_bead_id,
+                    pid: agent.pid,
+                }]),
+            );
+        } catch {
+            state.agents = {};
         }
 
         return state;
     }
 
-    static updateMission(id: string, task: string, beadId?: string) {
-        this.updateFramework({
-            status: 'AGENT_LOOP',
-            mission_id: id,
-            active_task: task,
-            bead_id: beadId
-        });
+    static updateMission(id: string, task: string, beadId?: string): never {
+        void id;
+        void task;
+        void beadId;
+        throw new Error(STATE_REGISTRY_MUTATION_RETIRED_ERROR);
     }
 
-    static updateFramework(patch: Partial<FrameworkState>) {
-        const state = this.get();
-        state.framework = { ...state.framework, ...patch };
-        state.framework.active_persona = activePersona.name; // Always sync with current
-        this.save(state);
+    static updateFramework(patch: Partial<FrameworkState>): never {
+        void patch;
+        throw new Error(STATE_REGISTRY_MUTATION_RETIRED_ERROR);
     }
 
-    static postToBlackboard(entry: Omit<BlackboardEntry, 'at'>) {
-        const state = this.get();
-        const fullEntry: BlackboardEntry = { ...entry, at: Date.now() };
-        state.blackboard = [...(state.blackboard || []), fullEntry].slice(-100); // Keep last 100
-        this.save(state);
-
-        try {
-            const controlRoot = this.getControlRoot();
-            const repoId = database.getHallRepository(controlRoot)?.repo_id
-                ?? buildHallRepositoryId(normalizeHallPath(controlRoot));
-            const beadId = state.framework.bead_id;
-            const threadId = buildHallCoordinationThreadId({ repoId, beadId });
-            database.saveHallCoordinationEvent({
-                event_id: `coord:${randomUUID()}`,
-                repo_id: repoId,
-                thread_id: threadId,
-                scope_kind: beadId ? 'BEAD' : 'REPOSITORY',
-                scope_ref: beadId ?? repoId,
-                event_kind: mapBlackboardTypeToCoordinationKind(fullEntry.type),
-                from_agent_id: fullEntry.from,
-                to_agent_id: fullEntry.to,
-                bead_id: beadId,
-                rationale: `War Room ${fullEntry.type.toLowerCase()} event mirrored into the Hall coordination ledger.`,
-                summary: fullEntry.message,
-                payload: {
-                    blackboard_type: fullEntry.type,
-                    at: fullEntry.at,
-                },
-                metadata: {
-                    projection_source: 'state_registry.blackboard',
-                },
-                created_at: fullEntry.at,
-                updated_at: fullEntry.at,
-            }, controlRoot);
-        } catch {
-            // Blackboard projection must remain best-effort.
-        }
+    static postToBlackboard(entry: Omit<BlackboardEntry, 'at'>): never {
+        void entry;
+        throw new Error(STATE_REGISTRY_MUTATION_RETIRED_ERROR);
     }
 
-    static pushTerminalLog(line: string) {
-        const state = this.get();
-        state.terminal_logs = [...(state.terminal_logs || []), line].slice(-50); // Keep last 50 lines
-        this.save(state);
+    static pushTerminalLog(line: string): never {
+        void line;
+        throw new Error(STATE_REGISTRY_MUTATION_RETIRED_ERROR);
     }
 
-    static save(state: SovereignState) {
-        const materialized = this.ensureStateShape(state);
-        const controlRoot = this.getControlRoot();
-        const existingRecord = database.getHallRepository(controlRoot);
-        const createdAt = existingRecord?.created_at
-            ?? materialized.framework.last_awakening
-            ?? Date.now();
-
-        try {
-            database.saveHallRepository({
-                root_path: controlRoot,
-                name: path.basename(controlRoot),
-                status: materialized.framework.status,
-                active_persona: materialized.framework.active_persona,
-                baseline_gungnir_score: materialized.framework.gungnir_score,
-                intent_integrity: materialized.framework.intent_integrity,
-                metadata: this.buildMetadata(materialized),
-                created_at: createdAt,
-                updated_at: Date.now(),
-            });
-            this.syncHallMountedSpokes(materialized.managed_spokes);
-            this.syncHallAgentPresence(materialized.agents);
-        } catch {
-            // Compatibility state writes should not fail if Hall is temporarily unavailable.
-        }
-
-        fs.mkdirSync(path.dirname(this.getPath()), { recursive: true });
-        fs.writeFileSync(this.getPath(), JSON.stringify(materialized, null, 2), 'utf-8');
+    static save(state: SovereignState): never {
+        void state;
+        throw new Error(STATE_REGISTRY_MUTATION_RETIRED_ERROR);
     }
 }

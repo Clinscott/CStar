@@ -54,7 +54,10 @@ class FailureReporter:
         if categories["LATENCY"] > 5:
             print(f"\n{SovereignHUD.RED}>> ADVISORY: Latency Spike Detected. Investigate network_watcher.py{SovereignHUD.RESET}")
         if categories["CONFLICT"] > 5:
-            print(f"\n{SovereignHUD.YELLOW}>> ADVISORY: High Conflict Rate. Run 'python trace_viz.py --war-room'{SovereignHUD.RESET}")
+            print(
+                f"\n{SovereignHUD.YELLOW}>> ADVISORY: High Conflict Rate. "
+                f"Use bounded CStar handoff and trace surfaces.{SovereignHUD.RESET}"
+            )
 
 if __name__ == "__main__":
     FailureReporter.execute(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))

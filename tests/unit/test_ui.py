@@ -182,13 +182,9 @@ async def test_hud_interruption_cleanup(mock_stream):
     )
 
 
-def test_hud_invalid_config_falls_back_to_defaults(tmp_path, monkeypatch):
-    """Malformed persona config should not crash HUD initialization."""
-    agents_dir = tmp_path / ".agents"
-    agents_dir.mkdir()
-    (agents_dir / "config.json").write_text("not-json", encoding="utf-8")
-    monkeypatch.chdir(tmp_path)
-
+def test_hud_uses_explicit_presentation_persona_without_file_fallback():
+    """Persona is an explicit presentation argument, never local authority."""
+    SovereignHUD.PERSONA = "ALFRED"
     theme = SovereignHUD.get_theme()
 
     assert SovereignHUD.PERSONA == "ALFRED"

@@ -1,13 +1,18 @@
 import type { HallBeadRecord, HallBeadStatus, HallBeadTargetKind } from '../../../types/hall.js';
 import type { SovereignBead } from '../../../types/bead.js';
+import type { McpRequestContext } from '../contracts/request_context.js';
 import {
     verifySterlingMandate,
-    mergeMandateEvidence,
     type MandateEvidence,
     type MandateVerdict,
 } from '../../../node/core/sterling_mandate.js';
 import { database } from '../../pennyone/intel/database.js';
-import { mcpMutation, textResponse } from '../contracts/responses.js';
+import {
+    mcpErrorCode,
+    mcpMutation,
+    preAuthorizationErrorResponse,
+    textResponse,
+} from '../contracts/responses.js';
 import {
     compactBead,
     generateBeadId,
@@ -19,6 +24,10 @@ import {
     upsertBeadFromExisting,
     withResolvedValidationMetadata,
 } from './shared.js';
+import {
+    verifyCodexRequestIdentity,
+    type VerifiedCodexRequestIdentity,
+} from './operator_authorization.js';
 
 type BeadAction = 'get' | 'list' | 'create' | 'update_status' | 'claim' | 'resolve' | 'block';
 
@@ -43,8 +52,6 @@ export interface BeadToolArgs {
     metadata?: Record<string, unknown>;
     spoke?: string;
     mandate_evidence?: MandateEvidence;
-    force?: boolean;
-    force_reason?: string;
 }
 
 interface SterlingMandateAuditEntry {
@@ -52,10 +59,18 @@ interface SterlingMandateAuditEntry {
     evaluated_at: number;
     legs: MandateVerdict['legs'];
     reasons: string[];
-    exemption_reason?: string;
-    forced?: boolean;
-    force_reason?: string;
     actor: string;
+}
+
+function mutationIdentityMetadata(identity: VerifiedCodexRequestIdentity | null) {
+    return identity ? {
+        mutation_request_identity: {
+            source: identity.source,
+            thread_id: identity.thread_id,
+            turn_id: identity.turn_id,
+            turn_record_set_sha256: identity.turn_record_set_sha256,
+        },
+    } : {};
 }
 
 function gateSterlingMandate(bead: SovereignBead, args: BeadToolArgs, hubRoot: string): SterlingMandateAuditEntry {
@@ -70,31 +85,16 @@ function gateSterlingMandate(bead: SovereignBead, args: BeadToolArgs, hubRoot: s
         updated_at: bead.updated_at,
     } as HallBeadRecord;
 
-    const evidence = mergeMandateEvidence(beadAsHallRecord, args.mandate_evidence);
-    const verdict = verifySterlingMandate(beadAsHallRecord, evidence, hubRoot);
+    const validationId = args.mandate_evidence?.audit?.validation_id?.trim();
+    if (!validationId || requestedResolvedValidationId(args, bead) !== validationId) {
+        throw new Error('sterling_validation_id_must_match_resolved_validation_id');
+    }
+    const verdict = verifySterlingMandate(beadAsHallRecord, args.mandate_evidence, hubRoot);
 
     if (verdict.verdict === 'REJECTED') {
-        if (args.force === true) {
-            const forceReason = (args.force_reason ?? '').trim();
-            if (forceReason.length === 0) {
-                throw new Error(
-                    `Sterling Mandate REJECTED for bead '${bead.id}'. ` +
-                    `Override requires force=true AND a non-empty force_reason. Reasons: ${verdict.reasons.join('; ')}`,
-                );
-            }
-            return {
-                verdict: 'REJECTED',
-                evaluated_at: verdict.evaluated_at,
-                legs: verdict.legs,
-                reasons: verdict.reasons,
-                forced: true,
-                force_reason: forceReason,
-                actor: 'cstar-kernel-mcp',
-            };
-        }
         throw new Error(
             `Sterling Mandate REJECTED for bead '${bead.id}': ${verdict.reasons.join('; ')}. ` +
-            `Provide mandate_evidence with lore_paths + isolation_paths + audit, set mandate_exempt=true with exemption_reason, or override with force=true + force_reason.`,
+            'Provide fresh contained lore_paths and isolation_paths bound to the exact independent validation receipt.',
         );
     }
 
@@ -103,15 +103,25 @@ function gateSterlingMandate(bead: SovereignBead, args: BeadToolArgs, hubRoot: s
         evaluated_at: verdict.evaluated_at,
         legs: verdict.legs,
         reasons: verdict.reasons,
-        ...(verdict.exemption_reason !== undefined ? { exemption_reason: verdict.exemption_reason } : {}),
         actor: 'cstar-kernel-mcp',
     };
 }
 
-export async function handleBead(args: BeadToolArgs) {
+export async function handleBead(args: BeadToolArgs, requestContext?: McpRequestContext) {
+    const identityRequired = !['get', 'list'].includes(args.action);
+    let requestIdentityVerified = !identityRequired;
     try {
-        const { root, repoId: kernelRepoId } = resolveActiveRepo();
         const now = Date.now();
+        const requestIdentity = identityRequired
+            ? await verifyCodexRequestIdentity(requestContext, now)
+            : null;
+        requestIdentityVerified = true;
+        if (args.action !== 'get' && args.action !== 'list') {
+            // Every remaining action is a declared Hall mutation. Bootstrap is
+            // therefore permitted here, before read helpers inspect the store.
+            database.getWritableDb();
+        }
+        const { root, repoId: kernelRepoId } = resolveActiveRepo();
 
         if (args.action === 'list') {
             const limit = Math.min(args.limit || 5, 10);
@@ -148,6 +158,7 @@ export async function handleBead(args: BeadToolArgs) {
                     source: 'cstar-kernel-mcp',
                     ...(anchor.metadata || {}),
                     ...(args.metadata || {}),
+                    ...mutationIdentityMetadata(requestIdentity),
                 },
                 created_at: now,
                 updated_at: now,
@@ -185,6 +196,7 @@ export async function handleBead(args: BeadToolArgs) {
                     ...(bead.metadata || {}),
                     ...(args.metadata || {}),
                     updated_by: 'cstar-kernel-mcp',
+                    ...mutationIdentityMetadata(requestIdentity),
                     ...(sterlingPatch !== null ? { sterling_mandate: sterlingPatch } : {}),
                 }, resolvedValidationId),
             });
@@ -202,7 +214,13 @@ export async function handleBead(args: BeadToolArgs) {
             const updated = upsertBeadFromExisting(bead, {
                 assigned_agent: assignedAgent,
                 status: args.status || 'IN_PROGRESS',
-                metadata: { ...(bead.metadata || {}), ...(args.metadata || {}), claimed_by: assignedAgent, claim_source: 'cstar-kernel-mcp' },
+                metadata: {
+                    ...(bead.metadata || {}),
+                    ...(args.metadata || {}),
+                    claimed_by: assignedAgent,
+                    claim_source: 'cstar-kernel-mcp',
+                    ...mutationIdentityMetadata(requestIdentity),
+                },
             });
             return textResponse({
                 status: 'claimed',
@@ -224,6 +242,7 @@ export async function handleBead(args: BeadToolArgs) {
                     ...(args.metadata || {}),
                     resolved_by: 'cstar-kernel-mcp',
                     sterling_mandate: sterlingPatch,
+                    ...mutationIdentityMetadata(requestIdentity),
                 }, resolvedValidationId),
             });
             return textResponse({
@@ -241,7 +260,12 @@ export async function handleBead(args: BeadToolArgs) {
                 status: 'BLOCKED',
                 triage_reason: triageReason,
                 resolution_note: args.resolution_note ?? bead.resolution_note,
-                metadata: { ...(bead.metadata || {}), ...(args.metadata || {}), blocked_by: 'cstar-kernel-mcp' },
+                metadata: {
+                    ...(bead.metadata || {}),
+                    ...(args.metadata || {}),
+                    blocked_by: 'cstar-kernel-mcp',
+                    ...mutationIdentityMetadata(requestIdentity),
+                },
             });
             return textResponse({
                 status: 'blocked',
@@ -253,6 +277,9 @@ export async function handleBead(args: BeadToolArgs) {
 
         return textResponse({ error: `Unsupported bead action: ${args.action}` }, true);
     } catch (error: any) {
+        if (!requestIdentityVerified) {
+            return preAuthorizationErrorResponse(mcpErrorCode(error), error);
+        }
         return textResponse({ error: error.message }, true);
     }
 }

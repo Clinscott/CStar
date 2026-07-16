@@ -1,10 +1,8 @@
 import { test, describe, it } from 'node:test';
 import assert from 'node:assert';
-import { compileMatrix } from '../../../src/tools/pennyone/intel/compiler.js';
+import { compileMatrixPayload } from '../../../src/tools/pennyone/intel/compiler.js';
 import { FileData } from '../../../src/tools/pennyone/analyzer.js';
 import { registry } from '../../../src/tools/pennyone/pathRegistry.js';
-import fs from 'fs/promises';
-import path from 'path';
 
 describe('PennyOne Dependency Resolution', () => {
     it('should resolve various import formats correctly', async () => {
@@ -43,8 +41,7 @@ describe('PennyOne Dependency Resolution', () => {
             }
         ];
 
-        const graphPath = await compileMatrix(mockResults, root);
-        const graph = JSON.parse(await fs.readFile(graphPath, 'utf-8'));
+        const graph = compileMatrixPayload(mockResults, root);
         
         const mainFile = graph.files.find((f: any) => f.path.endsWith('src/main.ts'));
         assert.ok(mainFile, 'Main file should be in graph');

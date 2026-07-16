@@ -1,4 +1,6 @@
-from src.skills.skill_forge import SkillForge
+import pytest
+
+from src.skills.skill_forge import RETIRED_ERROR, SkillForge
 
 
 def test_select_archetype(tmp_path):
@@ -27,10 +29,8 @@ def test_validate_skill_safety(tmp_path):
     assert is_valid is True
 
 
-def test_generate_test_template_skips_incomplete_drafts(tmp_path):
+def test_forge_is_inert_and_does_not_create_drafts(tmp_path):
     forge = SkillForge(str(tmp_path))
-    content = forge._generate_test_template("login_check", "SOURCE", [])
-
-    assert "pytest.skip(DRAFT_TEST_MESSAGE)" in content
-    assert "assert True" not in content
-    assert "TODO" not in content
+    with pytest.raises(RuntimeError, match=RETIRED_ERROR):
+        forge.forge("create a test")
+    assert list(tmp_path.iterdir()) == []

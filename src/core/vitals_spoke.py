@@ -1,29 +1,23 @@
-"""
-[Ω] Sovereign Vitals Spoke
-Lore: "The Oracle's eyes see the state of the Realm."
-Purpose: Aggregates system health, traces, and suggestions for the HUD.
-"""
+"""Retired direct Python vitals projection entrypoint."""
 
-import json
-import sys
-from pathlib import Path
-from typing import Any
+from __future__ import annotations
 
-# Bootstrap pathing
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
+from typing import NoReturn
 
-from src.cstar.core.rpc import SovereignRPC
 
-def get_vitals() -> dict[str, Any]:
-    """Retrieves the current system vitals from the RPC engine."""
-    rpc = SovereignRPC(PROJECT_ROOT)
-    try:
-        return rpc.get_dashboard_state()
-    except Exception as e:
-        return {"error": str(e)}
+LEGACY_PYTHON_AUTONOMOUS_EFFECT_ERROR = (
+    "legacy_python_autonomous_effect_surface_retired_use_cstar_kernel"
+)
+
+
+def get_vitals(*_args: object, **_kwargs: object) -> NoReturn:
+    """Fail before RPC, Hall, state, filesystem, or output effects."""
+    raise RuntimeError(LEGACY_PYTHON_AUTONOMOUS_EFFECT_ERROR)
+
+
+def main(*_args: object, **_kwargs: object) -> NoReturn:
+    get_vitals()
+
 
 if __name__ == "__main__":
-    vitals = get_vitals()
-    print(json.dumps(vitals))
+    main()

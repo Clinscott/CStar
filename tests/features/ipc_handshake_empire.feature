@@ -1,10 +1,10 @@
-Feature: IPC Handshake - Node.js Master / Python Kernel Bridge
-  As the Corvus Star System Architect
-  I want a guaranteed translation layer between Node.js and Python
-  So that the framework remains resilient across language boundaries.
+Feature: Retired historical gateway and IPC bridge
+  As the CStar control-plane operator
+  I want the historical Node gateway to fail closed
+  So that lifecycle work cannot bypass cstar-kernel
 
-  Scenario: Successful one-shot PING/PONG Handshake
-    Given the Python Daemon is offline
-    When I awaken the Oracle via the CortexLink
-    Then the system should bind to an ephemeral port
-    And a PING command should return a success status
+  Scenario: CortexLink construction is terminal before IPC
+    Given the historical gateway has no execution authority
+    When CortexLink construction is attempted
+    Then the stable gateway retirement error is returned
+    And no IPC executor is invoked

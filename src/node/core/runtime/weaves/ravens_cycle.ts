@@ -1,18 +1,11 @@
-import fs from 'node:fs';
-import path from 'node:path';
-
-import { execa } from 'execa';
-
-import { buildHallRepositoryId } from  '../../../../types/hall.js';
+import { buildHallRepositoryId } from '../../../../types/hall.js';
 import {
     createRavensHallReferenceSet,
     materializeRavensTargetIdentity,
-    type RavensCycleResult,
     type RavensStageName,
     type RavensStageResult,
-} from '../../../../types/ravens-stage.ts';
+} from '../../../../types/ravens-stage.js';
 import type {
-    RavensCycleWeaveMetadata,
     RavensCycleWeavePayload,
     RavensStageWeaveMetadata,
     RavensStageWeavePayload,
@@ -20,71 +13,36 @@ import type {
     RuntimeContext,
     WeaveInvocation,
     WeaveResult,
-} from '../contracts.ts';
+} from '../contracts.js';
+import { buildRetiredRuntimeResult } from '../retired_adapter.js';
 
-function resolvePythonPath(projectRoot: string): string {
-    const windows = path.join(projectRoot, '.venv', 'Scripts', 'python.exe');
-    const unix = path.join(projectRoot, '.venv', 'bin', 'python');
-    if (process.platform === 'win32' && fs.existsSync(windows)) {
-        return windows;
-    }
-    if (process.platform !== 'win32' && fs.existsSync(unix)) {
-        return unix;
-    }
-    return process.platform === 'win32' ? 'python' : 'python3';
-}
-
-function extractJsonObject(raw: string): Record<string, unknown> {
-    const start = raw.indexOf('{');
-    const end = raw.lastIndexOf('}');
-    if (start === -1 || end === -1) {
-        throw new Error('Ravens cycle weave did not return a JSON payload.');
-    }
-    return JSON.parse(raw.slice(start, end + 1)) as Record<string, unknown>;
-}
-
-function toWeaveStatus(cycleStatus: string): WeaveResult['status'] {
-    if (cycleStatus === 'SUCCESS') {
-        return 'SUCCESS';
-    }
-    if (cycleStatus === 'FAILURE') {
-        return 'FAILURE';
-    }
-    return 'TRANSITIONAL';
-}
-
+/** Retired Python Ravens-cycle process adapter. */
 export class RavensCycleWeave implements RuntimeAdapter<RavensCycleWeavePayload> {
     public readonly id = 'weave:ravens-cycle';
 
-    public constructor(private readonly runner: typeof execa = execa) {}
+    public constructor(..._retiredDependencies: unknown[]) {
+        void _retiredDependencies;
+    }
 
     public async execute(
-        invocation: WeaveInvocation<RavensCycleWeavePayload>,
-        context: RuntimeContext,
+        _invocation: WeaveInvocation<RavensCycleWeavePayload>,
+        _context: RuntimeContext,
     ): Promise<WeaveResult> {
-        const kernelRoot = context.workspace_root;
-        const targetRoot = invocation.payload.project_root || kernelRoot;
-        const scriptPath = path.join(kernelRoot, 'src', 'sentinel', 'ravens_cycle.py');
-        const { stdout } = await this.runner(resolvePythonPath(kernelRoot), [scriptPath, '--project-root', targetRoot], {
-            cwd: kernelRoot,
-            env: { ...context.env, PYTHONPATH: kernelRoot },
+        return buildRetiredRuntimeResult({
+            weaveId: this.id,
+            boundary: 'retired-ravens-cycle-weave',
+            recommendedTool: 'cstar_warden',
         });
-
-        const cycleResult = extractJsonObject(stdout) as unknown as RavensCycleResult;
-        const metadata: RavensCycleWeaveMetadata = { cycle_result: cycleResult };
-        return {
-            weave_id: this.id,
-            status: toWeaveStatus(String(cycleResult.status ?? 'TRANSITIONAL')),
-            output: String(cycleResult.summary ?? 'Ravens cycle execution completed.'),
-            error:
-                String(cycleResult.status) === 'FAILURE'
-                    ? String(cycleResult.summary ?? 'Ravens cycle failed.')
-                    : undefined,
-            metadata,
-        };
     }
 }
 
+/**
+ * Deterministic schema-only Ravens stage materializer.
+ *
+ * This helper normalizes caller-supplied values and constructs an in-memory
+ * result. It never invokes a provider, process, source, callback, timer, Hall
+ * mutation, filesystem operation, or Git operation.
+ */
 export class RavensStageContractAdapter implements RuntimeAdapter<RavensStageWeavePayload> {
     public readonly id: string;
 
@@ -102,7 +60,7 @@ export class RavensStageContractAdapter implements RuntimeAdapter<RavensStageWea
         const stageResult: RavensStageResult = {
             stage: this.stage,
             status: 'TRANSITIONAL',
-            summary: `Ravens ${this.stage} stage contract is frozen. Extraction remains transitional until its Phase 3 ticket lands.`,
+            summary: `Ravens ${this.stage} stage contract is frozen and schema-only.`,
             target,
             hall: createRavensHallReferenceSet(context.workspace_root, {
                 repo_id: buildHallRepositoryId(context.workspace_root),
@@ -110,10 +68,23 @@ export class RavensStageContractAdapter implements RuntimeAdapter<RavensStageWea
             }),
             metadata: {
                 contract_only: true,
+                execution_dispatched: false,
+                hall_mutation_started: false,
+                provider_attempted: false,
+                process_started: false,
+                source_access_started: false,
                 requested_metadata: { ...(invocation.payload.metadata ?? {}) },
             },
         };
-        const metadata: RavensStageWeaveMetadata = { stage_result: stageResult };
+        const metadata: RavensStageWeaveMetadata = {
+            stage_result: stageResult,
+            contract_only: true,
+            execution_dispatched: false,
+            hall_mutation_started: false,
+            provider_attempted: false,
+            process_started: false,
+            source_access_started: false,
+        };
 
         return {
             weave_id: this.id,

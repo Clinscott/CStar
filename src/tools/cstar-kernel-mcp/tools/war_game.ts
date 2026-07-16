@@ -1,4 +1,5 @@
 import { database } from '../../pennyone/intel/database.js';
+import type { McpRequestContext } from '../contracts/request_context.js';
 import {
     scoreEngramIfArbitrated,
     registerContest as warGameRegisterContest,
@@ -18,6 +19,7 @@ import {
     resolveActiveRepo,
     resolveSpokeAnchor,
 } from './shared.js';
+import { verifyCodexRequestIdentity } from './operator_authorization.js';
 
 export interface EngramRecordArgs {
     intent: string;
@@ -27,8 +29,12 @@ export interface EngramRecordArgs {
     memory_id?: string;
 }
 
-export async function handleEngramRecord(args: EngramRecordArgs) {
+export async function handleEngramRecord(
+    args: EngramRecordArgs,
+    requestContext?: McpRequestContext,
+) {
     try {
+        await verifyCodexRequestIdentity(requestContext);
         const intent = requireString(args.intent, 'intent');
         const beadId = requireString(args.bead_id, 'bead_id');
         const metadata = args.metadata ?? {};
@@ -45,7 +51,7 @@ export async function handleEngramRecord(args: EngramRecordArgs) {
         const memoryId = args.memory_id?.trim()
             || `engram_${intent.replace(/[^a-zA-Z0-9_-]/g, '_')}_${now}_${Math.random().toString(36).substring(2, 8)}`;
 
-        database.getDb().prepare(
+        database.getWritableDb().prepare(
             `INSERT INTO hall_episodic_memory (
                 memory_id, bead_id, repo_id, tactical_summary, files_touched_json,
                 successes_json, metadata_json, created_at, updated_at
@@ -73,7 +79,7 @@ export async function handleEngramRecord(args: EngramRecordArgs) {
 
         let scoreResults: ReturnType<typeof scoreEngramIfArbitrated> = [];
         if (!intent.startsWith('cstar/war-game/scored/')) {
-            scoreResults = scoreEngramIfArbitrated(database.getDb(), recorded);
+            scoreResults = scoreEngramIfArbitrated(database.getWritableDb(), recorded);
         }
 
         return textResponse({
@@ -110,9 +116,40 @@ export interface WarGameScoreArgs {
     metadata?: Record<string, unknown>;
 }
 
-export async function handleWarGameScore(args: WarGameScoreArgs) {
+export async function handleWarGameScore(
+    args: WarGameScoreArgs,
+    requestContext?: McpRequestContext,
+) {
     try {
-        const db = database.getDb();
+        const mutating = args.action === 'register_contest';
+        if (mutating) await verifyCodexRequestIdentity(requestContext);
+        const db = mutating ? database.getWritableDb() : database.tryGetReadDb();
+        if (!db) {
+            if (args.action === 'get_score') {
+                return textResponse({ status: 'ok', action: 'get_score', score: null });
+            }
+            if (args.action === 'by_scenario') {
+                return textResponse({
+                    status: 'ok',
+                    action: 'by_scenario',
+                    contest_id: requireString(args.contest_id, 'contest_id'),
+                    buckets: [],
+                });
+            }
+            if (args.action === 'recent') {
+                return textResponse({ status: 'ok', action: 'recent', scores: [] });
+            }
+            if (args.action === 'list_contests') {
+                return textResponse({ status: 'ok', action: 'list_contests', contests: [] });
+            }
+            if (args.action === 'tally') {
+                if (args.contest_id) {
+                    return textResponse({ error: `contest '${args.contest_id}' not found` }, true);
+                }
+                return textResponse({ status: 'ok', action: 'tally', tallies: [] });
+            }
+            throw new Error('war_game_store_unavailable');
+        }
         switch (args.action) {
             case 'register_contest': {
                 const contestId = requireString(args.contest_id, 'contest_id');

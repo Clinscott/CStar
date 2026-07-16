@@ -1,67 +1,34 @@
-import { StateRegistry, BlackboardEntry } from './state.js';
-import { requestHostText } from '../../core/host_intelligence.js';
-import { registry } from '../../tools/pennyone/pathRegistry.js';
+export const RETIRED_BLACKBOARD_COMPACTION_FAILURE =
+    'legacy_blackboard_compaction_retired_use_cstar_kernel';
 
+/** Import-compatible dependency seam with no runtime capability. */
 export const blackboardManagerDeps = {
-    stateRegistry: StateRegistry,
-    registry,
-    requestHostText,
+    stateRegistry: null,
+    registry: null,
+    requestHostText: async (): Promise<never> => {
+        throw new Error(RETIRED_BLACKBOARD_COMPACTION_FAILURE);
+    },
 };
 
-/**
- * [🔱] BLACKBOARD MANAGER
- * Purpose: Manage shared state endurance through periodic compaction.
- * Standard: Linscott Protocol (Memory Tiering).
- */
+export interface BlackboardCompactionRequest {
+    trigger: 'operator';
+    source: 'tui';
+}
+
+export type BlackboardCompactionResult =
+    | { status: 'COMPACTED'; compactedEntries: number }
+    | { status: 'SKIPPED'; reason: 'below_threshold' }
+    | { status: 'REJECTED'; reason: 'explicit_operator_request_required' }
+    | { status: 'FAILED'; error: string };
+
+/** Compaction compatibility returns a stable failure before state or provider access. */
 export class BlackboardManager {
-    /**
-     * Compacts the blackboard if it exceeds a certain threshold.
-     * Rolls up old entries into a single "Battle Summary" engram.
-     */
-    public static async compactIfNecessary(): Promise<void> {
-        const { stateRegistry, registry, requestHostText } = blackboardManagerDeps;
-        const state = stateRegistry.get();
-        const blackboard = state.blackboard || [];
-
-        // Threshold: 20 entries. If more, compact the oldest 15.
-        if (blackboard.length < 20) {
-            return;
-        }
-
-        const toCompact = blackboard.slice(0, 15);
-        const remaining = blackboard.slice(15);
-
-        try {
-            const workspaceRoot = registry.getRoot();
-            const summaryPrompt = [
-                'You are the War Room Witness.',
-                'Summarize the following sequence of agent handoffs and events into a single tactical "Episodic Memory" engram.',
-                'Focus on key findings, state changes, and current blockers.',
-                '',
-                'EVENTS TO COMPACT:',
-                JSON.stringify(toCompact, null, 2)
-            ].join('\n');
-
-            const result = await requestHostText({
-                prompt: summaryPrompt,
-                systemPrompt: 'Keep summaries concise and tactical.',
-                projectRoot: workspaceRoot,
-                source: 'war-room:compactor'
-            });
-
-            const summaryEntry: BlackboardEntry = {
-                at: Date.now(),
-                from: 'Witness',
-                message: `[COMPACTION] Tactical Summary: ${result.text}`,
-                type: 'INFO'
-            };
-
-            state.blackboard = [summaryEntry, ...remaining];
-            stateRegistry.save(state);
-
-            stateRegistry.pushTerminalLog('[Witness] Blackboard compaction complete. Old engrams archived.');
-        } catch (err: any) {
-            stateRegistry.pushTerminalLog(`[Witness:ERR] Compaction failed: ${err.message}`);
-        }
+    public static async compact(
+        _request: BlackboardCompactionRequest,
+    ): Promise<BlackboardCompactionResult> {
+        return {
+            status: 'FAILED',
+            error: RETIRED_BLACKBOARD_COMPACTION_FAILURE,
+        };
     }
 }

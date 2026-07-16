@@ -55,14 +55,16 @@ The packet has five modes:
 - `live_run_delta`: heartbeat, row counts, blocker, spend boundary, and next
   check only.
 - `closeout`: verdict, evidence refs, residual risk, next gate, and bead state.
-- `degraded_boot`: CStar/PennyOne/PMT is partially unavailable; use retained
-  evidence as pointers only and escalate after the cycle breaker.
+- `degraded_boot`: required CStar or PennyOne state is partially unavailable;
+  use retained evidence as pointers only and escalate after the cycle breaker.
+  A missing mapped PMT is recorded separately as a freshness gap.
 
 The packet must include:
 
 - CStar doctor/handoff state, active bead, and state checksum.
 - Current active work phase, gate, next action, target paths, and checker.
-- PMT board and pinned PMT threads.
+- Mapped-PMT context and freshness state when the in-scope project has a
+  mapping; it grants no authority.
 - Researcher, Forge, CorvusEye, and PennyOne lane state.
 - Live-run manifests or dashboard refs, not raw transcripts.
 - Artifact index with path/hash/load policy.
@@ -74,12 +76,17 @@ The packet must include:
 
 1. Run `cstar_doctor`.
 2. Run `cstar_handoff` with current prompt, scope, and target paths.
-3. Run `cstar_augury` and one bounded `cstar_hall_search`.
+3. Run `cstar_augury`. Run one bounded `cstar_hall_search` only if the active
+   bead or next gate remains unclear.
 4. Read active bead state. Extract only bead id, status, owner, target paths,
    checker, next gate, latest validation, and blocker.
 5. Read PennyOne/dashboard state if available. Record `last_updated_at` and
    staleness delta.
-6. Read PMT state packets. Mark missing or conflicting PMT state plainly.
+6. If the target is inside a project with a mapped PMT, read one bounded context
+   packet. Mark missing or conflicting PMT state as a freshness gap and
+   continue. Use the host's enforceable selector for the task-appropriate
+   Luna/Terra/Sol profile and record requested versus actual identity; use
+   `unreported` when actual identity is absent.
 7. Build an artifact index. Use paths and hashes, not artifact bodies.
 8. Compute `state_checksum` from the compact packet.
 9. Render the bootstrap prompt.
@@ -90,25 +97,38 @@ The packet must include:
 
 Do not loop forever trying to get a perfect startup.
 
-- Try a failed CStar/PennyOne/PMT read at most twice.
+- Try a failed required CStar or PennyOne read at most twice.
 - On the third failure, emit `degraded_boot`.
 - `degraded_boot` may identify next safe repair work, but it must not claim
   durable completion or readiness.
 - If the missing surface controls live spend, source collection, locked
   holdout, merge, deploy, secrets/config, or production readiness, stop for
   operator authorization.
+- A mapped PMT read failure is not a cycle-breaker failure and cannot gate
+  execution.
 
 ## Authority Rules
 
 - CStar is the axle. Spokes connect to CStar; CStar is not a spoke.
-- CStar kernel MCP and bead lifecycle state are canonical for planning,
-  ownership, execution state, validation, and completion.
-- PMTs are durable project memory and review authorities.
+- Authority begins with platform safety and the current operator grant, then
+  global Corvus invariants, nearest repository policy, and CStar lifecycle
+  state.
+- CStar kernel MCP and bead lifecycle state are canonical within that policy
+  for planning, execution state, validation, and completion.
+- PMTs are project-scoped information repositories only. They grant no
+  ownership, execution, review, approval, routing, or monitoring authority.
+- A missing mapped PMT is a freshness gap, not an execution gate.
+- Mapped-PMT reads request Luna for routine retrieval, Terra for
+  conflicting-context synthesis, and Sol for high-stakes architecture,
+  security, or incident forensics only through an enforceable host selector.
+  Requested and actual identity are recorded separately; absent host identity
+  is `unreported`.
 - CoS coordinates, verifies, records, and closes out.
 - Corvus Forge builds implementation when a Forge route exists.
 - Researcher researches; live external collection is lane-gated.
 - CorvusEye evaluates and red-teams; it cannot self-certify Researcher.
 - PennyOne/dashboard mirrors state for operator visibility.
+- MM is legacy and has no active routing or relay role.
 - Chat history is a locator, not evidence.
 
 ## Operator Gates
@@ -175,18 +195,24 @@ validation id, and sha256.
 Paste this into the new CoS thread after generating a current packet.
 
 ```markdown
-You are GPT-5.6 Sol operating as CoS for the Corvus/CStar estate.
+You are operating as CoS for the Corvus/CStar estate. Request the GPT-5.6 Sol
+high-reasoning profile for this high-stakes control-plane task when the host can
+enforce it. Record the actual identity reported by the host, or `unreported`;
+never infer model identity.
 
 Your first duty is deterministic routing, not momentum.
 
 Authority order:
-1. CStar kernel MCP and bead lifecycle state are canonical for planning,
-   ownership, execution state, validation, and completion.
-2. PMT packets are durable project memory and review authority, not raw
-   execution truth.
-3. PennyOne DB/dashboard mirrors are operator visibility state.
-4. Artifact packages, reports, manifests, scorecards, and hashes are evidence.
-5. Conversation history is a locator, not proof.
+1. Platform safety and the current operator grant.
+2. Global Corvus invariants and nearest repository policy.
+3. CStar kernel MCP and bead lifecycle state within those boundaries.
+4. Registry declarations and observed runtime evidence; neither may create or
+   weaken authority.
+
+PennyOne/dashboard is an operator-visibility mirror. Artifacts are evidence.
+A mapped PMT is a project-context repository only. When the in-scope project
+has a mapping, its bounded context read is required; conversation history is a
+locator rather than proof.
 
 Current refresh packet:
 <INSERT cos.context_refresh.v1 JSON OR COMPACT YAML HERE>
@@ -196,8 +222,10 @@ Opening moves:
 2. Bind work to the active bead or report the missing bead lifecycle gap.
 3. Classify the next step as green, yellow, red, or blocked.
 4. If red, stop and request explicit operator authorization.
-5. If PMT authority is required, produce a compact PMT state packet before
-   execution.
+5. If the in-scope project has a mapped PMT, read one compact context packet.
+   Missing PMT context is a freshness gap and cannot block execution. Request
+   the task-appropriate Luna, Terra, or Sol profile only through an enforceable
+   selector, and record requested versus actual identity.
 6. If Forge routing exists for implementation, route through Forge instead of
    direct implementation.
 7. If Researcher live collection is involved, verify authorized lane and
@@ -221,6 +249,8 @@ Operating rules:
   source-lane expansion, locked holdout, or production readiness without
   explicit authorization.
 - When waiting on external state, stop and pause. Do not poll-loop.
+- PMTs grant no ownership, execution, review, approval, routing, or monitoring
+  authority. MM is legacy and has no active role.
 
 Default CoS response shape:
 - Verdict
@@ -242,6 +272,9 @@ bead, run, or metric. Do not reload the whole project history.
   perfect-score audit, and token policy.
 - The generated packet has a state checksum and staleness fields.
 - Degraded boot path exists and has a cycle breaker.
-- PMT, Forge, Researcher, CorvusEye, PennyOne, and beads are represented.
+- Mapped-PMT context and freshness, Forge, Researcher, CorvusEye, PennyOne, and
+  beads are represented without granting PMTs authority.
+- A mapped-PMT read uses the task-appropriate Luna/Terra/Sol selector contract
+  and records requested versus actual identity.
 - No raw transcripts/logs/manifests/responses are embedded.
 - A bead result records either success or the exact degraded-state gap.

@@ -1,4 +1,4 @@
-import fs from 'node:fs';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import type {
     HallBeadRecord,
@@ -11,6 +11,7 @@ import { buildHallRepositoryId, normalizeHallPath } from '../../../types/hall.js
 import { registry } from '../../pennyone/pathRegistry.js';
 import { database } from '../../pennyone/intel/database.js';
 import { verifyMountToken } from '../../../node/core/spokes/spoke_authority.js';
+import { resolveExistingPathInside } from '../contracts/runtime.js';
 
 export const HALL_BEAD_STATUSES: HallBeadStatus[] = [
     'OPEN',
@@ -171,10 +172,9 @@ export function resolveSpokeAnchor(spokeSlug: string | undefined | null): SpokeA
     }
     const hallToken = (spoke.metadata?.authority as Record<string, unknown> | undefined)?.mount_token;
     const tokenVerdict = verifyMountToken(spoke.root_path, typeof hallToken === 'string' ? hallToken : null);
-    if (tokenVerdict.verdict === 'mismatch' || tokenVerdict.verdict === 'identity_missing' || tokenVerdict.verdict === 'hall_missing') {
+    if (tokenVerdict.verdict !== 'ok') {
         throw new Error(
-            `Spoke '${slug}' failed mount_token verification (${tokenVerdict.verdict}): ${tokenVerdict.reason}. ` +
-            `Re-project the spoke via cstar_spoke action=project, or relink to mint a fresh token.`,
+            `spoke_mount_token_verification_failed:${tokenVerdict.verdict}`,
         );
     }
     return {
@@ -185,7 +185,7 @@ export function resolveSpokeAnchor(spokeSlug: string | undefined | null): SpokeA
             spoke_id: spoke.spoke_id,
             spoke_trust_level: spoke.trust_level,
             spoke_write_policy: spoke.write_policy,
-            spoke_root: spoke.root_path,
+            spoke_root_sha256: createHash('sha256').update(path.resolve(spoke.root_path), 'utf-8').digest('hex'),
             spoke_kind: spoke.kind,
         },
     };
@@ -196,15 +196,14 @@ export function resolveSpokeRelativePath(
     relativeOrAbsolute: string,
     fieldName: string,
 ): string {
-    const candidate = path.isAbsolute(relativeOrAbsolute)
-        ? relativeOrAbsolute
-        : path.join(spoke.root_path, relativeOrAbsolute);
-    if (!fs.existsSync(candidate)) {
-        throw new Error(
-            `${fieldName} '${relativeOrAbsolute}' does not exist under spoke '${spoke.slug}' (resolved: ${candidate}).`,
-        );
+    try {
+        const candidate = path.isAbsolute(relativeOrAbsolute)
+            ? relativeOrAbsolute
+            : path.join(spoke.root_path, relativeOrAbsolute);
+        return resolveExistingPathInside(spoke.root_path, candidate, 'file');
+    } catch {
+        throw new Error(`spoke_relative_path_invalid:${fieldName}`);
     }
-    return candidate;
 }
 
 export function beadToRecord(bead: SovereignBead): HallBeadRecord {

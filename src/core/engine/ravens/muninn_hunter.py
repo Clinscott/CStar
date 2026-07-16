@@ -1,35 +1,25 @@
-"""
-[SPOKE] Muninn Hunter
-Lore: "The Eyes of Huginn."
-Purpose: Asynchronous repository scanning and mission prioritization.
-"""
+"""Retired autonomous Ravens mission hunter."""
 
-from pathlib import Path
-from typing import Any
+from __future__ import annotations
 
-from src.core.engine.ravens.coordinator import MissionCoordinator
-from src.core.sovereign_hud import SovereignHUD
+from typing import NoReturn
+
+
+LEGACY_PYTHON_RAVENS_ENGINE_ERROR = (
+    "legacy_python_ravens_engine_retired_use_cstar_kernel"
+)
+
+
+def _retired() -> NoReturn:
+    raise RuntimeError(LEGACY_PYTHON_RAVENS_ENGINE_ERROR)
 
 
 class MuninnHunter:
-    def __init__(self, root: Path, memory: Any):
-        self.root = root
-        self.memory = memory
-        self.coordinator = MissionCoordinator(root)
+    def __init__(self, *_args: object, **_kwargs: object) -> None:
+        _retired()
 
-    async def execute_hunt(self) -> tuple[list[dict], dict]:
-        """Resolves the next canonical hunt target from the sovereign bead ledger."""
-        SovereignHUD.persona_log("INFO", "MuninnHunter: Scanning the Hall-backed bead queue for the next mission...")
-        mission = self.coordinator.select_mission([], allow_legacy_fallback=False)
-        if mission is None:
-            SovereignHUD.persona_log("INFO", "MuninnHunter: The matrix is within nominal parameters.")
-            return [], {"source": "hall_beads", "count": 0}
+    async def execute_hunt(self, *_args: object, **_kwargs: object) -> NoReturn:
+        _retired()
 
-        SovereignHUD.persona_log("SUCCESS", "MuninnHunter: Identified one canonical sovereign mission.")
-        return [mission], {"source": "hall_beads", "count": 1}
-
-    def select_target(self, breaches: list[dict]) -> dict | None:
-        """Selects the highest priority mission from canonical beads, then compatibility breaches if necessary."""
-        if breaches and breaches[0].get("compatibility_source") == "hall_beads":
-            return breaches[0]
-        return self.coordinator.select_mission(breaches, allow_legacy_fallback=False)
+    def select_target(self, *_args: object, **_kwargs: object) -> NoReturn:
+        _retired()

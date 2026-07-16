@@ -1,6 +1,7 @@
 import path from 'node:path';
 import type { HallBeadStatus, HallBeadTargetKind } from '../../../types/hall.js';
 import { database } from '../../pennyone/intel/database.js';
+import type { McpRequestContext } from '../contracts/request_context.js';
 import { mcpMutation, textResponse } from '../contracts/responses.js';
 import {
     compactBead,
@@ -9,6 +10,7 @@ import {
     resolveSpokeAnchor,
     resolveSpokeRelativePath,
 } from './shared.js';
+import { verifyCodexRequestIdentity } from './operator_authorization.js';
 
 export interface SpokeBeadImportArgs {
     spoke: string;
@@ -30,9 +32,27 @@ export interface SpokeBeadImportArgs {
     metadata?: Record<string, unknown>;
 }
 
+function requireSafeRelativeTarget(value: string, fieldName: string): string {
+    const trimmed = value.trim();
+    const normalized = path.normalize(trimmed);
+    if (
+        !trimmed
+        || trimmed.includes('\0')
+        || path.isAbsolute(trimmed)
+        || normalized === '..'
+        || normalized.startsWith(`..${path.sep}`)
+    ) {
+        throw new Error(`spoke_relative_path_invalid:${fieldName}`);
+    }
+    return normalized.replace(/\\/g, '/');
+}
 
-export async function handleSpokeBeadImport(args: SpokeBeadImportArgs) {
+export async function handleSpokeBeadImport(
+    args: SpokeBeadImportArgs,
+    requestContext?: McpRequestContext,
+) {
     try {
+        const requestIdentity = await verifyCodexRequestIdentity(requestContext);
         const slug = requireString(args.spoke, 'spoke');
         const intent = requireString(args.intent, 'intent');
         const acceptance = requireString(args.acceptance_criteria, 'acceptance_criteria');
@@ -48,7 +68,12 @@ export async function handleSpokeBeadImport(args: SpokeBeadImportArgs) {
             ? resolveSpokeRelativePath(anchor.spoke, args.design_doc_path, 'design_doc_path')
             : undefined;
 
-        const targetPaths = (args.target_paths || []).filter((p) => p.trim().length > 0);
+        if (args.metadata && Object.keys(args.metadata).length > 0) {
+            throw new Error('spoke_import_unstructured_metadata_forbidden');
+        }
+        const targetPaths = (args.target_paths || [])
+            .filter((candidate) => candidate.trim().length > 0)
+            .map((candidate, index) => requireSafeRelativeTarget(candidate, `target_paths[${index}]`));
         const primaryTargetPath = targetPaths[0];
         const extraTargetPaths = targetPaths.slice(1);
         const targetKind = args.target_kind || (primaryTargetPath ? 'FILE' : 'SPOKE');
@@ -63,11 +88,9 @@ export async function handleSpokeBeadImport(args: SpokeBeadImportArgs) {
         const spokeMetadata: Record<string, unknown> = {
             ...(anchor.metadata || {}),
             lore_path: path.relative(anchor.spoke.root_path, resolvedLore),
-            lore_absolute_path: resolvedLore,
         };
         if (resolvedDesignDoc) {
             spokeMetadata.design_doc_path = path.relative(anchor.spoke.root_path, resolvedDesignDoc);
-            spokeMetadata.design_doc_absolute_path = resolvedDesignDoc;
         }
         if (args.wireframe_ref) {
             spokeMetadata.wireframe_ref = args.wireframe_ref;
@@ -99,7 +122,12 @@ export async function handleSpokeBeadImport(args: SpokeBeadImportArgs) {
             metadata: {
                 source: 'cstar-kernel-mcp:spoke_bead_import',
                 ...spokeMetadata,
-                ...(args.metadata || {}),
+                mutation_request_identity: {
+                    source: requestIdentity.source,
+                    thread_id: requestIdentity.thread_id,
+                    turn_id: requestIdentity.turn_id,
+                    turn_record_set_sha256: requestIdentity.turn_record_set_sha256,
+                },
             },
             created_at: now,
             updated_at: now,

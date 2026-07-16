@@ -8,27 +8,20 @@ current_dir = Path(__file__).parent.absolute()
 if str(current_dir) not in sys.path:
     sys.path.append(str(current_dir))
 
-import utils
-
 from src.core.sovereign_hud import SovereignHUD
 
 
 class ReportEngine:
     """
-    Enforces Persona-driven reporting standards.
-    Prevents "generic engineer" hallucinations by algorithmically
-    injecting the correct voice and signature.
+    Applies an explicitly supplied, style-only presentation profile.
     """
 
-    def __init__(self, project_root: str | Path | None = None) -> None:
+    def __init__(self, project_root: str | Path | None = None, persona: str | None = None) -> None:
         self.root = Path(project_root) if project_root else Path.cwd()
-        # Load fresh config to ensure we catch dynamic switches
-        self.config = utils.load_config(self.root)
-        legacy = self.config.get("persona") or self.config.get("Persona") or "ALFRED"
-        self.persona = str(self.config.get("system", {}).get("persona", legacy)).upper()
+        self.persona = str(persona or "NEUTRAL").upper()
 
         # Ensure SovereignHUD is synced
-        SovereignHUD.PERSONA = self.persona
+        SovereignHUD.PERSONA = None if self.persona == "NEUTRAL" else self.persona
 
     def header(self, title: str) -> str:
         """Returns the stylized ASCII header for the report."""

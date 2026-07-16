@@ -1,38 +1,32 @@
-import { afterEach, beforeEach, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { describe, it } from 'node:test';
 
-import { crawlRepository } from '../../src/tools/pennyone/crawler.ts';
+import {
+    crawlRepository,
+    PENNYONE_CRAWLER_RETIRED_ERROR,
+} from '../../src/tools/pennyone/crawler.js';
 
-describe('PennyOne crawler fallback', () => {
-    let tmpRoot: string;
-
-    beforeEach(() => {
-        tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-p1-crawler-'));
-        fs.mkdirSync(path.join(tmpRoot, 'src'), { recursive: true });
-        fs.mkdirSync(path.join(tmpRoot, 'docs'), { recursive: true });
-        fs.mkdirSync(path.join(tmpRoot, 'node_modules', 'pkg'), { recursive: true });
-        fs.mkdirSync(path.join(tmpRoot, '.stats'), { recursive: true });
-
-        fs.writeFileSync(path.join(tmpRoot, 'src', 'main.ts'), 'export const main = true;\n', 'utf-8');
-        fs.writeFileSync(path.join(tmpRoot, 'docs', 'guide.md'), '# guide\n', 'utf-8');
-        fs.writeFileSync(path.join(tmpRoot, 'node_modules', 'pkg', 'index.ts'), 'export {};\n', 'utf-8');
-        fs.writeFileSync(path.join(tmpRoot, '.stats', 'noise.md'), 'noise\n', 'utf-8');
+describe('retired PennyOne crawler', () => {
+    it('fails before Git or filesystem discovery', async () => {
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'cstar-crawler-retired-'));
+        try {
+            fs.writeFileSync(path.join(root, 'secret.txt'), 'must-not-be-read');
+            const before = fs.readFileSync(path.join(root, 'secret.txt'), 'utf8');
+            await assert.rejects(crawlRepository(root), new RegExp(PENNYONE_CRAWLER_RETIRED_ERROR));
+            assert.equal(fs.readFileSync(path.join(root, 'secret.txt'), 'utf8'), before);
+        } finally {
+            fs.rmSync(root, { recursive: true, force: true });
+        }
     });
 
-    afterEach(() => {
-        fs.rmSync(tmpRoot, { recursive: true, force: true });
-    });
-
-    it('falls back to filesystem crawling for non-git directories', async () => {
-        const files = await crawlRepository(tmpRoot);
-        const normalized = files.map((file) => file.replace(/\\/g, '/')).sort();
-
-        assert.deepStrictEqual(normalized, [
-            path.join(tmpRoot, 'docs', 'guide.md').replace(/\\/g, '/'),
-            path.join(tmpRoot, 'src', 'main.ts').replace(/\\/g, '/'),
-        ]);
+    it('contains no process or filesystem crawler implementation', () => {
+        const source = fs.readFileSync(
+            path.join(process.cwd(), 'src/tools/pennyone/crawler.ts'),
+            'utf8',
+        );
+        assert.doesNotMatch(source, /execa|child_process|readdir|statSync|existsSync|git\b/);
     });
 });
