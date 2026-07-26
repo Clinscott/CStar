@@ -3,7 +3,7 @@ import { strict as assert } from 'node:assert';
 import { stat, access, constants } from 'node:fs/promises';
 import { join } from 'node:path';
 import { execa } from 'execa';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -64,7 +64,10 @@ describe('Gungnir Control Plane Bootstrap', () => {
     it('Verify the TypeScript bootstrap uses the local tsx loader through node instead of the tsx CLI binary', async () => {
         const launch = resolveTsxLaunch(PROJECT_ROOT, ['cstar.ts', '--version']);
         assert.equal(launch.command, process.execPath);
-        assert.deepEqual(launch.args.slice(0, 2), ['--import', join(PROJECT_ROOT, 'node_modules', 'tsx', 'dist', 'loader.mjs')]);
+        assert.deepEqual(launch.args.slice(0, 2), [
+            '--import',
+            pathToFileURL(join(PROJECT_ROOT, 'node_modules', 'tsx', 'dist', 'loader.mjs')).href,
+        ]);
         assert.doesNotMatch(launch.args.join(' '), /(?:^|\s)tsx(?:\.cmd)?(?:\s|$)/);
     });
 

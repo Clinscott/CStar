@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 export const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 export const PROJECT_ROOT = path.resolve(SCRIPT_DIR, '..');
@@ -34,7 +34,7 @@ export function resolveTsxLaunch(projectRoot = PROJECT_ROOT, args = []) {
             // The tsx CLI spins up an IPC socket that can be blocked by sandboxed environments.
             // Launching Node directly with the local tsx loader keeps Hall/bootstrap access available.
             command: process.execPath,
-            args: ['--import', localTsxLoader, ...args],
+            args: ['--import', pathToFileURL(localTsxLoader).href, ...args],
         };
     }
 
