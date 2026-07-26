@@ -8,8 +8,6 @@ python-dotenv
 PyYAML
 textual
 pytest-asyncio
-google-genai
-google-generativeai
 colorama
 radon
 chromadb
