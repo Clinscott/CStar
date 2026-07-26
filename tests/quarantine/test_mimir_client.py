@@ -111,7 +111,7 @@ async def test_mimir_client_uses_builtin_claude_cli_scaffold(tmp_path, monkeypat
 
 
 @pytest.mark.asyncio
-async def test_mimir_client_prefers_synapse_db_in_auto_mode_for_interactive_codex(tmp_path):
+async def test_mimir_client_prefers_synapse_db_in_auto_mode_for_interactive_codex_with_explicit_broker(tmp_path):
     async def oracle_runner(synapse_id: int) -> None:
         _complete_prompt(
             tmp_path / ".stats" / "synapse.db",
@@ -121,7 +121,11 @@ async def test_mimir_client_prefers_synapse_db_in_auto_mode_for_interactive_code
 
     client = MimirClient(
         project_root=tmp_path,
-        env={"CODEX_SHELL": "1", "CODEX_THREAD_ID": "thread-1"},
+        env={
+            "CODEX_SHELL": "1",
+            "CODEX_THREAD_ID": "thread-1",
+            "CORVUS_ONE_MIND_BROKER_ACTIVE": "1",
+        },
         oracle_runner=oracle_runner,
     )
 
