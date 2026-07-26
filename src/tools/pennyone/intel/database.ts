@@ -54,6 +54,23 @@ import {
     summarizeHallOneMindBranches,
 } from './one_mind_controller.js';
 import {
+    claimNextWorkerJob,
+    createWorkerJob,
+    getWorkerJob,
+    getWorkerJobArtifact,
+    heartbeatWorkerJobLease,
+    listWorkerJobArtifacts,
+    markWorkerJobRunning,
+    recoverExpiredWorkerJobLeases,
+    reportWorkerJobProgress,
+    requestWorkerJobCancellation,
+} from './worker_job_controller.js';
+import {
+    completeWorkerJob,
+    failWorkerJob,
+    saveWorkerJobArtifact,
+} from './worker_job_completion_controller.js';
+import {
     getHallAgentPresence,
     listHallAgentPresence,
     listHallCoordinationEvents,
@@ -170,6 +187,19 @@ export class HallDatabase {
     public listHallOneMindBranches = listHallOneMindBranches;
     public summarizeHallOneMindBranches = summarizeHallOneMindBranches;
     public listHallOneMindRequests = listHallOneMindRequests;
+    public createWorkerJob = createWorkerJob;
+    public getWorkerJob = getWorkerJob;
+    public getWorkerJobArtifact = getWorkerJobArtifact;
+    public listWorkerJobArtifacts = listWorkerJobArtifacts;
+    public requestWorkerJobCancellation = requestWorkerJobCancellation;
+    public claimNextWorkerJob = claimNextWorkerJob;
+    public heartbeatWorkerJobLease = heartbeatWorkerJobLease;
+    public markWorkerJobRunning = markWorkerJobRunning;
+    public reportWorkerJobProgress = reportWorkerJobProgress;
+    public recoverExpiredWorkerJobLeases = recoverExpiredWorkerJobLeases;
+    public saveWorkerJobArtifact = saveWorkerJobArtifact;
+    public completeWorkerJob = completeWorkerJob;
+    public failWorkerJob = failWorkerJob;
     public saveHallAgentPresence = saveHallAgentPresence;
     public getHallAgentPresence = getHallAgentPresence;
     public listHallAgentPresence = listHallAgentPresence;
@@ -294,6 +324,19 @@ export {
     listHallOneMindBranches,
     summarizeHallOneMindBranches,
     listHallOneMindRequests,
+    createWorkerJob,
+    getWorkerJob,
+    getWorkerJobArtifact,
+    listWorkerJobArtifacts,
+    requestWorkerJobCancellation,
+    claimNextWorkerJob,
+    heartbeatWorkerJobLease,
+    markWorkerJobRunning,
+    reportWorkerJobProgress,
+    recoverExpiredWorkerJobLeases,
+    saveWorkerJobArtifact,
+    completeWorkerJob,
+    failWorkerJob,
     saveHallAgentPresence,
     getHallAgentPresence,
     listHallAgentPresence,

@@ -173,5 +173,35 @@ describe('🜂 cstar_spoke_bead_import — rich spoke handoff payload', () => {
         const parsed = JSON.parse(result.content[0].text);
         assert.match(parsed.error, /intent is required/);
     });
+
+    it('rejects duplicate bead ids and terminal initial statuses', async () => {
+        spokeStore.set('test-spoke', makeSpoke({ root_path: tmpSpokeRoot }));
+        const base = {
+            spoke: 'test-spoke',
+            bead_id: 'bead:spoke-import:contained',
+            intent: 'Import a bounded spoke bead.',
+            acceptance_criteria: 'Import once only.',
+            lore_path: 'tests/features/sample.feature',
+        };
+        const first = await handleSpokeBeadImport(base);
+        assert.notStrictEqual(first.isError, true);
+
+        const duplicate = await handleSpokeBeadImport({
+            ...base,
+            intent: 'Must not overwrite the existing bead.',
+        });
+        assert.strictEqual(duplicate.isError, true);
+        assert.match(JSON.parse(duplicate.content[0].text).error, /already exists/);
+
+        for (const status of ['RESOLVED', 'ARCHIVED', 'SUPERSEDED'] as const) {
+            const terminal = await handleSpokeBeadImport({
+                ...base,
+                bead_id: `bead:spoke-import:${status.toLowerCase()}`,
+                status,
+            });
+            assert.strictEqual(terminal.isError, true);
+            assert.match(JSON.parse(terminal.content[0].text).error, /terminal initial status/);
+        }
+    });
 });
 });

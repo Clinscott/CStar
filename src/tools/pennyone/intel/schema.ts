@@ -424,6 +424,130 @@ export function ensureHallSchema(database: Database.Database, rootPath: string):
         CREATE INDEX IF NOT EXISTS idx_hall_one_mind_branches_trace
         ON hall_one_mind_branches(repo_id, trace_id, created_at);
 
+        CREATE TABLE IF NOT EXISTS hall_worker_jobs (
+            job_id TEXT PRIMARY KEY,
+            repo_id TEXT NOT NULL,
+            bead_id TEXT,
+            worker_kind TEXT NOT NULL,
+            objective TEXT NOT NULL,
+            workspace_ref TEXT NOT NULL,
+            expected_artifacts_json TEXT NOT NULL,
+            state TEXT NOT NULL,
+            idempotency_key_hash TEXT NOT NULL,
+            request_fingerprint TEXT NOT NULL,
+            progress_percent INTEGER NOT NULL DEFAULT 0,
+            progress_phase TEXT NOT NULL DEFAULT 'queued',
+            cancel_requested_at INTEGER,
+            cancel_reason TEXT,
+            failure_code TEXT,
+            failure_summary TEXT,
+            attempt_count INTEGER NOT NULL DEFAULT 0,
+            max_attempts INTEGER NOT NULL DEFAULT 3,
+            version INTEGER NOT NULL DEFAULT 1,
+            created_at INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL,
+            started_at INTEGER,
+            terminal_at INTEGER,
+            UNIQUE(repo_id, idempotency_key_hash),
+            CHECK(worker_kind IN ('forge', 'researcher')),
+            CHECK(length(trim(objective)) BETWEEN 1 AND 8000),
+            CHECK(length(workspace_ref) BETWEEN 1 AND 128),
+            CHECK(state IN (
+                'QUEUED', 'LEASED', 'RUNNING', 'CANCEL_REQUESTED',
+                'CANCELLED', 'SUCCEEDED', 'FAILED'
+            )),
+            CHECK(length(idempotency_key_hash) = 64),
+            CHECK(length(request_fingerprint) = 64),
+            CHECK(progress_percent BETWEEN 0 AND 100),
+            CHECK(progress_phase IN (
+                'queued', 'preparing', 'working', 'validating',
+                'finalizing', 'complete'
+            )),
+            CHECK(attempt_count >= 0),
+            CHECK(max_attempts BETWEEN 1 AND 10),
+            CHECK(version >= 1),
+            FOREIGN KEY(repo_id) REFERENCES hall_repositories(repo_id),
+            FOREIGN KEY(bead_id) REFERENCES hall_beads(bead_id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_hall_worker_jobs_repo_state
+        ON hall_worker_jobs(repo_id, worker_kind, state, created_at);
+
+        CREATE TABLE IF NOT EXISTS hall_worker_job_leases (
+            job_id TEXT PRIMARY KEY,
+            lease_owner_id TEXT NOT NULL,
+            lease_token_hash TEXT NOT NULL,
+            leased_at INTEGER NOT NULL,
+            lease_expires_at INTEGER NOT NULL,
+            heartbeat_at INTEGER NOT NULL,
+            CHECK(length(lease_owner_id) BETWEEN 1 AND 160),
+            CHECK(length(lease_token_hash) = 64),
+            CHECK(lease_expires_at > leased_at),
+            CHECK(heartbeat_at >= leased_at),
+            FOREIGN KEY(job_id) REFERENCES hall_worker_jobs(job_id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_hall_worker_job_leases_expiry
+        ON hall_worker_job_leases(lease_expires_at);
+
+        CREATE TABLE IF NOT EXISTS hall_worker_job_artifacts (
+            artifact_id TEXT PRIMARY KEY,
+            job_id TEXT NOT NULL,
+            artifact_kind TEXT NOT NULL,
+            name TEXT NOT NULL,
+            media_type TEXT NOT NULL,
+            byte_count INTEGER NOT NULL,
+            sha256 TEXT NOT NULL,
+            status TEXT NOT NULL,
+            attempt INTEGER NOT NULL,
+            inline_text TEXT,
+            storage_ref TEXT,
+            created_at INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL,
+            UNIQUE(job_id, attempt, name, artifact_kind),
+            CHECK(artifact_kind IN (
+                'report', 'patch', 'package', 'dataset', 'test_result', 'other'
+            )),
+            CHECK(length(name) BETWEEN 1 AND 128),
+            CHECK(length(media_type) BETWEEN 3 AND 255),
+            CHECK(byte_count BETWEEN 1 AND 67108864),
+            CHECK(length(sha256) = 64),
+            CHECK(status IN ('STAGED', 'READY', 'REJECTED')),
+            CHECK(attempt >= 1),
+            CHECK(
+                (inline_text IS NOT NULL AND storage_ref IS NULL)
+                OR (inline_text IS NULL AND storage_ref IS NOT NULL)
+            ),
+            FOREIGN KEY(job_id) REFERENCES hall_worker_jobs(job_id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_hall_worker_job_artifacts_job
+        ON hall_worker_job_artifacts(job_id, status, created_at);
+
+        CREATE TABLE IF NOT EXISTS hall_worker_job_events (
+            event_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            job_id TEXT NOT NULL,
+            event_kind TEXT NOT NULL,
+            state TEXT NOT NULL,
+            progress_percent INTEGER NOT NULL,
+            progress_phase TEXT NOT NULL,
+            detail TEXT,
+            created_at INTEGER NOT NULL,
+            CHECK(state IN (
+                'QUEUED', 'LEASED', 'RUNNING', 'CANCEL_REQUESTED',
+                'CANCELLED', 'SUCCEEDED', 'FAILED'
+            )),
+            CHECK(progress_percent BETWEEN 0 AND 100),
+            CHECK(progress_phase IN (
+                'queued', 'preparing', 'working', 'validating',
+                'finalizing', 'complete'
+            )),
+            FOREIGN KEY(job_id) REFERENCES hall_worker_jobs(job_id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_hall_worker_job_events_job
+        ON hall_worker_job_events(job_id, event_id);
+
         CREATE TABLE IF NOT EXISTS hall_agent_presence (
             repo_id TEXT NOT NULL,
             agent_id TEXT NOT NULL,

@@ -16,6 +16,7 @@ import {
     resolveActiveRepo,
     resolvedValidationIdForBead,
     resolveSpokeAnchor,
+    TERMINAL_HALL_BEAD_STATUSES,
     upsertBeadFromExisting,
     withResolvedValidationMetadata,
 } from './shared.js';
@@ -130,6 +131,13 @@ export async function handleBead(args: BeadToolArgs) {
             const repoId = anchor.repoId || kernelRepoId;
             const beadId = args.bead_id?.trim() || generateBeadId(rationale);
             const targetKind = args.target_kind || (args.target_path ? 'FILE' : 'OTHER');
+            const initialStatus = args.status || 'OPEN';
+            if (TERMINAL_HALL_BEAD_STATUSES.has(initialStatus)) {
+                throw new Error(`create cannot use terminal initial status '${initialStatus}'.`);
+            }
+            if (database.getHallBead(beadId)) {
+                throw new Error(`Bead already exists: ${beadId}`);
+            }
             database.upsertHallBead({
                 bead_id: beadId,
                 repo_id: repoId,
@@ -141,7 +149,7 @@ export async function handleBead(args: BeadToolArgs) {
                 baseline_scores: {},
                 acceptance_criteria: args.acceptance_criteria,
                 checker_shell: args.checker_shell,
-                status: args.status || 'OPEN',
+                status: initialStatus,
                 assigned_agent: args.assigned_agent,
                 source_kind: 'MCP',
                 metadata: {
@@ -198,10 +206,16 @@ export async function handleBead(args: BeadToolArgs) {
         }
 
         if (args.action === 'claim') {
+            if (TERMINAL_HALL_BEAD_STATUSES.has(bead.status)) {
+                throw new Error(`Cannot claim terminal bead '${beadId}' with status '${bead.status}'.`);
+            }
+            if (args.status !== undefined && args.status !== 'IN_PROGRESS') {
+                throw new Error(`claim always transitions to IN_PROGRESS; received status '${args.status}'.`);
+            }
             const assignedAgent = requireString(args.assigned_agent, 'assigned_agent');
             const updated = upsertBeadFromExisting(bead, {
                 assigned_agent: assignedAgent,
-                status: args.status || 'IN_PROGRESS',
+                status: 'IN_PROGRESS',
                 metadata: { ...(bead.metadata || {}), ...(args.metadata || {}), claimed_by: assignedAgent, claim_source: 'cstar-kernel-mcp' },
             });
             return textResponse({

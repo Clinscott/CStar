@@ -3,6 +3,7 @@ import { errorResponse, mcpGuardrail, textResponse, type McpTextResponse } from 
 import {
     findDispatchValidationError,
     hasDuplicatePackageLockMismatch,
+    isLegacyLiveExecutionEnabled,
     makeDispatchDecisionId,
     normalizeActionList,
     resolveDispatchSurface,
@@ -83,6 +84,8 @@ export async function handleForgeExecute(args: ForgeExecutionArgs): Promise<McpT
             ? 'missing_authorized_dispatch_surface'
             : args.execution_mode === 'no_op'
                 ? null
+                : !isLegacyLiveExecutionEnabled()
+                    ? 'legacy_live_execution_disabled'
                 : !adapter.found
                     ? 'missing_authorized_execution_adapter'
                     : adapter.selected?.write_capability === 'response_only' && forgeExecutionRequiresImplementationWrites(args)
@@ -126,9 +129,9 @@ export async function handleForgeExecute(args: ForgeExecutionArgs): Promise<McpT
             prohibited_actions: normalizeActionList(args.prohibited_actions),
             requested_actions: normalizeActionList(args.requested_actions),
             spend_policy: {
-                ...args.spend_policy,
+                mode: args.spend_policy.mode,
+                ...(args.spend_policy.max_retries !== undefined ? { max_retries: args.spend_policy.max_retries } : {}),
                 live_source_allowed: args.spend_policy.live_source_allowed === true,
-                operator_authorization_ref: args.operator_authorization_ref ?? args.spend_policy.operator_authorization_ref,
             },
             retry_policy: args.retry_policy ?? { budget: args.spend_policy.max_retries ?? 0, spent: 0 },
             callback_contract: {

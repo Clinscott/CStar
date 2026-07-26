@@ -1,7 +1,7 @@
 import type { HallValidationRun } from '../../../types/hall.js';
 import { registry } from '../../pennyone/pathRegistry.js';
 import { database } from '../../pennyone/intel/database.js';
-import { mcpMutation, textResponse } from '../contracts/responses.js';
+import { mcpFailedMutation, mcpMutation, textResponse } from '../contracts/responses.js';
 import { PROJECT_ROOT, logBootstrapError } from '../contracts/runtime.js';
 import {
     appendTokenPathObservation,
@@ -31,8 +31,6 @@ export async function handleRecordResult({ bead_id, verdict, notes, token_path_e
         let root = PROJECT_ROOT;
         let repoId = 'cstar';
         const validationId = `val-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
-        let validationError: string | undefined;
-
         try {
             root = registry.getRoot();
             const repo = database.getHallRepository(root);
@@ -46,8 +44,23 @@ export async function handleRecordResult({ bead_id, verdict, notes, token_path_e
                 created_at: Date.now()
             } satisfies HallValidationRun);
         } catch (error) {
-            validationError = error instanceof Error ? error.message : String(error);
             logBootstrapError(error);
+            return textResponse({
+                status: 'not_recorded',
+                error: {
+                    code: 'PERSISTENCE_FAILED',
+                    message: 'Validation result was not persisted.',
+                    retryable: true,
+                },
+                bead_id,
+                verdict,
+                mutation: mcpFailedMutation(
+                    'validation_result_record',
+                    'Validation result was not persisted; no secondary observation was recorded.',
+                ),
+                token_path_observation_status: 'not_recorded',
+                token_path_observation_warning: 'validation_persistence_failed',
+            }, true);
         }
 
         let observationId: string | null = null;
@@ -97,9 +110,6 @@ export async function handleRecordResult({ bead_id, verdict, notes, token_path_e
             token_path_observation_status: observationId ? 'recorded' : 'not_recorded',
             mutation: mcpMutation('validation_result_record', validationId, 'Validation result was persisted through the MCP write surface.'),
         };
-        if (validationError) {
-            response.validation_warning = validationError;
-        }
         if (observationId) {
             response.token_path_observation_id = observationId;
         }

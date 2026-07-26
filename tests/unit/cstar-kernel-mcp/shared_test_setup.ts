@@ -152,6 +152,8 @@ beforeEach(() => {
     delete process.env.CSTAR_FORGE_EXECUTION_ARTIFACT_ROOT;
     delete process.env.CSTAR_FORGE_WORKER_MODEL_RESPONSE;
     delete process.env.CSTAR_FORGE_WORKER_DELEGATE_SCRIPT;
+    delete process.env.CSTAR_KERNEL_ENABLE_LEGACY_LIVE_EXECUTION;
+    delete process.env.CSTAR_KERNEL_ENABLE_MONGO_MAILBOX_WRITES;
 });
 
 export function validDispatchRequest(overrides: Record<string, any> = {}) {

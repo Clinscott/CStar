@@ -9,6 +9,7 @@ import {
     resolveSpokeAnchor,
     resolveSpokeRelativePath,
 } from './shared.js';
+import { assertNewBeadAllowed } from './bead_lifecycle.js';
 
 export interface SpokeBeadImportArgs {
     spoke: string;
@@ -53,6 +54,13 @@ export async function handleSpokeBeadImport(args: SpokeBeadImportArgs) {
         const extraTargetPaths = targetPaths.slice(1);
         const targetKind = args.target_kind || (primaryTargetPath ? 'FILE' : 'SPOKE');
         const beadId = args.bead_id?.trim() || generateBeadId(intent);
+        const initialStatus = args.status || 'OPEN';
+        assertNewBeadAllowed(
+            'spoke bead import',
+            beadId,
+            initialStatus,
+            Boolean(database.getHallBead(beadId)),
+        );
         const now = Date.now();
 
         const contractRefs = [
@@ -93,7 +101,7 @@ export async function handleSpokeBeadImport(args: SpokeBeadImportArgs) {
             baseline_scores: {},
             acceptance_criteria: acceptance,
             checker_shell: args.checker_shell,
-            status: args.status || 'OPEN',
+            status: initialStatus,
             assigned_agent: args.assigned_agent,
             source_kind: 'MCP',
             metadata: {

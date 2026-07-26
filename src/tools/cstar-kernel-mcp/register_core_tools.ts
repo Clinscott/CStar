@@ -88,7 +88,7 @@ export function registerCoreTools(server: ServerWithTool, instrumentTool: Instru
 
     server.tool(
         'cstar_bead',
-        mcpToolDescription('MUTATION', 'Create, inspect, claim, block, resolve, and list bounded Hall beads. RESOLVED transitions are gated by the Sterling Mandate unless force/exemption evidence is supplied.'),
+        mcpToolDescription('MUTATION', 'Create, inspect, claim, block, resolve, and list bounded Hall beads. RESOLVED transitions are gated by the Sterling Mandate.'),
         {
             action: z.enum(['get', 'list', 'create', 'update_status', 'claim', 'resolve', 'block']).describe('Bounded bead action'),
             bead_id: z.string().optional().describe('Hall bead id'),
@@ -121,11 +121,7 @@ export function registerCoreTools(server: ServerWithTool, instrumentTool: Instru
                     })).optional().describe('Warden run results'),
                     validation_id: z.string().optional().describe('Accepted/success validation id'),
                 }).optional().describe('Audit proof. Any sub-field satisfies this leg.'),
-                mandate_exempt: z.boolean().optional().describe('Skip the mandate. Requires exemption_reason.'),
-                exemption_reason: z.string().optional().describe('Justification for the exemption.'),
             }).optional().describe('Sterling Mandate evidence for RESOLVED transitions.'),
-            force: z.boolean().optional().describe('Override a rejected Sterling Mandate verdict. Requires force_reason.'),
-            force_reason: z.string().optional().describe('Justification for the force override.'),
             spoke: z.string().optional().describe('Registered Hall spoke slug used to anchor created beads.'),
         },
         instrumentTool('cstar_bead', handleBead),
@@ -261,7 +257,6 @@ export function registerCoreTools(server: ServerWithTool, instrumentTool: Instru
             proposal_id: z.string().optional().describe('Required for enqueue_operator_intent'),
             payload: z.record(z.string(), z.unknown()).nullable().optional().describe('Optional bounded intent payload'),
             actor: z.string().optional().describe('Operator or system actor label'),
-            operator_authorization_ref: z.string().optional().describe('Required for Mongo mailbox writes'),
         },
         instrumentTool('cstar_mongo_mailbox', handleMongoMailbox),
     );

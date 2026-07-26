@@ -1,4 +1,4 @@
-import { describe, it } from 'node:test';
+import { beforeEach, describe, it } from 'node:test';
 import {
     assert,
     fs,
@@ -9,6 +9,10 @@ import {
 } from './shared_test_setup.js';
 
 describe('CStar MCP Forge adapter project-root inference', () => {
+    beforeEach(() => {
+        process.env.CSTAR_KERNEL_ENABLE_LEGACY_LIVE_EXECUTION = '1';
+    });
+
     it('uses the common project root for mixed tools/tests targets without nesting tools twice', async () => {
         const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-worker-project-'));
         const toolsDir = path.join(projectRoot, 'tools');

@@ -87,14 +87,18 @@ class StdioMcpClient {
     private nextId = 1;
 
     constructor(extraEnv: Record<string, string> = {}, launcher: string = LAUNCHER) {
+        const childEnv: NodeJS.ProcessEnv = {
+            ...process.env,
+            CSTAR_KERNEL_MCP: '1',
+            NODE_OPTIONS: '--max-old-space-size=2048',
+            ...extraEnv,
+        };
+        if (!Object.prototype.hasOwnProperty.call(extraEnv, 'CSTAR_KERNEL_ENABLE_AUTOBOT')) {
+            delete childEnv.CSTAR_KERNEL_ENABLE_AUTOBOT;
+        }
         this.proc = spawn('node', [launcher], {
             cwd: PROJECT_ROOT,
-            env: {
-                ...process.env,
-                CSTAR_KERNEL_MCP: '1',
-                NODE_OPTIONS: '--max-old-space-size=2048',
-                ...extraEnv,
-            },
+            env: childEnv,
             stdio: ['pipe', 'pipe', 'pipe'],
         });
 
@@ -250,7 +254,6 @@ describe('cstar-kernel-mcp stdio launcher', () => {
         const duplicateNames = actualNames.filter((name, index) => actualNames.indexOf(name) !== index);
         const expectedNames = [
             'cstar_augury',
-            'cstar_autobot',
             'cstar_bead',
             'cstar_doctor',
             'cstar_engram_record',
@@ -283,7 +286,7 @@ describe('cstar-kernel-mcp stdio launcher', () => {
             expectedNames,
             `tools/list drifted from the documented inventory; got: ${actualNames.join(', ')}`,
         );
-        assert.ok(actualNames.includes('cstar_autobot'), 'cstar_autobot must be registered for host agents by default');
+        assert.ok(!actualNames.includes('cstar_autobot'), 'cstar_autobot must be absent unless the server opts in exactly');
     });
 
     it('keeps tool schemas independent of protocol session state for stateless MCP readiness', async () => {
@@ -312,6 +315,7 @@ describe('cstar-kernel-mcp stdio launcher', () => {
             assert.deepStrictEqual(forbiddenRequired, [], `${tool.name} must not require protocol/session state args`);
             assert.deepStrictEqual(forbiddenProperties, [], `${tool.name} must not model protocol/session state as tool args`);
         }
+
     });
 
     it('rounds-trips a tools/call for cstar_status returning a deterministic snapshot', async () => {
@@ -402,7 +406,7 @@ describe('cstar-kernel-mcp stdio launcher', () => {
         }
     });
 
-    it('can explicitly disable cstar_autobot with CSTAR_KERNEL_ENABLE_AUTOBOT=0', async () => {
+    it('keeps cstar_autobot disabled for non-exact opt-in values', async () => {
         const testClient = await launchClient({ CSTAR_KERNEL_ENABLE_AUTOBOT: '0' });
         if (!testClient) {
             assert.fail('cstar-kernel-mcp launcher did not respond to initialize');
@@ -420,6 +424,7 @@ describe('cstar-kernel-mcp stdio launcher', () => {
 
     it('does not register cstar_autobot when HERMES_AUTOBOT_DELEGATED=1 is set', async () => {
         const testClient = await launchClient({
+            CSTAR_KERNEL_ENABLE_AUTOBOT: '1',
             HERMES_AUTOBOT_DELEGATED: '1',
         });
         if (!testClient) {

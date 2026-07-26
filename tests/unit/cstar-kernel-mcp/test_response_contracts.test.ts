@@ -2,6 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
     errorResponse,
+    mcpFailedMutation,
     mcpGuardrail,
     mcpMutation,
     normalizeErrorMessage,
@@ -56,6 +57,20 @@ describe('CStar MCP response contract', () => {
                 action: 'continue',
                 reason: 'persisted',
                 failed_checks: [],
+                warning_checks: [],
+            },
+        });
+    });
+
+    it('publishes failed mutation envelopes without claiming persistence', () => {
+        assert.deepEqual(mcpFailedMutation('validation_result_record', 'not persisted'), {
+            kind: 'validation_result_record',
+            persisted: false,
+            guardrail: {
+                verdict: 'block',
+                action: 'recover',
+                reason: 'not persisted',
+                failed_checks: ['persistence_failed'],
                 warning_checks: [],
             },
         });

@@ -19,7 +19,7 @@ export interface AutobotArgs {
 }
 
 export function isAutobotMcpEnabled(): boolean {
-    return process.env.CSTAR_KERNEL_ENABLE_AUTOBOT !== '0' && process.env.HERMES_AUTOBOT_DELEGATED !== '1';
+    return process.env.CSTAR_KERNEL_ENABLE_AUTOBOT === '1' && process.env.HERMES_AUTOBOT_DELEGATED !== '1';
 }
 
 export async function handleAutobot(args: AutobotArgs): Promise<McpTextResponse> {

@@ -31,6 +31,18 @@ export const CSTAR_KERNEL_TOOL_CLASSES = {
     cstar_warden: 'READ',
 } as const satisfies Record<string, McpToolClassPrefix>;
 
+export const CSTAR_WORKER_JOB_V2_TOOL_CLASSES = {
+    cstar_start_worker_job: 'MUTATION',
+    cstar_get_worker_job: 'READ',
+    cstar_cancel_worker_job: 'MUTATION',
+    cstar_fetch_worker_artifact: 'READ',
+} as const satisfies Record<string, McpToolClassPrefix>;
+
+export const CSTAR_KERNEL_ALL_TOOL_CLASSES = {
+    ...CSTAR_KERNEL_TOOL_CLASSES,
+    ...CSTAR_WORKER_JOB_V2_TOOL_CLASSES,
+} as const satisfies Record<string, McpToolClassPrefix>;
+
 export function mcpToolDescription(toolClass: McpToolClassPrefix, description: string): string {
     return `${toolClass}: ${description}`;
 }

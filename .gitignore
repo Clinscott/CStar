@@ -57,6 +57,8 @@ gha-creds-*.json
 .agents/chroma_db/
 .agents/exchange/
 .agents/muninn.pid
+.agents/daemon.key
+.agents/daemon.pid
 .agents/scan_heartbeat.json
 .agents/skills/ref-openomf/
 .agents/sovereign_state.json

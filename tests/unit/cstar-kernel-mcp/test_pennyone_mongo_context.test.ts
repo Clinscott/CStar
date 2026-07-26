@@ -7,6 +7,10 @@ import {
     handlePennyOneContext,
     handleMongoMailbox,
 } from './shared_test_setup.js';
+import {
+    buildIntent,
+    isMongoMailboxWriteEnabled,
+} from '../../../src/tools/cstar-kernel-mcp/tools/mongo_mailbox.js';
 
 describe('CStar MCP PennyOne and Mongo bounded data surfaces', () => {
     it('cstar_pennyone_context reports bounded status without arbitrary SQL', async () => {
@@ -88,6 +92,7 @@ describe('CStar MCP PennyOne and Mongo bounded data surfaces', () => {
             const parsed = JSON.parse(result.content[0].text);
             assert.strictEqual(parsed.status, 'ok');
             assert.strictEqual(parsed.enabled, false);
+            assert.strictEqual(parsed.writes_enabled, false);
             assert.strictEqual(parsed.arbitrary_query_allowed, false);
             assert.strictEqual(parsed.direct_secret_output_allowed, false);
             assert.strictEqual(parsed.guardrail.verdict, 'caution');
@@ -98,15 +103,32 @@ describe('CStar MCP PennyOne and Mongo bounded data surfaces', () => {
         }
     });
 
-    it('cstar_mongo_mailbox blocks writes without operator authorization', async () => {
+    it('cstar_mongo_mailbox blocks writes unless the exact server gate is enabled', async () => {
+        const callerAuthorization = 'caller-text-must-not-authorize-mailbox-writes';
         const result = await handleMongoMailbox({
             action: 'enqueue_operator_intent',
             intent_action: 'accept',
             proposal_id: 'proposal-1',
-        });
+            operator_authorization_ref: callerAuthorization,
+        } as any);
         const parsed = JSON.parse(result.content[0].text);
         assert.strictEqual(result.isError, true);
-        assert.match(parsed.error, /operator_authorization_ref is required/);
+        assert.match(parsed.error, /disabled by server policy/);
         assert.strictEqual(parsed.guardrail.verdict, 'block');
+        assert.ok(!JSON.stringify(parsed).includes(callerAuthorization));
+    });
+
+    it('uses exact opt-in semantics and omits caller authorization from queued documents', () => {
+        process.env.CSTAR_KERNEL_ENABLE_MONGO_MAILBOX_WRITES = 'true';
+        assert.strictEqual(isMongoMailboxWriteEnabled(), false);
+        process.env.CSTAR_KERNEL_ENABLE_MONGO_MAILBOX_WRITES = '1';
+        assert.strictEqual(isMongoMailboxWriteEnabled(), true);
+
+        const intent = buildIntent('accept', 'proposal-1', {
+            actor: 'test-operator',
+            operator_authorization_ref: 'must-not-persist',
+        } as any);
+        assert.strictEqual('operator_authorization_ref' in intent, false);
+        assert.ok(!JSON.stringify(intent).includes('must-not-persist'));
     });
 });

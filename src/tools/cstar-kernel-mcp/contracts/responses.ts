@@ -49,6 +49,14 @@ export function mcpMutation(kind: string, recordId: string | undefined, reason: 
     };
 }
 
+export function mcpFailedMutation(kind: string, reason: string): McpMutationPayload {
+    return {
+        kind,
+        persisted: false,
+        guardrail: mcpGuardrail('block', 'recover', reason, ['persistence_failed']),
+    };
+}
+
 export function textResponse(payload: unknown, isError = false): McpTextResponse {
     return {
         content: [{ type: 'text', text: JSON.stringify(payload) }],

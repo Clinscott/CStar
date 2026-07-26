@@ -253,12 +253,14 @@ describe("CStar MCP promoted spoke and telemetry surfaces", () => {
             const result = await handleSpoke({ action: 'project', slug: 'project-target' });
             const parsed = JSON.parse(result.content[0].text);
             assert.strictEqual(parsed.status, 'projected');
+            assert.strictEqual(parsed.authority.mount_token, undefined);
             const stored = spokeStore.get('project-target');
             assert.ok(stored);
             assert.strictEqual(stored.repo_id, 'repo:hub');
             assert.strictEqual(stored.default_branch, 'master');
             assert.strictEqual((stored.metadata?.projection as any).git_branch, 'work/demo');
             assert.match((stored.metadata?.projection as any).git_head, /^[0-9a-f]{40}$/);
+            assert.ok(!JSON.stringify(parsed).includes((stored.metadata?.authority as any).mount_token));
         } finally {
             (database.saveHallMountedSpoke as any) = originalSave;
             fs.rmSync(tmpRoot, { recursive: true, force: true });

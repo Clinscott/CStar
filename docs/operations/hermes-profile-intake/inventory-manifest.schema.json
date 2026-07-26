@@ -1,0 +1,159 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cstar.local/schemas/hermes-profile-intake-manifest.v1.json",
+  "title": "Hermes Profile Intake Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "profile_kind",
+    "source_root_alias",
+    "phase",
+    "candidates",
+    "excluded_summary",
+    "attestation"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "hermes.profile.intake.manifest.v1"
+    },
+    "profile_kind": {
+      "enum": [
+        "forge",
+        "researcher"
+      ]
+    },
+    "source_root_alias": {
+      "type": "string",
+      "enum": [
+        "HERMES_FORGE_PROFILE_ROOT",
+        "HERMES_RESEARCHER_PROFILE_ROOT"
+      ]
+    },
+    "phase": {
+      "const": "metadata_only"
+    },
+    "candidates": {
+      "type": "array",
+      "maxItems": 5000,
+      "items": {
+        "$ref": "#/$defs/candidate"
+      }
+    },
+    "excluded_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "categories_applied",
+        "individual_excluded_paths_recorded"
+      ],
+      "properties": {
+        "categories_applied": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "secrets",
+              "oauth_state",
+              "sessions_and_cookies",
+              "logs_and_transcripts",
+              "memories_and_personal_context",
+              "raw_vaults_and_private_data",
+              "databases_and_caches",
+              "runtime_state",
+              "live_configuration",
+              "cron_state",
+              "generated_artifacts"
+            ]
+          }
+        },
+        "individual_excluded_paths_recorded": {
+          "const": false
+        }
+      }
+    },
+    "attestation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "file_contents_included",
+        "absolute_paths_included",
+        "secrets_included",
+        "private_data_included",
+        "archive_created",
+        "operator_review_required"
+      ],
+      "properties": {
+        "file_contents_included": {
+          "const": false
+        },
+        "absolute_paths_included": {
+          "const": false
+        },
+        "secrets_included": {
+          "const": false
+        },
+        "private_data_included": {
+          "const": false
+        },
+        "archive_created": {
+          "const": false
+        },
+        "operator_review_required": {
+          "const": true
+        }
+      }
+    }
+  },
+  "$defs": {
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "relative_path",
+        "size_bytes",
+        "modified_epoch",
+        "asset_kind",
+        "review_status",
+        "sha256"
+      ],
+      "properties": {
+        "relative_path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "pattern": "^(?!/|~|[A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$))(?!\\./)(?!.*//)(?!.*\/$).+"
+        },
+        "size_bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "modified_epoch": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "asset_kind": {
+          "enum": [
+            "source",
+            "skill_contract",
+            "test",
+            "schema",
+            "template",
+            "documentation",
+            "dependency_manifest",
+            "config_example"
+          ]
+        },
+        "review_status": {
+          "enum": [
+            "candidate",
+            "manual_review"
+          ]
+        },
+        "sha256": {
+          "type": "null"
+        }
+      }
+    }
+  }
+}

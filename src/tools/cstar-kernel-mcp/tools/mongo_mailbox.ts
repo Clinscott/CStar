@@ -9,7 +9,6 @@ export interface MongoMailboxArgs {
     proposal_id?: string;
     payload?: Record<string, unknown> | null;
     actor?: string;
-    operator_authorization_ref?: string;
 }
 
 const INTENT_ACTIONS = ['accept', 'decline', 'refine', 'dispatch', 'edit'] as const;
@@ -49,7 +48,11 @@ async function getMongoDb() {
     return { client, db: client.db(envValue('CSTAR_MONGO_DB', 'cstar_console')) };
 }
 
-function buildIntent(action: MongoIntentAction, proposalId: string, args: MongoMailboxArgs) {
+export function isMongoMailboxWriteEnabled(): boolean {
+    return process.env.CSTAR_KERNEL_ENABLE_MONGO_MAILBOX_WRITES === '1';
+}
+
+export function buildIntent(action: MongoIntentAction, proposalId: string, args: MongoMailboxArgs) {
     if (!INTENT_ACTIONS.includes(action)) {
         throw new Error(`Unsupported Mongo intent action: ${action}`);
     }
@@ -63,7 +66,6 @@ function buildIntent(action: MongoIntentAction, proposalId: string, args: MongoM
         proposal_id: proposalId,
         payload: args.payload ?? null,
         actor: args.actor ?? 'cstar-kernel-mcp',
-        operator_authorization_ref: args.operator_authorization_ref,
         status: 'pending',
         created_at: now,
         updated_at: now,
@@ -74,6 +76,7 @@ export async function handleMongoMailbox(args: MongoMailboxArgs = {}) {
     const action = args.action ?? 'status';
     const names = collectionNames();
     const enabled = Boolean(envValue('CSTAR_MONGO_URI'));
+    const writesEnabled = isMongoMailboxWriteEnabled();
     const guardrail = mcpGuardrail(
         enabled ? 'allow' : 'caution',
         enabled ? 'continue' : 'verify',
@@ -90,6 +93,7 @@ export async function handleMongoMailbox(args: MongoMailboxArgs = {}) {
                 status: 'ok',
                 action,
                 enabled,
+                writes_enabled: writesEnabled,
                 arbitrary_query_allowed: false,
                 direct_secret_output_allowed: false,
                 db_name: envValue('CSTAR_MONGO_DB', 'cstar_console'),
@@ -111,10 +115,15 @@ export async function handleMongoMailbox(args: MongoMailboxArgs = {}) {
         }
 
         if (action === 'enqueue_operator_intent') {
-            if (!args.operator_authorization_ref?.trim()) {
+            if (!writesEnabled) {
                 return textResponse({
-                    error: 'operator_authorization_ref is required to enqueue Mongo mailbox intents.',
-                    guardrail: mcpGuardrail('block', 'refuse', 'Mongo mailbox writes must be human-authorized and auditable.', ['missing_operator_authorization_ref']),
+                    error: 'Mongo mailbox writes are disabled by server policy.',
+                    guardrail: mcpGuardrail(
+                        'block',
+                        'refuse',
+                        'Mongo mailbox writes require the server-controlled CSTAR_KERNEL_ENABLE_MONGO_MAILBOX_WRITES=1 gate.',
+                        ['mongo_mailbox_writes_disabled'],
+                    ),
                 }, true);
             }
             const intentAction = args.intent_action ?? (() => { throw new Error('intent_action is required.'); })();

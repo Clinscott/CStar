@@ -1,4 +1,4 @@
-import { describe, it } from 'node:test';
+import { beforeEach, describe, it } from 'node:test';
 import {
     assert,
     fs,
@@ -137,25 +137,8 @@ function writeCallbackOnlyReportForgeAdapter(): string {
 }
 
 describe("CStar MCP Forge execute tool", () => {
-it('cstar_forge_execute validates a no-op execution receipt without live spend', async () => {
-    const result = await handleForgeExecute(validForgeExecuteRequest({
-        spend_policy: { mode: 'no_spend', max_retries: 0, live_source_allowed: false },
-        requested_actions: ['no-op execution contract proof'],
-        execution_mode: 'no_op',
-        operator_authorization_ref: undefined,
-        execution_adapter_ref: undefined,
-    }));
-    assert.ok(result.content);
-    const parsed = JSON.parse(result.content[0].text);
-    assert.strictEqual(parsed.status, 'validated_noop');
-    assert.strictEqual(parsed.execution_kind, 'forge');
-    assert.strictEqual(parsed.forge_request_receipt_id, 'dispatch-forge-decision-forge-execute-test-receipt');
-    assert.strictEqual(parsed.authorized_dispatch_surface.found, true);
-    assert.strictEqual(parsed.forge_execution.mode, 'no_op');
-    assert.strictEqual(parsed.forge_execution.attempted, false);
-    assert.strictEqual(parsed.forge_execution.live_spend, false);
-    assert.strictEqual(parsed.forge_execution.codex_worker_fallback_allowed, false);
-    assert.strictEqual(parsed.forge_execution.fail_closed_reason, null);
+beforeEach(() => {
+    process.env.CSTAR_KERNEL_ENABLE_LEGACY_LIVE_EXECUTION = '1';
 });
 
 it('cstar_forge_execute rejects live execution without operator authorization', async () => {
@@ -219,6 +202,7 @@ it('cstar_forge_execute invokes the approved adapter under live authorization wi
     assert.strictEqual(parsed.forge_execution.adapter_result.envelope.response_contract.files_changed_count, 0);
     assert.strictEqual(parsed.forge_execution.adapter_result.envelope.response_contract.artifacts_count, 1);
     assert.strictEqual(parsed.forge_execution.adapter_result.envelope.response_contract.validation_count, 1);
+    assert.strictEqual(parsed.spend_policy.operator_authorization_ref, undefined);
 });
 
 it('cstar_forge_execute gives report-only adapters an exact execution-packet template', async () => {

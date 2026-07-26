@@ -36,6 +36,12 @@ export const HALL_BEAD_TARGET_KINDS: HallBeadTargetKind[] = [
     'OTHER',
 ];
 
+export const TERMINAL_HALL_BEAD_STATUSES = new Set<HallBeadStatus>([
+    'RESOLVED',
+    'ARCHIVED',
+    'SUPERSEDED',
+]);
+
 export interface SpokeAnchor {
     repoId: string;
     spoke: HallMountedSpokeRecord | null;

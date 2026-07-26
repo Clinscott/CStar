@@ -58,6 +58,18 @@ export interface DispatchRequestArgs {
     dispatch_surface_ref?: string;
 }
 
+export function isLegacyLiveExecutionEnabled(): boolean {
+    return process.env.CSTAR_KERNEL_ENABLE_LEGACY_LIVE_EXECUTION === '1';
+}
+
+function publicSpendPolicy(policy: DispatchSpendPolicy): Omit<DispatchSpendPolicy, 'operator_authorization_ref'> {
+    return {
+        mode: policy.mode,
+        ...(policy.max_retries !== undefined ? { max_retries: policy.max_retries } : {}),
+        live_source_allowed: policy.live_source_allowed === true,
+    };
+}
+
 const DISPATCH_RED_ACTION_PATTERNS = [
     /\bmerge\b/i,
     /\bpush\b/i,
@@ -213,12 +225,16 @@ export async function handleDispatchRequest(
 
         const root = registry.getRoot();
         const surface = resolveDispatchSurface(kind, args, root);
-        const liveAuthority = args.spend_policy.mode === 'live_authorized'
+        const legacyLiveExecutionEnabled = isLegacyLiveExecutionEnabled();
+        const liveAuthority = legacyLiveExecutionEnabled
+            && args.spend_policy.mode === 'live_authorized'
             && Boolean(args.spend_policy.operator_authorization_ref)
             && surface.found;
         const receiptId = `dispatch-${kind}-${decisionId}-${Date.now().toString(36)}`;
         const failClosedReason = !surface.found
             ? 'missing_authorized_dispatch_surface'
+            : args.spend_policy.mode === 'live_authorized' && !legacyLiveExecutionEnabled
+                ? 'legacy_live_execution_disabled'
             : liveAuthority
                 ? null
                 : 'no_live_dispatch_authority';
@@ -241,10 +257,7 @@ export async function handleDispatchRequest(
             artifact_expectations: args.artifact_expectations,
             prohibited_actions: normalizeActionList(args.prohibited_actions),
             requested_actions: normalizeActionList(args.requested_actions),
-            spend_policy: {
-                ...args.spend_policy,
-                live_source_allowed: args.spend_policy.live_source_allowed === true,
-            },
+            spend_policy: publicSpendPolicy(args.spend_policy),
             live_source_policy: args.live_source_policy ?? 'no live source collection unless separately authorized',
             retry_policy: args.retry_policy ?? { budget: args.spend_policy.max_retries ?? 0, spent: 0 },
             callback_contract: {

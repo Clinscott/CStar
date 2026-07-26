@@ -1,4 +1,4 @@
-import { describe, it } from 'node:test';
+import { beforeEach, describe, it } from 'node:test';
 import {
     assert,
     fs,
@@ -9,6 +9,10 @@ import {
 } from './shared_test_setup.js';
 
 describe('CStar MCP Forge execute trace artifacts', () => {
+    beforeEach(() => {
+        process.env.CSTAR_KERNEL_ENABLE_LEGACY_LIVE_EXECUTION = '1';
+    });
+
     it('persists a worker execution trace when the adapter exits without response artifact', async () => {
         const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-worker-project-'));
         const suiteRoot = path.join(projectRoot, 'tests', 'truth-verification-red-team');

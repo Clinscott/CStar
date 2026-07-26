@@ -71,6 +71,26 @@ function enrichSpokeForMcp(spoke: HallMountedSpokeRecord): HallMountedSpokeRecor
     };
 }
 
+const RAW_SPOKE_TOKEN_KEYS = new Set([
+    'mount_token',
+    'hall_token',
+    'identity_token',
+]);
+
+export function redactSpokeTokens(value: unknown): unknown {
+    if (Array.isArray(value)) {
+        return value.map((entry) => redactSpokeTokens(entry));
+    }
+    if (!value || typeof value !== 'object') {
+        return value;
+    }
+    return Object.fromEntries(
+        Object.entries(value as Record<string, unknown>)
+            .filter(([key]) => !RAW_SPOKE_TOKEN_KEYS.has(key))
+            .map(([key, entry]) => [key, redactSpokeTokens(entry)]),
+    );
+}
+
 export async function handleSpoke({
     action,
     slug,
@@ -136,7 +156,7 @@ export async function handleSpoke({
             if (normalized.length === 0 || normalized.length > 64) return textResponse({ error: `slug must normalize to 1..64 chars` }, true);
             const found = database.getHallMountedSpoke(normalized, root);
             if (!found) return textResponse({ error: `spoke not registered: ${normalized}` }, true);
-            return textResponse({ status: 'ok', spoke: enrichSpokeForMcp(found) });
+            return textResponse(redactSpokeTokens({ status: 'ok', spoke: enrichSpokeForMcp(found) }));
         }
         if (action === 'unlink') {
             if (!slug) return textResponse({ error: 'unlink requires slug' }, true);
@@ -231,7 +251,7 @@ export async function handleSpoke({
                         : authorityError !== undefined ? { authority_error: authorityError } : {}),
                 },
             });
-            return textResponse({
+            return textResponse(redactSpokeTokens({
                 status: existing ? 'relinked' : 'linked',
                 slug: normalizedSlug,
                 mutation: mcpMutation(existing ? 'spoke_relink' : 'spoke_link', normalizedSlug, 'Mounted spoke row was persisted through the MCP write surface.'),
@@ -253,7 +273,7 @@ export async function handleSpoke({
                     mount_token: authorityResult.identity.mount_token,
                     files: authorityResult.files,
                 } : { status: skip_init === true ? 'skipped' : 'failed', error: authorityError ?? null },
-            });
+            }));
         }
         if (action === 'project') {
             if (!slug) return textResponse({ error: 'project requires slug' }, true);
@@ -310,7 +330,7 @@ export async function handleSpoke({
                         : authorityError !== undefined ? { authority_error: authorityError } : {}),
                 },
             });
-            return textResponse({
+            return textResponse(redactSpokeTokens({
                 status: 'projected',
                 slug: normalized,
                 mutation: mcpMutation('spoke_project', normalized, 'Mounted spoke projection metadata was persisted through the MCP write surface.'),
@@ -328,13 +348,13 @@ export async function handleSpoke({
                     mount_token: authorityResult.identity.mount_token,
                     files: authorityResult.files,
                 } : { status: 'failed', error: authorityError ?? null },
-            });
+            }));
         }
         if (action === 'doctor') {
             const repo = database.getHallRepository(root);
             const hubRepoId = repo?.repo_id ?? buildHallRepositoryId(normalizeHallPath(root));
             const report = surveySpokes(hubRepoId);
-            return textResponse({ status: 'ok', report });
+            return textResponse(redactSpokeTokens({ status: 'ok', report }));
         }
         if (action === 'health') {
             if (!slug) return textResponse({ error: 'health requires slug' }, true);
@@ -353,7 +373,14 @@ export async function handleSpoke({
             if (normalized.length === 0 || normalized.length > 64) return textResponse({ error: `slug must normalize to 1..64 chars` }, true);
             try {
                 const report = verifySpoke(normalized);
-                return textResponse({ status: 'ok', report });
+                const { mount_token: mountTokenVerdict, ...reportWithoutVerdict } = report;
+                return textResponse(redactSpokeTokens({
+                    status: 'ok',
+                    report: {
+                        ...reportWithoutVerdict,
+                        mount_token_verdict: mountTokenVerdict,
+                    },
+                }));
             } catch (err) {
                 return textResponse({ error: err instanceof Error ? err.message : String(err) }, true);
             }

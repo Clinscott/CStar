@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { registerCoreTools } from './cstar-kernel-mcp/register_core_tools.js';
+import { registerWorkerJobTools } from './cstar-kernel-mcp/register_worker_job_tools.js';
 import { PROJECT_ROOT, logBootstrapError } from './cstar-kernel-mcp/contracts/runtime.js';
 import { instrumentTool } from './cstar-kernel-mcp/telemetry/usage.js';
 import { attachSourceWatcher } from './cstar-kernel-mcp/watch.js';
@@ -22,6 +23,7 @@ export const server = new McpServer({
 });
 
 registerCoreTools(server, instrumentTool);
+registerWorkerJobTools(server, instrumentTool);
 
 export {
     mcpGuardrail,

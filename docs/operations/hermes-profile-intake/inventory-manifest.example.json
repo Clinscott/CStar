@@ -1,0 +1,40 @@
+{
+  "schema_version": "hermes.profile.intake.manifest.v1",
+  "profile_kind": "researcher",
+  "source_root_alias": "HERMES_RESEARCHER_PROFILE_ROOT",
+  "phase": "metadata_only",
+  "candidates": [
+    {
+      "relative_path": "approved-source/SKILL.md",
+      "size_bytes": 0,
+      "modified_epoch": 0,
+      "asset_kind": "skill_contract",
+      "review_status": "manual_review",
+      "sha256": null
+    }
+  ],
+  "excluded_summary": {
+    "categories_applied": [
+      "secrets",
+      "oauth_state",
+      "sessions_and_cookies",
+      "logs_and_transcripts",
+      "memories_and_personal_context",
+      "raw_vaults_and_private_data",
+      "databases_and_caches",
+      "runtime_state",
+      "live_configuration",
+      "cron_state",
+      "generated_artifacts"
+    ],
+    "individual_excluded_paths_recorded": false
+  },
+  "attestation": {
+    "file_contents_included": false,
+    "absolute_paths_included": false,
+    "secrets_included": false,
+    "private_data_included": false,
+    "archive_created": false,
+    "operator_review_required": true
+  }
+}

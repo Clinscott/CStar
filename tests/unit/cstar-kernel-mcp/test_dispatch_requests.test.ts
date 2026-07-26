@@ -70,10 +70,10 @@ it('cstar_handoff demotes stale active sessions when caller targets diverge', ()
         work_items: [
             { bead_id: 'registry-separation-rule', status: 'OPEN', target_path: '.agents/skill_registry.json' },
         ],
-    }, '/home/morderith/Corvus/CStar', {
+    }, 'fixture-cstar-root', {
         prompt: 'Repair Researcher CorvusEye malformed output pipeline',
         scope: 'spoke:cstar-console',
-        target_paths: ['/home/morderith/Corvus/CorvusEye/tests/truth-verification-red-team'],
+        target_paths: ['spokes/corvuseye/tests/truth-verification-red-team'],
     });
 
     assert.strictEqual(payload.status, 'background_active_session');
@@ -144,7 +144,33 @@ it('cstar_researcher_request proves the default authorized surface but blocks li
     assert.strictEqual(parsed.dispatch_execution.fail_closed_reason, 'no_live_dispatch_authority');
 });
 
-it('cstar_researcher_request marks complete live-authorized receipts as ready without executing', async () => {
+it('cstar_researcher_request keeps caller-authorized receipts no-spend while the server gate is off', async () => {
+    const callerAuthorization = 'operator-test-live-researcher';
+    const result = await handleResearcherRequest(validDispatchRequest({
+        spend_policy: {
+            mode: 'live_authorized',
+            max_retries: 1,
+            live_source_allowed: false,
+            operator_authorization_ref: callerAuthorization,
+        },
+        retry_policy: { budget: 1, spent: 0 },
+    }));
+    assert.ok(result.content);
+    const parsed = JSON.parse(result.content[0].text);
+    assert.strictEqual(parsed.status, 'dry_run_no_spend');
+    assert.strictEqual(parsed.dispatch_kind, 'researcher');
+    assert.strictEqual(parsed.authorized_dispatch_surface.found, true);
+    assert.strictEqual(parsed.dispatch_execution.attempted, false);
+    assert.strictEqual(parsed.dispatch_execution.live_spend, false);
+    assert.strictEqual(parsed.dispatch_execution.live_source_collection, false);
+    assert.strictEqual(parsed.dispatch_execution.codex_worker_fallback_allowed, false);
+    assert.strictEqual(parsed.dispatch_execution.fail_closed_reason, 'legacy_live_execution_disabled');
+    assert.ok(!JSON.stringify(parsed).includes(callerAuthorization));
+    assert.strictEqual(parsed.spend_policy.operator_authorization_ref, undefined);
+});
+
+it('cstar_researcher_request marks a complete receipt ready only under the exact server opt-in', async () => {
+    process.env.CSTAR_KERNEL_ENABLE_LEGACY_LIVE_EXECUTION = '1';
     const result = await handleResearcherRequest(validDispatchRequest({
         spend_policy: {
             mode: 'live_authorized',
@@ -154,20 +180,10 @@ it('cstar_researcher_request marks complete live-authorized receipts as ready wi
         },
         retry_policy: { budget: 1, spent: 0 },
     }));
-    assert.ok(result.content);
     const parsed = JSON.parse(result.content[0].text);
     assert.strictEqual(parsed.status, 'ready_for_authorized_dispatch');
-    assert.strictEqual(parsed.dispatch_kind, 'researcher');
-    assert.strictEqual(parsed.authorized_dispatch_surface.found, true);
-    assert.strictEqual(
-        parsed.authorized_dispatch_surface.selected.ref,
-        '.agents/skills/researcher/SKILL.md',
-    );
-    assert.strictEqual(parsed.dispatch_execution.attempted, false);
-    assert.strictEqual(parsed.dispatch_execution.live_spend, false);
-    assert.strictEqual(parsed.dispatch_execution.live_source_collection, false);
-    assert.strictEqual(parsed.dispatch_execution.codex_worker_fallback_allowed, false);
     assert.strictEqual(parsed.dispatch_execution.fail_closed_reason, null);
+    assert.strictEqual(parsed.spend_policy.operator_authorization_ref, undefined);
 });
 
 it('cstar_forge_request honors explicit decision ids and fails closed on missing dispatch surface', async () => {
