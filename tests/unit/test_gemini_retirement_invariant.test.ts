@@ -48,6 +48,11 @@ const RETIRED_MODEL_DIAGNOSTICS = [
     'tests/empire_tests/specs/check_pro.qmd',
     'tests/empire_tests/test_check_pro_empire.py',
 ];
+const RETIRED_KEY_PROPAGATION_FILES = [
+    'src/core/engine/wardens/huginn.py',
+    'src/core/engine/wardens/shadow_forge.py',
+    'src/tools/debug/verify_fish.py',
+];
 
 function trackedAutomationNames(): string[] {
     return AUTOMATION_DIRS.flatMap((directory) => (
@@ -213,5 +218,21 @@ describe('Gemini retirement invariant', () => {
         assert.doesNotMatch(sharedFixtures, /mock_genai_client/);
         assert.doesNotMatch(personaTests, /check_pro\.py/);
         assert.doesNotMatch(testManifest, /test_check_pro_empire\.py/);
+    });
+
+    it('keeps retired model credentials out of active wardens and diagnostics', () => {
+        for (const relativePath of RETIRED_KEY_PROPAGATION_FILES) {
+            const content = fs.readFileSync(path.join(ROOT, relativePath), 'utf8');
+            assert.doesNotMatch(
+                content,
+                /\b(?:GOOGLE|GEMINI|MUNINN)_API_KEY\b|google\.generativeai/i,
+            );
+        }
+
+        const shadowForge = fs.readFileSync(
+            path.join(ROOT, 'src/core/engine/wardens/shadow_forge.py'),
+            'utf8',
+        );
+        assert.doesNotMatch(shadowForge, /\b[A-Z][A-Z0-9_]*_API_KEY\b/);
     });
 });

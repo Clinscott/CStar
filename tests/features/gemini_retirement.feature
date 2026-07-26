@@ -58,3 +58,12 @@ Feature: Gemini retirement
       Then its canonical digest must match the pre-retirement baseline
       And Google or Gemini environment markers must not change that digest
       And no remote model client may be constructed
+
+  Rule: Provider credentials cannot enter legacy diagnostics or wardens
+
+    Scenario: Legacy Python callers remain outside active model authority
+      Given retired Google, Gemini, or Muninn credentials remain in the host environment
+      When Huginn, Shadow Forge, or the system integrity verifier is invoked
+      Then Huginn must construct its uplink without a model credential
+      And the verifier must not inject retired modules or credentials
+      And Shadow Forge must not forward any model credential

@@ -19,9 +19,8 @@ class HuginnWarden(BaseWarden):
     def __init__(self, root: Path) -> None:
         super().__init__(root)
         self.trace_dir = root / ".agents" / "traces"
-        self.api_key = os.getenv("MUNINN_API_KEY") or os.getenv("GOOGLE_API_KEY")
         # [Ω] Decoupled: Using Uplink for neural audits
-        self.uplink = AntigravityUplink(api_key=self.api_key)
+        self.uplink = AntigravityUplink()
 
     def scan(self) -> list[dict[str, Any]]:
         targets = []
