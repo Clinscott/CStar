@@ -1,5 +1,4 @@
-import json
-import os
+import inspect
 import sys
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -11,92 +10,75 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-# Now imports can proceed — AnomalyWarden exists in atomic_gpt.py
+from src.core.engine.ravens_stage import RavensCycleResult
 from src.core.engine.ravens.muninn import Muninn
-from tests.harness.manual_learn import run_learning_cycle
-from tests.harness.raven_proxy import RavenProxy
+
+RETIRED_HARNESS_ROUTES = (
+    "tests/harness/manual_learn.py",
+    "tests/harness/stress_test.py",
+    "tests/harness/ragnarok_muninn.js",
+    "tests/harness/ragnarok_bridge.js",
+)
 
 
 @pytest.fixture
-def mock_hud():
-    with patch("src.core.sovereign_hud.SovereignHUD") as mock:
-        yield mock
+def muninn_facade(tmp_path: Path) -> tuple[Muninn, MagicMock, MagicMock]:
+    with (
+        patch("src.cstar.core.uplink.AntigravityUplink") as uplink_class,
+        patch("src.core.engine.ravens.muninn.MuninnHeart") as heart_class,
+    ):
+        muninn = Muninn(target_path=str(tmp_path))
 
-@pytest.fixture
-def muninn_instance(mock_hud):
-    with patch("src.cstar.core.uplink.AntigravityUplink"), \
-         patch("src.core.engine.ravens.muninn_heart.MuninnHeart"), \
-         patch.dict(os.environ, {"GOOGLE_API_KEY": "MOCK_KEY"}):
+    uplink_class.assert_called_once_with()
+    heart_class.assert_called_once_with(tmp_path.resolve(), uplink_class.return_value)
+    return muninn, heart_class.return_value, uplink_class.return_value
 
-        m = Muninn(target_path=str(PROJECT_ROOT))
-        yield m
 
-def test_muninn_api_key_priority(mock_hud):
-    """Assert that Muninn prioritizes MUNINN_API_KEY over GOOGLE_API_KEY."""
-    env_vars = {
-        "MUNINN_API_KEY": "MUNINN_PRIORITY_KEY",
-        "GOOGLE_API_KEY": "SHARED_FALLBACK_KEY"
-    }
-    with patch.dict(os.environ, env_vars), \
-         patch("src.cstar.core.uplink.AntigravityUplink") as mock_uplink, \
-         patch("src.core.engine.ravens.muninn_heart.MuninnHeart"):
+def test_muninn_constructs_the_supported_keyless_facade(
+    muninn_facade: tuple[Muninn, MagicMock, MagicMock],
+) -> None:
+    muninn, heart, uplink = muninn_facade
 
-        m = Muninn(target_path=str(PROJECT_ROOT))
-        # Ensure AntigravityUplink was initialized with the priority key
-        mock_uplink.assert_called()
-        # Verify the key passed to uplink (AntigravityUplink handles env internally)
+    assert muninn.uplink is uplink
+    assert muninn.heart is heart
 
-def test_muninn_anti_oscillation(muninn_instance):
-    """Assert that execution skips cycle if heart reports failure."""
-    # Since Muninn delegates to heart, we mock heart.execute_cycle
-    muninn_instance.heart.execute_cycle = AsyncMock(return_value=False)
 
-    # Run
-    import asyncio
-    result = asyncio.run(muninn_instance.run_cycle())
+@pytest.mark.asyncio
+@pytest.mark.parametrize("cycle_result", [False, True])
+async def test_run_cycle_delegates_to_the_heart(
+    muninn_facade: tuple[Muninn, MagicMock, MagicMock],
+    cycle_result: bool,
+) -> None:
+    muninn, heart, _uplink = muninn_facade
+    heart.execute_cycle = AsyncMock(return_value=cycle_result)
 
-    assert result is False
-    muninn_instance.heart.execute_cycle.assert_called_once()
+    assert await muninn.run_cycle() is cycle_result
+    heart.execute_cycle.assert_awaited_once_with()
 
-def test_muninn_crucible_rollback(muninn_instance):
-    """Assert that run_cycle returns heart's result."""
-    muninn_instance.heart.execute_cycle = AsyncMock(return_value=True)
-    
-    import asyncio
-    result = asyncio.run(muninn_instance.run_cycle())
-    assert result is True
 
-def test_muninn_learning_cycle():
-    """Assert that manual_learn cycles call Muninn correctly."""
-    with patch("tests.harness.manual_learn.Muninn") as MockMuninn, \
-         patch("tests.harness.manual_learn.RavenProxy"), \
-         patch.dict(os.environ, {"GOOGLE_API_KEY": "FAKE_KEY"}):
+@pytest.mark.asyncio
+async def test_run_cycle_contract_delegates_structured_result(
+    muninn_facade: tuple[Muninn, MagicMock, MagicMock],
+) -> None:
+    muninn, heart, _uplink = muninn_facade
+    result = RavensCycleResult(
+        status="NO_ACTION",
+        summary="No bounded mission is available.",
+        mission_id="mission:test:no-action",
+    )
+    heart.execute_cycle_contract = AsyncMock(return_value=result)
 
-        mock_m = MockMuninn.return_value
-        # Since manual_learn likely calls run_cycle now
-        mock_m.run_cycle = AsyncMock(side_effect=[True, False])
+    assert await muninn.run_cycle_contract() is result
+    heart.execute_cycle_contract.assert_awaited_once_with()
 
-        # We might need to adjust manual_learn.py if it's still calling .run()
-        # For now, let's assume it's updated or we will update it.
-        run_learning_cycle(n_cycles=3)
 
-def test_raven_proxy_injection(tmp_path):
-    """Assert that RavenProxy injects lessons from corrections.json using tmp_path isolation."""
-    # Create a dummy corrections.json in tmp_path
-    corrections_file = tmp_path / "corrections.json"
-    lesson_text = "Always preserve original function signatures."
-    corrections_file.write_text(json.dumps({"lessons": [lesson_text]}))
+def test_muninn_exposes_no_retired_client_or_run_api() -> None:
+    parameters = inspect.signature(Muninn).parameters
 
-    # RavenProxy doesn't use genai anymore, it's a simple mock
-    proxy = RavenProxy(api_key="FAKE_KEY")
-    # Manually point the corrections_path to our tmp file
-    proxy.corrections_path = corrections_file
+    assert "client" not in parameters
+    assert not hasattr(Muninn, "run")
 
-    # RavenProxy in tests/harness/raven_proxy.py doesn't seem to have _inject_lessons anymore
-    # based on my previous read. It has send_payload.
-    # Let's verify if _inject_lessons exists.
-    if hasattr(proxy, "_inject_lessons"):
-        original_content = "Fix the login bug."
-        augmented = proxy._inject_lessons(original_content)
-        assert lesson_text in augmented
-        assert original_content in augmented
+
+@pytest.mark.parametrize("relative_path", RETIRED_HARNESS_ROUTES)
+def test_obsolete_muninn_harness_routes_remain_absent(relative_path: str) -> None:
+    assert not (PROJECT_ROOT / relative_path).exists()
