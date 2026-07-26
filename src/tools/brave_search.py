@@ -27,7 +27,8 @@ class BraveSearch:
     def __init__(self) -> None:
         """Initializes the searcher with environment API key."""
         self.api_key: str | None = os.getenv("BRAVE_API_KEY")
-        self._ensure_quota_ledger()
+        if self.api_key:
+            self._ensure_quota_ledger()
 
     def _ensure_quota_ledger(self) -> None:
         """Initializes or resets the quota ledger based on the current month."""

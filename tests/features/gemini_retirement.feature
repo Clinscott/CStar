@@ -32,3 +32,12 @@ Feature: Gemini retirement
       Then none of those bounded surfaces may inject a Gemini CLI activation flag
       And bootstrap must scrub retired flags from an existing environment file
       And legacy Gemini capability markers must not activate sub-agent delegation
+
+  Rule: Active web discovery has one provider route
+
+    Scenario: Search fallback and lexicon discovery use Brave only
+      Given local skill discovery needs an external web result
+      When CStar invokes its active search provider
+      Then only Brave Search may receive the query
+      And missing Brave credentials must return no result
+      And no retired-provider fallback may run

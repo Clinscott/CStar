@@ -8,10 +8,8 @@ import json
 from pathlib import Path
 from typing import Any
 from src.core.payload import IntentPayload
-from src.core.engine.cortex import Cortex
 from src.core.sovereign_hud import SovereignHUD
 from src.tools.brave_search import BraveSearch
-from src.tools.gemini_search import GeminiSearch
 
 class SovereignOrchestrator:
     """
@@ -76,9 +74,8 @@ class SovereignOrchestrator:
 
     def web_fallback(self, query: str) -> dict | None:
         """Executes integrated web search when skills are elusive."""
-        gemini = GeminiSearch()
-        searcher = gemini if gemini.is_available() else BraveSearch()
-        
+        searcher = BraveSearch()
+
         contextual_query = f"Corvus Star agent command '{query}' meaning programmatic interface"
         web_results = searcher.search(contextual_query)
 

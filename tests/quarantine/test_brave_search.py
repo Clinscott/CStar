@@ -63,12 +63,13 @@ def test_search_success(mock_brave_search, monkeypatch):
     assert mock_brave_search._read_ledger()["count"] == 1
 
 def test_search_no_api_key(tmp_path, monkeypatch):
-    """Verifies behavior when BRAVE_API_KEY is missing."""
+    """Verifies missing credentials stay side-effect-free even with an invalid ledger path."""
     monkeypatch.delenv("BRAVE_API_KEY", raising=False)
-    # Re-patch QUOTA_FILE because we are creating a new instance
-    agent_dir = tmp_path / ".agents"
-    agent_dir.mkdir()
-    monkeypatch.setattr(BraveSearch, "QUOTA_FILE", agent_dir / "brave_quota.json")
+    blocked_parent = tmp_path / "not-a-directory"
+    blocked_parent.write_text("blocked", encoding="utf-8")
+    monkeypatch.setattr(BraveSearch, "QUOTA_FILE", blocked_parent / "brave_quota.json")
+    network_get = lambda *args, **kwargs: pytest.fail("network call was not expected")
+    monkeypatch.setattr(requests, "get", network_get)
 
     searcher = BraveSearch()
     results = searcher.search("test")

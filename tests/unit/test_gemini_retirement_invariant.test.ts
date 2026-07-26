@@ -21,6 +21,8 @@ const AUTOMATION_DIRS = [
 ];
 const RETIRED_RUNTIME_FILES = [
     'src/core/host_delegation.ts',
+    'src/core/engine/injector.py',
+    'src/core/engine/orchestrator.py',
     'src/core/host_session.py',
     'src/core/host_session.ts',
     'src/core/mimir_client.py',
@@ -167,6 +169,7 @@ describe('Gemini retirement invariant', () => {
             assert.doesNotMatch(content, /gemini|antigravity|\bagy\b|google[-_ ]?(genai|generative)/i);
         }
         assert.equal(fs.existsSync(path.join(ROOT, 'src/core/mimir_client.js')), false);
+        assert.equal(fs.existsSync(path.join(ROOT, 'src/tools/gemini_search.py')), false);
     });
 
     it('keeps repository launch and environment ingress free of retired provider activation', () => {
