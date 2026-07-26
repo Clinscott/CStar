@@ -49,8 +49,6 @@ class SovereignBootstrap:
         # [🔱] ONE MIND ANCHOR: Ensure host-session state is immutable across spokes
         import os
         for env_name in (
-            "GEMINI_CLI_ACTIVE",
-            "GEMINI_CLI",
             "CODEX_SHELL",
             "CODEX_THREAD_ID",
             "CORVUS_HOST_PROVIDER",

@@ -23,3 +23,12 @@ Feature: Gemini retirement
       When CStar resolves the active host
       Then the identified supported provider must be preserved
       And unrelated legacy Gemini markers must not override a Codex session
+
+  Rule: Retired activation cannot enter through repository launch surfaces
+
+    Scenario: Core MCP and bootstrap ingress exposes no Gemini activation
+      Given the core MCP, terminal, and environment bootstrap surfaces
+      When their environment configuration is inspected
+      Then none of those bounded surfaces may inject a Gemini CLI activation flag
+      And bootstrap must scrub retired flags from an existing environment file
+      And legacy Gemini capability markers must not activate sub-agent delegation

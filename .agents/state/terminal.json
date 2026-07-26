@@ -1,7 +1,6 @@
 {
     "env": {
-        "PYTHONPATH": ".",
-        "GEMINI_CLI_ACTIVE": "true"
+        "PYTHONPATH": "."
     },
     "cwd": "."
 }

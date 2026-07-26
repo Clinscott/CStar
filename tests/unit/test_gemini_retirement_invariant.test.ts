@@ -31,6 +31,13 @@ const RETIRED_RUNTIME_FILES = [
     'src/node/core/runtime/host_workflows/research.ts',
     'src/node/core/state.ts',
 ];
+const ZERO_RETIRED_INGRESS_FILES = [
+    '.agents/state/terminal.json',
+    '.mcp.json',
+    'plugins/corvus-star/.mcp.json',
+    'src/core/bootstrap.py',
+    'src/core/engine/env_adapter.py',
+];
 
 function trackedAutomationNames(): string[] {
     return AUTOMATION_DIRS.flatMap((directory) => (
@@ -160,5 +167,16 @@ describe('Gemini retirement invariant', () => {
             assert.doesNotMatch(content, /gemini|antigravity|\bagy\b|google[-_ ]?(genai|generative)/i);
         }
         assert.equal(fs.existsSync(path.join(ROOT, 'src/core/mimir_client.js')), false);
+    });
+
+    it('keeps repository launch and environment ingress free of retired provider activation', () => {
+        for (const relativePath of ZERO_RETIRED_INGRESS_FILES) {
+            const content = fs.readFileSync(path.join(ROOT, relativePath), 'utf8');
+            assert.doesNotMatch(content, /gemini|antigravity|\bagy\b|google[-_. ]?(genai|generative)/i);
+        }
+
+        const bootstrapContent = fs.readFileSync(path.join(ROOT, 'scripts/env_bootstrap.ts'), 'utf8');
+        assert.match(bootstrapContent, /RETIRED_ENV_KEYS/);
+        assert.doesNotMatch(bootstrapContent, /['"]GEMINI_CLI_ACTIVE['"]\s*:\s*['"]true['"]/);
     });
 });

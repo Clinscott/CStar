@@ -4,7 +4,6 @@ Purpose: Probes the host for sub-agent capabilities and orchestrates delegation 
 """
 
 import os
-import sys
 from enum import Enum, auto
 from typing import Any
 
@@ -24,18 +23,20 @@ class EnvAdapter:
 
     def _detect_capability(self) -> HostCapability:
         # 1. Check for explicit sub-agent host flags
-        if os.environ.get("GEMINI_CLI_SUBAGENTS") == "true":
-            return HostCapability.SUB_AGENTS
-        if os.environ.get("CODEX_SUBAGENTS") == "true" or os.environ.get("CLAUDE_SUBAGENTS") == "true":
+        if (
+            os.environ.get("CODEX_SUBAGENTS") == "true"
+            or os.environ.get("CLAUDE_SUBAGENTS") == "true"
+            or os.environ.get("DROID_SUBAGENTS") == "true"
+        ):
             return HostCapability.SUB_AGENTS
 
-        # 2. Check for provider SDK/tool presence or explicit interactive host mode.
+        # 2. Check for an explicit interactive host mode.
         if (
-            "google.gemini" in sys.modules
-            or os.environ.get("AGENT_MODE") == "interactive"
+            os.environ.get("AGENT_MODE") == "interactive"
             or os.environ.get("CODEX_SHELL") == "1"
             or os.environ.get("CODEX_THREAD_ID")
-            or os.environ.get("CORVUS_HOST_PROVIDER") in {"codex", "claude"}
+            or os.environ.get("DROID_CLI_ACTIVE") == "true"
+            or os.environ.get("CORVUS_HOST_PROVIDER") in {"codex", "claude", "droid"}
         ):
             return HostCapability.SUB_AGENTS
 
