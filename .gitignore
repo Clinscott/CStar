@@ -53,6 +53,8 @@ gha-creds-*.json
 .lore/
 
 # Runtime artifacts and local state
+/.agents/cachebro.json
+/tests/harness/logs/trace_*.json
 .agents/.agents/
 .agents/chroma_db/
 .agents/exchange/

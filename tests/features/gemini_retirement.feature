@@ -76,3 +76,12 @@ Feature: Gemini retirement
       Then every retired provider key and prefix must be removed case-insensitively
       And current host, worker, OAuth, path, and unrelated Google state must be preserved
       And neither the supplied environment nor the process environment may be mutated
+
+  Rule: Generated provider residue cannot return to versioned surfaces
+
+    Scenario: A clean checkout contains no Gemini-era harness recordings
+      Given SDK traces and the CacheBro snapshot are runtime residue
+      When generated harness and cache paths are inspected
+      Then the orphan Raven proxy and recorded traces must be absent
+      And anchored ignore rules must prevent trace and cache regeneration from being tracked
+      And a missing CacheBro cache must load as empty without creating a file

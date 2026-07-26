@@ -1,5 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -234,5 +235,20 @@ describe('Gemini retirement invariant', () => {
             'utf8',
         );
         assert.doesNotMatch(shadowForge, /\b[A-Z][A-Z0-9_]*_API_KEY\b/);
+    });
+
+    it('keeps generated provider residue out of versioned surfaces', () => {
+        const trackedTraceFiles = execFileSync(
+            'git',
+            ['ls-files', '--', 'tests/harness/logs/trace_*.json'],
+            { cwd: ROOT, encoding: 'utf8' },
+        ).trim();
+        const ignoreRules = fs.readFileSync(path.join(ROOT, '.gitignore'), 'utf8')
+            .split(/\r?\n/);
+
+        assert.equal(fs.existsSync(path.join(ROOT, 'tests/harness/raven_proxy.py')), false);
+        assert.equal(trackedTraceFiles, '');
+        assert.ok(ignoreRules.includes('/tests/harness/logs/trace_*.json'));
+        assert.ok(ignoreRules.includes('/.agents/cachebro.json'));
     });
 });
