@@ -3,7 +3,7 @@
 CStar Evolution Watch — Daily Intelligence Pipeline
 ===================================================
 Enhanced with: proactive probes, skill timing, full directory coverage,
-health metrics, and trace compliance.
+and health metrics.
 
 Usage:
     python evolution_watch.py                    # full pipeline
@@ -275,21 +275,6 @@ def _get_all_files_in_inclusion_dirs() -> list[tuple[str, str]]:
     return files
 
 
-def _extract_trace_block(content: str) -> bool:
-    """Return True if the content contains a Corvus Star Trace block."""
-    patterns = [
-        r"// Corvus Star Trace",
-        r"# Corvus Star Trace",
-        r"/\* Corvus Star Trace",
-        r"Trace:\s*\n",
-        r"Corvus Star Trace\s*\[",
-    ]
-    for pat in patterns:
-        if re.search(pat, content, re.IGNORECASE):
-            return True
-    return False
-
-
 # ---------------------------------------------------------------------------
 # Probe A — Registry drift
 # ---------------------------------------------------------------------------
@@ -514,46 +499,6 @@ def probe_runtime_bypass() -> list[ProbeFinding]:
                     description=f"Found '{label}' pattern in this file — runtime skill dispatch should flow through chant.ts registry contract.",
                     file_path=file_path,
                 ))
-    return findings
-
-
-# ---------------------------------------------------------------------------
-# Probe E — Trace compliance (new, from Requirement 5)
-# ---------------------------------------------------------------------------
-def probe_trace_compliance() -> list[ProbeFinding]:
-    """Verify Python files in src/ and .agents/ modified since last run contain Trace blocks."""
-    findings = []
-    changed, is_full = _get_changed_files_since_last_run()
-    # __init__.py files are package markers — they do not emit Trace blocks
-    # and should never be flagged even on full scans (reduces ~240 false positives)
-    INIT_BLACKLIST = {"__init__.py", "__main__.py"}
-    if is_full or not changed:
-        scan_files = [
-            f for f in (list((CSTAR_ROOT / "src").rglob("*.py")) + list((CSTAR_ROOT / ".agents").rglob("*.py")))
-            if f.name not in INIT_BLACKLIST
-            and not any(ex in str(f) for ex in EXCLUSION_PATTERNS)
-        ]
-    else:
-        scan_files = [CSTAR_ROOT / f for f in changed if f.endswith(".py") and (f.startswith("src/") or f.startswith(".agents/"))]
-
-    for file_path in scan_files:
-        if not file_path.exists():
-            continue
-        try:
-            content = file_path.read_text()
-        except Exception:
-            continue
-        if not _extract_trace_block(content):
-            findings.append(ProbeFinding(
-                id=f"PROBE_E__{file_path.stem}",
-                probe="trace_compliance",
-                directory="src/" if str(file_path).startswith(str(CSTAR_ROOT / "src")) else ".agents/",
-                title=f"Modified file missing Corvus Star Trace block",
-                severity="P2",
-                component=str(file_path.relative_to(CSTAR_ROOT)),
-                description="This file was modified but contains no Corvus Star Trace comment block. Per the Trace Enforcement rule, every multi-file change must emit a Trace block.",
-                file_path=str(file_path),
-            ))
     return findings
 
 
@@ -1069,7 +1014,7 @@ def inspect_cstar() -> list[Finding]:
 # Phase 1b — Proactive probes (from improvement requirements)
 # ---------------------------------------------------------------------------
 def run_proactive_probes() -> tuple[list[ProbeFinding], dict]:
-    """Run all 5 proactive probes and return findings + health metrics."""
+    """Run all proactive probes and return findings + health metrics."""
     log("Running proactive probes...")
     all_probe_findings = []
     timing_report = {}
@@ -1097,12 +1042,6 @@ def run_proactive_probes() -> tuple[list[ProbeFinding], dict]:
     findings_d = probe_runtime_bypass()
     all_probe_findings.extend(findings_d)
     log(f"  Probe D: {len(findings_d)} findings")
-
-    # Probe E — Trace compliance
-    log("  Probe E: Trace compliance...")
-    findings_e = probe_trace_compliance()
-    all_probe_findings.extend(findings_e)
-    log(f"  Probe E: {len(findings_e)} findings")
 
     # Requirement 1 override: always surface at least one finding
     if not all_probe_findings:
@@ -1541,7 +1480,7 @@ def generate_report(
     lines.append(f"**CStar Root:** `{CSTAR_ROOT}`  \n")
     total_findings = len(findings) + len(probe_findings)
     lines.append(f"**Total findings:** {total_findings} ({len(findings)} source findings + {len(probe_findings)} probe findings)")
-    lines.append(f"**Probe sources:** registry_drift, import_boundaries, cross_spoke_coupling, runtime_bypass, trace_compliance\n")
+    lines.append(f"**Probe sources:** registry_drift, import_boundaries, cross_spoke_coupling, runtime_bypass\n")
 
     # Severity summary
     lines.append(f"\n## Severity Summary\n")

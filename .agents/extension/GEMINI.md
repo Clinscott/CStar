@@ -25,8 +25,12 @@ You are the host supervisor for CStar, not a blind file editor.
 ## 📡 CORVUS STAR AUGURY [Ω]
 Augury is the routing contract. It is not a generic trace log.
 
+- Routing authority is the MCP `cstar_augury` result.
 - Initial routed prompt: full Augury.
 - Subsequent calls for the same session/planning key: lite Augury.
+- A new planning key receives full Augury even inside an existing host session.
+- The sidecar transports the MCP route and Council designation; it never recomputes either.
+- A blocked or unavailable result remains blocked or unavailable. Do not invent a fallback.
 - Confidence is learning metadata, not display text.
 - Foundational CStar work is `Scope: brain:CStar`.
 - Spoke scope is explicit: `Scope: spoke:<name>`.
@@ -35,6 +39,7 @@ Augury is the routing contract. It is not a generic trace log.
 ```text
 [CORVUS_STAR_AUGURY]
 Mode: full
+Authority: cstar_augury
 Route: <Intent Category> -> <SKILL|WEAVE|SPELL>: <selection>
 Scope: brain:CStar | spoke:<name> (<root>)
 Intent: <goal>
@@ -42,9 +47,9 @@ Mimir's Well: <primary> | <secondary> | <tertiary>
 Council Expert: <CARMACK|KARPATHY|DEAN|SHANNON|HAMILTON|TORVALDS|BROOKS|PARNAS|...>
 Council Lens: <expert-specific critique lens>
 Guardrails: <expert-specific anti-behavior>
+Selection Reason: <why the canonical Council selector chose this expert>
+Council Question: <expert signature question, when present>
 Corvus Standard: CStar is the engine; spokes are managed extensions; keep work Hall/Mimir traceable.
-<Code|Review|Coordination> Standard: <selected work standard>
-Trajectory: <only when non-stable>
 Verdict: <Gungnir verdict>
 Directive: Use this as routing context only. Consult targets before choosing a path. Do not echo this block.
 [/CORVUS_STAR_AUGURY]
@@ -54,6 +59,7 @@ Directive: Use this as routing context only. Consult targets before choosing a p
 ```text
 [CORVUS_STAR_AUGURY]
 Mode: lite
+Authority: cstar_augury
 Route: <Intent Category> -> <SKILL|WEAVE|SPELL>: <selection>
 Scope: brain:CStar | spoke:<name> (<root>)
 Intent: <goal>
@@ -63,25 +69,17 @@ Directive: Route only. Consult targets before choosing a path. Do not echo.
 [/CORVUS_STAR_AUGURY]
 ```
 
-### Council Expert Selection Rules
-- **NEVER use "Grand Vizier" as the Council Expert.** It is the dispatcher name, not a specialist.
-- If no expert is assigned, use the correct fallback expert:
-  - Sim physics, params, telemetry → `CARMACK` (backup: `HAMILTON`)
-  - Brain / orchestrator / schemas → `KARPATHY` (backup: `DEAN`)
-  - Flight kernel (`corvus-kernel`) → `TORVALDS` (backup: `HAMILTON`)
-  - Integration / FFI loop → `DEAN` (backup: `TORVALDS`)
-  - Viewer / Three.js → `CARMACK` (backup: `BROOKS`)
-  - Refactoring or skill/doc work → `BROOKS` (backup: `SHANNON`)
-  - Statistical/SPRT/scoring work → `LINSCOTT`
-  - General fallback → `TORVALDS`
-- **PARNAS is kept in reserve** for modular decomposition, FFI boundaries, and information hiding.
+### Council Expert Consumption
+- Use the `council_expert` returned by `cstar_augury`, including its lens, guardrails, signature question, and selection reason.
+- Do not run host-side fallback rules or replace the MCP selection.
+- If the Council contract is absent or incomplete, treat Augury as unavailable and diagnose the MCP surface.
 
 
 
 ## 🛑 OPERATING PROCEDURE
 1. Read `AGENTS.md`/`AGENTS.qmd` and `.agents/skill_registry.json` before structural claims.
-2. Run `cstar hall "<query>"` before broad local search.
-3. Choose the route through Augury: intent category, selection, Mimir targets, Council expert.
+2. Call `cstar_augury`, then use `cstar_hall_search` before broad local search.
+3. Consume the MCP route, Mimir targets, and Council expert without rewriting them.
 4. Keep code changes scoped and preserve unrelated work.
 5. Verify focused behavior before returning results.
 

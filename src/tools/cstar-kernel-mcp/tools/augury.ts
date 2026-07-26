@@ -27,10 +27,37 @@ import {
 } from './augury_routing.js';
 
 type KernelCouncilExpert = {
+    id?: string;
+    label?: string;
+    lens?: string;
     signature_question?: string;
     anti_behavior?: string[];
+    guardrails?: string[];
+    selection_reason?: string;
     selection_candidates?: unknown[];
 };
+
+function buildCouncilResult(expert: KernelCouncilExpert | null | undefined): Record<string, unknown> {
+    const guardrails = expert?.guardrails ?? expert?.anti_behavior ?? [];
+    const councilExpert = {
+        id: expert?.id,
+        label: expert?.label,
+        lens: expert?.lens,
+        signature_question: expert?.signature_question,
+        guardrails,
+        selection_reason: expert?.selection_reason,
+    };
+    return {
+        council_expert: councilExpert,
+        expert: expert?.id,
+        expert_label: expert?.label,
+        expert_lens: expert?.lens,
+        expert_signature_question: expert?.signature_question ?? '',
+        expert_guardrails: guardrails,
+        expert_selection_reason: expert?.selection_reason ?? '',
+        council_candidates: expert?.selection_candidates?.slice(0, 3) ?? [],
+    };
+}
 
 export async function handleAugury({ prompt, inferred_intent, target_paths, scope, bead_id }: { prompt: string, inferred_intent?: string, target_paths?: string[], scope?: string, bead_id?: string }) {
     try {
@@ -38,6 +65,13 @@ export async function handleAugury({ prompt, inferred_intent, target_paths, scop
             status: 'missing',
             agent_next_action: 'Perform handoff to verify active state.',
             warnings: [],
+            guardrail: {
+                verdict: 'block',
+                action: 'repair',
+                reason: 'No active Augury contract was loaded.',
+                failed_checks: ['active_augury'],
+                warning_checks: [],
+            },
         };
         const root = registry.getRoot();
         let activeSession: ReturnType<typeof resolveActivePlanningSession> = null;
@@ -94,6 +128,8 @@ export async function handleAugury({ prompt, inferred_intent, target_paths, scop
         if (routingDecision.stale_session_divergence_blocker) {
             return textResponse({
                 status: 'blocked',
+                routing_authority: 'cstar_augury',
+                augury_contract_version: 1,
                 stale_session_divergence_blocker: true,
                 intent_category: deterministicProvenance?.intent_category ?? 'UNRESOLVED',
                 intent: inferred_intent || prompt.substring(0, 160),
@@ -160,22 +196,21 @@ export async function handleAugury({ prompt, inferred_intent, target_paths, scop
             const colonIdx = designation.indexOf(':');
             const selectionTier = colonIdx >= 0 ? designation.slice(0, colonIdx).trim() : designation.trim();
             const selectionName = colonIdx >= 0 ? designation.slice(colonIdx + 1).trim() : undefined;
-            resolvedIntentCategory = explain.route.intent_category;
+            resolvedIntentCategory = explain.route.intent_category || 'ORCHESTRATE';
             routingSource = 'session';
             result = {
+                status: 'routed',
+                routing_authority: 'cstar_augury',
+                augury_contract_version: 1,
                 intent_category: resolvedIntentCategory,
                 intent: explain.route.intent,
                 scope: explain.scope?.value || scope || 'brain:CStar',
                 selection: explain.route.designation,
-                expert: expert?.id,
-                expert_label: expert?.label,
-                expert_lens: expert?.lens,
-                expert_signature_question: expert?.signature_question,
-                expert_guardrails: expert?.anti_behavior?.slice(0, 3),
+                ...buildCouncilResult(expert),
                 mimir_targets: explain.mimir?.targets.slice(0, 3) || (target_paths || []).slice(0, 3),
                 next_action: explain.agent_next_action || 'Perform handoff to verify active state.',
-                council_candidates: expert?.selection_candidates?.slice(0, 3) ?? [],
-                confidence: 1.0
+                guardrail: explain.guardrail,
+                confidence: 1.0,
             };
             routingInput = {
                 prompt,
@@ -203,21 +238,24 @@ export async function handleAugury({ prompt, inferred_intent, target_paths, scop
                 mimirs_well: (target_paths || []).slice(0, 3),
             }) as ReturnType<typeof selectCouncilExpert> & KernelCouncilExpert;
             result = {
+                status: 'routed',
+                routing_authority: 'cstar_augury',
+                augury_contract_version: 1,
                 intent_category: resolvedIntentCategory,
                 intent: inferred_intent || prompt.substring(0, 100),
                 scope: scope || 'brain:CStar',
                 selection: `${selectionTier}: ${selectionName}`,
-                expert: selectedExpert.id,
-                expert_label: selectedExpert.label,
-                expert_lens: selectedExpert.lens,
-                expert_signature_question: selectedExpert.signature_question ?? '',
-                expert_guardrails: selectedExpert.anti_behavior.slice(0, 3),
+                ...buildCouncilResult(selectedExpert),
                 mimir_targets: (target_paths || []).slice(0, 3),
                 next_action: routingDecision.stale_session_demoted
                     ? 'Route derived from the current prompt and target_paths. Active session context was demoted to background because its targets diverge.'
                     : 'No active planning session; route derived from deterministic grammar. Run cstar_handoff to anchor a session.',
-                council_candidates: selectedExpert.selection_candidates?.slice(0, 3) ?? [],
-                confidence: 0.85
+                guardrail: mcpGuardrail(
+                    'allow',
+                    'continue',
+                    'Current mission route resolved from the canonical intent grammar and Council selector.',
+                ),
+                confidence: 0.85,
             };
             routingInput = {
                 prompt,
@@ -240,19 +278,24 @@ export async function handleAugury({ prompt, inferred_intent, target_paths, scop
                 mimirs_well: (target_paths || []).slice(0, 3),
             }) as ReturnType<typeof selectCouncilExpert> & KernelCouncilExpert;
             result = {
+                status: 'routed',
+                routing_authority: 'cstar_augury',
+                augury_contract_version: 1,
                 intent_category: resolvedIntentCategory,
                 intent: inferred_intent || prompt.substring(0, 100),
                 scope: scope || 'brain:CStar',
                 selection: 'SKILL: cstar-kernel',
-                expert: selectedExpert.id,
-                expert_label: selectedExpert.label,
-                expert_lens: selectedExpert.lens,
-                expert_signature_question: selectedExpert.signature_question ?? '',
-                expert_guardrails: selectedExpert.anti_behavior.slice(0, 3),
+                ...buildCouncilResult(selectedExpert),
                 mimir_targets: (target_paths || []).slice(0, 3),
                 next_action: 'No deterministic grammar match and no active session. Clarify the prompt or run cstar_handoff.',
-                council_candidates: selectedExpert.selection_candidates?.slice(0, 3) ?? [],
-                confidence: 0.6
+                guardrail: mcpGuardrail(
+                    'caution',
+                    'recover',
+                    'No deterministic grammar trigger or active session was available; the bounded MCP fallback requires prompt clarification.',
+                    [],
+                    ['fallback_route'],
+                ),
+                confidence: 0.6,
             };
             routingInput = {
                 prompt,

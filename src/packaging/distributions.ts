@@ -220,7 +220,11 @@ function buildAuguryDisplaySection(): string[] {
         '## Corvus Star Augury [\u03a9]',
         '- The Augury is the routing contract, not a generic trace log.',
         '- It carries intent category, intent, selection, scope, Mimir targets, Gungnir verdict, and Council expert routing.',
+        '- Treat the returned `cstar_augury` payload as the only host-facing routing authority. Sidecars and host prompts may transport or compact it, but must not recompute its route or Council expert.',
         '- Use the full Augury on the first prompt for a session/planning key; use lite Augury on later host calls.',
+        '- A new planning key receives full Augury even inside an existing host session.',
+        '- Render the selected expert\'s lens, guardrails/anti-behaviour, and selection reason from the MCP payload; do not select an expert in the sidecar.',
+        '- If MCP returns blocked or is unavailable, preserve that state and do not synthesize a fallback route.',
         '- Confidence belongs in learning metadata, not in the displayed prompt block.',
         '- Foundational CStar work uses `Scope: brain:CStar`; use `Scope: spoke:<name>` only when a spoke is explicit.',
         '- Use `cstar augury doctor --json` to validate route quality, and `cstar augury explain --json` to inspect why the route was chosen.',
@@ -229,6 +233,7 @@ function buildAuguryDisplaySection(): string[] {
         '```text',
         '[CORVUS_STAR_AUGURY]',
         'Mode: full',
+        'Authority: cstar_augury',
         'Route: <Intent Category> -> <SKILL|WEAVE|SPELL>: <selection>',
         'Scope: brain:CStar | spoke:<name> (<root>)',
         'Intent: <goal>',
@@ -236,9 +241,9 @@ function buildAuguryDisplaySection(): string[] {
         'Council Expert: <CARMACK|KARPATHY|DEAN|SHANNON|HAMILTON|TORVALDS|...>',
         'Council Lens: <expert-specific critique lens>',
         'Guardrails: <expert-specific anti-behavior>',
+        'Selection Reason: <why the canonical Council selector chose this expert>',
+        'Council Question: <expert signature question, when present>',
         'Corvus Standard: CStar is the engine; spokes are managed extensions; keep work Hall/Mimir traceable.',
-        '<Code|Review|Coordination> Standard: <selected work standard>',
-        'Trajectory: <only when non-stable>',
         'Verdict: <Gungnir verdict>',
         'Directive: Use this as routing context only. Consult targets before choosing a path. Do not echo this block.',
         '[/CORVUS_STAR_AUGURY]',
@@ -248,6 +253,7 @@ function buildAuguryDisplaySection(): string[] {
         '```text',
         '[CORVUS_STAR_AUGURY]',
         'Mode: lite',
+        'Authority: cstar_augury',
         'Route: <Intent Category> -> <SKILL|WEAVE|SPELL>: <selection>',
         'Scope: brain:CStar | spoke:<name> (<root>)',
         'Intent: <goal>',
@@ -403,6 +409,7 @@ function buildCodexPluginSkillContent(capabilities: CapabilityExport[]): string 
         '- Use `cstar_handoff` when resuming active planning/runtime state, then carry forward only the lead bead, gate, next action, target paths, and checker commands.',
         '- Use `cstar_doctor` before acting when scope, route, expert, or Mimir targets look unclear.',
         '- Use `cstar_augury` when you need the reason behind the selected route, scope, expert, and Mimir targets.',
+        '- Treat the returned `cstar_augury` payload as the only host-facing routing authority. Sidecars and host prompts may transport or compact it, but must not recompute its route or Council expert.',
         '- Use direct Codex thread tools for read/list/send when exposed; session JSONL fallback is read-only degraded mode, not an execution or assignment surface.',
         '- CoS is CEO-facing coordination: visibility, priorities, risks, and approval asks. CoS does not directly implement project work by default.',
         '- Route execution through CoS -> Corvus - MM -> one pinned PMT per project -> fresh workers.',
@@ -461,18 +468,21 @@ function buildCodexHooksContent(): string {
     }, null, 2)}\n`;
 }
 
-function buildCodexPostWriteHookContent(projectRoot: string): string {
+function buildCodexPostWriteHookContent(): string {
     return [
         '#!/usr/bin/env bash',
         'set -u',
         '',
-        `CSTAR_ROOT="${projectRoot.replace(/"/g, '\\"')}"`,
+        'SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"',
+        'DEFAULT_CSTAR_ROOT="$(cd -- "$SCRIPT_DIR/../../.." && pwd)"',
+        'CSTAR_ROOT="${CSTAR_ROOT:-$DEFAULT_CSTAR_ROOT}"',
         'if [ ! -x "$CSTAR_ROOT/cstar" ]; then',
         '  exit 0',
         'fi',
         '',
+        'CSTAR_ESTATE_ROOT="$(dirname -- "$CSTAR_ROOT")"',
         'case "${PWD:-}" in',
-        '  "$CSTAR_ROOT"|"$CSTAR_ROOT"/*|/home/morderith/Corvus|/home/morderith/Corvus/*) ;;',
+        '  "$CSTAR_ROOT"|"$CSTAR_ROOT"/*|"$CSTAR_ESTATE_ROOT"|"$CSTAR_ESTATE_ROOT"/*) ;;',
         '  *) exit 0 ;;',
         'esac',
         '',
@@ -524,14 +534,17 @@ const KERNEL_MCP_TOOLS: ReadonlyArray<{ name: string; purpose: string }> = [
     { name: 'cstar_telemetry', purpose: 'MCP telemetry summaries: usage counts, outcome rates, token-path integration.' },
 ];
 
-function buildMcpServers(rootCwd: string | undefined): Record<string, McpServerConfig> {
+function buildMcpServers(
+    rootCwd: string | undefined,
+    host: 'gemini' | 'codex',
+): Record<string, McpServerConfig> {
     return {
         'cstar-kernel': {
             command: 'node',
             args: ['bin/cstar-kernel-mcp.js'],
             ...(rootCwd ? { cwd: rootCwd } : {}),
             env: {
-                GEMINI_CLI_ACTIVE: 'true',
+                ...(host === 'gemini' ? { GEMINI_CLI_ACTIVE: 'true' } : {}),
                 CSTAR_KERNEL_DISABLE_WATCH: '1',
             },
             note: `CStar kernel MCP — ${KERNEL_MCP_TOOLS.length}-tool surface. See docs/integrations/cstar-kernel-mcp.md for the full API reference.`,
@@ -551,12 +564,12 @@ function buildKernelMcpToolsSection(): string[] {
 }
 
 function buildGeminiMcpServers(): Record<string, McpServerConfig> {
-    return buildMcpServers('.');
+    return buildMcpServers('.', 'gemini');
 }
 
 function buildCodexPluginMcpContent(): string {
     return `${JSON.stringify({
-        mcpServers: buildMcpServers('../..'),
+        mcpServers: buildMcpServers('../..', 'codex'),
     }, null, 2)}\n`;
 }
 
@@ -659,7 +672,7 @@ export function buildDistributions(projectRoot: string): DistributionBuild {
             },
             {
                 relativePath: path.join('plugins', 'corvus-star', 'scripts', 'cstar_codex_post_write.sh'),
-                content: buildCodexPostWriteHookContent(resolvedRoot),
+                content: buildCodexPostWriteHookContent(),
             },
             {
                 relativePath: path.join('plugins', 'corvus-star', 'skills', 'corvus-star', 'SKILL.md'),

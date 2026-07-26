@@ -133,13 +133,19 @@ describe('distribution generator', () => {
         const geminiManifest = JSON.parse(build.files[0]?.content ?? '{}') as {
             contextFileName?: string;
             version?: string;
-            mcpServers?: Record<string, { command?: string; args?: string[]; cwd?: string }>;
+            mcpServers?: Record<string, {
+                command?: string;
+                args?: string[];
+                cwd?: string;
+                env?: Record<string, string>;
+            }>;
         };
         assert.equal(geminiManifest.contextFileName, 'GEMINI.md');
         assert.equal(geminiManifest.version, '2.4.6');
         assert.equal(geminiManifest.mcpServers?.['cstar-kernel']?.command, 'node');
         assert.deepEqual(geminiManifest.mcpServers?.['cstar-kernel']?.args, ['bin/cstar-kernel-mcp.js']);
         assert.deepEqual(Object.keys(geminiManifest.mcpServers ?? {}), ['cstar-kernel']);
+        assert.equal(geminiManifest.mcpServers?.['cstar-kernel']?.env?.GEMINI_CLI_ACTIVE, 'true');
 
         const geminiContext = build.files[1]?.content ?? '';
         assert.match(geminiContext, /node bin\/cstar\.js <command>/);
@@ -166,9 +172,15 @@ describe('distribution generator', () => {
         assert.equal(codexPlugin.interface?.shortDescription, 'Corvus Star Augury and Hall integration for Codex.');
 
         const codexMcp = JSON.parse(build.files[3]?.content ?? '{}') as {
-            mcpServers?: Record<string, { cwd?: string }>;
+            mcpServers?: Record<string, { cwd?: string; env?: Record<string, string> }>;
         };
         assert.equal(codexMcp.mcpServers?.['cstar-kernel']?.cwd, '../..');
+        assert.equal(codexMcp.mcpServers?.['cstar-kernel']?.env?.GEMINI_CLI_ACTIVE, undefined);
+
+        const codexPostWriteHook = build.files[5]?.content ?? '';
+        assert.doesNotMatch(codexPostWriteHook, new RegExp(projectRoot.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+        assert.match(codexPostWriteHook, /BASH_SOURCE/);
+        assert.match(codexPostWriteHook, /CSTAR_ROOT:-\$DEFAULT_CSTAR_ROOT/);
 
         const codexSkill = build.files[6]?.content ?? '';
         assert.match(codexSkill, /Corvus Star Augury \[Ω\]/);

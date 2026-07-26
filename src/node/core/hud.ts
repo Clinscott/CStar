@@ -2,6 +2,13 @@ import chalk, { ChalkInstance } from 'chalk';
 import { activePersona } from '../../tools/pennyone/personaRegistry.js';
 import { isHostSessionActive } from  '../../core/host_session.js';
 
+export interface AuguryHUDPayload {
+    intent: string;
+    well?: string;
+    wisdom?: string;
+    verdict?: string;
+}
+
 /**
  * 🔱 SovereignHUD (TypeScript Edition)
  * Purpose: Provide refined, persona-aware terminal primitives for Corvus Star.
@@ -119,34 +126,37 @@ export class HUD {
         return hud;
     }
 
-    static traceHUD(trace: { intent: string; well?: string; wisdom?: string; verdict?: string; confidence?: number }): string {
+    static auguryHUD(augury: AuguryHUDPayload): string {
         const isHostSession = this.isHostSession();
         const { main, dim, accent } = this.getTheme();
         const wideSeparator = "━".repeat(80);
         
         if (isHostSession) {
-            let md = `\n**🔱 CORVUS STAR TRACE [Ω]**\n\n`;
-            md += `| ◈ **TRACING CONTEXT** | ${wideSeparator} |\n`;
+            let md = `\n**🔱 CORVUS STAR AUGURY [Ω]**\n\n`;
+            md += `| ◈ **ROUTING CONTEXT** | ${wideSeparator} |\n`;
             md += `| :--- | :--- |\n`;
-            md += `| **INTENT** | \`${trace.intent}\` |\n`;
-            if (trace.well) md += `| **MIMIR'S WELL** | \`${trace.well}\` |\n`;
-            if (trace.verdict) md += `| **GUNGNIR VERDICT** | \`${trace.verdict}\` |\n`;
-            if (trace.confidence !== undefined) md += `| **CONFIDENCE** | \`${(trace.confidence * 100).toFixed(0)}%\` |\n`;
-            if (trace.wisdom) {
-                md += `\n> ◈ **"${trace.wisdom}"**\n`;
+            md += `| **INTENT** | \`${augury.intent}\` |\n`;
+            if (augury.well) md += `| **MIMIR'S WELL** | \`${augury.well}\` |\n`;
+            if (augury.verdict) md += `| **GUNGNIR VERDICT** | \`${augury.verdict}\` |\n`;
+            if (augury.wisdom) {
+                md += `\n> ◈ **"${augury.wisdom}"**\n`;
             }
             return md + '---\n';
         }
 
-        let out = this.boxTop('◤ CORVUS STAR TRACE [Ω] ◢');
-        out += this.boxRow('INTENT', trace.intent, accent);
-        if (trace.well) out += this.boxRow('MIMIR\'S WELL', trace.well, dim);
-        if (trace.verdict) out += this.boxRow('VERDICT', trace.verdict, accent);
-        if (trace.confidence !== undefined) out += this.boxRow('CONFIDENCE', `${(trace.confidence * 100).toFixed(0)}%`, dim);
+        let out = this.boxTop('◤ CORVUS STAR AUGURY [Ω] ◢');
+        out += this.boxRow('INTENT', augury.intent, accent);
+        if (augury.well) out += this.boxRow('MIMIR\'S WELL', augury.well, dim);
+        if (augury.verdict) out += this.boxRow('VERDICT', augury.verdict, accent);
         out += this.boxSeparator();
-        if (trace.wisdom) out += this.boxNote(trace.wisdom);
+        if (augury.wisdom) out += this.boxNote(augury.wisdom);
         out += this.boxBottom();
         return out;
+    }
+
+    /** @deprecated Use auguryHUD. Runtime/session traces use dedicated trace views. */
+    static traceHUD(augury: AuguryHUDPayload & { confidence?: number }): string {
+        return this.auguryHUD(augury);
     }
 
     static boxTop(title?: string): string {
@@ -269,4 +279,3 @@ export class HUD {
         process.stdout.write(`\r  ${chalk.green('✔')} ${dim(message)}\n`);
     }
 }
-

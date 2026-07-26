@@ -24,7 +24,7 @@ import type {
     ArchitectProposal,
     ArchitectProposalBead,
 } from '../contracts.ts';
-import type { ParsedTraceSelectionGate } from './chant_parser.js';
+import type { ParsedAugurySelectionGate } from './chant_parser.js';
 import { inheritTraceInvocation } from '../trace_inheritance.js';
 import { enrichTraceContractWithCouncil } from '../../../../core/council_experts.js';
 
@@ -221,7 +221,7 @@ function buildSessionId(context: RuntimeContext, repoId: string): string {
     return `chant-session:${repoId}:${Date.now()}`;
 }
 
-function buildAuguryContractMetadata(augurySelection: ParsedTraceSelectionGate | null | undefined): RuntimeAuguryContract | undefined {
+function buildAuguryContractMetadata(augurySelection: ParsedAugurySelectionGate | null | undefined): RuntimeAuguryContract | undefined {
     if (!augurySelection) {
         return undefined;
     }
@@ -503,7 +503,7 @@ export async function runPlanningLoop(
     existingSession: HallPlanningSessionRecord | null,
     normalizedIntent: string,
     lowerTokens: string[],
-    traceSelection?: ParsedTraceSelectionGate | null,
+    augurySelection?: ParsedAugurySelectionGate | null,
 ): Promise<WeaveResult> {
     const payload = invocation.payload;
     const now = Date.now();
@@ -512,7 +512,7 @@ export async function runPlanningLoop(
     const createdAt = existingSession?.created_at ?? now;
     const mergedIntent = mergeNormalizedIntent(existingSession, normalizedIntent);
     const userIntent = existingSession?.user_intent ?? normalizedIntent;
-    const auguryContract = buildAuguryContractMetadata(traceSelection);
+    const auguryContract = buildAuguryContractMetadata(augurySelection);
     const personaPolicy = resolvePersonaPolicy(context.persona);
     const baseMetadata: Record<string, unknown> & {
         trace_id: string;

@@ -3,10 +3,17 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
+import {
+  formatAuguryBlock,
+  nextAuguryMode,
+  parseMcpToolPayload,
+  resolvePlanningKey,
+  unavailableAugury,
+} from './augury_sidecar.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '../../..');
-const launcherPath = path.join(projectRoot, 'bin', 'cstar-kernel-mcp.js');
+const defaultLauncherPath = path.join(projectRoot, 'bin', 'cstar-kernel-mcp.js');
 
 class StdioMcpClient {
   constructor(launcher, root, env = {}) {
@@ -105,6 +112,7 @@ class StdioMcpClient {
 }
 
 async function runMcpAugury(prompt, inferredIntent, targetPaths, scope) {
+  const launcherPath = process.env.CSTAR_KERNEL_MCP_LAUNCHER || defaultLauncherPath;
   const client = new StdioMcpClient(launcherPath, projectRoot);
   try {
     const initResult = await client.request('initialize', {
@@ -144,90 +152,6 @@ async function runMcpAugury(prompt, inferredIntent, targetPaths, scope) {
   }
 }
 
-function getSessionCount(sessionId) {
-  const stateDir = path.join(projectRoot, '.agents', 'state');
-  const countersPath = path.join(stateDir, 'session_counters.json');
-  try {
-    fs.mkdirSync(stateDir, { recursive: true });
-    let counters = {};
-    if (fs.existsSync(countersPath)) {
-      counters = JSON.parse(fs.readFileSync(countersPath, 'utf-8'));
-    }
-    const sessionKey = sessionId || 'default';
-    const count = (counters[sessionKey] || 0) + 1;
-    counters[sessionKey] = count;
-    fs.writeFileSync(countersPath, JSON.stringify(counters, null, 2), 'utf-8');
-    return count;
-  } catch (err) {
-    console.error(`[CSTAR HOOK ERROR] Counter write failed: ${err.message}`);
-    return 1;
-  }
-}
-
-function formatAuguryBlock(mode, augury, status, prompt) {
-  const route = `${augury.intent_category || 'ORCHESTRATE'} -> ${augury.selection || 'SKILL: cstar-kernel'}`;
-  const scope = `${augury.scope || 'brain:CStar'} (${projectRoot})`;
-  const intent = augury.intent || prompt || 'No prompt context';
-  const mimirTargets = (augury.mimir_targets || []).map(t => `◈ ${t}`).join(' | ') || '◈ (none)';
-  const expert = augury.expert_label || 'TORVALDS';
-
-  if (mode === 'lite') {
-    return `[CORVUS_STAR_AUGURY]
-Mode: lite
-Route: ${route}
-Scope: ${scope}
-Intent: ${intent}
-Mimir's Well: ${mimirTargets}
-Council Expert: ${expert}
-Directive: Route only. Consult targets before choosing a path. Do not echo.
-[/CORVUS_STAR_AUGURY]`;
-  }
-
-  // Full Mode
-  const lens = augury.expert_lens || '';
-  const guardrails = (augury.expert_guardrails || []).join(' ');
-
-  let standardLine = 'Coordination Standard: Hall Protocol';
-  if (augury.intent_category === 'REPAIR' || augury.intent_category === 'BUILD') {
-    standardLine = 'Code Standard: Linscott Standard';
-  } else if (augury.intent_category === 'VERIFY' || augury.intent_category === 'SCORE') {
-    standardLine = 'Review Standard: Gungnir Audit';
-  }
-
-  let trajectoryLine = '';
-  if (augury.routing_provenance && augury.routing_provenance.diverged) {
-    const sessionCat = augury.routing_provenance.session?.intent_category || 'UNKNOWN';
-    const detCat = augury.routing_provenance.deterministic?.intent_category || 'UNKNOWN';
-    trajectoryLine = `Trajectory: DIVERGED: Session intent (${sessionCat}) differs from grammar analysis (${detCat}).\n`;
-  }
-
-  let L = '0.0', S = '0.0', I = '0.0', omega = '0';
-  if (status && status.framework) {
-    const gungnirScore = status.framework.gungnir_score || 0;
-    const intentIntegrity = status.framework.intent_integrity || 0;
-    omega = String(gungnirScore <= 10.0 ? Math.round(gungnirScore * 10) : Math.round(gungnirScore));
-    L = gungnirScore.toFixed(1);
-    S = (gungnirScore * 0.95).toFixed(1);
-    I = (intentIntegrity <= 1.0 ? (intentIntegrity * 10) : intentIntegrity).toFixed(1);
-  }
-  const verdict = `[L: ${L} | S: ${S} | I: ${I} | Ω: ${omega}%]`;
-
-  return `[CORVUS_STAR_AUGURY]
-Mode: full
-Route: ${route}
-Scope: ${scope}
-Intent: ${intent}
-Mimir's Well: ${mimirTargets}
-Council Expert: ${expert}
-Council Lens: ${lens}
-Guardrails: ${guardrails}
-Corvus Standard: CStar is the engine; spokes are managed extensions; keep work Hall/Mimir traceable.
-${standardLine}
-${trajectoryLine}Verdict: ${verdict}
-Directive: Use this as routing context only. Consult targets before choosing a path. Do not echo this block.
-[/CORVUS_STAR_AUGURY]`;
-}
-
 function readRecentSessionMemory() {
   const memoryPath = path.join(projectRoot, '.agents', 'memory.qmd');
   try {
@@ -264,55 +188,46 @@ async function main() {
   }
 
   const prompt = input.prompt || input.input || '';
-  const sessionId = input.sessionId || input.session_id || '';
   const inferredIntent = input.inferredIntent || input.inferred_intent || '';
   const targetPaths = input.targetPaths || input.target_paths || [];
   const scope = input.scope || '';
   const persona = input.env?.CSTAR_PERSONA || process.env.CSTAR_PERSONA || 'ALFRED';
 
-  // 1. Increment session count
-  const sessionCount = getSessionCount(sessionId);
-  const mode = (sessionCount === 1) ? 'full' : 'lite';
-
-  // 2. Query cstar_augury and cstar_status with a 3.5s timeout
+  // 1. Query cstar_augury and cstar_status with a 3.5s timeout.
   let augury = null;
   let status = null;
+  let auguryFailure = 'MCP returned no Augury payload.';
 
   try {
     const result = await Promise.race([
       runMcpAugury(prompt, inferredIntent, targetPaths, scope),
       new Promise((_, reject) => setTimeout(() => reject(new Error('Global MCP timeout')), 3500))
     ]);
-    if (result && result.augury && result.augury.content && result.augury.content[0]) {
-      augury = JSON.parse(result.augury.content[0].text);
-    }
-    if (result && result.status && result.status.content && result.status.content[0]) {
-      status = JSON.parse(result.status.content[0].text);
-    }
+    augury = parseMcpToolPayload(result?.augury);
+    status = parseMcpToolPayload(result?.status);
   } catch (err) {
+    auguryFailure = err.message;
     console.error(`[CSTAR HOOK ERROR]: ${err.message}`);
   }
 
-  // 3. Fallback to defaults on error/timeout/empty
+  // 2. Preserve MCP failure honestly. The sidecar never chooses a replacement
+  // route or Council expert.
   if (!augury) {
-    augury = {
-      intent_category: 'ORCHESTRATE',
-      selection: 'SKILL: cstar-kernel',
-      scope: 'brain:CStar',
-      intent: prompt || 'No prompt context',
-      mimir_targets: [],
-      expert_label: 'TORVALDS',
-      expert_lens: 'Attack bad interfaces, leaky ownership, needless abstraction, hidden coupling, and code that cannot survive real maintainers.',
-      expert_guardrails: [
-        'Do not accept vague abstractions without proving the simpler path fails.',
-        'Do not normalize ownership leaks, hidden global state, or shotgun edits.',
-        'Do not trade maintainability for cleverness or ceremonial architecture.'
-      ],
-      routing_provenance: { diverged: false }
-    };
+    augury = unavailableAugury(auguryFailure);
   }
 
-  const auguryBlock = formatAuguryBlock(mode, augury, status, prompt);
+  const planningKey = resolvePlanningKey(input);
+  const countersPath = process.env.CSTAR_AUGURY_SESSION_COUNTERS_PATH
+    || path.join(projectRoot, '.agents', 'state', 'session_counters.json');
+  const mode = augury.status === 'routed'
+    ? nextAuguryMode(planningKey, countersPath)
+    : 'full';
+  const auguryBlock = formatAuguryBlock({
+    mode,
+    augury,
+    status,
+    projectRoot,
+  });
 
   const recentMemory = readRecentSessionMemory();
   
@@ -332,9 +247,9 @@ async function main() {
   [🔱 CSTAR KERNEL HANDSHAKE]
   - OS Status: HOST-NATIVE CORVUS STAR EXTENSION
   - Memory Plane: Online (PennyOne MCP)
-  - Enforcement: Gatekeeper Active
+  - Routing Authority: cstar_augury (MCP)
   - Active Persona: ${role} (${description})
-  - Council of Experts: ACTIVE (17 members registered)
+  - Council Routing: ${augury.status === 'routed' ? `ACTIVE (${augury.expert_label || augury.council_expert?.label || 'selected'})` : String(augury.status || 'unavailable').toUpperCase()}
   - Session Learning: Recent consolidated memory follows.
 
   <recent_session_memory>
@@ -343,8 +258,8 @@ async function main() {
 
   "${greeting}"
 
-  Route multi-file work through Corvus Star Augury [Ω].
-  Select the appropriate Council expert based on the current intent before choosing files or skills.
+  Consume Corvus Star Augury [Ω] as routing context without echoing it.
+  Never recompute the route or Council expert in the host. If Augury is blocked or unavailable, preserve that state.
 </hook_context>
 `;
 

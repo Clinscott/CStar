@@ -52,6 +52,18 @@ export interface CouncilSelectionInput {
     mimirs_well?: string[];
 }
 
+export interface ExistingCouncilDesignation {
+    id?: string;
+    label?: string;
+    protocol?: string;
+    lens?: string;
+    anti_behavior?: string[];
+    root_persona_directive?: string;
+    signature_question?: string;
+    selection_reason?: string;
+    selection_score?: number;
+}
+
 const COUNCIL_EXPERTS: Record<CouncilExpertId, CouncilExpertProtocol> = {
     torvalds: {
         id: 'torvalds',
@@ -395,6 +407,14 @@ export function getCouncilExpertProtocol(id: CouncilExpertId): CouncilExpertProt
     return COUNCIL_EXPERTS[id];
 }
 
+export function resolveCouncilExpertProtocol(identity: unknown): CouncilExpertProtocol | null {
+    const normalized = normalizeText(identity);
+    if (!normalized) return null;
+    return Object.values(COUNCIL_EXPERTS).find((expert) =>
+        expert.id === normalized || expert.label.toLowerCase() === normalized
+    ) ?? null;
+}
+
 export function listDefaultCouncilProtocols(): CouncilExpertProtocol[] {
     return DEFAULT_COUNCIL_EXPERT_IDS.map((id) => getCouncilExpertProtocol(id));
 }
@@ -581,13 +601,42 @@ export function selectCouncilExpert(input: CouncilSelectionInput): CouncilExpert
     };
 }
 
-export function enrichTraceContractWithCouncil(contract: RuntimeAuguryContract): RuntimeAuguryContract {
-    if (contract.council_expert) {
-        return contract;
+export function hydrateCouncilExpert(
+    input: CouncilSelectionInput,
+    existing?: ExistingCouncilDesignation | null,
+): CouncilExpertProtocol {
+    const canonical = resolveCouncilExpertProtocol(existing?.id)
+        ?? resolveCouncilExpertProtocol(existing?.label);
+    if (!canonical) {
+        return selectCouncilExpert(input);
     }
+
+    const candidates = scoreCouncilExpertCandidates(input);
+    const selectedCandidate = candidates.find((candidate) => candidate.id === canonical.id);
+    return {
+        ...canonical,
+        id: canonical.id,
+        label: existing?.label?.trim() || canonical.label,
+        profile: canonical.profile,
+        protocol: existing?.protocol?.trim() || canonical.protocol,
+        lens: existing?.lens?.trim() || canonical.lens,
+        anti_behavior: existing?.anti_behavior?.length ? existing.anti_behavior : canonical.anti_behavior,
+        root_persona_directive: existing?.root_persona_directive?.trim() || canonical.root_persona_directive,
+        signature_question: existing?.signature_question?.trim() || canonical.signature_question,
+        selection_reason: existing?.selection_reason?.trim()
+            || selectedCandidate?.reason
+            || `preserved explicit ${canonical.label} Council designation`,
+        selection_score: existing?.selection_score ?? selectedCandidate?.score,
+        selection_candidates: candidates.slice(0, 3),
+    };
+}
+
+export function enrichTraceContractWithCouncil(contract: RuntimeAuguryContract): RuntimeAuguryContract {
     return {
         ...contract,
-        council_expert: selectCouncilExpert(contract),
-        council_candidates: scoreCouncilExpertCandidates(contract).slice(0, 3),
+        council_expert: hydrateCouncilExpert(contract, contract.council_expert),
+        council_candidates: contract.council_candidates?.length
+            ? contract.council_candidates
+            : scoreCouncilExpertCandidates(contract).slice(0, 3),
     };
 }

@@ -154,6 +154,7 @@ beforeEach(() => {
     delete process.env.CSTAR_FORGE_WORKER_DELEGATE_SCRIPT;
     delete process.env.CSTAR_KERNEL_ENABLE_LEGACY_LIVE_EXECUTION;
     delete process.env.CSTAR_KERNEL_ENABLE_MONGO_MAILBOX_WRITES;
+    delete process.env.AUGURY_TOKEN_PATH_ROOT;
 });
 
 export function validDispatchRequest(overrides: Record<string, any> = {}) {

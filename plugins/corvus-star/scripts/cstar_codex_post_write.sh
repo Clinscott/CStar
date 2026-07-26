@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
 set -u
 
-CSTAR_ROOT="/home/morderith/Corvus/CStar"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+DEFAULT_CSTAR_ROOT="$(cd -- "$SCRIPT_DIR/../../.." && pwd)"
+CSTAR_ROOT="${CSTAR_ROOT:-$DEFAULT_CSTAR_ROOT}"
 if [ ! -x "$CSTAR_ROOT/cstar" ]; then
   exit 0
 fi
 
+CSTAR_ESTATE_ROOT="$(dirname -- "$CSTAR_ROOT")"
 case "${PWD:-}" in
-  "$CSTAR_ROOT"|"$CSTAR_ROOT"/*|/home/morderith/Corvus|/home/morderith/Corvus/*) ;;
+  "$CSTAR_ROOT"|"$CSTAR_ROOT"/*|"$CSTAR_ESTATE_ROOT"|"$CSTAR_ESTATE_ROOT"/*) ;;
   *) exit 0 ;;
 esac
 

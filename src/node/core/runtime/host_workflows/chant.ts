@@ -161,10 +161,12 @@ export class ChantHostWorkflow implements RuntimeAdapter<ChantWeavePayload> {
             project_root: invocation.payload.project_root || context.workspace_root || invocation.payload.cwd,
         };
         const contextAugury = context.augury_contract ?? context.trace_contract;
-        const traceSelection = deps.parser.parseTraceSelectionGate(payload.query) ?? (
+        const augurySelection = deps.parser.parseAugurySelectionGate(payload.query) ?? (
             contextAugury
                 ? {
                     raw_block: '',
+                    input_header_kind: 'canonical_augury' as const,
+                    deprecated_input: false,
                     intent_category: contextAugury.intent_category,
                     intent: contextAugury.intent,
                     selection_tier: contextAugury.selection_tier,
@@ -387,7 +389,7 @@ export class ChantHostWorkflow implements RuntimeAdapter<ChantWeavePayload> {
             existingSession,
             normalizedIntent,
             lowerTokens,
-            traceSelection,
+            augurySelection,
         );
     }
 

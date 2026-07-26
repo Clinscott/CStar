@@ -12,30 +12,48 @@ It is not a telemetry trace, execution trace, session log, Hall search result, o
 
 ## Required Agent Order
 
-Run from the CStar root unless an explicit spoke command says otherwise:
+Use the connected CStar kernel MCP unless an explicit local recovery procedure
+says otherwise:
 
-1. `./cstar augury doctor --json`
-2. `./cstar augury explain --json`
-3. `./cstar augury handoff --json`
-4. `./cstar hall "<intent, bead id, target path, or failure text>"`
+1. Call `cstar_augury` with the current prompt, explicit target paths, scope, and bead id when known.
+2. Call `cstar_handoff` to recover bounded active state when the MCP result points to a continuing session.
+3. Call `cstar_hall_search` once with the intent, bead id, target path, or failure text.
+4. Call `cstar_doctor` when the route, scope, expert, or target quality is degraded.
 5. Inspect only the handoff targets, Mimir targets, and directly adjacent files needed for the task.
 
-If `doctor.status` is `fail`, repair or recover the Augury contract before editing or dispatching work. If it is `warn`, resolve the warning when it affects scope, route, expert choice, or Mimir target quality.
+The local `./cstar augury ...` commands are operator recovery views over the
+same kernel state, not a second routing authority. If MCP `cstar_augury` is
+unavailable, the host must surface an unavailable state rather than infer its
+own route or Council expert.
+
+If `doctor.status` is `fail`, repair or recover the Augury contract before
+editing or dispatching work. If it is `warn`, resolve the warning when it
+affects scope, route, expert choice, or Mimir target quality.
 
 ## Field Meaning
 
 - `scope`: `brain:CStar` means foundational engine work. `spoke:<name>` means a specific spoke is the target. Do not treat foundational CStar Augury work as spoke work.
 - `route`: selected path in `<Intent Category> -> <SKILL|WEAVE|SPELL>: <selection>` form.
 - `expert`: Council lens assigned to the task. Examples: `CARMACK` for game/performance work, `KARPATHY` for AI/model work, `SHANNON` for signal/observability/noise work.
+- `expert_selection_reason`: why the canonical Council selector chose that expert.
+- `expert_guardrails`: the selected expert's anti-behaviour constraints.
 - `mimir`: bounded discovery targets. Prefer concrete files, directories, or Hall handles. More than three targets are prompt-noisy and should be narrowed.
 - `confidence`: metadata for future learning. It must not be displayed in the prompt block as agent-facing instruction.
 - `warnings`: routing risks. They are operational leads, not prose decorations.
 
 ## Prompt Budget Contract
 
-The host prompt uses the full Augury once per session or planning key, then lite Augury on later calls. Full mode gives the route, scope, intent, Mimir targets, expert lens, guardrails, Corvus standard, work standard, trajectory, and verdict. Lite mode keeps only the minimum routing fields.
+The host prompt uses the full Augury once per stable session or planning key,
+then lite Augury on later calls under that same key. Starting a new planning
+key resets the mode to full even when the host session itself continues. Full
+mode gives the exact MCP route, scope, intent, Mimir targets, expert lens,
+guardrails, selection reason, optional signature question, Corvus standard, and
+Gungnir status. Lite mode keeps only the minimum routing fields.
 
-Agents should use Augury as routing context, not as text to echo back to the user.
+The sidecar formats only fields returned by MCP. It must never recompute a
+route, choose a default expert, or silently replace a blocked/unavailable
+result. Agents use Augury as routing context, not as text to echo back to the
+user or write into source files.
 
 ## Learning Ledger
 

@@ -4,10 +4,12 @@ import {
     beadStore,
     handleAugury,
     handleRecordResult,
+    path,
 } from './shared_test_setup.js';
 
 describe('CStar MCP token-path result feedback', () => {
     it('auto-records an observation when Augury advice is linked by bead id', async () => {
+        process.env.AUGURY_TOKEN_PATH_ROOT = path.join(process.cwd(), 'tests/fixtures/augury-token-path');
         const beadId = `bead-token-path-auto-${Date.now()}`;
         const auguryResult = await handleAugury({
             prompt: 'Patch one token-path telemetry test and run focused verification.',
@@ -33,6 +35,7 @@ describe('CStar MCP token-path result feedback', () => {
     });
 
     it('auto-records an observation when Augury advice is linked by target path', async () => {
+        process.env.AUGURY_TOKEN_PATH_ROOT = path.join(process.cwd(), 'tests/fixtures/augury-token-path');
         const beadId = `bead-token-path-target-${Date.now()}`;
         const targetPath = `src/tools/cstar-kernel-mcp/telemetry/token_path.${Date.now()}.ts`;
         const auguryResult = await handleAugury({

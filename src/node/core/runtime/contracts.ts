@@ -17,6 +17,7 @@ export type SpellClassification = 'runtime-backed' | 'policy-only' | 'deprecated
 export type OperationalContextPolicy = 'project' | 'silent';
 export type RuntimeAuguryDesignationSource =
     | 'explicit_augury_block'
+    | 'legacy_input_trace_block'
     | 'dispatcher_synthesized'
     | 'payload_augury_contract'
     | 'legacy_payload_trace_contract';

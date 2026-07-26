@@ -50,12 +50,24 @@ it('cstar_augury tool handler should return routing advice', async () => {
     assert.ok(result.content);
     const parsed = JSON.parse(result.content[0].text);
     if (parsed.error) console.error('Augury Error:', parsed.error);
+    assert.strictEqual(parsed.status, 'routed');
+    assert.strictEqual(parsed.routing_authority, 'cstar_augury');
+    assert.strictEqual(parsed.augury_contract_version, 1);
     assert.strictEqual(parsed.intent_category, 'VERIFY');
     assert.ok(typeof parsed.expert === 'string');
     assert.ok(typeof parsed.expert_label === 'string');
     assert.ok(typeof parsed.expert_lens === 'string');
     assert.ok(typeof parsed.expert_signature_question === 'string');
     assert.ok(Array.isArray(parsed.expert_guardrails));
+    assert.ok(parsed.expert_guardrails.length > 0);
+    assert.ok(typeof parsed.expert_selection_reason === 'string');
+    assert.ok(parsed.expert_selection_reason.length > 0);
+    assert.ok(parsed.council_expert);
+    assert.strictEqual(parsed.council_expert.id, parsed.expert);
+    assert.strictEqual(parsed.council_expert.label, parsed.expert_label);
+    assert.strictEqual(parsed.council_expert.lens, parsed.expert_lens);
+    assert.deepStrictEqual(parsed.council_expert.guardrails, parsed.expert_guardrails);
+    assert.strictEqual(parsed.council_expert.selection_reason, parsed.expert_selection_reason);
 
     // routing_provenance exposes both the deterministic match and the
     // (absent) session selection so callers can detect divergence.
@@ -376,6 +388,7 @@ it('cstar_record_result tool handler should record a result', async () => {
 });
 
 it('cstar_augury includes a token_path block when the sidecar is reachable', async () => {
+    process.env.AUGURY_TOKEN_PATH_ROOT = path.join(process.cwd(), 'tests/fixtures/augury-token-path');
     const result = await handleAugury({
         prompt: 'Add a quiet flag to the simulation runner.',
         inferred_intent: 'BUILD',
@@ -398,6 +411,7 @@ it('cstar_augury includes a token_path block when the sidecar is reachable', asy
 });
 
 it('cstar_augury escalates ambiguous prompts toward ask-first or defer-escalate', async () => {
+    process.env.AUGURY_TOKEN_PATH_ROOT = path.join(process.cwd(), 'tests/fixtures/augury-token-path');
     const result = await handleAugury({
         prompt: 'Maybe figure out something better here?',
         inferred_intent: 'REPAIR',

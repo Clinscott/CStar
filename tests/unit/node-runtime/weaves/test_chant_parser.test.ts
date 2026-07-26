@@ -4,10 +4,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import {
-    parseTraceSelectionGate,
+    parseAugurySelectionGate,
     tokenize,
     normalizeIntent,
-    validateTraceSelectionGate,
+    validateAugurySelectionGate,
     hasAnyToken,
     loadRegistryManifest,
     loadSkillTriggers,
@@ -78,7 +78,7 @@ Confidence: 0.9`;
         assert.equal(normalizeIntent(input), 'Begin XO implementation planning');
     });
 
-    it('parseTraceSelectionGate extracts the structured Augury designation contract', () => {
+    it('parseAugurySelectionGate extracts the structured Augury designation contract', () => {
         const input = `// Corvus Star Augury [Ω]
 Intent Category: ORCHESTRATE
 Intent: Make chant the only intake gate
@@ -90,20 +90,22 @@ Confidence: 0.94
 
 Seed the Hall contract for the scheduler migration.`;
 
-        const trace = parseTraceSelectionGate(input);
-        assert.equal(trace?.intent_category, 'ORCHESTRATE');
-        assert.equal(trace?.intent, 'Make chant the only intake gate');
-        assert.equal(trace?.selection_tier, 'WEAVE');
-        assert.equal(trace?.selection_name, 'orchestrate');
-        assert.equal(trace?.trajectory_status, 'STABLE');
-        assert.equal(trace?.trajectory_reason, 'Persist the designation instead of discarding it.');
-        assert.deepEqual(trace?.mimirs_well, ['CStar/AGENTS.qmd', 'src/node/core/runtime/dispatcher.ts']);
-        assert.equal(trace?.gungnir_verdict, '[L: 4.7 | S: 4.5 | I: 4.8 | Ω: 93%]');
-        assert.equal(trace?.confidence, 0.94);
-        assert.equal(trace?.confidence_source, 'explicit');
-        assert.equal(trace?.body, 'Seed the Hall contract for the scheduler migration.');
-        assert.equal(trace?.canonical_intent, 'Seed the Hall contract for the scheduler migration.');
-        assert.deepEqual(trace?.issues, []);
+        const augury = parseAugurySelectionGate(input);
+        assert.equal(augury?.input_header_kind, 'canonical_augury');
+        assert.equal(augury?.deprecated_input, false);
+        assert.equal(augury?.intent_category, 'ORCHESTRATE');
+        assert.equal(augury?.intent, 'Make chant the only intake gate');
+        assert.equal(augury?.selection_tier, 'WEAVE');
+        assert.equal(augury?.selection_name, 'orchestrate');
+        assert.equal(augury?.trajectory_status, 'STABLE');
+        assert.equal(augury?.trajectory_reason, 'Persist the designation instead of discarding it.');
+        assert.deepEqual(augury?.mimirs_well, ['CStar/AGENTS.qmd', 'src/node/core/runtime/dispatcher.ts']);
+        assert.equal(augury?.gungnir_verdict, '[L: 4.7 | S: 4.5 | I: 4.8 | Ω: 93%]');
+        assert.equal(augury?.confidence, 0.94);
+        assert.equal(augury?.confidence_source, 'explicit');
+        assert.equal(augury?.body, 'Seed the Hall contract for the scheduler migration.');
+        assert.equal(augury?.canonical_intent, 'Seed the Hall contract for the scheduler migration.');
+        assert.deepEqual(augury?.issues, []);
     });
 
     it('accepts missing confidence while marking the source as missing', () => {
@@ -115,13 +117,13 @@ Trajectory: STABLE: Confidence can be learned later.
 Mimir's Well: ◈ CStar/AGENTS.qmd
 Gungnir Verdict: Proceed.`;
 
-        const trace = parseTraceSelectionGate(input);
-        assert.equal(trace?.confidence, undefined);
-        assert.equal(trace?.confidence_source, 'missing');
-        assert.deepEqual(trace?.issues, []);
+        const augury = parseAugurySelectionGate(input);
+        assert.equal(augury?.confidence, undefined);
+        assert.equal(augury?.confidence_source, 'missing');
+        assert.deepEqual(augury?.issues, []);
     });
 
-    it('accepts the legacy Corvus Star Trace header during migration', () => {
+    it('accepts the legacy Corvus Star Trace header only as deprecated input compatibility', () => {
         const input = `// Corvus Star Trace [Ω]
 Intent Category: ORCHESTRATE
 Intent: Migrate old trace block wording
@@ -131,21 +133,24 @@ Mimir's Well: ◈ CStar/AGENTS.qmd
 Gungnir Verdict: [L: 4.0 | S: 4.0 | I: 4.0 | Ω: 80%]
 Confidence: 0.8`;
 
-        const trace = parseTraceSelectionGate(input);
-        assert.equal(trace?.intent_category, 'ORCHESTRATE');
-        assert.equal(trace?.intent, 'Migrate old trace block wording');
-        assert.deepEqual(trace?.issues, []);
+        const augury = parseAugurySelectionGate(input);
+        assert.equal(augury?.input_header_kind, 'legacy_trace');
+        assert.equal(augury?.deprecated_input, true);
+        assert.equal(augury?.intent_category, 'ORCHESTRATE');
+        assert.equal(augury?.intent, 'Migrate old trace block wording');
+        assert.deepEqual(augury?.issues, []);
     });
 
-    it('validateTraceSelectionGate reports missing and malformed fields', () => {
+    it('validateAugurySelectionGate reports missing and malformed fields', () => {
         const input = `// Corvus Star Augury [Ω]
 Intent: malformed Augury
 Selection: orchestrate
 Trajectory: STABLE
 Confidence: 1.8`;
 
-        const validation = validateTraceSelectionGate(input);
+        const validation = validateAugurySelectionGate(input);
         assert.equal(validation.valid, false);
+        assert.strictEqual(validation.augury, validation.trace);
         assert.match(validation.errors.join(' '), /Missing Intent Category\./);
         assert.match(validation.errors.join(' '), /Missing Mimir's Well\./);
         assert.match(validation.errors.join(' '), /Selection must follow/);

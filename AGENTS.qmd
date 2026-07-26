@@ -44,20 +44,19 @@ The **One Mind** (You) selects the tier of intervention required:
 
 ---
 
-## 1. THE TRACE SELECTION GATE [Ω]
-Every agentic response MUST begin with a high-fidelity **Trace**.
+## 1. THE MCP AUGURY ROUTING GATE [Ω]
+Every new mission begins with the authoritative **`cstar_augury` MCP result**.
 
-**Mandate**: Use the One Mind's inference to select the optimal tier.
-```text
-// Corvus Star Trace [Ω]
-Intent Category: [REPAIR | BUILD | VERIFY | SCORE | OBSERVE | HARDEN | EXPAND | EVOLVE | ORCHESTRATE | GUARD | DOCUMENT]
-Intent: [Brief goal statement]
-Selection: [SKILL | WEAVE | SPELL]: [Name of the selected path]
-Trajectory: [STABLE | OSCILLATING | FAILED]: [Why this strategy will succeed where others didn't]
-Mimir's Well: ◈ [Primary File] | ◈ [Secondary File]
-Gungnir Verdict: [L: X.X | S: Y.Y | I: Z.Z | Ω: XX%]
-Confidence: [0.0 - 1.0]
-```
+**Mandate**:
+
+1. Pass the current mission prompt, explicit target paths, scope, and bead id when known to `cstar_augury`.
+2. Consume its route, bounded Mimir targets, Council expert lens, guardrails, and selection reason before choosing files or skills.
+3. Let the Augury sidecar carry that exact result into the host session. It must not independently infer a route or select another expert.
+4. Use full routing context once per session/planning key and lite context thereafter.
+5. Do not echo an Augury display block to the user or place it in source files.
+6. If MCP Augury is unavailable or blocked, report that state; never manufacture a fallback route or Council designation.
+
+The old Corvus Star Trace selection header is input-only compatibility. Session traces, telemetry traces, execution traces, trace visualizations, and `trace_id` retain their observability meanings and never designate a mission route.
 
 ---
 

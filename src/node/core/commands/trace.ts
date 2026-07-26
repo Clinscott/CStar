@@ -12,7 +12,7 @@ import {
     resolveIntentCategoryFromGrammar,
     tokenize,
 } from '../runtime/host_workflows/chant_parser.js';
-import { selectCouncilExpert } from '../../../core/council_experts.js';
+import { hydrateCouncilExpert } from '../../../core/council_experts.js';
 
 const ACTIVE_PLANNING_STATUSES: HallPlanningSessionStatus[] = [
     'INTENT_RECEIVED',
@@ -74,7 +74,15 @@ export interface TraceContractPayload {
         lens?: string;
         anti_behavior?: string[];
         root_persona_directive?: string;
+        signature_question?: string;
         selection_reason?: string;
+        selection_score?: number;
+        selection_candidates?: Array<{
+            id: string;
+            label: string;
+            score: number;
+            reason: string;
+        }>;
     };
 }
 
@@ -239,7 +247,15 @@ export interface AuguryExplainPayload {
         id?: string;
         label?: string;
         lens?: string;
+        signature_question?: string;
+        guardrails: string[];
         selection_reason?: string;
+        selection_candidates: Array<{
+            id: string;
+            label: string;
+            score: number;
+            reason: string;
+        }>;
         basis: string;
     };
     mimir?: {
@@ -426,8 +442,32 @@ function getTraceContractFromMetadata(metadata: Record<string, unknown> | undefi
             root_persona_directive: typeof expert.root_persona_directive === 'string' && expert.root_persona_directive.trim()
                 ? expert.root_persona_directive.trim()
                 : undefined,
+            signature_question: typeof expert.signature_question === 'string' && expert.signature_question.trim()
+                ? expert.signature_question.trim()
+                : undefined,
             selection_reason: typeof expert.selection_reason === 'string' && expert.selection_reason.trim()
                 ? expert.selection_reason.trim()
+                : undefined,
+            selection_score: typeof expert.selection_score === 'number' && Number.isFinite(expert.selection_score)
+                ? expert.selection_score
+                : undefined,
+            selection_candidates: Array.isArray(expert.selection_candidates)
+                ? expert.selection_candidates.flatMap((candidate) => {
+                    if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) return [];
+                    const entry = candidate as Record<string, unknown>;
+                    if (
+                        typeof entry.id !== 'string'
+                        || typeof entry.label !== 'string'
+                        || typeof entry.score !== 'number'
+                        || typeof entry.reason !== 'string'
+                    ) return [];
+                    return [{
+                        id: entry.id,
+                        label: entry.label,
+                        score: entry.score,
+                        reason: entry.reason,
+                    }];
+                })
                 : undefined,
         };
     }
@@ -562,26 +602,27 @@ function attachCouncilExpertToAuguryContract(
         return undefined;
     }
     const normalized: TraceContractPayload = { ...contract };
-    if (!normalized.council_expert?.label && !normalized.council_expert?.id) {
-        const expert = selectCouncilExpert({
-            intent_category: normalized.intent_category,
-            intent: normalized.intent,
-            selection_tier: normalized.selection_tier,
-            selection_name: normalized.selection_name,
-            canonical_intent: normalized.canonical_intent,
-            mimirs_well: normalized.mimirs_well,
-        });
-        normalized.council_expert = {
-            id: expert.id,
-            label: expert.label,
-            profile: expert.profile,
-            protocol: expert.protocol,
-            lens: expert.lens,
-            anti_behavior: expert.anti_behavior,
-            root_persona_directive: expert.root_persona_directive,
-            selection_reason: expert.selection_reason,
-        };
-    }
+    const expert = hydrateCouncilExpert({
+        intent_category: normalized.intent_category,
+        intent: normalized.intent,
+        selection_tier: normalized.selection_tier,
+        selection_name: normalized.selection_name,
+        canonical_intent: normalized.canonical_intent,
+        mimirs_well: normalized.mimirs_well,
+    }, normalized.council_expert);
+    normalized.council_expert = {
+        id: expert.id,
+        label: expert.label,
+        profile: expert.profile,
+        protocol: expert.protocol,
+        lens: expert.lens,
+        anti_behavior: expert.anti_behavior,
+        root_persona_directive: expert.root_persona_directive,
+        signature_question: expert.signature_question,
+        selection_reason: expert.selection_reason,
+        selection_score: expert.selection_score,
+        selection_candidates: expert.selection_candidates,
+    };
     return normalized;
 }
 
@@ -1423,7 +1464,10 @@ function buildAuguryExplainFromStatus(payload: TraceStatusPayload | null, rootPa
             id: contract.council_expert?.id,
             label: contract.council_expert?.label,
             lens: contract.council_expert?.lens ?? contract.council_expert?.protocol,
+            signature_question: contract.council_expert?.signature_question,
+            guardrails: contract.council_expert?.anti_behavior ?? [],
             selection_reason: contract.council_expert?.selection_reason,
+            selection_candidates: contract.council_expert?.selection_candidates ?? [],
             basis: contract.council_expert?.selection_reason
                 ? 'council expert selection reason'
                 : 'contract council_expert field',

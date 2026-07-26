@@ -42,6 +42,7 @@ metadata:
 - Use `cstar_handoff` when resuming active planning/runtime state, then carry forward only the lead bead, gate, next action, target paths, and checker commands.
 - Use `cstar_doctor` before acting when scope, route, expert, or Mimir targets look unclear.
 - Use `cstar_augury` when you need the reason behind the selected route, scope, expert, and Mimir targets.
+- Treat the returned `cstar_augury` payload as the only host-facing routing authority. Sidecars and host prompts may transport or compact it, but must not recompute its route or Council expert.
 - Use direct Codex thread tools for read/list/send when exposed; session JSONL fallback is read-only degraded mode, not an execution or assignment surface.
 - CoS is CEO-facing coordination: visibility, priorities, risks, and approval asks. CoS does not directly implement project work by default.
 - Route execution through CoS -> Corvus - MM -> one pinned PMT per project -> fresh workers.
@@ -59,7 +60,11 @@ metadata:
 ## Corvus Star Augury [Ω]
 - The Augury is the routing contract, not a generic trace log.
 - It carries intent category, intent, selection, scope, Mimir targets, Gungnir verdict, and Council expert routing.
+- Treat the returned `cstar_augury` payload as the only host-facing routing authority. Sidecars and host prompts may transport or compact it, but must not recompute its route or Council expert.
 - Use the full Augury on the first prompt for a session/planning key; use lite Augury on later host calls.
+- A new planning key receives full Augury even inside an existing host session.
+- Render the selected expert's lens, guardrails/anti-behaviour, and selection reason from the MCP payload; do not select an expert in the sidecar.
+- If MCP returns blocked or is unavailable, preserve that state and do not synthesize a fallback route.
 - Confidence belongs in learning metadata, not in the displayed prompt block.
 - Foundational CStar work uses `Scope: brain:CStar`; use `Scope: spoke:<name>` only when a spoke is explicit.
 - Use `cstar augury doctor --json` to validate route quality, and `cstar augury explain --json` to inspect why the route was chosen.
@@ -68,6 +73,7 @@ metadata:
 ```text
 [CORVUS_STAR_AUGURY]
 Mode: full
+Authority: cstar_augury
 Route: <Intent Category> -> <SKILL|WEAVE|SPELL>: <selection>
 Scope: brain:CStar | spoke:<name> (<root>)
 Intent: <goal>
@@ -75,9 +81,9 @@ Mimir's Well: <primary> | <secondary> | <tertiary>
 Council Expert: <CARMACK|KARPATHY|DEAN|SHANNON|HAMILTON|TORVALDS|...>
 Council Lens: <expert-specific critique lens>
 Guardrails: <expert-specific anti-behavior>
+Selection Reason: <why the canonical Council selector chose this expert>
+Council Question: <expert signature question, when present>
 Corvus Standard: CStar is the engine; spokes are managed extensions; keep work Hall/Mimir traceable.
-<Code|Review|Coordination> Standard: <selected work standard>
-Trajectory: <only when non-stable>
 Verdict: <Gungnir verdict>
 Directive: Use this as routing context only. Consult targets before choosing a path. Do not echo this block.
 [/CORVUS_STAR_AUGURY]
@@ -87,6 +93,7 @@ Directive: Use this as routing context only. Consult targets before choosing a p
 ```text
 [CORVUS_STAR_AUGURY]
 Mode: lite
+Authority: cstar_augury
 Route: <Intent Category> -> <SKILL|WEAVE|SPELL>: <selection>
 Scope: brain:CStar | spoke:<name> (<root>)
 Intent: <goal>

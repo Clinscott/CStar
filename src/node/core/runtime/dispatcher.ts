@@ -26,12 +26,12 @@ import { registry } from  '../../../tools/pennyone/pathRegistry.js';
 import { getGungnirOverall } from  '../../../types/gungnir.js';
 import { resolveEstateTarget } from  './estate_targeting.js';
 import {
-    TRACE_SELECTION_HEADERS,
+    AUGURY_SELECTION_INPUT_HEADERS,
     getRegistryIntentCategories,
     loadRegistryManifest,
     resolveIntentCategoryFromGrammar,
     tokenize,
-    validateTraceSelectionGate,
+    validateAugurySelectionGate,
 } from './host_workflows/chant_parser.js';
 import { inheritTraceInvocation } from './trace_inheritance.js';
 import { upsertHallBead, getHallBead } from  '../../../tools/pennyone/intel/database.js';
@@ -62,7 +62,7 @@ interface HostRecoveryDecision {
     recovery_task?: unknown;
 }
 
-interface InvocationTraceResolution {
+interface InvocationAuguryResolution {
     contract: RuntimeAuguryContract | null;
     source: RuntimeAuguryDesignationSource | null;
     explicit: boolean;
@@ -100,7 +100,7 @@ function extractJsonObject(raw: string): Record<string, unknown> {
     return JSON.parse(raw.slice(start, end + 1)) as Record<string, unknown>;
 }
 
-function buildTraceSelectionGateError(
+function buildAugurySelectionGateError(
     weaveId: string,
     validationErrors: string[],
     planningOnly: boolean,
@@ -110,7 +110,7 @@ function buildTraceSelectionGateError(
         : `[KERNEL PANIC]: Corvus Star Augury Gate Breach. The command '${weaveId}' must resolve to a machine-valid Corvus Star Augury contract.`;
 
     if (validationErrors.length === 0) {
-        return `${prefix} Provide a valid '// Corvus Star Augury [Ω]' block or a runtime surface the dispatcher can designate safely.`.trim();
+        return `${prefix} Obtain the route from cstar_augury and pass its structured augury_contract payload. The comment-header parser is compatibility input only.`.trim();
     }
 
     return `${prefix} ${validationErrors.join(' ')}`.trim();
@@ -189,11 +189,11 @@ function normalizeAuguryContract(value: unknown): RuntimeAuguryContract | null {
 }
 
 function normalizeAuguryDesignationSource(value: unknown): RuntimeAuguryDesignationSource | null {
-    if (value === 'explicit_augury_block' || value === 'dispatcher_synthesized' || value === 'payload_augury_contract' || value === 'legacy_payload_trace_contract') {
+    if (value === 'explicit_augury_block' || value === 'legacy_input_trace_block' || value === 'dispatcher_synthesized' || value === 'payload_augury_contract' || value === 'legacy_payload_trace_contract') {
         return value;
     }
     if (value === 'explicit_trace_block') {
-        return 'explicit_augury_block';
+        return 'legacy_input_trace_block';
     }
     if (value === 'payload_trace_contract') {
         return 'legacy_payload_trace_contract';
@@ -201,9 +201,9 @@ function normalizeAuguryDesignationSource(value: unknown): RuntimeAuguryDesignat
     return null;
 }
 
-function extractExplicitTraceCandidate(values: string[]): string | null {
+function extractExplicitAuguryInput(values: string[]): string | null {
     for (const value of values) {
-        for (const header of TRACE_SELECTION_HEADERS) {
+        for (const header of AUGURY_SELECTION_INPUT_HEADERS) {
             const index = value.indexOf(header);
             if (index >= 0) {
                 return value.slice(index).trim();
@@ -288,7 +288,7 @@ function summarizeInvocationIntent(
     }
 }
 
-function inferTraceIntentCategory(
+function inferAuguryIntentCategory(
     workspaceRoot: string,
     selectionName: string,
     weaveId: string,
@@ -336,7 +336,7 @@ function inferTraceIntentCategory(
     return undefined;
 }
 
-function buildSyntheticTraceContract(input: {
+function buildCompatibilityAuguryContract(input: {
     workspaceRoot: string;
     weaveId: string;
     selectionTier: 'SKILL' | 'WEAVE';
@@ -359,7 +359,7 @@ function buildSyntheticTraceContract(input: {
         mimirsWell.push(targetPath);
     }
 
-    const intentCategory = inferTraceIntentCategory(
+    const intentCategory = inferAuguryIntentCategory(
         input.workspaceRoot,
         input.selectionName,
         input.weaveId,
@@ -373,7 +373,7 @@ function buildSyntheticTraceContract(input: {
         selection_tier: input.selectionTier,
         selection_name: input.selectionName,
         trajectory_status: 'STABLE',
-        trajectory_reason: `Dispatcher synthesized the designation from the explicit ${input.selectionTier.toLowerCase()} invocation.`,
+        trajectory_reason: `Compatibility dispatcher derived the contract from the explicit ${input.selectionTier.toLowerCase()} CLI invocation.`,
         mimirs_well: Array.from(new Set(mimirsWell)),
         confidence: 0.72,
         confidence_source: 'synthetic',
@@ -381,7 +381,7 @@ function buildSyntheticTraceContract(input: {
     });
 }
 
-function resolveInvocationTraceContract(input: {
+function resolveInvocationAuguryContract(input: {
     workspaceRoot: string;
     weaveId: string;
     payload: unknown;
@@ -390,13 +390,13 @@ function resolveInvocationTraceContract(input: {
     skillIntent?: string;
     targetPath?: string;
     allowObservationFallback: boolean;
-}): InvocationTraceResolution {
+}): InvocationAuguryResolution {
     const narratives = extractInvocationNarratives(input.payload, input.skillIntent);
-    const explicitTrace = extractExplicitTraceCandidate(narratives);
+    const explicitAuguryInput = extractExplicitAuguryInput(narratives);
 
-    if (explicitTrace) {
-        const validation = validateTraceSelectionGate(explicitTrace);
-        if (!validation.valid || !validation.trace) {
+    if (explicitAuguryInput) {
+        const validation = validateAugurySelectionGate(explicitAuguryInput);
+        if (!validation.valid || !validation.augury) {
             return {
                 contract: null,
                 source: null,
@@ -404,22 +404,23 @@ function resolveInvocationTraceContract(input: {
                 errors: validation.errors,
             };
         }
+        const augury = validation.augury;
         return {
             contract: enrichTraceContractWithCouncil({
-                intent_category: validation.trace.intent_category,
-                intent: validation.trace.intent,
-                selection_tier: validation.trace.selection_tier,
-                selection_name: validation.trace.selection_name,
-                trajectory_status: validation.trace.trajectory_status,
-                trajectory_reason: validation.trace.trajectory_reason,
-                mimirs_well: validation.trace.mimirs_well,
-                gungnir_verdict: validation.trace.gungnir_verdict,
-                confidence: validation.trace.confidence,
-                confidence_source: validation.trace.confidence_source,
-                body: validation.trace.body,
-                canonical_intent: validation.trace.canonical_intent,
+                intent_category: augury.intent_category,
+                intent: augury.intent,
+                selection_tier: augury.selection_tier,
+                selection_name: augury.selection_name,
+                trajectory_status: augury.trajectory_status,
+                trajectory_reason: augury.trajectory_reason,
+                mimirs_well: augury.mimirs_well,
+                gungnir_verdict: augury.gungnir_verdict,
+                confidence: augury.confidence,
+                confidence_source: augury.confidence_source,
+                body: augury.body,
+                canonical_intent: augury.canonical_intent,
             }),
-            source: 'explicit_augury_block',
+            source: augury.deprecated_input ? 'legacy_input_trace_block' : 'explicit_augury_block',
             explicit: true,
             errors: [],
         };
@@ -455,7 +456,7 @@ function resolveInvocationTraceContract(input: {
     }
 
     return {
-        contract: buildSyntheticTraceContract({
+        contract: buildCompatibilityAuguryContract({
             workspaceRoot: input.workspaceRoot,
             weaveId: input.weaveId,
             selectionTier: input.skillId ? 'SKILL' : 'WEAVE',
@@ -696,7 +697,7 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
             : session?.mode ?? 'cli';
         const isObservationInvocation = ['weave:status', 'weave:hall', 'weave:vitals', 'weave:manifest'].includes(weaveId)
             || (weaveId === 'weave:pennyone' && ['search', 'stats', 'topology', 'view', 'scan', 'refresh_intents', 'normalize', 'report', 'artifacts', 'status'].includes(String((payload as any)?.action ?? '').trim()));
-        const traceResolution = resolveInvocationTraceContract({
+        const auguryResolution = resolveInvocationAuguryContract({
             workspaceRoot: estateTarget.workspaceRoot,
             weaveId,
             payload,
@@ -707,25 +708,25 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
             allowObservationFallback: isObservationInvocation,
         });
 
-        if (operatorMode === 'cli' && traceResolution.explicit && traceResolution.errors.length > 0) {
+        if (operatorMode === 'cli' && auguryResolution.explicit && auguryResolution.errors.length > 0) {
             return {
                 weave_id: weaveId,
                 status: 'FAILURE',
                 output: '',
-                error: buildTraceSelectionGateError(
+                error: buildAugurySelectionGateError(
                     weaveId,
-                    traceResolution.errors,
+                    auguryResolution.errors,
                     weaveId === 'weave:chant',
                 ),
             };
         }
 
-        if (operatorMode === 'cli' && !isObservationInvocation && !traceResolution.contract) {
+        if (operatorMode === 'cli' && !isObservationInvocation && !auguryResolution.contract) {
             return {
                 weave_id: weaveId,
                 status: 'FAILURE',
                 output: '',
-                error: buildTraceSelectionGateError(weaveId, traceResolution.errors, weaveId === 'weave:chant'),
+                error: buildAugurySelectionGateError(weaveId, auguryResolution.errors, weaveId === 'weave:chant'),
             };
         }
 
@@ -742,12 +743,12 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
             spoke_root: estateTarget.spokeRoot,
             requested_root: estateTarget.requestedRoot,
             session_id: isSkillBead ? undefined : session?.session_id,
-            augury_contract: traceResolution.contract ?? undefined,
-            augury_designation_source: traceResolution.source ?? undefined,
-            trace_contract: traceResolution.contract ?? undefined,
-            trace_designation_source: traceResolution.source ?? undefined,
-            council_expert: traceResolution.contract?.council_expert,
-            root_persona_directive: traceResolution.contract?.council_expert?.root_persona_directive,
+            augury_contract: auguryResolution.contract ?? undefined,
+            augury_designation_source: auguryResolution.source ?? undefined,
+            trace_contract: auguryResolution.contract ?? undefined,
+            trace_designation_source: auguryResolution.source ?? undefined,
+            council_expert: auguryResolution.contract?.council_expert,
+            root_persona_directive: auguryResolution.contract?.council_expert?.root_persona_directive,
             env: process.env,
             timestamp: Date.now()
         };
@@ -761,8 +762,8 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
             weaveId,
             requestedRoot: estateTarget.requestedRoot,
             existingBead,
-            auguryContract: traceResolution.contract,
-            augurySource: traceResolution.source,
+            auguryContract: auguryResolution.contract,
+            augurySource: auguryResolution.source,
             context,
         });
 
@@ -780,8 +781,8 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
             targetPath: isSkillBead ? invocation.target_path : estateTarget.requestedRoot,
             assignedAgent,
             context,
-            auguryContract: traceResolution.contract,
-            augurySource: traceResolution.source,
+            auguryContract: auguryResolution.contract,
+            augurySource: auguryResolution.source,
             status: 'IN_PROGRESS',
         });
 
@@ -828,8 +829,8 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
                     metadata: result.metadata,
                     context,
                     weaveId,
-                    auguryContract: traceResolution.contract,
-                    augurySource: traceResolution.source,
+                    auguryContract: auguryResolution.contract,
+                    augurySource: auguryResolution.source,
                     executionBeadId: childBeadId,
                     resultStatus: result.status,
                 }),
@@ -842,8 +843,8 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
                 targetPath: isSkillBead ? invocation.target_path : estateTarget.requestedRoot,
                 assignedAgent,
                 context,
-                auguryContract: traceResolution.contract,
-                augurySource: traceResolution.source,
+                auguryContract: auguryResolution.contract,
+                augurySource: auguryResolution.source,
                 existingBead: getHallBead(childBeadId),
                 status: mapExecutionResultToBeadStatus(finalized),
                 output: finalized.output,

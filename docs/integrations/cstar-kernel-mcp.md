@@ -201,7 +201,10 @@ Engram lesson study / harvest queue.
 
 ## 4. `cstar_augury`
 
-Route one mission and return routing advice + Council expert + Mimir targets + token_path hints.
+Authoritatively route one host mission and return scope, bounded Mimir targets,
+the complete Council designation, provenance, and optional token-path advice.
+Host sidecars transport this payload; they do not rerun route or expert
+selection.
 
 **Input:**
 - `prompt` (string, required) — user prompt or mission statement
@@ -213,16 +216,33 @@ Route one mission and return routing advice + Council expert + Mimir targets + t
 **Output (matched):**
 ```json
 {
+  "status": "routed",
+  "routing_authority": "cstar_augury",
+  "augury_contract_version": 1,
   "intent_category": "BUILD",
-  "default_path": "creation_loop",
+  "selection": "WEAVE: creation_loop",
+  "scope": "brain:CStar",
+  "mimir_targets": ["src/example.ts"],
+  "council_expert": {
+    "id": "carmack",
+    "label": "CARMACK",
+    "lens": "...",
+    "signature_question": "...",
+    "guardrails": ["..."],
+    "selection_reason": "..."
+  },
   "expert": "carmack",
-  "expert_label": "...",
+  "expert_label": "CARMACK",
   "expert_lens": "...",
   "expert_signature_question": "...",
   "expert_guardrails": ["..."],
+  "expert_selection_reason": "...",
   "token_path": { "advisor": "augury-token-path", "episode_id": "mcp-tp-...", "selected_policy": "...", "..." }
 }
 ```
+
+The flat `expert_*` fields remain compatibility projections of the nested
+`council_expert` object. New consumers should prefer the nested contract.
 
 When the caller supplies a new prompt and explicit `target_paths`,
 `cstar_augury` derives the current mission route from that prompt and target

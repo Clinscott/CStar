@@ -94,8 +94,12 @@ export interface RegistryManifest {
     }>;
 }
 
-export interface ParsedTraceSelectionGate {
+export type AuguryInputHeaderKind = 'canonical_augury' | 'legacy_trace';
+
+export interface ParsedAugurySelectionGate {
     raw_block: string;
+    input_header_kind: AuguryInputHeaderKind;
+    deprecated_input: boolean;
     intent_category?: string;
     intent?: string;
     selection_tier?: string;
@@ -111,11 +115,19 @@ export interface ParsedTraceSelectionGate {
     issues: string[];
 }
 
-export interface TraceSelectionGateValidation {
+/** @deprecated Use ParsedAugurySelectionGate. */
+export type ParsedTraceSelectionGate = ParsedAugurySelectionGate;
+
+export interface AugurySelectionGateValidation {
     valid: boolean;
     errors: string[];
-    trace: ParsedTraceSelectionGate | null;
+    augury: ParsedAugurySelectionGate | null;
+    /** @deprecated Use augury. */
+    trace: ParsedAugurySelectionGate | null;
 }
+
+/** @deprecated Use AugurySelectionGateValidation. */
+export type TraceSelectionGateValidation = AugurySelectionGateValidation;
 
 // In-code fallback for INTENT_CATEGORIES.
 // Source of truth: `.agents/skill_registry.json#intent_grammar`. The registry is
@@ -143,13 +155,17 @@ export const INTENT_CATEGORIES: Record<string, {
 
 export const CORVUS_STAR_AUGURY_HEADER = '// Corvus Star Augury [Ω]';
 export const LEGACY_TRACE_SELECTION_HEADER = '// Corvus Star Trace [Ω]';
-export const TRACE_SELECTION_HEADER = CORVUS_STAR_AUGURY_HEADER;
-export const TRACE_SELECTION_HEADERS = [
+export const AUGURY_SELECTION_HEADER = CORVUS_STAR_AUGURY_HEADER;
+export const AUGURY_SELECTION_INPUT_HEADERS = [
     CORVUS_STAR_AUGURY_HEADER,
     LEGACY_TRACE_SELECTION_HEADER,
 ] as const;
+/** @deprecated Use AUGURY_SELECTION_HEADER. */
+export const TRACE_SELECTION_HEADER = AUGURY_SELECTION_HEADER;
+/** @deprecated Use AUGURY_SELECTION_INPUT_HEADERS. */
+export const TRACE_SELECTION_HEADERS = AUGURY_SELECTION_INPUT_HEADERS;
 
-const TRACE_SELECTION_REQUIRED_FIELDS = [
+const AUGURY_SELECTION_REQUIRED_FIELDS = [
     'Intent Category',
     'Intent',
     'Selection',
@@ -320,9 +336,10 @@ function parseTraceConfidence(value: string | undefined): {
     return { confidence };
 }
 
-export function parseTraceSelectionGate(query: string): ParsedTraceSelectionGate | null {
+export function parseAugurySelectionGate(query: string): ParsedAugurySelectionGate | null {
     const trimmed = query.trim();
-    if (!TRACE_SELECTION_HEADERS.some((header) => trimmed.startsWith(header))) {
+    const matchedHeader = AUGURY_SELECTION_INPUT_HEADERS.find((header) => trimmed.startsWith(header));
+    if (!matchedHeader) {
         return null;
     }
 
@@ -339,7 +356,7 @@ export function parseTraceSelectionGate(query: string): ParsedTraceSelectionGate
     }
 
     const issues: string[] = [];
-    for (const field of TRACE_SELECTION_REQUIRED_FIELDS) {
+    for (const field of AUGURY_SELECTION_REQUIRED_FIELDS) {
         if (!compactTraceText(fieldValues[field])) {
             issues.push(`Missing ${field}.`);
         }
@@ -380,6 +397,8 @@ export function parseTraceSelectionGate(query: string): ParsedTraceSelectionGate
 
     return {
         raw_block: headerLines.join('\n').trimEnd(),
+        input_header_kind: matchedHeader === LEGACY_TRACE_SELECTION_HEADER ? 'legacy_trace' : 'canonical_augury',
+        deprecated_input: matchedHeader === LEGACY_TRACE_SELECTION_HEADER,
         intent_category: intentCategory?.toUpperCase(),
         intent,
         selection_tier: selection.tier,
@@ -396,28 +415,40 @@ export function parseTraceSelectionGate(query: string): ParsedTraceSelectionGate
     };
 }
 
-export function validateTraceSelectionGate(query: string): TraceSelectionGateValidation {
-    const trace = parseTraceSelectionGate(query);
-    if (!trace) {
+/** @deprecated Use parseAugurySelectionGate. */
+export function parseTraceSelectionGate(query: string): ParsedAugurySelectionGate | null {
+    return parseAugurySelectionGate(query);
+}
+
+export function validateAugurySelectionGate(query: string): AugurySelectionGateValidation {
+    const augury = parseAugurySelectionGate(query);
+    if (!augury) {
         return {
             valid: false,
             errors: ['Missing // Corvus Star Augury [Ω] header.'],
+            augury: null,
             trace: null,
         };
     }
 
-    const errors = trace.issues.filter(Boolean);
+    const errors = augury.issues.filter(Boolean);
     return {
         valid: errors.length === 0,
         errors,
-        trace,
+        augury,
+        trace: augury,
     };
 }
 
+/** @deprecated Use validateAugurySelectionGate. */
+export function validateTraceSelectionGate(query: string): AugurySelectionGateValidation {
+    return validateAugurySelectionGate(query);
+}
+
 export function normalizeIntent(query: string): string {
-    const trace = parseTraceSelectionGate(query);
-    if (trace) {
-        return trace.canonical_intent.replace(/\s+/g, ' ').trim();
+    const augury = parseAugurySelectionGate(query);
+    if (augury) {
+        return augury.canonical_intent.replace(/\s+/g, ' ').trim();
     }
 
     return query.trim().replace(/\s+/g, ' ');

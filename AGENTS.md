@@ -5,7 +5,7 @@
 ## Working Agreements
 - **Node.js Kernel Only**: All execution flows through the TypeScript kernel (`cstar.ts`). No Python dual-runtime.
 - **Authority Order**: Registry and runtime contracts outrank prose. If a document disagrees with `skill_registry.json` or runtime behavior, treat the document as stale.
-- **Trace First**: Begin agentic responses with a Corvus Star Trace block (see `AGENTS.qmd` §1).
+- **MCP Augury First**: For a new mission, consume the `cstar_augury` MCP result before choosing a route, files, or Council lens. The host/sidecar may render that result as routing context; agents must not invent, rewrite, or echo it.
 - **Bead-Driven**: Anchor all work to Beads in the Hall of Records.
 - **MCP Separation of Concerns**: Keep `src/tools/cstar-kernel-mcp.ts` as a small bootstrap/export surface. Tool behavior belongs in focused files under `src/tools/cstar-kernel-mcp/`, with focused tests under `tests/unit/cstar-kernel-mcp/`. No production or focused test file should exceed 500 lines.
 - **MCP Data Surfaces**: Follow `docs/integrations/codex_mcp_contract.md#data-surface-rule` for PennyOne/Hall, Mongo mailbox/cache, and no arbitrary database passthrough rules.
@@ -62,21 +62,17 @@ Intent grammar is descriptive. Runtime routing is registry-first; the grammar is
 ## Episodic Memory (Engrams)
 Every completed Bead is automatically distilled into a searchable "Engram" (intent + git diff) in the Hall of Records. Use the `mimir` skill or `cstar hall` to query past Engrams for architectural context and regression history.
 
-## Trace Enforcement
-Before executing any multi-file change, you MUST emit a Trace block:
-```text
-// Corvus Star Trace [Ω]
-Intent Category: [REPAIR | BUILD | VERIFY | SCORE | OBSERVE | HARDEN | EXPAND | EVOLVE | ORCHESTRATE | GUARD | DOCUMENT]
-Intent: [Brief goal statement]
-Selection: [SKILL | WEAVE | SPELL]: [Name of the selected path]
-Mimir's Well: ◈ [Primary File] | ◈ [Secondary File]
-Gungnir Verdict: [L: X.X | S: Y.Y | I: Z.Z | Ω: XX%]
-Confidence: [0.0 - 1.0]
-```
+## Augury Routing Authority
+- `cstar_augury` is the authoritative source for mission route, scope, bounded Mimir targets, and Council expert designation.
+- The Augury sidecar carries the MCP result into the host session without recomputing route or expert selection.
+- Use full Augury context on the first call for a session/planning key and lite context on subsequent calls for that same key.
+- If MCP Augury is unavailable or returns `blocked`, do not synthesize a replacement route. Surface the failure or required operator decision and remain within the safe read-only boundary.
+- The legacy Trace selection header is accepted only by the compatibility parser. No active instruction, hook, HUD, or generated response may require or emit it.
+- Keep genuine session, telemetry, execution, and visualization traces intact; `trace_id` remains runtime lineage, not routing authority.
 
 ## Rules
 1. **Initialization**: At the start of every session or new mission, you MUST read [AGENTS.qmd](./AGENTS.qmd) to synchronize with the current Supreme Directive and Framework state.
-2. **Trace First**: Begin agentic responses with a Trace block (see above).
+2. **MCP Augury First**: Consume `cstar_augury` before routing agentic work. Use it as context and do not echo its display block.
 3. **Bead-Driven**: Anchor all work to Beads in the Hall of Records.
 4. **MCP Separation of Concerns**: Do not put new MCP behavior into the root MCP entrypoint. Add or update a focused module, register it through the MCP registration composition layer, and keep focused tests under 500 lines.
 5. **Sterling Mandate**: Changes require Lore (.feature contract), Isolation (unit test), and Audit (Gungnir score).

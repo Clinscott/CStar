@@ -1,5 +1,7 @@
 # 🧠 CAMPAIGN: THE BRAIN (NEURAL UNIFICATION)
 
+> **Status:** HISTORICAL — retained as design history. Current routing authority is the MCP `cstar_augury` contract described in `AGENTS.qmd`.
+>
 > **Mandate:** Transform Corvus Star from a collection of segmented scripts into a unified, autonomous organism with a Central Nervous System powered by the Model Context Protocol (MCP).
 
 ## ◈ THE ARCHITECTURE OF THE BRAIN
@@ -21,8 +23,8 @@
 2.  **The Python MCP Client:** Integrate the official Python `mcp` SDK into `src/cstar/core/daemon.py` or `sv_engine.py`. This turns the Python Daemon into a direct consumer of PennyOne's intelligence.
 
 ### PHASE 2: Active Consciousness (Pre-flight RAG)
-1.  **The Prefrontal Cortex:** Upgrade the Corvus Star Trace Protocol. Before the Python Daemon responds to a user prompt, it will autonomously use its new MCP Client to query `pennyone.search_by_intent`.
-2.  **Result:** The generated `// Corvus Star Trace` will no longer be a guess based on the LLM's context window; it will be an empirical fact pulled directly from Mimir's Well.
+1.  **Historical Predecessor:** This campaign proposed grounding the former LLM-authored selection header with a Python MCP client and `pennyone.search_by_intent`.
+2.  **Superseded Result:** MCP `cstar_augury` now owns routing and Council designation; the sidecar transports its structured result without generating a replacement header.
 
 ### PHASE 3: The Autonomic Reflex (Nervous System)
 1.  **Real-Time Indexing:** The background P1 Daemon watches the filesystem. When a file is modified, it autonomously triggers `pennyone.index_sector`.
