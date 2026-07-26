@@ -30,7 +30,6 @@ describe('Host session runtime support metadata', () => {
                             ownership_model: 'host-workflow',
                         },
                         host_support: {
-                            gemini: 'native-session',
                             codex: 'exec-bridge',
                             claude: 'exec-bridge',
                         },
@@ -42,7 +41,6 @@ describe('Host session runtime support metadata', () => {
                             ownership_model: 'host-workflow',
                         },
                         host_support: {
-                            gemini: 'policy-only',
                             codex: 'policy-only',
                             claude: 'policy-only',
                         },
@@ -56,7 +54,6 @@ describe('Host session runtime support metadata', () => {
                             ownership_model: 'host-workflow',
                         },
                         host_support: {
-                            gemini: 'native-session',
                             codex: 'exec-bridge',
                             claude: 'exec-bridge',
                         },
@@ -69,7 +66,6 @@ describe('Host session runtime support metadata', () => {
                             ownership_model: 'host-workflow',
                         },
                         host_support: {
-                            gemini: 'native-session',
                             codex: 'exec-bridge',
                             claude: 'exec-bridge',
                         },
@@ -82,7 +78,6 @@ describe('Host session runtime support metadata', () => {
                             ownership_model: 'host-workflow',
                         },
                         host_support: {
-                            gemini: 'native-session',
                             codex: 'exec-bridge',
                             claude: 'exec-bridge',
                         },
@@ -95,7 +90,6 @@ describe('Host session runtime support metadata', () => {
                             ownership_model: 'host-workflow',
                         },
                         host_support: {
-                            gemini: 'native-session',
                             codex: 'exec-bridge',
                             claude: 'exec-bridge',
                         },
@@ -108,7 +102,6 @@ describe('Host session runtime support metadata', () => {
                             ownership_model: 'host-workflow',
                         },
                         host_support: {
-                            gemini: 'native-session',
                             codex: 'exec-bridge',
                             claude: 'exec-bridge',
                         },
@@ -175,7 +168,6 @@ describe('Host session runtime support metadata', () => {
                     oracle: {
                         runtime_trigger: 'oracle',
                         host_support: {
-                            gemini: 'supported',
                             codex: 'unsupported',
                             claude: 'exec-bridge',
                         },
@@ -189,7 +181,7 @@ describe('Host session runtime support metadata', () => {
             explainCapabilityHostSupport(tmpRoot, 'oracle', 'codex') ?? '',
             /marked unsupported on codex/i,
         );
-        assert.equal(explainCapabilityHostSupport(tmpRoot, 'oracle', 'gemini'), null);
+        assert.equal(explainCapabilityHostSupport(tmpRoot, 'oracle', 'claude'), null);
     });
 
     it('builds a host-native skill prompt that explicitly forbids runtime re-entry', () => {
@@ -214,7 +206,7 @@ describe('Host session runtime support metadata', () => {
             target_paths: ['FallowsHallowRPG/src/engine.ts'],
             target_domain: 'spoke',
             spoke_name: 'FallowsHallow-RPG',
-            requested_root: '/home/morderith/Corvus/FallowsHallow-RPG',
+            requested_root: '/workspace/spokes/FallowsHallow-RPG',
             payload: { query: 'rpg engine state' },
             augury_contract: {
                 intent_category: 'BUILD',
@@ -267,7 +259,7 @@ describe('Host session runtime support metadata', () => {
             target_paths: ['FallowsHallowRPG/src/engine.ts'],
             target_domain: 'spoke',
             spoke_name: 'FallowsHallow-RPG',
-            requested_root: '/home/morderith/Corvus/FallowsHallow-RPG',
+            requested_root: '/workspace/spokes/FallowsHallow-RPG',
             payload: { query: 'rpg engine state' },
             augury_mode: 'lite',
             augury_contract: {
@@ -305,7 +297,7 @@ describe('Host session runtime support metadata', () => {
         const prompt = buildHostNativeSkillPrompt({
             skill_id: 'hall',
             intent: 'inspect Corvus Star Augury',
-            project_root: '/home/morderith/Corvus/CStar',
+            project_root: '/workspace/CStar',
             target_paths: ['src/core/host_session.ts'],
             payload: { query: 'Corvus Star Augury' },
             augury_contract: {

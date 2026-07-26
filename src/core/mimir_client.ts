@@ -20,6 +20,7 @@ import {
     HostProvider,
     expandHostBridgeArgs,
     getHostBridgeConfigurationHint,
+    isHostProvider,
     resolveConfiguredHostBridge,
     resolveHostProvider,
 } from './host_session.ts';
@@ -55,14 +56,6 @@ const defaultHostExecRunner: HostExecRunner = async (command, args, options) => 
         stderr: String(result.stderr ?? ''),
     };
 };
-
-function getDefaultCliBridgeArgs(provider: Exclude<HostProvider, 'codex'>, prompt: string): string[] {
-    if (provider === 'claude') {
-        return ['-p', prompt];
-    }
-    // Optimization for Gemini: Use plan mode to avoid tool loops and approval stalls
-    return ['--approval-mode', 'plan', '-p', prompt];
-}
 
 function shouldRequireNativeCodexInvoker(
     request: ReturnType<typeof normalizeIntelligenceRequest>,
@@ -157,6 +150,26 @@ export class MimirClient {
     public async request(request: IntelligenceRequest): Promise<IntelligenceResponse> {
         const normalized = normalizeIntelligenceRequest(request, 'ts:mimir');
         const decision = this.resolveDecision(normalized);
+        const configuredProvider = String(this.hostProvider ?? this.env.CORVUS_HOST_PROVIDER ?? '').trim();
+        if (
+            decision.transportMode === 'host_session'
+            && configuredProvider
+            && !isHostProvider(configuredProvider.toLowerCase())
+        ) {
+            const message = `Host provider '${configuredProvider}' is retired or unsupported; host-session invocation refused.`;
+            this.writeHallRequestRecord(normalized, decision, {
+                request_status: 'FAILED',
+                transport_preference: 'host_session',
+                error_text: message,
+                completed_at: Date.now(),
+                metadata: {
+                    decision_reason: decision.reason,
+                    provider: configuredProvider,
+                },
+            });
+            return buildIntelligenceError(normalized, message, 'host_session');
+        }
+
         const transportMode = decision.transportMode;
 
         if (transportMode === 'host_session') {
@@ -234,6 +247,24 @@ export class MimirClient {
     ): Promise<IntelligenceResponse> {
         const effectivePrompt = buildEffectivePrompt(request);
         const provider = this.resolveHostProvider();
+        if (!provider) {
+            const configuredProvider = String(this.hostProvider ?? this.env.CORVUS_HOST_PROVIDER ?? '').trim();
+            const message = configuredProvider
+                ? `Host provider '${configuredProvider}' is retired or unsupported; host-session invocation refused.`
+                : 'Host-session invocation requires a supported provider (codex, claude, or droid).';
+            this.writeHallRequestRecord(request, decision, {
+                request_status: 'FAILED',
+                transport_preference: 'host_session',
+                error_text: message,
+                completed_at: Date.now(),
+                metadata: {
+                    decision_reason: decision.reason,
+                    provider: configuredProvider || null,
+                },
+            });
+            return buildIntelligenceError(request, message, 'host_session');
+        }
+
         const requireNativeCodexInvoker = shouldRequireNativeCodexInvoker(request, provider);
         this.writeHallRequestRecord(request, decision, {
             request_status: 'PENDING',
@@ -293,18 +324,11 @@ export class MimirClient {
         }
     }
 
-    private resolveHostProvider(): HostProvider {
-        if (this.hostProvider) {
-            return this.hostProvider;
+    private resolveHostProvider(): HostProvider | null {
+        if (this.hostProvider !== undefined && this.hostProvider !== null) {
+            return isHostProvider(this.hostProvider) ? this.hostProvider : null;
         }
-        const detectedProvider = resolveHostProvider(this.env);
-        if (detectedProvider) {
-            return detectedProvider;
-        }
-        if (this.hostSessionActive === true) {
-            return 'gemini';
-        }
-        return 'gemini';
+        return resolveHostProvider(this.env);
     }
 
     private async invokeConfiguredHostBridge(prompt: string, provider: HostProvider): Promise<string | null> {
@@ -415,21 +439,14 @@ export class MimirClient {
             }
         }
 
-        if (provider === 'gemini' || provider === 'claude') {
-            // [🔱] THE SHIELD: Prevent agy from executing headlessly and destroying OAuth tokens.
-            if (provider === 'gemini' && !process.stdout.isTTY) {
-                console.warn(`[WARNING] Bypassing primary host provider 'agy' in headless mode to prevent OAuth credential corruption. Falling back to codex...`);
-                return await this.invokeHostSession(prompt, 'codex');
-            }
-
+        if (provider === 'claude') {
             const controller = new AbortController();
             const timer = setTimeout(() => controller.abort(), this.hostSessionTimeoutMs);
 
             try {
-                const cmd = provider === 'gemini' ? 'agy' : provider;
                 const { stdout, stderr } = await this.hostExecRunner(
-                    cmd,
-                    getDefaultCliBridgeArgs(provider, prompt),
+                    'claude',
+                    ['-p', prompt],
                     {
                         cwd: this.projectRoot,
                         env: { ...this.env },
@@ -440,17 +457,12 @@ export class MimirClient {
 
                 const response = stdout.trim() || stderr.trim();
                 if (!response) {
-                    throw new Error(`${cmd} returned no output.`);
+                    throw new Error('claude returned no output.');
                 }
                 return response;
             } catch (error) {
                 if (error instanceof Error && error.name === 'AbortError') {
                     throw new Error(`${provider} host session timed out after ${this.hostSessionTimeoutMs}ms.`);
-                }
-                if (provider === 'gemini') {
-                    console.warn(`[WARNING] Primary host provider 'agy' failed: ${error instanceof Error ? error.message : String(error)}. Falling back to codex...`);
-                    clearTimeout(timer);
-                    return await this.invokeHostSession(prompt, 'codex');
                 }
                 throw error;
             } finally {

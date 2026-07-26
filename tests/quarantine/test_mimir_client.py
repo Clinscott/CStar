@@ -26,43 +26,14 @@ def _complete_prompt(db_path, synapse_id: int, response: str) -> None:
 
 
 @pytest.mark.asyncio
-async def test_mimir_client_returns_a_typed_error_when_builtin_gemini_scaffold_yields_no_output(tmp_path, monkeypatch):
-    def fake_run(args, **kwargs):
-        return subprocess.CompletedProcess(args=args, returncode=0, stdout="", stderr="")
-
-    monkeypatch.setattr(subprocess, "run", fake_run)
-
-    client = MimirClient(project_root=tmp_path, env={}, host_session_active=True)
-
-    response = await client.request(
-        {
-            "prompt": "Identify the active capability.",
-            "system_prompt": "Respond in one line.",
-            "caller": {"source": "test-suite"},
-        }
-    )
-
-    assert response.status == "error"
-    assert response.trace.transport_mode == "host_session"
-    assert response.error is not None
-    assert "gemini returned no output" in response.error.lower()
-
-
-@pytest.mark.asyncio
-async def test_mimir_client_uses_configured_gemini_host_bridge(tmp_path, monkeypatch):
-    observed: dict[str, object] = {}
+async def test_mimir_client_rejects_a_retired_provider_without_spawning(tmp_path, monkeypatch):
+    subprocess_calls = 0
 
     def fake_run(args, **kwargs):
-        observed["args"] = args
-        observed["cwd"] = kwargs["cwd"]
-        observed["env"] = kwargs["env"]
-        return subprocess.CompletedProcess(args=args, returncode=0, stdout="Gemini host response", stderr="")
+        nonlocal subprocess_calls
+        subprocess_calls += 1
+        raise AssertionError(f"retired provider unexpectedly spawned: {args}")
 
-    monkeypatch.setenv("CORVUS_GEMINI_HOST_BRIDGE_CMD", "gemini")
-    monkeypatch.setenv(
-        "CORVUS_GEMINI_HOST_BRIDGE_ARGS_JSON",
-        '["-p", "{prompt}", "--cwd", "{project_root}"]',
-    )
     monkeypatch.setattr(subprocess, "run", fake_run)
 
     client = MimirClient(
@@ -72,19 +43,20 @@ async def test_mimir_client_uses_configured_gemini_host_bridge(tmp_path, monkeyp
         host_provider="gemini",
     )
 
-    response = await client.request({"prompt": "Explain the active bridge."})
+    response = await client.request(
+        {
+            "prompt": "Identify the active capability.",
+            "system_prompt": "Respond in one line.",
+            "caller": {"source": "test-suite"},
+            "transport_mode": "host_session",
+        }
+    )
 
-    assert response.status == "success"
+    assert response.status == "error"
     assert response.trace.transport_mode == "host_session"
-    assert response.raw_text == "Gemini host response"
-    assert observed["args"] == [
-        "gemini",
-        "-p",
-        "Explain the active bridge.",
-        "--cwd",
-        str(tmp_path),
-    ]
-    assert observed["cwd"] == str(tmp_path)
+    assert response.error is not None
+    assert "retired or unsupported" in response.error.lower()
+    assert subprocess_calls == 0
 
 
 @pytest.mark.asyncio
@@ -139,33 +111,6 @@ async def test_mimir_client_uses_builtin_claude_cli_scaffold(tmp_path, monkeypat
 
 
 @pytest.mark.asyncio
-async def test_mimir_client_uses_builtin_gemini_cli_scaffold(tmp_path, monkeypatch):
-    observed: dict[str, object] = {}
-
-    def fake_run(args, **kwargs):
-        observed["args"] = args
-        observed["cwd"] = kwargs["cwd"]
-        return subprocess.CompletedProcess(args=args, returncode=0, stdout="Gemini host response", stderr="")
-
-    monkeypatch.setattr(subprocess, "run", fake_run)
-
-    client = MimirClient(
-        project_root=tmp_path,
-        env={},
-        host_session_active=True,
-        host_provider="gemini",
-    )
-
-    response = await client.request({"prompt": "Explain the active bridge."})
-
-    assert response.status == "success"
-    assert response.trace.transport_mode == "host_session"
-    assert response.raw_text == "Gemini host response"
-    assert observed["args"] == ["gemini", "-p", "Explain the active bridge."]
-    assert observed["cwd"] == str(tmp_path)
-
-
-@pytest.mark.asyncio
 async def test_mimir_client_prefers_synapse_db_in_auto_mode_for_interactive_codex(tmp_path):
     async def oracle_runner(synapse_id: int) -> None:
         _complete_prompt(
@@ -188,7 +133,7 @@ async def test_mimir_client_prefers_synapse_db_in_auto_mode_for_interactive_code
 
 
 @pytest.mark.asyncio
-async def test_mimir_client_prefers_detected_codex_provider_before_gemini_fallback(tmp_path):
+async def test_mimir_client_uses_the_detected_codex_provider(tmp_path):
     observed: list[tuple[str, str]] = []
 
     async def host_session_runner(prompt: str, provider: str) -> str:

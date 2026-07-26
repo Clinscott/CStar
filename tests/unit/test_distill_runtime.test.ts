@@ -215,7 +215,7 @@ describe('Context compressor runtime weave (CS-THREADS-P2)', () => {
                     source: 'cli',
                 },
             },
-            createContext(tmpRoot, { GEMINI_CLI_ACTIVE: 'true' }),
+            createContext(tmpRoot, { CODEX_SHELL: '1' }),
         );
 
         assert.equal(result.status, 'FAILURE');

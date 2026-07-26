@@ -787,8 +787,9 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
 
         // --- WAR ROOM HANDSHAKE ---
         // Map personae/weave to agents for the Roster
-        const targetAgentId = weaveId.includes('droid') ? 'droid' :
-                             resolveHostProvider(process.env) || 'gemini';
+        const targetAgentId = weaveId.includes('droid')
+            ? 'droid'
+            : resolveHostProvider(process.env);
 
         const stateRegistry = this.deps.stateRegistry as any;
         const canTrackAgentState = typeof stateRegistry?.get === 'function'
@@ -797,14 +798,14 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
         const state = canTrackAgentState ? stateRegistry.get() : undefined;
         const restoreAgentState = () => {
             const finalState = canTrackAgentState ? stateRegistry.get() : undefined;
-            if (finalState?.agents && finalState.agents[targetAgentId]) {
+            if (targetAgentId && finalState?.agents && finalState.agents[targetAgentId]) {
                 finalState.agents[targetAgentId].status = 'SLEEPING';
                 finalState.agents[targetAgentId].active_bead_id = undefined;
                 finalState.agents[targetAgentId].pid = undefined;
                 stateRegistry.save(finalState);
             }
         };
-        if (state?.agents && state.agents[targetAgentId]) {
+        if (targetAgentId && state?.agents && state.agents[targetAgentId]) {
             state.agents[targetAgentId].status = 'WORKING';
             state.agents[targetAgentId].active_bead_id = childBeadId;
             state.agents[targetAgentId].last_seen = Date.now();

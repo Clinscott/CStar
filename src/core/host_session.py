@@ -4,7 +4,7 @@ import os
 import json
 from typing import Literal, TypedDict
 
-HostProvider = Literal["gemini", "codex", "claude"]
+HostProvider = Literal["codex", "claude"]
 
 
 class HostBridgeConfig(TypedDict):
@@ -27,11 +27,10 @@ def _normalize_flag(value: str | None) -> bool | None:
 def detect_host_provider(env: dict[str, str] | None = None) -> HostProvider | None:
     current_env = env if env is not None else os.environ
     override = current_env.get("CORVUS_HOST_PROVIDER", "").strip().lower()
-    if override in {"gemini", "codex", "claude"}:
-        return override  # type: ignore[return-value]
-
-    if current_env.get("GEMINI_CLI_ACTIVE") == "true" or current_env.get("GEMINI_CLI") == "1":
-        return "gemini"
+    if override:
+        if override in {"codex", "claude"}:
+            return override  # type: ignore[return-value]
+        return None
 
     if current_env.get("CODEX_SHELL") == "1" or current_env.get("CODEX_THREAD_ID"):
         return "codex"
@@ -42,8 +41,8 @@ def detect_host_provider(env: dict[str, str] | None = None) -> HostProvider | No
 def is_host_session_active(env: dict[str, str] | None = None) -> bool:
     current_env = env if env is not None else os.environ
     override = _normalize_flag(current_env.get("CORVUS_HOST_SESSION_ACTIVE"))
-    if override is not None:
-        return override
+    if override is False:
+        return False
 
     return detect_host_provider(current_env) is not None
 
@@ -51,27 +50,18 @@ def is_host_session_active(env: dict[str, str] | None = None) -> bool:
 def is_interactive_host_session(env: dict[str, str] | None = None) -> bool:
     current_env = env if env is not None else os.environ
     provider = detect_host_provider(current_env)
-    if provider == "gemini":
-        return current_env.get("GEMINI_CLI_ACTIVE") == "true" or current_env.get("GEMINI_CLI") == "1"
     if provider == "codex":
         return current_env.get("CODEX_SHELL") == "1"
     return False
 
 
-def resolve_host_provider(
-    env: dict[str, str] | None = None,
-    fallback: HostProvider = "gemini",
-) -> HostProvider | None:
+def resolve_host_provider(env: dict[str, str] | None = None) -> HostProvider | None:
     current_env = env if env is not None else os.environ
     override = _normalize_flag(current_env.get("CORVUS_HOST_SESSION_ACTIVE"))
     if override is False:
         return None
 
-    provider = detect_host_provider(env)
-    if provider is not None:
-        return provider
-
-    return fallback if is_host_session_active(env) else None
+    return detect_host_provider(current_env)
 
 
 def _parse_bridge_args_json(raw: str | None, env_name: str) -> list[str]:

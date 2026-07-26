@@ -9,6 +9,7 @@ import type { HostProvider } from './host_session.js';
 import {
     expandDelegateBridgeArgs,
     getDelegatePollBridgeConfigurationHint,
+    isHostProvider,
     resolveConfiguredDelegatePollBridge,
     resolveConfiguredDelegateBridge,
     resolveHostProvider,
@@ -121,7 +122,7 @@ function parseBridgeResult(raw: string): DelegatedExecutionHandle | DelegatedExe
     if (!handleId) {
         throw new Error('Delegate bridge response is missing handle_id.');
     }
-    if (provider !== 'codex' && provider !== 'gemini' && provider !== 'claude') {
+    if (!isHostProvider(provider)) {
         throw new Error('Delegate bridge response is missing a valid provider.');
     }
     if (!status) {
@@ -187,13 +188,10 @@ async function invokeProviderNativeDelegation(
         }
     }
 
-    if (provider === 'gemini' || provider === 'claude') {
-        const args = provider === 'gemini'
-            ? ['--approval-mode', 'plan', '-p', delegatedPrompt]
-            : ['-p', delegatedPrompt];
+    if (provider === 'claude') {
         const { stdout, stderr } = await execRunner(
-            provider,
-            args,
+            'claude',
+            ['-p', delegatedPrompt],
             {
                 cwd: request.repo_root,
                 env: { ...env },
@@ -227,6 +225,11 @@ export async function requestHostDelegatedExecution(
     env: NodeJS.ProcessEnv = process.env,
     dependencies: HostDelegationDependencies = {},
 ): Promise<DelegatedExecutionHandle | DelegatedExecutionResult> {
+    const configuredProvider = env.CORVUS_HOST_PROVIDER?.trim();
+    if (configuredProvider && !isHostProvider(configuredProvider.toLowerCase())) {
+        throw new Error(`Provider ${configuredProvider} is retired or unsupported for delegated execution.`);
+    }
+
     const provider = resolveHostProvider(env);
     if (!provider) {
         throw new Error('Host Agent session inactive.');
@@ -275,6 +278,10 @@ export async function resolveHostDelegatedExecution(
     env: NodeJS.ProcessEnv = process.env,
     dependencies: HostDelegationDependencies = {},
 ): Promise<DelegatedExecutionHandle | DelegatedExecutionResult> {
+    if (!isHostProvider(request.provider)) {
+        throw new Error(`Provider ${String(request.provider)} is retired or unsupported for delegated execution.`);
+    }
+
     const bridge = resolveConfiguredDelegatePollBridge(env, request.provider);
     if (!bridge) {
         throw new Error(

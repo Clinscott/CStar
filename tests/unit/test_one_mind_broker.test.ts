@@ -106,10 +106,10 @@ describe('One Mind broker scaffold', () => {
         const result = await fulfillOneMindRequestById(
             tmpRoot,
             'req-fulfill',
-            { GEMINI_CLI: '1' },
+            { CODEX_SHELL: '1', CODEX_THREAD_ID: 'thread-fulfill' },
             {
                 hostTextInvoker: async () => ({
-                    provider: 'gemini',
+                    provider: 'codex',
                     text: 'Hall response',
                     response: {
                         status: 'success',

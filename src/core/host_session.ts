@@ -4,7 +4,7 @@ import * as path from 'node:path';
 
 import { buildPersonaAdvice } from './persona_advice.js';
 
-export type HostProvider = 'gemini' | 'codex' | 'claude' | 'droid';
+export type HostProvider = 'codex' | 'claude' | 'droid';
 export type AugurySteeringMode = 'full' | 'lite';
 export type HostSupportStatus =
     | 'supported'
@@ -197,18 +197,18 @@ function normalizeFlag(value: string | undefined): boolean | undefined {
     return undefined;
 }
 
+export function isHostProvider(value: unknown): value is HostProvider {
+    return value === 'codex' || value === 'claude' || value === 'droid';
+}
+
 export function detectHostProvider(env: NodeJS.ProcessEnv = process.env): HostProvider | null {
     const override = env.CORVUS_HOST_PROVIDER?.trim().toLowerCase();
-    if (override === 'gemini' || override === 'codex' || override === 'claude' || override === 'droid') {
-        return override as HostProvider;
+    if (override) {
+        return isHostProvider(override) ? override : null;
     }
 
     if (env.CODEX_SHELL === '1' || Boolean(env.CODEX_THREAD_ID)) {
         return 'codex';
-    }
-
-    if (env.GEMINI_CLI_ACTIVE === 'true' || env.GEMINI_CLI === '1') {
-        return 'gemini';
     }
 
     if (env.DROID_CLI_ACTIVE === 'true') {
@@ -220,8 +220,8 @@ export function detectHostProvider(env: NodeJS.ProcessEnv = process.env): HostPr
 
 export function isHostSessionActive(env: NodeJS.ProcessEnv = process.env): boolean {
     const override = normalizeFlag(env.CORVUS_HOST_SESSION_ACTIVE);
-    if (override !== undefined) {
-        return override;
+    if (override === false) {
+        return false;
     }
 
     return detectHostProvider(env) !== null;
@@ -234,9 +234,6 @@ export function isInteractiveHostSession(env: NodeJS.ProcessEnv = process.env): 
     }
 
     const provider = detectHostProvider(env);
-    if (provider === 'gemini') {
-        return env.GEMINI_CLI_ACTIVE === 'true' || env.GEMINI_CLI === '1';
-    }
     if (provider === 'codex') {
         return env.CODEX_SHELL === '1';
     }
@@ -248,19 +245,13 @@ export function isInteractiveHostSession(env: NodeJS.ProcessEnv = process.env): 
 
 export function resolveHostProvider(
     env: NodeJS.ProcessEnv = process.env,
-    fallback: HostProvider = 'gemini',
 ): HostProvider | null {
     const override = normalizeFlag(env.CORVUS_HOST_SESSION_ACTIVE);
     if (override === false) {
         return null;
     }
 
-    const provider = detectHostProvider(env);
-    if (provider) {
-        return provider;
-    }
-
-    return isHostSessionActive(env) ? fallback : null;
+    return detectHostProvider(env);
 }
 
 export function getHostProviderBanner(provider: HostProvider | null): string {
@@ -273,7 +264,7 @@ export function getHostProviderBanner(provider: HostProvider | null): string {
     if (provider === 'droid') {
         return ' ◤ DROID CLI INTEGRATION ACTIVE ◢ ';
     }
-    return ' ◤ GEMINI CLI INTEGRATION ACTIVE ◢ ';
+    return ' ◤ HOST INTEGRATION INACTIVE ◢ ';
 }
 
 export function getHostMindLabel(provider: HostProvider | null): string {
@@ -285,9 +276,6 @@ export function getHostMindLabel(provider: HostProvider | null): string {
     }
     if (provider === 'droid') {
         return 'DROID-CONTROL';
-    }
-    if (provider === 'gemini') {
-        return 'GEMINI-3.1-PRO';
     }
     return 'HOST SESSION';
 }

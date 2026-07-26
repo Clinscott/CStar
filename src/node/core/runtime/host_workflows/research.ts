@@ -208,7 +208,7 @@ export class ResearchHostWorkflow implements RuntimeAdapter<ResearchWeavePayload
 
         const provider = deps.resolveRuntimeHostProvider(context);
 
-        if (provider && provider !== 'gemini') {
+        if (provider === 'codex' || provider === 'claude' || provider === 'droid') {
             try {
                 const workspaceRoot = payload.project_root || context.workspace_root;
                 const councilBranches = buildResearchCouncilBranches(payload);
@@ -493,42 +493,11 @@ export class ResearchHostWorkflow implements RuntimeAdapter<ResearchWeavePayload
             }
         }
 
-        if (provider === 'gemini') {
-            const directive = `
-[SUB_AGENT_DIRECTIVE]
-Task: You are the Corvus Star Council of Experts working through the Augury Gate.
-Model Hint: gemini-2.5-flash-lite
-Intent: "${payload.intent}"
-Council:
-- TORVALDS: first-principles systems critique; attack bloat, weak interfaces, and maintenance risk.
-- KARPATHY: AI-systems critique; attack model/tool boundaries, eval gaps, and deterministic guards.
-- HAMILTON: fault-tolerance critique; attack safety invariants and rollback gaps.
-- SHANNON: information-theory critique; attack noisy channels, compression loss, and observability gaps.
-- DEAN: distributed-systems critique; attack partitions, stale state, leases, and coordination bottlenecks.
-Instructions: 
-1. Inspect the repository first.
-2. Use google_web_search only if external context is required.
-3. If you find a relevant github repo, use your terminal tools to invoke 'python src/skills/local/WildHunt/wild_hunt.py --ingest <url> --name <alias>' to ingest it into Corvus Star.
-4. Synthesize the named council findings into a strict JSON object containing a comprehensive summary and a list of artifacts. Do NOT propose beads.
-   Format: { "summary": "...", "research_artifacts": ["url1", "url2", "skill:ref-alias"] }
-[/SUB_AGENT_DIRECTIVE]
-`;
-            return {
-                weave_id: this.id,
-                status: 'TRANSITIONAL',
-                output: `Delegating research to native ONE MIND environment.\n${directive}`,
-                metadata: {
-                    delegated: true,
-                    intent: payload.intent
-                }
-            };
-        }
-
         return {
             weave_id: this.id,
             status: 'FAILURE',
             output: '',
-            error: 'The Research Agent requires an active host session (Gemini or Codex).',
+            error: 'The Research Agent requires an active host session using a supported provider (Codex, Claude, or Droid).',
         };
     }
 }

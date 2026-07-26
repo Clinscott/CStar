@@ -38,7 +38,7 @@ HostSessionRunner = Callable[[str, HostProvider], Awaitable[str] | str]
 
 
 def _default_cli_bridge_args(provider: HostProvider, prompt: str) -> list[str]:
-    if provider in {"gemini", "claude"}:
+    if provider == "claude":
         return ["-p", prompt]
     return [prompt]
 
@@ -144,9 +144,9 @@ class MimirClient:
 
     async def _request_via_host_session(self, request: IntelligenceRequest) -> IntelligenceResponse:
         effective_prompt = build_effective_prompt(request)
-        provider = self._resolve_host_provider()
 
         try:
+            provider = self._resolve_host_provider()
             raw_text = await self._invoke_host_session(effective_prompt, provider)
             return build_intelligence_success(request, raw_text, "host_session")
         except Exception as exc:
@@ -158,13 +158,13 @@ class MimirClient:
 
     def _resolve_host_provider(self) -> HostProvider:
         if self.host_provider is not None:
-            return self.host_provider
+            if self.host_provider in {"codex", "claude"}:
+                return self.host_provider
+            raise RuntimeError(f"Host provider '{self.host_provider}' is retired or unsupported.")
         detected = resolve_host_provider(self.env)
         if detected is not None:
             return detected
-        if self.host_session_active is True:
-            return "gemini"
-        return "gemini"
+        raise RuntimeError("No supported host provider is active.")
 
     async def _invoke_configured_host_bridge(self, prompt: str, provider: HostProvider) -> str | None:
         bridge = resolve_configured_host_bridge(provider, self.env)
@@ -211,31 +211,24 @@ class MimirClient:
         if configured_response is not None:
             return configured_response
 
-        if provider in {"gemini", "claude"}:
-            cmd = "agy" if provider == "gemini" else provider
-            try:
-                completed = await asyncio.to_thread(
-                    subprocess.run,
-                    [cmd, *_default_cli_bridge_args(provider, prompt)],
-                    cwd=str(self.project_root),
-                    capture_output=True,
-                    text=True,
-                    check=False,
-                    env={**self.env},
-                )
-                if completed.returncode != 0:
-                    stderr = completed.stderr.strip() or completed.stdout.strip() or f"Unknown {cmd} failure."
-                    raise RuntimeError(stderr)
+        if provider == "claude":
+            completed = await asyncio.to_thread(
+                subprocess.run,
+                [provider, *_default_cli_bridge_args(provider, prompt)],
+                cwd=str(self.project_root),
+                capture_output=True,
+                text=True,
+                check=False,
+                env={**self.env},
+            )
+            if completed.returncode != 0:
+                stderr = completed.stderr.strip() or completed.stdout.strip() or "Unknown claude failure."
+                raise RuntimeError(stderr)
 
-                response = completed.stdout.strip() or completed.stderr.strip()
-                if not response:
-                    raise RuntimeError(f"{cmd} returned no output.")
-                return response
-            except Exception as exc:
-                if provider == "gemini":
-                    print(f"[WARNING] Primary host provider 'agy' failed: {exc}. Falling back to codex...", file=sys.stderr)
-                    return await self._invoke_host_session(prompt, "codex")
-                raise exc
+            response = completed.stdout.strip() or completed.stderr.strip()
+            if not response:
+                raise RuntimeError("claude returned no output.")
+            return response
 
         if provider != "codex":
             raise RuntimeError(

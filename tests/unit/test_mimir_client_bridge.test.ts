@@ -10,37 +10,6 @@ import { MimirClient } from  '../../src/core/mimir_client.js';
 import { listHallOneMindRequests, saveHallOneMindBroker } from '../../src/tools/pennyone/intel/database.js';
 
 describe('TypeScript Mimir client bridge (CS-P1-02)', () => {
-    it('uses a configured Gemini host bridge when the provider bridge is explicitly configured', async () => {
-        const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-mimir-gemini-configured-'));
-        const calls: Array<{ command: string; args: string[]; cwd: string }> = [];
-        const client = new MimirClient({
-            projectRoot: tmpRoot,
-            env: {
-                CORVUS_GEMINI_HOST_BRIDGE_CMD: 'gemini',
-                CORVUS_GEMINI_HOST_BRIDGE_ARGS_JSON: JSON.stringify(['-p', '{prompt}', '--cwd', '{project_root}']),
-            },
-            hostSessionActive: true,
-            hostProvider: 'gemini',
-            hostExecRunner: async (command, args, options) => {
-                calls.push({ command, args, cwd: options.cwd });
-                return { stdout: 'Gemini host response', stderr: '' };
-            },
-        });
-
-        const response = await client.request({
-            prompt: 'Explain the current bridge.',
-            caller: { source: 'test-suite' },
-        });
-
-        assert.strictEqual(response.status, 'success');
-        assert.strictEqual(response.trace.transport_mode, 'host_session');
-        assert.strictEqual(response.raw_text, 'Gemini host response');
-        assert.strictEqual(calls.length, 1);
-        assert.strictEqual(calls[0]?.command, 'gemini');
-        assert.deepStrictEqual(calls[0]?.args, ['-p', 'Explain the current bridge.', '--cwd', tmpRoot]);
-        assert.strictEqual(calls[0]?.cwd, tmpRoot);
-    });
-
     it('uses a configured Codex host bridge when the provider bridge is explicitly configured', async () => {
         const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-mimir-codex-configured-'));
         const calls: Array<{ command: string; args: string[]; cwd: string }> = [];
@@ -73,27 +42,6 @@ describe('TypeScript Mimir client bridge (CS-P1-02)', () => {
                 cwd: tmpRoot,
             },
         ]);
-    });
-
-    it('returns a typed error when the built-in Gemini scaffold yields no output', async () => {
-        const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-mimir-host-'));
-        const client = new MimirClient({
-            projectRoot: tmpRoot,
-            env: { CORVUS_DISABLE_LOCAL_LLM_FALLBACK: '1' },
-            hostSessionActive: true,
-            hostProvider: 'gemini',
-            hostExecRunner: async () => ({ stdout: '', stderr: '' }),
-        });
-
-        const response = await client.request({
-            prompt: 'Explain the current bridge.',
-            system_prompt: 'Respond in one sentence.',
-            caller: { source: 'test-suite' },
-        });
-
-        assert.strictEqual(response.status, 'error');
-        assert.strictEqual(response.trace.transport_mode, 'host_session');
-        assert.match(response.error ?? '', /(gemini|agy|codex) returned no output/i);
     });
 
     it('routes getFileIntent through the canonical request path', async () => {
@@ -175,54 +123,6 @@ describe('TypeScript Mimir client bridge (CS-P1-02)', () => {
                 cwd: tmpRoot,
             },
         ]);
-    });
-
-    it('uses the built-in Gemini CLI scaffold when no explicit bridge is configured', async () => {
-        const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-mimir-gemini-default-'));
-        const calls: Array<{ command: string; args: string[]; cwd: string }> = [];
-        const client = new MimirClient({
-            projectRoot: tmpRoot,
-            env: {},
-            hostSessionActive: true,
-            hostProvider: 'gemini',
-            hostExecRunner: async (command, args, options) => {
-                calls.push({ command, args, cwd: options.cwd });
-                return { stdout: 'Gemini host response', stderr: '' };
-            },
-        });
-
-        const originalIsTTY = process.stdout.isTTY;
-        Object.defineProperty(process.stdout, 'isTTY', {
-            value: true,
-            configurable: true,
-        });
-
-        try {
-            const response = await client.request({
-                prompt: 'Explain the current bridge.',
-                caller: { source: 'test-suite' },
-            });
-
-            assert.strictEqual(response.status, 'success');
-            assert.strictEqual(response.trace.transport_mode, 'host_session');
-            assert.strictEqual(response.raw_text, 'Gemini host response');
-            assert.deepStrictEqual(calls, [
-                {
-                    command: 'agy',
-                    args: ['--approval-mode', 'plan', '-p', 'Explain the current bridge.'],
-                    cwd: tmpRoot,
-                },
-            ]);
-        } finally {
-            if (originalIsTTY === undefined) {
-                delete (process.stdout as any).isTTY;
-            } else {
-                Object.defineProperty(process.stdout, 'isTTY', {
-                    value: originalIsTTY,
-                    configurable: true,
-                });
-            }
-        }
     });
 
     it('uses the structured Codex exec bridge when no host-session invoker is supplied', async () => {
@@ -391,7 +291,7 @@ describe('TypeScript Mimir client bridge (CS-P1-02)', () => {
         assert.strictEqual(hallRequests[0]?.metadata?.synapse_id, undefined);
     });
 
-    it('uses the env-detected Codex provider before the Gemini fallback when hostSessionActive is true', async () => {
+    it('uses the positively detected Codex provider when hostSessionActive is true', async () => {
         const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-mimir-codex-detected-'));
         const prompts: Array<{ provider: string; prompt: string }> = [];
         const client = new MimirClient({
