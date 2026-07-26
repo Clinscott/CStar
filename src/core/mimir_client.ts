@@ -24,6 +24,7 @@ import {
     resolveConfiguredHostBridge,
     resolveHostProvider,
 } from './host_session.ts';
+import { sanitizeChildProcessEnv } from './child_process_env.ts';
 import { resolveOneMindDecision } from './one_mind_bridge.ts';
 import { ensureHealthySynapseDb } from './synapse_db.ts';
 import { getHallOneMindBroker, listHallOneMindRequests, saveHallOneMindRequest } from '../tools/pennyone/intel/database.js';
@@ -107,6 +108,7 @@ export interface MimirClientOptions {
     oracleInvoker?: (synapseId: number) => Promise<void> | void;
     hostExecRunner?: HostExecRunner;
     codexExecRunner?: HostExecRunner;
+    oracleExecRunner?: HostExecRunner;
     hostSessionTimeoutMs?: number;
     pollIntervalMs?: number;
     pollAttempts?: number;
@@ -129,6 +131,7 @@ export class MimirClient {
     private readonly hostSessionInvoker?: (prompt: string, provider: HostProvider) => Promise<string> | string;
     private readonly oracleInvoker?: (synapseId: number) => Promise<void> | void;
     private readonly hostExecRunner: HostExecRunner;
+    private readonly oracleExecRunner: HostExecRunner;
     private readonly hostSessionTimeoutMs: number;
     private readonly pollIntervalMs: number;
     private readonly pollAttempts: number;
@@ -142,6 +145,7 @@ export class MimirClient {
         this.hostSessionInvoker = options.hostSessionInvoker;
         this.oracleInvoker = options.oracleInvoker;
         this.hostExecRunner = options.hostExecRunner ?? options.codexExecRunner ?? defaultHostExecRunner;
+        this.oracleExecRunner = options.oracleExecRunner ?? defaultHostExecRunner;
         this.hostSessionTimeoutMs = options.hostSessionTimeoutMs ?? DEFAULT_HOST_SESSION_TIMEOUT_MS;
         this.pollIntervalMs = options.pollIntervalMs ?? 100;
         this.pollAttempts = options.pollAttempts ?? 600; // Increase to 60 seconds (100ms * 600)
@@ -351,7 +355,7 @@ export class MimirClient {
                 args,
                 {
                     cwd: this.projectRoot,
-                    env: { ...this.env },
+                    env: sanitizeChildProcessEnv(this.env),
                     signal: controller.signal,
                     maxBuffer: DEFAULT_HOST_SESSION_MAX_BUFFER,
                 },
@@ -416,7 +420,7 @@ export class MimirClient {
                     ],
                     {
                         cwd: DEFAULT_PROJECT_ROOT,
-                        env: { ...this.env },
+                        env: sanitizeChildProcessEnv(this.env),
                         signal: controller.signal,
                         maxBuffer: DEFAULT_HOST_SESSION_MAX_BUFFER,
                     },
@@ -449,7 +453,7 @@ export class MimirClient {
                     ['-p', prompt],
                     {
                         cwd: this.projectRoot,
-                        env: { ...this.env },
+                        env: sanitizeChildProcessEnv(this.env),
                         signal: controller.signal,
                         maxBuffer: DEFAULT_HOST_SESSION_MAX_BUFFER,
                     },
@@ -589,12 +593,13 @@ export class MimirClient {
         }
 
         const cstarBin = path.join(this.projectRoot, 'bin', 'cstar.js');
-        await execFileAsync(
+        await this.oracleExecRunner(
             process.execPath,
             [cstarBin, '--root', this.projectRoot, 'oracle', String(synapseId), '--db', '--silent'],
             {
                 cwd: this.projectRoot,
-                env: { ...this.env },
+                env: sanitizeChildProcessEnv(this.env),
+                maxBuffer: DEFAULT_HOST_SESSION_MAX_BUFFER,
             },
         );
     }

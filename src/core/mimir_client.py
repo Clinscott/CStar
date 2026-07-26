@@ -15,6 +15,7 @@ from collections.abc import Awaitable, Callable
 from pathlib import Path
 from typing import Any
 
+from src.core.child_process_env import sanitize_child_process_env
 from src.core.host_session import (
     HostProvider,
     expand_host_bridge_args,
@@ -186,7 +187,7 @@ class MimirClient:
             capture_output=True,
             text=True,
             check=False,
-            env={**self.env},
+            env=sanitize_child_process_env(self.env),
         )
         if completed.returncode != 0:
             stderr = completed.stderr.strip() or completed.stdout.strip() or "Unknown host-session bridge failure."
@@ -219,7 +220,7 @@ class MimirClient:
                 capture_output=True,
                 text=True,
                 check=False,
-                env={**self.env},
+                env=sanitize_child_process_env(self.env),
             )
             if completed.returncode != 0:
                 stderr = completed.stderr.strip() or completed.stdout.strip() or "Unknown claude failure."
@@ -247,7 +248,7 @@ class MimirClient:
             capture_output=True,
             text=True,
             check=False,
-            env={**self.env},
+            env=sanitize_child_process_env(self.env),
         )
         if completed.returncode != 0:
             stderr = completed.stderr.strip() or completed.stdout.strip() or "Unknown codex failure."
@@ -317,7 +318,7 @@ class MimirClient:
             capture_output=True,
             text=True,
             check=False,
-            env={**os.environ},
+            env=sanitize_child_process_env(self.env),
         )
 
         if completed.returncode != 0:

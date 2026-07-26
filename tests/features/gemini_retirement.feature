@@ -67,3 +67,12 @@ Feature: Gemini retirement
       Then Huginn must construct its uplink without a model credential
       And the verifier must not inject retired modules or credentials
       And Shadow Forge must not forward any model credential
+
+  Rule: Retired provider state cannot cross the intelligence subprocess boundary
+
+    Scenario: Mimir launches a supported host bridge or Oracle child
+      Given retired Gemini or Google GenAI state remains in the parent environment
+      When Python or TypeScript Mimir prepares a child process
+      Then every retired provider key and prefix must be removed case-insensitively
+      And current host, worker, OAuth, path, and unrelated Google state must be preserved
+      And neither the supplied environment nor the process environment may be mutated
