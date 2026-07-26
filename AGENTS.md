@@ -10,6 +10,7 @@
 - **MCP Separation of Concerns**: Keep `src/tools/cstar-kernel-mcp.ts` as a small bootstrap/export surface. Tool behavior belongs in focused files under `src/tools/cstar-kernel-mcp/`, with focused tests under `tests/unit/cstar-kernel-mcp/`. No production or focused test file should exceed 500 lines.
 - **MCP Data Surfaces**: Follow `docs/integrations/codex_mcp_contract.md#data-surface-rule` for PennyOne/Hall, Mongo mailbox/cache, and no arbitrary database passthrough rules.
 - **Sterling Mandate**: Changes require Lore (.feature contract), Isolation (unit test), and Audit (Gungnir score).
+- **Incremental Improvement**: Follow [`docs/operations/incremental-improvement-protocol.md`](docs/operations/incremental-improvement-protocol.md) for one bounded change, matched verification, and a remotely verified checkpoint at a time.
 - **CoS-First Thread Management**: The user talks to CoS by default. CoS owns bounded execution and final operator closeout; PMTs are durable project knowledge and review authorities unless CoS explicitly delegates execution ownership or a red/high-risk gate requires PMT authority.
 
 ## CoS / PMT State Model
@@ -31,7 +32,7 @@ risk: safe | high-authority | safety-critical
 Read the SKILL.md to understand **when** and **how** to use each capability.
 
 ## Researcher Metric Category Audits
-- Researcher truth-verifier category review uses the reusable skill at `/home/morderith/.hermes/profiles/cstar-hub/workspace/research-vault/skills/researcher-metric-category-auditor`.
+- Researcher truth-verifier category review uses `researcher-metric-category-auditor` through the approved local profile registration; never hard-code an operator home or profile path.
 - Use it after a sealed scorecard freeze to audit perfect-score categories structurally, queue below-threshold categories for one-at-a-time repair planning, emit companion docs, and produce dashboard JSONL/CSV rows.
 - The consumed holdout is root-cause evidence only. Do not use this skill to tune, claim production readiness, or reuse a consumed locked holdout.
 
