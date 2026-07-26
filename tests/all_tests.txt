@@ -61,8 +61,6 @@ tests/empire_tests/temp_gauntlet/test_utils_empire.py::TestUtilsEmpire::test_san
 tests/empire_tests/test___init___empire.py::test_src_is_importable_as_a_package
 tests/empire_tests/test_catalog_check_empire.py::test_successful_index_building_and_retrieval
 tests/empire_tests/test_catalog_check_empire.py::test_handling_of_no_results_path_implicit_check
-tests/empire_tests/test_check_pro_empire.py::test_script_checks_model_availability
-tests/empire_tests/test_check_pro_empire.py::test_script_exits_when_no_api_key
 tests/empire_tests/test_cjk_check_empire.py::test_successful_cjk_query
 tests/empire_tests/test_cjk_check_empire.py::test_no_results_for_cjk_query
 tests/empire_tests/test_collision_investigator_empire.py::test_search_queries[please wrap up our project now]
@@ -73,10 +71,4 @@ tests/empire_tests/test_debug_engine_empire.py::test_thesaurus_loading
 tests/empire_tests/test_debug_engine_empire.py::test_tokenization_output
 tests/empire_tests/test_debug_engine_empire.py::test_search_results_output
 
-============================== warnings summary ===============================
-..\..\AppData\Roaming\Python\Python314\site-packages\google\genai\types.py:43
-  C:\Users\Craig\AppData\Roaming\Python\Python314\site-packages\google\genai\types.py:43: DeprecationWarning: '_UnionGenericAlias' is deprecated and slated for removal in Python 3.17
-    VersionedUnionType = Union[builtin_types.UnionType, _UnionGenericAlias]
-
--- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-74 tests collected in 1.05s
+72 tests collected in 1.05s

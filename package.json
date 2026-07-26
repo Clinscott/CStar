@@ -54,7 +54,6 @@
     "@fastify/static": "^9.0.0",
     "@fastify/type-provider-typebox": "^5.1.0",
     "@fastify/websocket": "^11.2.0",
-    "@google/genai": "^1.44.0",
     "@modelcontextprotocol/sdk": "^1.27.1",
     "@react-three/drei": "^9.122.0",
     "@react-three/fiber": "^8.18.0",

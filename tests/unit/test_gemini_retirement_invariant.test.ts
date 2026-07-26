@@ -40,6 +40,13 @@ const ZERO_RETIRED_INGRESS_FILES = [
     'src/core/bootstrap.py',
     'src/core/engine/env_adapter.py',
 ];
+const RETIRED_MODEL_DIAGNOSTICS = [
+    'scripts/test_adc.js',
+    'src/tools/debug/check_pro.py',
+    'src/tools/list_models.py',
+    'tests/empire_tests/specs/check_pro.qmd',
+    'tests/empire_tests/test_check_pro_empire.py',
+];
 
 function trackedAutomationNames(): string[] {
     return AUTOMATION_DIRS.flatMap((directory) => (
@@ -181,5 +188,29 @@ describe('Gemini retirement invariant', () => {
         const bootstrapContent = fs.readFileSync(path.join(ROOT, 'scripts/env_bootstrap.ts'), 'utf8');
         assert.match(bootstrapContent, /RETIRED_ENV_KEYS/);
         assert.doesNotMatch(bootstrapContent, /['"]GEMINI_CLI_ACTIVE['"]\s*:\s*['"]true['"]/);
+    });
+
+    it('keeps standalone model diagnostics and the direct Node SDK absent', () => {
+        for (const relativePath of RETIRED_MODEL_DIAGNOSTICS) {
+            assert.equal(fs.existsSync(path.join(ROOT, relativePath)), false);
+        }
+
+        const packageManifest = JSON.parse(
+            fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'),
+        ) as { dependencies?: Record<string, string> };
+        assert.equal(packageManifest.dependencies?.['@google/genai'], undefined);
+
+        const packageLock = fs.readFileSync(path.join(ROOT, 'package-lock.json'), 'utf8');
+        assert.doesNotMatch(packageLock, /@google\/genai/);
+
+        const sharedFixtures = fs.readFileSync(path.join(ROOT, 'tests/conftest.py'), 'utf8');
+        const personaTests = fs.readFileSync(
+            path.join(ROOT, 'tests/empire_tests/test_contextual_persona.py'),
+            'utf8',
+        );
+        const testManifest = fs.readFileSync(path.join(ROOT, 'tests/all_tests.txt'), 'utf8');
+        assert.doesNotMatch(sharedFixtures, /mock_genai_client/);
+        assert.doesNotMatch(personaTests, /check_pro\.py/);
+        assert.doesNotMatch(testManifest, /test_check_pro_empire\.py/);
     });
 });

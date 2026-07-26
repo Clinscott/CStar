@@ -38,7 +38,7 @@ def dialogue_engine():
 def test_odin_reacts_to_defiance(dialogue_engine):
     """Scenario: Odin reacts to system defiance with specific vocabulary."""
     # Simulate sovereign_state.json with DEFIANCE
-    mock_state = json.dumps({"check_pro.py": "DEFIANCE"})
+    mock_state = json.dumps({"policy_guard": "DEFIANCE"})
 
     with patch("builtins.open", mock_open(read_data=mock_state)):
         with patch("os.path.exists", return_value=True):

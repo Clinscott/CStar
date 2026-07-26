@@ -41,3 +41,11 @@ Feature: Gemini retirement
       Then only Brave Search may receive the query
       And missing Brave credentials must return no result
       And no retired-provider fallback may run
+
+  Rule: Retired model diagnostics cannot return
+
+    Scenario: Standalone Gemini diagnostics and the Node SDK are absent
+      Given Gemini model and ADC probes are retired
+      When CStar dependencies and diagnostic scripts are inspected
+      Then no standalone Gemini model diagnostic may exist
+      And the direct Node Gemini SDK must not be installed
