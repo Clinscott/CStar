@@ -27,6 +27,7 @@ const RETIRED_RUNTIME_FILES = [
     'src/core/host_session.ts',
     'src/core/mimir_client.py',
     'src/core/mimir_client.ts',
+    'src/games/odin_protocol/engine/gm_client.py',
     'src/node/core/commands/oracle.ts',
     'src/node/core/one_mind_broker/fulfillment.ts',
     'src/node/core/runtime/dispatcher.ts',

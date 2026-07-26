@@ -49,3 +49,12 @@ Feature: Gemini retirement
       When CStar dependencies and diagnostic scripts are inspected
       Then no standalone Gemini model diagnostic may exist
       And the direct Node Gemini SDK must not be installed
+
+  Rule: Odin game-master behavior remains local and deterministic
+
+    Scenario: Retired provider markers cannot alter an Odin campaign
+      Given the Odin game master delegates to the local Sovereign Scenario Engine
+      When a fixed thousand-case campaign corpus is generated
+      Then its canonical digest must match the pre-retirement baseline
+      And Google or Gemini environment markers must not change that digest
+      And no remote model client may be constructed
