@@ -9,14 +9,15 @@
 
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
 const tsxLoader = path.join(projectRoot, 'node_modules', 'tsx', 'dist', 'loader.mjs');
+const kernelModule = pathToFileURL(path.join(projectRoot, 'src/tools/cstar-kernel-mcp.ts')).href;
 
 const inlineScript = `
-import { handleSpokeBeadImport } from '${path.join(projectRoot, 'src/tools/cstar-kernel-mcp.ts').replace(/'/g, "\\'")}';
+import { handleSpokeBeadImport } from '${kernelModule.replace(/'/g, "\\'")}';
 
 const augury = [
     '◈ ━━━━━ [ Ω ] CORVUS STAR AUGURY ━━━━━━━━━━━━━━━━━━━━━━ ◈',
@@ -76,7 +77,7 @@ console.log(JSON.stringify(parsed, null, 2));
 
 const child = spawnSync(
     process.execPath,
-    ['--import', tsxLoader, '--input-type=module', '-e', inlineScript],
+    ['--import', pathToFileURL(tsxLoader).href, '--input-type=module', '-e', inlineScript],
     { cwd: projectRoot, stdio: 'inherit' },
 );
 process.exit(child.status ?? 1);

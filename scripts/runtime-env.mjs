@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import fastGlob from 'fast-glob';
 
 export const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 export const PROJECT_ROOT = path.resolve(SCRIPT_DIR, '..');
@@ -42,6 +43,27 @@ export function resolveTsxLaunch(projectRoot = PROJECT_ROOT, args = []) {
         command: process.platform === 'win32' ? 'npx.cmd' : 'npx',
         args: ['tsx', ...args],
     };
+}
+
+export function expandTestFileArgs(args = [], projectRoot = PROJECT_ROOT) {
+    if (!args.includes('--test')) {
+        return [...args];
+    }
+
+    return args.flatMap((arg) => {
+        const isTestFilePattern = !arg.startsWith('-')
+            && fastGlob.isDynamicPattern(arg)
+            && /\.(?:[cm]?[jt]s|tsx)$/i.test(arg);
+        if (!isTestFilePattern) {
+            return [arg];
+        }
+
+        return fastGlob.sync(arg, {
+            cwd: projectRoot,
+            onlyFiles: true,
+            unique: true,
+        }).sort();
+    });
 }
 
 export function resolveProjectPython(projectRoot = PROJECT_ROOT) {

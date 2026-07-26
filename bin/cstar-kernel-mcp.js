@@ -7,7 +7,7 @@
  * Errors are appended to logs/mcp/mcp_bootstrap_error.log for post-mortem.
  */
 
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { join, dirname } from 'node:path';
 import fs from 'node:fs';
 
@@ -35,7 +35,7 @@ try {
 
     const args = [
         '--import',
-        tsxLoader,
+        pathToFileURL(tsxLoader).href,
         join(ROOT, 'src', 'tools', 'cstar-kernel-mcp.ts'),
     ];
 
