@@ -26,7 +26,6 @@ under the queue lock — atomic-ish via temp file + rename.
 from __future__ import annotations
 
 import argparse
-import fcntl
 import json
 import os
 import sys
@@ -36,6 +35,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from delegate import (  # noqa: E402
     STATE_DIR, validate_intent, delegate, now_iso, InvalidIntent,
+    exclusive_file_lock, LockHeldError,
 )
 
 QUEUE_PATH = STATE_DIR / "autobot-queue.jsonl"
@@ -75,66 +75,52 @@ def _write_queue(tasks: list[dict]) -> None:
 def _claim_next_pending(max_tasks: int, only_task_id: str | None = None) -> list[dict]:
     """Atomically mark up to max_tasks pending tasks as running. Returns claimed list."""
     QUEUE_LOCK_PATH.parent.mkdir(parents=True, exist_ok=True)
-    with open(QUEUE_LOCK_PATH, "w") as lock_f:
-        fcntl.flock(lock_f.fileno(), fcntl.LOCK_EX)
-        try:
-            tasks = _read_queue()
-            pending = [t for t in tasks if t.get("status") == "pending"]
-            if only_task_id:
-                pending = [t for t in pending if t.get("task_id") == only_task_id]
-            else:
-                pending.sort(key=lambda t: (
-                    PRIORITY_RANK.get(t.get("priority", "normal"), 1),
-                    t.get("enqueued_at", ""),
-                ))
-            claimed = pending[:max_tasks]
-            claimed_ids = {t["task_id"] for t in claimed}
-            for t in tasks:
-                if t.get("task_id") in claimed_ids:
-                    t["status"] = "running"
-                    t["started_at"] = now_iso()
-                    t["attempts"] = (t.get("attempts") or 0) + 1
-            _write_queue(tasks)
-            # Return the *updated* records so callers see attempts incremented
-            return [t for t in tasks if t.get("task_id") in claimed_ids]
-        finally:
-            try:
-                fcntl.flock(lock_f.fileno(), fcntl.LOCK_UN)
-            except OSError:
-                pass
+    with exclusive_file_lock(QUEUE_LOCK_PATH):
+        tasks = _read_queue()
+        pending = [t for t in tasks if t.get("status") == "pending"]
+        if only_task_id:
+            pending = [t for t in pending if t.get("task_id") == only_task_id]
+        else:
+            pending.sort(key=lambda t: (
+                PRIORITY_RANK.get(t.get("priority", "normal"), 1),
+                t.get("enqueued_at", ""),
+            ))
+        claimed = pending[:max_tasks]
+        claimed_ids = {t["task_id"] for t in claimed}
+        for t in tasks:
+            if t.get("task_id") in claimed_ids:
+                t["status"] = "running"
+                t["started_at"] = now_iso()
+                t["attempts"] = (t.get("attempts") or 0) + 1
+        _write_queue(tasks)
+        # Return the *updated* records so callers see attempts incremented
+        return [t for t in tasks if t.get("task_id") in claimed_ids]
 
 
 def _finalize_task(task_id: str, result_envelope: dict) -> None:
     """Move task from running → done|failed|dead_letter based on envelope."""
-    with open(QUEUE_LOCK_PATH, "w") as lock_f:
-        fcntl.flock(lock_f.fileno(), fcntl.LOCK_EX)
-        try:
-            tasks = _read_queue()
-            for t in tasks:
-                if t.get("task_id") != task_id:
-                    continue
-                t["completed_at"] = now_iso()
-                t["result_envelope"] = result_envelope
-                if result_envelope.get("status") == "ok":
-                    t["status"] = "done"
-                    t["error"] = None
+    with exclusive_file_lock(QUEUE_LOCK_PATH):
+        tasks = _read_queue()
+        for t in tasks:
+            if t.get("task_id") != task_id:
+                continue
+            t["completed_at"] = now_iso()
+            t["result_envelope"] = result_envelope
+            if result_envelope.get("status") == "ok":
+                t["status"] = "done"
+                t["error"] = None
+            else:
+                err = result_envelope.get("degraded_reason") or "unknown"
+                t["error"] = err
+                if (t.get("attempts") or 0) >= MAX_ATTEMPTS:
+                    t["status"] = "dead_letter"
                 else:
-                    err = result_envelope.get("degraded_reason") or "unknown"
-                    t["error"] = err
-                    if (t.get("attempts") or 0) >= MAX_ATTEMPTS:
-                        t["status"] = "dead_letter"
-                    else:
-                        # Re-queue for retry, leaving attempts incremented
-                        t["status"] = "pending"
-                        t["started_at"] = None
-                        t["completed_at"] = None
-                break
-            _write_queue(tasks)
-        finally:
-            try:
-                fcntl.flock(lock_f.fileno(), fcntl.LOCK_UN)
-            except OSError:
-                pass
+                    # Re-queue for retry, leaving attempts incremented
+                    t["status"] = "pending"
+                    t["started_at"] = None
+                    t["completed_at"] = None
+            break
+        _write_queue(tasks)
 
 
 def _save_result(task_id: str, envelope: dict) -> Path:
@@ -168,15 +154,12 @@ def process_queue(max_tasks: int = 5, only_task_id: str | None = None,
             "total_pending": sum(1 for t in tasks if t.get("status") == "pending"),
         }
 
-    with open(PROCESSOR_LOCK_PATH, "w") as lock_f:
-        try:
-            fcntl.flock(lock_f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except BlockingIOError:
-            return {"status": "skipped", "reason": "processor_lock_held_by_another_run"}
-
-        try:
-            lock_f.write(f"pid={os.getpid()} at={now_iso()}\n")
-            lock_f.flush()
+    try:
+        with exclusive_file_lock(
+            PROCESSOR_LOCK_PATH,
+            blocking=False,
+            owner=f"pid={os.getpid()} at={now_iso()}\n",
+        ):
             claimed = _claim_next_pending(max_tasks, only_task_id=only_task_id)
             if not claimed:
                 return {"status": "ok", "processed": 0, "results": []}
@@ -214,11 +197,8 @@ def process_queue(max_tasks: int = 5, only_task_id: str | None = None,
                 "processed": len(claimed),
                 "results": results,
             }
-        finally:
-            try:
-                fcntl.flock(lock_f.fileno(), fcntl.LOCK_UN)
-            except OSError:
-                pass
+    except LockHeldError:
+        return {"status": "skipped", "reason": "processor_lock_held_by_another_run"}
 
 
 def main() -> int:
