@@ -23,7 +23,8 @@ from pathlib import Path
 
 import pytest
 
-SCRIPT_DIR = Path.home() / "Corvus" / "CStar" / ".agents" / "skills" / "autobot" / "scripts"
+REPO_ROOT = Path(__file__).resolve().parents[3]
+SCRIPT_DIR = REPO_ROOT / ".agents" / "skills" / "autobot" / "scripts"
 
 
 def _load(name: str):
