@@ -1,6 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
+import { getSkillRegistryEntries } from '../core/skill_registry.js';
+
 export type HostProvider = 'gemini' | 'codex' | 'claude';
 export type HostSupportStatus =
     | 'supported'
@@ -113,13 +115,7 @@ function loadAgentsConfig(projectRoot: string): AgentsConfig {
 }
 
 function getRegistryEntries(manifest: RegistryManifest): Record<string, RegistryEntry> {
-    if (manifest.entries && typeof manifest.entries === 'object') {
-        return manifest.entries;
-    }
-    if (manifest.skills && typeof manifest.skills === 'object') {
-        return manifest.skills;
-    }
-    return {};
+    return getSkillRegistryEntries<RegistryEntry>(manifest);
 }
 
 function normalizeHostSupportStatus(value: string | undefined): HostSupportStatus {

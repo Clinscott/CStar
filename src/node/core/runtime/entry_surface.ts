@@ -1,6 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
+import { getSkillRegistryEntries } from '../../../core/skill_registry.js';
+
 export type EntrySurface = 'cli' | 'host-only' | 'compatibility';
 
 export interface SurfaceRegistryEntry {
@@ -39,12 +41,7 @@ export function loadRegistryEntries(projectRoot: string): Record<string, Surface
 
         try {
             const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) as SurfaceRegistryManifest;
-            if (manifest.entries && typeof manifest.entries === 'object') {
-                return manifest.entries;
-            }
-            if (manifest.skills && typeof manifest.skills === 'object') {
-                return manifest.skills;
-            }
+            return getSkillRegistryEntries<SurfaceRegistryEntry>(manifest);
         } catch {
             continue;
         }

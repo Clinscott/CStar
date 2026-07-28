@@ -53,6 +53,19 @@ def normalize_skill_name(name: str) -> str:
     return "".join(ch for ch in name.lower() if ch.isalnum())
 
 
+def require_registry_entry_map(value: Any) -> dict[str, dict[str, Any]]:
+    if value is None:
+        return {}
+    if not isinstance(value, dict):
+        raise ValueError("skill registry 'entries' must be an object keyed by capability id")
+    for key, entry in value.items():
+        if not isinstance(key, str) or not key.strip():
+            raise ValueError("skill registry entry ids must be non-empty strings")
+        if not isinstance(entry, dict):
+            raise ValueError(f"skill registry entry '{key}' must be an object")
+    return value
+
+
 def build_search_tokens(*values: str | None) -> set[str]:
     tokens: set[str] = set()
     for value in values:
@@ -112,9 +125,7 @@ def load_existing_registry() -> dict[str, Any]:
             "entries": {},
         }
     data = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
-    # Normalize malformed entries (list) to entries (dict)
-    if isinstance(data.get("entries"), list):
-        data["entries"] = {}
+    data["entries"] = require_registry_entry_map(data.get("entries"))
     return data
 
 

@@ -6,6 +6,7 @@ import type {
     ChantWeavePayload,
 } from '../contracts.ts';
 import type { SkillBead } from '../../skills/types.js';
+import { getSkillRegistryEntries } from '../../../../core/skill_registry.js';
 
 export type DirectChantResolution =
     | {
@@ -193,16 +194,7 @@ export function loadRegistryManifest(projectRoot: string): RegistryManifest | nu
 }
 
 export function getRegistryEntries(manifest: RegistryManifest | null): Record<string, RegistryEntry> {
-    if (!manifest) {
-        return {};
-    }
-    if (manifest.entries && typeof manifest.entries === 'object') {
-        return manifest.entries;
-    }
-    if (manifest.skills && typeof manifest.skills === 'object') {
-        return manifest.skills;
-    }
-    return {};
+    return getSkillRegistryEntries<RegistryEntry>(manifest);
 }
 
 export function getRegistryIntentCategories(

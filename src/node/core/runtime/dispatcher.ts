@@ -37,6 +37,7 @@ import { inheritTraceInvocation } from './trace_inheritance.js';
 import { upsertHallBead, getHallBead } from  '../../../tools/pennyone/intel/database.js';
 import { buildHallRepositoryId, normalizeHallPath, type HallBeadStatus } from  '../../../types/hall.js';
 import { enrichTraceContractWithCouncil } from '../../../core/council_experts.js';
+import { getSkillRegistryEntries } from '../../../core/skill_registry.js';
 
 function resolveSkillAdapterAlias(workspaceRoot: string, skillId: string): string {
     const manifestPath = path.join(workspaceRoot, '.agents', 'skill_registry.json');
@@ -45,8 +46,12 @@ function resolveSkillAdapterAlias(workspaceRoot: string, skillId: string): strin
     }
 
     try {
-        const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) as { entries?: Record<string, { execution?: { adapter_id?: string } }> };
-        const entry = manifest.entries?.[skillId];
+        const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) as {
+            entries?: unknown;
+            skills?: unknown;
+        };
+        const entries = getSkillRegistryEntries<{ execution?: { adapter_id?: string } }>(manifest);
+        const entry = entries[skillId];
         return entry?.execution?.adapter_id?.trim() || skillId;
     } catch {
         return skillId;

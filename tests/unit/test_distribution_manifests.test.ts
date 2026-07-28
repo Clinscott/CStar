@@ -97,6 +97,26 @@ function createProjectRoot(): string {
 }
 
 describe('distribution generator', () => {
+    it('does not export numeric capabilities from an array-shaped registry', () => {
+        const projectRoot = createProjectRoot();
+        fs.writeFileSync(
+            path.join(projectRoot, '.agents', 'skill_registry.json'),
+            JSON.stringify({
+                entries: [
+                    {
+                        id: 'autobot',
+                        host_support: { gemini: 'supported', codex: 'supported' },
+                    },
+                ],
+            }),
+            'utf-8',
+        );
+
+        const build = buildDistributions(projectRoot);
+        assert.deepEqual(build.geminiCapabilities, []);
+        assert.deepEqual(build.codexCapabilities, []);
+    });
+
     it('filters exported capabilities by host support and emits canonical file set', () => {
         const projectRoot = createProjectRoot();
         const build = buildDistributions(projectRoot);

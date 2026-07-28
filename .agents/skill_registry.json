@@ -151,8 +151,8 @@
       "tier": "SKILL"
     }
   },
-  "entries": [
-    {
+  "entries": {
+    "mimir-harvester": {
       "id": "mimir-harvester",
       "title": "Mimir Harvester",
       "description": "Autonomous study of episodic memory engrams and hierarchical lesson distillation.",
@@ -172,7 +172,7 @@
         }
       }
     },
-    {
+    "autobot": {
       "id": "autobot",
       "title": "Autobot — Hermes sub-agent delegation",
       "description": "Delegate a bounded task from the host-native agent (Claude/Gemini/Codex in their harness) to a Hermes-managed sub-agent (default MiniMax-M3). Cost-audited via .agents/state/autobot-cost-ledger.jsonl. Structured intent + payload per docs/host-native-skill-bridge.md. File-locked per (project, intent_hash). Synchronous via delegate.py, async via enqueue.py + queue_processor.py.",
@@ -241,6 +241,6 @@
         ".agents/skills/autobot/SKILL.md"
       ]
     }
-  ],
+  },
   "authority_audit": []
 }

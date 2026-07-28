@@ -9,6 +9,7 @@ import {
     type CommandOptionDescriptor,
 } from './command_catalog.js';
 import { resolveEntrySurface, type EntrySurface } from '../runtime/entry_surface.js';
+import { getSkillRegistryEntries } from '../../../core/skill_registry.js';
 
 const TEXT_DOC_EXTENSIONS = new Set(['.md', '.qmd', '.feature', '.txt']);
 
@@ -112,13 +113,7 @@ export interface CapabilityInfoPayload {
 }
 
 function getRegistryEntries(manifest: CapabilityRegistryManifest): Record<string, CapabilityRegistryEntry> {
-    if (manifest.entries && typeof manifest.entries === 'object') {
-        return manifest.entries;
-    }
-    if (manifest.skills && typeof manifest.skills === 'object') {
-        return manifest.skills;
-    }
-    return {};
+    return getSkillRegistryEntries<CapabilityRegistryEntry>(manifest);
 }
 
 function toStringValue(value: unknown): string | null {

@@ -25,8 +25,9 @@ import { HostGovernorWeave } from  './weaves/host_governor.js';
 import { TemporalLearningWeave } from  './weaves/temporal_learning.js';
 import { EstateRitualWeave } from './weaves/estate_ritual.js';
 import { WardenWeave } from './weaves/warden.js';
-import { UniversalAdapter } from './universal_adapter.js';
+import { UniversalAdapter, type RegistryEntry as UniversalRegistryEntry } from './universal_adapter.js';
 import { registry } from '../../../tools/pennyone/pathRegistry.js';
+import { getSkillRegistryEntries } from '../../../core/skill_registry.js';
 import fs from 'node:fs';
 import { join } from 'node:path';
 import { bootstrapEnv } from '../../../../scripts/env_bootstrap.js';
@@ -84,7 +85,8 @@ export function bootstrapRuntime(dispatcher: RuntimeDispatcher = RuntimeDispatch
         const skillRegistryPath = join(root, '.agents', 'skill_registry.json');
         if (fs.existsSync(skillRegistryPath)) {
             const skillRegistry = JSON.parse(fs.readFileSync(skillRegistryPath, 'utf-8'));
-            for (const [key, entry] of Object.entries<any>(skillRegistry.entries)) {
+            const entries = getSkillRegistryEntries<UniversalRegistryEntry>(skillRegistry);
+            for (const [key, entry] of Object.entries(entries)) {
                 const adapterId = entry.execution?.adapter_id || key;
                 if (!dispatcher.hasAdapter(adapterId)) {
                     dispatcher.registerAdapter(new UniversalAdapter(adapterId, entry));

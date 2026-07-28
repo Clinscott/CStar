@@ -3,6 +3,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 
 import { buildPersonaAdvice } from './persona_advice.js';
+import { getSkillRegistryEntries } from './skill_registry.js';
 
 export type HostProvider = 'gemini' | 'codex' | 'claude' | 'droid';
 export type AugurySteeringMode = 'full' | 'lite';
@@ -344,13 +345,7 @@ function loadRegistryManifest(projectRoot: string): RegistryManifest | null {
 }
 
 function getRegistryEntries(manifest: RegistryManifest | null): Record<string, RegistryEntry> {
-    if (manifest?.entries && typeof manifest.entries === 'object') {
-        return manifest.entries;
-    }
-    if (manifest?.skills && typeof manifest.skills === 'object') {
-        return manifest.skills;
-    }
-    return {};
+    return getSkillRegistryEntries<RegistryEntry>(manifest);
 }
 
 function normalizeHostSupportStatus(value: string | undefined): HostSupportStatus {

@@ -55,6 +55,18 @@ describe('legacy_commands', () => {
             const result = loadSkillRegistryManifest('/root');
             assert.strictEqual(result.size, 0);
         });
+
+        test('should reject array-shaped registry entries', () => {
+            deps.fs.existsSync = () => true;
+            deps.fs.readFileSync = () => JSON.stringify({
+                entries: [
+                    { id: 'autobot', entrypoint_path: '.agents/skills/autobot/scripts/delegate.py' },
+                ],
+            });
+            const result = loadSkillRegistryManifest('/root');
+            assert.strictEqual(result.size, 0);
+            assert.strictEqual(result.has('0'), false);
+        });
     });
 
     describe('discoverLegacyCommands', () => {

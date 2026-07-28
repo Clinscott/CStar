@@ -63,6 +63,43 @@ describe('Canonical Runtime Dispatcher (CS-P1-01)', () => {
         }
     });
 
+    it('does not register array-indexed capability adapters', () => {
+        const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-registry-bootstrap-'));
+        fs.mkdirSync(path.join(tmpRoot, '.agents'), { recursive: true });
+        fs.writeFileSync(
+            path.join(tmpRoot, '.agents', 'skill_registry.json'),
+            JSON.stringify({
+                entries: [
+                    {
+                        id: 'autobot',
+                        tier: 'SKILL',
+                        description: 'Malformed numeric capability.',
+                        execution: {
+                            mode: 'agent-native',
+                            adapter_id: 'host-native:autobot',
+                        },
+                    },
+                ],
+            }),
+            'utf-8',
+        );
+        const previousRoot = process.env.CSTAR_PROJECT_ROOT;
+        process.env.CSTAR_PROJECT_ROOT = tmpRoot;
+        const dispatcher = RuntimeDispatcher.createIsolated();
+
+        try {
+            bootstrapRuntime(dispatcher);
+            assert.equal(dispatcher.listAdapterIds().includes('0'), false);
+            assert.equal(dispatcher.listAdapterIds().includes('host-native:autobot'), false);
+        } finally {
+            if (previousRoot === undefined) {
+                delete process.env.CSTAR_PROJECT_ROOT;
+            } else {
+                process.env.CSTAR_PROJECT_ROOT = previousRoot;
+            }
+        }
+    });
+
     it('dispatches an isolated runtime adapter without touching the singleton', async () => {
         const dispatcher = RuntimeDispatcher.createIsolated();
         dispatcher.registerAdapter(new EchoAdapter());

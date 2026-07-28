@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import { join, parse } from 'node:path';
 import { getPythonPath } from  '../../python_utils.js';
+import { getSkillRegistryEntries } from '../../../../core/skill_registry.js';
 
 export const deps = {
     fs,
@@ -29,10 +30,12 @@ export function loadSkillRegistryManifest(projectRoot: string): Map<string, stri
 
     try {
         const manifest = JSON.parse(deps.fs.readFileSync(manifestPath, 'utf-8')) as {
+            entries?: Record<string, { entrypoint_path?: string }>;
             skills?: Record<string, { entrypoint_path?: string }>;
         };
         const commands = new Map<string, string>();
-        for (const [trigger, entry] of Object.entries(manifest.skills ?? {})) {
+        const entries = getSkillRegistryEntries<{ entrypoint_path?: string }>(manifest);
+        for (const [trigger, entry] of Object.entries(entries)) {
             if (!entry.entrypoint_path) {
                 continue;
             }
