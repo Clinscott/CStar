@@ -58,6 +58,13 @@ describe('release bundle generation', () => {
             ['gemini-extension', 'codex-plugin'],
         );
         assert.deepEqual(
+            bundles.map((bundle) => bundle.rootDir),
+            [
+                'dist/host-distributions/gemini-extension',
+                'dist/host-distributions/codex-plugin',
+            ],
+        );
+        assert.deepEqual(
             bundles[0]?.files.map((file) => file.relativePath),
             ['gemini-extension.json', 'GEMINI.md', 'INSTALL.md'],
         );
@@ -67,13 +74,19 @@ describe('release bundle generation', () => {
                 '.codex-plugin/plugin.json',
                 '.mcp.json',
                 'hooks.json',
-                path.join('scripts', 'cstar_codex_post_write.sh'),
+                'scripts/cstar_codex_post_write.sh',
                 'README.md',
-                path.join('skills', 'corvus-star', 'SKILL.md'),
-                path.join('.agents', 'plugins', 'marketplace.json'),
+                'skills/corvus-star/SKILL.md',
+                '.agents/plugins/marketplace.json',
                 'INSTALL.md',
             ],
         );
+        for (const bundle of bundles) {
+            assert.doesNotMatch(bundle.rootDir, /\\/);
+            for (const file of bundle.files) {
+                assert.doesNotMatch(file.relativePath, /\\/);
+            }
+        }
     });
 
     it('writes release bundles into dist/host-distributions', () => {
