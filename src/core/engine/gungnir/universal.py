@@ -2,7 +2,23 @@ import ast
 import re
 from typing import Any
 
-from src.core.engine.gungnir.schema import GungnirMatrix, build_gungnir_matrix, matrix_to_dict
+from src.core.engine.gungnir.schema import build_gungnir_matrix, matrix_to_dict
+
+
+SUPPORTED_EXTENSIONS = frozenset({
+    ".css",
+    ".js",
+    ".json",
+    ".jsx",
+    ".md",
+    ".py",
+    ".qmd",
+    ".scss",
+    ".ts",
+    ".tsx",
+    ".yaml",
+    ".yml",
+})
 
 
 class UniversalGungnir:
@@ -20,7 +36,7 @@ class UniversalGungnir:
     def audit_logic(self, code: str, ext: str) -> list[dict[str, Any]]:
         """Structured audit for logic files (PY/TS/JS)."""
         breaches = []
-        ext = ext.lower()
+        ext = self._normalize_extension(ext)
 
         if ext in ('.py', '.ts', '.js', '.tsx', '.jsx'):
             breaches.extend(self._audit_logic_rules(code, ext))
@@ -61,19 +77,30 @@ class UniversalGungnir:
             if str(breach.get("severity", "")).upper() == "CRITICAL":
                 anomaly += 1.0
 
-        matrix = build_gungnir_matrix(
-            GungnirMatrix(
-                logic=logic,
-                style=style,
-                intel=intel,
-                gravity=0.0,
-                vigil=10.0,
-                evolution=evolution,
-                anomaly=anomaly,
-                sovereignty=max(0.0, min(10.0, (logic + style + intel + evolution) / 4)),
-            )
-        )
+        matrix = build_gungnir_matrix({
+            "logic": logic,
+            "style": style,
+            "intel": intel,
+            "gravity": 0.0,
+            "vigil": 10.0,
+            "evolution": evolution,
+            "anomaly": anomaly,
+            "sovereignty": max(
+                0.0,
+                min(10.0, (logic + style + intel + evolution) / 4),
+            ),
+        })
         return matrix_to_dict(matrix)
+
+    @staticmethod
+    def _normalize_extension(ext: str) -> str:
+        normalized_ext = ext.lower()
+        if normalized_ext not in SUPPORTED_EXTENSIONS:
+            supported = ", ".join(sorted(SUPPORTED_EXTENSIONS))
+            raise ValueError(
+                f"Unsupported Gungnir file extension {ext!r}. Supported extensions: {supported}"
+            )
+        return normalized_ext
 
     def _audit_logic_rules(self, code: str, ext: str) -> list[dict[str, Any]]:
         breaches = []

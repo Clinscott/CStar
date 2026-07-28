@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass
-from typing import Any, Mapping
+from typing import Any
 
 GUNGNIR_SCHEMA_VERSION = "1.0"
 LOGGER = logging.getLogger(__name__)
@@ -37,7 +38,7 @@ def _as_metric(value: Any, fallback: float = 0.0, *, field_name: str | None = No
                 fallback,
                 value,
             )
-        return fallback
+        return round(float(fallback), 4)
     if numeric != numeric or numeric in (float("inf"), float("-inf")):
         LOGGER.warning(
             "Non-finite Gungnir metric for %s; falling back to %.4f. value=%r",
@@ -45,7 +46,7 @@ def _as_metric(value: Any, fallback: float = 0.0, *, field_name: str | None = No
             fallback,
             value,
         )
-        return fallback
+        return round(float(fallback), 4)
     return round(numeric, 4)
 
 
