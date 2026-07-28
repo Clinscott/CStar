@@ -15,7 +15,8 @@ async function loadKeyring(): Promise<KeyringCtor> {
     if (cachedCtor) {
         return cachedCtor;
     }
-    const mod = await import('@napi-rs/keyring').catch((err: Error) => {
+    const keyringPackage: string = '@napi-rs/keyring';
+    const mod = await import(keyringPackage).catch((err: Error) => {
         throw new Error(
             `@napi-rs/keyring not installed. Run "npm i @napi-rs/keyring" in CStar. Underlying error: ${err.message}`,
         );
