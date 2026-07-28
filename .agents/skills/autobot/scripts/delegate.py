@@ -176,8 +176,8 @@ VALID_OUTPUTS = {"markdown", "json", "plain"}
 
 
 def translate_path(p_str: str) -> str:
-    """Translate Windows-style paths (UNC, drive letters) to native Linux paths."""
-    if not p_str:
+    """Translate Windows paths for Linux/WSL consumers; preserve native Windows paths."""
+    if not p_str or os.name == "nt":
         return p_str
 
     # Standardize to forward slashes for easier manipulation
