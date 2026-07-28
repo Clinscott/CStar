@@ -6,6 +6,7 @@ import path from 'node:path';
 
 import { sanitizeChildProcessEnv } from '../../src/core/child_process_env.js';
 import { MimirClient } from '../../src/core/mimir_client.js';
+import { closeDb } from '../../src/tools/pennyone/intel/database.js';
 
 const RETIRED_KEYS = new Set([
     'GEMINI_API_KEY',
@@ -53,6 +54,7 @@ const MIXED_CASE_RETIRED_ENV: NodeJS.ProcessEnv = {
 const TEMP_ROOTS: string[] = [];
 
 afterEach(() => {
+    closeDb();
     while (TEMP_ROOTS.length > 0) {
         fs.rmSync(TEMP_ROOTS.pop()!, { recursive: true, force: true });
     }
