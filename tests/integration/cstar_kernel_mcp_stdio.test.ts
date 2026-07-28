@@ -90,6 +90,7 @@ class StdioMcpClient {
         const childEnv: NodeJS.ProcessEnv = {
             ...process.env,
             CSTAR_KERNEL_MCP: '1',
+            CSTAR_KERNEL_DISABLE_WATCH: '1',
             NODE_OPTIONS: '--max-old-space-size=2048',
             ...extraEnv,
         };
