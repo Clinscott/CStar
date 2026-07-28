@@ -110,6 +110,22 @@ class TestValidateIntent:
         assert v["payload"]["timeout_seconds"] == delegate_mod.DEFAULT_TIMEOUT
 
 
+class TestTranslatePath:
+    @pytest.mark.parametrize(
+        ("raw_path", "posix_path"),
+        [
+            (r"C:\Users\runner\repo", "/mnt/c/Users/runner/repo"),
+            (r"Z:\home\runner\repo", "/home/runner/repo"),
+            (r"\\wsl.localhost\Ubuntu\home\runner\repo", "/home/runner/repo"),
+            (r"\\wsl$\Ubuntu\home\runner\repo", "/home/runner/repo"),
+            (r"\\server\share\repo", "//server/share/repo"),
+        ],
+    )
+    def test_uses_host_native_path_semantics(self, delegate_mod, raw_path, posix_path):
+        expected = raw_path if os.name == "nt" else posix_path
+        assert delegate_mod.translate_path(raw_path) == expected
+
+
 # ── intent_id / intent_hash ──────────────────────────────────────────────
 
 class TestIntentIdentity:
