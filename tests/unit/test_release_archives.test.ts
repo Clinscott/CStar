@@ -5,7 +5,10 @@ import os from 'node:os';
 import path from 'node:path';
 
 import { writeDistributions } from '../../src/packaging/distributions.js';
-import { writeReleaseArchives } from '../../src/packaging/release_archives.js';
+import {
+    buildTarArguments,
+    writeReleaseArchives,
+} from '../../src/packaging/release_archives.js';
 
 function createProjectRoot(): string {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-release-archives-'));
@@ -50,6 +53,32 @@ function createProjectRoot(): string {
 }
 
 describe('release archive generation', () => {
+    it('uses GNU-only reproducibility flags only for GNU tar', () => {
+        const bundleRoot = path.join('tmp', 'bundle');
+        const archivePath = path.join('tmp', 'release.tar.gz');
+        const portableArguments = ['-czf', archivePath, '-C', bundleRoot, '.'];
+
+        assert.deepEqual(
+            buildTarArguments('bsdtar 3.7.7 - libarchive 3.7.7', bundleRoot, archivePath),
+            portableArguments,
+        );
+        assert.deepEqual(
+            buildTarArguments('', bundleRoot, archivePath),
+            portableArguments,
+        );
+        assert.deepEqual(
+            buildTarArguments('tar (GNU tar) 1.35', bundleRoot, archivePath),
+            [
+                '--sort=name',
+                '--mtime=UTC 1970-01-01',
+                '--owner=0',
+                '--group=0',
+                '--numeric-owner',
+                ...portableArguments,
+            ],
+        );
+    });
+
     it('creates versioned tarballs and manifest from host distributions', () => {
         const projectRoot = createProjectRoot();
         const result = writeReleaseArchives(projectRoot);
@@ -66,17 +95,25 @@ describe('release archive generation', () => {
             fs.readFileSync(path.join(projectRoot, 'dist', 'releases', 'manifest.json'), 'utf-8'),
         ) as {
             version?: string;
-            archives?: Array<{ archive?: string }>;
+            archives?: Array<{ name?: string; archive?: string; source?: string }>;
         };
+
+        const expectedArchives = [
+            {
+                name: 'gemini-extension',
+                archive: 'dist/releases/corvus-star-gemini-extension-v2.4.6.tar.gz',
+                source: 'dist/host-distributions/gemini-extension',
+            },
+            {
+                name: 'codex-plugin',
+                archive: 'dist/releases/corvus-star-codex-plugin-v2.4.6.tar.gz',
+                source: 'dist/host-distributions/codex-plugin',
+            },
+        ];
 
         assert.equal(result.version, '2.4.6');
         assert.equal(manifest.version, '2.4.6');
-        assert.deepEqual(
-            manifest.archives?.map((entry) => entry.archive),
-            [
-                'dist/releases/corvus-star-gemini-extension-v2.4.6.tar.gz',
-                'dist/releases/corvus-star-codex-plugin-v2.4.6.tar.gz',
-            ],
-        );
+        assert.deepEqual(result.archives, expectedArchives);
+        assert.deepEqual(manifest.archives, expectedArchives);
     });
 });
