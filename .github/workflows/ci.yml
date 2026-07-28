@@ -31,9 +31,22 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
         
-    - name: Execute Genesis Sequence (Install & Bootstrap)
+    - name: Install Node Dependencies
+      shell: bash
       run: |
-        npm install --legacy-peer-deps
+        for attempt in 1 2; do
+          if npm install --legacy-peer-deps; then
+            break
+          fi
+          if [ "$attempt" -eq 2 ]; then
+            exit 1
+          fi
+          echo "::warning::npm install failed; retrying once in 15 seconds"
+          sleep 15
+        done
+
+    - name: Execute Genesis Sequence (Python Bootstrap)
+      run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         
