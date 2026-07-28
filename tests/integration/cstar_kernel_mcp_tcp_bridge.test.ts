@@ -95,9 +95,13 @@ class LineClient {
 function startFakeDaemon(): Promise<{ port: number; close: () => Promise<void>; seenMethods: string[] }> {
     const seenMethods: string[] = [];
     const sockets = new Set<net.Socket>();
+    const unexpectedSocketErrors: Error[] = [];
     const server = net.createServer((socket) => {
         sockets.add(socket);
         socket.setEncoding('utf8');
+        socket.on('error', (error: NodeJS.ErrnoException) => {
+            if (error.code !== 'ECONNRESET') unexpectedSocketErrors.push(error);
+        });
         let buffer = '';
         socket.on('data', (chunk: string) => {
             buffer += chunk;
@@ -133,6 +137,7 @@ function startFakeDaemon(): Promise<{ port: number; close: () => Promise<void>; 
                 close: async () => {
                     for (const socket of sockets) socket.destroy();
                     await new Promise<void>((done) => server.close(() => done()));
+                    assert.deepEqual(unexpectedSocketErrors, []);
                 },
             });
         });
