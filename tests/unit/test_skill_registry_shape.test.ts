@@ -81,10 +81,12 @@ describe('skill registry shape', () => {
         const entries = getSkillRegistryEntries<{ id?: string }>(manifest);
         assert.ok(Object.hasOwn(entries, 'autobot'));
         assert.ok(Object.hasOwn(entries, 'mimir-harvester'));
+        assert.ok(Object.hasOwn(entries, 'calculus'));
         for (const [capabilityId, entry] of Object.entries(entries)) {
             if (entry.id !== undefined) {
                 assert.equal(entry.id, capabilityId);
             }
         }
+        assert.equal(entries.calculus?.id, 'calculus');
     });
 });

@@ -47,4 +47,20 @@ describe('Command catalog', () => {
         assert.equal(skillInfo?.supports_json, true);
         assert.equal(skillInfo?.arguments[0]?.placeholder, '<name>');
     });
+
+    it('captures the Gungnir Calculus score and audit surfaces', () => {
+        const calculus = findCommandCatalogEntry('calculus');
+
+        assert.ok(calculus);
+        assert.equal(calculus?.subcommands.some((entry) => (
+            entry.name === 'score'
+            && entry.arguments[0]?.placeholder === '<file>'
+            && entry.supports_json
+        )), true);
+        assert.equal(calculus?.subcommands.some((entry) => (
+            entry.name === 'audit'
+            && entry.arguments[0]?.placeholder === '<file>'
+            && entry.supports_json
+        )), true);
+    });
 });

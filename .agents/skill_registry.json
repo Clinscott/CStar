@@ -152,6 +152,52 @@
     }
   },
   "entries": {
+    "calculus": {
+      "id": "calculus",
+      "title": "Gungnir Calculus",
+      "description": "Deterministically score or audit one supported source file with a canonical-schema Gungnir matrix and explicit heuristic coverage.",
+      "tier": "PRIME",
+      "prime_category": "reasoning",
+      "viability": "ACTIVE",
+      "risk": "safe",
+      "runtime_trigger": "calculus",
+      "entry_surface": "cli",
+      "terminal_required": false,
+      "instruction_path": ".agents/skills/calculus/SKILL.md",
+      "authority_path": ".agents/skills/calculus",
+      "entrypoint_path": "src/node/core/runtime/adapters/calculus.ts",
+      "contract_path": ".agents/skills/calculus/calculus.feature",
+      "owner_runtime": "cstar-kernel",
+      "host_support": {
+        "gemini": "supported",
+        "codex": "supported",
+        "claude": "supported"
+      },
+      "execution": {
+        "mode": "kernel-backed",
+        "cli": "cstar calculus",
+        "adapter_id": "prime:calculus",
+        "ownership_model": "kernel-primitive"
+      },
+      "recursion_policy": "leaf",
+      "intent_categories": [
+        "SCORE"
+      ],
+      "contracts": [
+        ".agents/skills/calculus/calculus.feature"
+      ],
+      "tests": [
+        "tests/unit/test_gungnir_calculus.test.ts",
+        "tests/unit/test_gungnir_calculus_adapter.test.ts",
+        "tests/unit/test_gungnir_calculus_command.test.ts"
+      ],
+      "invariants": [
+        "Read-only static analysis",
+        "No Hall, StateRegistry, .stats, source, network, subprocess, or model mutation",
+        "Matrix is output evidence and never metrics_delta",
+        "Leaf recursion policy"
+      ]
+    },
     "mimir-harvester": {
       "id": "mimir-harvester",
       "title": "Mimir Harvester",

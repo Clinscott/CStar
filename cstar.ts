@@ -11,6 +11,7 @@ import { runStartupCeremony } from './src/node/ceremony.ts';
 import { registerStartCommand } from './src/node/core/commands/start.ts';
 import { registerPythonSpokes } from './src/node/core/commands/python.ts';
 import { registerPennyOneCommand, buildPennyOneInvocation } from './src/node/core/commands/pennyone.ts';
+import { registerCalculusCommand } from './src/node/core/commands/calculus.ts';
 import { registerRavenCommand } from './src/node/core/commands/ravens.ts';
 import { registerDispatcher } from './src/node/core/commands/dispatcher.ts';
 import { registerVitalsCommand } from './src/node/core/commands/vitals.ts';
@@ -91,6 +92,7 @@ const program = new Command();
     const isStart = process.argv.includes('start');
     const isSilent = process.argv.includes('--silent');
     const isJsonOutput = process.argv.includes('--json');
+    const isReadOnlyCalculus = process.argv.includes('calculus');
     const shouldStartTui = !isHelpOrVersion && shouldLaunchOperatorTui(process.argv.slice(2));
     const hostSessionActive = isHostSessionActive();
     const hostProvider = resolveHostProvider();
@@ -105,7 +107,9 @@ const program = new Command();
     }
 
     // [Ω] AWAKEN THE RUNTIME SPINE
-    bootstrapRuntime();
+    if (!isReadOnlyCalculus) {
+        bootstrapRuntime();
+    }
 
     if (shouldStartTui) {
         await runOperatorTui(RuntimeDispatcher.getInstance());
@@ -127,6 +131,7 @@ const program = new Command();
   bifrost          Manage the Corvus Control & PennyOne MCP servers.
   spoke            Link, unlink, and inspect mounted estate spokes.
   hall [query]     Consult the Hall of Records or search the estate by intent.
+  calculus         Deterministically score or audit one workspace file.
   manifest         List all registered Agent Skills and runtime Weaves.
   skill-info <id>  Inspect the mandate and logic protocol of a specific skill.
   oracle           Consult the One Mind Host Agent via direct sampling.
@@ -158,6 +163,7 @@ ${hostOnlySurfaceSummary}${legacySurfaceSummary}
     registerStartCommand(program, () => registry.getRoot());
     registerPythonSpokes(program, PROJECT_ROOT);
     registerPennyOneCommand(program, () => registry.getRoot());
+    registerCalculusCommand(program, () => registry.getRoot());
     registerRavenCommand(program, () => registry.getRoot());
     registerVitalsCommand(program);
     registerBifrostCommand(program);

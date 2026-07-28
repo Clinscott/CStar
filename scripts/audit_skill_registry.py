@@ -220,7 +220,21 @@ def infer_authority_path(entry_name: str, entry: dict[str, Any]) -> str | None:
     return None
 
 
-def infer_entrypoint_path(entry_name: str, authority_path: str | None) -> str | None:
+def infer_entrypoint_path(
+    entry_name: str,
+    authority_path: str | None,
+    entry: dict[str, Any],
+) -> str | None:
+    declared = entry.get("entrypoint_path")
+    if isinstance(declared, str) and declared.strip():
+        candidate = (PROJECT_ROOT / declared).resolve()
+        try:
+            candidate.relative_to(PROJECT_ROOT.resolve())
+        except ValueError:
+            candidate = Path()
+        if candidate.is_file():
+            return relative_to_project(candidate)
+
     if not authority_path:
         return None
 
@@ -460,7 +474,7 @@ def enrich_entry(entry_name: str, entry: dict[str, Any]) -> dict[str, Any]:
     enriched["runtime_trigger"] = str(enriched.get("runtime_trigger") or entry_name)
     enriched["authority_path"] = authority_path
     enriched["viability"] = infer_viability(entry_name, authority_path, enriched)
-    enriched["entrypoint_path"] = infer_entrypoint_path(entry_name, authority_path)
+    enriched["entrypoint_path"] = infer_entrypoint_path(entry_name, authority_path, enriched)
     enriched["contract_path"] = contract_path
     enriched["owner_runtime"] = infer_owner_runtime(entry_name, enriched)
     enriched["host_support"] = infer_host_support(enriched)

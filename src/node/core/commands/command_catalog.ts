@@ -1,6 +1,7 @@
 import { Command, type Option } from 'commander';
 
 import { registerBifrostCommand } from './bifrost.js';
+import { registerCalculusCommand } from './calculus.js';
 import { registerCapabilityDiscoveryCommands } from './capability_discovery_commands.js';
 import { registerHallDocumentCommand } from './hall-doc.js';
 import { registerOneMindCommand } from './one-mind.js';
@@ -132,6 +133,7 @@ function buildCommandCatalog(): CommandCatalogEntry[] {
     const workspaceRoot = '/tmp/corvus';
 
     registerStartCommand(program, workspaceRoot, NOOP_DISPATCH_PORT);
+    registerCalculusCommand(program, workspaceRoot);
     registerPennyOneCommand(program, workspaceRoot, NOOP_DISPATCH_PORT);
     registerRavenCommand(program, workspaceRoot, NOOP_DISPATCH_PORT);
     registerVitalsCommand(program);

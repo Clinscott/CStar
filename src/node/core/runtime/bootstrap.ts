@@ -26,6 +26,7 @@ import { TemporalLearningWeave } from  './weaves/temporal_learning.js';
 import { EstateRitualWeave } from './weaves/estate_ritual.js';
 import { WardenWeave } from './weaves/warden.js';
 import { UniversalAdapter, type RegistryEntry as UniversalRegistryEntry } from './universal_adapter.js';
+import { CalculusAdapter } from './adapters/calculus.js';
 import { registry } from '../../../tools/pennyone/pathRegistry.js';
 import { getSkillRegistryEntries } from '../../../core/skill_registry.js';
 import fs from 'node:fs';
@@ -51,6 +52,7 @@ export function bootstrapRuntime(dispatcher: RuntimeDispatcher = RuntimeDispatch
         new RavensStageContractAdapter('validate'),
         new RavensStageContractAdapter('promote'),
         new PennyOneAdapter(),
+        new CalculusAdapter(),
         new HostWorkerWeave(),
         new ChantHostWorkflow(dispatcher),
         new ResearchHostWorkflow(dispatcher),

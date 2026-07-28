@@ -5,7 +5,7 @@ import json
 import pytest
 
 import scripts.audit_skill_registry as registry_audit
-from scripts.audit_skill_registry import require_registry_entry_map
+from scripts.audit_skill_registry import infer_entrypoint_path, require_registry_entry_map
 
 
 def test_registry_entry_validator_preserves_keyed_entries() -> None:
@@ -44,3 +44,11 @@ def test_audit_loader_does_not_discard_array_entries(tmp_path, monkeypatch) -> N
         registry_audit.load_existing_registry()
 
     assert json.loads(manifest_path.read_text(encoding="utf-8")) == original
+
+
+def test_registry_audit_preserves_declared_typescript_entrypoint() -> None:
+    assert infer_entrypoint_path(
+        "calculus",
+        ".agents/skills/calculus",
+        {"entrypoint_path": "src/node/core/runtime/adapters/calculus.ts"},
+    ) == "src/node/core/runtime/adapters/calculus.ts"
