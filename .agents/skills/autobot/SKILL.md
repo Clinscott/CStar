@@ -65,7 +65,7 @@ The host LLM constructs a JSON intent object:
 
 The skill:
 1. Validates the intent against the schema (rejects malformed → exit 2)
-2. Acquires an `fcntl` file lock on `.agents/state/autobot.<intent_hash>.lock` (prevents duplicate concurrent delegations of the *same* intent)
+2. Acquires a cross-platform exclusive file lock on `.agents/state/autobot.<intent_hash>.lock` (`flock` on POSIX; a one-byte `msvcrt.locking` region on Windows) to prevent duplicate concurrent delegations of the *same* intent
 3. Reads each `target_path` (skips missing, surfaces in receipt)
 4. Builds the Hermes prompt: system context + intent + materials + output schema reminder
 5. Invokes `hermes --profile <profile> --provider minimax --model <model> chat -q <prompt>` with `--continue <session_name>` if provided
