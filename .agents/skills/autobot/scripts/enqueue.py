@@ -27,7 +27,6 @@ Inspect with: queue_inspect.py [--status pending|running|done|failed]
 from __future__ import annotations
 
 import argparse
-import fcntl
 import json
 import os
 import sys
@@ -39,7 +38,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from delegate import (  # noqa: E402
     CSTAR_ROOT, STATE_DIR,
     InvalidIntent, validate_intent, intent_id, now_iso,
-    _load_intent_from_args,
+    _load_intent_from_args, exclusive_file_lock,
 )
 
 QUEUE_PATH = STATE_DIR / "autobot-queue.jsonl"
@@ -65,16 +64,9 @@ def enqueue(intent: dict, priority: str = "normal") -> dict:
     }
     # Lock the queue file before append
     lock_path = STATE_DIR / "autobot-queue.lock"
-    with open(lock_path, "w") as lock_f:
-        fcntl.flock(lock_f.fileno(), fcntl.LOCK_EX)
-        try:
-            with open(QUEUE_PATH, "a") as q:
-                q.write(json.dumps(task) + "\n")
-        finally:
-            try:
-                fcntl.flock(lock_f.fileno(), fcntl.LOCK_UN)
-            except OSError:
-                pass
+    with exclusive_file_lock(lock_path):
+        with open(QUEUE_PATH, "a") as q:
+            q.write(json.dumps(task) + "\n")
     return task
 
 
