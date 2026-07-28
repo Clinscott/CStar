@@ -110,7 +110,7 @@ it('detects stale Augury session target divergence', () => {
 
     assert.strictEqual(divergence.diverged, true);
     assert.match(divergence.reason ?? '', /not fully covered/);
-    assert.ok(divergence.requested_target_paths.some((targetPath) => targetPath.endsWith('/Corvus/cstar-console')));
+    assert.ok(divergence.requested_target_paths.some((targetPath) => targetPath.endsWith(path.join('Corvus', 'cstar-console'))));
 
     const overlap = detectAuguryTargetDivergence(
         ['/home/morderith/Corvus/CStar/src/tools/cstar-kernel-mcp.ts'],
