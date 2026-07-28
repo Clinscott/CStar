@@ -254,6 +254,17 @@ class TestNestedGuard:
         assert envelope["status"] == "degraded"
         assert envelope["degraded_reason"] == "nested_delegation_forbidden"
 
+    def test_duplicate_intent_lock_is_reported(self, isolated_state, delegate_mod):
+        intent = delegate_mod.validate_intent({"intent": "x", "project_root": "/p"})
+        lock_path = (
+            delegate_mod.STATE_DIR
+            / f"autobot.{delegate_mod.intent_hash(intent)}.lock"
+        )
+        with delegate_mod.exclusive_file_lock(lock_path):
+            envelope = delegate_mod.delegate(intent)
+        assert envelope["status"] == "degraded"
+        assert envelope["degraded_reason"] == "lock_held"
+
 
 # ── profile validation ──────────────────────────────────────────────────
 
@@ -375,11 +386,10 @@ class TestQueueProcessor:
         assert result["would_claim"][0]["priority"] == "high"
 
     def test_processor_lock_skips_when_held(self, isolated_state, delegate_mod, enqueue_mod, queue_processor_mod):
-        import fcntl
         self._enqueue(isolated_state, delegate_mod, enqueue_mod)
-        # Grab the processor lock
-        with open(queue_processor_mod.PROCESSOR_LOCK_PATH, "w") as held:
-            fcntl.flock(held.fileno(), fcntl.LOCK_EX)
+        with queue_processor_mod.exclusive_file_lock(
+            queue_processor_mod.PROCESSOR_LOCK_PATH,
+        ):
             result = queue_processor_mod.process_queue(max_tasks=1)
             assert result["status"] == "skipped"
             assert "lock" in result["reason"]
