@@ -53,6 +53,7 @@ gha-creds-*.json
 .lore/
 
 # Runtime artifacts and local state
+/.agents/eslint.json
 /.agents/cachebro.json
 /tests/harness/logs/trace_*.json
 .agents/.agents/
