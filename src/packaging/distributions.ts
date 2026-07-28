@@ -96,6 +96,10 @@ function resolveProjectRoot(projectRoot: string): string {
     return path.resolve(projectRoot);
 }
 
+function toPortablePath(inputPath: string): string {
+    return inputPath.replace(/\\/g, '/');
+}
+
 function loadRegistryManifest(projectRoot: string): RegistryManifest {
     return readJsonFile<RegistryManifest>(path.join(projectRoot, '.agents', 'skill_registry.json'));
 }
@@ -759,7 +763,7 @@ export function buildReleaseBundles(projectRoot: string): ReleaseBundle[] {
         return file;
     });
 
-    return [
+    const bundles: ReleaseBundle[] = [
         {
             name: 'gemini-extension',
             rootDir: path.join('dist', 'host-distributions', 'gemini-extension'),
@@ -785,6 +789,15 @@ export function buildReleaseBundles(projectRoot: string): ReleaseBundle[] {
             })),
         },
     ];
+
+    return bundles.map((bundle) => ({
+        ...bundle,
+        rootDir: toPortablePath(bundle.rootDir),
+        files: bundle.files.map((file) => ({
+            ...file,
+            relativePath: toPortablePath(file.relativePath),
+        })),
+    }));
 }
 
 export function writeReleaseBundles(projectRoot: string): ReleaseBundle[] {
