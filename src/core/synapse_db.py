@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import os
 import sqlite3
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 from pathlib import Path
 
 
@@ -59,7 +59,7 @@ def ensure_healthy_synapse_db(db_path: Path) -> tuple[bool, Path | None]:
         if not _is_recoverable_sqlite_error(exc):
             raise
 
-        stamp = datetime.now(UTC).isoformat().replace(":", "-").replace(".", "-")
+        stamp = datetime.now(timezone.utc).isoformat().replace(":", "-").replace(".", "-")
         backup_path = db_path.with_name(f"{db_path.name}.corrupt-{stamp}.bak")
         if db_path.exists():
             os.replace(db_path, backup_path)
