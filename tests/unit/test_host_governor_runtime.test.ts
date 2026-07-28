@@ -685,7 +685,7 @@ describe('Host governor runtime weave', () => {
             }),
         );
 
-        await weave.execute(
+        const result = await weave.execute(
             {
                 weave_id: 'weave:host-governor',
                 payload: {
@@ -695,8 +695,12 @@ describe('Host governor runtime weave', () => {
                     source: 'runtime',
                 } satisfies HostGovernorWeavePayload,
             },
-            createContext(tmpRoot, { CORVUS_HOST_SESSION_ACTIVE: 'true' }),
+            createContext(tmpRoot, {
+                CORVUS_HOST_PROVIDER: 'codex',
+                CORVUS_HOST_SESSION_ACTIVE: 'true',
+            }),
         );
+        assert.equal(result.status, 'SUCCESS');
 
         const beads = getHallBeads(repoId);
         const deferredBead = beads.find((bead) => bead.id === 'bead-to-defer');
