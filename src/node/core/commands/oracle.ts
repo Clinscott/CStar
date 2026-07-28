@@ -51,11 +51,11 @@ export interface OracleDependencies {
 
 export function parseOracleProvider(value: string): HostProvider {
     const normalized = value.trim().toLowerCase();
-    if (normalized === 'codex' || normalized === 'claude') {
+    if (normalized === 'gemini' || normalized === 'codex' || normalized === 'claude') {
         return normalized;
     }
 
-    throw new InvalidArgumentError(`Expected one of codex, claude but received '${value}'.`);
+    throw new InvalidArgumentError(`Expected one of gemini, codex, claude but received '${value}'.`);
 }
 
 export function buildOraclePrompt(prompt: string, systemPrompt?: string): string {
@@ -136,7 +136,7 @@ export function registerOracleCommand(
         .option('--silent', 'Suppress all headers and banners for programmatic use')
         .option('--out <file>', 'Write raw response to file')
         .option('--db', 'Use Synapse Database for exchange (id as first arg)')
-        .option('-p, --provider <provider>', 'Explicit host provider selection (codex|claude)', parseOracleProvider)
+        .option('-p, --provider <provider>', 'Explicit host provider selection (gemini|codex|claude)', parseOracleProvider)
         .action(async (target: string, options: OracleCommandOptions) => {
             try {
                 const workspaceRoot = resolveWorkspaceRoot(workspaceRootSource);

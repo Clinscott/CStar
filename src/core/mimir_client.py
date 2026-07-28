@@ -159,7 +159,7 @@ class MimirClient:
 
     def _resolve_host_provider(self) -> HostProvider:
         if self.host_provider is not None:
-            if self.host_provider in {"codex", "claude"}:
+            if self.host_provider in {"gemini", "codex", "claude"}:
                 return self.host_provider
             raise RuntimeError(f"Host provider '{self.host_provider}' is retired or unsupported.")
         detected = resolve_host_provider(self.env)

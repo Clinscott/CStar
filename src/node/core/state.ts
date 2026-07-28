@@ -201,6 +201,7 @@ export class StateRegistry {
                 theme: 'matrix',
             },
             agents: {
+                gemini: { id: 'gemini', name: 'Gemini Bridge', status: 'SLEEPING', last_seen: 0 },
                 codex: { id: 'codex', name: 'Codex', status: 'SLEEPING', last_seen: 0 },
                 droid: { id: 'droid', name: 'Droid', status: 'OFFLINE', last_seen: 0 }
             },

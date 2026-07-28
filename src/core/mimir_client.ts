@@ -255,7 +255,7 @@ export class MimirClient {
             const configuredProvider = String(this.hostProvider ?? this.env.CORVUS_HOST_PROVIDER ?? '').trim();
             const message = configuredProvider
                 ? `Host provider '${configuredProvider}' is retired or unsupported; host-session invocation refused.`
-                : 'Host-session invocation requires a supported provider (codex, claude, or droid).';
+                : 'Host-session invocation requires a supported provider (gemini bridge, codex, claude, or droid).';
             this.writeHallRequestRecord(request, decision, {
                 request_status: 'FAILED',
                 transport_preference: 'host_session',

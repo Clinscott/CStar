@@ -26,13 +26,15 @@ def _complete_prompt(db_path, synapse_id: int, response: str) -> None:
 
 
 @pytest.mark.asyncio
-async def test_mimir_client_rejects_a_retired_provider_without_spawning(tmp_path, monkeypatch):
+async def test_mimir_client_requires_an_explicit_gemini_bridge_without_spawning_cli(
+    tmp_path, monkeypatch
+):
     subprocess_calls = 0
 
     def fake_run(args, **kwargs):
         nonlocal subprocess_calls
         subprocess_calls += 1
-        raise AssertionError(f"retired provider unexpectedly spawned: {args}")
+        raise AssertionError(f"Gemini CLI unexpectedly spawned: {args}")
 
     monkeypatch.setattr(subprocess, "run", fake_run)
 
@@ -55,7 +57,7 @@ async def test_mimir_client_rejects_a_retired_provider_without_spawning(tmp_path
     assert response.status == "error"
     assert response.trace.transport_mode == "host_session"
     assert response.error is not None
-    assert "retired or unsupported" in response.error.lower()
+    assert "does not have an executable host-session bridge configured" in response.error.lower()
     assert subprocess_calls == 0
 
 

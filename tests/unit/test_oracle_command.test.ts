@@ -99,12 +99,9 @@ describe('Oracle command spoke (CS-P1-02)', () => {
     });
 
     it('parses valid provider values', () => {
+        assert.equal(parseOracleProvider('gemini'), 'gemini');
         assert.equal(parseOracleProvider('codex'), 'codex');
         assert.equal(parseOracleProvider('claude'), 'claude');
-        assert.throws(
-            () => parseOracleProvider('gemini'),
-            /Expected one of codex, claude/i,
-        );
     });
 
     it('accepts valid provider options on the command surface', async () => {
@@ -163,7 +160,7 @@ describe('Oracle command spoke (CS-P1-02)', () => {
 
         await assert.rejects(
             program.parseAsync(['node', 'oracle-test.ts', 'oracle', 'prompt', '--provider', 'invalid']),
-            /Expected one of codex, claude/i,
+            /Expected one of gemini, codex, claude/i,
         );
     });
 

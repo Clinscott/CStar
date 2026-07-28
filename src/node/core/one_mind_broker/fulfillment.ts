@@ -258,7 +258,7 @@ async function fulfillDelegatedRequest(
     const provider = typeof metadata.provider === 'string'
         ? metadata.provider
         : resolveHostProvider(env);
-    if (provider !== 'codex' && provider !== 'claude' && provider !== 'droid') {
+    if (provider !== 'gemini' && provider !== 'codex' && provider !== 'claude' && provider !== 'droid') {
         return {
             outcome: 'failed',
             requestId: request.request_id,

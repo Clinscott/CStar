@@ -4,7 +4,7 @@ import * as path from 'node:path';
 
 import { buildPersonaAdvice } from './persona_advice.js';
 
-export type HostProvider = 'codex' | 'claude' | 'droid';
+export type HostProvider = 'gemini' | 'codex' | 'claude' | 'droid';
 export type AugurySteeringMode = 'full' | 'lite';
 export type HostSupportStatus =
     | 'supported'
@@ -198,7 +198,7 @@ function normalizeFlag(value: string | undefined): boolean | undefined {
 }
 
 export function isHostProvider(value: unknown): value is HostProvider {
-    return value === 'codex' || value === 'claude' || value === 'droid';
+    return value === 'gemini' || value === 'codex' || value === 'claude' || value === 'droid';
 }
 
 export function detectHostProvider(env: NodeJS.ProcessEnv = process.env): HostProvider | null {
@@ -255,6 +255,9 @@ export function resolveHostProvider(
 }
 
 export function getHostProviderBanner(provider: HostProvider | null): string {
+    if (provider === 'gemini') {
+        return ' ◤ GEMINI BRIDGE INTEGRATION ACTIVE ◢ ';
+    }
     if (provider === 'codex') {
         return ' ◤ CODEX CLI INTEGRATION ACTIVE ◢ ';
     }
@@ -268,6 +271,9 @@ export function getHostProviderBanner(provider: HostProvider | null): string {
 }
 
 export function getHostMindLabel(provider: HostProvider | null): string {
+    if (provider === 'gemini') {
+        return 'GEMINI';
+    }
     if (provider === 'codex') {
         return 'OPENAI CODEX';
     }

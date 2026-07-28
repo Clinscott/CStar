@@ -4,7 +4,7 @@ import os
 import json
 from typing import Literal, TypedDict
 
-HostProvider = Literal["codex", "claude"]
+HostProvider = Literal["gemini", "codex", "claude"]
 
 
 class HostBridgeConfig(TypedDict):
@@ -28,7 +28,7 @@ def detect_host_provider(env: dict[str, str] | None = None) -> HostProvider | No
     current_env = env if env is not None else os.environ
     override = current_env.get("CORVUS_HOST_PROVIDER", "").strip().lower()
     if override:
-        if override in {"codex", "claude"}:
+        if override in {"gemini", "codex", "claude"}:
             return override  # type: ignore[return-value]
         return None
 

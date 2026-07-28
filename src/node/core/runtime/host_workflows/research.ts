@@ -208,7 +208,7 @@ export class ResearchHostWorkflow implements RuntimeAdapter<ResearchWeavePayload
 
         const provider = deps.resolveRuntimeHostProvider(context);
 
-        if (provider === 'codex' || provider === 'claude' || provider === 'droid') {
+        if (provider) {
             try {
                 const workspaceRoot = payload.project_root || context.workspace_root;
                 const councilBranches = buildResearchCouncilBranches(payload);
@@ -497,7 +497,7 @@ export class ResearchHostWorkflow implements RuntimeAdapter<ResearchWeavePayload
             weave_id: this.id,
             status: 'FAILURE',
             output: '',
-            error: 'The Research Agent requires an active host session using a supported provider (Codex, Claude, or Droid).',
+            error: 'The Research Agent requires an active host session using a supported provider (Gemini bridge, Codex, Claude, or Droid).',
         };
     }
 }
