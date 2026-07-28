@@ -239,7 +239,7 @@ def apply_files(project_root: Path, scopes: list[tuple[str, Path]], files: list[
         target = resolve_path(project_root, entry["path"])
         ensure_authorized(target, scopes)
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(entry["content"], encoding="utf-8")
+        target.write_text(entry["content"], encoding="utf-8", newline="")
         changed.append({
             "path": str(target),
             "bytes": target.stat().st_size,
