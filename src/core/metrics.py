@@ -9,7 +9,10 @@ from typing import Any
 from pathlib import Path
 
 from src.core.engine.atomic_gpt import AnomalyWarden
-from src.core.engine.gungnir.schema import get_gungnir_overall
+from src.core.engine.gungnir.schema import (
+    get_gungnir_overall,
+    is_canonical_gungnir_score,
+)
 from src.core.prompt_linter import PromptLinter
 
 try:
@@ -17,6 +20,12 @@ try:
     HAS_PSUTIL = True
 except ImportError:
     HAS_PSUTIL = False
+
+
+def _gungnir_percentage(score: Any) -> float:
+    if not is_canonical_gungnir_score(score):
+        raise ValueError(f"Non-canonical Gungnir score: {score!r}")
+    return float(score) * 10.0
 
 class ExecutionTracker:
     """
@@ -124,10 +133,15 @@ class ProjectMetricsEngine:
                     if not isinstance(sector, dict):
                         continue
                     matrix = sector.get("matrix") or sector.get("gungnir")
-                    if isinstance(matrix, dict):
-                        scores.append(get_gungnir_overall(matrix))
-                    elif "gungnir_score" in sector:
-                        scores.append(float(sector.get("gungnir_score", 100) or 0))
+                    try:
+                        if isinstance(matrix, dict):
+                            scores.append(
+                                _gungnir_percentage(get_gungnir_overall(matrix))
+                            )
+                        elif "gungnir_score" in sector:
+                            scores.append(_gungnir_percentage(sector["gungnir_score"]))
+                    except (TypeError, ValueError):
+                        continue
                 if scores:
                     structural_score = sum(scores) / len(scores)
         except Exception:

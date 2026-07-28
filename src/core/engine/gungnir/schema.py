@@ -6,6 +6,8 @@ from dataclasses import asdict, dataclass
 from typing import Any
 
 GUNGNIR_SCHEMA_VERSION = "1.0"
+GUNGNIR_SCORE_MIN = 0.0
+GUNGNIR_SCORE_MAX = 10.0
 LOGGER = logging.getLogger(__name__)
 
 GUNGNIR_AXIS_KEYS = (
@@ -27,7 +29,13 @@ GUNGNIR_PROJECTION_KEYS = (
 )
 
 
-def _as_metric(value: Any, fallback: float = 0.0, *, field_name: str | None = None) -> float:
+def _as_metric(
+    value: Any,
+    fallback: float = 0.0,
+    *,
+    field_name: str | None = None,
+    bounded_score: bool = True,
+) -> float:
     try:
         numeric = float(value)
     except (TypeError, ValueError):
@@ -38,7 +46,7 @@ def _as_metric(value: Any, fallback: float = 0.0, *, field_name: str | None = No
                 fallback,
                 value,
             )
-        return round(float(fallback), 4)
+        numeric = float(fallback)
     if numeric != numeric or numeric in (float("inf"), float("-inf")):
         LOGGER.warning(
             "Non-finite Gungnir metric for %s; falling back to %.4f. value=%r",
@@ -46,8 +54,19 @@ def _as_metric(value: Any, fallback: float = 0.0, *, field_name: str | None = No
             fallback,
             value,
         )
-        return round(float(fallback), 4)
-    return round(numeric, 4)
+        numeric = float(fallback)
+
+    rounded = round(numeric, 4)
+    if bounded_score and not is_canonical_gungnir_score(rounded):
+        raise ValueError(
+            f"Gungnir metric {field_name or '<unknown>'}={rounded} is outside "
+            f"canonical range {GUNGNIR_SCORE_MIN}..{GUNGNIR_SCORE_MAX}"
+        )
+    if not bounded_score and rounded < 0:
+        raise ValueError(
+            f"Gungnir metric {field_name or '<unknown>'}={rounded} must be non-negative"
+        )
+    return rounded
 
 
 def _average(values: list[float]) -> float:
@@ -66,11 +85,21 @@ class GungnirMatrix:
     vigil: float = 0.0
     evolution: float = 0.0
     anomaly: float = 0.0
-    sovereignty: float = 0.0
-    overall: float = 0.0
-    stability: float = 0.0
-    coupling: float = 0.0
-    aesthetic: float = 0.0
+    sovereignty: float | None = None
+    overall: float | None = None
+    stability: float | None = None
+    coupling: float | None = None
+    aesthetic: float | None = None
+
+
+def is_canonical_gungnir_score(value: Any) -> bool:
+    return (
+        isinstance(value, (int, float))
+        and not isinstance(value, bool)
+        and float(value) == float(value)
+        and float(value) not in (float("inf"), float("-inf"))
+        and GUNGNIR_SCORE_MIN <= float(value) <= GUNGNIR_SCORE_MAX
+    )
 
 
 def build_gungnir_matrix(
@@ -83,10 +112,18 @@ def build_gungnir_matrix(
     logic = _as_metric(data.get("logic"), field_name="logic")
     style = _as_metric(data.get("style"), field_name="style")
     intel = _as_metric(data.get("intel"), field_name="intel")
-    gravity = _as_metric(data.get("gravity"), field_name="gravity")
+    gravity = _as_metric(
+        data.get("gravity"),
+        field_name="gravity",
+        bounded_score=False,
+    )
     vigil = _as_metric(data.get("vigil"), field_name="vigil")
     evolution = _as_metric(data.get("evolution"), field_name="evolution")
-    anomaly = _as_metric(data.get("anomaly"), field_name="anomaly")
+    anomaly = _as_metric(
+        data.get("anomaly"),
+        field_name="anomaly",
+        bounded_score=False,
+    )
     sovereignty = _as_metric(
         data.get("sovereignty"),
         _average([logic, style, intel, vigil, evolution]),
@@ -94,10 +131,22 @@ def build_gungnir_matrix(
     )
     aesthetic = _as_metric(data.get("aesthetic"), _average([logic, style, intel]), field_name="aesthetic")
     stability = _as_metric(data.get("stability"), logic, field_name="stability")
-    coupling = _as_metric(data.get("coupling"), gravity, field_name="coupling")
+    coupling = _as_metric(
+        data.get("coupling"),
+        gravity,
+        field_name="coupling",
+        bounded_score=False,
+    )
     overall = _as_metric(
         data.get("overall"),
-        _average([logic, style, intel, vigil, evolution, sovereignty]) - (anomaly * 0.5),
+        max(
+            GUNGNIR_SCORE_MIN,
+            min(
+                GUNGNIR_SCORE_MAX,
+                _average([logic, style, intel, vigil, evolution, sovereignty])
+                - (anomaly * 0.5),
+            ),
+        ),
         field_name="overall",
     )
 
@@ -134,4 +183,4 @@ def matrix_to_dict(payload: Mapping[str, Any] | GungnirMatrix | None = None) -> 
 
 
 def get_gungnir_overall(payload: Mapping[str, Any] | GungnirMatrix | None = None) -> float:
-    return build_gungnir_matrix(payload).overall
+    return float(build_gungnir_matrix(payload).overall)

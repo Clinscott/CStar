@@ -27,7 +27,7 @@ describe('Hall document command lifecycle', () => {
                     framework: {
                         status: 'AWAKE',
                         active_persona: 'ODIN',
-                        gungnir_score: 90,
+                        gungnir_score: 9,
                         intent_integrity: 95,
                         last_awakening: 1700000000000,
                     },

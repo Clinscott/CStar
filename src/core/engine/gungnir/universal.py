@@ -2,7 +2,12 @@ import ast
 import re
 from typing import Any
 
-from src.core.engine.gungnir.schema import build_gungnir_matrix, matrix_to_dict
+from src.core.engine.gungnir.schema import (
+    GUNGNIR_SCORE_MAX,
+    GUNGNIR_SCORE_MIN,
+    build_gungnir_matrix,
+    matrix_to_dict,
+)
 
 
 SUPPORTED_EXTENSIONS = frozenset({
@@ -51,11 +56,11 @@ class UniversalGungnir:
 
     def score_matrix(self, code: str, ext: str) -> dict[str, Any]:
         breaches = self.audit_logic(code, ext)
-        logic = 10.0
-        style = 10.0
-        intel = 10.0
-        evolution = 10.0
-        anomaly = 0.0
+        logic = GUNGNIR_SCORE_MAX
+        style = GUNGNIR_SCORE_MAX
+        intel = GUNGNIR_SCORE_MAX
+        evolution = GUNGNIR_SCORE_MAX
+        anomaly = GUNGNIR_SCORE_MIN
 
         severity_penalty = {
             "LOW": 0.5,
@@ -68,12 +73,12 @@ class UniversalGungnir:
             penalty = severity_penalty.get(str(breach.get("severity", "")).upper(), 1.0)
             action = str(breach.get("action", "")).upper()
             if "LOGIC" in action or "COUPLING" in action or "PARSE" in action:
-                logic = max(0.0, logic - penalty)
+                logic = max(GUNGNIR_SCORE_MIN, logic - penalty)
             if "STYLE" in action or "UI" in action:
-                style = max(0.0, style - penalty)
+                style = max(GUNGNIR_SCORE_MIN, style - penalty)
             if "INTEL" in action or "DOCS" in action or "DATA" in action:
-                intel = max(0.0, intel - penalty)
-            evolution = max(0.0, evolution - (penalty * 0.25))
+                intel = max(GUNGNIR_SCORE_MIN, intel - penalty)
+            evolution = max(GUNGNIR_SCORE_MIN, evolution - (penalty * 0.25))
             if str(breach.get("severity", "")).upper() == "CRITICAL":
                 anomaly += 1.0
 
@@ -81,13 +86,16 @@ class UniversalGungnir:
             "logic": logic,
             "style": style,
             "intel": intel,
-            "gravity": 0.0,
-            "vigil": 10.0,
+            "gravity": GUNGNIR_SCORE_MIN,
+            "vigil": GUNGNIR_SCORE_MAX,
             "evolution": evolution,
             "anomaly": anomaly,
             "sovereignty": max(
-                0.0,
-                min(10.0, (logic + style + intel + evolution) / 4),
+                GUNGNIR_SCORE_MIN,
+                min(
+                    GUNGNIR_SCORE_MAX,
+                    (logic + style + intel + evolution) / 4,
+                ),
             ),
         })
         return matrix_to_dict(matrix)

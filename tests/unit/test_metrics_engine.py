@@ -1,11 +1,16 @@
 import os
 import unittest
 
-from src.core.metrics import ProjectMetricsEngine
+from src.core.metrics import ProjectMetricsEngine, _gungnir_percentage
 from src.core.prompt_linter import PromptLinter
 
 
 class TestMetricsEngine(unittest.TestCase):
+    def test_gungnir_percentage_converts_only_canonical_scores(self):
+        self.assertEqual(_gungnir_percentage(8.0), 80.0)
+        with self.assertRaises(ValueError):
+            _gungnir_percentage(80.0)
+
     def test_linter_parse(self):
         linter = PromptLinter()
         # Mock a prompty file

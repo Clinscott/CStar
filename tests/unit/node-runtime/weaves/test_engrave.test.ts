@@ -54,7 +54,7 @@ describe('Engrave weave', () => {
             name: path.basename(tmpRoot),
             status: 'AWAKE',
             active_persona: 'ODIN',
-            baseline_gungnir_score: 88,
+            baseline_gungnir_score: 8.8,
             intent_integrity: 92,
             metadata: { source: 'unit-test' },
             created_at: Date.now(),

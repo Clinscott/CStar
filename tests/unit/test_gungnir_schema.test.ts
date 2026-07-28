@@ -4,7 +4,12 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-import { createGungnirMatrix } from  '../../src/types/gungnir.js';
+import {
+    GUNGNIR_SCORE_MAX,
+    GUNGNIR_SCORE_MIN,
+    createGungnirMatrix,
+    isCanonicalGungnirScore,
+} from  '../../src/types/gungnir.js';
 import { compileMatrixFromHall } from  '../../src/tools/pennyone/intel/compiler.js';
 import {
     closeDb,
@@ -68,6 +73,51 @@ describe('Gungnir matrix contract (CS-P1-04)', () => {
         ]);
         assert.strictEqual(matrix.version, '1.0');
         assert.strictEqual(matrix.overall, 8.1);
+    });
+
+    it('declares and validates the canonical zero-to-ten score scale', () => {
+        assert.strictEqual(GUNGNIR_SCORE_MIN, 0);
+        assert.strictEqual(GUNGNIR_SCORE_MAX, 10);
+        assert.strictEqual(isCanonicalGungnirScore(0), true);
+        assert.strictEqual(isCanonicalGungnirScore(6), true);
+        assert.strictEqual(isCanonicalGungnirScore(10), true);
+        assert.strictEqual(isCanonicalGungnirScore(-0.1), false);
+        assert.strictEqual(isCanonicalGungnirScore(10.1), false);
+        assert.strictEqual(isCanonicalGungnirScore(Number.NaN), false);
+        assert.strictEqual(isCanonicalGungnirScore(Number.POSITIVE_INFINITY), false);
+    });
+
+    it('rejects explicit out-of-range metrics at the constructor boundary', () => {
+        assert.throws(
+            () => createGungnirMatrix({ overall: 100 }),
+            /outside canonical range 0\.\.10/,
+        );
+    });
+
+    it('preserves non-negative raw gravity, coupling, and anomaly metrics', () => {
+        const matrix = createGungnirMatrix({
+            gravity: 100,
+            coupling: 25,
+            anomaly: 12,
+        });
+
+        assert.strictEqual(matrix.gravity, 100);
+        assert.strictEqual(matrix.coupling, 25);
+        assert.strictEqual(matrix.anomaly, 12);
+    });
+
+    it('derives a null projection instead of coercing it to zero', () => {
+        const matrix = createGungnirMatrix({
+            logic: 8,
+            style: 8,
+            intel: 8,
+            vigil: 8,
+            evolution: 8,
+            sovereignty: 8,
+            overall: null,
+        } as unknown as Parameters<typeof createGungnirMatrix>[0]);
+
+        assert.strictEqual(matrix.overall, 8);
     });
 
     it('compiles PennyOne graph payloads from Hall-backed canonical files', () => {

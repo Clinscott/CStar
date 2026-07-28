@@ -2,8 +2,23 @@ import json
 
 import pytest
 
-from src.core.engine.gungnir.schema import build_gungnir_matrix, get_gungnir_overall, matrix_to_dict
+from src.core.engine.gungnir.schema import (
+    GUNGNIR_SCORE_MAX,
+    GUNGNIR_SCORE_MIN,
+    GungnirMatrix,
+    build_gungnir_matrix,
+    get_gungnir_overall,
+    is_canonical_gungnir_score,
+    matrix_to_dict,
+)
 from src.core.engine.gungnir.universal import UniversalGungnir
+
+
+def test_gungnir_schema_declares_the_canonical_zero_to_ten_scale() -> None:
+    assert GUNGNIR_SCORE_MIN == 0.0
+    assert GUNGNIR_SCORE_MAX == 10.0
+    assert is_canonical_gungnir_score(6.0)
+    assert not is_canonical_gungnir_score(10.1)
 
 
 def test_gungnir_schema_serializes_canonical_fields() -> None:
@@ -93,6 +108,36 @@ def test_gungnir_schema_preserves_an_explicit_zero_overall() -> None:
     )
 
     assert matrix.overall == 0.0
+
+
+def test_gungnir_schema_rejects_explicit_out_of_range_metrics() -> None:
+    with pytest.raises(ValueError, match=r"outside canonical range 0\.0\.\.10\.0"):
+        build_gungnir_matrix({"overall": 100})
+
+
+def test_gungnir_schema_preserves_non_negative_raw_gravity_metrics() -> None:
+    matrix = build_gungnir_matrix({"gravity": 100, "coupling": 25, "anomaly": 12})
+
+    assert matrix.gravity == 100.0
+    assert matrix.coupling == 25.0
+    assert matrix.anomaly == 12.0
+
+
+def test_gungnir_schema_derives_projections_from_dataclass_or_none_inputs() -> None:
+    axes = {
+        "logic": 8.0,
+        "style": 8.0,
+        "intel": 8.0,
+        "vigil": 8.0,
+        "evolution": 8.0,
+        "sovereignty": 8.0,
+    }
+
+    from_dataclass = build_gungnir_matrix(GungnirMatrix(**axes))
+    from_none = build_gungnir_matrix({**axes, "overall": None})
+
+    assert from_dataclass.overall == 8.0
+    assert from_none.overall == 8.0
 
 
 def test_universal_gungnir_emits_canonical_matrix_projection() -> None:

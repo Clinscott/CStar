@@ -20,6 +20,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import { database } from '../../tools/pennyone/intel/database.js';
+import {
+    GUNGNIR_SCORE_MAX,
+    GUNGNIR_SCORE_MIN,
+    isCanonicalGungnirScore,
+} from '../../types/gungnir.js';
 import type { HallBeadRecord, HallValidationVerdict } from '../../types/hall.js';
 
 export type WardenVerdict = 'ACCEPTED' | 'REJECTED' | 'INCONCLUSIVE';
@@ -32,7 +37,7 @@ export interface MandateWardenResult {
 }
 
 export interface MandateAuditProof {
-    /** Numeric Gungnir score; must equal-or-improve over `bead.baseline_scores.gungnir`. */
+    /** Canonical 0..10 Gungnir score; must equal-or-improve over `bead.baseline_scores.gungnir`. */
     gungnir_score?: number;
     /** Wardens that have been run; need ≥1 ACCEPTED and zero REJECTED to count. */
     warden_results?: MandateWardenResult[];
@@ -85,7 +90,7 @@ const ACCEPT_VALIDATION_VERDICTS: ReadonlySet<HallValidationVerdict> = new Set<H
  * When no baseline exists, the score must still clear this floor — otherwise a fresh
  * bead with `gungnir_score: 0` would satisfy the audit leg, which defeats the purpose.
  */
-export const MIN_GUNGNIR_AUDIT_SCORE = 60;
+export const MIN_GUNGNIR_AUDIT_SCORE = 6.0;
 
 const GHERKIN_KEYWORD_RE = /^\s*(Feature|Scenario Outline|Scenario|Background|Rule)\s*:/m;
 
@@ -163,6 +168,7 @@ function checkAudit(bead: HallBeadRecord, evidence: MandateEvidence): MandateLeg
     }
     const proofs: string[] = [];
     const reasons: string[] = [];
+    const fatalReasons: string[] = [];
 
     if (audit.warden_results && audit.warden_results.length > 0) {
         const rejected = audit.warden_results.filter((w) => w.verdict === 'REJECTED');
@@ -176,15 +182,29 @@ function checkAudit(bead: HallBeadRecord, evidence: MandateEvidence): MandateLeg
         }
     }
 
-    if (typeof audit.gungnir_score === 'number') {
-        const baselineRaw = (bead.baseline_scores as Record<string, unknown> | undefined)?.gungnir;
+    if (Object.prototype.hasOwnProperty.call(audit, 'gungnir_score')) {
+        const scoreRaw = audit.gungnir_score as unknown;
+        const baselineScores = bead.baseline_scores as Record<string, unknown> | undefined;
+        const hasBaseline = baselineScores !== undefined
+            && Object.prototype.hasOwnProperty.call(baselineScores, 'gungnir');
+        const baselineRaw = hasBaseline ? baselineScores.gungnir : undefined;
         const baseline = typeof baselineRaw === 'number' ? baselineRaw : null;
-        if (baseline !== null && audit.gungnir_score < baseline) {
-            reasons.push(`gungnir_score=${audit.gungnir_score} < baseline=${baseline}`);
-        } else if (audit.gungnir_score < MIN_GUNGNIR_AUDIT_SCORE) {
-            reasons.push(`gungnir_score=${audit.gungnir_score} < floor=${MIN_GUNGNIR_AUDIT_SCORE}`);
+        if (!isCanonicalGungnirScore(scoreRaw)) {
+            fatalReasons.push(
+                `gungnir_score=${String(scoreRaw)} is outside canonical range `
+                + `${GUNGNIR_SCORE_MIN}..${GUNGNIR_SCORE_MAX}`,
+            );
+        } else if (hasBaseline && !isCanonicalGungnirScore(baselineRaw)) {
+            fatalReasons.push(
+                `baseline=${String(baselineRaw)} is outside canonical Gungnir range `
+                + `${GUNGNIR_SCORE_MIN}..${GUNGNIR_SCORE_MAX}; explicit migration required`,
+            );
+        } else if (baseline !== null && scoreRaw < baseline) {
+            reasons.push(`gungnir_score=${scoreRaw} < baseline=${baseline}`);
+        } else if (scoreRaw < MIN_GUNGNIR_AUDIT_SCORE) {
+            reasons.push(`gungnir_score=${scoreRaw} < floor=${MIN_GUNGNIR_AUDIT_SCORE}`);
         } else {
-            proofs.push(`gungnir_score=${audit.gungnir_score}${baseline !== null ? ` (≥ baseline ${baseline})` : ` (≥ floor ${MIN_GUNGNIR_AUDIT_SCORE}; no baseline)`}`);
+            proofs.push(`gungnir_score=${scoreRaw}${baseline !== null ? ` (≥ baseline ${baseline})` : ` (≥ floor ${MIN_GUNGNIR_AUDIT_SCORE}; no baseline)`}`);
         }
     }
 
@@ -197,6 +217,14 @@ function checkAudit(bead: HallBeadRecord, evidence: MandateEvidence): MandateLeg
         } else {
             proofs.push(`validation_id=${audit.validation_id} (verdict=${run.verdict})`);
         }
+    }
+
+    if (fatalReasons.length > 0) {
+        return {
+            leg: 'audit',
+            status: 'unsatisfied',
+            reason: [...fatalReasons, ...reasons].join('; '),
+        };
     }
 
     if (proofs.length === 0) {

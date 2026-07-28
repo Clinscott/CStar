@@ -63,11 +63,11 @@ test('ACCEPTED — gungnir_score satisfies audit when ≥ baseline', () => {
         writeFeature(root, 'tests/empire_tests/g.feature');
         writeFile(root, 'tests/unit/g.test.ts');
         const verdict = verifySterlingMandate(
-            bead({ baseline_scores: { gungnir: 75 } }),
+            bead({ baseline_scores: { gungnir: 7.5 } }),
             {
                 lore_paths: ['tests/empire_tests/g.feature'],
                 isolation_paths: ['tests/unit/g.test.ts'],
-                audit: { gungnir_score: 80 },
+                audit: { gungnir_score: 8.0 },
             },
             root,
         );
@@ -81,16 +81,16 @@ test('REJECTED — gungnir_score below baseline', () => {
         writeFeature(root, 'tests/empire_tests/r.feature');
         writeFile(root, 'tests/unit/r.test.ts');
         const verdict = verifySterlingMandate(
-            bead({ baseline_scores: { gungnir: 90 } }),
+            bead({ baseline_scores: { gungnir: 9.0 } }),
             {
                 lore_paths: ['tests/empire_tests/r.feature'],
                 isolation_paths: ['tests/unit/r.test.ts'],
-                audit: { gungnir_score: 70 },
+                audit: { gungnir_score: 7.0 },
             },
             root,
         );
         assert.strictEqual(verdict.verdict, 'REJECTED');
-        assert.match(verdict.reasons.join(' '), /gungnir_score=70 < baseline=90/);
+        assert.match(verdict.reasons.join(' '), /gungnir_score=7 < baseline=9/);
     } finally { fs.rmSync(root, { recursive: true, force: true }); }
 });
 
@@ -120,7 +120,7 @@ test('REJECTED — missing lore_paths', () => {
         writeFile(root, 'tests/unit/i.test.ts');
         const verdict = verifySterlingMandate(bead(), {
             isolation_paths: ['tests/unit/i.test.ts'],
-            audit: { gungnir_score: 50 },
+            audit: { gungnir_score: 5 },
         }, root);
         assert.strictEqual(verdict.verdict, 'REJECTED');
         assert.match(verdict.reasons.join(' '), /\[lore\]/);
@@ -134,7 +134,7 @@ test('REJECTED — lore path declared but file missing on disk', () => {
         const verdict = verifySterlingMandate(bead(), {
             lore_paths: ['tests/empire_tests/missing.feature'],
             isolation_paths: ['tests/unit/i.test.ts'],
-            audit: { gungnir_score: 50 },
+            audit: { gungnir_score: 5 },
         }, root);
         assert.strictEqual(verdict.verdict, 'REJECTED');
         assert.match(verdict.reasons.join(' '), /lore artifacts missing on disk: tests\/empire_tests\/missing\.feature/);
@@ -192,7 +192,7 @@ test('mergeMandateEvidence — call-site fields win over cached', () => {
         metadata: {
             mandate_evidence: {
                 lore_paths: ['old/lore.feature'],
-                audit: { gungnir_score: 50 },
+                audit: { gungnir_score: 5 },
             },
         },
     });
@@ -200,7 +200,7 @@ test('mergeMandateEvidence — call-site fields win over cached', () => {
         lore_paths: ['new/lore.feature'],
     });
     assert.deepStrictEqual(merged.lore_paths, ['new/lore.feature']);
-    assert.deepStrictEqual(merged.audit, { gungnir_score: 50 });
+    assert.deepStrictEqual(merged.audit, { gungnir_score: 5 });
 });
 
 test('mergeMandateEvidence — empty args fall through to cached', () => {
@@ -209,13 +209,13 @@ test('mergeMandateEvidence — empty args fall through to cached', () => {
             mandate_evidence: {
                 lore_paths: ['cached.feature'],
                 isolation_paths: ['cached.test.ts'],
-                audit: { gungnir_score: 100 },
+                audit: { gungnir_score: 10 },
             },
         },
     });
     const merged = mergeMandateEvidence(cachedBead, undefined);
     assert.deepStrictEqual(merged.lore_paths, ['cached.feature']);
-    assert.strictEqual(merged.audit?.gungnir_score, 100);
+    assert.strictEqual(merged.audit?.gungnir_score, 10);
 });
 
 test('Absolute lore/isolation paths resolve regardless of hubRoot', () => {
@@ -259,10 +259,10 @@ test('REJECTED — gungnir_score below floor when no baseline exists', () => {
         const verdict = verifySterlingMandate(bead(), {
             lore_paths: ['l.feature'],
             isolation_paths: ['i.test.ts'],
-            audit: { gungnir_score: 0 },
+            audit: { gungnir_score: 5.9 },
         }, root);
         assert.strictEqual(verdict.verdict, 'REJECTED');
-        assert.match(verdict.reasons.join(' '), new RegExp(`gungnir_score=0 < floor=${MIN_GUNGNIR_AUDIT_SCORE}`));
+        assert.match(verdict.reasons.join(' '), new RegExp(`gungnir_score=5.9 < floor=${MIN_GUNGNIR_AUDIT_SCORE}`));
     } finally { fs.rmSync(root, { recursive: true, force: true }); }
 });
 
@@ -277,6 +277,91 @@ test('ACCEPTED — gungnir_score at floor satisfies audit with no baseline', () 
             audit: { gungnir_score: MIN_GUNGNIR_AUDIT_SCORE },
         }, root);
         assert.strictEqual(verdict.verdict, 'ACCEPTED');
+    } finally { fs.rmSync(root, { recursive: true, force: true }); }
+});
+
+test('REJECTED — non-finite and out-of-range Gungnir scores cannot satisfy audit', () => {
+    const root = mkHubRoot();
+    try {
+        writeFeature(root, 'l.feature');
+        writeFile(root, 'i.test.ts');
+
+        for (const score of [Number.NaN, Number.POSITIVE_INFINITY, -0.1, 10.1]) {
+            const verdict = verifySterlingMandate(bead(), {
+                lore_paths: ['l.feature'],
+                isolation_paths: ['i.test.ts'],
+                audit: { gungnir_score: score },
+            }, root);
+
+            assert.strictEqual(verdict.verdict, 'REJECTED');
+            assert.match(verdict.reasons.join(' '), /outside canonical range 0\.\.10/);
+        }
+    } finally { fs.rmSync(root, { recursive: true, force: true }); }
+});
+
+test('REJECTED — legacy baseline scale requires an explicit migration', () => {
+    const root = mkHubRoot();
+    try {
+        writeFeature(root, 'l.feature');
+        writeFile(root, 'i.test.ts');
+        const verdict = verifySterlingMandate(
+            bead({ baseline_scores: { gungnir: 80 } }),
+            {
+                lore_paths: ['l.feature'],
+                isolation_paths: ['i.test.ts'],
+                audit: { gungnir_score: 8 },
+            },
+            root,
+        );
+
+        assert.strictEqual(verdict.verdict, 'REJECTED');
+        assert.match(verdict.reasons.join(' '), /baseline=80.*explicit migration required/);
+    } finally { fs.rmSync(root, { recursive: true, force: true }); }
+});
+
+test('REJECTED — invalid Gungnir evidence cannot be masked by an accepted warden', () => {
+    const root = mkHubRoot();
+    try {
+        writeFeature(root, 'l.feature');
+        writeFile(root, 'i.test.ts');
+        for (const score of [Number.NaN, '8', null]) {
+            const verdict = verifySterlingMandate(bead(), {
+                lore_paths: ['l.feature'],
+                isolation_paths: ['i.test.ts'],
+                audit: {
+                    gungnir_score: score,
+                    warden_results: [{ name: 'norn', verdict: 'ACCEPTED', ran_at: 1 }],
+                } as unknown as MandateEvidence['audit'],
+            }, root);
+
+            assert.strictEqual(verdict.verdict, 'REJECTED');
+            assert.match(verdict.reasons.join(' '), /outside canonical range 0\.\.10/);
+        }
+    } finally { fs.rmSync(root, { recursive: true, force: true }); }
+});
+
+test('REJECTED — non-numeric Gungnir baselines cannot bypass migration', () => {
+    const root = mkHubRoot();
+    try {
+        writeFeature(root, 'l.feature');
+        writeFile(root, 'i.test.ts');
+
+        for (const baseline of ['80', null]) {
+            const verdict = verifySterlingMandate(
+                bead({
+                    baseline_scores: { gungnir: baseline } as unknown as HallBeadRecord['baseline_scores'],
+                }),
+                {
+                    lore_paths: ['l.feature'],
+                    isolation_paths: ['i.test.ts'],
+                    audit: { gungnir_score: 8 },
+                },
+                root,
+            );
+
+            assert.strictEqual(verdict.verdict, 'REJECTED');
+            assert.match(verdict.reasons.join(' '), /explicit migration required/);
+        }
     } finally { fs.rmSync(root, { recursive: true, force: true }); }
 });
 
