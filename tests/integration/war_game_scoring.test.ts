@@ -91,8 +91,8 @@ function repoId(db: Database.Database): string {
     return r.repo_id;
 }
 
-test('war-game scoring integration', (t) => {
-    t.test('schema migration creates war_game tables', () => {
+test('war-game scoring integration', async (t) => {
+    await t.test('schema migration creates war_game tables', () => {
         const db = makeDb();
         const tables = db
             .prepare(`SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'war_game_%' ORDER BY name`)
@@ -101,7 +101,7 @@ test('war-game scoring integration', (t) => {
         db.close();
     });
 
-    t.test('register_contest persists the contest row', () => {
+    await t.test('register_contest persists the contest row', () => {
         const db = makeDb();
         registerContest(db, { ...USB_CONTEST, repo_id: repoId(db) });
         const row = db.prepare(`SELECT * FROM war_game_contests WHERE contest_id = ?`).get(USB_CONTEST.contest_id) as any;
@@ -117,7 +117,7 @@ test('war-game scoring integration', (t) => {
         db.close();
     });
 
-    t.test('register_contest is idempotent — second call upserts', () => {
+    await t.test('register_contest is idempotent — second call upserts', () => {
         const db = makeDb();
         registerContest(db, { ...USB_CONTEST, repo_id: repoId(db) });
         registerContest(db, { ...USB_CONTEST, repo_id: repoId(db), contest_name: 'updated' });
@@ -126,7 +126,7 @@ test('war-game scoring integration', (t) => {
         db.close();
     });
 
-    t.test('shot-fired Engram alone does not produce a score', () => {
+    await t.test('shot-fired Engram alone does not produce a score', () => {
         const db = makeDb();
         const r = repoId(db);
         registerContest(db, { ...USB_CONTEST, repo_id: r });
@@ -153,7 +153,7 @@ test('war-game scoring integration', (t) => {
         db.close();
     });
 
-    t.test('verdict Engram with matching shot-fired triggers a score', () => {
+    await t.test('verdict Engram with matching shot-fired triggers a score', () => {
         const db = makeDb();
         const r = repoId(db);
         registerContest(db, { ...USB_CONTEST, repo_id: r });
@@ -209,7 +209,7 @@ test('war-game scoring integration', (t) => {
         db.close();
     });
 
-    t.test('attacker bypass scores +1 Claude', () => {
+    await t.test('attacker bypass scores +1 Claude', () => {
         const db = makeDb();
         const r = repoId(db);
         registerContest(db, { ...USB_CONTEST, repo_id: r });
@@ -229,7 +229,7 @@ test('war-game scoring integration', (t) => {
         db.close();
     });
 
-    t.test('baseline pass does not award a point', () => {
+    await t.test('baseline pass does not award a point', () => {
         const db = makeDb();
         const r = repoId(db);
         registerContest(db, { ...USB_CONTEST, repo_id: r });
@@ -247,7 +247,7 @@ test('war-game scoring integration', (t) => {
         db.close();
     });
 
-    t.test('false positive scores +1 Claude', () => {
+    await t.test('false positive scores +1 Claude', () => {
         const db = makeDb();
         const r = repoId(db);
         registerContest(db, { ...USB_CONTEST, repo_id: r });
@@ -265,7 +265,7 @@ test('war-game scoring integration', (t) => {
         db.close();
     });
 
-    t.test('protocol violation when terminal_event is impossible for scenario', () => {
+    await t.test('protocol violation when terminal_event is impossible for scenario', () => {
         const db = makeDb();
         const r = repoId(db);
         registerContest(db, { ...USB_CONTEST, repo_id: r });
@@ -285,7 +285,7 @@ test('war-game scoring integration', (t) => {
         db.close();
     });
 
-    t.test('orphan verdict (no attacker engram) scores as inconclusive', () => {
+    await t.test('orphan verdict (no attacker engram) scores as inconclusive', () => {
         const db = makeDb();
         const r = repoId(db);
         registerContest(db, { ...USB_CONTEST, repo_id: r });
@@ -302,7 +302,7 @@ test('war-game scoring integration', (t) => {
         db.close();
     });
 
-    t.test('listener-timeout terminal scores as inconclusive', () => {
+    await t.test('listener-timeout terminal scores as inconclusive', () => {
         const db = makeDb();
         const r = repoId(db);
         registerContest(db, { ...USB_CONTEST, repo_id: r });
@@ -320,7 +320,7 @@ test('war-game scoring integration', (t) => {
         db.close();
     });
 
-    t.test('double verdict — same outcome is no-op', () => {
+    await t.test('double verdict — same outcome is no-op', () => {
         const db = makeDb();
         const r = repoId(db);
         registerContest(db, { ...USB_CONTEST, repo_id: r });
@@ -350,7 +350,7 @@ test('war-game scoring integration', (t) => {
         db.close();
     });
 
-    t.test('double verdict — more-severe outcome upgrades', () => {
+    await t.test('double verdict — more-severe outcome upgrades', () => {
         const db = makeDb();
         const r = repoId(db);
         registerContest(db, { ...USB_CONTEST, repo_id: r });
@@ -378,7 +378,7 @@ test('war-game scoring integration', (t) => {
         db.close();
     });
 
-    t.test('double verdict — less-severe outcome does not downgrade', () => {
+    await t.test('double verdict — less-severe outcome does not downgrade', () => {
         const db = makeDb();
         const r = repoId(db);
         registerContest(db, { ...USB_CONTEST, repo_id: r });
@@ -405,7 +405,7 @@ test('war-game scoring integration', (t) => {
         db.close();
     });
 
-    t.test('tally returns running totals', () => {
+    await t.test('tally returns running totals', () => {
         const db = makeDb();
         const r = repoId(db);
         registerContest(db, { ...USB_CONTEST, repo_id: r });
@@ -443,7 +443,7 @@ test('war-game scoring integration', (t) => {
         db.close();
     });
 
-    t.test('recent returns scored events in reverse-chronological order', async () => {
+    await t.test('recent returns scored events in reverse-chronological order', async () => {
         const db = makeDb();
         const r = repoId(db);
         registerContest(db, { ...USB_CONTEST, repo_id: r });
@@ -469,7 +469,7 @@ test('war-game scoring integration', (t) => {
         db.close();
     });
 
-    t.test('by_scenario groups by scenario_id', () => {
+    await t.test('by_scenario groups by scenario_id', () => {
         const db = makeDb();
         const r = repoId(db);
         registerContest(db, { ...USB_CONTEST, repo_id: r });
@@ -500,7 +500,7 @@ test('war-game scoring integration', (t) => {
         db.close();
     });
 
-    t.test('get_score returns a single shot lookup', () => {
+    await t.test('get_score returns a single shot lookup', () => {
         const db = makeDb();
         const r = repoId(db);
         registerContest(db, { ...USB_CONTEST, repo_id: r });
@@ -522,7 +522,7 @@ test('war-game scoring integration', (t) => {
         db.close();
     });
 
-    t.test('non-contest Engrams pass through untouched (no regression)', () => {
+    await t.test('non-contest Engrams pass through untouched (no regression)', () => {
         const db = makeDb();
         const r = repoId(db);
         registerContest(db, { ...USB_CONTEST, repo_id: r });
@@ -539,7 +539,7 @@ test('war-game scoring integration', (t) => {
         db.close();
     });
 
-    t.test('trigger is fail-soft — drops the score table mid-run, original Engram remains', () => {
+    await t.test('trigger is fail-soft — drops the score table mid-run, original Engram remains', () => {
         const db = makeDb();
         const r = repoId(db);
         registerContest(db, { ...USB_CONTEST, repo_id: r });
