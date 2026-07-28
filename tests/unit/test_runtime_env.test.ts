@@ -5,6 +5,7 @@ import { describe, it } from 'node:test';
 import { pathToFileURL } from 'node:url';
 
 import {
+    buildStableTempEnv,
     expandTestFileArgs,
     resolveTsxLaunch,
 } from '../../scripts/runtime-env.mjs';
@@ -38,5 +39,16 @@ describe('cross-platform TypeScript runtime environment', () => {
     it('preserves wildcard arguments outside Node test mode', () => {
         const args = ['cstar.ts', 'search', '*.ts'];
         assert.deepEqual(expandTestFileArgs(args, PROJECT_ROOT), args);
+    });
+
+    it('binds canonical Node tests to an explicit disposable Hall root', () => {
+        const env = buildStableTempEnv({}, {
+            projectRoot: PROJECT_ROOT,
+            launchCwd: PROJECT_ROOT,
+            testHallRoot: '/tmp/cstar-node-tests-example',
+        });
+
+        assert.equal(env.CSTAR_TEST_HALL_ROOT, '/tmp/cstar-node-tests-example');
+        assert.equal(env.CSTAR_TEST_HALL_SUBJECT_ROOT, PROJECT_ROOT);
     });
 });

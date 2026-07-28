@@ -129,11 +129,19 @@ export class HallDatabase {
 
     public getDb(rootPath: string = registry.getRoot()): Database.Database {
         const normalizedRoot = rootPath.replace(/\\/g, '/').replace(/\/+$/, '');
+        const testHallRoot = process.env.CSTAR_TEST_HALL_ROOT?.trim();
+        const testHallSubjectRoot = process.env.CSTAR_TEST_HALL_SUBJECT_ROOT
+            ?.trim()
+            .replace(/\\/g, '/')
+            .replace(/\/+$/, '');
+        const storageRoot = testHallRoot && testHallSubjectRoot === normalizedRoot
+            ? join(testHallRoot, `process-${process.pid}`)
+            : rootPath;
         if (this.dbs.has(normalizedRoot)) {
             return this.dbs.get(normalizedRoot)!;
         }
 
-        const statsDir = join(rootPath, '.stats');
+        const statsDir = join(storageRoot, '.stats');
         if (!fs.existsSync(statsDir)) {
             fs.mkdirSync(statsDir, { recursive: true });
         }

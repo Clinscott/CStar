@@ -25,6 +25,10 @@ export function buildStableTempEnv(baseEnv = process.env, options = {}) {
     if (!env.CSTAR_LAUNCH_CWD) {
         env.CSTAR_LAUNCH_CWD = launchCwd;
     }
+    if (options.testHallRoot && !env.CSTAR_TEST_HALL_ROOT) {
+        env.CSTAR_TEST_HALL_ROOT = options.testHallRoot;
+        env.CSTAR_TEST_HALL_SUBJECT_ROOT = projectRoot;
+    }
     return env;
 }
 

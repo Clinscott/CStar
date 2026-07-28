@@ -3,18 +3,15 @@
  *
  * Spawns the launcher as a child process, completes the current SDK stdio
  * `initialize` handshake, then exercises `tools/list` and `tools/call`
- * (cstar_status) over JSON-RPC. This catches a class of regression invisible
- * to the unit tests: loader resolution, env propagation, schema validity at
- * registration time, and the actual stdio framing of the SDK.
- *
- * The handshake is transport compatibility, not CStar application state. Tool
- * handlers must keep cross-call state in explicit domain handles so the same
- * schemas can survive MCP's 2026-07-28 stateless protocol direction.
+ * (cstar_status) over JSON-RPC. This covers loader resolution, environment
+ * propagation, registration-time schema validity, and SDK stdio framing.
  */
 
 import { describe, it, after } from 'node:test';
 import assert from 'node:assert';
 import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
+import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { once } from 'node:events';
@@ -24,6 +21,14 @@ const PROJECT_ROOT = path.resolve(path.dirname(__filename), '..', '..');
 const LAUNCHER = path.join(PROJECT_ROOT, 'bin', 'cstar-kernel-mcp.js');
 const BRIDGE_LAUNCHER = path.join(PROJECT_ROOT, 'bin', 'cstar-kernel-mcp-bridge.js');
 const TCP_DAEMON = path.join(PROJECT_ROOT, 'scripts', 'cstar-mcp-tcp-daemon.js');
+const TEST_WORKSPACE = fs.mkdtempSync(path.join(os.tmpdir(), 'cstar-mcp-stdio-'));
+const TEST_AGENTS_DIR = path.join(TEST_WORKSPACE, '.agents');
+
+fs.mkdirSync(TEST_AGENTS_DIR, { recursive: true });
+fs.copyFileSync(
+    path.join(PROJECT_ROOT, '.agents', 'skill_registry.json'),
+    path.join(TEST_AGENTS_DIR, 'skill_registry.json'),
+);
 
 interface JsonRpcRequest {
     jsonrpc: '2.0';
@@ -91,6 +96,7 @@ class StdioMcpClient {
             ...process.env,
             CSTAR_KERNEL_MCP: '1',
             CSTAR_KERNEL_DISABLE_WATCH: '1',
+            CSTAR_PROJECT_ROOT: TEST_WORKSPACE,
             NODE_OPTIONS: '--max-old-space-size=2048',
             ...extraEnv,
         };
@@ -205,9 +211,7 @@ function parseToolBody(resp: JsonRpcResponse): any {
     }
 }
 
-// The launcher uses `process.execve` on Unix (replacing the JS process with the
-// underlying TSX-loaded MCP server). Some environments (older glibc, certain
-// containers) reject execve; the test must not hang in that case.
+// A failed launcher exec must not hang the test process.
 async function launchClient(extraEnv: Record<string, string> = {}, launcher: string = LAUNCHER): Promise<StdioMcpClient | null> {
     const client = new StdioMcpClient(extraEnv, launcher);
     // Probe with `initialize` and a generous timeout. If the launcher failed
@@ -237,6 +241,7 @@ describe('cstar-kernel-mcp stdio launcher', () => {
         if (client) {
             await client.close();
         }
+        fs.rmSync(TEST_WORKSPACE, { recursive: true, force: true });
     });
 
     it('boots, handshakes, and exposes the documented tool inventory exactly', async () => {
@@ -333,7 +338,11 @@ describe('cstar-kernel-mcp stdio launcher', () => {
         const body = JSON.parse(content[0].text);
         assert.ok(body.framework, 'cstar_status payload must include a framework block');
         assert.strictEqual(typeof body.hall_reachable, 'boolean');
-        assert.strictEqual(typeof body.workspace, 'string');
+        assert.strictEqual(
+            path.resolve(body.workspace),
+            path.resolve(TEST_WORKSPACE),
+            'stdio integration processes must use the disposable test workspace',
+        );
     });
 
     it('rounds-trips a tools/call for cstar_telemetry returning summary blocks', async () => {
@@ -451,6 +460,7 @@ describe('cstar-kernel-mcp stdio launcher', () => {
                 CSTAR_KERNEL_MCP_TCP_HOST: '127.0.0.1',
                 CSTAR_KERNEL_MCP_TCP_PORT: port,
                 CSTAR_KERNEL_DISABLE_WATCH: '1',
+                CSTAR_PROJECT_ROOT: TEST_WORKSPACE,
             },
             stdio: ['ignore', 'pipe', 'pipe'],
         });
