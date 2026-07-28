@@ -23,7 +23,7 @@ Invariants (enforced here, documented in SKILL.md):
 from __future__ import annotations
 
 import argparse
-import fcntl
+import errno
 import hashlib
 import json
 import os
@@ -31,8 +31,14 @@ import shutil
 import subprocess
 import sys
 import time
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
+
+if os.name == "nt":
+    import msvcrt
+else:
+    import fcntl
 
 CHARS_PER_TOKEN_ESTIMATE = 4
 DEFAULT_MODEL = "MiniMax-M3"
@@ -42,6 +48,93 @@ DEFAULT_MAX_CHARS = 4000
 DEFAULT_TIMEOUT = 300
 TARGET_PATH_BYTE_CAP = 32 * 1024  # per-file read cap to avoid prompt bloat
 NESTED_GUARD_ENV = "HERMES_AUTOBOT_DELEGATED"
+
+
+class LockHeldError(BlockingIOError):
+    """A requested non-blocking exclusive lock is already held."""
+
+
+_WINDOWS_CONTENTION_ERRNOS = {errno.EACCES, errno.EAGAIN, errno.EDEADLK}
+_WINDOWS_CONTENTION_WINERRORS = {32, 33}
+
+
+def _open_lock_file(path: Path):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    flags = os.O_RDWR | os.O_CREAT | getattr(os, "O_BINARY", 0)
+    fd = os.open(path, flags, 0o600)
+    try:
+        lock_f = os.fdopen(fd, "r+b", buffering=0)
+    except BaseException:
+        os.close(fd)
+        raise
+
+    lock_f.seek(0, os.SEEK_END)
+    if lock_f.tell() == 0:
+        lock_f.write(b" ")
+    lock_f.seek(0)
+    return lock_f
+
+
+def _windows_contention(exc: OSError) -> bool:
+    return (
+        exc.errno in _WINDOWS_CONTENTION_ERRNOS
+        or getattr(exc, "winerror", None) in _WINDOWS_CONTENTION_WINERRORS
+    )
+
+
+@contextmanager
+def exclusive_file_lock(
+    path: Path,
+    *,
+    blocking: bool = True,
+    owner: str | None = None,
+):
+    lock_f = _open_lock_file(Path(path))
+    acquired = False
+    try:
+        if os.name == "nt":
+            while True:
+                lock_f.seek(0)
+                try:
+                    msvcrt.locking(lock_f.fileno(), msvcrt.LK_NBLCK, 1)
+                except OSError as exc:
+                    if not _windows_contention(exc):
+                        raise
+                    if not blocking:
+                        raise LockHeldError(errno.EAGAIN, f"lock held: {path}") from exc
+                    time.sleep(0.05)
+                else:
+                    acquired = True
+                    break
+        else:
+            flags = fcntl.LOCK_EX | (0 if blocking else fcntl.LOCK_NB)
+            try:
+                fcntl.flock(lock_f.fileno(), flags)
+            except BlockingIOError as exc:
+                if blocking:
+                    raise
+                raise LockHeldError(exc.errno, f"lock held: {path}") from exc
+            acquired = True
+
+        if owner is not None:
+            data = owner.encode("utf-8") or b" "
+            lock_f.seek(0)
+            lock_f.write(data)
+            lock_f.truncate()
+            lock_f.flush()
+
+        yield lock_f
+    finally:
+        if acquired:
+            try:
+                lock_f.seek(0)
+                if os.name == "nt":
+                    msvcrt.locking(lock_f.fileno(), msvcrt.LK_UNLCK, 1)
+                else:
+                    fcntl.flock(lock_f.fileno(), fcntl.LOCK_UN)
+            except OSError:
+                pass
+        lock_f.close()
 
 
 # ── path helpers ──────────────────────────────────────────────────────────
@@ -506,24 +599,12 @@ def delegate(intent: dict) -> dict:
     # Lock — prevent same intent firing twice in parallel
     STATE_DIR.mkdir(parents=True, exist_ok=True)
     lock_path = STATE_DIR / f"autobot.{ihash}.lock"
-    with open(lock_path, "w") as lock_f:
-        try:
-            fcntl.flock(lock_f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except BlockingIOError:
-            envelope = {
-                "status": "degraded",
-                "degraded_reason": "lock_held",
-                "intent_id": iid,
-                "duration_ms": 0,
-            }
-            append_ledger(make_ledger_entry(intent, iid, "", "", "degraded",
-                                            "lock_held", 0))
-            return envelope
-
-        try:
-            lock_f.write(f"pid={os.getpid()} at={now_iso()}\n")
-            lock_f.flush()
-
+    try:
+        with exclusive_file_lock(
+            lock_path,
+            blocking=False,
+            owner=f"pid={os.getpid()} at={now_iso()}\n",
+        ):
             materials, missing = materialize_targets(intent)
             prompt = build_prompt(intent, materials)
             call = invoke_hermes(intent, prompt)
@@ -586,11 +667,16 @@ def delegate(intent: dict) -> dict:
                 "ledger_entry": f"{LEDGER_PATH}#L{line}",
                 "response": None if wrote_to else cleaned,
             }
-        finally:
-            try:
-                fcntl.flock(lock_f.fileno(), fcntl.LOCK_UN)
-            except OSError:
-                pass
+    except LockHeldError:
+        envelope = {
+            "status": "degraded",
+            "degraded_reason": "lock_held",
+            "intent_id": iid,
+            "duration_ms": 0,
+        }
+        append_ledger(make_ledger_entry(intent, iid, "", "", "degraded",
+                                        "lock_held", 0))
+        return envelope
 
 
 # ── CLI ──────────────────────────────────────────────────────────────────
