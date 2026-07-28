@@ -13,6 +13,7 @@ import {
     resolveHostProvider,
 } from '../../src/core/host_session.js';
 import { MimirClient } from '../../src/core/mimir_client.js';
+import { closeDb } from '../../src/tools/pennyone/intel/database.js';
 import { parseOracleProvider } from '../../src/node/core/commands/oracle.js';
 
 const ROOT = process.cwd();
@@ -123,6 +124,7 @@ describe('Gemini retirement invariant', () => {
             assert.match(response.error ?? '', /retired or unsupported/i);
             assert.equal(execCalls, 0);
         } finally {
+            closeDb();
             fs.rmSync(tmpRoot, { recursive: true, force: true });
         }
     });
@@ -148,6 +150,7 @@ describe('Gemini retirement invariant', () => {
             assert.notEqual(response.trace.transport_mode, 'host_session');
             assert.doesNotMatch(response.error ?? '', /retired or unsupported/i);
         } finally {
+            closeDb();
             fs.rmSync(tmpRoot, { recursive: true, force: true });
         }
     });
