@@ -14,26 +14,64 @@ export interface ReleaseArchiveRecord {
     source: string;
 }
 
+function toPortablePath(inputPath: string): string {
+    return inputPath.replace(/\\/g, '/');
+}
+
+function readTarVersionOutput(projectRoot: string): string {
+    const result = spawnSync('tar', ['--version'], {
+        cwd: projectRoot,
+        encoding: 'utf-8',
+    });
+
+    if (result.status !== 0) {
+        return '';
+    }
+
+    return `${result.stdout ?? ''}\n${result.stderr ?? ''}`;
+}
+
+export function buildTarArguments(
+    tarVersionOutput: string,
+    bundleRoot: string,
+    archivePath: string,
+): string[] {
+    const portableArguments = [
+        '-czf',
+        archivePath,
+        '-C',
+        bundleRoot,
+        '.',
+    ];
+
+    if (!/\bGNU tar\b/i.test(tarVersionOutput)) {
+        return portableArguments;
+    }
+
+    return [
+        '--sort=name',
+        '--mtime=UTC 1970-01-01',
+        '--owner=0',
+        '--group=0',
+        '--numeric-owner',
+        ...portableArguments,
+    ];
+}
+
 function readPackageVersion(projectRoot: string): string {
     const packageJson = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf-8')) as PackageMetadata;
     return packageJson.version ?? '0.0.0';
 }
 
-function runTar(projectRoot: string, bundleRoot: string, archivePath: string): void {
+function runTar(
+    projectRoot: string,
+    bundleRoot: string,
+    archivePath: string,
+    tarVersionOutput: string,
+): void {
     const result = spawnSync(
         'tar',
-        [
-            '--sort=name',
-            '--mtime=UTC 1970-01-01',
-            '--owner=0',
-            '--group=0',
-            '--numeric-owner',
-            '-czf',
-            archivePath,
-            '-C',
-            bundleRoot,
-            '.',
-        ],
+        buildTarArguments(tarVersionOutput, bundleRoot, archivePath),
         {
             cwd: projectRoot,
             encoding: 'utf-8',
@@ -57,6 +95,7 @@ export function writeReleaseArchives(projectRoot: string): {
     writeReleaseBundles(resolvedRoot);
     const bundles = buildReleaseBundles(resolvedRoot);
     const version = readPackageVersion(resolvedRoot);
+    const tarVersionOutput = readTarVersionOutput(resolvedRoot);
 
     fs.rmSync(releasesRoot, { recursive: true, force: true });
     fs.mkdirSync(releasesRoot, { recursive: true });
@@ -65,11 +104,11 @@ export function writeReleaseArchives(projectRoot: string): {
         const archiveName = `corvus-star-${bundle.name}-v${version}.tar.gz`;
         const archivePath = path.join(releasesRoot, archiveName);
         const bundleRoot = path.join(resolvedRoot, bundle.rootDir);
-        runTar(resolvedRoot, bundleRoot, archivePath);
+        runTar(resolvedRoot, bundleRoot, archivePath, tarVersionOutput);
         return {
             name: bundle.name,
-            archive: path.relative(resolvedRoot, archivePath),
-            source: bundle.rootDir,
+            archive: toPortablePath(path.relative(resolvedRoot, archivePath)),
+            source: toPortablePath(bundle.rootDir),
         };
     });
 
