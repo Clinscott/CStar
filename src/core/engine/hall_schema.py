@@ -449,7 +449,7 @@ class HallOfRecords:
                 ON hall_planning_sessions(repo_id, updated_at);
 
                 DROP VIEW IF EXISTS hall_repository_projection;
-                CREATE VIEW hall_repository_projection AS
+                CREATE VIEW IF NOT EXISTS hall_repository_projection AS
                 SELECT
                     r.repo_id,
                     r.root_path,
@@ -521,7 +521,7 @@ class HallOfRecords:
             conn.executescript(
                 """
                 DROP VIEW IF EXISTS hall_repository_projection;
-                CREATE VIEW hall_repository_projection AS
+                CREATE VIEW IF NOT EXISTS hall_repository_projection AS
                 SELECT
                     r.repo_id,
                     r.root_path,
