@@ -28,6 +28,8 @@
     "test": "tests"
   },
   "scripts": {
+    "verify": "node scripts/run-tsx.mjs scripts/verify.ts",
+    "typecheck": "tsc --noEmit",
     "test": "npm run test:node && npm run test:python",
     "test:python": "node scripts/run-python.mjs -m pytest tests/unit tests/integration tests/empire_tests tests/crucible",
     "test:node": "node scripts/run-tsx.mjs --test tests/*.test.ts tests/unit/*.test.ts tests/unit/war_game/*.test.ts tests/unit/spoke_discovery/*.test.ts tests/integration/*.test.ts",

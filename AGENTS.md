@@ -86,8 +86,15 @@ Every completed Bead is automatically distilled into a searchable "Engram" (inte
 ## Commands
 - `cstar <command>` — Kernel CLI
 - `node bin/cstar.js <command>` — Canonical bootstrap path when aliasing is unavailable or shell wrappers are suspect
+- `npm run verify` — Canonical local verification gate; writes a durable local receipt under `.cstar/verification/receipts/`
 - `npm test` — Full test suite
 - `npm run test:node` — TypeScript tests only
+
+## Repository and Verification Authority
+- GitHub is the remote source repository and PR review record. GitHub Actions is not CStar's verification authority.
+- Run `npm run verify` before publishing or merging a bounded slice and retain its local receipt.
+- A GitHub check result must not replace, weaken, or contradict the CStar verification receipt.
+- Forge and Researcher server integration remains an inert, fail-closed contract until the approved local profiles and server enrollment path are available. Never infer profile paths, provider settings, OAuth state, credentials, commands, or execution availability.
 
 ## Launcher Contract
 - Prefer the local bootstrap surfaces: `./cstar <command>` from the CStar root or `node bin/cstar.js <command>` from any shell.

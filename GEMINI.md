@@ -110,8 +110,8 @@ The `cstar-kernel` MCP server is the authoritative kernel surface — invoke the
 - `cstar_warden` — Sentinel Wardens: list / bounties (tech_debt_ledger) / scan (Python warden on demand).
 - `cstar_telemetry` — MCP telemetry summaries: usage counts, outcome rates, token-path integration.
 
-## Exported Gemini Capabilities (0)
-- None exported.
+## Exported Gemini Capabilities (1)
+- `calculus` (PRIME, supported, kernel-primitive, kernel fallback allowed)
 
 ## Notes
 - This extension is generated from the registry-backed distribution builder.

@@ -12,6 +12,7 @@
 pytest_*.txt
 detail_fails.txt
 final_verify.txt
+/.cstar/verification/
 
 # Python
 __pycache__/

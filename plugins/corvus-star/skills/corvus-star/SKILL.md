@@ -153,4 +153,4 @@ The `cstar-kernel` MCP server is the authoritative kernel surface — invoke the
 
 ## Registry-Exported Codex Capabilities
 - This list is generated from `.agents/skill_registry.json` and may be empty when no Codex executable capabilities are registered.
-- None exported.
+- `calculus` (PRIME, supported, kernel-primitive, kernel fallback allowed)
