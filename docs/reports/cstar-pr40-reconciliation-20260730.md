@@ -1,7 +1,7 @@
 # CStar Local and PR40 Reconciliation
 
-Date: 2026-07-30  
-Decision: `decision:cstar-pr40-local-reconciliation-20260729`  
+Date: 2026-07-30
+Decision: `decision:cstar-pr40-local-reconciliation-20260729`
 Parent bead: `bead:cstar:pr40-local-reconciliation-20260729`
 
 ## Decision
