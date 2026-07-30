@@ -5,6 +5,11 @@ description: >-
   Operation: The Autonomic Organism (Deep Matrix Integration)
 ---
 
+> **Historical session record (2026-03-04).** Preserved as provenance. One
+> Mind, autonomous mutation, Ravens, wrap-it-up harvesting, scalar Gungnir, and
+> persona claims below are retired or non-authoritative. This file is not
+> current-state, activation, security, or production evidence.
+
 # 📜 SESSION ACHIEVEMENTS (Session 113)
 
 ## 1. ◤ THE AUTONOMIC ORGANISM ◢

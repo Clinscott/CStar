@@ -40,17 +40,35 @@ jobs:
 
       - name: 'Checkout repository'
         uses: 'actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8' # ratchet:actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: 'Prepare bounded review context'
+        env:
+          REPOSITORY: '${{ github.repository }}'
+          PULL_REQUEST_NUMBER: '${{ github.event.pull_request.number || github.event.issue.number }}'
+          ADDITIONAL_CONTEXT: '${{ inputs.additional_context }}'
+        run: |-
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          fs.mkdirSync('.gemini', { recursive: true });
+          const contextData = {
+            repository: process.env.REPOSITORY || '',
+            pull_request_number: Number(process.env.PULL_REQUEST_NUMBER || 0),
+            additional_context: process.env.ADDITIONAL_CONTEXT || '',
+          };
+          fs.writeFileSync('.gemini/context.json', JSON.stringify(contextData), {
+            encoding: 'utf8',
+            mode: 0o600,
+          });
+          NODE
 
       - name: 'Run Gemini pull request review'
         uses: 'google-github-actions/run-gemini-cli@v0' # ratchet:exclude
         id: 'gemini_pr_review'
         env:
+          GEMINI_CLI_TRUST_WORKSPACE: 'true'
           GITHUB_TOKEN: '${{ steps.mint_identity_token.outputs.token || secrets.GITHUB_TOKEN || github.token }}'
-          ISSUE_TITLE: '${{ github.event.pull_request.title || github.event.issue.title }}'
-          ISSUE_BODY: '${{ github.event.pull_request.body || github.event.issue.body }}'
-          PULL_REQUEST_NUMBER: '${{ github.event.pull_request.number || github.event.issue.number }}'
-          REPOSITORY: '${{ github.repository }}'
-          ADDITIONAL_CONTEXT: '${{ inputs.additional_context }}'
         with:
           gcp_location: '${{ vars.GOOGLE_CLOUD_LOCATION }}'
           gcp_project_id: '${{ vars.GOOGLE_CLOUD_PROJECT }}'
@@ -97,13 +115,7 @@ jobs:
                 }
               },
               "tools": {
-                "core": [
-                  "run_shell_command(cat)",
-                  "run_shell_command(echo)",
-                  "run_shell_command(grep)",
-                  "run_shell_command(head)",
-                  "run_shell_command(tail)"
-                ]
+                "core": []
               }
             }
           prompt: '/gemini-review'

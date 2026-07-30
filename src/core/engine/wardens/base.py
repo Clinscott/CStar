@@ -4,19 +4,14 @@ Lore: "The foundations of the watchtowers."
 Purpose: Defines the standard interface and shared utilities for all Wardens.
 """
 
-import json
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any
 
-from src.core.sovereign_hud import SovereignHUD
-from src.tools.brave_search import BraveSearch
-
-
 class BaseWarden(ABC):
     """
     Abstract Base Class for all Sentinel Wardens.
-    Provides centralized config loading, path filtering, and research capabilities.
+    Provides path filtering and explicitly invoked research capabilities.
     """
 
     def __init__(self, root: Path) -> None:
@@ -27,23 +22,6 @@ class BaseWarden(ABC):
             root: Path to the project root directory.
         """
         self.root = root
-        self.config: dict[str, Any] = self._load_config()
-        self.brave: BraveSearch = BraveSearch()
-
-    def _load_config(self) -> dict[str, Any]:
-        """
-        Loads configuration from .agents/config.json.
-
-        Returns:
-            A dictionary containing the configuration data.
-        """
-        config_path = self.root / ".agents" / "config.json"
-        if config_path.exists():
-            try:
-                return json.loads(config_path.read_text(encoding='utf-8'))
-            except (json.JSONDecodeError, OSError):
-                pass
-        return {}
 
     def _should_ignore(self, path: Path) -> bool:
         """
@@ -65,7 +43,7 @@ class BaseWarden(ABC):
 
     def research_topic(self, topic: str) -> list[dict[str, str]]:
         """
-        Utilizes Brave Search to find info on a topic.
+        Retired compatibility method for the old in-warden search path.
 
         Args:
             topic: The search query or topic to research.
@@ -73,12 +51,8 @@ class BaseWarden(ABC):
         Returns:
             A list of search results.
         """
-        if self.brave.is_quota_available():
-            SovereignHUD.persona_log("INFO", f"Researching: {topic}...")
-            return self.brave.search(topic)
-        else:
-            SovereignHUD.persona_log("WARN", "Brave Search Quota Exhausted. Skipping research.")
-            return []
+        del topic
+        raise RuntimeError("warden_research_retired_use_cstar_researcher_request")
 
     @abstractmethod
     def scan(self) -> list[dict[str, Any]]:

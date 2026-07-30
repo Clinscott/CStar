@@ -1,6 +1,7 @@
-import { describe, it, mock, afterEach } from 'node:test';
+import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 
 import {
@@ -17,13 +18,20 @@ import {
     resolveIntentCategory,
     resolveIntentCategoryFromGrammar,
     resolveByIntentCategory,
-    deps,
 } from '../../../../src/node/core/runtime/host_workflows/chant_parser.ts';
 
 describe('Chant Parser Unit Tests', () => {
-    afterEach(() => {
-        mock.restoreAll();
-    });
+    function withRegistry(content?: string): { root: string; cleanup: () => void } {
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'cstar-chant-registry-'));
+        if (content !== undefined) {
+            fs.mkdirSync(path.join(root, '.agents'));
+            fs.writeFileSync(path.join(root, '.agents', 'skill_registry.json'), content);
+        }
+        return {
+            root,
+            cleanup: () => fs.rmSync(root, { recursive: true, force: true }),
+        };
+    }
 
     function assertResolvedWeave(
         resolution: ReturnType<typeof resolveBuiltInWeave> | ReturnType<typeof resolveRegistryInvocation> | ReturnType<typeof resolveByIntentCategory>,
@@ -159,25 +167,34 @@ Confidence: 1.8`;
     });
 
     it('loadSkillTriggers returns empty set if manifest does not exist', () => {
-        mock.method(deps.fs, 'existsSync', () => false);
-        const result = loadSkillTriggers('/fake/root');
-        assert.equal(result.size, 0);
+        const fixture = withRegistry();
+        try {
+            assert.equal(loadSkillTriggers(fixture.root).size, 0);
+        } finally {
+            fixture.cleanup();
+        }
     });
 
     it('loadSkillTriggers returns skill keys from manifest', () => {
-        mock.method(deps.fs, 'existsSync', () => true);
-        mock.method(deps.fs, 'readFileSync', () => '{"entries":{"SkillA":{},"SkillB":{}}}');
-        const result = loadSkillTriggers('/fake/root');
-        assert.ok(result.has('skilla'));
-        assert.ok(result.has('skillb'));
-        assert.equal(result.size, 2);
+        const fixture = withRegistry('{"entries":{"SkillA":{},"SkillB":{}}}');
+        try {
+            const result = loadSkillTriggers(fixture.root);
+            assert.ok(result.has('skilla'));
+            assert.ok(result.has('skillb'));
+            assert.equal(result.size, 2);
+        } finally {
+            fixture.cleanup();
+        }
     });
 
     it('loadRegistryManifest returns parsed registry data', () => {
-        mock.method(deps.fs, 'existsSync', () => true);
-        mock.method(deps.fs, 'readFileSync', () => '{"entries":{"chant":{"tier":"WEAVE"}}}');
-        const manifest = loadRegistryManifest('/fake/root');
-        assert.equal(manifest?.entries?.chant?.tier, 'WEAVE');
+        const fixture = withRegistry('{"entries":{"chant":{"tier":"WEAVE"}}}');
+        try {
+            const manifest = loadRegistryManifest(fixture.root);
+            assert.equal(manifest?.entries?.chant?.tier, 'WEAVE');
+        } finally {
+            fixture.cleanup();
+        }
     });
 
     it('resolveBuiltInWeave handles ravens commands', () => {
@@ -325,10 +342,15 @@ Confidence: 1.8`;
     });
 
     it('resolveByIntentCategory returns a valid weave invocation for a matched category', () => {
-        const payload = { query: 'fix it', project_root: '/tmp/test', cwd: '/tmp/test' };
-        const res = assertResolvedWeave(resolveByIntentCategory(['fix', 'it'], payload));
-        assert.equal(res.trigger, 'restoration');
-        assert.equal(res.invocation.weave_id, 'weave:restoration');
-        assert.equal(res.invocation.payload !== undefined, true);
+        const fixture = withRegistry();
+        try {
+            const payload = { query: 'fix it', project_root: fixture.root, cwd: fixture.root };
+            const res = assertResolvedWeave(resolveByIntentCategory(['fix', 'it'], payload));
+            assert.equal(res.trigger, 'restoration');
+            assert.equal(res.invocation.weave_id, 'weave:restoration');
+            assert.equal(res.invocation.payload !== undefined, true);
+        } finally {
+            fixture.cleanup();
+        }
     });
 });

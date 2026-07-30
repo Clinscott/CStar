@@ -1,12 +1,26 @@
-# CoS and PMT Thread Architecture
+# CoS and Project-Context Thread Architecture
 
-This document defines the Corvus Codex-thread operating architecture. Thread topology is part of the system architecture. Refactoring thread ownership follows the same separation-of-concerns rules as refactoring source code.
+This document defines the Corvus Codex-thread operating architecture. Thread
+topology is part of the system architecture. Refactoring thread responsibility
+follows the same separation-of-concerns rules as refactoring source code.
 
 ## Control Principle
 
-CStar remains the canonical control plane for Corvus estate work. Planning state, proposal lifecycle, task ownership, validation, and completion should be represented through CStar proposals, beads, receipts, or bounded artifacts whenever a kernel-backed path exists.
+CStar is the canonical control plane for Corvus estate work. Planning state,
+proposal lifecycle, execution state, validation, and completion should be
+represented through CStar proposals, beads, receipts, or bounded artifacts
+whenever a kernel-backed path exists.
 
-The User authorizes high-order direction and red-gated instructions. CoS converts that direction into bounded routing, decision packets, gates, and review outcomes. PMTs own their bounded domains. Workers and tools perform narrow execution under the PMT that owns the domain.
+Authority begins with platform safety and the current operator grant, followed
+by global Corvus invariants, the nearest repository policy, and then CStar
+lifecycle state. Registries and observed runtime are evidence; neither may
+create or weaken authority.
+
+The User authorizes high-order direction and red-gated instructions. CoS turns
+that direction into bounded CStar work, selects the proper execution or review
+spoke, packages evidence, and closes the lifecycle. PMT tasks are mapped
+project-context repositories. When an in-scope project has a mapped PMT, CoS
+must read one bounded context packet. PMTs do not own work or route workers.
 
 ## Required Thread Boundaries
 
@@ -16,83 +30,90 @@ CoS is the estate overseer and operator-facing decision surface.
 
 CoS owns:
 
-- translating User intent into CStar-tracked goals, proposals, gates, and routing decisions;
-- accepting, rejecting, parking, or escalating PMT packets;
-- detecting cross-domain conflicts, authority disputes, stale ownership, and red-gate conditions;
-- maintaining goal continuity while external PMTs are running, blocked, or waiting for review;
-- asking the User only for high-order choices, red-gated authorization, or unresolved policy conflicts.
+- translating User intent into CStar-tracked goals, proposals, gates, and
+  routing decisions;
+- sequencing bounded Green or Yellow work and returning red gates to the User;
+- querying only a mapped project PMT for bounded context when its project is in
+  scope;
+- sending a compact `STATE_UPDATE` to that PMT after meaningful project work;
+- reviewing worker and validator evidence and recording lifecycle outcomes;
+- detecting cross-domain conflicts, authority disputes, stale context, and
+  unsafe boundary expansion.
 
-CoS does not own routine implementation, repeated shoulder-surfacing of PMTs, worker execution, or direct bypass of CStar state when a kernel-backed route exists.
+CoS does not bypass CStar state when a kernel-backed route exists. It does not
+substitute a Codex subagent for Forge implementation, Researcher collection, or
+independent CorvusEye review.
 
-### CStar Control Plane PMT
+### Mapped Project PMTs
 
-The CStar Control Plane PMT owns CStar and cstar-console control-plane surfaces.
+PMTs are project-scoped information repositories only.
 
-It owns:
+A mapped PMT may provide:
 
-- CStar kernel, bead, proposal, Augury, Hall, routing, and receipt mechanics;
-- cstar-console UI and operator control-room behavior;
-- control-plane schema, status, review queues, and acceptance workflows;
-- integration contracts that let PMTs report into CStar.
+- bounded historical project context;
+- pointers to project artifacts, decisions, and known hazards;
+- a compact snapshot that CoS can compare with current CStar and repository
+  evidence;
+- a destination for a post-work `STATE_UPDATE`.
 
-It must not also own Researcher execution or Corvus Forge implementation work. If a CStar Console thread is carrying Researcher or Forge delivery responsibility, that is architectural drift and must be split.
+A PMT grants no ownership, execution, review, approval, routing, or monitoring
+authority. CoS does not query unrelated PMTs. A missing or stale mapped PMT is
+a freshness gap, not an execution gate, and cannot park or block the goal.
 
-### Researcher PMT
+For a mapped-PMT query, CoS requests the task-appropriate current GPT-5.6
+profile only when the host exposes an enforceable selector: Luna for routine
+retrieval, Terra for conflicting-context synthesis, and Sol for high-stakes
+architecture, security, or incident forensics. The request records requested
+and actual identity separately; absent a reported identity, actual is
+`unreported`.
 
-The Researcher PMT owns research and evidence production.
+### CStar Control Plane
 
-It owns:
+CStar is the axle rather than a PMT or worker spoke. Its kernel owns the
+canonical lifecycle surfaces for beads, proposals, Augury, Hall, routing,
+receipts, validation, and completion. The cstar-console and PennyOne mirror
+operator-visible state but do not supersede kernel lifecycle records.
 
-- source discovery, source weighting, source receipts, and evidence packages;
-- Researcher v2 behavior, Hermes Researcher profile diagnostics, and truth/lie evaluation surfaces;
-- source-adapter readiness, source-collection gates, and model/tool telemetry for research runs;
-- research package integrity, hidden-boundary safety, and development-vs-holdout separation.
+### Researcher
 
-It does not own CStar control-plane implementation, Forge builds, PR packaging for unrelated repositories, or production rollout authority.
+Researcher gathers evidence through authorized source lanes. It owns source
+discovery, source receipts, evidence packages, and research-run telemetry. It
+does not own CStar implementation, Forge delivery, or production rollout.
 
-### Corvus Forge PMT
+### Corvus Forge
 
-The Corvus Forge PMT owns build and implementation delivery.
+Corvus Forge builds implementation through the durable
+`cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute -> private Hermes cstar-hub ->
+minimax/MiniMax-M3` path. Its delivery remains unverified until independent
+validation is recorded through CStar. Forge does not approve its own rollout.
 
-It owns:
+### CorvusEye
 
-- repository implementation plans, worker assignment, local repair, tests, package validation, and PR packaging;
-- build-lane validation for Corvus projects and spokes;
-- implementation receipts, dirty-root accounting, and merge-readiness packets.
+CorvusEye is the independent evaluation and red-team spoke. It reviews
+Researcher or Forge evidence when producer-independent validation is required;
+it does not perform the originating work it judges.
 
-It does not own research truth gates, Researcher source collection, CStar kernel authority, or independent acceptance of its own production rollout.
+### MM
 
-### CorvusEye Review PMT
-
-The CorvusEye Review PMT is an independent review and audit lane.
-
-It owns:
-
-- schema review, hidden-boundary review, acceptance-package review, and safety regressions;
-- independent review of Researcher and Forge outputs when the gate requires separation from the producer PMT.
-
-It does not perform the originating implementation or research run that it reviews.
-
-### MM Estate Synthesis
-
-MM is an estate synthesis and coordination lane, not a relay requirement for every packet.
-
-It owns:
-
-- cross-PMT synthesis, dependency compression, conflict detection, and estate-wide status summaries;
-- escalation support when a goal spans multiple PMTs or when CoS asks for synthesis.
-
-It should not become a routine message relay for simple single-domain gates. Direct CoS-to-pinned-PMT routing is valid when one domain owns the work and no cross-PMT dependency exists.
+MM is legacy and has no active estate-routing, synthesis, ownership, or relay
+role. Current work routes from CoS through CStar to the appropriate spoke.
 
 ## Goal Lifecycle
 
-1. CoS receives User intent and records the goal as a bounded CStar-tracked decision, proposal, or bead.
-2. CoS selects the owning PMT by bounded context.
-3. The PMT accepts or rejects domain ownership before execution.
-4. The PMT may perform bounded Green or Yellow repair inside its domain without returning every simple blocker to CoS.
+1. CoS receives User intent and records the goal as a bounded CStar-tracked
+   decision, proposal, or bead.
+2. If the target belongs to a project with a mapped PMT, CoS reads one bounded
+   context packet; failure is recorded only as a freshness gap.
+3. CoS resolves route and scope through CStar and sends build work to Forge,
+   research work to Researcher, and independent review to CorvusEye.
+4. Each worker request, execution receipt, artifact, and validation remains
+   evidence until the corresponding lifecycle transition is persisted.
 5. Red gates return to CoS for explicit User authorization when required.
-6. While a PMT is running, CoS keeps the goal parked or blocked rather than polling continuously.
-7. When a PMT returns a packet, CoS reviews the packet, records the decision, and either closes, routes the next gate, or escalates.
+6. When waiting on a live worker or external state, CoS pauses rather than
+   polling. A PMT read is never the live worker and never blocks execution.
+7. CoS reviews returned evidence, records the decision, sends a compact mapped
+   PMT `STATE_UPDATE` after meaningful project work, and closes or routes the
+   next gate.
 
 ## Red Gates
 
@@ -100,20 +121,27 @@ Red gates require explicit CoS/User authorization before execution:
 
 - secrets, credentials, token inspection, token output, or credential mutation;
 - production deploys, restarts, broad rollout, or external irreversible effects;
-- destructive cleanup, history rewrite, deletion, reset, or stash operations outside a narrow explicit request;
+- destructive cleanup, history rewrite, deletion, reset, or stash operations
+  outside a narrow explicit request;
 - main/master push, merge, release, or acceptance of production readiness;
-- locked-holdout evaluation, hidden-label access, or tuning against sealed evaluation data;
-- authority-model changes, ownership-boundary changes, or PMT responsibility merges;
+- locked-holdout evaluation, hidden-label access, or tuning against sealed
+  evaluation data;
+- authority-model or execution-boundary changes;
 - direct Hall or SQLite bypass when a CStar kernel-backed path exists;
 - source/model budget expansion outside the accepted envelope.
 
 ## Separation Tests
 
-Any future architecture change fails review if it makes one thread routinely responsible for more than one bounded PMT domain. In particular:
+Future architecture changes fail review if they:
 
-- CStar Control Plane PMT plus Researcher PMT is a violation;
-- CStar Control Plane PMT plus Corvus Forge PMT is a violation;
-- Researcher PMT plus Corvus Forge PMT is a violation;
-- producer PMT plus independent review PMT is a violation for gates requiring independent review.
+- grant a PMT ownership, execution, review, approval, routing, or monitoring
+  authority;
+- make mapped PMT availability an execution or completion gate;
+- restore MM as an active coordination or relay lane;
+- merge CStar control-plane behavior with Researcher or Forge execution;
+- merge Researcher and Forge responsibilities; or
+- let a producer perform an independent review required for its own gate.
 
-Temporary emergency exception paths must be recorded as exceptions, bounded by one goal, and followed by a restoration task that returns ownership to the split architecture.
+Temporary bootstrap repairs must be recorded as bounded exceptions and followed
+by restoration work that returns implementation, research, and review to their
+proper spokes.

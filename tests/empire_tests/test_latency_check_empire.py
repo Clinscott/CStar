@@ -1,37 +1,13 @@
-import unittest.mock as mock
+import pytest
 
-from src.tools.latency_check import LatencyProfiler
+from src.tools import latency_check
 
 
-def test_latency_profiler_startup():
-    with mock.patch("subprocess.run") as mock_run:
-        mock_run.return_value.returncode = 0
+def test_engine_latency_profiler_is_retired() -> None:
+    with pytest.raises(RuntimeError, match=f"^{latency_check.RETIREMENT_ERROR}$"):
+        latency_check.LatencyProfiler(iterations=2)
 
-        profiler = LatencyProfiler(iterations=2)
-        avg = profiler.measure_startup()
 
-        assert mock_run.call_count == 2
-        assert avg > 0
-        assert avg < 10000
-
-def test_latency_profiler_search():
-    with mock.patch("subprocess.run") as mock_run:
-        mock_run.return_value.returncode = 0
-
-        profiler = LatencyProfiler(iterations=2)
-        avg = profiler.measure_search("test query")
-
-        assert mock_run.call_count == 2
-        assert avg > 0
-        assert avg < 5000
-
-def test_latency_profiler_failure():
-    with mock.patch("subprocess.run") as mock_run:
-        import subprocess
-        mock_run.side_effect = subprocess.SubprocessError()
-
-        profiler = LatencyProfiler(iterations=1)
-        avg = profiler.measure_startup()
-
-        # Should return penalty value
-        assert avg == 10000.0
+def test_engine_latency_profiler_main_is_retired() -> None:
+    with pytest.raises(RuntimeError, match=f"^{latency_check.RETIREMENT_ERROR}$"):
+        latency_check.main()

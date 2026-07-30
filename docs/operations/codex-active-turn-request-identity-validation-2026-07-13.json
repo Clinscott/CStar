@@ -1,0 +1,172 @@
+{
+  "schema": "cstar.codex_active_turn_request_identity_validation.v1",
+  "bead_id": "bead:repair:codex-active-turn-request-identity-2026-07-13",
+  "validated_at": "2026-07-13T10:29:43-04:00",
+  "verdict": "ACCEPTED",
+  "repair_write_manifest": [
+    "src/tools/cstar-kernel-mcp/tools/codex_request_identity.ts",
+    "src/tools/cstar-kernel-mcp/tools/operator_authorization.ts",
+    "tests/unit/cstar-kernel-mcp/test_codex_request_identity.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_operator_authorization.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_forge_durable_execution.test.ts",
+    "tests/features/codex_request_identity_steered_turns.feature",
+    "docs/integrations/cstar-kernel-mcp.md",
+    "tests/unit/test_current_documentation_contract.py",
+    "docs/operations/codex-active-turn-request-identity-validation-2026-07-13.json"
+  ],
+  "repair_boundary": {
+    "synthetic_fixtures_only": true,
+    "model_calls": 0,
+    "forge_attempts": 0,
+    "live_source_collection": false,
+    "source_paths_modified": 8,
+    "validation_receipts_created": 1,
+    "git_branch_created": "codex/repair-cstar-active-turn-identity-20260713",
+    "git_stage": false,
+    "git_commit": false,
+    "git_push": false,
+    "draft_pr": false,
+    "installation": false,
+    "restart_authorized": 1,
+    "restart_consumed": 1,
+    "deployment": false,
+    "activation_claim": true,
+    "production_claim": false,
+    "secret_or_config_mutation": false,
+    "secret_bearing_file_read": false
+  },
+  "invariants_proved_at_source": [
+    "Only response_item/message/user records enter the ordered root-user identity cohort.",
+    "Same-turn assistant, reasoning, tool-call, tool-output, and non-user event rows are excluded from authority, hashes, counts, timestamps, and cohort topology.",
+    "Selected tagged noncanonical user-like records fail closed; after matched consent, later tagged noncanonical user-like records fail as uninspectable.",
+    "Untagged host event duplicates remain non-authoritative and cannot revoke or authorize.",
+    "Canonical A/non-user/A remains one cohort, canonical A/B/A remains rejected, and only later canonical user turns affect latest or historical status.",
+    "Canonical root-user lineage, fixed-snapshot integrity, uniqueness, recency, timestamp ordering, record limits, and ordered record-set digest protections remain intact.",
+    "Durable Forge execute rejects canonical authorization drift before adapter invocation or spend while ignoring appended same-turn non-user output evidence."
+  ],
+  "checks": [
+    {
+      "name": "identity_authorization_durable_forge_and_file_size",
+      "command": "node scripts/run-tsx.mjs --test tests/unit/cstar-kernel-mcp/test_codex_request_identity.test.ts tests/unit/cstar-kernel-mcp/test_operator_authorization.test.ts tests/unit/cstar-kernel-mcp/test_forge_receipt_controller.test.ts tests/unit/cstar-kernel-mcp/test_forge_durable_execution.test.ts tests/unit/cstar-kernel-mcp/test_file_size_contract.test.ts",
+      "result": "42 passed; 0 failed"
+    },
+    {
+      "name": "documentation_contract",
+      "command": "node scripts/run-python.mjs -m pytest -q tests/unit/test_current_documentation_contract.py",
+      "result": "4 passed; 0 failed"
+    },
+    {
+      "name": "typescript",
+      "command": "npx tsc --noEmit",
+      "result": "pass"
+    },
+    {
+      "name": "sterling",
+      "command": "node scripts/run-tsx.mjs --test tests/unit/sterling_mandate.test.ts",
+      "result": "20 passed; 0 failed"
+    },
+    {
+      "name": "patch_whitespace_and_file_size",
+      "command": "git diff --check plus focused file-size contract",
+      "result": "pass; maximum focused file length 491"
+    }
+  ],
+  "independent_reviews": [
+    {
+      "validator": "identity_red_team",
+      "scope": "authority projection, malformed user-like evidence, revocation, lineage, digest, and durable Forge drift",
+      "verdict": "ACCEPTED; no P0-P2 findings; final P3 coverage delta accepted",
+      "model_selector": "unavailable",
+      "actual_model_identity": "unreported"
+    },
+    {
+      "validator": "identity_contract_scope",
+      "scope": "nine-path scope, documentation and feature consistency, file-size contract, historical-receipt preservation, and restart readiness",
+      "verdict": "ACCEPTED; no source correction required before restart",
+      "model_selector": "unavailable",
+      "actual_model_identity": "unreported"
+    }
+  ],
+  "source_sha256": {
+    "src/tools/cstar-kernel-mcp/tools/codex_request_identity.ts": "a82eb3a4d8365e9ad439fbf150e676dd40a2c51a9564d681aec8a39eff7f3101",
+    "src/tools/cstar-kernel-mcp/tools/operator_authorization.ts": "5f66b3674e37a874160f6dcdd1007198005558ab62044c63cabab6a5fa97d7e0",
+    "tests/unit/cstar-kernel-mcp/test_codex_request_identity.test.ts": "7859ac4879bfec88d69132ee207dfb4f7e47f442894f3edd3f5311cabced549e",
+    "tests/unit/cstar-kernel-mcp/test_operator_authorization.test.ts": "c1347f70c8ae96e67b05c0eee79fbd138220bf7de70538954612872d218594d0",
+    "tests/unit/cstar-kernel-mcp/test_forge_durable_execution.test.ts": "eefcc18e1f5931ea27ed7f498a4f048b8ebb3823f702b6518e08c993fc7c8c14",
+    "tests/features/codex_request_identity_steered_turns.feature": "6c6e0199ecf00f572fba0cd47b608bd2b69736c827d4186cc12d1619af75aa96",
+    "docs/integrations/cstar-kernel-mcp.md": "a9eae888c94dd82672eeed294e598293d2c73c4534351d09767d68c7ac2c959b",
+    "tests/unit/test_current_documentation_contract.py": "0bdfb4769c9fcb9f2a1fb6449635437d6e8ead7ff0fca3e4fb1e7fa6c52184cb"
+  },
+  "preserved_validation_lineage": [
+    {
+      "path": "docs/operations/codex-request-identity-steered-turns-validation-2026-07-13.json",
+      "sha256": "ac90bf8d0fe3c2569baa9b2125e4b0ee4e68ea116ccadec8ea2565002ca9a5ac",
+      "status": "preserved; its blanket non-user selected-turn invariant is superseded only by this repair"
+    },
+    {
+      "path": "docs/operations/forge-worker-required-output-path-contract-validation-2026-07-13.json",
+      "sha256": "d1496e0009ca574ca81d7c7b52ff1e91c0289c24e7c9e1e2eeccc2d589777772",
+      "status": "preserved"
+    }
+  ],
+  "non_patch_validation_byproducts": [
+    "ignored pytest bytecode and cache entries generated or updated by the authorized focused documentation test",
+    "an ignored pre-existing MCP bootstrap log touched during validation",
+    "ignored active PennyOne WAL and SHM files owned by running CStar processes; not cleaned",
+    "Git ref and reflog entries created by the explicitly authorized branch action"
+  ],
+  "live_proof": {
+    "codex_package": {
+      "name": "OpenAI.Codex",
+      "version": "26.707.8479.0",
+      "package_full_name": "OpenAI.Codex_26.707.8479.0_x64__2p2nqsd0c76g0",
+      "aumid": "OpenAI.Codex_2p2nqsd0c76g0!App"
+    },
+    "restart": {
+      "method": "package-scoped process stop by exact install location followed by registered AUMID launch",
+      "pre_restart_windows_root_pid": 12992,
+      "post_restart_windows_root_pid": 28652,
+      "pre_restart_wsl_app_server_pid": 317022,
+      "post_restart_wsl_app_server_pid": 329782,
+      "post_restart_wsl_app_server_started_at": "2026-07-13T09:45:32-04:00",
+      "pre_restart_direct_kernel_pids_gone": [322035, 322818, 322956, 323113],
+      "post_restart_direct_kernel_launcher_pid": 334958,
+      "post_restart_direct_kernel_source_pid": 335015,
+      "post_restart_direct_kernel_started_at": "2026-07-13T09:56:52-04:00",
+      "hermes_compatibility_bridge_pid_preserved": 3447
+    },
+    "kernel_health": {
+      "status": "healthy",
+      "hall_reachable": true,
+      "augury_required": false,
+      "token_path_advisor_actionable": false
+    },
+    "reported_only_probe": {
+      "validation_id": "val-cstar-active-turn-identity-live-probe-20260713",
+      "status": "recorded_unverified",
+      "identity_expectedly_omitted_without_hash_verified_evidence": true
+    },
+    "hash_verified_identity_probe": {
+      "validation_id": "val-cstar-active-turn-identity-live-evidence-probe-20260713",
+      "status": "recorded_verified",
+      "authoritative": true,
+      "validation_evidence_sha256": "e3d7a1023061107fabd1479c44ab54cb46dddf63537c364352d31397cf3f310d",
+      "validator_identity_source": "codex_request_meta",
+      "thread_id": "019f5390-a2db-7b91-bc89-e1392960fb3a",
+      "turn_id": "019f5bdc-8415-7f13-9703-f8c8d09a2100",
+      "record_sha256": "30526ad016b5fdfe01413b9d67a016b94b48cf0936942705e27fb6db2ade21f5",
+      "record_set_sha256": "8d6313611018e3aaab1fc7e222884320f511b03216cc80d4119806c2f213c055",
+      "record_count": 1,
+      "first_timestamp": "2026-07-13T14:23:26.313Z",
+      "terminal_timestamp": "2026-07-13T14:23:26.313Z"
+    }
+  },
+  "residuals": [
+    "Direct-stdio session attestation remains a same-UID trust boundary, not a hostile-local cryptographic identity boundary.",
+    "Later-revocation recognition remains a bounded deterministic language recognizer.",
+    "The separate pre-reservation revocation race remains tracked as bead:hardening:forge-authorization-pre-reservation-recheck-2026-07-13 and does not block this request-identity repair.",
+    "The preexisting TokenPath no-spend decision receipt now requires lifecycle reconciliation before its separately authorized one-shot execute; no attempt or model spend has occurred."
+  ],
+  "next_gate": "Record authoritative validation for this accepted live repair, publish only the exact authorized source union as a draft PR, and reconcile the immutable TokenPath no-spend receipt before the zero-retry execute.",
+  "claim_scope": "Source and live direct-stdio request-identity repair accepted after one authorized restart. No installation, deployment, production readiness, TokenPath execution, steering, or live-source claim is made."
+}

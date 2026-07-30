@@ -2,81 +2,69 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execa } from 'execa';
 import { registry } from '../../pennyone/pathRegistry.js';
+import type { McpRequestContext } from '../contracts/request_context.js';
 import { errorResponse, textResponse, type McpTextResponse } from '../contracts/responses.js';
-import { isPathInside } from '../contracts/runtime.js';
+import {
+    CODE_ROOT,
+    readBoundedUtf8FileInside,
+    resolveExistingPathInside,
+} from '../contracts/runtime.js';
+import { verifyCodexRequestIdentity } from './operator_authorization.js';
 
 // cstar_warden — on-demand Sentinel Warden invocations.
 // Python wardens are deterministic (AST/text scans). The handler shells
 // out to a small Python driver (scripts/run_warden.py) that imports the
 // named warden, runs `.scan()`, and emits JSON. No LLM in the loop.
 //
-// `KNOWN_WARDENS_FALLBACK` is the boot-time / driver-unavailable fallback.
-// Source of truth is `scripts/run_warden.py#WARDEN_REGISTRY`, which is
-// consulted lazily via `--list-wardens` by the `list` action. Drift
-// between this constant and the driver only matters when the driver is
-// missing or python is unavailable.
-const KNOWN_WARDENS_FALLBACK = [
-    'norn',
-    'valkyrie',
-    'freya',
-    'mimir',
-    'ghost',
-    'security',
-    'huginn',
-    'taste',
-    'edda',
-    'scour',
-    'runecaster',
-    'shadow_forge',
-] as const;
+// Inventory is static so `list` never starts Python or inherits process state.
+// The Python driver mirrors this table and remains authoritative at scan time.
+const KNOWN_WARDEN_INVENTORY = Object.freeze([
+    { slug: 'norn', module: 'src.core.engine.wardens.norn', class: 'NornWarden' },
+    { slug: 'valkyrie', module: 'src.core.engine.wardens.valkyrie', class: 'ValkyrieWarden' },
+    { slug: 'freya', module: 'src.core.engine.wardens.freya', class: 'FreyaWarden' },
+    { slug: 'mimir', module: 'src.core.engine.wardens.mimir', class: 'MimirWarden' },
+    { slug: 'ghost', module: 'src.core.engine.wardens.ghost_warden', class: 'GhostWarden' },
+    { slug: 'security', module: 'src.core.engine.wardens.security', class: 'SecurityWarden' },
+    { slug: 'huginn', module: 'src.core.engine.wardens.huginn', class: 'HuginnWarden' },
+    { slug: 'taste', module: 'src.core.engine.wardens.taste', class: 'TasteWarden' },
+    { slug: 'edda', module: 'src.core.engine.wardens.edda', class: 'EddaWarden' },
+    { slug: 'scour', module: 'src.core.engine.wardens.scour', class: 'ScourWarden' },
+    { slug: 'runecaster', module: 'src.core.engine.wardens.runecaster', class: 'RuneCasterWarden' },
+]);
 
-function resolveWardenPython(projectRoot: string): string {
-    const windows = path.join(projectRoot, '.venv', 'Scripts', 'python.exe');
-    const unix = path.join(projectRoot, '.venv', 'bin', 'python');
-    if (process.platform === 'win32' && fs.existsSync(windows)) return windows;
-    if (process.platform !== 'win32' && fs.existsSync(unix)) return unix;
-    return process.platform === 'win32' ? 'python' : 'python3';
+export function resolveWardenPython(projectRoot: string, env: NodeJS.ProcessEnv = process.env): string {
+    const expected = process.platform === 'win32'
+        ? path.join(projectRoot, '.venv', 'Scripts', 'python.exe')
+        : path.join(projectRoot, '.venv', 'bin', 'python');
+    const configured = env.CSTAR_PYTHON_EXECUTABLE?.trim();
+    if (configured && (!path.isAbsolute(configured) || path.resolve(configured) !== path.resolve(expected))) {
+        throw new Error('cstar_warden_python_interpreter_outside_project_venv');
+    }
+    if (!fs.existsSync(expected) || !fs.statSync(expected).isFile()) {
+        throw new Error('cstar_warden_python_interpreter_unavailable');
+    }
+    if (process.platform !== 'win32' && (fs.statSync(expected).mode & 0o111) === 0) {
+        throw new Error('cstar_warden_python_interpreter_not_executable');
+    }
+    return expected;
+}
+
+export function buildWardenSubprocessEnv(projectRoot: string): NodeJS.ProcessEnv {
+    return {
+        PYTHONPATH: projectRoot,
+        PYTHONDONTWRITEBYTECODE: '1',
+        PYTHONHASHSEED: '0',
+        PYTHONNOUSERSITE: '1',
+        ...(process.platform === 'linux' ? {
+            TMPDIR: '/tmp',
+            TMP: '/tmp',
+            TEMP: '/tmp',
+        } : {}),
+    };
 }
 
 const MCP_WARDEN_STDOUT_MAX = 256 * 1024;
 const MCP_WARDEN_TIMEOUT_MS = 60_000;
-
-async function loadWardenInventoryFromDriver(
-    projectRoot: string,
-): Promise<
-    | { source: 'driver'; wardens: Array<{ slug: string; module: string; class: string }> }
-    | null
-> {
-    const driver = path.join(projectRoot, 'scripts', 'run_warden.py');
-    if (!fs.existsSync(driver)) {
-        return null;
-    }
-    try {
-        const result = await execa(
-            resolveWardenPython(projectRoot),
-            [driver, '--list-wardens'],
-            {
-                cwd: projectRoot,
-                env: { ...process.env, PYTHONPATH: projectRoot },
-                timeout: 10_000,
-                reject: false,
-            },
-        );
-        if (result.exitCode !== 0) {
-            return null;
-        }
-        const parsed = JSON.parse(result.stdout) as {
-            status?: string;
-            wardens?: Array<{ slug: string; module: string; class: string }>;
-        };
-        if (parsed.status !== 'ok' || !Array.isArray(parsed.wardens)) {
-            return null;
-        }
-        return { source: 'driver', wardens: parsed.wardens };
-    } catch {
-        return null;
-    }
-}
 
 export async function handleWarden({
     action,
@@ -86,26 +74,15 @@ export async function handleWarden({
     action: 'list' | 'bounties' | 'scan';
     warden?: string;
     target?: string;
-}): Promise<McpTextResponse> {
+}, requestContext?: McpRequestContext): Promise<McpTextResponse> {
     try {
         const root = registry.getRoot();
         if (action === 'list') {
-            const live = await loadWardenInventoryFromDriver(root);
-            if (live) {
-                return textResponse({
-                    status: 'ok',
-                    source: 'driver',
-                    count: live.wardens.length,
-                    wardens: live.wardens,
-                });
-            }
-            // Driver unavailable — fall back to the cached static list.
             return textResponse({
                 status: 'ok',
-                source: 'fallback',
-                count: KNOWN_WARDENS_FALLBACK.length,
-                wardens: KNOWN_WARDENS_FALLBACK.map((slug) => ({ slug })),
-                warning: 'scripts/run_warden.py unavailable; returning cached inventory',
+                source: 'static_deterministic',
+                count: KNOWN_WARDEN_INVENTORY.length,
+                wardens: KNOWN_WARDEN_INVENTORY,
             });
         }
         if (action === 'bounties') {
@@ -113,11 +90,12 @@ export async function handleWarden({
             if (!fs.existsSync(ledgerPath)) {
                 return textResponse({ status: 'ok', count: 0, top_targets: [] });
             }
-            const raw = JSON.parse(fs.readFileSync(ledgerPath, 'utf-8')) as {
+            const ledger = readBoundedUtf8FileInside(root, ledgerPath, 512 * 1024);
+            const raw = JSON.parse(ledger.content) as {
                 top_targets?: unknown[];
                 timestamp?: string;
             };
-            const top = Array.isArray(raw.top_targets) ? raw.top_targets : [];
+            const top = Array.isArray(raw.top_targets) ? raw.top_targets.slice(0, 100) : [];
             return textResponse({
                 status: 'ok',
                 timestamp: raw.timestamp,
@@ -126,14 +104,16 @@ export async function handleWarden({
             });
         }
         if (action === 'scan') {
+            // A scan launches project-controlled code. Bind the call to the
+            // current canonical root-user turn before inspecting the driver,
+            // interpreter, target path, or starting a subprocess.
+            await verifyCodexRequestIdentity(requestContext);
             if (!warden) {
                 return textResponse({ error: 'scan requires warden name (use list to see available)' }, true);
             }
             const normalized = warden.trim().toLowerCase();
-            // The Python driver is the source of truth for warden validity.
-            // The static `KNOWN_WARDENS_FALLBACK` only short-circuits a malformed
-            // slug; the driver still emits a structured `status: unknown_warden`
-            // envelope if the runtime registry doesn't contain it.
+            // The Python driver is the source of truth for scan-time validity;
+            // malformed slugs are rejected before any process is started.
             if (
                 !/^[a-z0-9_]+$/.test(normalized)
                 || normalized.length === 0
@@ -144,10 +124,11 @@ export async function handleWarden({
                     true,
                 );
             }
-            const driver = path.join(root, 'scripts', 'run_warden.py');
+            const driver = path.join(CODE_ROOT, 'scripts', 'run_warden.py');
             if (!fs.existsSync(driver)) {
                 return textResponse({ error: 'warden driver missing: scripts/run_warden.py' }, true);
             }
+            resolveExistingPathInside(CODE_ROOT, driver, 'file');
 
             // Resolve and validate optional target against the project root.
             // A `target` directory becomes the warden's effective root; a file
@@ -157,17 +138,23 @@ export async function handleWarden({
             let targetIsDir = false;
             if (target) {
                 const abs = path.resolve(root, target);
-                if (!isPathInside(abs, root) && abs !== path.resolve(root)) {
+                let safeTarget: string;
+                try {
+                    safeTarget = resolveExistingPathInside(root, abs);
+                } catch {
+                    const relative = path.relative(path.resolve(root), abs);
+                    const lexicallyInside = relative === ''
+                        || (relative !== '..' && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative));
+                    if (lexicallyInside && !fs.existsSync(abs)) {
+                        return textResponse({ error: `target does not exist: ${target}` }, true);
+                    }
                     return textResponse(
                         { error: 'target must resolve to a path inside the project root' },
                         true,
                     );
                 }
-                if (!fs.existsSync(abs)) {
-                    return textResponse({ error: `target does not exist: ${target}` }, true);
-                }
-                resolvedTarget = abs;
-                targetIsDir = fs.statSync(abs).isDirectory();
+                resolvedTarget = safeTarget;
+                targetIsDir = fs.lstatSync(safeTarget).isDirectory();
             }
 
             const py = resolveWardenPython(root);
@@ -189,7 +176,8 @@ export async function handleWarden({
             try {
                 const result = await execa(py, args, {
                     cwd: root,
-                    env: { ...process.env, PYTHONPATH: root },
+                    env: buildWardenSubprocessEnv(CODE_ROOT),
+                    extendEnv: false,
                     timeout: MCP_WARDEN_TIMEOUT_MS,
                     maxBuffer: MCP_WARDEN_STDOUT_MAX,
                     reject: false,

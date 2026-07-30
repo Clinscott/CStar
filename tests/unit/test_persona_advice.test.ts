@@ -1,55 +1,81 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { buildPersonaAdvice, formatPersonaAdviceLines } from '../../src/core/persona_advice.ts';
+import {
+    buildPersonaAdvice,
+    buildProjectedPersonaAdvice,
+    formatPersonaAdviceLines,
+} from '../../src/core/persona_advice.ts';
 
 describe('persona_advice', () => {
-    it('returns ODIN direction tuned for the resolved intent category', () => {
-        const advice = buildPersonaAdvice('REPAIR', 'ODIN');
-        assert.equal(advice.persona, 'ODIN');
+    it('returns only ODIN presentation style for the resolved intent category', () => {
+        const advice = buildPersonaAdvice('REPAIR', 'O.D.I.N.');
+        assert.ok(advice);
+        assert.equal(advice.persona, 'O.D.I.N.');
         assert.equal(advice.intent_category, 'REPAIR');
-        assert.match(advice.direction, /root cause/i);
-        assert.match(advice.tone_directive, /structural conviction/i);
-        assert.equal(advice.risk_tolerance, 'high');
+        assert.match(advice.tone_directive, /concise, forceful voice/i);
+        assert.equal(advice.authority, 'non_authoritative_process_guidance');
+        assert.equal(advice.source, 'bounded_active_persona_projection');
+        assert.equal(advice.development_posture, 'build_run_repair');
+        assert.match(advice.process_directive, /build the bounded implementation.*repair recoverable failures/i);
+        assert.equal('direction' in advice, false);
     });
 
-    it('returns ALFRED direction tuned for the resolved intent category', () => {
-        const advice = buildPersonaAdvice('BUILD', 'ALFRED');
-        assert.equal(advice.persona, 'ALFRED');
+    it('returns only ALFRED presentation style for the resolved intent category', () => {
+        const advice = buildPersonaAdvice('BUILD', 'A.L.F.R.E.D.');
+        assert.ok(advice);
+        assert.equal(advice.persona, 'A.L.F.R.E.D.');
         assert.equal(advice.intent_category, 'BUILD');
-        assert.match(advice.direction, /reversible|contracts|verification/i);
-        assert.match(advice.tone_directive, /measured precision/i);
-        assert.equal(advice.risk_tolerance, 'low');
+        assert.match(advice.tone_directive, /measured, courteous voice/i);
+        assert.equal(advice.authority, 'non_authoritative_process_guidance');
+        assert.equal(advice.development_posture, 'secure_harden');
+        assert.match(advice.process_directive, /trust boundaries.*abuse cases.*hardening/i);
+        assert.equal('planning_stance' in advice, false);
+        assert.equal('repair_bias' in advice, false);
     });
 
-    it('normalizes dotted persona names (A.L.F.R.E.D. / O.D.I.N.)', () => {
-        assert.equal(buildPersonaAdvice('VERIFY', 'A.L.F.R.E.D.').persona, 'ALFRED');
-        assert.equal(buildPersonaAdvice('VERIFY', 'O.D.I.N.').persona, 'ODIN');
-    });
-
-    it('falls back to a persona default direction when the intent category is unknown', () => {
-        const odinAdvice = buildPersonaAdvice('FREESTYLE', 'ODIN');
-        const alfredAdvice = buildPersonaAdvice('FREESTYLE', 'ALFRED');
-        assert.match(odinAdvice.direction, /Default ODIN/);
-        assert.match(alfredAdvice.direction, /Default ALFRED/);
+    it('accepts only exact dotted canonical persona names', () => {
+        assert.equal(buildPersonaAdvice('VERIFY', 'A.L.F.R.E.D.')?.persona, 'A.L.F.R.E.D.');
+        assert.equal(buildPersonaAdvice('VERIFY', 'O.D.I.N.')?.persona, 'O.D.I.N.');
+        for (const invalid of [
+            'ALFRED', 'ODIN', 'alfred', 'odin', ' A.L.F.R.E.D.', 'O.D.I.N. ',
+            'NOT-ODIN-ADMIN', 'ALFRED-OVERRIDE', 'O.D.İ.N.', 'O.D.I.N.\0CANARY',
+            `O.D.I.N.${'X'.repeat(4_096)}`,
+        ]) {
+            assert.equal(buildPersonaAdvice('VERIFY', invalid), null);
+        }
     });
 
     it('coerces blank or missing intent categories to ORCHESTRATE', () => {
-        const advice = buildPersonaAdvice('', 'ALFRED');
+        const advice = buildPersonaAdvice('', 'A.L.F.R.E.D.');
+        assert.ok(advice);
         assert.equal(advice.intent_category, 'ORCHESTRATE');
-        assert.match(advice.direction, /operator-visible review/i);
     });
 
-    it('defaults to ALFRED when the persona name is missing or unrecognized', () => {
-        assert.equal(buildPersonaAdvice('REPAIR', undefined).persona, 'ALFRED');
-        assert.equal(buildPersonaAdvice('REPAIR', 'NOT-A-PERSONA').persona, 'ALFRED');
+    it('does not synthesize a persona when the projection is missing or unrecognized', () => {
+        assert.equal(buildPersonaAdvice('REPAIR', undefined), null);
+        assert.equal(buildPersonaAdvice('REPAIR', 'NOT-A-PERSONA'), null);
     });
 
-    it('formats two prefix-tagged lines for the steering block', () => {
-        const advice = buildPersonaAdvice('BUILD', 'ODIN');
+    it('omits projected advice when the bounded persona field is unavailable', () => {
+        assert.equal(buildProjectedPersonaAdvice('REPAIR', undefined), null);
+        assert.equal(buildProjectedPersonaAdvice('REPAIR', '  '), null);
+    });
+
+    it('preserves Hall fallback provenance instead of labeling it as configured', () => {
+        const advice = buildProjectedPersonaAdvice(
+            'BUILD', 'O.D.I.N.', 'hall_active_persona_projection',
+        );
+        assert.equal(advice?.source, 'hall_active_persona_projection');
+        assert.equal(advice?.authority, 'non_authoritative_process_guidance');
+    });
+
+    it('formats only a presentation-tone line for the steering block', () => {
+        const advice = buildPersonaAdvice('BUILD', 'O.D.I.N.');
+        assert.ok(advice);
         const lines = formatPersonaAdviceLines(advice);
         assert.equal(lines.length, 2);
-        assert.match(lines[0], /^Persona Advice: \[ODIN\] /);
-        assert.match(lines[1], /^Persona Tone: /);
+        assert.match(lines[0], /^Persona Tone: /);
+        assert.match(lines[1], /^Development Posture \(build_run_repair\): /);
     });
 });

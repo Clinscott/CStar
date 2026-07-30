@@ -1,0 +1,9 @@
+.gitattributes text eol=lf
+gemini-extension.json text eol=lf
+GEMINI.md text eol=lf
+plugins/corvus-star/.codex-plugin/plugin.json text eol=lf
+plugins/corvus-star/skills/corvus-star/SKILL.md text eol=lf
+plugins/corvus-star/README.md text eol=lf
+plugins/corvus-star/lineage.json text eol=lf
+.agents/plugins/marketplace.json text eol=lf
+distributions/README.md text eol=lf

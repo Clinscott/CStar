@@ -30,52 +30,6 @@ function summarizeCallbackPacket(value: unknown): { callback_packet: string | nu
     return null;
 }
 
-function callbackPacketId(value: Record<string, unknown>): string | null {
-    for (const key of ['callback_id', 'packet_name', 'name']) {
-        if (typeof value[key] === 'string' && value[key].trim()) {
-            return value[key].trim();
-        }
-    }
-    return null;
-}
-
-function coerceCallbackOnlyReportPacket(
-    obj: Record<string, unknown>,
-    expectedCallbackPacket?: string,
-): Record<string, unknown> | null {
-    if (typeof obj.status === 'string') {
-        return null;
-    }
-    const packetId = callbackPacketId(obj);
-    if (!expectedCallbackPacket || packetId !== expectedCallbackPacket) {
-        return null;
-    }
-    const summary = typeof obj.summary === 'string' && obj.summary.trim()
-        ? obj.summary.trim()
-        : typeof obj.headline === 'string' && obj.headline.trim()
-            ? obj.headline.trim()
-            : typeof obj.root_cause_summary === 'string' && obj.root_cause_summary.trim()
-                ? obj.root_cause_summary.trim()
-                : null;
-    if (!summary) {
-        return null;
-    }
-    return {
-        status: 'pass',
-        summary,
-        files_changed: [],
-        artifacts: { callback_packet: obj },
-        validation: { callback_only_report_coerced: 'pass' },
-        metrics: { callback_packet_contract: 'pass' },
-        boundaries: {
-            codex_worker_fallback_allowed: false,
-            live_source_collection: false,
-            report_only: true,
-        },
-        callback_packet: obj,
-    };
-}
-
 function isSuccessAdapterStatus(status: string): boolean {
     return ['accepted', 'ok', 'pass', 'passed', 'success', 'succeeded'].includes(status.trim().toLowerCase());
 }
@@ -88,26 +42,169 @@ function looksLikePathClaim(value: string): boolean {
     return trimmed.includes('/') || trimmed.includes('\\') || trimmed.startsWith('.') || /^[A-Za-z]:[\\/]/.test(trimmed);
 }
 
-function collectArtifactPathClaims(value: unknown): string[] {
-    if (typeof value === 'string') {
-        return looksLikePathClaim(value) ? [value] : [];
+const MAX_ARTIFACT_STRUCTURE_DEPTH = 64;
+const MAX_ARTIFACT_STRUCTURE_NODES = 10_000;
+const MAX_RESPONSE_PATH_CLAIMS = 1_000;
+const EXPLICIT_SINGULAR_PATH_FIELDS = new Set([
+    'artifact_path',
+    'file',
+    'file_path',
+    'filename',
+    'path',
+]);
+const EXPLICIT_PLURAL_PATH_FIELDS = new Set([
+    'filenames',
+    'files',
+    'paths',
+]);
+const EXPLICIT_PATH_FIELDS = new Set([
+    'artifacts',
+    ...EXPLICIT_SINGULAR_PATH_FIELDS,
+    ...EXPLICIT_PLURAL_PATH_FIELDS,
+]);
+
+type ArtifactPathClaimCollection =
+    | { ok: true; claims: string[] }
+    | { ok: false; error: string };
+
+function collectArtifactPathClaims(value: unknown, maxClaims: number): ArtifactPathClaimCollection {
+    const stack: Array<{
+        value: unknown;
+        depth: number;
+        fieldName?: string;
+        requiresPathString?: boolean;
+    }> = [
+        { value, depth: 0, fieldName: 'artifacts' },
+    ];
+    const claims: string[] = [];
+    let scheduledNodes = 1;
+    const addClaim = (claim: string): string | null => {
+        const trimmed = claim.trim();
+        if (!trimmed || trimmed !== claim) {
+            return 'adapter_response_artifact_path_claim_invalid';
+        }
+        claims.push(trimmed);
+        return claims.length <= maxClaims
+            ? null
+            : 'adapter_response_path_claim_limit_exceeded';
+    };
+
+    while (stack.length > 0) {
+        const current = stack.pop()!;
+        if (current.requiresPathString && typeof current.value !== 'string') {
+            return { ok: false, error: 'adapter_response_artifact_path_claim_invalid' };
+        }
+        if (typeof current.value === 'string') {
+            const explicitPathField = current.fieldName
+                ? EXPLICIT_PATH_FIELDS.has(current.fieldName.trim().toLowerCase().replace(/-/g, '_'))
+                : false;
+            if (explicitPathField || looksLikePathClaim(current.value)) {
+                const claimError = addClaim(current.value);
+                if (claimError) return { ok: false, error: claimError };
+            }
+            continue;
+        }
+        if (!current.value || typeof current.value !== 'object') {
+            continue;
+        }
+
+        if (Array.isArray(current.value)) {
+            if (current.value.length === 0) continue;
+            if (current.depth >= MAX_ARTIFACT_STRUCTURE_DEPTH) {
+                return { ok: false, error: 'adapter_response_artifact_structure_too_deep' };
+            }
+            if (scheduledNodes + current.value.length > MAX_ARTIFACT_STRUCTURE_NODES) {
+                return { ok: false, error: 'adapter_response_artifact_structure_too_large' };
+            }
+            scheduledNodes += current.value.length;
+            for (let index = current.value.length - 1; index >= 0; index -= 1) {
+                stack.push({
+                    value: current.value[index],
+                    depth: current.depth + 1,
+                    fieldName: current.fieldName,
+                    requiresPathString: current.fieldName
+                        ? EXPLICIT_PLURAL_PATH_FIELDS.has(
+                            current.fieldName.trim().toLowerCase().replace(/-/g, '_'),
+                        )
+                        : false,
+                });
+            }
+            continue;
+        }
+
+        const object = current.value as Record<string, unknown>;
+        let childCount = 0;
+        for (const fieldName in object) {
+            if (!Object.hasOwn(object, fieldName)) continue;
+            const normalizedFieldName = fieldName.trim().toLowerCase().replace(/-/g, '_');
+            const fieldValue = object[fieldName];
+            if (
+                EXPLICIT_SINGULAR_PATH_FIELDS.has(normalizedFieldName)
+                && typeof fieldValue !== 'string'
+            ) {
+                return { ok: false, error: 'adapter_response_artifact_path_claim_invalid' };
+            }
+            if (
+                EXPLICIT_PLURAL_PATH_FIELDS.has(normalizedFieldName)
+                && !Array.isArray(fieldValue)
+            ) {
+                return { ok: false, error: 'adapter_response_artifact_path_claim_invalid' };
+            }
+            childCount += 1;
+            if (current.depth >= MAX_ARTIFACT_STRUCTURE_DEPTH) {
+                return { ok: false, error: 'adapter_response_artifact_structure_too_deep' };
+            }
+            if (scheduledNodes + childCount > MAX_ARTIFACT_STRUCTURE_NODES) {
+                return { ok: false, error: 'adapter_response_artifact_structure_too_large' };
+            }
+            if (looksLikePathClaim(fieldName)) {
+                const claimError = addClaim(fieldName);
+                if (claimError) return { ok: false, error: claimError };
+            }
+            stack.push({
+                value: fieldValue,
+                depth: current.depth + 1,
+                fieldName,
+                requiresPathString: EXPLICIT_SINGULAR_PATH_FIELDS.has(normalizedFieldName),
+            });
+        }
+        scheduledNodes += childCount;
     }
-    if (Array.isArray(value)) {
-        return value.flatMap((entry) => collectArtifactPathClaims(entry));
-    }
-    if (value && typeof value === 'object') {
-        return Object.values(value as Record<string, unknown>).flatMap((entry) => collectArtifactPathClaims(entry));
-    }
-    return [];
+
+    return { ok: true, claims };
 }
 
-function claimedPathExists(claim: string, evidenceRoots: string[]): boolean {
+function isInside(candidate: string, root: string): boolean {
+    const relative = path.relative(root, candidate);
+    return relative === '' || (
+        relative !== '..'
+        && !relative.startsWith(`..${path.sep}`)
+        && !path.isAbsolute(relative)
+    );
+}
+
+function canonicalEvidenceRoots(evidenceRoots: string[]): string[] {
+    return [...new Set(evidenceRoots.flatMap((root) => {
+        try {
+            return [fs.realpathSync(root)];
+        } catch {
+            return [];
+        }
+    }))];
+}
+
+function claimedPathExists(claim: string, roots: string[]): boolean {
     const candidates = path.isAbsolute(claim)
-        ? [claim]
-        : evidenceRoots.map((root) => path.resolve(root, claim));
+        ? [path.resolve(claim)]
+        : roots.map((root) => path.resolve(root, claim));
     return candidates.some((candidate) => {
         try {
-            return fs.existsSync(candidate);
+            const containingRoot = roots.find((root) => isInside(candidate, root));
+            if (!containingRoot) return false;
+            const lexical = fs.lstatSync(candidate);
+            if (lexical.isSymbolicLink() || !lexical.isFile() || lexical.nlink !== 1) return false;
+            const canonical = fs.realpathSync(candidate);
+            return canonical === candidate && isInside(canonical, containingRoot);
         } catch {
             return false;
         }
@@ -128,9 +225,7 @@ export function validateForgeAdapterResponseContract(
     if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
         return { ok: false, error: 'adapter_response_not_object', summary: null };
     }
-    const originalObj = parsed as Record<string, unknown>;
-    const obj = coerceCallbackOnlyReportPacket(originalObj, expectedCallbackPacket) ?? originalObj;
-    const coercedFromCallback = obj !== originalObj;
+    const obj = parsed as Record<string, unknown>;
     if (typeof obj.status !== 'string' || !obj.status.trim()) {
         return { ok: false, error: 'adapter_response_missing_status', summary: null };
     }
@@ -149,27 +244,53 @@ export function validateForgeAdapterResponseContract(
     if (!callbackPacket) {
         return { ok: false, error: 'adapter_response_invalid_callback_packet', summary: null };
     }
+    if (expectedCallbackPacket && callbackPacket.callback_packet_kind === 'absent') {
+        return { ok: false, error: 'adapter_response_callback_packet_missing', summary: null };
+    }
+    if (expectedCallbackPacket && callbackPacket.callback_packet !== expectedCallbackPacket) {
+        return { ok: false, error: 'adapter_response_callback_packet_mismatch', summary: null };
+    }
     const filesChanged = obj.files_changed as unknown[];
-    if (!filesChanged.every((entry) => typeof entry === 'string')) {
+    if (!filesChanged.every((entry) => (
+        typeof entry === 'string'
+        && entry.length > 0
+        && entry === entry.trim()
+    ))) {
         return { ok: false, error: 'adapter_response_invalid_files_changed', summary: null };
     }
-    if (isSuccessAdapterStatus(obj.status)) {
-        const claimedPaths = [
-            ...filesChanged,
-            ...collectArtifactPathClaims(obj.artifacts),
-        ].map((entry) => String(entry).trim()).filter(Boolean);
-        const missingClaims = claimedPaths.filter((claim) => !claimedPathExists(claim, evidenceRoots));
-        if (missingClaims.length > 0) {
-            return {
-                ok: false,
-                error: 'adapter_response_missing_claimed_path',
-                summary: {
-                    status: obj.status,
-                    missing_claimed_paths: missingClaims.slice(0, 10),
-                    missing_claimed_path_count: missingClaims.length,
-                },
-            };
-        }
+    if (!isSuccessAdapterStatus(obj.status)) {
+        return {
+            ok: false,
+            error: 'adapter_response_reported_failure',
+            summary: { status: obj.status, ...callbackPacket },
+        };
+    }
+    if (filesChanged.length > MAX_RESPONSE_PATH_CLAIMS) {
+        return { ok: false, error: 'adapter_response_path_claim_limit_exceeded', summary: null };
+    }
+    const artifactPathClaims = collectArtifactPathClaims(
+        obj.artifacts,
+        MAX_RESPONSE_PATH_CLAIMS - filesChanged.length,
+    );
+    if (!artifactPathClaims.ok) {
+        return { ok: false, error: artifactPathClaims.error, summary: null };
+    }
+    const claimedPaths = [...new Set([
+        ...filesChanged,
+        ...artifactPathClaims.claims,
+    ].map((entry) => String(entry).trim()).filter(Boolean))];
+    const roots = canonicalEvidenceRoots(evidenceRoots);
+    const missingClaims = claimedPaths.filter((claim) => !claimedPathExists(claim, roots));
+    if (missingClaims.length > 0) {
+        return {
+            ok: false,
+            error: 'adapter_response_missing_claimed_path',
+            summary: {
+                status: obj.status,
+                missing_claimed_paths: missingClaims.slice(0, 10),
+                missing_claimed_path_count: missingClaims.length,
+            },
+        };
     }
     const artifacts = obj.artifacts as Record<string, unknown> | unknown[];
     const validation = obj.validation as Record<string, unknown> | unknown[];
@@ -185,7 +306,6 @@ export function validateForgeAdapterResponseContract(
             validation_count: structuredEvidenceCount(validation),
             metrics_count: structuredEvidenceCount(metrics),
             boundaries_count: structuredEvidenceCount(boundaries),
-            coerced_from_callback_packet: coercedFromCallback,
             ...callbackPacket,
         },
     };

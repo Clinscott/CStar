@@ -1,5 +1,22 @@
+import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
+
+import { readBoundedJsonObject } from '../core/safe_local_file.js';
+import { getSkillRegistryEntries } from '../core/skill_registry.js';
+import {
+    CSTAR_KERNEL_TOOL_CATALOG,
+    CSTAR_KERNEL_TOOL_NAMES,
+} from '../tools/cstar-kernel-mcp/contracts/tool_catalog.js';
+
+import {
+    buildCodexPluginManifestContent,
+    buildCodexPluginSkillContent,
+    buildDistributionReadmeContent,
+    buildGeminiContextContent,
+    buildGeminiManifestContent,
+    buildMarketplaceContent,
+} from './distribution_content.js';
 
 export type HostProvider = 'gemini' | 'codex' | 'claude';
 export type HostSupportStatus =
@@ -24,27 +41,6 @@ interface RegistryEntry {
 interface RegistryManifest {
     entries?: Record<string, RegistryEntry>;
     skills?: Record<string, RegistryEntry>;
-}
-
-interface PackageMetadata {
-    name?: string;
-    version?: string;
-    description?: string;
-    homepage?: string;
-    repository?: string | { url?: string };
-    license?: string;
-    author?: string | {
-        name?: string;
-        email?: string;
-        url?: string;
-    };
-    keywords?: string[];
-}
-
-interface AgentsConfig {
-    system?: {
-        persona?: string;
-    };
 }
 
 export interface CapabilityExport {
@@ -74,48 +70,37 @@ export interface ReleaseBundle {
     files: GeneratedFile[];
 }
 
-interface McpServerConfig {
-    command: string;
-    args: string[];
-    cwd?: string;
-    env?: Record<string, string>;
-    note?: string;
-}
-
 const EXECUTABLE_HOST_STATUSES = new Set<HostSupportStatus>([
     'supported',
     'native-session',
     'exec-bridge',
 ]);
+const CAPABILITY_REGISTRY_MAX_BYTES = 1024 * 1024;
 
-function readJsonFile<T>(filePath: string): T {
-    return JSON.parse(fs.readFileSync(filePath, 'utf-8')) as T;
-}
+const CODEX_PLUGIN_RUNTIME_BINDING = {
+    host: 'codex',
+    integration_mode: 'skill-only',
+    kernel_registration: 'host-global',
+    kernel_bundled: false,
+    kernel_requirement: 'external-cstar-runtime',
+} as const;
 
 function resolveProjectRoot(projectRoot: string): string {
     return path.resolve(projectRoot);
 }
 
 function loadRegistryManifest(projectRoot: string): RegistryManifest {
-    return readJsonFile<RegistryManifest>(path.join(projectRoot, '.agents', 'skill_registry.json'));
-}
-
-function loadPackageMetadata(projectRoot: string): PackageMetadata {
-    return readJsonFile<PackageMetadata>(path.join(projectRoot, 'package.json'));
-}
-
-function loadAgentsConfig(projectRoot: string): AgentsConfig {
-    return readJsonFile<AgentsConfig>(path.join(projectRoot, '.agents', 'config.json'));
+    const manifest = readBoundedJsonObject<RegistryManifest>(
+        projectRoot,
+        '.agents/skill_registry.json',
+        CAPABILITY_REGISTRY_MAX_BYTES,
+    );
+    if (!manifest) throw new Error('capability_registry_not_found');
+    return manifest;
 }
 
 function getRegistryEntries(manifest: RegistryManifest): Record<string, RegistryEntry> {
-    if (manifest.entries && typeof manifest.entries === 'object') {
-        return manifest.entries;
-    }
-    if (manifest.skills && typeof manifest.skills === 'object') {
-        return manifest.skills;
-    }
-    return {};
+    return getSkillRegistryEntries<RegistryEntry>(manifest);
 }
 
 function normalizeHostSupportStatus(value: string | undefined): HostSupportStatus {
@@ -136,40 +121,6 @@ function normalizeHostSupportStatus(value: string | undefined): HostSupportStatu
         return 'unsupported';
     }
     return 'unknown';
-}
-
-function getRepositoryUrl(repository: PackageMetadata['repository']): string {
-    if (typeof repository === 'string') {
-        return repository;
-    }
-    return repository?.url ?? '';
-}
-
-function getAuthor(metadata: PackageMetadata): { name: string; email?: string; url?: string } {
-    if (typeof metadata.author === 'string') {
-        return {
-            name: metadata.author,
-        };
-    }
-
-    return {
-        name: metadata.author?.name ?? 'Corvus Star',
-        email: metadata.author?.email,
-        url: metadata.author?.url,
-    };
-}
-
-function getDisplayDescription(metadata: PackageMetadata): string {
-    if (metadata.description && metadata.description.trim()) {
-        return metadata.description.trim();
-    }
-
-    return 'Host-native supervisor integration for the Corvus Star runtime.';
-}
-
-function formatCapabilityLine(entry: CapabilityExport): string {
-    const fallbackSuffix = entry.allowKernelFallback ? 'kernel fallback allowed' : 'kernel fallback forbidden';
-    return `- \`${entry.id}\` (${entry.tier}, ${entry.hostSupportStatus}, ${entry.ownershipModel}, ${fallbackSuffix})`;
 }
 
 function getCapabilitiesForHost(projectRoot: string, provider: HostProvider): CapabilityExport[] {
@@ -195,7 +146,7 @@ function getCapabilitiesForHost(projectRoot: string, provider: HostProvider): Ca
                 description: String(entry.description ?? '').trim(),
                 runtimeTrigger: String(entry.runtime_trigger ?? id),
                 hostSupportStatus,
-                allowKernelFallback: entry.execution?.allow_kernel_fallback !== false,
+                allowKernelFallback: entry.execution?.allow_kernel_fallback === true,
                 ownershipModel: normalizeOwnershipModel(entry.execution?.ownership_model, hostSupportStatus),
             };
         })
@@ -203,428 +154,57 @@ function getCapabilitiesForHost(projectRoot: string, provider: HostProvider): Ca
         .sort((left, right) => left.id.localeCompare(right.id));
 }
 
-function buildGeminiManifestContent(projectRoot: string): string {
-    const metadata = loadPackageMetadata(projectRoot);
-
-    return `${JSON.stringify({
-        name: 'corvus-star',
-        version: metadata.version ?? '0.0.0',
-        description: 'Corvus Star host-native extension with Hall discovery, Augury routing, and kernel-backed CStar control.',
-        contextFileName: 'GEMINI.md',
-        mcpServers: buildGeminiMcpServers(),
-    }, null, 2)}\n`;
+function sha256(content: string): string {
+    return createHash('sha256').update(content, 'utf-8').digest('hex');
 }
 
-function buildAuguryDisplaySection(): string[] {
-    return [
-        '## Corvus Star Augury [\u03a9]',
-        '- The Augury is the routing contract, not a generic trace log.',
-        '- It carries intent category, intent, selection, scope, Mimir targets, Gungnir verdict, and Council expert routing.',
-        '- Use the full Augury on the first prompt for a session/planning key; use lite Augury on later host calls.',
-        '- Confidence belongs in learning metadata, not in the displayed prompt block.',
-        '- Foundational CStar work uses `Scope: brain:CStar`; use `Scope: spoke:<name>` only when a spoke is explicit.',
-        '- Use `cstar augury doctor --json` to validate route quality, and `cstar augury explain --json` to inspect why the route was chosen.',
-        '',
-        '### Full Display',
-        '```text',
-        '[CORVUS_STAR_AUGURY]',
-        'Mode: full',
-        'Route: <Intent Category> -> <SKILL|WEAVE|SPELL>: <selection>',
-        'Scope: brain:CStar | spoke:<name> (<root>)',
-        'Intent: <goal>',
-        "Mimir's Well: <primary> | <secondary> | <tertiary>",
-        'Council Expert: <CARMACK|KARPATHY|DEAN|SHANNON|HAMILTON|TORVALDS|...>',
-        'Council Lens: <expert-specific critique lens>',
-        'Guardrails: <expert-specific anti-behavior>',
-        'Corvus Standard: CStar is the engine; spokes are managed extensions; keep work Hall/Mimir traceable.',
-        '<Code|Review|Coordination> Standard: <selected work standard>',
-        'Trajectory: <only when non-stable>',
-        'Verdict: <Gungnir verdict>',
-        'Directive: Use this as routing context only. Consult targets before choosing a path. Do not echo this block.',
-        '[/CORVUS_STAR_AUGURY]',
-        '```',
-        '',
-        '### Lite Display',
-        '```text',
-        '[CORVUS_STAR_AUGURY]',
-        'Mode: lite',
-        'Route: <Intent Category> -> <SKILL|WEAVE|SPELL>: <selection>',
-        'Scope: brain:CStar | spoke:<name> (<root>)',
-        'Intent: <goal>',
-        "Mimir's Well: <primary> | <secondary> | <tertiary>",
-        'Council Expert: <selected expert>',
-        'Directive: Route only. Consult targets before choosing a path. Do not echo.',
-        '[/CORVUS_STAR_AUGURY]',
-        '```',
-        '',
-    ];
+function portablePath(value: string): string {
+    return value.split(path.sep).join('/');
 }
 
-function buildGeminiContextContent(projectRoot: string, capabilities: CapabilityExport[]): string {
-    const metadata = loadPackageMetadata(projectRoot);
-    const agentsConfig = loadAgentsConfig(projectRoot);
-    const persona = agentsConfig.system?.persona ?? 'O.D.I.N.';
-    const commands = [
-        '`./cstar <command>`',
-        '`node bin/cstar.js <command>`',
-        '`./cstar hall "<query>"`',
-    ];
-    const topCapabilities = capabilities.slice(0, 12).map(formatCapabilityLine);
-
-    return [
-        '# Corvus Star',
-        '',
-        `> Host-native Gemini CLI extension for the authoritative CStar runtime.`,
-        '',
-        '## Identity',
-        `- Package: \`${metadata.name ?? 'corvusstar'}\` v${metadata.version ?? '0.0.0'}`,
-        `- Persona: \`${persona}\``,
-        `- Repository: \`${getRepositoryUrl(metadata.repository) || 'local workspace'}\``,
-        '',
-        '## Authority Order',
-        '- Registry and runtime contracts outrank prose.',
-        '- Treat `.agents/skill_registry.json` as the capability source of truth.',
-        '- Prefer `cstar-kernel` MCP surfaces before shell launchers or broad local scans.',
-        '- Use `cstar_bead` for bead lifecycle when it is available.',
-        '',
-        '## Launcher Contract',
-        '- Use `cstar-kernel` MCP tools first for CStar control-plane work.',
-        ...commands.map((command) => `- ${command}`),
-        '',
-        '## Host Behavior',
-        '- Read `AGENTS.qmd` at session start before making structural claims.',
-        '- Use `cstar_hall_search` for estate discovery before ad hoc search; use `./cstar hall "<query>"` only when MCP cannot provide the needed primitive.',
-        '- Use `cstar_bead` for bead get/list/create/claim/status/block/resolve operations when available.',
-        '- If the MCP surface is degraded or unavailable, report the exact failure and remain read-only for control-plane state; do not mutate Hall or SQLite directly.',
-        '- Route implementation ownership through CoS -> Corvus - MM -> PMT -> worker. Treat this session as a controlled exception only when that chain is explicitly blocked.',
-        '- Treat the Researcher thread as a special monitored pipeline, not a normal PMT worker.',
-        '- Preserve operator gates for acceptance, dispatch, commit, push, merge, deletion, restarts, and publish actions.',
-        '- Keep reasoning, planning, critique, and recovery in the host session when the registry marks a capability host-executable.',
-        '- Keep deterministic local primitives in the kernel; do not fork Gemini-specific capability definitions.',
-        '- Treat `native-session` and `exec-bridge` capabilities as host-routed, and treat `supported` capabilities as kernel-backed launch surfaces.',
-        '- Treat `host-workflow` entries as host-owned cognition/workflow surfaces and `kernel-primitive` entries as deterministic kernel control-plane primitives.',
-        '- Public host fronts marked with kernel fallback forbidden must fail closed when no host session is active; they must not degrade into legacy kernel cognition.',
-        '',
-        ...buildAuguryDisplaySection(),
-        ...buildKernelMcpToolsSection(),
-        `## Exported Gemini Capabilities (${capabilities.length})`,
-        ...(topCapabilities.length > 0 ? topCapabilities : ['- None exported.']),
-        '',
-        '## Notes',
-        '- This extension is generated from the registry-backed distribution builder.',
-        '- Capabilities marked `policy-only` or `unsupported` are intentionally omitted.',
-        '- The `cstar-kernel` MCP server is wired up by `mcpServers` in `gemini-extension.json` — invoke kernel tools directly through MCP, not via shell, whenever the needed primitive exists.',
-        '',
-    ].join('\n');
-}
-
-function buildCodexPluginManifestContent(projectRoot: string): string {
-    const metadata = loadPackageMetadata(projectRoot);
-    const author = getAuthor(metadata);
-    const repositoryUrl = getRepositoryUrl(metadata.repository);
-
-    return `${JSON.stringify({
-        name: 'corvus-star',
-        version: metadata.version ?? '0.0.0',
-        description: 'Host-native Corvus Star Augury, Hall, and CStar runtime integration.',
-        author,
-        homepage: metadata.homepage ?? repositoryUrl,
-        repository: repositoryUrl,
-        license: metadata.license ?? 'UNLICENSED',
-        keywords: ['corvus', 'cstar', ...(metadata.keywords ?? [])],
-        skills: './skills/',
-        hooks: './hooks.json',
-        mcpServers: './.mcp.json',
-        interface: {
-            displayName: 'Corvus Star',
-            shortDescription: 'Corvus Star Augury and Hall integration for Codex.',
-            longDescription: 'Routes Codex through CStar with full-first/lite-after Augury steering, Hall/Mimir discovery, Council expert assignment, and explicit host/kernel boundaries.',
-            developerName: author.name,
-            category: 'Developer Tools',
-            capabilities: ['Interactive', 'Write'],
-            websiteURL: metadata.homepage ?? repositoryUrl,
-            privacyPolicyURL: metadata.homepage ?? repositoryUrl,
-            termsOfServiceURL: metadata.homepage ?? repositoryUrl,
-            defaultPrompt: [
-                'Route CStar work through Corvus Star Augury [\u03a9].',
-                'Use Hall/Mimir discovery before broad local scans.',
-                'Keep confidence in Augury learning metadata.',
-            ],
-            brandColor: '#0F6E5B',
-        },
-    }, null, 2)}\n`;
-}
-
-function buildCodexPluginSkillContent(capabilities: CapabilityExport[]): string {
-    const topCapabilities = capabilities.slice(0, 12).map(formatCapabilityLine);
-
-    return [
-        '---',
-        'name: corvus-star',
-        'description: "Use when operating inside the Corvus Star estate so Codex follows the CStar authority order, Hall discovery path, and launcher contract."',
-        'metadata:',
-        '  priority: 5',
-        '  pathPatterns:',
-        "    - 'CStar/**'",
-        "    - 'AGENTS.md'",
-        "    - 'AGENTS.qmd'",
-        "    - 'BIDE_INTEGRATION_GUIDE.md'",
-        "    - '.agents/skill_registry.json'",
-        '  bashPatterns:',
-        "    - '\\\\bcstar\\\\s+(hall|augury|trace|one-mind|status|manifest|evolve|orchestrate)\\\\b'",
-        "    - '\\\\bnode\\\\s+bin/cstar\\\\.js\\\\s+'",
-        '  promptSignals:',
-        '    phrases:',
-        '      - "CStar"',
-        '      - "Corvus"',
-        '      - "Hall of Records"',
-        '      - "bead"',
-        '      - "Mimir"',
-        '      - "Mimir\'s Well"',
-        '      - "Gungnir"',
-        '      - "Augury"',
-        '      - "Council of Experts"',
-        '---',
-        '',
-        '# Corvus Star Plugin',
-        '',
-        '## When to Use',
-        '- Use when the workspace is the Corvus estate or a Corvus spoke.',
-        '- Use when Codex should route discovery and execution through CStar instead of ad hoc scripts.',
-        '',
-        '## Required Behavior',
-        '- Read only the specific CStar authority files needed for the task. Start with `AGENTS.qmd` and `.agents/skill_registry.json` before architectural claims.',
-        '- CStar is canonical for Corvus planning, proposals, execution state, validation, and completion; do not use direct Hall/SQLite writes when kernel primitives exist.',
-        '- Prefer `cstar-kernel` MCP tools first for CStar control-plane work: `cstar_doctor`, `cstar_handoff`, `cstar_augury`, `cstar_hall_search`, `cstar_verify_plan`, `cstar_bead`, and `cstar_record_result` where exposed.',
-        '- Use `cstar_hall_search` before broad local scans, and quote only the relevant Hall hits back into context.',
-        '- Use `cstar_bead` for bead get/list/create/claim/status/block/resolve operations when available.',
-        '- If MCP is degraded or unavailable, report the exact failure and remain read-only for control-plane state; do not mutate Hall or SQLite directly.',
-        '- Use `./cstar <command>` from the CStar root or `node bin/cstar.js <command>` only when MCP cannot provide the needed primitive or the capability is explicitly terminal-required.',
-        '- Use `cstar_handoff` when resuming active planning/runtime state, then carry forward only the lead bead, gate, next action, target paths, and checker commands.',
-        '- Use `cstar_doctor` before acting when scope, route, expert, or Mimir targets look unclear.',
-        '- Use `cstar_augury` when you need the reason behind the selected route, scope, expert, and Mimir targets.',
-        '- Use direct Codex thread tools for read/list/send when exposed; session JSONL fallback is read-only degraded mode, not an execution or assignment surface.',
-        '- CoS is CEO-facing coordination: visibility, priorities, risks, and approval asks. CoS does not directly implement project work by default.',
-        '- Route execution through CoS -> Corvus - MM -> one pinned PMT per project -> fresh workers.',
-        '- PMT owns worker assignment and project execution tracking; MM owns thread architecture and routing.',
-        '- Treat the Researcher thread as a special monitored pipeline, not a normal PMT worker.',
-        '- Preserve operator gates for acceptance, dispatch, implementation bypass, commit, push, merge, post, deletion, restarts, deploys, and secret/config mutation.',
-        '- Keep high-volume collectors outside beads; collectors write receipts or artifacts, then bounded proposals/results enter CStar.',
-        '- Avoid active AutoBot/Hermes routing language unless explicitly marked historical or decommissioned.',
-        '- Keep host-specific packaging separate from kernel logic.',
-        '- Treat `native-session` and `exec-bridge` capabilities as host-routed work, and `supported` capabilities as kernel-backed launch surfaces.',
-        '- Treat `host-workflow` entries as host-owned cognition/workflow surfaces and `kernel-primitive` entries as deterministic kernel control-plane primitives.',
-        '- Public host fronts marked with forbidden kernel fallback must fail closed instead of dropping into legacy kernel cognition.',
-        '- Do not run shell `cstar chant` for host-only planning. In Codex, perform the host-native planning and critique in-session, using Hall/Augury state commands for bounded state and evidence.',
-        '',
-        ...buildAuguryDisplaySection(),
-        ...buildKernelMcpToolsSection(),
-        '## Context Budget',
-        '- Never preload Hall memory, logs, full registry dumps, or complete bead ledgers.',
-        '- Prefer one Hall query per mission, then narrower follow-up queries by bead id, target path, or error text.',
-        '- Summarize Hall results as current instructions only when they are OPEN/SET/PLAN_READY or explicitly match the user request. Treat logs and archived results as leads.',
-        '- Keep retrieved snippets to the minimum needed to choose files, commands, verification, and next action.',
-        '',
-        '## Bead Workflow',
-        '1. Identify the mission and run a targeted `cstar_hall_search` query.',
-        '2. If an OPEN or SET bead matches, anchor work to that bead and inspect only its target paths plus directly adjacent files.',
-        '3. If no bead matches and the task is structural, use host-native planning in-session and record the intended Hall path in the response.',
-        '4. Before edits, state the bead/Augury anchor and the files you will touch.',
-        '5. After edits, run the checker from the bead when present; otherwise run the focused CStar or spoke test that matches the touched surface.',
-        '6. If CStar reports a live planning/runtime failure, triage it before returning to spoke work unless the user explicitly defers it.',
-        '',
-        '## Silent Hook',
-        '- The plugin includes a PostToolUse hook that only refreshes a local stamp and captures a tiny Augury handoff compatibility payload in `/tmp`; it must stay silent and must not inject Hall payloads into Codex context.',
-        '',
-        '## Registry-Exported Codex Capabilities',
-        '- This list is generated from `.agents/skill_registry.json` and may be empty when no Codex executable capabilities are registered.',
-        ...(topCapabilities.length > 0 ? topCapabilities : ['- None exported.']),
-        '',
-    ].join('\n');
-}
-
-function buildCodexHooksContent(): string {
-    return `${JSON.stringify({
-        hooks: {
-            PostToolUse: [
+function buildCodexPluginLineageContent(
+    version: string,
+    pluginFiles: GeneratedFile[],
+    geminiCapabilities: CapabilityExport[],
+    codexCapabilities: CapabilityExport[],
+): string {
+    const pluginRoot = path.join('plugins', 'corvus-star');
+    const files = Object.fromEntries(
+        pluginFiles
+            .map((file) => ({
+                relativePath: portablePath(path.relative(pluginRoot, file.relativePath)),
+                content: file.content,
+            }))
+            .sort((left, right) => left.relativePath.localeCompare(right.relativePath))
+            .map(({ relativePath, content }) => [
+                relativePath,
                 {
-                    matcher: 'Write|Edit|MultiEdit|apply_patch',
-                    hooks: [
-                        {
-                            type: 'command',
-                            command: 'bash ./scripts/cstar_codex_post_write.sh',
-                        },
-                    ],
+                    bytes: Buffer.byteLength(content, 'utf-8'),
+                    sha256: sha256(content),
                 },
-            ],
-        },
-    }, null, 2)}\n`;
-}
+            ]),
+    );
 
-function buildCodexPostWriteHookContent(projectRoot: string): string {
-    return [
-        '#!/usr/bin/env bash',
-        'set -u',
-        '',
-        `CSTAR_ROOT="${projectRoot.replace(/"/g, '\\"')}"`,
-        'if [ ! -x "$CSTAR_ROOT/cstar" ]; then',
-        '  exit 0',
-        'fi',
-        '',
-        'case "${PWD:-}" in',
-        '  "$CSTAR_ROOT"|"$CSTAR_ROOT"/*|/home/morderith/Corvus|/home/morderith/Corvus/*) ;;',
-        '  *) exit 0 ;;',
-        'esac',
-        '',
-        'STAMP_DIR="${TMPDIR:-/tmp}/corvus-codex"',
-        'mkdir -p "$STAMP_DIR" 2>/dev/null || exit 0',
-        'date -u +"%Y-%m-%dT%H:%M:%SZ" > "$STAMP_DIR/last-post-write" 2>/dev/null || true',
-        '',
-        '# Keep this hook context-neutral: capture a tiny handoff for manual inspection, never print Hall payloads.',
-        '( cd "$CSTAR_ROOT" && ./cstar augury handoff --json > "$STAMP_DIR/last-augury-handoff.json" 2>/dev/null ) || true',
-        'exit 0',
-        '',
-    ].join('\n');
-}
-
-/**
- * The cstar-kernel MCP tool inventory, in registration order.
- * Source of truth: `src/tools/cstar-kernel-mcp.ts#server.tool(...)` calls.
- * Update this list when a tool is added, renamed, or removed.
- * Drift is caught by `npm run validate:distributions` (this content is
- * embedded in GEMINI.md and the Codex SKILL.md, so a stale list will fail
- * the validate-distributions check).
- */
-const KERNEL_MCP_TOOLS: ReadonlyArray<{ name: string; purpose: string }> = [
-    { name: 'cstar_handoff', purpose: 'Compact active state from Augury/handoff logic.' },
-    { name: 'cstar_hall_search', purpose: 'FTS5 search across CODE / DOC / ENGRAM / BEAD / SESSION / LESSON.' },
-    { name: 'cstar_hall_maintenance', purpose: 'Engram lesson study / harvest queue.' },
-    { name: 'cstar_augury', purpose: 'Route one mission and return routing advice + token_path hints.' },
-    { name: 'cstar_researcher_request', purpose: 'No-spend request receipt for Researcher routing with metric and callback contracts.' },
-    { name: 'cstar_forge_request', purpose: 'No-spend request receipt for Corvus Forge routing with metric and callback contracts.' },
-    { name: 'cstar_forge_execute', purpose: 'Forge execution gate that links a request receipt to approved no-op or live-authorized adapter execution.' },
-    { name: 'cstar_autobot', purpose: 'Legacy AutoBot/Hermes delegation surface; disabled for new Corvus routing unless explicitly reactivated.' },
-    { name: 'cstar_doctor', purpose: 'Kernel diagnostics: registry, augury, database checks + telemetry summary.' },
-    { name: 'cstar_verify_plan', purpose: 'Recommended checker shells + last validation verdict for the active bead.' },
-    { name: 'cstar_bead', purpose: 'Bead lifecycle: get / list / create / update_status / claim / resolve / block.' },
-    { name: 'cstar_spoke_bead_import', purpose: 'Import a rich bead from a registered spoke into the hub Hall.' },
-    { name: 'cstar_record_result', purpose: 'Record a bead result / verdict; auto-link recent token-path advice.' },
-    { name: 'cstar_engram_record', purpose: 'Record an episodic memory entry.' },
-    { name: 'cstar_war_game_score', purpose: 'War-game scoring: register / tally / recent / by_scenario / get_score.' },
-    { name: 'cstar_manifest', purpose: 'Capability discovery (hub registry + spoke-local manifests, announce-only).' },
-    { name: 'cstar_skill_info', purpose: 'Per-capability contract: <slug>:<id> for spoke skills, bare id for hub.' },
-    { name: 'cstar_spoke_journal', purpose: 'Four-file journal state for a registered spoke (memory/tasks/wireframe/DEV_JOURNAL).' },
-    { name: 'cstar_pennyone_context', purpose: 'Bounded PennyOne/Hall summaries for bead, validation, repository, and project-state context.' },
-    { name: 'cstar_mongo_mailbox', purpose: 'Mongo mailbox/cache status, mirror counts, and bounded operator-intent enqueue.' },
-    { name: 'cstar_status', purpose: 'Deterministic framework snapshot: status, persona, gungnir score, spokes, agents, hall_reachable.' },
-    { name: 'cstar_evolve', purpose: 'Read-only inspection of evolve proposals + SPRT history (no LLM-driven propose/promote).' },
-    { name: 'cstar_spoke', purpose: 'Mounted-spoke lifecycle: list / link / unlink / inspect.' },
-    { name: 'cstar_intent_route', purpose: 'Resolve a prompt against the intent grammar; action=match (first hit) or explain (all hits).' },
-    { name: 'cstar_warden', purpose: 'Sentinel Wardens: list / bounties (tech_debt_ledger) / scan (Python warden on demand).' },
-    { name: 'cstar_telemetry', purpose: 'MCP telemetry summaries: usage counts, outcome rates, token-path integration.' },
-];
-
-function buildMcpServers(rootCwd: string | undefined): Record<string, McpServerConfig> {
-    return {
-        'cstar-kernel': {
-            command: 'node',
-            args: ['bin/cstar-kernel-mcp.js'],
-            ...(rootCwd ? { cwd: rootCwd } : {}),
-            env: {
-                GEMINI_CLI_ACTIVE: 'true',
-                CSTAR_KERNEL_DISABLE_WATCH: '1',
-            },
-            note: `CStar kernel MCP — ${KERNEL_MCP_TOOLS.length}-tool surface. See docs/integrations/cstar-kernel-mcp.md for the full API reference.`,
-        },
-    };
-}
-
-function buildKernelMcpToolsSection(): string[] {
-    return [
-        `## Kernel MCP Tools (${KERNEL_MCP_TOOLS.length})`,
-        '',
-        'The `cstar-kernel` MCP server is the authoritative kernel surface — invoke these tools directly via MCP rather than shelling out to `./cstar` whenever the needed primitive exists. Every handler is deterministic; no LLM inference in the tool execution path. Full API reference: `docs/integrations/cstar-kernel-mcp.md`.',
-        '',
-        ...KERNEL_MCP_TOOLS.map(({ name, purpose }) => `- \`${name}\` — ${purpose}`),
-        '',
-    ];
-}
-
-function buildGeminiMcpServers(): Record<string, McpServerConfig> {
-    return buildMcpServers('.');
-}
-
-function buildCodexPluginMcpContent(): string {
     return `${JSON.stringify({
-        mcpServers: buildMcpServers('../..'),
-    }, null, 2)}\n`;
-}
-
-function buildDistributionReadmeContent(geminiCapabilities: CapabilityExport[], codexCapabilities: CapabilityExport[]): string {
-    return [
-        '# Corvus Star Install Surfaces',
-        '',
-        'This repository generates host install artifacts from the authoritative registry and runtime contracts.',
-        '',
-        '## Gemini CLI',
-        '- Install from the repository root so `gemini-extension.json` and `GEMINI.md` are available.',
-        '- The extension exposes registry-filtered capabilities and MCP server wiring from the kernel root.',
-        '- Gemini context is generated around the host-native supervisor model: host cognition, kernel primitives.',
-        '- The Gemini context teaches the full-first/lite-after Corvus Star Augury display and routing contract.',
-        '- Public host fronts marked as no-fallback are expected to fail closed when the host session is unavailable.',
-        '- Local bootstrap: `npm run install:gemini-local`',
-        '',
-        '## Codex',
-        '- The repo-local plugin lives under `plugins/corvus-star/`.',
-        '- The marketplace entry lives under `.agents/plugins/marketplace.json`.',
-        '- The plugin points back to the same kernel root through `.mcp.json`.',
-        '- Codex install surfaces are generated from the same registry-backed host/kernel split as Gemini.',
-        '- Codex skill context teaches the full-first/lite-after Corvus Star Augury display and routing contract.',
-        '- Public host fronts marked as no-fallback are expected to fail closed when the host session is unavailable.',
-        '- Local bootstrap: `npm run install:codex-local`',
-        '',
-        '## Combined Local Bootstrap',
-        '- `npm run install:hosts-local`',
-        '',
-        `## Export Summary`,
-        `- Gemini executable capabilities: ${geminiCapabilities.length}`,
-        `- Codex executable capabilities: ${codexCapabilities.length}`,
-        '',
-        '## Regeneration',
-        '- `npm run build:distributions`',
-        '- `npm run validate:distributions`',
-        '- `npm run build:release-bundles`',
-        '- `npm run build:release-archives`',
-        '- `npm run release:prepare`',
-        '',
-        '## CI',
-        '- Pull requests and pushes should fail if generated install artifacts drift from the registry-backed source.',
-        '- Tagged pushes and manual runs can publish host-ready bundle artifacts from `dist/host-distributions/`.',
-        '- Sync local `~/.gemini` and `~/.codex` installs from these generated artifacts instead of hand-editing host surfaces.',
-        '',
-    ].join('\n');
-}
-
-function buildMarketplaceContent(): string {
-    return `${JSON.stringify({
-        name: 'corvus-star',
-        interface: {
-            displayName: 'Corvus Star',
+        schema_version: 1,
+        plugin: {
+            name: 'corvus-star',
+            version,
         },
-        plugins: [
-            {
-                name: 'corvus-star',
-                source: {
-                    source: 'local',
-                    path: './plugins/corvus-star',
-                },
-                policy: {
-                    installation: 'AVAILABLE',
-                    authentication: 'ON_INSTALL',
-                },
-                category: 'Developer Tools',
-            },
-        ],
+        runtime_binding: CODEX_PLUGIN_RUNTIME_BINDING,
+        tool_catalog: {
+            count: CSTAR_KERNEL_TOOL_NAMES.length,
+            sha256: sha256(JSON.stringify(CSTAR_KERNEL_TOOL_CATALOG)),
+        },
+        capability_exports: {
+            codex_count: codexCapabilities.length,
+            gemini_count: geminiCapabilities.length,
+            sha256: sha256(JSON.stringify({
+                codex: codexCapabilities,
+                gemini: geminiCapabilities,
+            })),
+        },
+        files,
     }, null, 2)}\n`;
 }
 
@@ -632,6 +212,25 @@ export function buildDistributions(projectRoot: string): DistributionBuild {
     const resolvedRoot = resolveProjectRoot(projectRoot);
     const geminiCapabilities = getCapabilitiesForHost(resolvedRoot, 'gemini');
     const codexCapabilities = getCapabilitiesForHost(resolvedRoot, 'codex');
+    const pluginRoot = path.join('plugins', 'corvus-star');
+    const pluginFiles: GeneratedFile[] = [
+        {
+            relativePath: path.join(pluginRoot, '.codex-plugin', 'plugin.json'),
+            content: buildCodexPluginManifestContent(resolvedRoot),
+        },
+        {
+            relativePath: path.join(pluginRoot, 'skills', 'corvus-star', 'SKILL.md'),
+            content: buildCodexPluginSkillContent(codexCapabilities),
+        },
+        {
+            relativePath: path.join(pluginRoot, 'README.md'),
+            content: buildDistributionReadmeContent(geminiCapabilities, codexCapabilities),
+        },
+    ];
+    const pluginManifest = JSON.parse(pluginFiles[0]!.content) as { version?: unknown };
+    if (typeof pluginManifest.version !== 'string') {
+        throw new Error('generated_codex_plugin_version_missing');
+    }
 
     return {
         geminiCapabilities,
@@ -645,29 +244,15 @@ export function buildDistributions(projectRoot: string): DistributionBuild {
                 relativePath: 'GEMINI.md',
                 content: buildGeminiContextContent(resolvedRoot, geminiCapabilities),
             },
+            ...pluginFiles,
             {
-                relativePath: path.join('plugins', 'corvus-star', '.codex-plugin', 'plugin.json'),
-                content: buildCodexPluginManifestContent(resolvedRoot),
-            },
-            {
-                relativePath: path.join('plugins', 'corvus-star', '.mcp.json'),
-                content: buildCodexPluginMcpContent(),
-            },
-            {
-                relativePath: path.join('plugins', 'corvus-star', 'hooks.json'),
-                content: buildCodexHooksContent(),
-            },
-            {
-                relativePath: path.join('plugins', 'corvus-star', 'scripts', 'cstar_codex_post_write.sh'),
-                content: buildCodexPostWriteHookContent(resolvedRoot),
-            },
-            {
-                relativePath: path.join('plugins', 'corvus-star', 'skills', 'corvus-star', 'SKILL.md'),
-                content: buildCodexPluginSkillContent(codexCapabilities),
-            },
-            {
-                relativePath: path.join('plugins', 'corvus-star', 'README.md'),
-                content: buildDistributionReadmeContent(geminiCapabilities, codexCapabilities),
+                relativePath: path.join(pluginRoot, 'lineage.json'),
+                content: buildCodexPluginLineageContent(
+                    pluginManifest.version,
+                    pluginFiles,
+                    geminiCapabilities,
+                    codexCapabilities,
+                ),
             },
             {
                 relativePath: path.join('.agents', 'plugins', 'marketplace.json'),
@@ -686,6 +271,12 @@ export function writeDistributions(projectRoot: string): GeneratedFile[] {
 
     for (const file of build.files) {
         const absolutePath = path.join(projectRoot, file.relativePath);
+        if (
+            fs.existsSync(absolutePath)
+            && fs.readFileSync(absolutePath, 'utf-8') === file.content
+        ) {
+            continue;
+        }
         fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
         fs.writeFileSync(absolutePath, file.content, 'utf-8');
     }
@@ -731,12 +322,9 @@ export function buildReleaseBundles(projectRoot: string): ReleaseBundle[] {
 
     const codexFiles = [
         path.join('plugins', 'corvus-star', '.codex-plugin', 'plugin.json'),
-        path.join('plugins', 'corvus-star', '.mcp.json'),
-        path.join('plugins', 'corvus-star', 'hooks.json'),
-        path.join('plugins', 'corvus-star', 'scripts', 'cstar_codex_post_write.sh'),
         path.join('plugins', 'corvus-star', 'README.md'),
         path.join('plugins', 'corvus-star', 'skills', 'corvus-star', 'SKILL.md'),
-        path.join('.agents', 'plugins', 'marketplace.json'),
+        path.join('plugins', 'corvus-star', 'lineage.json'),
         path.join('distributions', 'README.md'),
     ].map((relativePath) => {
         const file = fileMap.get(relativePath);
@@ -746,7 +334,7 @@ export function buildReleaseBundles(projectRoot: string): ReleaseBundle[] {
         return file;
     });
 
-    return [
+    const bundles: ReleaseBundle[] = [
         {
             name: 'gemini-extension',
             rootDir: path.join('dist', 'host-distributions', 'gemini-extension'),
@@ -772,6 +360,15 @@ export function buildReleaseBundles(projectRoot: string): ReleaseBundle[] {
             })),
         },
     ];
+
+    return bundles.map((bundle) => ({
+        ...bundle,
+        rootDir: portablePath(bundle.rootDir),
+        files: bundle.files.map((file) => ({
+            ...file,
+            relativePath: portablePath(file.relativePath),
+        })),
+    }));
 }
 
 export function writeReleaseBundles(projectRoot: string): ReleaseBundle[] {

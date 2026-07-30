@@ -19,6 +19,7 @@ Corvus Star supports exactly one Codex runtime integration surface:
    - `cstar_augury`
    - `cstar_verify_plan`
    - `cstar_bead`
+   - `cstar_goal_resume`
    - `cstar_spoke_bead_import`
    - `cstar_record_result`
    - `cstar_engram_record`
@@ -34,6 +35,10 @@ Corvus Star supports exactly one Codex runtime integration surface:
    - `cstar_intent_route`
    - `cstar_warden`
    - `cstar_telemetry`
+   - `cstar_researcher_request`
+   - `cstar_forge_request`
+   - `cstar_forge_authorize`
+   - `cstar_forge_execute`
 
 The exhaustive API reference is `docs/integrations/cstar-kernel-mcp.md`. If a
 tool inventory test and this list disagree, fix the prose; runtime registration
@@ -48,26 +53,21 @@ Future MCP transports must keep CStar tool calls self-contained:
 - protocol version, client metadata, trace context, and transport routing belong
   in MCP request metadata/headers, not in CStar tool arguments
 - cross-call continuity belongs in explicit CStar handles such as `bead_id`,
-  `validation_id`, `spoke`, `memory_id`, or `token_path_episode_id`
+  `validation_id`, `spoke`, `memory_id`, or the immutable event returned by
+  `cstar_goal_resume`
 - Roots, Sampling, and Logging must not be introduced as Codex MCP dependencies;
   use tool parameters, host-native provider integration, stderr/bootstrap logs,
   and CStar telemetry instead
 - Tasks and MCP Apps are optional future extensions; they must not replace Hall
   bead authority or expand `cstar-kernel` into host cognition
 
-### Optional `token_path_observation` (v3.1+)
+### Quarantined TokenPath result coupling
 
-`cstar_record_result` accepts an optional `token_path_observation` object. When supplied,
-the kernel appends the observation to
-`.agents/state/augury-token-path-mcp-observations.jsonl` for the AuguryTokenPath sidecar
-calibration loop. Required keys when present: `scenario_class`, `selected_policy`,
-`advised_mode`. All other keys (`observed_raw_tokens_episode`,
-`observed_billable_tokens_episode`, `rounds`, `verification_result`,
-`terminal_outcome`, `notes`) are optional.
-
-If the sidecar is not installed, the field is silently dropped — observations land in the
-JSONL file regardless. Hosts may always omit `token_path_observation`; doing so does not
-change the kernel's behavior.
+`cstar_record_result` has no TokenPath input or response fields. Unknown legacy
+fields are ignored by the MCP schema and cannot append, persist, promote, or
+auto-link an observation. A future observed pipeline requires a separately
+authorized, causally identified promotion contract; no generic result call,
+sidecar file, or missing-install fallback grants current authority.
 
 ## Optional Maintenance Surface
 
@@ -125,23 +125,43 @@ Inside Corvus or a Corvus spoke:
 3. use `cstar_handoff`
 4. use one bounded `cstar_hall_search`
 
-Codex Desktop-on-WSL should load `cstar-kernel` through `/home/morderith/.codex/bin/wsl/cstar-kernel-mcp-wrapper`, and that wrapper should launch `bin/cstar-kernel-mcp-bridge.js`. The bridge uses the local CStar TCP daemon when available and falls back to the direct source launcher, so a refreshed source-backed child does not strand the active Codex transport.
-
-Use `corvus-codex` only when you explicitly want startup repair or verbose drift reporting before Codex launches.
+Codex Desktop-on-WSL should load `cstar-kernel` through
+`/home/morderith/.codex/bin/wsl/cstar-kernel-mcp-wrapper`, and that wrapper must
+launch `bin/cstar-kernel-mcp.js` directly over stdio. The former bridge and TCP
+daemon are retirement tombstones; neither reconnects, listens, spawns a child,
+or falls back to another transport. Changing the live wrapper still requires a
+separately authorized activation and restart window.
 
 Use shell `./cstar ...` only when MCP does not expose the needed primitive or the capability is explicitly terminal-required.
 
 ## Drift Handling
 
-Drift should warn loudly, attempt repair, and then report degraded mode if repair fails.
+Drift should be reported by `cstar_doctor`, converted into a bounded repair
+item, and proven after a separately authorized supported-plugin activation and
+restart window. Source code does not auto-install, self-heal, invoke a launcher,
+or write `.agents/state` activity sidecars.
 
-Operational commands:
-- `npm run codex:self-heal`
-- `npm run codex:smoke`
+The former self-heal, launcher smoke, ambient Codex activity writer, Gemini
+symlink installer, and local genesis setup paths are retirement tombstones.
+Their stable failures are:
 
-Persistent logs:
-- `.agents/state/codex-self-heal.jsonl`
-- `.agents/state/codex-launcher-smoke.jsonl`
+- `legacy_codex_self_heal_retired_requires_operator_gated_supported_plugin_surface`
+- `legacy_codex_launcher_smoke_retired_use_cstar_doctor_and_live_runtime_proof`
+- `legacy_codex_cli_activity_sidecar_retired_use_host_runtime_receipt`
+- `direct_gemini_extension_install_retired_requires_supported_host_surface`
+- `direct_local_setup_retired_requires_operator_gated_supported_installer`
+
+None reads host config, marketplace state, environment contents, or credentials;
+none writes a cache, symlink, environment, log, or package; and none starts a
+process. Installation and restart remain distinct operator gates.
+
+The compatibility-named `installCodexPlugin` helper is instead a bounded source
+stager. It requires one pre-existing approved local marketplace entry, verifies
+the generated plugin lineage, and may write only the personal plugin source
+tree. It does not mutate marketplace or Codex cache state, invoke `codex plugin
+add`, activate the plugin, restart the host, or prove live runtime. Staging,
+installation, activation, restart, and production therefore remain distinct
+authority effects.
 
 ## Simplification Rule
 

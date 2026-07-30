@@ -1,24 +1,10 @@
-import contextlib
-import json
+import pytest
 
-from scripts.scout_targets import scout
+from scripts.scout_targets import RETIRED_ERROR, scout
 
 
-def test_scout_generates_queue(tmp_path, monkeypatch):
-    # Mock PROJECT_ROOT
-    monkeypatch.setattr("scripts.scout_targets.PROJECT_ROOT", tmp_path)
-
-    # Create a mock source file
-    src_dir = tmp_path / "src" / "core"
-    src_dir.mkdir(parents=True)
-    (src_dir / "test_file.py").write_text("print('hello')", encoding='utf-8')
-
-    # Run scout (it might fail on actual scans if dependencies aren't mocked,
-    # but we check if it produces the output file)
-    with contextlib.suppress(Exception):
+def test_scout_is_retired_and_writes_no_queue(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    with pytest.raises(RuntimeError, match=RETIRED_ERROR):
         scout()
-
-    queue_path = tmp_path / "breaches_queue.json"
-    assert queue_path.exists()
-    data = json.loads(queue_path.read_text(encoding='utf-8'))
-    assert "ANNEX" in data
+    assert list(tmp_path.iterdir()) == []

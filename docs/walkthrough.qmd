@@ -1,5 +1,11 @@
 # Walkthrough: QMD Migration Audit & Linguistic Integrity
 
+> **Historical walkthrough.** This chronological narrative preserves earlier
+> experiments and their then-reported measurements. Ravens, autonomous learning,
+> direct web/model enrichment, model-memory loops, scalar Gungnir claims, and
+> persona-owned authority are not current CStar behavior or authority. Reported percentages
+> and pass rates are not present readiness or production evidence.
+
 The Corvus Star framework has successfully transitioned to the `.qmd` documentation standard and implemented a statistical autonomous learning loop.
 
 ## 🚀 Key Achievements (Summary)
@@ -137,7 +143,7 @@ The Corvus Star framework has successfully transitioned to the `.qmd` documentat
 ### Operational Metrics
 - **Path Resolution**: **CACHE-LOCKED** (Ascension Verified)
 - **Intent Depth**: **MULTI-SENTENCE** (Heuristics Enhanced)
-- **TypeScript Audit**: **ACTIVE** (js_sentinel integrated)
+- **TypeScript Audit**: **RETIRED LEGACY PATH** (`js_sentinel` cannot execute; use maintained tests or `cstar_warden`)
 - **Empire Test Pass Rate**: **100%** (313/313)
 
 ## ⏭️ Session Handshake

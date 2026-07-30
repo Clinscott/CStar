@@ -1,118 +1,43 @@
+"""Import-safe tombstone for the retired repository-local secret vault.
+
+Secret storage, inspection, encryption, and rotation require supported host
+surfaces and explicit operator authority.  This module never constructs a key,
+reads dotenv content, or writes a vault artifact.
 """
-┌────────────────────────────────────────── Ω VAULT ENGINE Ω ──────────────────────────────────────────┐
-│ THE FORTRESS OF KEYS: Secure management of the realm's lifeblood.                                     │
-│ Developed under Operation Ironclad (Phase 72).                                                      │
-└──────────────────────────────────────────────────────────────────────────────────────────────────────┘
-"""
+
+from __future__ import annotations
+
 import sys
-from pathlib import Path
+from typing import NoReturn
 
-from cryptography.fernet import Fernet
 
-# Add project root to sys.path
-project_root = Path(__file__).resolve().parent.parent.parent
-if str(project_root) not in sys.path:
-    sys.path.insert(0, str(project_root))
+RETIRED_SECRET_PROVIDER_TOOL_ERROR = (
+    "legacy_secret_vault_provider_tools_retired_use_supported_surfaces"
+)
 
-from src.core.sovereign_hud import SovereignHUD
+
+def _retired(*_args: object, **_kwargs: object) -> NoReturn:
+    raise RuntimeError(RETIRED_SECRET_PROVIDER_TOOL_ERROR)
 
 
 class SovereignVault:
-    """[O.D.I.N.] The master of secrets. Handles encryption, rotation, and shielding."""
+    """Historical vault API retained only as a fail-closed compatibility type."""
 
-    def __init__(self):
-        self.root = project_root
-        self.vault_dir = self.root / ".agents" / "vault"
-        self.key_file = self.vault_dir / "master.key"
-        self.env_local = self.root / ".env.local"
+    def __init__(self, *_args: object, **_kwargs: object) -> None:
+        _retired()
 
-        self.vault_dir.mkdir(parents=True, exist_ok=True)
-        self._ensure_master_key()
+    _ensure_master_key = staticmethod(_retired)
+    auto_shield = staticmethod(_retired)
+    rotate_keys = staticmethod(_retired)
+    get_secrets_map = staticmethod(_retired)
 
-    def _ensure_master_key(self) -> None:
-        """Generates a master key if one does not exist."""
-        if not self.key_file.exists():
-            SovereignHUD.persona_log("INFO", "Master Key missing. Generating new entropy...")
-            key = Fernet.generate_key()
-            self.key_file.write_bytes(key)
-            SovereignHUD.persona_log("SUCCESS", "Master Key forged.")
-        self.cipher = Fernet(self.key_file.read_bytes())
 
-    def auto_shield(self) -> None:
-        """[Ω] Operation Ironclad: Automated hardening of .env.local."""
-        if not self.env_local.exists():
-            SovereignHUD.persona_log("WARN", ".env.local not found. Nothing to shield.")
-            return
+def main() -> int:
+    """Return a stable error without reading arguments, paths, or secret state."""
 
-        SovereignHUD.box_top("🛡️ OPERATION IRONCLAD: SHIELDING")
+    sys.stderr.write(f"{RETIRED_SECRET_PROVIDER_TOOL_ERROR}\n")
+    return 1
 
-        try:
-            raw_data = self.env_local.read_text(encoding='utf-8')
-            encrypted_data = self.cipher.encrypt(raw_data.encode('utf-8'))
-
-            artifact_path = self.vault_dir / "secrets.bin"
-            artifact_path.write_bytes(encrypted_data)
-
-            SovereignHUD.box_row("ARTIFACT", str(artifact_path.name), SovereignHUD.GREEN)
-            SovereignHUD.box_row("STATUS", "ENCRYPTED & STORED", SovereignHUD.CYAN)
-            SovereignHUD.box_bottom()
-
-            # [O.D.I.N.] In PROD mode we would purge the raw file here.
-            SovereignHUD.persona_log("INFO", "Vault artifact is synchronized. Sector secured.")
-        except Exception as e:
-            SovereignHUD.persona_log("FAIL", f"Shielding failed: {e}")
-
-    def rotate_keys(self) -> None:
-        """[Ω] Operation Ironclad: Automated key rotation logic."""
-        SovereignHUD.persona_log("WARN", "Initiating Master Key Rotation Ceremony...")
-        old_cipher = self.cipher
-
-        # Generate new key
-        new_key = Fernet.generate_key()
-        new_cipher = Fernet(new_key)
-
-        artifact_path = self.vault_dir / "secrets.bin"
-        if artifact_path.exists():
-            raw = old_cipher.decrypt(artifact_path.read_bytes())
-            new_encrypted = new_cipher.encrypt(raw)
-            artifact_path.write_bytes(new_encrypted)
-
-        self.key_file.write_bytes(new_key)
-        self.cipher = new_cipher
-        SovereignHUD.persona_log("SUCCESS", "Rotation Complete. All artifacts re-keyed.")
-
-    def get_secrets_map(self) -> dict[str, str]:
-        """Returns a dictionary of key-value pairs from .env.local for redaction purposes."""
-        secrets = {}
-        if self.env_local.exists():
-            content = self.env_local.read_text(encoding='utf-8')
-            for line in content.splitlines():
-                line = line.strip()
-                if line and "=" in line and not line.startswith("#"):
-                    key, val = line.split("=", 1)
-                    val = val.strip().strip('"').strip("'")
-                    if val and len(val) > 4: # Only redact substantial secrets
-                        secrets[key.strip()] = val
-        return secrets
-
-def main() -> None:
-    vault = SovereignVault()
-    if len(sys.argv) < 2:
-        print("Usage: cstar vault [shield|rotate|status]")
-        return
-
-    cmd = sys.argv[1].lower()
-    if cmd == "shield":
-        vault.auto_shield()
-    elif cmd == "rotate":
-        vault.rotate_keys()
-    elif cmd == "status":
-        SovereignHUD.box_top("VAULT STATUS")
-        SovereignHUD.box_row("KEY", "EXISTS" if vault.key_file.exists() else "MISSING")
-        SovereignHUD.box_row("SECRETS", "SYNCED" if (vault.vault_dir / "secrets.bin").exists() else "EMPTY")
-        SovereignHUD.box_bottom()
-    else:
-        print(f"Unknown vault command: {cmd}")
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

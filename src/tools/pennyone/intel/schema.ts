@@ -1,7 +1,10 @@
 import Database from 'better-sqlite3';
-import { normalizeHallPath, buildHallRepositoryId } from  '../../../types/hall.js';
-import fs from 'node:fs';
+import { normalizeHallPath, buildHallRepositoryId } from '../../../types/hall.js';
 import path from 'node:path';
+import { HALL_SCHEMA_CORE_SQL } from './schema_tables_core.js';
+import { HALL_SCHEMA_RUNTIME_SQL } from './schema_tables_runtime.js';
+import { HALL_SCHEMA_LEGACY_SQL } from './schema_tables_legacy.js';
+import { ensureForgeAuthorizationSchema } from './forge_authorization_schema.js';
 
 function shouldEmitPennyOneDebugLogs(): boolean {
     return process.env.CSTAR_DEBUG_LOGS === '1';
@@ -36,11 +39,8 @@ export function getLegacyState(rootPath: string): {
         primary_assets?: Record<string, unknown>;
     };
 } {
-    const statePath = path.join(rootPath, '.agents', 'sovereign_state.json');
-    if (!fs.existsSync(statePath)) {
-        return {};
-    }
-    return parseJson(fs.readFileSync(statePath, 'utf-8'), {});
+    void rootPath;
+    throw new Error('legacy_sovereign_state_reader_retired_use_cstar_hall_surfaces');
 }
 
 export function ensureColumn(database: Database.Database, tableName: string, columnName: string, columnSql: string): void {
@@ -66,644 +66,12 @@ export function ensureHallSchema(database: Database.Database, rootPath: string):
     if (shouldEmitPennyOneDebugLogs()) {
         console.log(`[DEBUG] ensureHallSchema: rootPath=${rootPath}, normalizedRoot=${normalizedRoot}, repoId=${repoId}`);
     }
-    const legacyState = getLegacyState(rootPath);
-    const framework = legacyState.framework ?? {};
     const now = Date.now();
 
-    database.exec(`
-        PRAGMA foreign_keys = ON;
-        CREATE TABLE IF NOT EXISTS hall_repositories (
-            repo_id TEXT PRIMARY KEY,
-            root_path TEXT UNIQUE NOT NULL,
-            name TEXT NOT NULL,
-            status TEXT NOT NULL DEFAULT 'DORMANT',
-            active_persona TEXT NOT NULL DEFAULT 'ALFRED',
-            baseline_gungnir_score REAL NOT NULL DEFAULT 0,
-            intent_integrity REAL NOT NULL DEFAULT 0,
-            metadata_json TEXT,
-            created_at INTEGER NOT NULL,
-            updated_at INTEGER NOT NULL
-        );
-
-        CREATE TABLE IF NOT EXISTS hall_scans (
-            scan_id TEXT PRIMARY KEY,
-            repo_id TEXT NOT NULL,
-            scan_kind TEXT NOT NULL,
-            status TEXT NOT NULL,
-            baseline_gungnir_score REAL NOT NULL DEFAULT 0,
-            started_at INTEGER NOT NULL,
-            completed_at INTEGER,
-            metadata_json TEXT,
-            FOREIGN KEY(repo_id) REFERENCES hall_repositories(repo_id)
-        );
-
-        CREATE INDEX IF NOT EXISTS idx_hall_scans_repo ON hall_scans(repo_id);
-
-        CREATE TABLE IF NOT EXISTS hall_files (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            repo_id TEXT NOT NULL,
-            scan_id TEXT NOT NULL,
-            path TEXT NOT NULL,
-            content_hash TEXT,
-            language TEXT,
-            gungnir_score REAL NOT NULL DEFAULT 0,
-            matrix_json TEXT,
-            imports_json TEXT,
-            exports_json TEXT,
-            intent_summary TEXT,
-            interaction_summary TEXT,
-            created_at INTEGER NOT NULL,
-            UNIQUE(scan_id, path),
-            FOREIGN KEY(repo_id) REFERENCES hall_repositories(repo_id),
-            FOREIGN KEY(scan_id) REFERENCES hall_scans(scan_id)
-        );
-
-        CREATE INDEX IF NOT EXISTS idx_hall_files_repo_path ON hall_files(repo_id, path);
-
-        CREATE TABLE IF NOT EXISTS hall_episodic_memory (
-            memory_id TEXT PRIMARY KEY,
-            bead_id TEXT NOT NULL,
-            repo_id TEXT NOT NULL,
-            tactical_summary TEXT NOT NULL,
-            files_touched_json TEXT,
-            successes_json TEXT,
-            metadata_json TEXT,
-            created_at INTEGER NOT NULL,
-            updated_at INTEGER NOT NULL,
-            FOREIGN KEY(repo_id) REFERENCES hall_repositories(repo_id),
-            FOREIGN KEY(bead_id) REFERENCES hall_beads(bead_id)
-        );
-
-        CREATE INDEX IF NOT EXISTS idx_hall_episodic_memory_repo ON hall_episodic_memory(repo_id, created_at);
-        CREATE INDEX IF NOT EXISTS idx_hall_episodic_memory_bead ON hall_episodic_memory(bead_id, created_at);
-
-        CREATE TABLE IF NOT EXISTS hall_lessons (
-            lesson_id TEXT PRIMARY KEY,
-            parent_lesson_id TEXT,
-            repo_id TEXT NOT NULL,
-            memory_id TEXT,
-            level TEXT NOT NULL,
-            title TEXT NOT NULL,
-            content TEXT NOT NULL,
-            metadata_json TEXT,
-            created_at INTEGER NOT NULL,
-            updated_at INTEGER NOT NULL,
-            FOREIGN KEY(repo_id) REFERENCES hall_repositories(repo_id),
-            FOREIGN KEY(memory_id) REFERENCES hall_episodic_memory(memory_id),
-            FOREIGN KEY(parent_lesson_id) REFERENCES hall_lessons(lesson_id)
-        );
-
-        CREATE INDEX IF NOT EXISTS idx_hall_lessons_repo ON hall_lessons(repo_id);
-        CREATE INDEX IF NOT EXISTS idx_hall_lessons_parent ON hall_lessons(parent_lesson_id);
-        CREATE INDEX IF NOT EXISTS idx_hall_lessons_memory ON hall_lessons(memory_id);
-
-        CREATE VIRTUAL TABLE IF NOT EXISTS hall_lessons_fts USING fts5(
-            lesson_id UNINDEXED,
-            level,
-            title,
-            content,
-            content='hall_lessons',
-            content_rowid='rowid'
-        );
-
-        CREATE TRIGGER IF NOT EXISTS hall_lessons_ai AFTER INSERT ON hall_lessons BEGIN
-            INSERT INTO hall_lessons_fts(rowid, lesson_id, level, title, content)
-            VALUES (new.rowid, new.lesson_id, new.level, new.title, new.content);
-        END;
-
-        CREATE TRIGGER IF NOT EXISTS hall_lessons_ad AFTER DELETE ON hall_lessons BEGIN
-            INSERT INTO hall_lessons_fts(hall_lessons_fts, rowid, lesson_id, level, title, content)
-            VALUES('delete', old.rowid, old.lesson_id, old.level, old.title, old.content);
-        END;
-
-        CREATE TRIGGER IF NOT EXISTS hall_lessons_au AFTER UPDATE ON hall_lessons BEGIN
-            INSERT INTO hall_lessons_fts(hall_lessons_fts, rowid, lesson_id, level, title, content)
-            VALUES('delete', old.rowid, old.lesson_id, old.level, old.title, old.content);
-            INSERT INTO hall_lessons_fts(rowid, lesson_id, level, title, content)
-            VALUES (new.rowid, new.lesson_id, new.level, new.title, new.content);
-        END;
-
-        CREATE VIRTUAL TABLE IF NOT EXISTS hall_episodic_fts USING fts5(
-            memory_id UNINDEXED,
-            tactical_summary,
-            metadata_json,
-            content='hall_episodic_memory',
-            content_rowid='rowid'
-        );
-
-        CREATE TRIGGER IF NOT EXISTS hall_episodic_memory_ai AFTER INSERT ON hall_episodic_memory BEGIN
-            INSERT INTO hall_episodic_fts(rowid, memory_id, tactical_summary, metadata_json)
-            VALUES (new.rowid, new.memory_id, new.tactical_summary, new.metadata_json);
-        END;
-
-        CREATE TRIGGER IF NOT EXISTS hall_episodic_memory_ad AFTER DELETE ON hall_episodic_memory BEGIN
-            INSERT INTO hall_episodic_fts(hall_episodic_fts, rowid, memory_id, tactical_summary, metadata_json)
-            VALUES('delete', old.rowid, old.memory_id, old.tactical_summary, old.metadata_json);
-        END;
-
-        CREATE TRIGGER IF NOT EXISTS hall_episodic_memory_au AFTER UPDATE ON hall_episodic_memory BEGIN
-            INSERT INTO hall_episodic_fts(hall_episodic_fts, rowid, memory_id, tactical_summary, metadata_json)
-            VALUES('delete', old.rowid, old.memory_id, old.tactical_summary, old.metadata_json);
-            INSERT INTO hall_episodic_fts(rowid, memory_id, tactical_summary, metadata_json)
-            VALUES (new.rowid, new.memory_id, new.tactical_summary, new.metadata_json);
-        END;
-
-        CREATE TABLE IF NOT EXISTS hall_beads (
-            bead_id TEXT PRIMARY KEY,
-            repo_id TEXT NOT NULL,
-            scan_id TEXT,
-            legacy_id INTEGER,
-            target_kind TEXT NOT NULL DEFAULT 'FILE',
-            target_ref TEXT,
-            target_path TEXT,
-            rationale TEXT NOT NULL,
-            contract_refs_json TEXT,
-            baseline_scores_json TEXT,
-            acceptance_criteria TEXT,
-            checker_shell TEXT,
-            status TEXT NOT NULL DEFAULT 'OPEN',
-            assigned_agent TEXT,
-            source_kind TEXT,
-            triage_reason TEXT,
-            resolution_note TEXT,
-            resolved_validation_id TEXT,
-            superseded_by TEXT,
-            metadata_json TEXT,
-            created_at INTEGER NOT NULL,
-            updated_at INTEGER NOT NULL,
-            UNIQUE(repo_id, legacy_id),
-            FOREIGN KEY(repo_id) REFERENCES hall_repositories(repo_id),
-            FOREIGN KEY(scan_id) REFERENCES hall_scans(scan_id)
-        );
-
-        CREATE INDEX IF NOT EXISTS idx_hall_beads_repo_status ON hall_beads(repo_id, status);
-
-        CREATE TABLE IF NOT EXISTS hall_bead_critiques (
-            critique_id TEXT PRIMARY KEY,
-            bead_id TEXT NOT NULL,
-            repo_id TEXT NOT NULL,
-            agent_id TEXT NOT NULL,
-            agent_expertise TEXT NOT NULL,
-            critique TEXT NOT NULL,
-            proposed_path TEXT NOT NULL,
-            evidence_json TEXT NOT NULL,
-            is_architect_approved INTEGER NOT NULL DEFAULT 0,
-            architect_feedback TEXT,
-            created_at INTEGER NOT NULL,
-            FOREIGN KEY(bead_id) REFERENCES hall_beads(bead_id),
-            FOREIGN KEY(repo_id) REFERENCES hall_repositories(repo_id)
-        );
-
-        CREATE INDEX IF NOT EXISTS idx_hall_critiques_bead ON hall_bead_critiques(bead_id);
-
-        CREATE TABLE IF NOT EXISTS hall_validation_runs (
-            validation_id TEXT PRIMARY KEY,
-            repo_id TEXT NOT NULL,
-            scan_id TEXT,
-            bead_id TEXT,
-            target_path TEXT,
-            verdict TEXT NOT NULL,
-            sprt_verdict TEXT,
-            pre_scores_json TEXT,
-            post_scores_json TEXT,
-            benchmark_json TEXT,
-            notes TEXT,
-            created_at INTEGER NOT NULL,
-            legacy_trace_id INTEGER,
-            UNIQUE(repo_id, legacy_trace_id),
-            FOREIGN KEY(repo_id) REFERENCES hall_repositories(repo_id),
-            FOREIGN KEY(scan_id) REFERENCES hall_scans(scan_id),
-            FOREIGN KEY(bead_id) REFERENCES hall_beads(bead_id)
-        );
-
-        CREATE INDEX IF NOT EXISTS idx_hall_validation_repo ON hall_validation_runs(repo_id, created_at);
-
-        CREATE TABLE IF NOT EXISTS hall_skill_observations (
-            observation_id TEXT PRIMARY KEY,
-            repo_id TEXT NOT NULL,
-            skill_id TEXT NOT NULL,
-            outcome TEXT NOT NULL,
-            observation TEXT NOT NULL,
-            created_at INTEGER NOT NULL,
-            metadata_json TEXT,
-            FOREIGN KEY(repo_id) REFERENCES hall_repositories(repo_id)
-        );
-
-        CREATE TABLE IF NOT EXISTS hall_skill_activations (
-            activation_id TEXT PRIMARY KEY,
-            repo_id TEXT NOT NULL,
-            bead_id TEXT,
-            session_id TEXT,
-            skill_id TEXT NOT NULL,
-            adapter_id TEXT,
-            role TEXT,
-            status TEXT NOT NULL,
-            intent TEXT NOT NULL,
-            target_path TEXT,
-            payload_json TEXT,
-            result_summary TEXT,
-            error_text TEXT,
-            created_at INTEGER NOT NULL,
-            updated_at INTEGER NOT NULL,
-            completed_at INTEGER,
-            metadata_json TEXT,
-            FOREIGN KEY(repo_id) REFERENCES hall_repositories(repo_id),
-            FOREIGN KEY(bead_id) REFERENCES hall_beads(bead_id),
-            FOREIGN KEY(session_id) REFERENCES hall_planning_sessions(session_id)
-        );
-
-        CREATE INDEX IF NOT EXISTS idx_hall_skill_activations_repo_status
-        ON hall_skill_activations(repo_id, status, created_at);
-
-        CREATE TABLE IF NOT EXISTS hall_skill_proposals (
-            proposal_id TEXT PRIMARY KEY,
-            repo_id TEXT NOT NULL,
-            skill_id TEXT NOT NULL,
-            bead_id TEXT,
-            validation_id TEXT,
-            target_path TEXT,
-            contract_path TEXT,
-            proposal_path TEXT,
-            status TEXT NOT NULL,
-            summary TEXT,
-            promotion_note TEXT,
-            promoted_at INTEGER,
-            promoted_by TEXT,
-            created_at INTEGER NOT NULL,
-            updated_at INTEGER NOT NULL,
-            metadata_json TEXT,
-            FOREIGN KEY(repo_id) REFERENCES hall_repositories(repo_id),
-            FOREIGN KEY(bead_id) REFERENCES hall_beads(bead_id),
-            FOREIGN KEY(validation_id) REFERENCES hall_validation_runs(validation_id)
-        );
-
-        CREATE INDEX IF NOT EXISTS idx_hall_skill_proposals_repo
-        ON hall_skill_proposals(repo_id, created_at);
-
-        CREATE TABLE IF NOT EXISTS hall_planning_sessions (
-            session_id TEXT PRIMARY KEY,
-            repo_id TEXT NOT NULL,
-            skill_id TEXT NOT NULL,
-            status TEXT NOT NULL,
-            user_intent TEXT NOT NULL,
-            normalized_intent TEXT NOT NULL,
-            summary TEXT,
-            latest_question TEXT,
-            created_at INTEGER NOT NULL,
-            updated_at INTEGER NOT NULL,
-            metadata_json TEXT,
-            FOREIGN KEY(repo_id) REFERENCES hall_repositories(repo_id)
-        );
-
-        CREATE INDEX IF NOT EXISTS idx_hall_planning_repo
-        ON hall_planning_sessions(repo_id, updated_at);
-
-        CREATE TABLE IF NOT EXISTS hall_one_mind_broker (
-            repo_id TEXT PRIMARY KEY,
-            status TEXT NOT NULL,
-            binding_state TEXT NOT NULL,
-            fulfillment_ready INTEGER NOT NULL DEFAULT 0,
-            provider TEXT,
-            session_id TEXT,
-            control_plane TEXT NOT NULL,
-            metadata_json TEXT,
-            created_at INTEGER NOT NULL,
-            updated_at INTEGER NOT NULL,
-            FOREIGN KEY(repo_id) REFERENCES hall_repositories(repo_id)
-        );
-
-        CREATE TABLE IF NOT EXISTS hall_one_mind_requests (
-            request_id TEXT PRIMARY KEY,
-            repo_id TEXT NOT NULL,
-            caller_source TEXT NOT NULL,
-            boundary TEXT NOT NULL,
-            request_status TEXT NOT NULL,
-            transport_preference TEXT,
-            prompt TEXT NOT NULL,
-            system_prompt TEXT,
-            response_text TEXT,
-            error_text TEXT,
-            lease_owner TEXT,
-            claimed_at INTEGER,
-            completed_at INTEGER,
-            metadata_json TEXT,
-            created_at INTEGER NOT NULL,
-            updated_at INTEGER NOT NULL,
-            FOREIGN KEY(repo_id) REFERENCES hall_repositories(repo_id)
-        );
-
-        CREATE INDEX IF NOT EXISTS idx_hall_one_mind_requests_repo_status
-        ON hall_one_mind_requests(repo_id, request_status, created_at);
-
-        CREATE TABLE IF NOT EXISTS hall_one_mind_branches (
-            branch_id TEXT PRIMARY KEY,
-            repo_id TEXT NOT NULL,
-            source_weave TEXT NOT NULL,
-            branch_group_id TEXT NOT NULL,
-            branch_kind TEXT NOT NULL,
-            branch_label TEXT NOT NULL,
-            branch_index INTEGER NOT NULL,
-            status TEXT NOT NULL,
-            provider TEXT,
-            session_id TEXT,
-            trace_id TEXT,
-            parent_request_id TEXT,
-            summary TEXT,
-            error_text TEXT,
-            artifacts_json TEXT,
-            metadata_json TEXT,
-            created_at INTEGER NOT NULL,
-            updated_at INTEGER NOT NULL,
-            FOREIGN KEY(repo_id) REFERENCES hall_repositories(repo_id),
-            FOREIGN KEY(parent_request_id) REFERENCES hall_one_mind_requests(request_id)
-        );
-
-        CREATE INDEX IF NOT EXISTS idx_hall_one_mind_branches_repo_group
-        ON hall_one_mind_branches(repo_id, branch_group_id, created_at);
-
-        CREATE INDEX IF NOT EXISTS idx_hall_one_mind_branches_trace
-        ON hall_one_mind_branches(repo_id, trace_id, created_at);
-
-        CREATE TABLE IF NOT EXISTS hall_agent_presence (
-            repo_id TEXT NOT NULL,
-            agent_id TEXT NOT NULL,
-            name TEXT NOT NULL,
-            status TEXT NOT NULL,
-            current_task TEXT,
-            active_bead_id TEXT,
-            session_id TEXT,
-            trace_id TEXT,
-            target_path TEXT,
-            watch_paths_json TEXT,
-            pid INTEGER,
-            metadata_json TEXT,
-            created_at INTEGER NOT NULL,
-            updated_at INTEGER NOT NULL,
-            PRIMARY KEY(repo_id, agent_id),
-            FOREIGN KEY(repo_id) REFERENCES hall_repositories(repo_id)
-        );
-
-        CREATE INDEX IF NOT EXISTS idx_hall_agent_presence_repo_status
-        ON hall_agent_presence(repo_id, status, updated_at);
-
-        CREATE INDEX IF NOT EXISTS idx_hall_agent_presence_repo_bead
-        ON hall_agent_presence(repo_id, active_bead_id, updated_at);
-
-        CREATE TABLE IF NOT EXISTS hall_coordination_events (
-            event_id TEXT PRIMARY KEY,
-            repo_id TEXT NOT NULL,
-            thread_id TEXT NOT NULL,
-            scope_kind TEXT NOT NULL,
-            scope_ref TEXT NOT NULL,
-            event_kind TEXT NOT NULL,
-            from_agent_id TEXT NOT NULL,
-            to_agent_id TEXT,
-            session_id TEXT,
-            trace_id TEXT,
-            bead_id TEXT,
-            target_path TEXT,
-            rationale TEXT NOT NULL,
-            summary TEXT NOT NULL,
-            payload_json TEXT,
-            metadata_json TEXT,
-            created_at INTEGER NOT NULL,
-            updated_at INTEGER NOT NULL,
-            FOREIGN KEY(repo_id) REFERENCES hall_repositories(repo_id)
-        );
-
-        CREATE INDEX IF NOT EXISTS idx_hall_coordination_events_repo_thread
-        ON hall_coordination_events(repo_id, thread_id, created_at);
-
-        CREATE INDEX IF NOT EXISTS idx_hall_coordination_events_repo_scope
-        ON hall_coordination_events(repo_id, scope_kind, scope_ref, created_at);
-
-        CREATE INDEX IF NOT EXISTS idx_hall_coordination_events_repo_bead
-        ON hall_coordination_events(repo_id, bead_id, created_at);
-
-        CREATE TABLE IF NOT EXISTS hall_git_commits (
-            commit_hash TEXT PRIMARY KEY,
-            repo_id TEXT NOT NULL,
-            author_name TEXT,
-            author_email TEXT,
-            authored_at INTEGER NOT NULL,
-            committer_name TEXT,
-            committer_email TEXT,
-            committed_at INTEGER NOT NULL,
-            message TEXT,
-            parent_hashes_json TEXT,
-            FOREIGN KEY(repo_id) REFERENCES hall_repositories(repo_id)
-        );
-
-        CREATE INDEX IF NOT EXISTS idx_hall_git_commits_repo_date ON hall_git_commits(repo_id, committed_at);
-
-        CREATE TABLE IF NOT EXISTS hall_git_diffs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            commit_hash TEXT NOT NULL,
-            repo_id TEXT NOT NULL,
-            file_path TEXT NOT NULL,
-            change_type TEXT NOT NULL,
-            old_path TEXT,
-            insertions INTEGER DEFAULT 0,
-            deletions INTEGER DEFAULT 0,
-            patch_text TEXT,
-            FOREIGN KEY(commit_hash) REFERENCES hall_git_commits(commit_hash),
-            FOREIGN KEY(repo_id) REFERENCES hall_repositories(repo_id)
-        );
-
-        CREATE INDEX IF NOT EXISTS idx_hall_git_diffs_commit ON hall_git_diffs(commit_hash);
-        CREATE INDEX IF NOT EXISTS idx_hall_git_diffs_file ON hall_git_diffs(repo_id, file_path);
-
-        CREATE TABLE IF NOT EXISTS hall_documents (
-            document_id TEXT PRIMARY KEY,
-            repo_id TEXT NOT NULL,
-            root_path TEXT NOT NULL,
-            path TEXT NOT NULL,
-            title TEXT NOT NULL,
-            doc_kind TEXT NOT NULL,
-            status TEXT NOT NULL,
-            latest_version_id TEXT NOT NULL,
-            latest_content_hash TEXT NOT NULL,
-            latest_summary TEXT,
-            metadata_json TEXT,
-            created_at INTEGER NOT NULL,
-            updated_at INTEGER NOT NULL,
-            UNIQUE(repo_id, path),
-            FOREIGN KEY(repo_id) REFERENCES hall_repositories(repo_id)
-        );
-
-        CREATE INDEX IF NOT EXISTS idx_hall_documents_repo_path ON hall_documents(repo_id, path);
-
-        CREATE TABLE IF NOT EXISTS hall_document_versions (
-            version_id TEXT PRIMARY KEY,
-            document_id TEXT NOT NULL,
-            repo_id TEXT NOT NULL,
-            content_hash TEXT NOT NULL,
-            title TEXT NOT NULL,
-            summary TEXT,
-            content TEXT NOT NULL,
-            source_label TEXT,
-            metadata_json TEXT,
-            created_at INTEGER NOT NULL,
-            FOREIGN KEY(document_id) REFERENCES hall_documents(document_id),
-            FOREIGN KEY(repo_id) REFERENCES hall_repositories(repo_id)
-        );
-
-        CREATE INDEX IF NOT EXISTS idx_hall_document_versions_document ON hall_document_versions(document_id, created_at DESC);
-
-        CREATE TABLE IF NOT EXISTS hall_mounted_spokes (
-            spoke_id TEXT PRIMARY KEY,
-            repo_id TEXT NOT NULL,
-            slug TEXT NOT NULL,
-            kind TEXT NOT NULL,
-            root_path TEXT NOT NULL,
-            remote_url TEXT,
-            default_branch TEXT,
-            mount_status TEXT NOT NULL,
-            trust_level TEXT NOT NULL,
-            write_policy TEXT NOT NULL,
-            projection_status TEXT NOT NULL,
-            last_scan_at INTEGER,
-            last_health_at INTEGER,
-            metadata_json TEXT,
-            created_at INTEGER NOT NULL,
-            updated_at INTEGER NOT NULL,
-            UNIQUE(repo_id, slug),
-            UNIQUE(repo_id, root_path),
-            FOREIGN KEY(repo_id) REFERENCES hall_repositories(repo_id)
-        );
-
-        CREATE INDEX IF NOT EXISTS idx_hall_mounted_spokes_repo
-        ON hall_mounted_spokes(repo_id, slug);
-
-        CREATE TABLE IF NOT EXISTS spokes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            root_path TEXT NOT NULL UNIQUE
-        );
-
-        CREATE TABLE IF NOT EXISTS norn_beads (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            description TEXT,
-            status TEXT,
-            agent_id TEXT,
-            assigned_raven TEXT,
-            timestamp INTEGER
-        );
-
-        CREATE TABLE IF NOT EXISTS mission_traces (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            mission_id TEXT,
-            file_path TEXT,
-            target_metric TEXT,
-            initial_score REAL,
-            final_score REAL,
-            justification TEXT,
-            status TEXT,
-            timestamp INTEGER
-        );
-
-        CREATE TABLE IF NOT EXISTS sessions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            agent_id TEXT NOT NULL,
-            spoke_id INTEGER NOT NULL,
-            start_timestamp INTEGER NOT NULL,
-            end_timestamp INTEGER,
-            total_pings INTEGER NOT NULL DEFAULT 0,
-            FOREIGN KEY(spoke_id) REFERENCES spokes(id)
-        );
-
-        CREATE INDEX IF NOT EXISTS idx_sessions_spoke_time
-        ON sessions(spoke_id, start_timestamp DESC);
-
-        CREATE TABLE IF NOT EXISTS pings (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            session_id INTEGER NOT NULL,
-            agent_id TEXT NOT NULL,
-            action TEXT NOT NULL,
-            target_path TEXT NOT NULL,
-            timestamp INTEGER NOT NULL,
-            FOREIGN KEY(session_id) REFERENCES sessions(id)
-        );
-
-        CREATE INDEX IF NOT EXISTS idx_pings_session_time
-        ON pings(session_id, timestamp ASC);
-
-        CREATE INDEX IF NOT EXISTS idx_pings_target_time
-        ON pings(target_path, timestamp DESC);
-
-        CREATE VIRTUAL TABLE IF NOT EXISTS intents_fts USING fts5(
-            path UNINDEXED,
-            intent,
-            interaction_protocol
-        );
-
-        CREATE VIRTUAL TABLE IF NOT EXISTS chronicles_fts USING fts5(
-            source_file UNINDEXED,
-            header,
-            content,
-            timestamp UNINDEXED
-        );
-
-        CREATE VIRTUAL TABLE IF NOT EXISTS hall_documents_fts USING fts5(
-            path UNINDEXED,
-            title,
-            summary,
-            content
-        );
-
-        -- BEAD-CSTAR-WAR-GAME-SCORING-001 — war-game arbitration tables.
-        -- The kernel scores attacker-vs-defender Engram conversations without
-        -- trusting either combatant's self-report. See docs/beads/cstar-war-game-scoring-001.md.
-
-        CREATE TABLE IF NOT EXISTS war_game_contests (
-            contest_id TEXT PRIMARY KEY,
-            repo_id TEXT NOT NULL,
-            contest_name TEXT NOT NULL,
-            attacker_label TEXT NOT NULL,
-            defender_label TEXT NOT NULL,
-            attacker_bead_id TEXT,
-            defender_bead_id TEXT,
-            attacker_intent_prefix TEXT NOT NULL,
-            defender_intent_prefix TEXT NOT NULL,
-            shot_id_path TEXT NOT NULL DEFAULT 'metadata.shot_id',
-            expected_path TEXT NOT NULL DEFAULT 'metadata.expected',
-            terminal_event_path TEXT NOT NULL DEFAULT 'metadata.terminal_event',
-            terminal_event_class_map_json TEXT NOT NULL,
-            scenario_compatibility_map_json TEXT NOT NULL,
-            metadata_json TEXT,
-            created_at INTEGER NOT NULL,
-            FOREIGN KEY(repo_id) REFERENCES hall_repositories(repo_id)
-        );
-
-        CREATE INDEX IF NOT EXISTS idx_war_game_contests_repo
-            ON war_game_contests(repo_id);
-        CREATE INDEX IF NOT EXISTS idx_war_game_contests_defender_prefix
-            ON war_game_contests(defender_intent_prefix);
-
-        CREATE TABLE IF NOT EXISTS war_game_scores (
-            score_id TEXT PRIMARY KEY,
-            contest_id TEXT NOT NULL,
-            shot_id TEXT NOT NULL,
-            scenario_id TEXT NOT NULL,
-            outcome TEXT NOT NULL,
-            expected_summary TEXT,
-            observed_terminal_event TEXT,
-            inconclusive_reason TEXT,
-            attacker_engram_intent TEXT NOT NULL,
-            defender_engram_intent TEXT NOT NULL,
-            scored_at INTEGER NOT NULL,
-            UNIQUE(contest_id, shot_id),
-            FOREIGN KEY(contest_id) REFERENCES war_game_contests(contest_id)
-        );
-
-        CREATE INDEX IF NOT EXISTS idx_war_game_scores_contest
-            ON war_game_scores(contest_id, scored_at);
-        CREATE INDEX IF NOT EXISTS idx_war_game_scores_outcome
-            ON war_game_scores(contest_id, outcome);
-        CREATE INDEX IF NOT EXISTS idx_war_game_scores_shot
-            ON war_game_scores(shot_id);
-
-    `);
+    database.exec('PRAGMA foreign_keys = ON;');
+    database.exec(HALL_SCHEMA_CORE_SQL);
+    database.exec(HALL_SCHEMA_RUNTIME_SQL);
+    database.exec(HALL_SCHEMA_LEGACY_SQL);
 
     ensureColumn(database, 'hall_beads', 'target_kind', "TEXT NOT NULL DEFAULT 'FILE'");
     ensureColumn(database, 'hall_beads', 'target_ref', 'TEXT');
@@ -728,6 +96,47 @@ export function ensureHallSchema(database: Database.Database, rootPath: string):
     ensureColumn(database, 'hall_beads', 'architect_opinion', 'TEXT');
     ensureColumn(database, 'hall_beads', 'critique_payload_json', 'TEXT');
     ensureColumn(database, 'hall_beads', 'metadata_json', 'TEXT');
+    ensureColumn(database, 'hall_forge_attempts', 'validation_id', 'TEXT');
+    ensureColumn(database, 'hall_forge_attempts', 'validation_verdict', 'TEXT');
+    ensureColumn(database, 'hall_forge_attempts', 'validation_notes_sha256', 'TEXT');
+    ensureColumn(database, 'hall_forge_attempts', 'validation_authority', 'TEXT');
+    ensureColumn(database, 'hall_forge_attempts', 'validation_evidence_sha256', 'TEXT');
+    ensureColumn(database, 'hall_forge_attempts', 'provider', 'TEXT');
+    ensureColumn(database, 'hall_forge_attempts', 'requested_model', 'TEXT');
+    ensureColumn(database, 'hall_forge_attempts', 'actual_model', 'TEXT');
+    ensureColumn(database, 'hall_forge_attempts', 'model_source', 'TEXT');
+    ensureColumn(database, 'hall_forge_attempts', 'reasoning_profile', 'TEXT');
+    ensureColumn(database, 'hall_forge_attempts', 'adapter_version', 'TEXT');
+    ensureColumn(database, 'hall_forge_attempts', 'attempt_budget_class', "TEXT NOT NULL DEFAULT 'provider_or_unknown'");
+    ensureColumn(database, 'hall_forge_attempts', 'provider_evidence_valid', 'INTEGER NOT NULL DEFAULT 0');
+    ensureColumn(database, 'hall_forge_attempts', 'provider_requests_started', 'INTEGER');
+    ensureColumn(database, 'hall_forge_attempts', 'provider_requests_completed', 'INTEGER');
+    ensureColumn(database, 'hall_forge_attempts', 'provider_requests_ambiguous', 'INTEGER');
+    ensureColumn(database, 'hall_forge_attempts', 'live_spend', 'INTEGER');
+    ensureColumn(database, 'hall_forge_attempts', 'live_spend_unknown', 'INTEGER NOT NULL DEFAULT 1');
+    ensureColumn(database, 'hall_forge_attempts', 'known_spend_observed', 'INTEGER NOT NULL DEFAULT 0');
+    ensureColumn(database, 'hall_forge_attempts', 'live_source_collection', 'INTEGER');
+    ensureColumn(database, 'hall_forge_attempts', 'workspace_commit_present', 'INTEGER');
+    ensureColumn(database, 'hall_forge_attempts', 'failure_evidence_sha256', 'TEXT');
+    ensureColumn(database, 'hall_forge_attempts', 'failure_signature_sha256', 'TEXT');
+    ensureColumn(database, 'hall_forge_requests', 'operator_record_set_sha256', 'TEXT');
+    ensureColumn(database, 'hall_forge_requests', 'operator_record_count', 'INTEGER');
+    ensureColumn(database, 'hall_forge_requests', 'requester_thread_id', 'TEXT');
+    ensureColumn(database, 'hall_forge_requests', 'requester_turn_id', 'TEXT');
+    ensureColumn(database, 'hall_forge_requests', 'requester_record_set_sha256', 'TEXT');
+    ensureColumn(database, 'hall_forge_requests', 'authorization_profile', 'TEXT');
+    ensureColumn(database, 'hall_forge_requests', 'authorization_binding_sha256', 'TEXT');
+    ensureColumn(database, 'hall_forge_requests', 'authorization_challenge_sha256', 'TEXT');
+    ensureForgeAuthorizationSchema(database);
+    ensureColumn(database, 'hall_forge_authorizations', 'execution_grant_schema', 'TEXT');
+    ensureColumn(database, 'hall_forge_authorizations', 'execution_grant_sha256', 'TEXT');
+    ensureColumn(database, 'hall_forge_authorizations', 'execution_grant_json', 'TEXT');
+    ensureColumn(database, 'hall_mounted_spokes', 'last_health_attempt_at', 'INTEGER');
+    ensureColumn(database, 'hall_validation_runs', 'authority_class', "TEXT NOT NULL DEFAULT 'legacy_unverified'");
+    ensureColumn(database, 'hall_validation_runs', 'evidence_sha256', 'TEXT');
+    ensureColumn(database, 'hall_validation_runs', 'validator_identity', 'TEXT');
+    ensureColumn(database, 'hall_validation_runs', 'validator_identity_source', 'TEXT');
+    ensureColumn(database, 'hall_validation_runs', 'evidence_manifest_json', 'TEXT');
 
     ensureVirtualTable(
         database,
@@ -827,21 +236,14 @@ export function ensureHallSchema(database: Database.Database, rootPath: string):
         repoId,
         normalizedRoot,
         path.basename(normalizedRoot),
-        framework.status ?? 'DORMANT',
-        framework.active_persona ?? 'ALFRED',
-        Number(framework.gungnir_score ?? 0),
-        Number(framework.intent_integrity ?? 0),
+        'DORMANT',
+        '',
+        0,
+        0,
         stringifyJson({
-            source: 'legacy-sovereign-projection',
-            sovereign_projection: {
-                framework: {
-                    last_awakening: Number(framework.last_awakening ?? 0),
-                },
-                identity: legacyState.identity ?? undefined,
-                hall_of_records: legacyState.hall_of_records ?? undefined,
-            },
+            source: 'hall-schema-bootstrap',
         }),
-        Number(framework.last_awakening ?? 0),
+        now,
         now,
     );
 }

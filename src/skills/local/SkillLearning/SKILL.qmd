@@ -1,11 +1,13 @@
 ---
 name: Skill Learning
-description: Interactive ALFRED mandate for proactive skill acquisition.
+description: Retired compatibility pointer for legacy skill acquisition.
+status: retired
 ---
-# Skill Learning
+# Skill Learning (Retired)
 
-## Activation Words: learn, acquisition, scry, study
+This unregistered legacy entrypoint is retained only as a fail-closed tombstone.
+It returns `legacy_skill_learning_retired_use_cstar_forge` and performs no
+prompting, source access, installation, or writes.
 
-## Instructions
-1. Run `python src/skills/local/SkillLearning/learn.py`
-2. Follow ALFRED's interactive prompts.
+New skill implementation follows the active CStar lifecycle and durable
+`cstar_forge_request -> cstar_forge_execute` route.

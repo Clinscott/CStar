@@ -1,70 +1,24 @@
-import os
-import sys
-from pathlib import Path
+"""Retired directory-backed vector debug engine."""
 
-# Add core project root to path for shared imports
-PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.append(str(PROJECT_ROOT))
+from typing import NoReturn
 
-# Also add the .agents/scripts for legacy engine imports
-SCRIPTS_DIR = PROJECT_ROOT / ".agents" / "scripts"
-if str(SCRIPTS_DIR) not in sys.path:
-    sys.path.append(str(SCRIPTS_DIR))
 
-from src.core.engine.vector import SovereignVector
+LEGACY_VECTOR_SCAN_CALLER_ERROR = (
+    "legacy_python_vector_scan_caller_retired_use_cstar_validation"
+)
+
 
 class DebugEngine:
-    """[O.D.I.N.] Orchestration logic for neural engine diagnostics."""
-
     @staticmethod
-    def execute(query: str) -> None:
-        """
-        Initializes SovereignVector, loads skills, builds the index,
-        and runs a series of diagnostics for a given query.
-        """
-        # Paths relative to the project root
-        thesaurus_path = str(PROJECT_ROOT / "thesaurus.qmd")
-        corrections_path = str(PROJECT_ROOT / ".agents" / "corrections.json")
-        stopwords_path = str(PROJECT_ROOT / ".agents" / "scripts" / "stopwords.json")
-        skills_dir = str(PROJECT_ROOT / ".agents" / "skills")
-        global_skills_db = str(PROJECT_ROOT / "skills_db")
+    def execute(query: str) -> NoReturn:
+        del query
+        raise RuntimeError(LEGACY_VECTOR_SCAN_CALLER_ERROR)
 
-        engine = SovereignVector(
-            thesaurus_path=thesaurus_path,
-            corrections_path=corrections_path,
-            stopwords_path=stopwords_path
-        )
-        engine.load_core_skills()
-        engine.load_skills_from_dir(skills_dir)
 
-        if os.path.exists(global_skills_db):
-            engine.load_skills_from_dir(global_skills_db, prefix="GLOBAL:")
+def debug_query(query: str) -> NoReturn:
+    del query
+    raise RuntimeError(LEGACY_VECTOR_SCAN_CALLER_ERROR)
 
-        engine.build_index()
-
-        # Print a few thesaurus entries to verify loading
-        print("\n--- Thesaurus Check ---")
-        check_words = ['begin', 'initiate', 'aesthetics', 'e2e']
-        for w in check_words:
-            print(f"  {w}: {engine.thesaurus.get(w)}")
-
-        print(f"\n--- Debugging Query: '{query}' ---")
-        tokens = engine.tokenize(query)
-        print(f"Tokens: {tokens}")
-
-        weighted = engine.expand_query(query)
-        sorted_weighted = sorted(weighted.items(), key=lambda x: x[1], reverse=True)
-        print(f"Top 10 Expanded Tokens: {sorted_weighted[:10]}")
-
-        results = engine.search(query)
-        print("\nTop 5 Results:")
-        for r in results[:5]:
-            print(f"  {r['trigger']}: {r['score']:.4f} (Global: {r['is_global']})")
 
 if __name__ == "__main__":
-    queries = [
-        "please initiate our project now"
-    ]
-    for q in queries:
-        DebugEngine.execute(q)
+    DebugEngine.execute("")

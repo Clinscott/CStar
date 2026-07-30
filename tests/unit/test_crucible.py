@@ -1,11 +1,13 @@
-import subprocess
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
-from src.core.engine.utils.code_sanitizer import BifrostGate
-from src.core.engine.utils.sandbox_warden import SandboxWarden
+from src.core.engine.utils.code_sanitizer import BifrostGate, RETIRED_SOURCE_WRITE_ERROR
+from src.core.engine.utils.sandbox_warden import (
+    LEGACY_SANDBOX_WARDEN_ERROR,
+    SandboxWarden,
+)
 
 # ==============================================================================
 # Suite 3: Crucible Lockdown
@@ -31,63 +33,36 @@ class TestCrucibleSecurity:
 
 
 class TestQMDNeutering:
-    """[ODIN] Verifies zero-trust enforcement for Quarto documents."""
+    """Source mutation must go through an explicitly reviewed patch."""
 
-    def test_neuter_qmd_no_yaml_injects_header(self, tmp_path):
-        """Passing a string with no YAML frontmatter should result in a valid execute: false header."""
+    def test_neuter_qmd_fails_closed_without_writing(self, tmp_path):
         qmd_file = tmp_path / "research.qmd"
         content = "# Simple Document\n\nprint('hello')"
         qmd_file.write_text(content)
 
-        BifrostGate.neuter_qmd_document(qmd_file)
+        with pytest.raises(RuntimeError, match=RETIRED_SOURCE_WRITE_ERROR):
+            BifrostGate.neuter_qmd_document(qmd_file)
 
-        updated = qmd_file.read_text()
-        assert updated.startswith("---\nexecute: false\n---")
-        assert "# Simple Document" in updated
+        assert qmd_file.read_text() == content
 
 
 class TestZombiePurge:
-    """[ODIN] Verifies persistent teardown even on execution failure."""
+    """The former direct sandbox must fail before Docker or native execution."""
 
-    @patch("src.core.engine.utils.sandbox_warden.subprocess.run")
-    def test_sandbox_zombie_purge_on_timeout(self, mock_run):
-        """
-        Simulate a hanging Docker container that triggers a TimeoutExpired.
-        Assert that 'docker rm -f' is explicitly called in the finally block.
-        """
-        # 1. Setup Mock sequence:
-        #   - 1st call: docker --version (during __init__)
-        #   - 2nd call: docker run (raises Timeout)
-        #   - 3rd call: docker rm -f (purge)
-
-        mock_run.side_effect = [
-            MagicMock(returncode=0), # version check
-            subprocess.TimeoutExpired(cmd="docker run...", timeout=5), # run check
-            MagicMock(returncode=0) # rm check
-        ]
-
+    @patch("subprocess.run")
+    @patch("pathlib.Path.resolve")
+    def test_sandbox_action_fails_before_process_or_path_access(
+        self,
+        mock_resolve,
+        mock_run,
+    ):
         warden = SandboxWarden()
-        # Reset mock after init
-        mock_run.reset_mock()
-        mock_run.side_effect = [
-            MagicMock(returncode=0), # image check
-            subprocess.TimeoutExpired(cmd="docker run...", timeout=5),
-            MagicMock(returncode=0)
-        ]
 
-        result = warden.run_in_sandbox(Path("skills_db/dummy.py"))
+        with pytest.raises(
+            RuntimeError,
+            match=f"^{LEGACY_SANDBOX_WARDEN_ERROR}$",
+        ):
+            warden.run_in_sandbox(Path("skills_db/dummy.py"))
 
-        # ASSERTIONS:
-        # 1. Assert exactly 3 calls (Image check, Run, Purge)
-        assert mock_run.call_count == 3
-
-        # 2. Verify the 3rd call (Purge) is docker rm -f
-        # call_args_list[2] is the (args, kwargs) tuple of the third call
-        purge_cmd = mock_run.call_args_list[2][0][0]
-        assert "rm" in purge_cmd
-        assert "-f" in purge_cmd
-        assert "docker" in purge_cmd
-
-        # 3. Verify status
-        assert result["timed_out"] is True
-        assert result["exit_code"] == -1
+        mock_resolve.assert_not_called()
+        mock_run.assert_not_called()

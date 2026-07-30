@@ -80,33 +80,22 @@ describe('CStar MCP PennyOne and Mongo bounded data surfaces', () => {
         }
     });
 
-    it('cstar_mongo_mailbox reports disabled state without printing secrets', async () => {
-        const prev = process.env.CSTAR_MONGO_URI;
-        delete process.env.CSTAR_MONGO_URI;
-        try {
-            const result = await handleMongoMailbox({ action: 'status' });
+    it('cstar_mongo_mailbox retires every compatibility action before secret or network use', async () => {
+        for (const action of ['status', 'mirror_counts', 'enqueue_operator_intent'] as const) {
+            const result = await handleMongoMailbox({
+                action,
+                intent_action: 'accept',
+                proposal_id: 'proposal-1',
+                operator_authorization_ref: 'caller-text-is-not-authority',
+            });
             const parsed = JSON.parse(result.content[0].text);
-            assert.strictEqual(parsed.status, 'ok');
-            assert.strictEqual(parsed.enabled, false);
-            assert.strictEqual(parsed.arbitrary_query_allowed, false);
-            assert.strictEqual(parsed.direct_secret_output_allowed, false);
-            assert.strictEqual(parsed.guardrail.verdict, 'caution');
-            assert.ok(!JSON.stringify(parsed).includes('mongodb+srv://'));
-        } finally {
-            if (prev === undefined) delete process.env.CSTAR_MONGO_URI;
-            else process.env.CSTAR_MONGO_URI = prev;
+            assert.strictEqual(result.isError, true);
+            assert.strictEqual(parsed.error, 'legacy_mongo_mailbox_retired_use_cstar_kernel_hall_surfaces');
+            assert.strictEqual(parsed.status, 'retired');
+            assert.strictEqual(parsed.requested_action, action);
+            assert.strictEqual(parsed.actuated, false);
+            assert.strictEqual(parsed.network_accessed, false);
+            assert.strictEqual(parsed.secret_source_read, false);
         }
-    });
-
-    it('cstar_mongo_mailbox blocks writes without operator authorization', async () => {
-        const result = await handleMongoMailbox({
-            action: 'enqueue_operator_intent',
-            intent_action: 'accept',
-            proposal_id: 'proposal-1',
-        });
-        const parsed = JSON.parse(result.content[0].text);
-        assert.strictEqual(result.isError, true);
-        assert.match(parsed.error, /operator_authorization_ref is required/);
-        assert.strictEqual(parsed.guardrail.verdict, 'block');
     });
 });

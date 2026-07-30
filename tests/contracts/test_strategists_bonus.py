@@ -3,10 +3,9 @@ Bonus Warden Tests
 Verifies: Valkyrie (Dead Code), Mimir (Complexity), and Priority Integration.
 Uses mocking to avoid external tool dependencies (Vulture/Radon) where possible.
 """
-import os
 import sys
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -104,52 +103,9 @@ def nightmare(x):
         assert "complex_mess.py" in targets[0]["file"]
 
 
-    @pytest.mark.skip(reason="Legacy Muninn.run facade is not part of the active CorvusStar runtime.")
-    @patch('src.core.engine.ravens.muninn.HeimdallWarden')
-    @patch('src.core.engine.ravens.muninn.ValkyrieWarden')
-    @patch('src.core.engine.ravens.muninn.MimirWarden')
-    @patch('src.core.engine.ravens.muninn.FreyaWarden')
-    def test_valkyrie_precedes_beauty(self, mock_visual, mock_mimir, mock_valkyrie, mock_annex, tmp_path):
-        # Setup: All strategists find targets
-        mock_annex_inst = mock_annex.return_value
-        mock_annex_inst.scan.return_value = [] # No critical breaches
-
-        mock_valkyrie_inst = mock_valkyrie.return_value
-        breaches_valk = [{"file": "dead.py", "action": "Prune", "severity": "HIGH", "type": "VALKYRIE_BREACH"}]
-        mock_valkyrie_inst.scan_async = AsyncMock(return_value=breaches_valk)
-
-        mock_mimir_inst = mock_mimir.return_value
-        breaches_mimir = [{"file": "complex.py", "action": "Simplify", "severity": "MEDIUM", "type": "MIMIR_BREACH"}]
-        mock_mimir_inst.scan_async = AsyncMock(return_value=breaches_mimir)
-
-        mock_visual_inst = mock_visual.return_value
-        breaches_visual = [{"file": "ugly.py", "action": "Beautify", "severity": "LOW", "type": "FREYA_BREACH"}]
-        mock_visual_inst.scan_async = AsyncMock(return_value=breaches_visual)
-
-        with patch.dict(os.environ, {"GOOGLE_API_KEY": "TEST"}):
-            with patch("google.genai.Client"):
-                fish = Muninn(str(tmp_path))
-
-                fish._emit_metrics_summary = MagicMock()
-                fish._save_state = MagicMock()
-                fish._forge_improvement = MagicMock(return_value=None)
-
-                # Mock the hunt results directly since Muninn creates its own warden instances
-                all_breaches = []
-                all_breaches.extend(breaches_valk)
-                all_breaches.extend(breaches_mimir)
-                all_breaches.extend(breaches_visual)
-                scan_results = {"VALKYRIE": 1, "MIMIR": 1, "FREYA": 1}
-
-                fish._execute_hunt_async = AsyncMock(return_value=(all_breaches, scan_results))
-
-                with patch('src.core.engine.ravens.muninn.SovereignHUD') as mock_hud:
-                    mock_hud.PERSONA = "ODIN"
-                    fish.run()
-
-                    log_calls = [str(c) for c in mock_hud.persona_log.call_args_list]
-                    target_logs = [l for l in log_calls if "Target:" in l]
-
-                    assert len(target_logs) > 0
-                    # Should choose Valkyrie (Prune)
-                    assert "Prune" in target_logs[0]
+    def test_retired_muninn_cannot_run_strategist_priority(self, tmp_path):
+        error = "legacy_python_ravens_engine_retired_use_cstar_kernel"
+        with patch("pathlib.Path.rglob") as recursive_scan:
+            with pytest.raises(RuntimeError, match=f"^{error}$"):
+                Muninn(str(tmp_path))
+        recursive_scan.assert_not_called()

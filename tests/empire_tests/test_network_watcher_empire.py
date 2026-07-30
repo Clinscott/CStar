@@ -1,7 +1,9 @@
 import os
 import unittest.mock as mock
 
-from src.tools.network_watcher import CruciblePipeline, NetworkWatcher
+import pytest
+
+from src.tools.network_watcher import RETIRED_ERROR, CruciblePipeline, NetworkWatcher
 
 
 def test_network_watcher_detection(tmp_path):
@@ -34,3 +36,12 @@ def test_crucible_pipeline_init(tmp_path):
     pipe = CruciblePipeline(str(root), str(base))
     assert pipe.stage.endswith("staging")
     assert pipe.proc.endswith("processed")
+
+
+def test_network_actions_fail_closed(tmp_path):
+    pipe = CruciblePipeline(str(tmp_path), str(tmp_path / "base"))
+    with pytest.raises(RuntimeError, match=RETIRED_ERROR):
+        pipe.process(str(tmp_path / "trace.json"))
+    with pytest.raises(RuntimeError, match=RETIRED_ERROR):
+        NetworkWatcher(str(tmp_path), pipe).watch()
+    assert not (tmp_path / "base").exists()

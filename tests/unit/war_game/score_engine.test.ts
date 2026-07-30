@@ -65,31 +65,31 @@ function defenderEngram(shotId: string, terminalEvent: string): DefenderEngramPa
     };
 }
 
-test('classifyTerminalEvent', (t) => {
+test('classifyTerminalEvent', async (t) => {
     const map = USB_FORGE_VS_SENTRY_CONTEST.terminal_event_class_map;
 
-    t.test('block events classify as block', () => {
+    await t.test('block events classify as block', () => {
         assert.strictEqual(classifyTerminalEvent('usb-sentry/phase1-hit', map), 'block');
         assert.strictEqual(classifyTerminalEvent('usb-sentry/device-held-rejected', map), 'block');
         assert.strictEqual(classifyTerminalEvent('usb-sentry/forge-listener-refused', map), 'block');
     });
 
-    t.test('complete event classifies as complete', () => {
+    await t.test('complete event classifies as complete', () => {
         assert.strictEqual(classifyTerminalEvent('usb-sentry/complete', map), 'complete');
     });
 
-    t.test('listener internal events classify as inconclusive', () => {
+    await t.test('listener internal events classify as inconclusive', () => {
         assert.strictEqual(classifyTerminalEvent('usb-sentry/forge-listener-timeout', map), 'inconclusive');
         assert.strictEqual(classifyTerminalEvent('usb-sentry/forge-listener-panic', map), 'inconclusive');
     });
 
-    t.test('unknown events return unknown', () => {
+    await t.test('unknown events return unknown', () => {
         assert.strictEqual(classifyTerminalEvent('usb-sentry/martian-attack', map), 'unknown');
         assert.strictEqual(classifyTerminalEvent('', map), 'unknown');
     });
 });
 
-test('isProtocolViolation', (t) => {
+test('isProtocolViolation', async (t) => {
     const compat = USB_FORGE_VS_SENTRY_CONTEST.scenario_compatibility_map;
     const listenerInternal = [
         'usb-sentry/forge-listener-refused',
@@ -97,14 +97,14 @@ test('isProtocolViolation', (t) => {
         'usb-sentry/forge-listener-panic',
     ];
 
-    t.test('listener-internal events never violate', () => {
+    await t.test('listener-internal events never violate', () => {
         assert.strictEqual(
             isProtocolViolation('FORGE-MS-001', 'usb-sentry/forge-listener-timeout', compat, listenerInternal),
             false,
         );
     });
 
-    t.test('valid event for scenario is not a violation', () => {
+    await t.test('valid event for scenario is not a violation', () => {
         assert.strictEqual(
             isProtocolViolation('FORGE-MS-001', 'usb-sentry/complete', compat, listenerInternal),
             false,
@@ -115,7 +115,7 @@ test('isProtocolViolation', (t) => {
         );
     });
 
-    t.test('invalid event for scenario IS a violation', () => {
+    await t.test('invalid event for scenario IS a violation', () => {
         // pure HID can't reach Phase 1 — complete is structurally impossible
         assert.strictEqual(
             isProtocolViolation('FORGE-HID-001', 'usb-sentry/complete', compat, listenerInternal),
@@ -128,7 +128,7 @@ test('isProtocolViolation', (t) => {
         );
     });
 
-    t.test('scenario with no compatibility entry opts out of structural checking', () => {
+    await t.test('scenario with no compatibility entry opts out of structural checking', () => {
         assert.strictEqual(
             isProtocolViolation('FORGE-UNKNOWN', 'usb-sentry/complete', compat, listenerInternal),
             false,
@@ -136,10 +136,10 @@ test('isProtocolViolation', (t) => {
     });
 });
 
-test('deriveOutcome — §Q3 truth table', (t) => {
+test('deriveOutcome — §Q3 truth table', async (t) => {
     const contest = USB_FORGE_VS_SENTRY_CONTEST;
 
-    t.test('Deflected expected + block class → defender_blocked', () => {
+    await t.test('Deflected expected + block class → defender_blocked', () => {
         const a = attackerEngram('s1', 'FORGE-MS-002', 'deflected');
         const d = defenderEngram('s1', 'usb-sentry/phase1-hit');
         const result = deriveOutcome(a, d, contest);
@@ -147,7 +147,7 @@ test('deriveOutcome — §Q3 truth table', (t) => {
         assert.strictEqual(result.event_class, 'block');
     });
 
-    t.test('Deflected expected + complete → attacker_bypassed', () => {
+    await t.test('Deflected expected + complete → attacker_bypassed', () => {
         // attacker fired FORGE-MS-002 (EICAR straddle) expecting deflection;
         // sentry let it through. Forge wins this round.
         // Skip compatibility check by using a scenario without strict mapping for this terminal event.
@@ -165,14 +165,14 @@ test('deriveOutcome — §Q3 truth table', (t) => {
         assert.strictEqual(result.event_class, 'complete');
     });
 
-    t.test('CapturedClean expected + complete → baseline_pass', () => {
+    await t.test('CapturedClean expected + complete → baseline_pass', () => {
         const a = attackerEngram('s3', 'FORGE-MS-001', 'captured_clean');
         const d = defenderEngram('s3', 'usb-sentry/complete');
         const result = deriveOutcome(a, d, contest);
         assert.strictEqual(result.outcome, 'baseline_pass');
     });
 
-    t.test('CapturedClean expected + block class → false_positive', () => {
+    await t.test('CapturedClean expected + block class → false_positive', () => {
         // FORGE-MS-001 is the clean baseline; if defender blocks it, false positive.
         // Override compatibility to allow the test event (it's the violation
         // detector that would fire otherwise — that's a different scenario).
@@ -189,14 +189,14 @@ test('deriveOutcome — §Q3 truth table', (t) => {
         assert.strictEqual(result.outcome, 'false_positive');
     });
 
-    t.test('CapturedThreat expected + block → defender_blocked', () => {
+    await t.test('CapturedThreat expected + block → defender_blocked', () => {
         const a = attackerEngram('s5', 'FORGE-MS-002', 'captured_threat');
         const d = defenderEngram('s5', 'usb-sentry/phase1-hit');
         const result = deriveOutcome(a, d, contest);
         assert.strictEqual(result.outcome, 'defender_blocked');
     });
 
-    t.test('listener-timeout terminal → inconclusive', () => {
+    await t.test('listener-timeout terminal → inconclusive', () => {
         const a = attackerEngram('s6', 'FORGE-MS-002', 'deflected');
         const d = defenderEngram('s6', 'usb-sentry/forge-listener-timeout');
         const result = deriveOutcome(a, d, contest);
@@ -205,10 +205,10 @@ test('deriveOutcome — §Q3 truth table', (t) => {
     });
 });
 
-test('deriveOutcome — §Q4 protocol-violation precedence', (t) => {
+test('deriveOutcome — §Q4 protocol-violation precedence', async (t) => {
     const contest = USB_FORGE_VS_SENTRY_CONTEST;
 
-    t.test('terminal_event impossible for scenario → protocol_violation, even with valid expected', () => {
+    await t.test('terminal_event impossible for scenario → protocol_violation, even with valid expected', () => {
         // FORGE-HID-001 is pure-HID; sentry reporting 'complete' is structurally impossible.
         const a = attackerEngram('v1', 'FORGE-HID-001', 'deflected');
         const d = defenderEngram('v1', 'usb-sentry/complete');
@@ -217,7 +217,7 @@ test('deriveOutcome — §Q4 protocol-violation precedence', (t) => {
         assert.ok(result.inconclusive_reason?.includes('FORGE-HID-001'));
     });
 
-    t.test('unknown terminal_event class → protocol_violation', () => {
+    await t.test('unknown terminal_event class → protocol_violation', () => {
         const customContest: ContestConfig = {
             ...contest,
             scenario_compatibility_map: {}, // disable structural check
@@ -230,32 +230,32 @@ test('deriveOutcome — §Q4 protocol-violation precedence', (t) => {
     });
 });
 
-test('shouldUpgrade — §Q5 severity ordering', (t) => {
-    t.test('attacker_bypassed upgrades defender_blocked', () => {
+test('shouldUpgrade — §Q5 severity ordering', async (t) => {
+    await t.test('attacker_bypassed upgrades defender_blocked', () => {
         assert.strictEqual(shouldUpgrade('defender_blocked', 'attacker_bypassed'), true);
     });
 
-    t.test('defender_blocked does NOT upgrade attacker_bypassed (no downgrade)', () => {
+    await t.test('defender_blocked does NOT upgrade attacker_bypassed (no downgrade)', () => {
         assert.strictEqual(shouldUpgrade('attacker_bypassed', 'defender_blocked'), false);
     });
 
-    t.test('protocol_violation upgrades everything', () => {
+    await t.test('protocol_violation upgrades everything', () => {
         assert.strictEqual(shouldUpgrade('baseline_pass', 'protocol_violation'), true);
         assert.strictEqual(shouldUpgrade('defender_blocked', 'protocol_violation'), true);
         assert.strictEqual(shouldUpgrade('attacker_bypassed', 'protocol_violation'), true);
     });
 
-    t.test('same-outcome second write is not an upgrade', () => {
+    await t.test('same-outcome second write is not an upgrade', () => {
         assert.strictEqual(shouldUpgrade('defender_blocked', 'defender_blocked'), false);
     });
 
-    t.test('false_positive upgrades inconclusive but not attacker_bypassed', () => {
+    await t.test('false_positive upgrades inconclusive but not attacker_bypassed', () => {
         assert.strictEqual(shouldUpgrade('inconclusive', 'false_positive'), true);
         assert.strictEqual(shouldUpgrade('attacker_bypassed', 'false_positive'), false);
     });
 });
 
-test('readPath & extractShotId', (t) => {
+test('readPath & extractShotId', async (t) => {
     const payload = {
         metadata: {
             shot_id: '01HSPXC8',
@@ -264,24 +264,24 @@ test('readPath & extractShotId', (t) => {
         },
     };
 
-    t.test('reads simple dotted path', () => {
+    await t.test('reads simple dotted path', () => {
         assert.strictEqual(readPath(payload, 'metadata.shot_id'), '01HSPXC8');
     });
 
-    t.test('reads nested deeper path', () => {
+    await t.test('reads nested deeper path', () => {
         assert.strictEqual(readPath(payload, 'metadata.nested.deep.value'), 42);
     });
 
-    t.test('returns undefined for missing path', () => {
+    await t.test('returns undefined for missing path', () => {
         assert.strictEqual(readPath(payload, 'metadata.does.not.exist'), undefined);
     });
 
-    t.test('extractShotId returns string', () => {
+    await t.test('extractShotId returns string', () => {
         const id = extractShotId(payload, USB_FORGE_VS_SENTRY_CONTEST);
         assert.strictEqual(id, '01HSPXC8');
     });
 
-    t.test('extractShotId returns null for missing id', () => {
+    await t.test('extractShotId returns null for missing id', () => {
         const id = extractShotId({ metadata: {} }, USB_FORGE_VS_SENTRY_CONTEST);
         assert.strictEqual(id, null);
     });

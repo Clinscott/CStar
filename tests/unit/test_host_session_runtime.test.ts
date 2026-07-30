@@ -347,7 +347,8 @@ describe('Host session runtime support metadata', () => {
         assert.equal(metadata?.steering_mode, 'full');
         assert.equal(metadata?.corvus_standard_version, 1);
         assert.equal(typeof metadata?.contract_hash, 'string');
-        assert.equal(metadata?.confidence_source, 'explicit');
+        assert.equal(metadata?.confidence, undefined);
+        assert.equal(metadata?.confidence_source, 'missing');
         assert.equal(metadata?.mimirs_well_count, 4);
         assert.equal(metadata?.mimirs_well_omitted_count, 1);
         assert.equal(metadata?.session_id, 'chant-session:cap');

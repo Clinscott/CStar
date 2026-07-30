@@ -1,11 +1,6 @@
 import { describe, it } from 'node:test';
 import {
     assert,
-    fs,
-    os,
-    path,
-    mock,
-    database,
     spokeStore,
     beadStore,
     makeSpoke,
@@ -49,7 +44,12 @@ describe("CStar MCP promoted kernel surfaces core", () => {
         if (parsed.error) console.error('Status Error:', parsed.error);
         assert.ok(parsed.framework, 'framework block must be present');
         assert.ok(typeof parsed.framework.status === 'string');
-        assert.ok(typeof parsed.framework.active_persona === 'string');
+        assert.ok(parsed.persona === null || parsed.persona === 'O.D.I.N.' || parsed.persona === 'A.L.F.R.E.D.');
+        assert.ok(['bounded_config_projection', 'bounded_config_invalid',
+            'bounded_config_reader_unavailable', 'self_consistent_unverified',
+            'legacy_self_consistent_unverified', 'unavailable']
+            .includes(parsed.persona_projection_status));
+        assert.equal(parsed.framework.active_persona, undefined);
         assert.ok(typeof parsed.workspace === 'string');
         assert.ok(Array.isArray(parsed.managed_spokes));
         assert.ok(Array.isArray(parsed.agents));
@@ -105,92 +105,39 @@ describe("CStar MCP promoted kernel surfaces core", () => {
         assert.ok(parsed.spokes.find((s: any) => s.slug === 'spoke-b'));
     });
 
-    it('cstar_spoke inspect returns the full Hall record for a registered slug', async () => {
+    it('cstar_spoke inspect returns a redacted Hall view for a registered slug', async () => {
         spokeStore.set('alpha', makeSpoke({ slug: 'alpha', spoke_id: 'spoke:alpha', root_path: '/tmp/alpha' }));
         const result = await handleSpoke({ action: 'inspect', slug: 'alpha' });
         const parsed = JSON.parse(result.content[0].text);
         assert.strictEqual(parsed.status, 'ok');
         assert.strictEqual(parsed.spoke.slug, 'alpha');
         assert.strictEqual(parsed.spoke.spoke_id, 'spoke:alpha');
-        assert.strictEqual(parsed.spoke.hub_repo_id, 'repo:test-spoke');
-        assert.strictEqual(parsed.spoke.spoke_repo_id, 'repo:/tmp/alpha');
-        assert.match(parsed.spoke.repo_id_semantics, /hub-scoped mounted-spoke owner/);
+        assert.match(parsed.spoke.root_sha256, /^[a-f0-9]{64}$/);
+        assert.match(parsed.spoke.repository_binding_sha256, /^[a-f0-9]{64}$/);
+        assert.strictEqual(parsed.spoke.root_path, undefined);
+        assert.strictEqual(parsed.spoke.remote_url, undefined);
+        assert.strictEqual(parsed.spoke.metadata, undefined);
     });
 
     it('cstar_spoke inspect errors on unknown slug', async () => {
         const result = await handleSpoke({ action: 'inspect', slug: 'ghost' });
         assert.strictEqual(result.isError, true);
         const parsed = JSON.parse(result.content[0].text);
-        assert.match(parsed.error, /not registered/);
+        assert.strictEqual(parsed.error, 'spoke_not_registered');
     });
 
-    it('cstar_spoke link rejects a missing root_path', async () => {
-        const result = await handleSpoke({
-            action: 'link',
-            slug: 'beta',
-            root_path: '/nonexistent/path/should/not/exist/anywhere',
-        });
-        assert.strictEqual(result.isError, true);
-        const parsed = JSON.parse(result.content[0].text);
-        assert.match(parsed.error, /does not exist or is not a directory/);
-    });
-
-    it('cstar_spoke link normalizes slug and persists the spoke through the database facade', async () => {
-        const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'spoke-link-test-'));
-        const captured: any[] = [];
-        const originalSave = database.saveHallMountedSpoke;
-        // Capture the persisted payload through the same facade the handler uses.
-        mock.method(database, 'saveHallMountedSpoke', (record: any) => {
-            captured.push(record);
-            spokeStore.set(record.slug, record);
-        });
-        try {
+    it('cstar_spoke mutation actions fail before inspecting their inputs or Hall rows', async () => {
+        for (const action of ['link', 'unlink', 'project'] as const) {
             const result = await handleSpoke({
-                action: 'link',
-                slug: 'Test Spoke!',
-                root_path: tmpRoot,
-                accept_beads: true,
+                action,
+                slug: 'secret-bearing-caller-value',
+                root_path: '/home/synthetic/.hermes/private',
+                remote_url: 'https://user:password@example.invalid/repo.git',
             });
             const parsed = JSON.parse(result.content[0].text);
-            assert.strictEqual(parsed.status, 'linked');
-            assert.strictEqual(parsed.slug, 'test-spoke-');
-            assert.strictEqual(parsed.trust_level, 'trusted');
-            assert.strictEqual(parsed.write_policy, 'read_write');
-            assert.strictEqual(captured.length, 1);
-            assert.strictEqual(captured[0].slug, 'test-spoke-');
-            assert.strictEqual(captured[0].mount_status, 'active');
-            assert.strictEqual(captured[0].metadata.source, 'cstar_spoke_mcp');
-        } finally {
-            (database.saveHallMountedSpoke as any) = originalSave;
-            fs.rmSync(tmpRoot, { recursive: true, force: true });
-        }
-    });
-
-    it('cstar_spoke unlink returns unlinked on success and errors on missing', async () => {
-        spokeStore.set('gamma', makeSpoke({ slug: 'gamma', spoke_id: 'spoke:gamma' }));
-        const removed: string[] = [];
-        const originalRemove = database.removeHallMountedSpoke;
-        mock.method(database, 'removeHallMountedSpoke', (slugOrId: string) => {
-            if (spokeStore.has(slugOrId)) {
-                removed.push(slugOrId);
-                spokeStore.delete(slugOrId);
-                return true;
-            }
-            return false;
-        });
-        try {
-            const ok = await handleSpoke({ action: 'unlink', slug: 'gamma' });
-            const okParsed = JSON.parse(ok.content[0].text);
-            assert.strictEqual(okParsed.status, 'unlinked');
-            assert.strictEqual(okParsed.slug, 'gamma');
-            assert.deepStrictEqual(removed, ['gamma']);
-
-            const missing = await handleSpoke({ action: 'unlink', slug: 'gamma' });
-            assert.strictEqual(missing.isError, true);
-            const missingParsed = JSON.parse(missing.content[0].text);
-            assert.match(missingParsed.error, /not registered/);
-        } finally {
-            (database.removeHallMountedSpoke as any) = originalRemove;
+            assert.strictEqual(result.isError, true);
+            assert.strictEqual(parsed.error, 'spoke_mutation_requires_verified_request_scoped_operator_attestation');
+            assert.doesNotMatch(JSON.stringify(parsed), /password|\.hermes|secret-bearing/);
         }
     });
 
@@ -199,8 +146,8 @@ describe("CStar MCP promoted kernel surfaces core", () => {
         const parsed = JSON.parse(result.content[0].text);
         assert.strictEqual(parsed.status, 'matched');
         assert.strictEqual(parsed.intent_category, 'BUILD');
-        assert.strictEqual(parsed.tier, 'WEAVE');
-        assert.strictEqual(parsed.default_path, 'creation_loop');
+        assert.strictEqual(parsed.tier, 'SKILL');
+        assert.strictEqual(parsed.default_path, 'cstar_forge_request');
         assert.strictEqual(parsed.matched_trigger, 'build');
     });
 
@@ -216,7 +163,7 @@ describe("CStar MCP promoted kernel surfaces core", () => {
         const result = await handleWarden({ action: 'list' });
         const parsed = JSON.parse(result.content[0].text);
         assert.strictEqual(parsed.status, 'ok');
-        assert.ok(parsed.source === 'driver' || parsed.source === 'fallback');
+        assert.strictEqual(parsed.source, 'static_deterministic');
         assert.ok(Array.isArray(parsed.wardens));
         assert.ok(typeof parsed.count === 'number');
         const slugs = parsed.wardens.map((w: any) => w.slug);
@@ -224,6 +171,8 @@ describe("CStar MCP promoted kernel surfaces core", () => {
         assert.ok(slugs.includes('valkyrie'));
         assert.ok(slugs.includes('freya'));
         assert.ok(slugs.includes('ghost'));
+        assert.ok(slugs.includes('huginn'));
+        assert.ok(!slugs.includes('shadow_forge'));
     });
 
     it('cstar_warden bounties tolerates a missing tech_debt_ledger.json', async () => {

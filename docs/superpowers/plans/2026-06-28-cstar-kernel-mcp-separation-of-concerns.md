@@ -1,5 +1,10 @@
 # CStar Kernel MCP Separation Of Concerns Implementation Plan
 
+> **Historical implementation record.** Checkbox tasks and legacy AutoBot
+> references below are not current instructions. The live contract is
+> `docs/integrations/cstar-kernel-mcp.md`; public AutoBot is decommissioned and
+> CStar lifecycle mutations remain kernel-backed.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Refactor `cstar-kernel-mcp` so no production or test script exceeds 500 lines, each MCP tool family has a focused module with focused tests, and the public MCP tool inventory remains stable.

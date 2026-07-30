@@ -32,15 +32,14 @@ dependencies = [
     "keyring"
 ]
 
-[project.scripts]
-cstar = "src.core.cstar_dispatcher:main"
-
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests/unit", "tests/integration", "tests/empire_tests", "tests/crucible"]
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+asyncio_default_test_loop_scope = "function"
 
 [tool.ruff]
 line-length = 100

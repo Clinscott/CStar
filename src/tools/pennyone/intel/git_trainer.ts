@@ -1,53 +1,23 @@
-import { execa } from 'execa';
-import { registry } from  '../pathRegistry.js';
-import { setFileGravity } from  './gravity_db.js';
-import chalk from 'chalk';
-import path from 'path';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-/**
- * Parses git commit history to determine lifetime edit frequency of all files.
- * Seeds this deep historical weight directly into gravity.db.
- */
-export async function seedGitGravity(): Promise<void> {
-    console.log(chalk.cyan('[O.D.I.N.]: "Consulting the old logs. Seeding the gravity well..."'));
 
-    try {
-        const root = registry.getRoot();
-        const { stdout } = await execa('git', ['log', '--name-only', '--pretty=format:'], { cwd: root, maxBuffer: 1024 * 1024 * 50 });
+export const RETIRED_GIT_TRAINER_ERROR =
+    'legacy_git_trainer_retired_use_cstar_kernel';
 
-        const lines = stdout.split('\n');
-        const frequencies = new Map<string, number>();
 
-        for (const line of lines) {
-            const trimmed = line.trim();
-            if (!trimmed) continue;
-
-            // Reconstruct absolute path
-            const absolutePath = registry.normalize(path.join(root, trimmed));
-
-            // Only care about valid source files
-            if (!absolutePath.match(/\.(ts|js|tsx|jsx|py)$/)) continue;
-
-            frequencies.set(absolutePath, (frequencies.get(absolutePath) || 0) + 1);
-        }
-
-        let seededCount = 0;
-        for (const [filepath, weight] of frequencies.entries()) {
-            setFileGravity(filepath, weight);
-            seededCount++;
-        }
-
-        console.log(chalk.green(`[O.D.I.N.]: "Matrix seeded. ${seededCount} artifacts imbued with deep historical gravity."`));
-
-    } catch (err: any) {
-        console.error(chalk.red(`[ERROR] Failed to seed Git gravity: ${err.message}`));
-    }
-}
-
-// Allow direct execution
-const isMain = import.meta.url.endsWith(process.argv[1]?.replace(/\\/g, '/')) || process.argv[1]?.endsWith('git_trainer.js');
-if (isMain) {
-    seedGitGravity();
+export async function seedGitGravity(): Promise<never> {
+    throw new Error(RETIRED_GIT_TRAINER_ERROR);
 }
 
 
+export function main(stderr = process.stderr): number {
+    stderr.write(`${RETIRED_GIT_TRAINER_ERROR}\n`);
+    return 1;
+}
+
+
+const invokedPath = process.argv[1] ? path.resolve(process.argv[1]) : '';
+if (invokedPath === fileURLToPath(import.meta.url)) {
+    process.exitCode = main();
+}

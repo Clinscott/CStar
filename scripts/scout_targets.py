@@ -1,103 +1,17 @@
-import json
-import sys
-from pathlib import Path
+#!/usr/bin/env python3
+"""Retired autonomous multi-warden scout and queue writer."""
 
-# Bootstrap project root
-PROJECT_ROOT = Path(__file__).parent.parent.absolute()
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
-
-# Import Wardens
-from src.core.annex import HeimdallWarden
-from src.core.sovereign_hud import SovereignHUD
-from src.core.engine.wardens.edda import EddaWarden
-from src.core.engine.wardens.freya import FreyaWarden
-from src.core.engine.wardens.huginn import HuginnWarden
-from src.core.engine.wardens.mimir import MimirWarden
-from src.core.engine.wardens.runecaster import RuneCasterWarden
-from src.core.engine.wardens.valkyrie import ValkyrieWarden
+RETIRED_ERROR = "legacy_scout_targets_retired_use_cstar_warden_on_demand"
 
 
 def scout() -> None:
-    root = PROJECT_ROOT
-    SovereignHUD.box_top("SENTINEL SCOUT: BREACH DETECTION")
-    SovereignHUD.box_row("ROOT", str(root))
-    SovereignHUD.box_separator()
+    """Fail closed without scanning source or writing a breach queue."""
+    raise RuntimeError(RETIRED_ERROR)
 
-    results = {
-        "ANNEX": [],
-        "VALKYRIE": [],
-        "MIMIR": [],
-        "EDDA": [],
-        "RUNE": [],
-        "BEAUTY": [],
-        "HUGINN": []
-    }
 
-    # 1. Annex (Structural/Test Breaches)
-    try:
-        annex = HeimdallWarden(root)
-        annex.scan()
-        results["ANNEX"] = annex.breaches
-    except Exception as e:
-        SovereignHUD.log("FAIL", "Annex Scan", str(e))
+def main() -> int:
+    return 2
 
-    # 2. Valkyrie (Dead Code)
-    try:
-        valkyrie = ValkyrieWarden(root)
-        results["VALKYRIE"] = valkyrie.scan()
-    except Exception as e:
-        SovereignHUD.log("FAIL", "Valkyrie Scan", str(e))
-
-    # 3. Mimir (Complexity)
-    try:
-        mimir = MimirWarden(root)
-        results["MIMIR"] = mimir.scan()
-    except Exception as e:
-        SovereignHUD.log("FAIL", "Mimir Scan", str(e))
-
-    # 4. Edda (Docstrings)
-    try:
-        edda = EddaWarden(root)
-        results["EDDA"] = edda.scan()
-    except Exception as e:
-        SovereignHUD.log("FAIL", "Edda Scan", str(e))
-
-    # 5. RuneCaster (Type Safety)
-    try:
-        rune = RuneCasterWarden(root)
-        results["RUNE"] = rune.scan()
-    except Exception as e:
-        SovereignHUD.log("FAIL", "Rune Scan", str(e))
-
-    # 6. Freya (Beauty)
-    try:
-        freya = FreyaWarden(root)
-        results["BEAUTY"] = freya.scan()
-    except Exception as e:
-        SovereignHUD.log("FAIL", "Freya Scan", str(e))
-
-    # 7. Huginn (Neural)
-    try:
-        huginn = HuginnWarden(root)
-        results["HUGINN"] = huginn.scan()
-    except Exception as e:
-        SovereignHUD.log("FAIL", "Huginn Scan", str(e))
-
-    # Summary
-    SovereignHUD.box_separator()
-    for k, v in results.items():
-        color = SovereignHUD.RED if v else SovereignHUD.GREEN
-        SovereignHUD.box_row(k, len(v), color=color)
-
-    total = sum(len(v) for v in results.values())
-    SovereignHUD.box_separator()
-    SovereignHUD.box_row("TOTAL BREACHES", total, color=(SovereignHUD.RED if total else SovereignHUD.GREEN))
-    SovereignHUD.box_bottom()
-
-    queue_path = root / "breaches_queue.json"
-    queue_path.write_text(json.dumps(results, indent=2), encoding='utf-8')
-    SovereignHUD.persona_log("SUCCESS", f"Queue synchronized to {queue_path.name}")
 
 if __name__ == "__main__":
-    scout()
+    raise SystemExit(main())

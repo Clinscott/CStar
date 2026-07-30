@@ -10,38 +10,45 @@ def _text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def _normalized(path: Path) -> str:
+    return " ".join(_text(path).split())
+
+
 def test_thread_architecture_doctrine_exists():
-    doctrine = _text(DOCTRINE)
-    feature = _text(FEATURE)
+    doctrine = _normalized(DOCTRINE)
+    feature = _normalized(FEATURE)
 
     assert "Thread topology is part of the system architecture" in doctrine
-    assert "Feature: CoS and PMT thread architecture" in feature
+    assert "Feature: CoS and project-context thread architecture" in feature
 
 
-def test_cstar_console_researcher_and_forge_have_separate_owners():
-    doctrine = _text(DOCTRINE)
+def test_cstar_researcher_forge_and_corvuseye_have_separate_roles():
+    doctrine = _normalized(DOCTRINE)
 
     required = [
-        "The CStar Control Plane PMT owns CStar and cstar-console control-plane surfaces.",
-        "It must not also own Researcher execution or Corvus Forge implementation work.",
-        "The Researcher PMT owns research and evidence production.",
-        "The Corvus Forge PMT owns build and implementation delivery.",
-        "The CorvusEye Review PMT is an independent review and audit lane.",
+        "CStar is the axle rather than a PMT or worker spoke.",
+        "Researcher gathers evidence through authorized source lanes.",
+        "Corvus Forge builds implementation through the durable",
+        "CorvusEye is the independent evaluation and red-team spoke.",
     ]
 
     for phrase in required:
         assert phrase in doctrine
 
 
-def test_cos_user_and_mm_authority_boundaries_are_explicit():
-    doctrine = _text(DOCTRINE)
+def test_cos_user_pmt_and_mm_authority_boundaries_are_explicit():
+    doctrine = _normalized(DOCTRINE)
 
     required = [
         "The User authorizes high-order direction and red-gated instructions.",
         "CoS is the estate overseer and operator-facing decision surface.",
-        "CoS does not own routine implementation",
-        "MM is an estate synthesis and coordination lane, not a relay requirement for every packet.",
-        "Direct CoS-to-pinned-PMT routing is valid",
+        "PMTs are project-scoped information repositories only.",
+        "A PMT grants no ownership, execution, review, approval, routing, or monitoring",
+        "A missing or stale mapped PMT is a freshness gap, not an execution gate",
+        "When an in-scope project has a mapped PMT, CoS must read one bounded context packet.",
+        "Luna for routine retrieval, Terra for conflicting-context synthesis, and Sol for high-stakes",
+        "requested and actual identity separately; absent a reported identity, actual is `unreported`.",
+        "MM is legacy and has no active estate-routing, synthesis, ownership, or relay",
     ]
 
     for phrase in required:
@@ -49,28 +56,30 @@ def test_cos_user_and_mm_authority_boundaries_are_explicit():
 
 
 def test_goal_lifecycle_and_red_gates_are_contractual():
-    doctrine = _text(DOCTRINE)
+    doctrine = _normalized(DOCTRINE)
 
     required = [
         "CoS receives User intent and records the goal as a bounded CStar-tracked decision, proposal, or bead.",
-        "While a PMT is running, CoS keeps the goal parked or blocked rather than polling continuously.",
+        "When waiting on a live worker or external state, CoS pauses rather than",
+        "A PMT read is never the live worker and never blocks execution.",
+        "PMT `STATE_UPDATE` after meaningful project work",
         "Red gates require explicit CoS/User authorization before execution:",
         "locked-holdout evaluation, hidden-label access, or tuning against sealed evaluation data;",
-        "authority-model changes, ownership-boundary changes, or PMT responsibility merges;",
+        "authority-model or execution-boundary changes;",
     ]
 
     for phrase in required:
         assert phrase in doctrine
 
 
-def test_combined_pmt_domains_are_declared_violations():
-    doctrine = _text(DOCTRINE)
+def test_stale_pmt_ownership_and_mm_routing_are_declared_violations():
+    doctrine = _normalized(DOCTRINE)
 
     required = [
-        "CStar Control Plane PMT plus Researcher PMT is a violation;",
-        "CStar Control Plane PMT plus Corvus Forge PMT is a violation;",
-        "Researcher PMT plus Corvus Forge PMT is a violation;",
-        "producer PMT plus independent review PMT is a violation",
+        "grant a PMT ownership, execution, review, approval, routing, or monitoring",
+        "make mapped PMT availability an execution or completion gate;",
+        "restore MM as an active coordination or relay lane;",
+        "let a producer perform an independent review required for its own gate.",
     ]
 
     for phrase in required:

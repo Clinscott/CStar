@@ -23,6 +23,13 @@ function makeSpokeFixture(slug: string, opts: {
     trust_level?: HallMountedSpokeRecord['trust_level'];
 } = {}): { spoke: HallMountedSpokeRecord; root: string; cleanup: () => void } {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), `spoke-discovery-${slug}-`));
+    const mountToken = `synthetic-${slug}-mount-token`;
+    fs.mkdirSync(path.join(root, '.cstar'), { recursive: true });
+    fs.writeFileSync(
+        path.join(root, '.cstar', 'IDENTITY.json'),
+        JSON.stringify({ mount_token: mountToken }),
+        { mode: 0o600 },
+    );
     const spoke = {
         spoke_id: `spoke-${slug}`,
         repo_id: `repo:${root}`,
@@ -33,6 +40,7 @@ function makeSpokeFixture(slug: string, opts: {
         trust_level: opts.trust_level ?? 'trusted',
         write_policy: 'read_write',
         projection_status: 'projected',
+        metadata: { authority: { mount_token: mountToken } },
         created_at: 0,
         updated_at: 0,
     } as unknown as HallMountedSpokeRecord;
@@ -96,7 +104,8 @@ test('Q1: walker reads <root>/.agents/skills/<id>/SKILL.md', () => {
         const out = walkSpokeSkillsForRecords([spoke]);
         assert.strictEqual(out.length, 1);
         assert.strictEqual(out[0].bare_id, 'clean-skill');
-        assert.strictEqual(out[0].authority_path, path.join(root, '.agents', 'skills', 'clean-skill', 'SKILL.md'));
+        assert.strictEqual(out[0].authority_path, '.agents/skills/clean-skill/SKILL.md');
+        assert.strictEqual((out[0] as any).spoke_root, undefined);
         assert.strictEqual(out[0].tier, 'SKILL');
         assert.strictEqual(out[0].risk, 'low');
         assert.strictEqual(out[0].name, 'clean-skill');
@@ -327,6 +336,41 @@ test('Q8: missing spoke root yields empty result (mount_status_drift surfaces el
     } as unknown as HallMountedSpokeRecord;
     const out = walkSpokeSkillsForRecords([spoke]);
     assert.deepStrictEqual(out, [], 'missing root should yield empty, not throw');
+});
+
+test('Q8: symlinked and hardlinked SKILL.md files are skipped', () => {
+    for (const kind of ['symlink', 'hardlink'] as const) {
+        const { spoke, root, cleanup } = makeSpokeFixture(`unsafe-${kind}`);
+        try {
+            const outside = path.join(root, 'outside.md');
+            const target = path.join(root, '.agents', 'skills', kind, 'SKILL.md');
+            fs.mkdirSync(path.dirname(target), { recursive: true });
+            fs.writeFileSync(outside, CLEAN_SKILL);
+            if (kind === 'symlink') fs.symlinkSync(outside, target);
+            else fs.linkSync(outside, target);
+            assert.deepStrictEqual(walkSpokeSkillsForRecords([spoke]), []);
+        } finally {
+            cleanup();
+        }
+    }
+});
+
+test('Q8: a Hall row targeting a private home is never walked', () => {
+    const privateRoot = path.join(os.homedir(), '.hermes');
+    const spoke = {
+        spoke_id: 'spoke-private',
+        repo_id: 'repo:private',
+        slug: 'private',
+        root_path: privateRoot,
+        mount_status: 'active',
+        trust_level: 'trusted',
+        write_policy: 'read_write',
+        projection_status: 'current',
+        metadata: { authority: { mount_token: 'synthetic' } },
+        created_at: 0,
+        updated_at: 0,
+    } as HallMountedSpokeRecord;
+    assert.deepStrictEqual(walkSpokeSkillsForRecords([spoke]), []);
 });
 
 // ── Frontmatter parser direct tests ──────────────────────────────────────────

@@ -1,109 +1,54 @@
-import { test, describe, beforeEach } from 'node:test';
-import assert from 'node:assert';
-import { resolvePythonPath, loadSkillRegistryManifest, discoverLegacyCommands, deps } from  '../../../../src/node/core/runtime/adapters/legacy_commands.js';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { describe, it } from 'node:test';
 
-describe('legacy_commands', () => {
-    beforeEach(() => {
-        deps.fs = {
-            existsSync: () => false,
-            readFileSync: () => '',
-            readdirSync: () => [],
-        } as any;
-        deps.getPythonPath = () => 'python-default';
+import {
+    RETIRED_DYNAMIC_COMMAND_FAILURE,
+    discoverLegacyCommands,
+    loadSkillRegistryManifest,
+    resolvePythonPath,
+} from '../../../../src/node/core/runtime/adapters/legacy_commands.js';
+
+describe('retired legacy command discovery', () => {
+    it('returns no registry or filesystem commands even when executable-looking fixtures exist', () => {
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'cstar-retired-dynamic-'));
+        try {
+            fs.mkdirSync(path.join(root, '.agents'), { recursive: true });
+            fs.mkdirSync(path.join(root, 'scripts'), { recursive: true });
+            fs.writeFileSync(
+                path.join(root, '.agents', 'skill_registry.json'),
+                JSON.stringify({
+                    entries: {
+                        calculus: {
+                            id: 'calculus',
+                            entrypoint_path: 'scripts/legacy.py',
+                        },
+                    },
+                }),
+            );
+            fs.writeFileSync(path.join(root, 'scripts', 'legacy.py'), 'raise SystemExit(99)\n');
+
+            assert.deepEqual([...loadSkillRegistryManifest(root)], []);
+            assert.deepEqual([...discoverLegacyCommands(root)], []);
+        } finally {
+            fs.rmSync(root, { recursive: true, force: true });
+        }
     });
 
-    describe('resolvePythonPath', () => {
-        test('should return Windows venv path if it exists', () => {
-            deps.fs.existsSync = (p: string) => p.includes('Scripts');
-            const result = resolvePythonPath('/root');
-            assert.ok(result.includes('.venv/Scripts/python.exe') || result.includes('.venv\\Scripts\\python.exe'));
-        });
-
-        test('should return Unix venv path if it exists and Windows does not', () => {
-            deps.fs.existsSync = (p: string) => p.includes('bin/python') || p.includes('bin\\python');
-            const result = resolvePythonPath('/root');
-            assert.ok(result.includes('.venv/bin/python') || result.includes('.venv\\bin\\python'));
-        });
-
-        test('should return default python path if no venv exists', () => {
-            const result = resolvePythonPath('/root');
-            assert.strictEqual(result, 'python-default');
-        });
+    it('never resolves a Python interpreter for the retired lane', () => {
+        assert.throws(
+            () => resolvePythonPath('/synthetic'),
+            { message: RETIRED_DYNAMIC_COMMAND_FAILURE },
+        );
     });
 
-    describe('loadSkillRegistryManifest', () => {
-        test('should return empty map if manifest does not exist', () => {
-            deps.fs.existsSync = () => false;
-            const result = loadSkillRegistryManifest('/root');
-            assert.strictEqual(result.size, 0);
-        });
-
-        test('should return map of commands from manifest', () => {
-            deps.fs.existsSync = () => true;
-            deps.fs.readFileSync = () => JSON.stringify({
-                skills: {
-                    'TestCommand': { entrypoint_path: 'src/test.py' }
-                }
-            });
-            const result = loadSkillRegistryManifest('/root');
-            assert.strictEqual(result.get('testcommand'), '/root/src/test.py');
-        });
-
-        test('should handle malformed manifest', () => {
-            deps.fs.existsSync = () => true;
-            deps.fs.readFileSync = () => 'invalid json';
-            const result = loadSkillRegistryManifest('/root');
-            assert.strictEqual(result.size, 0);
-        });
-    });
-
-    describe('discoverLegacyCommands', () => {
-        test('should discover python scripts in various directories', () => {
-            deps.fs.existsSync = (p: string) => p.includes('scripts');
-            deps.fs.readdirSync = (p: string) => {
-                if (p.includes('scripts')) {
-                    return [{
-                        isFile: () => true,
-                        isDirectory: () => false,
-                        name: 'my_script.py'
-                    }] as any;
-                }
-                return [];
-            };
-            const result = discoverLegacyCommands('/root');
-            assert.strictEqual(result.get('my_script'), '/root/scripts/my_script.py');
-        });
-
-        test('should discover scripts in subdirectories with scripts/ folder', () => {
-            const existingPaths = new Set([
-                '/root/src/tools',
-                '/root/src/tools/my_tool/scripts/my_tool.py'
-            ]);
-            deps.fs.existsSync = (p: string) => existingPaths.has(p.replace(/\\/g, '/'));
-            deps.fs.readdirSync = (p: string) => {
-                if (p.replace(/\\/g, '/').includes('src/tools')) {
-                    return [{
-                        isFile: () => false,
-                        isDirectory: () => true,
-                        name: 'my_tool'
-                    }] as any;
-                }
-                return [];
-            };
-            const result = discoverLegacyCommands('/root');
-            assert.strictEqual(result.get('my_tool'), '/root/src/tools/my_tool/scripts/my_tool.py');
-        });
-
-        test('should discover workflows', () => {
-             deps.fs.existsSync = (p: string) => p.includes('workflows');
-             deps.fs.readdirSync = (p: string) => {
-                 if (p.includes('workflows')) {
-                     return ['my_flow.md', 'ignored.txt'] as any;
-                 }
-                 return [];
-             };
-             const result = discoverLegacyCommands('/root');
-             assert.strictEqual(result.get('my_flow'), '/root/.agents/workflows/my_flow.md');
-        });
+    it('contains no filesystem, interpreter, or process dependency', () => {
+        const source = fs.readFileSync(
+            new URL('../../../../src/node/core/runtime/adapters/legacy_commands.ts', import.meta.url),
+            'utf8',
+        );
+        assert.doesNotMatch(source, /node:fs|execa|getPythonPath|readFileSync|readdirSync|existsSync/);
     });
 });

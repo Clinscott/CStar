@@ -1,10 +1,10 @@
-import fs from 'node:fs';
 import path from 'node:path';
-import { pathToFileURL } from 'node:url';
-import { PROJECT_ROOT, logBootstrapError } from '../contracts/runtime.js';
+import { PROJECT_ROOT, readBoundedUtf8FileInside } from '../contracts/runtime.js';
 import { rate } from './usage.js';
 
 const MCP_USAGE_LOOKBACK_MS = 24 * 60 * 60 * 1000;
+const TOKEN_PATH_TELEMETRY_MAX_BYTES = 8 * 1024 * 1024;
+const TOKEN_PATH_QUARANTINE_REASON = 'token_path_independent_promotion_required';
 
 export interface TokenPathRoutingInput {
     prompt?: string;
@@ -83,6 +83,18 @@ export interface TokenPathAdviceLookup {
     targetPaths?: string[];
 }
 
+export interface TokenPathQuarantineStatus {
+    schema_version: '1.0.0';
+    status: 'quarantined';
+    actionable: false;
+    advisor_available: false;
+    advice_attached: false;
+    advice_writes_enabled: false;
+    observation_writes_enabled: false;
+    external_root_consulted: false;
+    reason: 'token_path_independent_promotion_required';
+}
+
 const TOKEN_PATH_OBSERVATIONS_RELATIVE_PATH = path.join(
     '.agents', 'state', 'augury-token-path-mcp-observations.jsonl',
 );
@@ -90,33 +102,35 @@ const TOKEN_PATH_ADVICE_RELATIVE_PATH = path.join(
     '.agents', 'state', 'augury-token-path-mcp-advice.jsonl',
 );
 
-function stableHash(input: string): string {
-    let hash = 2166136261;
-    for (let idx = 0; idx < input.length; idx += 1) {
-        hash ^= input.charCodeAt(idx);
-        hash = Math.imul(hash, 16777619);
-    }
-    return (hash >>> 0).toString(16).padStart(8, '0');
-}
-
-function generateTokenPathEpisodeId(): string {
-    return `mcp-tp-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 8)}`;
-}
-
-function resolveAuguryTokenPathRoot(): string {
-    const envRoot = process.env.AUGURY_TOKEN_PATH_ROOT;
-    if (envRoot && envRoot.trim().length > 0) {
-        return path.resolve(envRoot);
-    }
-    return path.resolve(PROJECT_ROOT, '..', 'AuguryTokenPath');
+/**
+ * Return the only TokenPath state that Augury may attach while quarantine is
+ * active. This object is static by design: it does not inspect an environment
+ * override, probe an external repository, load a module, or choose a policy.
+ */
+export function buildTokenPathQuarantineStatus(): TokenPathQuarantineStatus {
+    return {
+        schema_version: '1.0.0',
+        status: 'quarantined',
+        actionable: false,
+        advisor_available: false,
+        advice_attached: false,
+        advice_writes_enabled: false,
+        observation_writes_enabled: false,
+        external_root_consulted: false,
+        reason: TOKEN_PATH_QUARANTINE_REASON,
+    };
 }
 
 function readRecentProjectJsonl<T>(relativePath: string, lookbackMs: number): T[] {
     try {
         const filePath = path.join(PROJECT_ROOT, relativePath);
-        if (!fs.existsSync(filePath)) return [];
+        const bounded = readBoundedUtf8FileInside(
+            PROJECT_ROOT,
+            filePath,
+            TOKEN_PATH_TELEMETRY_MAX_BYTES,
+        );
         const now = Date.now();
-        return fs.readFileSync(filePath, 'utf-8')
+        return bounded.content
             .split('\n')
             .filter((line) => line.trim().length > 0)
             .flatMap((line) => {
@@ -138,98 +152,20 @@ function readRecentProjectJsonl<T>(relativePath: string, lookbackMs: number): T[
     }
 }
 
-export async function runTokenPathAdvisor(input: TokenPathRoutingInput): Promise<TokenPathRecommendation | null> {
-    try {
-        const sidecarRoot = resolveAuguryTokenPathRoot();
-        const entryPath = [
-            path.join(sidecarRoot, 'src', 'core', 'advisor_entry.ts'),
-            path.join(sidecarRoot, 'src', 'core', 'advisor_entry.js'),
-        ].find((candidate) => fs.existsSync(candidate));
-        if (!entryPath) return null;
-        const entryUrl = pathToFileURL(entryPath).href;
-        const mod = await import(entryUrl) as {
-            getTokenPathAdviceForRouting?: (i: TokenPathRoutingInput) => TokenPathRecommendation;
-        };
-        if (typeof mod.getTokenPathAdviceForRouting !== 'function') return null;
-        return mod.getTokenPathAdviceForRouting(input);
-    } catch (error) {
-        logBootstrapError(error);
-        return null;
-    }
+/** Compatibility tombstone. TokenPath cannot advise until promoted. */
+export async function runTokenPathAdvisor(
+    _input: TokenPathRoutingInput,
+): Promise<TokenPathRecommendation | null> {
+    return null;
 }
 
-function deriveObservationOutcome(payload: TokenPathObservationPayload, verdict?: string): {
-    actual_success: boolean;
-    actual_completion: boolean;
-    actual_verification_passed: boolean;
-    actual_requires_followup: boolean;
-    actual_deferred: boolean;
-} {
-    const terminal = payload.terminal_outcome;
-    const normalizedVerdict = verdict?.toUpperCase();
-    const successByVerdict = normalizedVerdict === 'SUCCESS' || normalizedVerdict === 'ACCEPTED';
-    const actualSuccess = payload.actual_success ?? (terminal === 'verified-success' || successByVerdict);
-    const actualCompletion = payload.actual_completion
-        ?? (terminal === 'verified-success' || terminal === 'completed-unverified' || actualSuccess);
-    const actualVerificationPassed = payload.actual_verification_passed
-        ?? (terminal === 'verified-success' || successByVerdict);
-    const actualRequiresFollowup = payload.actual_requires_followup
-        ?? (terminal === 'needs-followup' || normalizedVerdict === 'INCONCLUSIVE');
-    const actualDeferred = payload.actual_deferred ?? (terminal === 'deferred');
-
-    return {
-        actual_success: actualSuccess,
-        actual_completion: actualCompletion,
-        actual_verification_passed: actualVerificationPassed,
-        actual_requires_followup: actualRequiresFollowup,
-        actual_deferred: actualDeferred,
-    };
-}
-
+/** Compatibility tombstone. Quarantine never returns an episode receipt. */
 export function appendTokenPathAdvice(
-    input: TokenPathRoutingInput,
-    recommendation: TokenPathRecommendation,
-    beadId?: string,
+    _input: TokenPathRoutingInput,
+    _recommendation: TokenPathRecommendation,
+    _beadId?: string,
 ): string | null {
-    const episodeId = recommendation.episode_id || generateTokenPathEpisodeId();
-    recommendation.episode_id = episodeId;
-    const record: TokenPathAdviceRecord = {
-        schema_version: '1.0.0',
-        ts: new Date().toISOString(),
-        episode_id: episodeId,
-        occurred_at: new Date().toISOString(),
-        tool: 'cstar_augury',
-        prompt_hash: stableHash(`${input.prompt || ''}\n${input.inferred_intent || ''}`),
-        bead_id: beadId,
-        target_paths: input.target_paths?.slice(0, 10),
-        intent_category: input.intent_category,
-        selected_policy: recommendation.selected_policy,
-        advised_mode: recommendation.mode,
-        scenario_class: recommendation.scenario_class,
-        expected_raw_tokens: recommendation.expected_raw_tokens,
-        expected_billable_tokens: recommendation.expected_billable_tokens,
-        requires_followup: recommendation.requires_followup,
-        execution_deferred: recommendation.execution_deferred,
-        confidence: recommendation.confidence,
-    };
-    const appendRecord = (root: string): void => {
-        const advicePath = path.join(root, TOKEN_PATH_ADVICE_RELATIVE_PATH);
-        fs.mkdirSync(path.dirname(advicePath), { recursive: true });
-        fs.appendFileSync(advicePath, `${JSON.stringify(record)}\n`, 'utf-8');
-    };
-    try {
-        appendRecord(PROJECT_ROOT);
-        return episodeId;
-    } catch (error) {
-        logBootstrapError(error);
-        try {
-            appendRecord(path.join('/tmp', 'cstar-kernel-mcp'));
-            return episodeId;
-        } catch (fallbackError) {
-            logBootstrapError(fallbackError);
-            return null;
-        }
-    }
+    return null;
 }
 
 function normalizeTokenPathTarget(candidate: string): string | null {
@@ -249,16 +185,18 @@ function tokenTargetsOverlap(left: string, right: string): boolean {
     if (normalizedLeft === normalizedRight) return true;
     const projectRoot = normalizeTokenPathTarget(PROJECT_ROOT);
     if (normalizedLeft === projectRoot || normalizedRight === projectRoot) return false;
-    return normalizedLeft.startsWith(`${normalizedRight}/`) || normalizedRight.startsWith(`${normalizedLeft}/`);
+    return normalizedLeft.startsWith(`${normalizedRight}/`)
+        || normalizedRight.startsWith(`${normalizedLeft}/`);
 }
 
 function recordTargetsMatch(record: TokenPathAdviceRecord, targetPaths?: string[]): boolean {
-    if (!targetPaths || targetPaths.length === 0 || !record.target_paths || record.target_paths.length === 0) {
-        return false;
-    }
-    return targetPaths.some((targetPath) => record.target_paths?.some((recordPath) => tokenTargetsOverlap(targetPath, recordPath)));
+    if (!targetPaths?.length || !record.target_paths?.length) return false;
+    return targetPaths.some((targetPath) => record.target_paths?.some(
+        (recordPath) => tokenTargetsOverlap(targetPath, recordPath),
+    ));
 }
 
+/** Read-only access to historical, project-local compatibility telemetry. */
 export function findRecentTokenPathAdvice(
     episodeOrLookup?: string | TokenPathAdviceLookup,
     beadId?: string,
@@ -266,8 +204,13 @@ export function findRecentTokenPathAdvice(
     const lookup: TokenPathAdviceLookup = typeof episodeOrLookup === 'object'
         ? episodeOrLookup
         : { episodeId: episodeOrLookup, beadId };
-    const advice = readRecentProjectJsonl<TokenPathAdviceRecord>(TOKEN_PATH_ADVICE_RELATIVE_PATH, MCP_USAGE_LOOKBACK_MS);
-    const sorted = [...advice].sort((a, b) => Date.parse(b.occurred_at) - Date.parse(a.occurred_at));
+    const advice = readRecentProjectJsonl<TokenPathAdviceRecord>(
+        TOKEN_PATH_ADVICE_RELATIVE_PATH,
+        MCP_USAGE_LOOKBACK_MS,
+    );
+    const sorted = [...advice].sort(
+        (a, b) => Date.parse(b.occurred_at) - Date.parse(a.occurred_at),
+    );
     if (lookup.episodeId) {
         const byEpisode = sorted.find((record) => record.episode_id === lookup.episodeId);
         if (byEpisode) return byEpisode;
@@ -276,11 +219,10 @@ export function findRecentTokenPathAdvice(
         const byBead = sorted.find((record) => record.bead_id === lookup.beadId);
         if (byBead) return byBead;
     }
-    const byTarget = sorted.find((record) => recordTargetsMatch(record, lookup.targetPaths));
-    if (byTarget) return byTarget;
-    return null;
+    return sorted.find((record) => recordTargetsMatch(record, lookup.targetPaths)) ?? null;
 }
 
+/** Pure compatibility projection. It does not persist an observation. */
 export function buildObservationFromAdvice(
     advice: TokenPathAdviceRecord,
     notes?: string,
@@ -298,7 +240,10 @@ export function buildObservationFromAdvice(
 }
 
 export function summarizeRecentTokenPathIntegration(): Record<string, unknown> {
-    const advice = readRecentProjectJsonl<TokenPathAdviceRecord>(TOKEN_PATH_ADVICE_RELATIVE_PATH, MCP_USAGE_LOOKBACK_MS);
+    const advice = readRecentProjectJsonl<TokenPathAdviceRecord>(
+        TOKEN_PATH_ADVICE_RELATIVE_PATH,
+        MCP_USAGE_LOOKBACK_MS,
+    );
     const observations = readRecentProjectJsonl<Record<string, unknown>>(
         TOKEN_PATH_OBSERVATIONS_RELATIVE_PATH,
         MCP_USAGE_LOOKBACK_MS,
@@ -310,63 +255,28 @@ export function summarizeRecentTokenPathIntegration(): Record<string, unknown> {
         .sort();
     const observedEpisodes = new Set(
         observations
-            .map((record) => typeof record.token_path_episode_id === 'string' ? record.token_path_episode_id : undefined)
+            .map((record) => typeof record.token_path_episode_id === 'string'
+                ? record.token_path_episode_id
+                : undefined)
             .filter((episodeId): episodeId is string => !!episodeId),
     );
     const successes = observations.filter((record) => record.actual_success === true).length;
     return {
-        advisor_available: fs.existsSync(path.join(resolveAuguryTokenPathRoot(), 'src', 'core', 'advisor_entry.ts'))
-            || fs.existsSync(path.join(resolveAuguryTokenPathRoot(), 'src', 'core', 'advisor_entry.js')),
+        ...buildTokenPathQuarantineStatus(),
         advice_count_24h: advice.length,
         observation_count_24h: observations.length,
         advice_observation_rate: rate(observedEpisodes.size, advice.length),
         observed_success_rate: rate(successes, observations.length),
-        last_advice_at: adviceTimes.length > 0 ? adviceTimes[adviceTimes.length - 1] : null,
-        last_observation_at: observationTimes.length > 0 ? observationTimes[observationTimes.length - 1] : null,
+        last_advice_at: adviceTimes.at(-1) ?? null,
+        last_observation_at: observationTimes.at(-1) ?? null,
     };
 }
 
+/** Compatibility tombstone. Quarantine never returns an observation receipt. */
 export function appendTokenPathObservation(
-    beadId: string,
-    payload: TokenPathObservationPayload,
-    verdict?: string,
+    _beadId: string,
+    _payload: TokenPathObservationPayload,
+    _verdict?: string,
 ): string | null {
-    const observationId = `mcp-obs-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
-    const outcome = deriveObservationOutcome(payload, verdict);
-    const record = {
-        schema_version: '1.0.0',
-        ts: new Date().toISOString(),
-        observation_id: observationId,
-        token_path_episode_id: payload.token_path_episode_id,
-        bead_id: beadId,
-        occurred_at: new Date().toISOString(),
-        scenario_class: payload.scenario_class,
-        selected_policy: payload.selected_policy,
-        advised_mode: payload.advised_mode,
-        observed_raw_tokens_episode: payload.observed_raw_tokens_episode,
-        observed_billable_tokens_episode: payload.observed_billable_tokens_episode,
-        rounds: payload.rounds,
-        verification_result: payload.verification_result,
-        terminal_outcome: payload.terminal_outcome,
-        ...outcome,
-        notes: payload.notes,
-    };
-    const appendRecord = (root: string): void => {
-        const obsPath = path.join(root, TOKEN_PATH_OBSERVATIONS_RELATIVE_PATH);
-        fs.mkdirSync(path.dirname(obsPath), { recursive: true });
-        fs.appendFileSync(obsPath, `${JSON.stringify(record)}\n`, 'utf-8');
-    };
-    try {
-        appendRecord(PROJECT_ROOT);
-        return observationId;
-    } catch (error) {
-        logBootstrapError(error);
-        try {
-            appendRecord(path.join('/tmp', 'cstar-kernel-mcp'));
-            return observationId;
-        } catch (fallbackError) {
-            logBootstrapError(fallbackError);
-            return null;
-        }
-    }
+    return null;
 }

@@ -1,246 +1,177 @@
 {
-  "version": "2.0",
-  "generated_at": 1777569206478,
+  "version": "3.0",
+  "generated_at": 1783896186796,
   "tiers": {
     "PRIME": {
-      "description": "Atomic host-native or kernel-primitive operations used as the smallest bounded units."
+      "description": "Deterministic CStar kernel primitives; no model-owned authority."
     },
     "SKILL": {
-      "description": "Discrete host-native capabilities that may invoke bounded kernel primitives when the registry allows it."
-    },
-    "WEAVE": {
-      "description": "Host-native workflow compositions that weave multiple skills/primes into a larger effect while the kernel catalogs and dispatches them."
-    },
-    "SPELL": {
-      "description": "Host-native recursive policies and workflow loops over skills/weaves; not a Node-runtime ownership tier."
+      "description": "Agent-native procedural guidance whose mutation gates remain in CStar."
     }
   },
   "intent_grammar": {
     "REPAIR": {
-      "triggers": [
-        "fix",
-        "repair",
-        "heal",
-        "restore",
-        "broken",
-        "failing",
-        "bug"
-      ],
-      "default_path": "restoration",
-      "tier": "WEAVE"
-    },
-    "BUILD": {
-      "triggers": [
-        "build",
-        "create",
-        "scaffold",
-        "implement",
-        "new",
-        "add",
-        "feature"
-      ],
-      "default_path": "creation_loop",
-      "tier": "WEAVE"
-    },
-    "VERIFY": {
-      "triggers": [
-        "test",
-        "verify",
-        "validate",
-        "check",
-        "assert",
-        "spec"
-      ],
-      "default_path": "empire",
+      "triggers": ["fix", "repair", "heal", "restore", "broken", "failing", "bug"],
+      "default_path": "cstar_forge_request",
       "tier": "SKILL"
     },
+    "BUILD": {
+      "triggers": ["build", "create", "scaffold", "implement", "new", "add", "feature"],
+      "default_path": "cstar_forge_request",
+      "tier": "SKILL"
+    },
+    "VERIFY": {
+      "triggers": ["test", "verify", "validate", "check", "assert", "spec", "audit", "quality", "review"],
+      "default_path": "cstar_record_result",
+      "tier": "PRIME"
+    },
     "SCORE": {
-      "triggers": [
-        "score",
-        "grade",
-        "rate",
-        "audit",
-        "quality",
-        "gungnir"
-      ],
-      "default_path": "calculus",
+      "triggers": ["score", "grade", "rate", "gungnir"],
+      "default_path": "cstar_record_result",
       "tier": "PRIME"
     },
     "OBSERVE": {
-      "triggers": [
-        "scan",
-        "search",
-        "find",
-        "query",
-        "status",
-        "health",
-        "look",
-        "show",
-        "browse",
-        "website",
-        "url",
-        "navigate"
-      ],
-      "default_path": "scan",
+      "triggers": ["scan", "search", "find", "query", "status", "health", "look", "show", "browse", "website", "url", "navigate"],
+      "default_path": "cstar_status",
       "tier": "PRIME"
     },
     "HARDEN": {
-      "triggers": [
-        "contract",
-        "comply",
-        "sterling",
-        "harden",
-        "gherkin"
-      ],
-      "default_path": "contract_hardening",
-      "tier": "WEAVE"
+      "triggers": ["contract", "comply", "sterling", "harden", "gherkin"],
+      "default_path": "cstar_record_result",
+      "tier": "PRIME"
     },
     "EXPAND": {
-      "triggers": [
-        "deploy",
-        "link",
-        "mount",
-        "spoke",
-        "onboard"
-      ],
-      "default_path": "expansion",
-      "tier": "WEAVE"
+      "triggers": ["deploy", "link", "mount", "spoke", "onboard"],
+      "default_path": "cstar_spoke",
+      "tier": "PRIME"
     },
     "EVOLVE": {
-      "triggers": [
-        "optimize",
-        "refactor",
-        "evolve",
-        "improve"
-      ],
-      "default_path": "evolve",
-      "tier": "WEAVE"
+      "triggers": ["optimize", "refactor", "evolve", "improve"],
+      "default_path": "cstar_forge_request",
+      "tier": "SKILL"
     },
     "ORCHESTRATE": {
-      "triggers": [
-        "plan",
-        "dispatch",
-        "autobot",
-        "orchestrate"
-      ],
-      "default_path": "orchestrate",
-      "tier": "WEAVE"
+      "triggers": ["plan", "dispatch", "orchestrate", "sequence"],
+      "default_path": "cstar_handoff",
+      "tier": "PRIME"
     },
     "GUARD": {
-      "triggers": [
-        "protect",
-        "shield",
-        "lock",
-        "guard",
-        "drift"
-      ],
-      "default_path": "silver_shield",
-      "tier": "SPELL"
+      "triggers": ["protect", "shield", "lock", "guard", "drift"],
+      "default_path": "cstar_record_result",
+      "tier": "PRIME"
     },
     "DOCUMENT": {
-      "triggers": [
-        "document",
-        "explain",
-        "chronicle",
-        "architecture",
-        "study",
-        "harvest",
-        "learn"
-      ],
-      "default_path": "mimir-harvester",
+      "triggers": ["document", "explain", "chronicle", "architecture", "handoff", "wrap", "closeout"],
+      "default_path": "cstar-closeout",
+      "tier": "SKILL"
+    },
+    "RESEARCH": {
+      "triggers": ["research", "evidence", "sources", "investigate external"],
+      "default_path": "cstar_researcher_request",
       "tier": "SKILL"
     }
   },
-  "entries": [
-    {
-      "id": "mimir-harvester",
-      "title": "Mimir Harvester",
-      "description": "Autonomous study of episodic memory engrams and hierarchical lesson distillation.",
-      "tier": "SKILL",
+  "entries": {
+    "calculus": {
+      "id": "calculus",
+      "title": "Gungnir Calculus",
+      "description": "Read-only deterministic source scoring available for explicit compatibility discovery; not registered in the default operator catalog.",
+      "tier": "PRIME",
+      "viability": "ACTIVE",
+      "risk": "safe",
+      "runtime_trigger": "calculus",
+      "entry_surface": "compatibility",
+      "instruction_path": ".agents/skills/calculus/SKILL.md",
+      "entrypoint_path": "src/node/core/runtime/adapters/calculus.ts",
+      "contract_path": ".agents/skills/calculus/calculus.feature",
+      "authority_path": ".agents/skills/calculus",
+      "owner_runtime": "compatibility-library",
+      "host_support": {"codex": "unsupported", "gemini": "unsupported", "claude": "unsupported"},
+      "recursion_policy": "leaf",
+      "contracts": [".agents/skills/calculus/calculus.feature"],
+      "tests": [
+        "tests/unit/test_gungnir_calculus.test.ts",
+        "tests/unit/test_gungnir_calculus_adapter.test.ts",
+        "tests/unit/test_gungnir_calculus_command.test.ts"
+      ],
+      "intent_categories": ["SCORE"],
       "execution": {
-        "adapter_id": "weave:distill-lessons",
-        "language": "python",
-        "entry_point": "scripts/mimir_harvester.py"
-      },
-      "intent_categories": ["DOCUMENT"],
-      "contract": {
-        "input_schema": {
-          "type": "object",
-          "properties": {
-            "memory_id": { "type": "string", "description": "Specific engram to study" }
-          }
-        }
+        "mode": "compatibility",
+        "adapter_id": "prime:calculus",
+        "ownership_model": "kernel-primitive"
       }
     },
-    {
-      "id": "autobot",
-      "title": "Autobot — Hermes sub-agent delegation",
-      "description": "Delegate a bounded task from the host-native agent (Claude/Gemini/Codex in their harness) to a Hermes-managed sub-agent (default MiniMax-M3). Cost-audited via .agents/state/autobot-cost-ledger.jsonl. Structured intent + payload per docs/host-native-skill-bridge.md. File-locked per (project, intent_hash). Synchronous via delegate.py, async via enqueue.py + queue_processor.py.",
+    "corvus-forge": {
+      "id": "corvus-forge",
+      "title": "Corvus Forge",
+      "description": "Durable implementation routing through CStar request, execute, and independent validation.",
       "tier": "SKILL",
-      "risk": "low",
-      "entry_surface": "cli",
-      "terminal_required": false,
+      "viability": "ACTIVE",
+      "risk": "high",
+      "entry_surface": "host-only",
+      "instruction_path": ".agents/skills/corvus-forge/SKILL.md",
+      "entrypoint_path": null,
+      "authority_path": ".agents/skills/corvus-forge",
+      "owner_runtime": "host-agent",
+      "host_support": {"codex": "native-session", "gemini": "native-session", "claude": "native-session"},
+      "recursion_policy": "leaf",
+      "contracts": [".agents/skills/corvus-forge/SKILL.md"],
+      "tests": ["tests/unit/test_skill_execution_contracts.test.ts"],
+      "intent_categories": ["BUILD", "REPAIR", "EVOLVE"],
       "execution": {
-        "adapter_id": "host-native:autobot",
-        "language": "python",
-        "entry_point": ".agents/skills/autobot/scripts/delegate.py",
-        "queue_entry_point": ".agents/skills/autobot/scripts/enqueue.py",
-        "queue_drainer_entry_point": ".agents/skills/autobot/scripts/queue_processor.py",
-        "queue_inspect_entry_point": ".agents/skills/autobot/scripts/queue_inspect.py"
-      },
-      "intent_categories": ["ORCHESTRATE"],
-      "contract": {
-        "input_schema": {
-          "type": "object",
-          "required": ["intent"],
-          "properties": {
-            "intent": { "type": "string", "description": "One-sentence task statement" },
-            "project_root": { "type": "string", "description": "Anchors relative target_paths" },
-            "target_paths": {
-              "type": "array",
-              "items": { "type": "string" },
-              "description": "Files to read into the prompt as context (each capped at 32 KB)"
-            },
-            "payload": {
-              "type": "object",
-              "properties": {
-                "hermes_profile": { "type": "string", "default": "cstar-hub" },
-                "model": { "type": "string", "default": "MiniMax-M3" },
-                "expected_output": { "type": "string", "enum": ["markdown", "json", "plain"], "default": "markdown" },
-                "max_chars": { "type": "integer", "default": 4000 },
-                "session_name": { "type": ["string", "null"] },
-                "write_to": { "type": ["string", "null"] },
-                "append_with_separator": { "type": ["string", "null"] },
-                "tags": { "type": "array", "items": { "type": "string" } },
-                "timeout_seconds": { "type": "integer", "default": 300 }
-              }
-            }
-          }
-        },
-        "output_schema": {
-          "type": "object",
-          "properties": {
-            "status": { "type": "string", "enum": ["ok", "degraded", "invalid_intent"] },
-            "degraded_reason": { "type": ["string", "null"] },
-            "intent_id": { "type": "string" },
-            "duration_ms": { "type": "integer" },
-            "wrote_to": { "type": ["string", "null"] },
-            "ledger_entry": { "type": "string" }
-          }
-        }
-      },
-      "invariants": [
-        "No nested delegation (HERMES_AUTOBOT_DELEGATED env guard)",
-        "No writes outside payload.write_to / cost ledger / lock file / queue",
-        "No fallback to other providers when MiniMax is unreachable",
-        "Lock granularity = (project_root, intent_hash)",
-        "Honest degraded surfaces — never fakes success"
-      ],
-      "related_docs": [
-        "docs/host-native-skill-bridge.md",
-        ".agents/skills/autobot/SKILL.md"
-      ]
+        "mode": "agent-native",
+        "ownership_model": "host-workflow"
+      }
+    },
+    "researcher": {
+      "id": "researcher",
+      "title": "Researcher",
+      "description": "Bounded evidence requests through authorized Researcher lanes.",
+      "tier": "SKILL",
+      "viability": "ACTIVE",
+      "risk": "medium",
+      "entry_surface": "host-only",
+      "instruction_path": ".agents/skills/researcher/SKILL.md",
+      "entrypoint_path": null,
+      "authority_path": ".agents/skills/researcher",
+      "owner_runtime": "host-agent",
+      "host_support": {"codex": "native-session", "gemini": "native-session", "claude": "native-session"},
+      "recursion_policy": "leaf",
+      "contracts": [".agents/skills/researcher/SKILL.md"],
+      "tests": ["tests/unit/cstar-kernel-mcp/test_dispatch_requests.test.ts"],
+      "intent_categories": ["RESEARCH", "VERIFY"],
+      "execution": {
+        "mode": "agent-native",
+        "ownership_model": "host-workflow"
+      }
+    },
+    "cstar-closeout": {
+      "id": "cstar-closeout",
+      "title": "CStar Closeout",
+      "description": "Evidence-backed handoff and separately gated Git closeout.",
+      "tier": "SKILL",
+      "viability": "ACTIVE",
+      "risk": "medium",
+      "entry_surface": "host-only",
+      "instruction_path": ".agents/skills/cstar-closeout/SKILL.md",
+      "entrypoint_path": ".agents/skills/cstar-closeout/scripts/inspect_closeout.py",
+      "authority_path": ".agents/skills/cstar-closeout",
+      "owner_runtime": "host-agent",
+      "host_support": {"codex": "native-session", "gemini": "native-session", "claude": "native-session"},
+      "recursion_policy": "leaf",
+      "contracts": [".agents/skills/cstar-closeout/SKILL.md"],
+      "tests": ["tests/unit/test_cstar_closeout_skill.py"],
+      "intent_categories": ["DOCUMENT"],
+      "execution": {
+        "mode": "agent-native",
+        "ownership_model": "host-workflow"
+      }
     }
-  ],
-  "authority_audit": []
+  },
+  "authority_audit": [
+    {
+      "status": "PASS",
+      "claim": "Default operator capabilities are host-native guidance; calculus is discoverable compatibility only and remains unregistered from the retired Node runtime."
+    }
+  ]
 }

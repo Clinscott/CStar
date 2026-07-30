@@ -1,6 +1,6 @@
 {
   "name": "corvus-star",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Host-native Corvus Star Augury, Hall, and CStar runtime integration.",
   "author": {
     "name": "Craig Linscott"
@@ -11,17 +11,16 @@
   "keywords": [
     "corvus",
     "cstar",
-    "sprt",
-    "gungnir",
-    "calculus"
+    "corvus",
+    "control-plane",
+    "mcp",
+    "agent-governance"
   ],
   "skills": "./skills/",
-  "hooks": "./hooks.json",
-  "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "Corvus Star",
     "shortDescription": "Corvus Star Augury and Hall integration for Codex.",
-    "longDescription": "Routes Codex through CStar with full-first/lite-after Augury steering, Hall/Mimir discovery, Council expert assignment, and explicit host/kernel boundaries.",
+    "longDescription": "Routes Codex through CStar with bounded Hall discovery, advisory Augury explanations, and explicit host/kernel authority boundaries.",
     "developerName": "Craig Linscott",
     "category": "Developer Tools",
     "capabilities": [
@@ -32,9 +31,9 @@
     "privacyPolicyURL": "https://github.com/Clinscott/CStar#readme",
     "termsOfServiceURL": "https://github.com/Clinscott/CStar#readme",
     "defaultPrompt": [
-      "Route CStar work through Corvus Star Augury [Ω].",
-      "Use Hall/Mimir discovery before broad local scans.",
-      "Keep confidence in Augury learning metadata."
+      "Apply the current operator grant and Corvus authority order before CStar lifecycle state.",
+      "Use CStar kernel tools for bounded control-plane work and narrow Hall discovery.",
+      "Do not emit numeric Augury confidence without independently validated scoring evidence."
     ],
     "brandColor": "#0F6E5B"
   }

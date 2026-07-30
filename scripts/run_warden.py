@@ -27,7 +27,6 @@ WARDEN_REGISTRY: dict[str, tuple[str, str]] = {
     "edda": ("src.core.engine.wardens.edda", "EddaWarden"),
     "scour": ("src.core.engine.wardens.scour", "ScourWarden"),
     "runecaster": ("src.core.engine.wardens.runecaster", "RuneCasterWarden"),
-    "shadow_forge": ("src.core.engine.wardens.shadow_forge", "ShadowForgeWarden"),
 }
 
 

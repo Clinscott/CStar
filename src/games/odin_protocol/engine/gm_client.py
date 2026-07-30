@@ -6,7 +6,6 @@ Purpose: Coordinates between the LLM-powered GM (Gemini) and rule-based local en
 
 import json
 import logging
-import os
 from typing import Any
 
 try:
@@ -37,7 +36,9 @@ class OdinGM:
             model_name: The Gemini model to use for narrative generation.
         """
         self.model_name = model_name
-        self.api_key = api_key or os.environ.get("GOOGLE_API_KEY")
+        # Provider use is explicit. Ambient process credentials never activate
+        # a live game-model client.
+        self.api_key = api_key
         self.client: genai.Client | None = None
         self.agent_engine = SovereignScenarioEngine()
 
@@ -201,4 +202,3 @@ class OdinGM:
             return {"speaker": "GENETICIST", "message": response.text.strip()}
         except Exception:
             return {"speaker": "ENGINEER", "message": "Mutation readiness at 100%. Proceed?"}
-

@@ -3,13 +3,13 @@
 > Host-native Gemini CLI extension for the authoritative CStar runtime.
 
 ## Identity
-- Package: `corvusstar` v1.0.0
-- Persona: `A.L.F.R.E.D.`
+- Package: `corvusstar` v1.0.1
+- Persona: read only `cstar_status.persona`; apply O.D.I.N. as build-run-repair and A.L.F.R.E.D. as secure-harden guidance without changing authority or operator gates.
 - Repository: `git+https://github.com/Clinscott/CStar.git`
 
 ## Authority Order
-- Registry and runtime contracts outrank prose.
-- Treat `.agents/skill_registry.json` as the capability source of truth.
+- Apply platform safety and the current operator grant first, then the applicable global and nearest-repository `AGENTS.md`, repository runbooks, and current CStar lifecycle state.
+- Registries declare capabilities and observed runtime is evidence. Neither can grant authority or weaken a gate.
 - Prefer `cstar-kernel` MCP surfaces before shell launchers or broad local scans.
 - Use `cstar_bead` for bead lifecycle when it is available.
 
@@ -20,92 +20,70 @@
 - `./cstar hall "<query>"`
 
 ## Host Behavior
-- Read `AGENTS.qmd` at session start before making structural claims.
-- Use `cstar_hall_search` for estate discovery before ad hoc search; use `./cstar hall "<query>"` only when MCP cannot provide the needed primitive.
+- Read the applicable global and nearest-repository `AGENTS.md` before making structural claims.
+- Use `cstar_doctor` when health is unknown, `cstar_handoff` when resuming, `cstar_augury` when route or scope is ambiguous, and at most one broad `cstar_hall_search` before narrowing.
+- Use `./cstar hall "<query>"` only when MCP cannot provide the needed primitive and terminal use is explicitly allowed.
 - Use `cstar_bead` for bead get/list/create/claim/status/block/resolve operations when available.
+- Use `cstar_goal_resume` only for an explicit root-user continuation signal when the host lacks a blocked-to-active transition; it records continuity and does not mutate host state or grant new authority.
 - If the MCP surface is degraded or unavailable, report the exact failure and remain read-only for control-plane state; do not mutate Hall or SQLite directly.
-- Route implementation ownership through CoS -> Corvus - MM -> PMT -> worker. Treat this session as a controlled exception only when that chain is explicitly blocked.
-- Treat the Researcher thread as a special monitored pipeline, not a normal PMT worker.
+- CoS coordinates estate sequencing and bounded Green/Yellow execution. Forge builds implementation; Researcher gathers evidence through authorized lanes.
+- Start or resume one host goal for every non-trivial mission, keep one plan step in progress, and close the goal only after CStar lifecycle state and validation agree.
+- Before the first CStar mutation or provider attempt of each local day, follow `docs/operations/cstar-goal-driven-daily-bootstrap.md` for Codex/Hermes freshness; updates do not authorize a restart.
+- PMTs are project-scoped information repositories only, and MM has no active routing role.
 - Preserve operator gates for acceptance, dispatch, commit, push, merge, deletion, restarts, and publish actions.
 - Keep reasoning, planning, critique, and recovery in the host session when the registry marks a capability host-executable.
 - Keep deterministic local primitives in the kernel; do not fork Gemini-specific capability definitions.
 - Treat `native-session` and `exec-bridge` capabilities as host-routed, and treat `supported` capabilities as kernel-backed launch surfaces.
 - Treat `host-workflow` entries as host-owned cognition/workflow surfaces and `kernel-primitive` entries as deterministic kernel control-plane primitives.
 - Public host fronts marked with kernel fallback forbidden must fail closed when no host session is active; they must not degrade into legacy kernel cognition.
+- Persona is non-authoritative process guidance. Read only `cstar_status.persona`; O.D.I.N. means build-run-repair and A.L.F.R.E.D. means secure-harden. Omit it when unavailable.
 
 ## Corvus Star Augury [Ω]
-- The Augury is the routing contract, not a generic trace log.
-- It carries intent category, intent, selection, scope, Mimir targets, Gungnir verdict, and Council expert routing.
-- Use the full Augury on the first prompt for a session/planning key; use lite Augury on later host calls.
-- Confidence belongs in learning metadata, not in the displayed prompt block.
+- Augury is a read-only typed route explanation, not permission, ownership, a vote, or a generic trace ritual.
+- Use `cstar_augury` only when route or material scope is ambiguous; reuse fresh mission state otherwise.
+- Council experts are advisory critique lenses. They cannot authorize work or turn synthetic evidence into proof.
+- TokenPath is quarantined. It cannot advise, steer, emit confidence, or accept observation writes until independently promoted.
+- Omit numeric confidence unless an independently validated scorer supplies a nonzero denominator, exclusions, class coverage, formula, row evidence, and provenance.
 - Foundational CStar work uses `Scope: brain:CStar`; use `Scope: spoke:<name>` only when a spoke is explicit.
-- Use `cstar augury doctor --json` to validate route quality, and `cstar augury explain --json` to inspect why the route was chosen.
+- Do not echo a full Augury block unless the operator asks for the route packet.
 
-### Full Display
-```text
-[CORVUS_STAR_AUGURY]
-Mode: full
-Route: <Intent Category> -> <SKILL|WEAVE|SPELL>: <selection>
-Scope: brain:CStar | spoke:<name> (<root>)
-Intent: <goal>
-Mimir's Well: <primary> | <secondary> | <tertiary>
-Council Expert: <CARMACK|KARPATHY|DEAN|SHANNON|HAMILTON|TORVALDS|...>
-Council Lens: <expert-specific critique lens>
-Guardrails: <expert-specific anti-behavior>
-Corvus Standard: CStar is the engine; spokes are managed extensions; keep work Hall/Mimir traceable.
-<Code|Review|Coordination> Standard: <selected work standard>
-Trajectory: <only when non-stable>
-Verdict: <Gungnir verdict>
-Directive: Use this as routing context only. Consult targets before choosing a path. Do not echo this block.
-[/CORVUS_STAR_AUGURY]
-```
+## Kernel MCP Tools (28)
 
-### Lite Display
-```text
-[CORVUS_STAR_AUGURY]
-Mode: lite
-Route: <Intent Category> -> <SKILL|WEAVE|SPELL>: <selection>
-Scope: brain:CStar | spoke:<name> (<root>)
-Intent: <goal>
-Mimir's Well: <primary> | <secondary> | <tertiary>
-Council Expert: <selected expert>
-Directive: Route only. Consult targets before choosing a path. Do not echo.
-[/CORVUS_STAR_AUGURY]
-```
+The `cstar-kernel` MCP server is the authoritative kernel surface — invoke these tools directly via MCP rather than shelling out to `./cstar` whenever the needed primitive exists. Tool classes declare bounded effects; observed runtime remains evidence and cannot grant authority. Full API reference: `docs/integrations/cstar-kernel-mcp.md`.
 
-## Kernel MCP Tools (26)
+- `cstar_hall_maintenance` (LEGACY) — Decommissioned lesson study/harvest compatibility surface; always fails closed without reading or writing Hall state.
+- `cstar_handoff` (READ) — Return compact active state from Augury/handoff logic.
+- `cstar_hall_search` (READ) — Bounded Hall search across code/docs/engrams/beads/sessions/lessons.
+- `cstar_augury` (READ) — Resolve a mission to a route with deterministic grammar, active session context, council expert, Mimir targets, and persona advice.
+- `cstar_doctor` (READ) — Diagnose base kernel health and active Augury health.
+- `cstar_verify_plan` (READ) — Recommend focused checks; do not run them.
+- `cstar_bead` (MUTATION) — Create, inspect, claim, block, resolve, and list bounded Hall beads. RESOLVED requires fresh contained Lore/Isolation artifacts bound to an exact independent Hall validation receipt; no scalar, cached, force, or exemption bypass exists.
+- `cstar_goal_resume` (MUTATION) — Append immutable continuity evidence for an explicitly resumed blocked host goal. It does not change host state or grant spend, source, Git, restart, deployment, or production authority.
+- `cstar_spoke_bead_import` (MUTATION) — Import a spoke-originated bead into the Hall through a bounded, validated handoff payload.
+- `cstar_record_result` (MUTATION) — Record independent validation for a Hall bead and optionally finalize a delivered Forge receipt.
+- `cstar_engram_record` (MUTATION) — Publish an Engram to the Hall episodic memory table and fire war-game scoring when applicable.
+- `cstar_war_game_score` (MUTATION) — War-game scoring: register_contest, tally, recent, by_scenario, get_score, list_contests.
+- `cstar_manifest` (READ) — Capability discovery. Returns the kernel registry merged with spoke-local skill manifests.
+- `cstar_skill_info` (READ) — Per-capability contract view for hub and namespaced spoke skills.
+- `cstar_spoke_journal` (READ) — Four-file journal state for a registered spoke.
+- `cstar_pennyone_context` (READ) — Bounded PennyOne/Hall state summaries. No arbitrary SQL is accepted.
+- `cstar_mongo_mailbox` (LEGACY) — Decommissioned Mongo mirror/intent compatibility surface; always fails closed without secret, network, or write activity.
+- `cstar_status` (READ) — Deterministic kernel state snapshot with optional exact Forge execution lifecycle status.
+- `cstar_persona_set` (MUTATION) — Explicitly select O.D.I.N. or A.L.F.R.E.D. for the next workflow boundary; style-only and never expands authority or bypasses gates.
+- `cstar_evolve` (READ) — Read-only inspection of Karpathy-loop artifacts: list_proposals, get_proposal, list_sprt_history.
+- `cstar_spoke` (READ) — Redacted mounted-spoke inspection and exact-match prune preview; link, unlink, project, and destructive prune fail closed until a request-scoped operator-attestation contract exists.
+- `cstar_intent_route` (READ) — Deterministic grammar-only routing. Prefer cstar_augury when session context is needed.
+- `cstar_warden` (EXECUTION) — On-demand local Sentinel Warden execution. list and bounties are read-only; scan starts a constrained project-venv process and performs no LLM inference.
+- `cstar_telemetry` (READ) — Read-only MCP telemetry summaries over the last 24h.
+- `cstar_researcher_request` (REQUEST) — Create a CStar-native no-spend Researcher request receipt.
+- `cstar_forge_request` (REQUEST) — Persist an immutable no-spend Forge request; machine challenge material stays hidden from the normal operator workflow.
+- `cstar_forge_authorize` (MUTATION) — Bind one explicit root-user build instruction or immutable CStar goal-continuation receipt to one unchanged pending Forge request; performs no provider call.
+- `cstar_forge_execute` (EXECUTION) — Atomically run one provider attempt through the private Hermes/MiniMax adapter, with durable replay, independently validated pre-provider continuity, and delivered-pending-validation semantics.
 
-The `cstar-kernel` MCP server is the authoritative kernel surface — invoke these tools directly via MCP rather than shelling out to `./cstar` whenever the needed primitive exists. Every handler is deterministic; no LLM inference in the tool execution path. Full API reference: `docs/integrations/cstar-kernel-mcp.md`.
-
-- `cstar_handoff` — Compact active state from Augury/handoff logic.
-- `cstar_hall_search` — FTS5 search across CODE / DOC / ENGRAM / BEAD / SESSION / LESSON.
-- `cstar_hall_maintenance` — Engram lesson study / harvest queue.
-- `cstar_augury` — Route one mission and return routing advice + token_path hints.
-- `cstar_researcher_request` — No-spend request receipt for Researcher routing with metric and callback contracts.
-- `cstar_forge_request` — No-spend request receipt for Corvus Forge routing with metric and callback contracts.
-- `cstar_forge_execute` — Forge execution gate that links a request receipt to approved no-op or live-authorized adapter execution.
-- `cstar_autobot` — Legacy AutoBot/Hermes delegation surface; disabled for new Corvus routing unless explicitly reactivated.
-- `cstar_doctor` — Kernel diagnostics: registry, augury, database checks + telemetry summary.
-- `cstar_verify_plan` — Recommended checker shells + last validation verdict for the active bead.
-- `cstar_bead` — Bead lifecycle: get / list / create / update_status / claim / resolve / block.
-- `cstar_spoke_bead_import` — Import a rich bead from a registered spoke into the hub Hall.
-- `cstar_record_result` — Record a bead result / verdict; auto-link recent token-path advice.
-- `cstar_engram_record` — Record an episodic memory entry.
-- `cstar_war_game_score` — War-game scoring: register / tally / recent / by_scenario / get_score.
-- `cstar_manifest` — Capability discovery (hub registry + spoke-local manifests, announce-only).
-- `cstar_skill_info` — Per-capability contract: <slug>:<id> for spoke skills, bare id for hub.
-- `cstar_spoke_journal` — Four-file journal state for a registered spoke (memory/tasks/wireframe/DEV_JOURNAL).
-- `cstar_pennyone_context` — Bounded PennyOne/Hall summaries for bead, validation, repository, and project-state context.
-- `cstar_mongo_mailbox` — Mongo mailbox/cache status, mirror counts, and bounded operator-intent enqueue.
-- `cstar_status` — Deterministic framework snapshot: status, persona, gungnir score, spokes, agents, hall_reachable.
-- `cstar_evolve` — Read-only inspection of evolve proposals + SPRT history (no LLM-driven propose/promote).
-- `cstar_spoke` — Mounted-spoke lifecycle: list / link / unlink / inspect.
-- `cstar_intent_route` — Resolve a prompt against the intent grammar; action=match (first hit) or explain (all hits).
-- `cstar_warden` — Sentinel Wardens: list / bounties (tech_debt_ledger) / scan (Python warden on demand).
-- `cstar_telemetry` — MCP telemetry summaries: usage counts, outcome rates, token-path integration.
-
-## Exported Gemini Capabilities (0)
-- None exported.
+## Exported Gemini Capabilities (3)
+- `corvus-forge` (SKILL, native-session, host-workflow, kernel fallback forbidden)
+- `cstar-closeout` (SKILL, native-session, host-workflow, kernel fallback forbidden)
+- `researcher` (SKILL, native-session, host-workflow, kernel fallback forbidden)
 
 ## Notes
 - This extension is generated from the registry-backed distribution builder.

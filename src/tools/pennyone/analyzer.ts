@@ -8,7 +8,6 @@ import { calculateStyleScore } from  './calculus/style.js';
 import { calculateIntelScore } from  './calculus/intel.js';
 import { getFileGravity } from  './intel/gravity_db.js';
 import { registry } from  './pathRegistry.js';
-import { getHallRepository } from  './intel/database.js';
 import { createGungnirMatrix, patchGungnirMatrix } from  '../../types/gungnir.js';
 import { FileData } from  './types.js';
 
@@ -159,7 +158,9 @@ export async function analyzeFile(code: string, filepath: string): Promise<FileD
     const style = calculateStyleScore(code);
     const intel = calculateIntelScore(code, loc);
     const gravity = await getFileGravity(filepath);
-    const anomalyScore = await getSystemAnomaly();
+    // Runtime anomaly state is not a source-analysis input. A future anomaly
+    // adjustment requires an explicit, request-bound evidence contract.
+    const anomalyScore = 0;
     const vigilScore = calculateVigilScore(filepath);
 
     const aesthetic = (logicValue + style + intel) / 3;
@@ -271,24 +272,6 @@ function detectEndpoints(code: string, filepath: string): string[] {
 }
 
 /**
- * Get system anomaly from sovereign state
- * @returns {Promise<number>} Anomaly score
- */
-async function getSystemAnomaly(): Promise<number> {
-    try {
-        const record = getHallRepository(registry.getRoot());
-        const metadata = (record?.metadata ?? {}) as {
-            sovereign_projection?: {
-                extras?: {
-                    last_anomaly_score?: number;
-                };
-            };
-        };
-        return Number(metadata.sovereign_projection?.extras?.last_anomaly_score ?? 0);
-    } catch { return 0; }
-}
-
-/**
  * Analyzes markdown documents
  * @param {string} code - Source code
  * @param {string} filepath - Path to file
@@ -340,5 +323,4 @@ function calculateLOC(code: string, filepath: string): number {
         return content ? content.trim() : '';
     }).filter(line => line.length > 0).length;
 }
-
 

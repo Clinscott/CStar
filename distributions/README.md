@@ -1,30 +1,27 @@
-# Corvus Star Install Surfaces
+# Corvus Star Source and Release Surfaces
 
-This repository generates host install artifacts from the authoritative registry and runtime contracts.
+This repository generates verified host source-staging artifacts from the declared registry and kernel tool catalog.
 
 ## Gemini CLI
 - Install from the repository root so `gemini-extension.json` and `GEMINI.md` are available.
 - The extension exposes registry-filtered capabilities and MCP server wiring from the kernel root.
 - Gemini context is generated around the host-native supervisor model: host cognition, kernel primitives.
-- The Gemini context teaches the full-first/lite-after Corvus Star Augury display and routing contract.
+- Gemini context presents Augury as an advisory route explanation, never authority or proof.
 - Public host fronts marked as no-fallback are expected to fail closed when the host session is unavailable.
-- Local bootstrap: `npm run install:gemini-local`
 
 ## Codex
-- The repo-local plugin lives under `plugins/corvus-star/`.
-- The marketplace entry lives under `.agents/plugins/marketplace.json`.
-- The plugin points back to the same kernel root through `.mcp.json`.
-- Codex install surfaces are generated from the same registry-backed host/kernel split as Gemini.
-- Codex skill context teaches the full-first/lite-after Corvus Star Augury display and routing contract.
+- The source plugin under `plugins/corvus-star/` is skill-only: manifest, README, skill, and generated lineage.
+- It contains no MCP server or hook. The host-global CStar kernel is managed independently.
+- `plugins/corvus-star/lineage.json` binds the immutable version to its tool catalog, exported capabilities, runtime mode, and per-file hashes.
+- Source staging only: `npm run install:codex-local` verifies and stages the plugin under `~/plugins/corvus-star`; it does not run `codex plugin add`, refresh Codex cache, restart Desktop, or prove live activation.
+- Marketplace reconciliation, `codex plugin add`, restart or new-task pickup, and live proof remain separately operator-gated.
+- Never copy plugin caches or marketplace state by hand.
+- Codex skill context presents Augury as an advisory route explanation, never authority or proof.
 - Public host fronts marked as no-fallback are expected to fail closed when the host session is unavailable.
-- Local bootstrap: `npm run install:codex-local`
-
-## Combined Local Bootstrap
-- `npm run install:hosts-local`
 
 ## Export Summary
-- Gemini executable capabilities: 0
-- Codex executable capabilities: 0
+- Gemini executable capabilities: 3
+- Codex executable capabilities: 3
 
 ## Regeneration
 - `npm run build:distributions`
@@ -34,6 +31,6 @@ This repository generates host install artifacts from the authoritative registry
 - `npm run release:prepare`
 
 ## CI
-- Pull requests and pushes should fail if generated install artifacts drift from the registry-backed source.
+- Pull requests and pushes should fail if generated host artifacts drift from the registry-backed source.
 - Tagged pushes and manual runs can publish host-ready bundle artifacts from `dist/host-distributions/`.
-- Sync local `~/.gemini` and `~/.codex` installs from these generated artifacts instead of hand-editing host surfaces.
+- Stage verified source, then use the supported host activation surface; never hand-edit Codex plugin caches or marketplace state.

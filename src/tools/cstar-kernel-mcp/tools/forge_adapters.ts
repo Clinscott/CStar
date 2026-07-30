@@ -1,9 +1,70 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { validateForgeAdapterResponseContract } from './forge_adapter_response_contract.js';
-import { normalizeActionList } from './dispatch_request.js';
+import type { DispatchRequestArgs } from './dispatch_request.js';
+import {
+    dispatchActionRequiresProjectFiles,
+    resolveDispatchActionAuthority,
+} from './dispatch_action_authority.js';
 import type { ForgeExecutionArgs } from './forge_execute.js';
-
+import {
+    assertSafePrivateArtifact,
+    quarantinePrivateEntryNoFollow,
+    removePrivateFile,
+} from './forge_adapter_artifacts.js';
+import { ForgeParentPublication } from './forge_adapter_publication.js';
+import {
+    buildCanonicalForgeDeliveryReceipt,
+    buildSanitizedForgeResponseRejection,
+    buildUnverifiedForgeResponseEvidence,
+    privateForgeResponseProof,
+    type PrivateForgeResponseProof,
+} from './forge_adapter_delivery_receipt.js';
+import {
+    cleanupPreparedForgeAdapterInvocation,
+    prepareForgeHermesMinimaxAdapterInvocation,
+    type PreparedForgeAdapterInvocation,
+} from './forge_adapter_invocation.js';
+import {
+    readVerifiedRuntimeFile,
+    runtimeProofEquals,
+    sealForgeAdapterRuntime,
+    type ForgeAdapterRuntimeProof,
+} from './forge_adapter_runtime.js';
+import { CODE_ROOT, readBoundedFileInside } from '../contracts/runtime.js';
+import {
+    forgeRuntimeReadOnlyPaths,
+    isolatedPythonArguments,
+    spawnContainedForgeProcess,
+    validateForgeContainmentSpec,
+} from './forge_adapter_containment.js';
+import {
+    assertForgeWorkspaceProjectionCurrent,
+} from './forge_workspace_projection.js';
+import {
+    commitForgeWorkspaceProjection,
+    type ForgeWorkspaceCommitReceipt,
+} from './forge_workspace_commit.js';
+import {
+    projectForgeFailureEvidence,
+} from './forge_failure_evidence.js';
+import {
+    boundedAdapterStatus,
+    parseAdapterEnvelope,
+    projectAdapterEnvelope,
+    type ReturnedForgeAdapterEnvelope,
+} from './forge_adapter_envelope.js';
+import { buildForgeExecutionOwnerProof } from './forge_execution_owner.js';
+export {
+    cleanupPreparedForgeAdapterInvocation,
+    prepareForgeHermesMinimaxAdapterInvocation,
+    sealForgeAdapterRuntime,
+};
+export type {
+    ForgeAdapterRuntimeProof,
+    ForgeRuntimeFileProof,
+} from './forge_adapter_runtime.js';
+export type { PreparedForgeAdapterInvocation } from './forge_adapter_invocation.js';
 export const FORGE_EXECUTION_ADAPTERS = [
     {
         ref: 'cstar-forge-hermes-minimax-adapter',
@@ -13,7 +74,8 @@ export const FORGE_EXECUTION_ADAPTERS = [
         contract_surface: 'docs/operations/corvus-forge-skill-spec.md',
         playbook_surface: 'docs/operations/corvus-forge-pipeline-playbook.md',
         invocation: 'operator_authorized_live_gate',
-        default_script: '.agents/skills/autobot/scripts/delegate.py',
+        default_script: null,
+        explicit_registration_env: 'CSTAR_FORGE_HERMES_MINIMAX_ADAPTER_SCRIPT',
         write_capability: 'response_only',
         codex_worker_fallback_allowed: false,
     },
@@ -26,23 +88,58 @@ export const FORGE_EXECUTION_ADAPTERS = [
         playbook_surface: 'docs/operations/corvus-forge-pipeline-playbook.md',
         invocation: 'operator_authorized_live_gate',
         default_script: '.agents/skills/corvus-forge/scripts/forge_worker_adapter.py',
+        explicit_registration_env: null,
         write_capability: 'project_files',
         codex_worker_fallback_allowed: false,
     },
 ];
-
-export function resolveForgeExecutionAdapter(args: ForgeExecutionArgs) {
-    const requested = args.execution_adapter_ref?.trim() || null;
+export function resolveForgeExecutionAdapterRef(requestedRef: string | undefined, root = CODE_ROOT) {
+    const requested = requestedRef?.trim() || null;
     const requestedCanonical = requested
         ? FORGE_EXECUTION_ADAPTERS.find((adapter) =>
             adapter.ref === requested || adapter.aliases.includes(requested),
         )?.ref ?? requested
         : null;
-    const proofs = FORGE_EXECUTION_ADAPTERS.map((adapter) => ({
-        ...adapter,
-        requested: requestedCanonical === adapter.ref,
-        authorized: requestedCanonical === adapter.ref,
-    }));
+    const proofs = FORGE_EXECUTION_ADAPTERS.map((adapter) => {
+        const workerOverride = adapter.ref === 'cstar-forge-hermes-minimax-worker-adapter'
+            ? process.env.CSTAR_FORGE_HERMES_MINIMAX_WORKER_ADAPTER_SCRIPT?.trim() || null
+            : null;
+        const explicitScript = workerOverride || (adapter.explicit_registration_env
+            ? process.env[adapter.explicit_registration_env]?.trim() || null
+            : null);
+        const defaultScript = adapter.default_script
+            ? path.resolve(root, adapter.default_script)
+            : null;
+        const registeredScript = explicitScript || defaultScript;
+        let registrationError: string | null = null;
+        if (adapter.explicit_registration_env && !registeredScript) {
+            registrationError = `explicit Forge-native adapter registration is required via ${adapter.explicit_registration_env}`;
+        } else if (!registeredScript) {
+            registrationError = `Forge-native adapter ${adapter.ref} has no registered runtime`;
+        } else {
+            if (explicitScript && !path.isAbsolute(explicitScript)) {
+                registrationError = `${adapter.explicit_registration_env ?? 'CSTAR_FORGE_HERMES_MINIMAX_WORKER_ADAPTER_SCRIPT'} must be an absolute path`;
+            } else {
+                try {
+                    const stat = fs.lstatSync(registeredScript);
+                    if (stat.isSymbolicLink() || !stat.isFile()) {
+                        registrationError = 'Forge adapter runtime must be a regular non-symlink file';
+                    }
+                } catch {
+                    registrationError = `Forge adapter runtime does not identify a readable file: ${registeredScript}`;
+                }
+            }
+        }
+        const registered = registrationError === null;
+        const requested = requestedCanonical === adapter.ref;
+        return {
+            ...adapter,
+            registered_script: registeredScript,
+            registration_error: registrationError,
+            requested,
+            authorized: requested && registered,
+        };
+    });
     const selected = requestedCanonical
         ? proofs.find((adapter) => adapter.ref === requestedCanonical && adapter.authorized) ?? null
         : null;
@@ -58,226 +155,11 @@ export function resolveForgeExecutionAdapter(args: ForgeExecutionArgs) {
             : proofs.map((adapter) => ({ ...adapter, authorized: false, reason: 'execution_adapter_ref is required for live execution' })),
     };
 }
-
-function commonAncestor(paths: string[]): string | null {
-    if (paths.length === 0) {
-        return null;
-    }
-    const splitPaths = paths.map((item) => path.resolve(item).split(path.sep));
-    const first = splitPaths[0];
-    const common: string[] = [];
-    for (let index = 0; index < first.length; index += 1) {
-        if (splitPaths.every((parts) => parts[index] === first[index])) {
-            common.push(first[index]);
-        } else {
-            break;
-        }
-    }
-    const joined = common.join(path.sep);
-    return joined || path.parse(paths[0]).root || null;
+export function resolveForgeExecutionAdapter(args: ForgeExecutionArgs, root = CODE_ROOT) {
+    return resolveForgeExecutionAdapterRef(args.execution_adapter_ref, root);
 }
-
-function targetBaseDirectory(root: string, target: string): { base: string; gitRoot: string | null } {
-    const absolute = path.isAbsolute(target) ? target : path.resolve(root, target);
-    try {
-        const stat = fs.existsSync(absolute) ? fs.statSync(absolute) : null;
-        const base = stat?.isFile() ? path.dirname(absolute) : absolute;
-        return { base, gitRoot: findNearestGitRoot(base) };
-    } catch {
-        const base = path.dirname(absolute);
-        return { base, gitRoot: findNearestGitRoot(base) };
-    }
-}
-
-function inferForgeAdapterProjectRoot(args: ForgeExecutionArgs, root: string): string {
-    const targetPaths = args.target_paths ?? [];
-    const bases: string[] = [];
-    const gitRoots = new Set<string>();
-    for (const target of targetPaths) {
-        const { base, gitRoot } = targetBaseDirectory(root, target);
-        bases.push(base);
-        if (gitRoot && !isSharedTempGitRoot(gitRoot)) {
-            gitRoots.add(gitRoot);
-        }
-    }
-    if (gitRoots.size === 1) {
-        return [...gitRoots][0];
-    }
-    const commonBase = commonAncestor(bases);
-    if (commonBase) {
-        return commonBase;
-    }
-    for (const target of args.target_paths ?? []) {
-        const absolute = path.isAbsolute(target) ? target : path.resolve(root, target);
-        try {
-            const stat = fs.existsSync(absolute) ? fs.statSync(absolute) : null;
-            const gitRoot = findNearestGitRoot(stat?.isFile() ? path.dirname(absolute) : absolute);
-            if (gitRoot && !isSharedTempGitRoot(gitRoot)) {
-                return gitRoot;
-            }
-            if (stat?.isDirectory()) {
-                return absolute;
-            }
-            if (stat?.isFile()) {
-                return path.dirname(absolute);
-            }
-        } catch {
-            continue;
-        }
-    }
-    return root;
-}
-
-function findNearestGitRoot(start: string): string | null {
-    let current = path.resolve(start);
-    while (true) {
-        if (fs.existsSync(path.join(current, '.git'))) {
-            return current;
-        }
-        const parent = path.dirname(current);
-        if (parent === current) {
-            return null;
-        }
-        current = parent;
-    }
-}
-
-function isSharedTempGitRoot(candidate: string): boolean {
-    const tempRoots = [
-        process.env.TMPDIR,
-        process.env.TEMP,
-        process.env.TMP,
-        '/tmp',
-    ]
-        .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
-        .map((value) => path.resolve(value));
-    return tempRoots.includes(path.resolve(candidate));
-}
-
-function forgeExecutionPathSegment(value: string): string {
-    return value.replace(/[^A-Za-z0-9._-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 160) || 'forge-execution';
-}
-
-function forgeAdapterResponsePath(root: string, executionReceiptId: string): string {
-    const artifactRoot = process.env.CSTAR_FORGE_EXECUTION_ARTIFACT_ROOT?.trim()
-        || path.join(root, 'work', 'forge-executions');
-    return path.join(artifactRoot, forgeExecutionPathSegment(executionReceiptId), 'adapter-response.json');
-}
-
-function buildForgeAdapterIntent(
-    args: ForgeExecutionArgs,
-    decisionId: string,
-    executionReceiptId: string,
-    root: string,
-    adapterResponsePath: string,
-    selectedAdapter: Record<string, any>,
-): Record<string, unknown> {
-    const expectedPacket = args.callback_contract.expected_packet;
-    const workerAdapter = selectedAdapter.ref === 'cstar-forge-hermes-minimax-worker-adapter';
-    const outputContractLines = workerAdapter
-        ? [
-            'Worker input manifest rules:',
-            'Return the worker input manifest, not the final Forge execution packet.',
-            'Return JSON only with: status, summary, files, artifacts, validation, metrics, boundaries, callback_packet.',
-            'files must be an array of file objects. Each file object must have path and content strings.',
-            'content must be the complete file contents to write. Use repository-relative paths under the sealed target roots.',
-            'Do not return files_changed. The worker creates files_changed after it writes and hashes the files.',
-        ]
-        : [
-            'Response-only execution packet rules:',
-            'Return one JSON object only. The top-level object MUST be the Forge execution packet, not the callback packet.',
-            'Do not return packet_name, root_cause_summary, primary_recommendation, or other callback-style keys at top level.',
-            'The only required top-level keys are: status, summary, files_changed, artifacts, validation, metrics, boundaries, callback_packet.',
-            'Use callback_packet as either the requested packet name string or a bounded callback object with callback_id.',
-            'Use files_changed only for response-only evidence. This adapter cannot write implementation files.',
-            'Exact response-only JSON template:',
-            '{',
-            '  "status": "pass",',
-            '  "summary": "One concise paragraph with the decision and root cause.",',
-            '  "files_changed": [],',
-            '  "artifacts": { "report": "Concise report content or artifact description." },',
-            '  "validation": { "local_artifact_review": "pass" },',
-            '  "metrics": { "contract_compliance": "pass" },',
-            '  "boundaries": { "codex_worker_fallback_allowed": false, "live_source_collection": false },',
-            `  "callback_packet": "${expectedPacket}"`,
-            '}',
-        ];
-    const intentLines = [
-        'You are the approved Corvus Forge Hermes MiniMax adapter for a CStar-controlled Forge execution.',
-        workerAdapter
-            ? 'You are using the file-editing Forge worker. Produce a strict file manifest for the worker to apply.'
-            : 'Execute only the bounded assignment below and return a compact JSON execution packet.',
-        `Adapter: ${selectedAdapter.ref} (${selectedAdapter.plain_english_label ?? selectedAdapter.name})`,
-        '',
-        `Decision id: ${decisionId}`,
-        `Bead id: ${args.bead_id ?? args.forge_request_bead_id ?? 'none'}`,
-        `Forge request receipt: ${args.forge_request_receipt_id}`,
-        `Forge execute receipt: ${executionReceiptId}`,
-        `Owner PMT thread: ${args.owner_pmt_thread_id}`,
-        `Source callback thread: ${args.source_callback_thread_id}`,
-        `Objective: ${args.objective}`,
-        args.prompt ? `Prompt: ${args.prompt}` : '',
-        `Scope: ${args.scope}`,
-        `Authority lane: ${args.authority_lane}`,
-        '',
-        'Required metrics:',
-        ...args.required_metrics.map((metric) => `- ${metric.name}: ${metric.threshold}${metric.unit ? ` ${metric.unit}` : ''}${metric.acceptance_rule ? ` (${metric.acceptance_rule})` : ''}`),
-        '',
-        'Artifact expectations:',
-        ...normalizeActionList(args.artifact_expectations).map((item) => `- ${item}`),
-        '',
-        'Requested actions:',
-        ...normalizeActionList(args.requested_actions).map((item) => `- ${item}`),
-        '',
-        'Prohibited actions:',
-        ...normalizeActionList(args.prohibited_actions).map((item) => `- ${item}`),
-        '',
-        `Callback packet: ${expectedPacket}`,
-        'Do not use Codex-worker fallback. Do not collect live sources unless explicitly authorized. Do not mutate secrets/config. Do not write Hall/SQLite directly.',
-        `Your JSON response will be persisted by the adapter at: ${adapterResponsePath}`,
-        '',
-        ...outputContractLines,
-    ].filter(Boolean);
-
-    return {
-        intent: intentLines.join('\n'),
-        project_root: inferForgeAdapterProjectRoot(args, root),
-        target_paths: args.target_paths ?? [],
-        payload: {
-            hermes_profile: 'cstar-hub',
-            model: 'MiniMax-M3',
-            expected_output: 'json',
-            max_chars: 8000,
-            session_name: null,
-            write_to: adapterResponsePath,
-            append_with_separator: null,
-            tags: [
-                'cstar-forge-execute',
-                args.bead_id ?? args.forge_request_bead_id ?? 'no-bead',
-                decisionId,
-            ],
-            timeout_seconds: Math.max(300, Math.min(1800, (args.retry_policy?.budget ?? args.spend_policy.max_retries ?? 1) * 300 + 300)),
-        },
-    };
-}
-
-function parseAdapterEnvelope(stdout: string): Record<string, any> | null {
-    try {
-        const parsed = JSON.parse(stdout);
-        return parsed && typeof parsed === 'object' ? parsed as Record<string, any> : null;
-    } catch {
-        return null;
-    }
-}
-
-export function forgeExecutionRequiresImplementationWrites(args: ForgeExecutionArgs): boolean {
-    const text = [
-        args.objective,
-        args.prompt ?? '',
-        ...normalizeActionList(args.requested_actions),
-        ...normalizeActionList(args.artifact_expectations),
-    ].join('\n').toLowerCase();
-    return /\b(add|build|change|create|delete|develop|edit|fix|generate|implement|install|modify|mutate|package|patch|refactor|remove|repair|tarball|update|write)\b/.test(text);
+export function forgeExecutionRequiresImplementationWrites(args: DispatchRequestArgs): boolean {
+    return dispatchActionRequiresProjectFiles(resolveDispatchActionAuthority(args));
 }
 
 export async function invokeForgeHermesMinimaxAdapter(
@@ -286,92 +168,150 @@ export async function invokeForgeHermesMinimaxAdapter(
     executionReceiptId: string,
     root: string,
     selectedAdapter: Record<string, any>,
+    expectedRuntimeProof?: ForgeAdapterRuntimeProof,
+    preparedInvocation?: PreparedForgeAdapterInvocation,
 ) {
-    const os = await import('node:os');
     const fsp = await import('node:fs/promises');
-    const cp = await import('node:child_process');
-    const crypto = await import('node:crypto');
-    const tmpDir = await fsp.mkdtemp(path.join(os.tmpdir(), 'cstar-forge-execute-'));
-    const intentPath = path.join(tmpDir, 'forge-adapter-intent.json');
-    const responsePath = forgeAdapterResponsePath(root, executionReceiptId);
-    const responseDir = path.dirname(responsePath);
-    const executionTracePath = path.join(responseDir, 'adapter-execution-envelope.json');
-    const writeExecutionTrace = async (trace: Record<string, unknown>) => {
-        await fsp.mkdir(responseDir, { recursive: true });
-        await fsp.writeFile(executionTracePath, `${JSON.stringify(trace, null, 2)}\n`);
-    };
-    const intent = buildForgeAdapterIntent(args, decisionId, executionReceiptId, root, responsePath, selectedAdapter);
-    const projectRoot = typeof intent.project_root === 'string' ? intent.project_root : inferForgeAdapterProjectRoot(args, root);
-    await fsp.writeFile(intentPath, JSON.stringify(intent, null, 2));
-
-    const adapterScriptOverride = selectedAdapter.ref === 'cstar-forge-hermes-minimax-worker-adapter'
-        ? process.env.CSTAR_FORGE_HERMES_MINIMAX_WORKER_ADAPTER_SCRIPT?.trim()
-        : process.env.CSTAR_FORGE_HERMES_MINIMAX_ADAPTER_SCRIPT?.trim();
-    const scriptPath = adapterScriptOverride || path.join(root, selectedAdapter.default_script);
+    const prepared = preparedInvocation ?? await prepareForgeHermesMinimaxAdapterInvocation(
+        args,
+        decisionId,
+        executionReceiptId,
+        root,
+        selectedAdapter,
+        expectedRuntimeProof,
+    );
+    const {
+        intent,
+        intentPath,
+        workerResponsePath,
+        responsePath,
+        responseDir,
+        executionTracePath,
+        adapterScriptPath,
+        runtimeDirectory,
+        privateIoDirectory,
+        runtimeProof,
+        hermesPreflight,
+        environment,
+        temporaryDirectory,
+        workspaceProjection,
+    } = prepared;
+    const invocationRuntimeProof = sealForgeAdapterRuntime(selectedAdapter);
+    if (!runtimeProofEquals(invocationRuntimeProof, runtimeProof)
+        || (expectedRuntimeProof && !runtimeProofEquals(invocationRuntimeProof, expectedRuntimeProof))) {
+        throw new Error('forge_adapter_runtime_drift_before_invocation');
+    }
+    readVerifiedRuntimeFile(invocationRuntimeProof.python_interpreter);
+    if (invocationRuntimeProof.node_interpreter) readVerifiedRuntimeFile(invocationRuntimeProof.node_interpreter);
+    readVerifiedRuntimeFile(invocationRuntimeProof.process_containment);
+    const scriptPath = invocationRuntimeProof.path;
     const timeoutSec = Number((intent.payload as Record<string, any>).timeout_seconds ?? 600);
-    const env = {
-        ...process.env,
-        CSTAR_FORGE_EXECUTE_RECEIPT_ID: executionReceiptId,
-        CSTAR_FORGE_REQUEST_RECEIPT_ID: args.forge_request_receipt_id,
-        CSTAR_FORGE_EXECUTE_DECISION_ID: decisionId,
-        CSTAR_FORGE_EXECUTE_ADAPTER_REF: selectedAdapter.ref,
-        HERMES_AUTOBOT_DELEGATED: '',
-        NODE_OPTIONS: '--max-old-space-size=2048 --expose-gc',
+    const writablePaths = [privateIoDirectory, workspaceProjection.workspace_root];
+    const containedSpawn = {
+        runtimeProof: invocationRuntimeProof,
+        command: invocationRuntimeProof.python_interpreter.path,
+        commandArgs: isolatedPythonArguments(adapterScriptPath, ['--intent-file', intentPath]),
+        cwd: workspaceProjection.workspace_root,
+        environment,
+        readOnlyPaths: [
+            ...forgeRuntimeReadOnlyPaths(invocationRuntimeProof, environment),
+            runtimeDirectory,
+            workspaceProjection.control_root,
+            intentPath,
+        ],
+        writablePaths,
+        timeoutMs: (timeoutSec + 35) * 1000,
     };
-    await writeExecutionTrace({
-        schema: 'cstar.forge_adapter_execution_trace.v1',
+    validateForgeContainmentSpec(containedSpawn);
+    assertForgeWorkspaceProjectionCurrent(workspaceProjection);
+    prepared.writeExecutionTrace({
+        schema: 'cstar.forge_adapter_execution_trace.v2',
         status: 'started',
         decision_id: decisionId,
         execution_receipt_id: executionReceiptId,
         forge_request_receipt_id: args.forge_request_receipt_id,
         adapter_ref: selectedAdapter.ref,
         adapter_script: scriptPath,
+        adapter_runtime_proof: invocationRuntimeProof,
+        hermes_preflight: hermesPreflight,
         response_path: responsePath,
         response_artifact_exists: false,
+        execution_owner: buildForgeExecutionOwnerProof(),
         live_spend: false,
         live_source_collection: false,
     });
 
-    const result = cp.spawnSync('python3', [scriptPath, '--intent-file', intentPath], {
-        cwd: root,
-        encoding: 'utf-8',
-        timeout: (timeoutSec + 30) * 1000,
-        env,
-    });
-
-    try { await fsp.rm(tmpDir, { recursive: true, force: true }); } catch { /* best-effort */ }
+    assertForgeWorkspaceProjectionCurrent(workspaceProjection);
+    prepared.spendMayHaveStarted = true;
+    const result = spawnContainedForgeProcess(containedSpawn);
 
     const envelope = parseAdapterEnvelope(result.stdout || '');
-    let adapterStatus = envelope?.status ?? (result.error ? 'spawn_error' : result.status === 0 ? 'unknown' : 'nonzero_exit');
-    let responseArtifact: Record<string, unknown> | null = null;
+    const syntheticRoleEvidenceBypass = Boolean(process.env.NODE_TEST_CONTEXT)
+        && process.env.CSTAR_FORGE_TEST_MODE === '1'
+        && Boolean(environment.CSTAR_FORGE_WORKER_MODEL_RESPONSE
+            || environment.CSTAR_FORGE_HERMES_DELEGATE_SCRIPT);
+    const spawnErrorCode = result.error
+        ? (result.error as NodeJS.ErrnoException).code ?? null : null;
+    const projectedFailureEvidence = projectForgeFailureEvidence(envelope, spawnErrorCode);
+    const syntheticNoSpend = Boolean(process.env.NODE_TEST_CONTEXT)
+        && process.env.CSTAR_FORGE_TEST_MODE === '1'
+        && envelope?.status === 'ok' && envelope.live_spend === false
+        && envelope.live_spend_unknown !== true;
+    const failureEvidence = syntheticNoSpend
+        ? { ...projectedFailureEvidence, live_spend: false,
+            live_spend_unknown: false, known_spend_observed: false }
+        : projectedFailureEvidence;
+    const projectedEnvelope = projectAdapterEnvelope(envelope, failureEvidence);
+    const reportedAdapterStatus = boundedAdapterStatus(envelope?.status);
+    let adapterStatus: string = reportedAdapterStatus
+        ?? (result.error ? 'spawn_error' : result.status === 0 ? 'unknown' : 'nonzero_exit');
     let responseContract: Record<string, unknown> | null = null;
-    let artifactError: string | null = null;
-    const wroteTo = typeof envelope?.wrote_to === 'string' && envelope.wrote_to.trim()
-        ? envelope.wrote_to.trim()
+    let privateResponse: PrivateForgeResponseProof | null = null;
+    let sanitizedRejection: Buffer | null = null;
+    let privateResponseQuarantined = false;
+    let privateResponseCleanupFailed = false;
+    let artifactError: string | null = envelope && !reportedAdapterStatus
+        ? 'adapter_status_invalid'
+        : null;
+    if (adapterStatus === 'ok' && selectedAdapter.ref === 'cstar-forge-hermes-minimax-worker-adapter'
+        && !syntheticRoleEvidenceBypass && projectedEnvelope?.success_evidence_valid !== true) {
+        adapterStatus = 'degraded'; artifactError = 'adapter_failure_evidence_invalid';
+    }
+    const wroteTo = typeof envelope?.wrote_to === 'string' && envelope.wrote_to
+        ? envelope.wrote_to
         : null;
     if (wroteTo) {
-        try {
-            const data = await fsp.readFile(wroteTo);
+        if (wroteTo !== workerResponsePath) {
+            artifactError = 'adapter_response_path_mismatch';
+        } else try {
+            assertSafePrivateArtifact(workerResponsePath);
+            const safeResponse = readBoundedFileInside(
+                privateIoDirectory,
+                workerResponsePath,
+                16 * 1024 * 1024,
+            );
+            const data = safeResponse.content;
+            privateResponse = privateForgeResponseProof(data);
             const contract = validateForgeAdapterResponseContract(
                 data.toString('utf-8'),
-                [projectRoot, root],
+                [workspaceProjection.workspace_root],
                 args.callback_contract.expected_packet,
             );
-            responseArtifact = {
-                path: wroteTo,
-                bytes: data.byteLength,
-                sha256: crypto.createHash('sha256').update(data).digest('hex'),
-            };
             if (contract.ok) {
                 responseContract = contract.summary;
             } else {
                 artifactError = contract.error;
+                sanitizedRejection = buildSanitizedForgeResponseRejection(
+                    contract.error,
+                    args.callback_contract.expected_packet,
+                    privateResponse,
+                );
             }
-        } catch (err) {
-            artifactError = err instanceof Error ? err.message : String(err);
+        } catch {
+            artifactError = 'adapter_response_artifact_invalid';
         }
     }
-    if (adapterStatus === 'ok' && !responseArtifact) {
+    if (adapterStatus === 'ok' && !privateResponse) {
         adapterStatus = 'degraded';
         artifactError = artifactError ?? 'adapter_response_artifact_missing';
     }
@@ -379,57 +319,157 @@ export async function invokeForgeHermesMinimaxAdapter(
         adapterStatus = 'degraded';
         artifactError = artifactError ?? 'adapter_response_contract_invalid';
     }
-    const liveSpend = typeof envelope?.live_spend === 'boolean'
-        ? envelope.live_spend
-        : adapterStatus === 'ok';
-    await writeExecutionTrace({
-        schema: 'cstar.forge_adapter_execution_trace.v1',
+    const liveSourceKnown = typeof envelope?.live_source_collection === 'boolean';
+    const liveSpendUnknown = failureEvidence.live_spend_unknown;
+    const liveSpend = failureEvidence.live_spend;
+    if (adapterStatus === 'ok' && liveSpendUnknown) {
+        adapterStatus = 'degraded';
+        artifactError = artifactError ?? 'adapter_live_spend_unreported';
+    }
+    if (adapterStatus === 'ok' && !liveSourceKnown) {
+        adapterStatus = 'degraded';
+        artifactError = artifactError ?? 'adapter_live_source_unreported';
+    }
+    if (privateResponse) {
+        try {
+            removePrivateFile(privateIoDirectory, workerResponsePath);
+            if (fs.lstatSync(workerResponsePath, { throwIfNoEntry: false })) {
+                throw new Error('adapter_private_response_cleanup_failed');
+            }
+        } catch {
+            adapterStatus = 'degraded';
+            artifactError = 'adapter_private_response_cleanup_failed';
+            privateResponse = null;
+            responseContract = null;
+            sanitizedRejection = null;
+        }
+    }
+    if (!privateResponse && fs.lstatSync(workerResponsePath, { throwIfNoEntry: false })) {
+        try {
+            privateResponseQuarantined = quarantinePrivateEntryNoFollow(
+                privateIoDirectory,
+                workerResponsePath,
+            ) !== null;
+        } catch {
+            adapterStatus = 'degraded';
+            artifactError = 'adapter_private_response_quarantine_failed';
+            privateResponseCleanupFailed = true;
+        }
+    }
+    const publication = new ForgeParentPublication(
+        responseDir,
+        responsePath,
+        executionTracePath,
+        prepared.writeExecutionTrace.bind(prepared),
+    );
+    const degradedEvidence = adapterStatus === 'ok'
+        ? null
+        : sanitizedRejection ?? (privateResponse && responseContract
+            ? buildUnverifiedForgeResponseEvidence(
+                artifactError,
+                args.callback_contract.expected_packet,
+                privateResponse,
+                responseContract,
+            ) : null);
+    let workspaceCommit: ForgeWorkspaceCommitReceipt | null = null;
+    const terminalTrace = (commit: ForgeWorkspaceCommitReceipt | null) => ({
+        schema: 'cstar.forge_adapter_execution_trace.v2',
         status: adapterStatus,
         decision_id: decisionId,
         execution_receipt_id: executionReceiptId,
         forge_request_receipt_id: args.forge_request_receipt_id,
         adapter_ref: selectedAdapter.ref,
         adapter_script: scriptPath,
+        adapter_runtime_proof: invocationRuntimeProof,
+        hermes_preflight: hermesPreflight,
         exit_status: result.status,
         signal: result.signal,
-        spawn_error: result.error instanceof Error ? result.error.message : result.error ? String(result.error) : null,
+        spawn_error: result.error ? 'forge_adapter_spawn_failed' : null,
         response_path: responsePath,
-        response_artifact_exists: responseArtifact !== null,
-        response_artifact: responseArtifact,
+        response_artifact_exists: publication.responseArtifact !== null,
+        response_artifact: publication.responseArtifact,
         artifact_error: artifactError,
-        envelope: envelope
-            ? {
-                status: envelope.status ?? null,
-                intent_id: envelope.intent_id ?? null,
-                duration_ms: envelope.duration_ms ?? null,
-                response_chars: envelope.response_chars ?? null,
-                est_prompt_tokens: envelope.est_prompt_tokens ?? null,
-                est_response_tokens: envelope.est_response_tokens ?? null,
-                model: envelope.model ?? null,
-                hermes_profile: envelope.hermes_profile ?? null,
-                wrote_to: envelope.wrote_to ?? null,
-                degraded_reason: envelope.degraded_reason ?? null,
-                live_spend: envelope.live_spend ?? null,
-                live_source_collection: envelope.live_source_collection ?? null,
-            }
-            : null,
+        private_response_quarantined: privateResponseQuarantined,
+        envelope: projectedEnvelope,
         stdout_chars: (result.stdout || '').length,
         stderr_chars: (result.stderr || '').length,
         live_spend: liveSpend,
+        live_spend_unknown: liveSpendUnknown,
+        known_spend_observed: failureEvidence.known_spend_observed,
         live_source_collection: envelope?.live_source_collection === true,
+        workspace_commit: commit,
     });
-    let executionTraceArtifact: Record<string, unknown> | null = null;
-    try {
-        const traceData = await fsp.readFile(executionTracePath);
-        executionTraceArtifact = {
-            path: executionTracePath,
-            bytes: traceData.byteLength,
-            sha256: crypto.createHash('sha256').update(traceData).digest('hex'),
-        };
-    } catch {
-        executionTraceArtifact = null;
+    if (adapterStatus === 'ok' && envelope?.live_source_collection !== true && !liveSpendUnknown) {
+        try {
+            workspaceCommit = commitForgeWorkspaceProjection(
+                workspaceProjection,
+                (receipt) => {
+                    if (!privateResponse || !responseContract) {
+                        throw new Error('forge_workspace_delivery_receipt_inputs_missing');
+                    }
+                    const delivery = buildCanonicalForgeDeliveryReceipt(
+                        args.callback_contract.expected_packet,
+                        privateResponse,
+                        responseContract,
+                        receipt,
+                    );
+                    publication.publishResponse(delivery);
+                    try {
+                        publication.publishTerminalTrace(terminalTrace(receipt));
+                    } catch (error) {
+                        publication.removeResponse();
+                        throw error;
+                    }
+                },
+            );
+        } catch (error) {
+            let rollbackError: unknown = null;
+            try { publication.removeResponse(); } catch (failure) { rollbackError = failure; }
+            adapterStatus = 'degraded';
+            const reason = error instanceof Error ? error.message : '';
+            if (rollbackError) {
+                artifactError = 'forge_workspace_response_rollback_failed';
+            } else {
+                artifactError = /^forge_(?:workspace|artifact|adapter)_[a-z0-9_]+$/.test(reason)
+                    ? reason : 'forge_workspace_commit_failed';
+            }
+            publication.publishTerminalTrace(terminalTrace(null));
+            if (rollbackError) throw rollbackError;
+        }
+    } else {
+        try {
+            publication.publishDegraded(degradedEvidence, () => terminalTrace(null));
+        } catch (error) {
+            const reason = error instanceof Error ? error.message : '';
+            if (reason === 'forge_workspace_response_rollback_failed'
+            ) throw error;
+            if (reason === 'forge_artifact_publication_rollback_failed') {
+                publication.removeResponse();
+            }
+            if (!publication.executionTraceArtifact) {
+                artifactError = 'adapter_response_evidence_publication_failed';
+                publication.publishDegraded(null, () => terminalTrace(null));
+            } else throw error;
+        }
     }
-    return {
+    const executionTraceArtifact = publication.executionTraceArtifact;
+    if (!executionTraceArtifact) throw new Error('forge_adapter_terminal_trace_unavailable');
+    if (privateResponseCleanupFailed) {
+        throw new Error('adapter_private_response_quarantine_failed');
+    }
+    const returnedEnvelope: ReturnedForgeAdapterEnvelope | null = projectedEnvelope
+        ? {
+            ...projectedEnvelope,
+            // This path is reconstructed from CStar's verified artifact,
+            // never copied from the worker-controlled envelope.
+            wrote_to: publication.responseArtifact ? responsePath : null,
+            response_artifact: publication.responseArtifact,
+            response_contract: responseContract,
+            execution_trace_artifact: executionTraceArtifact,
+            hermes_preflight: hermesPreflight as unknown as Record<string, unknown> | null,
+        }
+        : null;
+    const returned = {
         adapter_ref: selectedAdapter.ref,
         adapter_script: scriptPath,
         invoked: true,
@@ -437,30 +477,18 @@ export async function invokeForgeHermesMinimaxAdapter(
         signal: result.signal,
         status: adapterStatus,
         live_spend: liveSpend,
+        live_spend_unknown: liveSpendUnknown,
+        known_spend_observed: failureEvidence.known_spend_observed,
         live_source_collection: envelope?.live_source_collection === true,
         execution_trace_artifact: executionTraceArtifact,
-        envelope: envelope
-            ? {
-                status: envelope.status ?? null,
-                intent_id: envelope.intent_id ?? null,
-                duration_ms: envelope.duration_ms ?? null,
-                response_chars: envelope.response_chars ?? null,
-                est_prompt_tokens: envelope.est_prompt_tokens ?? null,
-                est_response_tokens: envelope.est_response_tokens ?? null,
-                model: envelope.model ?? null,
-                hermes_profile: envelope.hermes_profile ?? null,
-                wrote_to: envelope.wrote_to ?? null,
-                response_artifact: responseArtifact,
-                response_contract: responseContract,
-                execution_trace_artifact: executionTraceArtifact,
-                ledger_entry: envelope.ledger_entry ?? null,
-                degraded_reason: envelope.degraded_reason ?? null,
-                live_spend: envelope.live_spend ?? null,
-                live_source_collection: envelope.live_source_collection ?? null,
-            }
-            : null,
-        error: result.error ? result.error.message : artifactError,
-        stderr_tail: (result.stderr || '').slice(-500),
-        stdout_tail: envelope ? null : (result.stdout || '').slice(-500),
+        hermes_preflight: hermesPreflight,
+        hermes_runtime_content_sha256: hermesPreflight?.runtime_content_sha256 ?? null,
+        envelope: returnedEnvelope,
+        error: result.error ? 'forge_adapter_spawn_failed' : artifactError,
+        stderr_tail: null,
+        stdout_tail: null,
+        workspace_commit: workspaceCommit,
     };
+    try { await fsp.rm(temporaryDirectory, { recursive: true, force: true }); } catch { /* best-effort */ }
+    return returned;
 }

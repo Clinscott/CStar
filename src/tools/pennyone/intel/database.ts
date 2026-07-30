@@ -1,5 +1,3 @@
-import { join } from 'node:path';
-import fs from 'node:fs';
 import { 
     upsertHallBead, 
     backfillHallBeadMetadata,
@@ -106,34 +104,112 @@ import {
 import { ensureHallSchema } from './schema.js';
 import Database from 'better-sqlite3';
 import { registry } from '../pathRegistry.js';
+import {
+    assertStableHallStoreIdentity,
+    resolveHallRootPath,
+    resolveHallStorePath,
+    type HallStorePath,
+} from './hall_store_path.js';
+
+const RETIRED_HALL_DB_ALIAS_ERROR =
+    'legacy_hall_writable_facade_retired_use_explicit_kernel_controller';
 
 export class HallDatabase {
-    private dbs: Map<string, Database.Database> = new Map();
+    public static readonly MAX_CACHED_ROOTS_PER_MODE = 8;
+    private readonlyDbs: Map<string, Database.Database> = new Map();
+    private writableDbs: Map<string, Database.Database> = new Map();
+    private readonlyStores: Map<string, HallStorePath> = new Map();
+    private writableStores: Map<string, HallStorePath> = new Map();
 
-    public getDb(rootPath: string = registry.getRoot()): Database.Database {
-        const normalizedRoot = rootPath.replace(/\\/g, '/').replace(/\/+$/, '');
-        if (this.dbs.has(normalizedRoot)) {
-            return this.dbs.get(normalizedRoot)!;
+    private requireCacheCapacity(
+        cache: Map<string, Database.Database>,
+        root: string,
+    ): void {
+        if (!cache.has(root) && cache.size >= HallDatabase.MAX_CACHED_ROOTS_PER_MODE) {
+            throw new Error('hall_database_root_cache_limit_exceeded');
         }
+    }
 
-        const statsDir = join(rootPath, '.stats');
-        if (!fs.existsSync(statsDir)) {
-            fs.mkdirSync(statsDir, { recursive: true });
+    /**
+     * Open an existing Hall store without creating directories, files, tables,
+     * indexes, views, seed rows, or migration state.
+     */
+    public getReadDb(rootPath: string = registry.getRoot()): Database.Database {
+        const store = resolveHallStorePath(rootPath, false);
+        if (!store.existingIdentity) throw new Error('hall_store_missing');
+        if (this.readonlyDbs.has(store.root)) {
+            assertStableHallStoreIdentity(this.readonlyStores.get(store.root)!);
+            return this.readonlyDbs.get(store.root)!;
         }
-        const dbPath = join(statsDir, 'pennyone.db');
-        const db = new Database(dbPath);
-        this.dbs.set(normalizedRoot, db);
-        
-        ensureHallSchema(db, rootPath);
-        
+        this.requireCacheCapacity(this.readonlyDbs, store.root);
+
+        const db = new Database(store.dbPath, { readonly: true, fileMustExist: true });
+        try {
+            assertStableHallStoreIdentity(store);
+            db.pragma('query_only = ON');
+        } catch (error) {
+            db.close();
+            throw error;
+        }
+        this.readonlyDbs.set(store.root, db);
+        this.readonlyStores.set(store.root, store);
         return db;
     }
 
+    public tryGetReadDb(rootPath: string = registry.getRoot()): Database.Database | null {
+        try {
+            return this.getReadDb(rootPath);
+        } catch (error) {
+            if (error instanceof Error && error.message === 'hall_store_missing') {
+                return null;
+            }
+            throw error;
+        }
+    }
+
+    /**
+     * Explicit persistent mutation/bootstrap boundary. Callers must already be
+     * on an authorized mutation path before requesting this handle.
+     */
+    public getWritableDb(rootPath: string = registry.getRoot()): Database.Database {
+        const root = resolveHallRootPath(rootPath);
+        if (this.writableDbs.has(root)) {
+            assertStableHallStoreIdentity(this.writableStores.get(root)!);
+            return this.writableDbs.get(root)!;
+        }
+        this.requireCacheCapacity(this.writableDbs, root);
+        const store = resolveHallStorePath(root, true);
+
+        const db = new Database(store.dbPath);
+        try {
+            assertStableHallStoreIdentity(store);
+            ensureHallSchema(db, store.root);
+        } catch (error) {
+            db.close();
+            throw error;
+        }
+        this.writableDbs.set(store.root, db);
+        this.writableStores.set(store.root, store);
+        return db;
+    }
+
+    /** Retired ambiguous writable alias. */
+    public getDb(rootPath: string = registry.getRoot()): never {
+        void rootPath;
+        throw new Error(RETIRED_HALL_DB_ALIAS_ERROR);
+    }
+
     public close(): void {
-        for (const db of this.dbs.values()) {
+        for (const db of this.readonlyDbs.values()) {
             db.close();
         }
-        this.dbs.clear();
+        for (const db of this.writableDbs.values()) {
+            db.close();
+        }
+        this.readonlyDbs.clear();
+        this.writableDbs.clear();
+        this.readonlyStores.clear();
+        this.writableStores.clear();
     }
 
     // Facade Methods
@@ -226,11 +302,25 @@ export class HallDatabase {
 export const database = new HallDatabase();
 
 /**
- * [Ω] STANDALONE DB ACCESS (Legacy/Facade)
- * Returns the global database instance for a given root path.
+ * [Ω] STANDALONE WRITABLE DB ACCESS (Legacy/Facade)
+ * Compatibility-only mutation/bootstrap alias. New code must choose
+ * getReadDb or getWritableDb explicitly.
  */
-export function getDb(rootPath: string = registry.getRoot()): Database.Database {
-    return database.getDb(rootPath);
+export function getDb(rootPath: string = registry.getRoot()): never {
+    void rootPath;
+    throw new Error(RETIRED_HALL_DB_ALIAS_ERROR);
+}
+
+export function getReadDb(rootPath: string = registry.getRoot()): Database.Database {
+    return database.getReadDb(rootPath);
+}
+
+export function tryGetReadDb(rootPath: string = registry.getRoot()): Database.Database | null {
+    return database.tryGetReadDb(rootPath);
+}
+
+export function getWritableDb(rootPath: string = registry.getRoot()): Database.Database {
+    return database.getWritableDb(rootPath);
 }
 
 /**

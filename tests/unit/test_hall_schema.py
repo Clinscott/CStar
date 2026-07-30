@@ -13,6 +13,9 @@ from src.core.engine.hall_schema import (
     HallScanRecord,
     HallValidationRun,
     build_repo_id,
+    build_persona_projection_metadata,
+    is_persona_projection_self_consistent,
+    persona_projection_consistency_status,
 )
 
 
@@ -37,7 +40,34 @@ def test_hall_records_validate_required_fields():
         )
 
 
-def test_hall_schema_bootstraps_repository_projection(tmp_path):
+@pytest.mark.parametrize(
+    "source",
+    ["ingest_xo_doctrine_to_hall", "arbitrary-untrusted-source", "hall-authority"],
+)
+def test_persona_provenance_rejects_arbitrary_source_names(source):
+    assert not is_persona_projection_self_consistent(
+        {"source": source},
+        "O.D.I.N.",
+    )
+
+
+def test_persona_provenance_binds_explicit_projection_to_scalar():
+    metadata = build_persona_projection_metadata("A.L.F.R.E.D.")
+    assert is_persona_projection_self_consistent(metadata, "A.L.F.R.E.D.")
+    assert persona_projection_consistency_status(metadata, "A.L.F.R.E.D.") == "self_consistent_unverified"
+    assert not is_persona_projection_self_consistent(metadata, "O.D.I.N.")
+
+
+@pytest.mark.parametrize(
+    "invalid",
+    ["ODIN", "ALFRED", " O.D.I.N.", "A.L.F.R.E.D. ", "NOT-ODIN-ADMIN", "O.D.I.N.\x00CANARY"],
+)
+def test_persona_projection_rejects_noncanonical_scalars(invalid):
+    with pytest.raises(ValueError, match="persona_projection_canonical_value_required"):
+        build_persona_projection_metadata(invalid)
+
+
+def test_hall_schema_bootstrap_ignores_all_legacy_state_even_with_positive_timestamp(tmp_path):
     agents_dir = tmp_path / ".agents"
     agents_dir.mkdir()
     (agents_dir / "sovereign_state.json").write_text(
@@ -62,10 +92,67 @@ def test_hall_schema_bootstraps_repository_projection(tmp_path):
     summary = hall.get_repository_summary()
     assert summary is not None
     assert summary["repo_id"] == build_repo_id(tmp_path)
-    assert summary["status"] == "AWAKE"
-    assert summary["active_persona"] == "ODIN"
-    assert summary["baseline_gungnir_score"] == 77
-    assert summary["intent_integrity"] == 93
+    assert summary["status"] == "DORMANT"
+    assert summary["active_persona"] == ""
+    assert summary["baseline_gungnir_score"] == 0
+    assert summary["intent_integrity"] == 0
+    record = hall.get_repository_record()
+    assert record is not None
+    assert record.metadata == {"source": "hall-schema-bootstrap"}
+
+
+def test_python_hall_rejects_symlink_root_and_stats_before_effects(tmp_path):
+    target_root = tmp_path / "target-root"
+    target_root.mkdir()
+    root_link = tmp_path / "root-link"
+    root_link.symlink_to(target_root, target_is_directory=True)
+    with pytest.raises(RuntimeError, match="^hall_root_symlink_forbidden$"):
+        HallOfRecords(root_link).connect()
+    assert list(target_root.iterdir()) == []
+
+    safe_root = tmp_path / "safe-root"
+    safe_root.mkdir()
+    stats_target = tmp_path / "stats-target"
+    stats_target.mkdir()
+    (safe_root / ".stats").symlink_to(stats_target, target_is_directory=True)
+    with pytest.raises(RuntimeError, match="^hall_stats_symlink_forbidden$"):
+        HallOfRecords(safe_root).connect()
+    assert list(stats_target.iterdir()) == []
+
+
+@pytest.mark.parametrize(
+    ("unsafe_type", "error"),
+    [
+        ("symlink", "hall_store_symlink_forbidden"),
+        ("hardlink", "hall_store_hardlink_forbidden"),
+        ("directory", "hall_store_not_regular_file"),
+    ],
+)
+def test_python_hall_rejects_unsafe_store_identity(tmp_path, unsafe_type, error):
+    root = tmp_path / unsafe_type
+    stats = root / ".stats"
+    stats.mkdir(parents=True)
+    db_path = stats / "pennyone.db"
+    source = tmp_path / f"{unsafe_type}-source.db"
+    source.write_text("synthetic-not-a-database", encoding="utf-8")
+    if unsafe_type == "symlink":
+        db_path.symlink_to(source)
+    elif unsafe_type == "hardlink":
+        db_path.hardlink_to(source)
+    else:
+        db_path.mkdir()
+
+    with pytest.raises(RuntimeError, match=f"^{error}$"):
+        HallOfRecords(root).connect()
+    assert source.read_text(encoding="utf-8") == "synthetic-not-a-database"
+
+
+def test_python_hall_creates_private_unique_store(tmp_path):
+    hall = HallOfRecords(tmp_path)
+    with hall.connect() as conn:
+        assert conn.execute("SELECT 1").fetchone()[0] == 1
+    assert hall.db_path.stat().st_mode & 0o777 == 0o600
+    assert hall.db_path.stat().st_nlink == 1
 
 
 def test_hall_schema_migrates_legacy_records(tmp_path):
@@ -167,6 +254,7 @@ def test_hall_schema_bootstrap_does_not_overwrite_existing_repository_authority(
             intent_integrity=96.0,
             metadata={
                 "source": "hall-authority",
+                **build_persona_projection_metadata("A.L.F.R.E.D."),
                 "sovereign_projection": {
                     "framework": {"last_awakening": 1700000001000, "mission_id": "MISSION-100"},
                 },
@@ -177,6 +265,7 @@ def test_hall_schema_bootstrap_does_not_overwrite_existing_repository_authority(
     )
 
     record = hall.bootstrap_repository()
+    hall.migrate_legacy_records()
     summary = hall.get_repository_summary()
 
     assert record.status == "AGENT_LOOP"
@@ -185,6 +274,30 @@ def test_hall_schema_bootstrap_does_not_overwrite_existing_repository_authority(
     assert summary is not None
     assert summary["status"] == "AGENT_LOOP"
     assert summary["active_persona"] == "A.L.F.R.E.D."
+
+
+def test_hall_schema_migration_clears_non_authoritative_existing_persona(tmp_path):
+    hall = HallOfRecords(tmp_path)
+    hall.ensure_schema()
+    hall.upsert_repository(
+        HallRepositoryRecord(
+            repo_id=build_repo_id(tmp_path),
+            root_path=str(tmp_path).replace("\\", "/"),
+            name=tmp_path.name,
+            status="AWAKE",
+            active_persona="O.D.I.N.",
+            metadata={"source": "migration"},
+            created_at=1700000000000,
+            updated_at=1700000001000,
+        )
+    )
+
+    hall.migrate_legacy_records()
+
+    record = hall.get_repository_record()
+    assert record is not None
+    assert record.active_persona == ""
+    assert record.metadata["source"] == "migration"
 
 
 def test_hall_schema_connect_applies_sqlite_hardening_pragmas(tmp_path):

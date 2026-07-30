@@ -39,6 +39,8 @@ ANNEXATION_PLAN.qmd
 
 # Node.js
 node_modules/
+/node_modules
+/.cstar/verification/receipts/
 dist/
 .stats/signet.url
 .npmrc
@@ -53,6 +55,9 @@ gha-creds-*.json
 .lore/
 
 # Runtime artifacts and local state
+/.agents/cachebro.json
+/.agents/daemon.key
+/.agents/daemon.pid
 .agents/.agents/
 .agents/chroma_db/
 .agents/exchange/

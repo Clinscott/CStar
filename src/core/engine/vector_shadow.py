@@ -19,5 +19,5 @@ class VectorShadow:
         return results
 
     def build_index(self) -> None:
-        """Mock method for index building (managed by MemoryDB/Chroma)."""
+        """Detached compatibility no-op; no persistent vector index is built."""
         pass
