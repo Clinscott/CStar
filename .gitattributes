@@ -1,3 +1,4 @@
+.gitattributes text eol=lf
 gemini-extension.json text eol=lf
 GEMINI.md text eol=lf
 plugins/corvus-star/.codex-plugin/plugin.json text eol=lf

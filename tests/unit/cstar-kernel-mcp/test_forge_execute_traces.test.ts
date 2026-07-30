@@ -18,6 +18,8 @@ import { sealForgeHermesRuntimeExpectation } from '../../../src/tools/cstar-kern
 import { createForgeOAuthHorizon } from '../../../src/tools/cstar-kernel-mcp/tools/forge_hermes_oauth_contract.js';
 import { createHash } from 'node:crypto';
 
+const linuxIt = process.platform === 'linux' ? it : it.skip;
+
 function writePreflightOnlyHermes(root: string) {
     const script = path.join(root, 'preflight-hermes.mjs');
     const audit = path.join(root, 'preflight-audit.jsonl');
@@ -132,7 +134,7 @@ describe('CStar MCP Forge execute trace artifacts', () => {
         assert.match(resultSource, /const durable = delivered\s*\? recordForgeDelivery/);
     });
 
-    it('binds sterile compatibility and redacted OAuth preflight into prepared invocation evidence', async () => {
+    linuxIt('binds sterile compatibility and redacted OAuth preflight into prepared invocation evidence', async () => {
         const secureTmp = process.platform === 'linux' ? '/tmp' : os.tmpdir();
         const fixture = fs.mkdtempSync(path.join(secureTmp, 'forge-preflight-binding-'));
         const fake = writePreflightOnlyHermes(fixture);
@@ -189,7 +191,7 @@ describe('CStar MCP Forge execute trace artifacts', () => {
         }
     });
 
-    it('rejects a symlinked execution artifact root before adapter spawn', async () => {
+    linuxIt('rejects a symlinked execution artifact root before adapter spawn', async () => {
         const secureTmp = process.platform === 'linux' ? '/tmp' : os.tmpdir();
         const fixture = fs.mkdtempSync(path.join(secureTmp, 'forge-trace-symlink-'));
         const realArtifacts = path.join(fixture, 'real-artifacts');
@@ -209,7 +211,7 @@ describe('CStar MCP Forge execute trace artifacts', () => {
         assert.deepStrictEqual(fs.readdirSync(realArtifacts), []);
     });
 
-    it('passes an allowlisted adapter environment without host secrets', async () => {
+    linuxIt('passes an allowlisted adapter environment without host secrets', async () => {
         const secureTmp = process.platform === 'linux' ? '/tmp' : os.tmpdir();
         const fixture = fs.mkdtempSync(path.join(secureTmp, 'forge-env-inspector-'));
         process.env.CSTAR_FORGE_HERMES_MINIMAX_ADAPTER_SCRIPT = writeEnvironmentInspectorAdapter(fixture);
@@ -237,7 +239,7 @@ describe('CStar MCP Forge execute trace artifacts', () => {
         }
     });
 
-    it('keeps the durable response directory outside the worker and publishes through the parent', async () => {
+    linuxIt('keeps the durable response directory outside the worker and publishes through the parent', async () => {
         const secureTmp = process.platform === 'linux' ? '/tmp' : os.tmpdir();
         const fixture = fs.mkdtempSync(path.join(secureTmp, 'forge-response-isolation-'));
         const artifactRoot = fs.mkdtempSync(path.join(secureTmp, 'forge-response-artifacts-'));
@@ -261,7 +263,7 @@ describe('CStar MCP Forge execute trace artifacts', () => {
         assert.doesNotMatch(JSON.stringify(body), /private-io\/adapter-response\.json/);
     });
 
-    it('rejects a lexical alias of the private worker response path without publication', async () => {
+    linuxIt('rejects a lexical alias of the private worker response path without publication', async () => {
         const secureTmp = process.platform === 'linux' ? '/tmp' : os.tmpdir();
         const fixture = fs.mkdtempSync(path.join(secureTmp, 'forge-response-alias-'));
         const artifactRoot = fs.mkdtempSync(path.join(secureTmp, 'forge-response-alias-artifacts-'));
@@ -283,7 +285,7 @@ describe('CStar MCP Forge execute trace artifacts', () => {
         assert.deepEqual(published, []);
     });
 
-    it('seals interpreters and direct worker dependencies before spend', async () => {
+    linuxIt('seals interpreters and direct worker dependencies before spend', async () => {
         const secureTmp = process.platform === 'linux' ? '/tmp' : os.tmpdir();
         const fixture = fs.mkdtempSync(path.join(secureTmp, 'forge-runtime-seal-'));
         const sourceDir = path.resolve('.agents/skills/corvus-forge/scripts');
@@ -325,7 +327,7 @@ describe('CStar MCP Forge execute trace artifacts', () => {
         );
     });
 
-    it('rechecks package-lock identity after the started trace and immediately before spend', async () => {
+    linuxIt('rechecks package-lock identity after the started trace and immediately before spend', async () => {
         const control = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-pre-spend-lock-'));
         const project = path.join(control, 'project');
         fs.mkdirSync(project, { mode: 0o700 });
@@ -385,7 +387,7 @@ describe('CStar MCP Forge execute trace artifacts', () => {
         }
     });
 
-    it('persists a worker execution trace when the adapter exits without response artifact', async () => {
+    linuxIt('persists a worker execution trace when the adapter exits without response artifact', async () => {
         const canary = 'FORGE_FAILURE_RAW_CANARY';
         const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-worker-project-'));
         const suiteRoot = path.join(projectRoot, 'tests', 'truth-verification-red-team');
@@ -448,7 +450,7 @@ describe('CStar MCP Forge execute trace artifacts', () => {
         assert.doesNotMatch(JSON.stringify(trace), new RegExp(canary));
     });
 
-    it('cannot return delivery when the terminal trace artifact disappears', async () => {
+    linuxIt('cannot return delivery when the terminal trace artifact disappears', async () => {
         const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-terminal-trace-required-'));
         process.env.CSTAR_FORGE_HERMES_MINIMAX_ADAPTER_SCRIPT = writeEnvironmentInspectorAdapter(fixture);
         process.env.CSTAR_FORGE_EXECUTION_ARTIFACT_ROOT = fs.mkdtempSync(

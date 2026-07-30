@@ -29,6 +29,10 @@ function makeTemporaryRoot(prefix: string): string {
     return root;
 }
 
+function portablePath(value: string): string {
+    return value.replaceAll('\\', '/');
+}
+
 describe('PathRegistry project-root isolation', () => {
     beforeEach(() => {
         temporaryRoots = [];
@@ -59,9 +63,9 @@ describe('PathRegistry project-root isolation', () => {
         process.env.CSTAR_PROJECT_ROOT = deepDirectory;
 
         const registry = PathRegistry.getInstance();
-        assert.equal(registry.getRoot(), root);
+        assert.equal(registry.getRoot(), portablePath(root));
         assert.equal(PathRegistry.getInstance(), registry);
-        assert.equal(PathRegistry.getInstance().getRoot(), root);
+        assert.equal(PathRegistry.getInstance().getRoot(), portablePath(root));
     });
 
     it('recognizes a synthetic Corvus estate root without warning', () => {
@@ -76,7 +80,7 @@ describe('PathRegistry project-root isolation', () => {
         console.warn = (...args: unknown[]) => warnings.push(args);
         try {
             const registry = PathRegistry.getInstance();
-            assert.equal(registry.detectWorkspaceRoot(estateRoot), estateRoot);
+            assert.equal(registry.detectWorkspaceRoot(estateRoot), portablePath(estateRoot));
             assert.deepEqual(warnings, []);
         } finally {
             console.warn = originalWarn;

@@ -289,7 +289,10 @@ describe('distribution generator', () => {
         assert.equal(attributes.includes('\r'), false);
         assert.deepEqual(
             attributes.trimEnd().split('\n'),
-            generatedPaths.map((relativePath) => `${relativePath} text eol=lf`),
+            [
+                '.gitattributes text eol=lf',
+                ...generatedPaths.map((relativePath) => `${relativePath} text eol=lf`),
+            ],
         );
         assert.deepEqual(generatedPaths, GENERATED_DISTRIBUTION_PATHS);
 

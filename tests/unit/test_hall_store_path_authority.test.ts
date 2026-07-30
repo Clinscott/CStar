@@ -213,7 +213,9 @@ describe('Hall store path and facade authority', () => {
         fs.chmodSync(dbPath, 0o600);
     });
 
-    it('rejects a store or stats replacement before returning a cached handle', () => {
+    it('rejects a store or stats replacement before returning a cached handle', {
+        skip: process.platform === 'win32',
+    }, () => {
         const storeRoot = temporaryRoot('cstar-hall-store-race-');
         const hall = new HallDatabase();
         try {

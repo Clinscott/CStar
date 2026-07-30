@@ -72,7 +72,7 @@ describe('Persona-neutral runtime surfaces', () => {
             entrypoint,
             ...collectRuntimeSources(path.join(ROOT, 'src/node')),
             ...collectRuntimeSources(path.join(ROOT, 'src/tools/pennyone'))
-                .filter((file) => !file.endsWith('/personaRegistry.ts')),
+                .filter((file) => path.basename(file) !== 'personaRegistry.ts'),
         ];
         const combined = files
             .map((file) => fs.readFileSync(file, 'utf8'))

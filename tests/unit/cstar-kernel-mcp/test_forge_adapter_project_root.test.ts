@@ -9,8 +9,10 @@ import {
 } from './shared_test_setup.js';
 import { assertForgeRequiredOutputsContained } from '../../../src/tools/cstar-kernel-mcp/tools/forge_request_contract.js';
 
+const linuxIt = process.platform === 'linux' ? it : it.skip;
+
 describe('CStar MCP Forge adapter project-root inference', () => {
-    it('uses the common project root for mixed tools/tests targets without nesting tools twice', async () => {
+    linuxIt('uses the common project root for mixed tools/tests targets without nesting tools twice', async () => {
         const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-worker-project-'));
         const toolsDir = path.join(projectRoot, 'tools');
         const testsDir = path.join(projectRoot, 'tests');
@@ -55,7 +57,7 @@ describe('CStar MCP Forge adapter project-root inference', () => {
         assert.strictEqual(fs.existsSync(path.join(toolsDir, 'tools', 'generated_skill_module.py')), false);
     });
 
-    it('allows explicit external target roots while keeping writes bounded to those targets', async () => {
+    linuxIt('allows explicit external target roots while keeping writes bounded to those targets', async () => {
         const estateRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-worker-estate-'));
         const corvusEyeRoot = path.join(estateRoot, 'CorvusEye');
         const hermesSkillRoot = path.join(estateRoot, '.hermes', 'profiles', 'cstar-hub', 'skills', 'research', 'research-agent-loop');

@@ -4,11 +4,15 @@ import importlib
 import os
 import subprocess
 import sys
-import tomllib
 from collections.abc import Callable
 from pathlib import Path
 
 import pytest
+
+try:
+    import tomllib
+except ModuleNotFoundError:  # Python 3.10 compatibility; pytest installs tomli there.
+    import tomli as tomllib
 
 
 ROOT = Path(__file__).resolve().parents[2]

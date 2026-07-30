@@ -178,7 +178,7 @@ export function collectSourceEvidence(root: string): SourceEvidence {
     const resolvedRoot = realpathSync(path.resolve(root));
     const topLevel = realpathSync(gitBuffer(resolvedRoot, ['rev-parse', '--show-toplevel'])
         .toString('utf8').trim());
-    if (topLevel !== resolvedRoot) {
+    if (path.relative(resolvedRoot, topLevel) !== '') {
         throw new Error('Verification root must be the Git worktree root.');
     }
 
