@@ -18,7 +18,7 @@ const EXPECTED_MODEL = 'MiniMax-M3';
 const SAFE_MODE_CREDENTIAL_NAMES = JSON.stringify([]);
 const NO_TOOLS_TOOLSET = 'context_engine';
 const FAILURE_SCHEMA = 'cstar.forge_delegate_failure.v1';
-const FILE_BYTE_CAP = 64 * 1024;
+const FILE_BYTE_CAP = 512 * 1024;
 const TOTAL_BYTE_CAP = 512 * 1024;
 const PROMPT_BYTE_CAP = 1024 * 1024;
 const HERMES_OVERRIDE = process.env.HERMES_BIN?.trim();
@@ -149,6 +149,15 @@ function readIntent(intentPath) {
         throw new Error('forge_hermes_intent_invalid');
     }
     if (typeof data.project_root !== 'string' || !path.isAbsolute(data.project_root)) throw new Error('forge_hermes_project_root_invalid');
+    const materialPolicy = data.material_policy;
+    if (!materialPolicy || typeof materialPolicy !== 'object' || Array.isArray(materialPolicy)
+        || Object.keys(materialPolicy).sort().join(',') !== 'file_max_bytes,prompt_max_bytes,schema,total_max_bytes'
+        || materialPolicy.schema !== 'cstar.forge_material_policy.v1'
+        || materialPolicy.file_max_bytes !== FILE_BYTE_CAP
+        || materialPolicy.total_max_bytes !== TOTAL_BYTE_CAP
+        || materialPolicy.prompt_max_bytes !== PROMPT_BYTE_CAP) {
+        throw new Error('forge_hermes_material_policy_invalid');
+    }
     const payload = data.payload ?? {};
     if (payload.hermes_profile !== EXPECTED_PROFILE || payload.model !== EXPECTED_MODEL) throw new Error('forge_hermes_profile_or_model_mismatch');
     if (payload.expected_output !== 'json') throw new Error('forge_hermes_json_output_required');

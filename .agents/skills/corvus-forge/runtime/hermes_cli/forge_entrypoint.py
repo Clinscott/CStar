@@ -2,8 +2,8 @@
 
 This is deliberately not the general Hermes agent runtime.  It accepts only
 the sealed CStar Forge invocation, resolves one read-only OAuth bearer inside
-Hermes, makes one MiniMax Anthropic-compatible request, and emits only the
-provider's text plus redacted lineage metadata.
+Hermes, makes one streaming MiniMax M3 OpenAI-compatible request, and emits
+only the provider's text plus redacted lineage metadata.
 """
 
 from __future__ import annotations
@@ -37,7 +37,7 @@ _PROFILE = "cstar-hub"
 _PROVIDER = PROVIDER
 _MODEL = "MiniMax-M3"
 _HOST = "api.minimax.io"
-_PATH = "/anthropic/v1/messages"
+_PATH = "/v1/chat/completions"
 _PROMPT_CAP = 1024 * 1024
 _RESPONSE_CAP = 8 * 1024 * 1024
 _IDENTITY_ENV = (
@@ -289,37 +289,49 @@ def _json_event(raw: bytes) -> dict[str, Any]:
     return parsed
 
 
-def _extract_json_text(payload: dict[str, Any]) -> tuple[str, dict[str, int]]:
-    if (payload.get("type") != "message" or not isinstance(payload.get("id"), str)
-        or not payload["id"].strip() or payload.get("role") != "assistant"):
-        raise ForgeEntrypointError("forge_entrypoint_response_schema_invalid")
-    if payload.get("model") != _MODEL:
-        raise ForgeEntrypointError("forge_entrypoint_response_model_mismatch")
-    if payload.get("stop_reason") != "end_turn" or payload.get("stop_sequence") is not None:
-        raise ForgeEntrypointError("forge_entrypoint_response_incomplete")
-    content = payload.get("content")
-    if not isinstance(content, list):
-        raise ForgeEntrypointError("forge_entrypoint_response_schema_invalid")
-    chunks: list[str] = []
-    for item in content:
-        if not isinstance(item, dict) or item.get("type") not in {
-            "thinking", "redacted_thinking", "text",
-        }:
+def _sse_data_events(response: http.client.HTTPResponse):
+    """Yield bounded UTF-8 SSE data fields without retaining raw provider bytes."""
+    consumed = 0
+    pending: list[str] = []
+    while True:
+        remaining = _RESPONSE_CAP - consumed
+        if remaining <= 0:
+            raise ForgeEntrypointError("forge_entrypoint_response_too_large")
+        raw = response.readline(remaining + 1)
+        if not raw:
+            raise ForgeEntrypointError("forge_entrypoint_response_incomplete")
+        consumed += len(raw)
+        if consumed > _RESPONSE_CAP:
+            raise ForgeEntrypointError("forge_entrypoint_response_too_large")
+        try:
+            line = raw.decode("utf-8", errors="strict").rstrip("\r\n")
+        except UnicodeDecodeError as exc:
+            raise ForgeEntrypointError("forge_entrypoint_response_invalid") from exc
+        if not line:
+            if pending:
+                yield "\n".join(pending)
+                pending.clear()
+            continue
+        if line.startswith(":"):
+            continue
+        field, separator, value = line.partition(":")
+        if field == "data":
+            pending.append(value[1:] if separator and value.startswith(" ") else value)
+        elif field not in {"event", "id", "retry"}:
             raise ForgeEntrypointError("forge_entrypoint_response_schema_invalid")
-        if item["type"] == "text":
-            if not isinstance(item.get("text"), str):
-                raise ForgeEntrypointError("forge_entrypoint_response_schema_invalid")
-            if item["text"].strip():
-                chunks.append(item["text"])
+
+
+def _stream_usage(payload: dict[str, Any]) -> dict[str, int] | None:
     usage = payload.get("usage")
+    if usage is None:
+        return None
     if (not isinstance(usage, dict)
-        or type(usage.get("input_tokens")) is not int or usage["input_tokens"] < 0
-        or type(usage.get("output_tokens")) is not int or usage["output_tokens"] < 0):
+        or type(usage.get("prompt_tokens")) is not int or usage["prompt_tokens"] < 0
+        or type(usage.get("completion_tokens")) is not int or usage["completion_tokens"] < 0):
         raise ForgeEntrypointError("forge_entrypoint_response_schema_invalid")
-    if not chunks:
-        raise ForgeEntrypointError("forge_entrypoint_response_text_missing")
-    return "\n".join(chunks), {
-        "input_tokens": usage["input_tokens"], "output_tokens": usage["output_tokens"],
+    return {
+        "input_tokens": usage["prompt_tokens"],
+        "output_tokens": usage["completion_tokens"],
     }
 
 
@@ -327,13 +339,70 @@ def _read_response(response: http.client.HTTPResponse) -> tuple[str, dict[str, i
     if response.status != 200:
         raise ForgeEntrypointError("forge_entrypoint_provider_http_error")
     mime = response.getheader("content-type", "").split(";", 1)[0].strip().lower()
-    if mime != "application/json":
+    if mime != "text/event-stream":
         raise ForgeEntrypointError("forge_entrypoint_response_content_type_invalid")
-    raw = response.read(_RESPONSE_CAP + 1)
-    if len(raw) > _RESPONSE_CAP:
-        raise ForgeEntrypointError("forge_entrypoint_response_too_large")
-    _journal("response_body_complete")
-    return _extract_json_text(_json_event(raw))
+    response_id: str | None = None
+    content: list[str] = []
+    usage: dict[str, int] | None = None
+    saw_assistant = False
+    finish_reason: str | None = None
+    saw_done = False
+    for data in _sse_data_events(response):
+        if data == "[DONE]":
+            saw_done = True
+            _journal("response_body_complete")
+            break
+        payload = _json_event(data.encode("utf-8"))
+        if payload.get("object") != "chat.completion.chunk":
+            raise ForgeEntrypointError("forge_entrypoint_response_schema_invalid")
+        event_id = payload.get("id")
+        if not isinstance(event_id, str) or not event_id.strip():
+            raise ForgeEntrypointError("forge_entrypoint_response_schema_invalid")
+        if response_id is None:
+            response_id = event_id
+        elif event_id != response_id:
+            raise ForgeEntrypointError("forge_entrypoint_response_schema_invalid")
+        if payload.get("model") != _MODEL:
+            raise ForgeEntrypointError("forge_entrypoint_response_model_mismatch")
+        event_usage = _stream_usage(payload)
+        if event_usage is not None:
+            usage = event_usage
+        choices = payload.get("choices")
+        if not isinstance(choices, list) or len(choices) > 1:
+            raise ForgeEntrypointError("forge_entrypoint_response_schema_invalid")
+        if not choices:
+            continue
+        choice = choices[0]
+        if not isinstance(choice, dict) or choice.get("index") != 0:
+            raise ForgeEntrypointError("forge_entrypoint_response_schema_invalid")
+        delta = choice.get("delta")
+        if not isinstance(delta, dict) or "tool_calls" in delta or "function_call" in delta:
+            raise ForgeEntrypointError("forge_entrypoint_response_schema_invalid")
+        if "role" in delta:
+            if delta["role"] != "assistant":
+                raise ForgeEntrypointError("forge_entrypoint_response_schema_invalid")
+            saw_assistant = True
+        fragment = delta.get("content")
+        if fragment is not None:
+            if not isinstance(fragment, str):
+                raise ForgeEntrypointError("forge_entrypoint_response_schema_invalid")
+            content.append(fragment)
+        for reasoning_field in ("reasoning_content", "reasoning"):
+            if reasoning_field in delta and not isinstance(delta[reasoning_field], (str, type(None))):
+                raise ForgeEntrypointError("forge_entrypoint_response_schema_invalid")
+        current_finish = choice.get("finish_reason")
+        if current_finish is not None:
+            if current_finish != "stop" or finish_reason is not None:
+                raise ForgeEntrypointError("forge_entrypoint_response_incomplete")
+            finish_reason = current_finish
+    text = "".join(content)
+    if not saw_done or response_id is None or not saw_assistant or finish_reason != "stop":
+        raise ForgeEntrypointError("forge_entrypoint_response_incomplete")
+    if not text.strip():
+        raise ForgeEntrypointError("forge_entrypoint_response_text_missing")
+    if usage is None:
+        raise ForgeEntrypointError("forge_entrypoint_response_schema_invalid")
+    return text, usage
 
 
 def _request(
@@ -353,15 +422,18 @@ def _request(
         f"Fixed role policy: {_ROLE_POLICIES[binding['forge_role']]}"
     )
     body = json.dumps({
-        "model": _MODEL, "max_tokens": 131072, "system": guard,
-        "messages": [{"role": "user", "content": prompt}],
+        "model": _MODEL, "max_completion_tokens": 131072,
+        "messages": [
+            {"role": "system", "content": guard},
+            {"role": "user", "content": prompt},
+        ],
+        "stream": True, "stream_options": {"include_usage": True},
+        "reasoning_split": True,
     }, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     headers = {
         "Authorization": f"Bearer {access_token}",
-        "anthropic-version": "2023-06-01",
-        "anthropic-beta": "interleaved-thinking-2025-05-14",
         "content-type": "application/json",
-        "accept": "application/json",
+        "accept": "text/event-stream",
         "connection": "close",
         "user-agent": f"Hermes-CStar-Forge/{__version__}",
     }
