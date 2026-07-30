@@ -91,10 +91,13 @@ sidecar drift, runtime drift, semantic widening, prior authorization, terminal
 state, or prior attempt fails closed. Independent validation must come from a
 third root thread distinct from this bound requester and the authorizing executor.
 
-A new `cstar_forge_execute` reservation must occur in the same root-user turn.
-The identity is rechecked after runtime/OAuth preflight immediately before
-reservation. A later root-user turn may retrieve an existing idempotency-key
-receipt without spend, but it cannot reserve a new attempt.
+A new request's initial `cstar_forge_execute` reservation must occur in the same
+root-user turn. The identity is rechecked after runtime/OAuth preflight
+immediately before reservation. A later root-user turn normally may only
+retrieve an existing idempotency-key receipt. The sole new-reservation exception
+is a pending `cstar.forge_pre_provider_continuation.v1` receipt that preserves
+the original unrevoked, unexpired authorization and every non-runtime request
+field. It grants no new scope or spend authority.
 
 For a new attempt, execution captures the readiness binding after authority,
 rechecks the same digest before reservation, and rechecks it after preparation
@@ -114,7 +117,9 @@ The skill produces durable, machine-readable records for:
    per-role token usage;
 6. QA response artifact and strict exact-output file manifest;
 7. independent validation evidence; and
-8. terminal attempt and request state.
+8. pre-provider continuation status, budget class, repair-validation binding,
+   and bounded-cycle accounting when applicable; and
+9. terminal attempt and request state.
 
 Information-repository update packets and policy-required GitHub
 issues/branches/PRs are conditional outputs. PMTs do not review or approve, and
@@ -348,16 +353,27 @@ be accepted as delivery evidence.
   operator grant, re-hash the exact request, verify locks, and atomically reserve
   the attempt before adapter invocation.
 - Reusing an idempotency key returns the existing attempt without new spend.
-- Runtime-bundle and symlink-safe trace preflight occurs before the durable
-  attempt is marked started. Failure before adapter spawn is `FAILED_FINAL`.
+- Runtime-bundle and symlink-safe trace preflight occurs before provider start.
+  An allowlisted failure is `FAILED_RETRYABLE` and `mechanical_no_provider` only
+  with exact zero-provider, zero-spend, no-source, no-write evidence.
+- CStar repairs and independently validates that local failure, then reserves a
+  child cycle with `retry_of_attempt_id` and a new internal idempotency key. The
+  original request, hash, authorization, outputs, actions, locks, and provider
+  attempt budget remain unchanged; the operator does not restate the build.
+- Provider start or ambiguity, unknown spend, missing evidence, scope/worktree/
+  lock drift, expiry, revocation, or another request is `provider_or_unknown`
+  and cannot inherit continuation.
+- The third consecutive identical mechanical failure and tenth total mechanical
+  cycle are `BLOCKED`; the latter exhausts the request.
 - One reserved orchestration attempt contains the six fixed role calls; it is
   not six independently retryable CStar attempts.
 - Failure after adapter start with unknown spend is `UNKNOWN` and consumes the
   grant.
 - A structurally valid response is `delivered_unverified`, never immediate
   success.
-- There is no automatic role retry or orchestration-attempt retry in the
-  bootstrap contract.
+- There is no automatic role retry or provider/orchestration-attempt retry.
+  Bounded pre-provider mechanical continuity is repair/resume accounting, not a
+  model retry.
 
 ## Validation Contract
 
@@ -369,6 +385,21 @@ requires the validator root thread to differ from both the Forge requester and
 authorizing executor. The manifest binds the exact request, authorization,
 attempt, adapter, result artifact, bead, repository, and target-set hashes.
 Legacy v1 validation remains readable but cannot finalize Forge.
+
+For `FAILED_RETRYABLE`, a positive verified validation may bind the repaired
+source artifacts to the exact parent execution receipt without claiming
+delivery. CStar checks those artifact hashes against the current adapter bundle
+and target preimages before marking the continuation `RESUMED`. Before that
+validation, CStar creates the bounded owner-only
+`continuation-runtime-evidence.json` under the parent execution receipt so the
+validator can hash the exact adapter, interpreter, containment, dependency, and
+Hermes runtime binding, together with the named CStar-owned runtime files,
+without reading external system paths through the result surface. Goal-resume
+evidence supplies continuity only; the original Forge authorization remains the
+authority.
+Prepared workspace source preimages are checked against the same validation
+before `STARTED` or model invocation, and appended same-turn steering is
+included in revocation scanning rather than folded into the old authorization.
 
 Positive verified evidence finalizes `SUCCEEDED`; negative verified evidence
 finalizes `FAILED_FINAL`. Reported positive evidence without verification is
@@ -389,6 +420,10 @@ cannot resurrect failed delivery.
 - `package_lock_mismatch`
 - `adapter_unregistered_or_runtime_drifted`
 - `attempt_replay_or_budget_exhausted`
+- `pre_provider_continuation_evidence_invalid`
+- `pre_provider_continuation_repair_validation_required`
+- `pre_provider_continuation_runtime_or_target_drifted`
+- `pre_provider_continuation_no_progress_or_cycle_limit`
 - `adapter_spend_unknown`
 - `provider_journal_invalid_or_ambiguous`
 - `oauth_fixed_horizon_invalid_or_expired`
@@ -406,10 +441,12 @@ to prevent unsafe replay.
 
 ## Verification Requirements
 
-Tests must cover request immutability, one-shot authority, atomic reservation,
+Tests must cover request immutability, initial authority, atomic reservation,
 replay, adapter sealing, response semantics, path/link containment,
 caught-exception rollback and mode preservation, actual-versus-requested model identity, independent
-evidence hashing, and validation/finalization rollback. Run focused tests in the
+evidence hashing, trace-tamper rejection, continuation validation binding,
+provider-versus-mechanical accounting, no-progress limits, and validation/
+finalization rollback. Run focused tests in the
 changed repository and CStar contract tests when the control-plane boundary
 changes.
 

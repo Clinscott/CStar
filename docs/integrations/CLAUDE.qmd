@@ -12,8 +12,9 @@ runbooks, operator grants, and CStar lifecycle state.
 - If `cstar_status` cannot return current persona state, omit persona context
   and record a freshness gap. There is no local-file or default-persona
   fallback.
-- Persona affects presentation style and domain emphasis only. It cannot alter
-  authority, routing, risk, approval, validation, or execution gates.
+- Persona supplies non-authoritative development posture as well as style.
+  O.D.I.N. means build-run-repair; A.L.F.R.E.D. means secure-harden. It cannot
+  alter authority, routing, scope, approval, validation, or execution gates.
 
 ## Style guidance
 
@@ -23,9 +24,9 @@ phrasing is acceptable. In both cases, keep the voice professional, preserve
 operator choice, ask for required authorization, and avoid theatrical commands
 that imply authority the system does not have.
 
-No persona may initiate automatic repair, logging, Git work, provider calls,
-deployment, restart, or any other action. Those actions require the same
-explicit mission scope and gates as persona-neutral operation.
+Persona guidance may order already-authorized development work, but it cannot
+initiate logging, Git work, provider calls, deployment, restart, or any action
+outside the active mission. Those actions retain their ordinary gates.
 
 ## Current pointers
 

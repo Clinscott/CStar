@@ -87,6 +87,9 @@ work, for example `Continue building TokenPath Q0 phase one.` Bare continue,
 restart acknowledgements, status questions, and reserved goal packets cannot
 select or authorize a request. A goal-only turn returns a human-readable
 `forge_operator_signal_required` result with no mutation or provider call.
+This fresh-instruction rule governs a request that has not begun. It does not
+discard an already-authorized request after a proven zero-provider mechanical
+cycle; that request follows the bounded continuation contract below.
 
 A strict, unspent `cstar.forge_request.v2` receipt is never rewritten or
 reissued. When the caller supplies the semantically identical current typed
@@ -112,10 +115,10 @@ directory or equal to an explicit file/prospective target. No-spend, pending,
 expired, terminal, or receipt-mismatched requests remain non-executable and do
 not emit a new challenge.
 
-## Execute Gate: One Atomic Attempt
+## Execute Gate: One Provider Attempt with Bounded Mechanical Continuity
 
-For a new reservation, `cstar_forge_execute` must run in the same root-user turn
-that supplied the operative build instruction. It receives the matching durable receipt,
+For an initial reservation, `cstar_forge_execute` must run in the same root-user
+turn that supplied the operative build instruction. It receives the matching durable receipt,
 exact request fields, returned authorization reference, adapter reference, and
 stable idempotency key. Before invocation it verifies:
 
@@ -137,25 +140,53 @@ stable idempotency key. Before invocation it verifies:
 
 The authorizing turn is checked once before preflight and again after runtime/
 OAuth preflight immediately before writable Hall access and reservation. A later
-root-user turn cannot create an attempt. It may use the same idempotency key to
-retrieve an already durable attempt; replay is checked before current runtime,
-package-lock, or same-turn reservation gates and never invokes the provider.
+root-user turn normally cannot create an attempt. The sole exception is an exact
+`cstar.forge_pre_provider_continuation.v1` receipt for the same immutable request,
+original authorization, thread, targets, required outputs, actions, locks, and
+spend/source boundary. A later same-thread turn may consume that receipt after
+revocation and expiry checks; appended same-turn steering is scanned as later
+input and can revoke the grant. It does not create new authority. Ordinary replay
+uses the same idempotency key, is checked before current runtime or package-lock
+gates, and never invokes the provider.
 
 Live request persistence and authorization mutation use the same runtime
-predicate. Execute captures its binding after authority and requires the same
-digest before reservation and again after preparation, immediately before
-adapter start. A red pre-reservation verdict leaves no attempt row. Binding
-drift after reservation is terminal `FAILED_FINAL`, records no adapter
-invocation or spend, and still consumes the one-shot grant. No-spend request and
-no-op validation remain available for diagnosis.
+predicate. Execute captures its binding after authority and requires it before
+reservation and again after preparation, immediately before adapter start. A
+changed runtime may inherit the request only when an independent
+`cstar_record_result` receipt validates the repair artifacts and CStar binds
+their hashes to the exact next runtime. Unvalidated runtime drift remains
+terminal. A red pre-reservation verdict leaves no provider attempt. No-spend
+request and no-op validation remain available for diagnosis.
+
+Before requesting that independent validation, CStar writes or refreshes the
+owner-only `continuation-runtime-evidence.json` beneath the parent execution
+receipt. The validator hashes that bounded artifact together with the CStar-
+owned adapter and Hermes files it names; the artifact seals the current
+Python/Node interpreters and process containment without exposing external
+system paths through the result surface. Once validation is bound, CStar
+verifies rather than replaces the artifact. After workspace preparation, CStar
+also compares the projected source preimages with that validation before the
+attempt is marked `STARTED` or any model process can run.
 
 Attempt reservation is atomic. Replaying an idempotency key returns the durable
-attempt without invoking the model again. Trace/runtime preflight completes
-before the attempt is marked started. An adapter-spawned exception is `UNKNOWN`;
-a pre-spawn failure is `FAILED_FINAL`. Both consume or close the one-shot request
-according to the durable receipt. There is no automatic retry.
+attempt without invoking the model again. A failure with validated evidence of
+zero provider requests, zero ambiguous dispatch, zero spend, no live source,
+and no workspace commit may become `FAILED_RETRYABLE` with budget class
+`mechanical_no_provider`. CStar keeps the request `AUTHORIZED`, records the
+exact failure/trace/runtime fingerprint, repairs and independently validates the
+local defect, then resumes the same request without asking the operator to issue
+another build instruction. Provider start, ambiguous dispatch, unknown spend,
+missing evidence, scope/worktree/lock drift, expiry, revocation, or another
+request never qualifies.
 
-One CStar orchestration attempt contains the six ordered role calls. Each role
+Mechanical continuity is bounded but is not provider retry budget. The third
+consecutive identical failure becomes `BLOCKED`; the tenth total mechanical
+cycle becomes `BLOCKED` and the request `EXHAUSTED`. Each continuation has a new
+internal idempotency key and `retry_of_attempt_id`, but the request hash and
+authorization remain unchanged. Zero retries still means zero provider, role,
+or orchestration retries.
+
+One provider attempt contains the six ordered role calls. Each role
 runs in a fresh sealed Hermes process and may make exactly one fixed-host,
 non-retrying MiniMax request. Zero retries means neither an individual role nor
 the orchestration attempt may be rerun. A failed or invalid role handoff stops
@@ -360,7 +391,8 @@ Return to CoS and fail closed when:
 
 - request, authority, adapter, target, package, output, callback, or hash linkage
   is missing or mismatched;
-- the adapter runtime changed after the request was sealed;
+- the adapter runtime changed without an exact independent continuation-repair
+  validation binding;
 - the attempt is expired, replayed under a different contract, exhausted, or
   ambiguous;
 - output escapes its authorized roots or violates the manifest;

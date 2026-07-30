@@ -27,7 +27,10 @@ resumed mission:
    verifies and the event persists. The signal must be a dedicated, fully
    anchored imperative or authorization statement. Questions, quotations,
    examples, button-label prose, and incidental mentions of resuming a goal do
-   not qualify.
+   not qualify. Direct repair-and-proceed language such as `Fix the error and
+   continue the build` or `The error should be fixed and the build proceed`
+   qualifies for the unchanged goal. It still grants continuity only and never
+   creates Forge authority.
 5. Maintain a short plan with at most one in-progress step. Put the relevant
    bead or decision ids in the plan/explanation when the host supports it.
 
@@ -48,6 +51,15 @@ Use the narrowest capable lane:
   review. A subagent is not Forge implementation.
 - **CoS bootstrap repair** only when the canonical CStar/Forge boundary itself
   is broken and the Forge runbook permits the exception.
+
+When a Forge cycle has exact zero-provider, zero-spend, no-source, and no-write
+evidence, do not ask the operator to repeat the build request. Preserve the
+original immutable request and authorization, repair the bounded mechanical
+defect, obtain independent validation for the repaired artifacts, and resume
+through its pending continuation receipt. Provider start or ambiguity, scope or
+lock drift, expiry, revocation, and the bounded no-progress limits remain hard
+stops. Goal continuity can keep this workflow moving, but only the original
+Forge authorization supplies execution authority.
 
 Partition agents by independent files or review questions. Avoid concurrent
 edits to the same file. Ask the host for the task-appropriate current GPT-5.6

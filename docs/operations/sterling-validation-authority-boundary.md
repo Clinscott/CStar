@@ -14,21 +14,32 @@ duplicates, missing files, non-Gherkin Lore, and unrecognized Isolation names
 fail closed with value-free error classes. Sterling never reads an arbitrary
 caller path outside the repository.
 
-The Hall receipt is authoritative only when `cstar_record_result` stored it as
-`authority_class=verified_v2` from a request-bound independent validator. Its
-canonical `cstar.validation-evidence.v2` manifest contains nonempty artifact
-and passed-check arrays, and its SHA-256 must recompute. CStar derives the
-validator identity and binds the manifest to the exact Forge request,
-authorization, execution receipt, attempt, adapter, result artifact, target
-set, bead, and repository. The validator root thread must differ from both the
-Forge requester and authorizing executor. The receipt must be no older than 24
-hours, postdate the bead, and retain unchanged evidence files. The current Lore
-and Isolation byte hashes must appear exactly in the manifest.
+The Hall receipt is authoritative only when `cstar_record_result` stored it
+through one of two independent kernel-verified paths. Forge work uses
+`authority_class=verified_v2`; its canonical `cstar.validation-evidence.v2`
+manifest binds the exact request, authorization, execution receipt, attempt,
+adapter, result artifact, target set, bead, and repository. Its validator root
+thread must differ from both the Forge requester and authorizing executor.
 
-Verified-v2 receipts are immutable. A repeated validation id cannot change its
-scope, verdict, identity, manifest, or authority. Legacy verified-v1 receipts
-remain readable history but cannot be promoted, finalize Forge, or satisfy
-Sterling; a verified-v2 receipt cannot be downgraded or replaced.
+Host-workflow work uses `authority_class=verified_v3`; its canonical
+`cstar.validation-evidence.v3` manifest binds the exact bead, repository,
+target, validation manifest, recording root CoS, and depth-one validator
+subagent receipt. The validator must have one latest completed final turn that
+names the exact manifest SHA-256 and validation id. This path grants neither the
+subagent mutation authority nor the root a Forge-finalization shortcut. In a
+separated live runtime these evidence bytes come from the canonical code root;
+Hall state remains in the control root.
+
+Both schemas require nonempty artifact and passed-check arrays whose SHA-256
+values recompute. The receipt must be no older than 24 hours, postdate the bead,
+and retain unchanged evidence files. The current Lore and Isolation byte hashes
+must appear exactly in the manifest.
+
+Verified-v2 and verified-v3 receipts are immutable. A repeated validation id
+cannot change its scope, verdict, identity, manifest, or authority. Legacy
+verified-v1 receipts remain readable history but cannot be promoted, finalize
+Forge, or satisfy Sterling; a verified-v2 or verified-v3 receipt cannot be
+downgraded or replaced. Only verified-v2 can finalize Forge.
 
 Sterling ignores cached `bead.metadata.mandate_evidence`. Scalar Gungnir
 scores, claimed Warden results, free-form force reasons, and mandate exemptions
