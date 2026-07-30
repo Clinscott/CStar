@@ -339,7 +339,7 @@ export function buildReleaseBundles(projectRoot: string): ReleaseBundle[] {
         return file;
     });
 
-    return [
+    const bundles: ReleaseBundle[] = [
         {
             name: 'gemini-extension',
             rootDir: path.join('dist', 'host-distributions', 'gemini-extension'),
@@ -365,6 +365,15 @@ export function buildReleaseBundles(projectRoot: string): ReleaseBundle[] {
             })),
         },
     ];
+
+    return bundles.map((bundle) => ({
+        ...bundle,
+        rootDir: portablePath(bundle.rootDir),
+        files: bundle.files.map((file) => ({
+            ...file,
+            relativePath: portablePath(file.relativePath),
+        })),
+    }));
 }
 
 export function writeReleaseBundles(projectRoot: string): ReleaseBundle[] {

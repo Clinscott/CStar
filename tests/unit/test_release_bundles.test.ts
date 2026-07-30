@@ -53,6 +53,13 @@ describe('release bundle generation', () => {
             ['gemini-extension', 'codex-plugin'],
         );
         assert.deepEqual(
+            bundles.map((bundle) => bundle.rootDir),
+            [
+                'dist/host-distributions/gemini-extension',
+                'dist/host-distributions/codex-plugin',
+            ],
+        );
+        assert.deepEqual(
             bundles[0]?.files.map((file) => file.relativePath),
             ['gemini-extension.json', 'GEMINI.md', 'INSTALL.md'],
         );
@@ -61,11 +68,17 @@ describe('release bundle generation', () => {
             [
                 '.codex-plugin/plugin.json',
                 'README.md',
-                path.join('skills', 'corvus-star', 'SKILL.md'),
+                'skills/corvus-star/SKILL.md',
                 'lineage.json',
                 'INSTALL.md',
             ],
         );
+        for (const bundle of bundles) {
+            assert.doesNotMatch(bundle.rootDir, /\\/);
+            for (const file of bundle.files) {
+                assert.doesNotMatch(file.relativePath, /\\/);
+            }
+        }
 
         const lineageFile = bundles[1]?.files.find((file) => file.relativePath === 'lineage.json');
         assert.ok(lineageFile);

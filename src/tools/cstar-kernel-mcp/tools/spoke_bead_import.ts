@@ -1,5 +1,5 @@
 import path from 'node:path';
-import type { HallBeadStatus, HallBeadTargetKind } from '../../../types/hall.js';
+import { normalizeHallPath, type HallBeadStatus, type HallBeadTargetKind } from '../../../types/hall.js';
 import { database } from '../../pennyone/intel/database.js';
 import type { McpRequestContext } from '../contracts/request_context.js';
 import { mcpMutation, textResponse } from '../contracts/responses.js';
@@ -67,6 +67,10 @@ export async function handleSpokeBeadImport(
         const resolvedDesignDoc = args.design_doc_path
             ? resolveSpokeRelativePath(anchor.spoke, args.design_doc_path, 'design_doc_path')
             : undefined;
+        const relativeLorePath = normalizeHallPath(path.relative(anchor.spoke.root_path, resolvedLore));
+        const relativeDesignDocPath = resolvedDesignDoc
+            ? normalizeHallPath(path.relative(anchor.spoke.root_path, resolvedDesignDoc))
+            : undefined;
 
         if (args.metadata && Object.keys(args.metadata).length > 0) {
             throw new Error('spoke_import_unstructured_metadata_forbidden');
@@ -82,15 +86,15 @@ export async function handleSpokeBeadImport(
 
         const contractRefs = [
             ...(args.contract_refs || []),
-            `lore:${path.relative(anchor.spoke.root_path, resolvedLore)}`,
+            `lore:${relativeLorePath}`,
         ];
 
         const spokeMetadata: Record<string, unknown> = {
             ...(anchor.metadata || {}),
-            lore_path: path.relative(anchor.spoke.root_path, resolvedLore),
+            lore_path: relativeLorePath,
         };
-        if (resolvedDesignDoc) {
-            spokeMetadata.design_doc_path = path.relative(anchor.spoke.root_path, resolvedDesignDoc);
+        if (resolvedDesignDoc && relativeDesignDocPath) {
+            spokeMetadata.design_doc_path = relativeDesignDocPath;
         }
         if (args.wireframe_ref) {
             spokeMetadata.wireframe_ref = args.wireframe_ref;

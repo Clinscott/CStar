@@ -3,12 +3,10 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import os
-import re
-import subprocess
-import sys, tempfile
+import os, re, subprocess, sys, tempfile
 from pathlib import Path
 from typing import Any, Callable
+import forge_worker_safety
 from forge_worker_safety import (
     apply_files, authorized_scopes, build_worker_manifest_contract, ensure_safe_write_target, ManifestPathContractError,
     minimal_subprocess_environment, RequiredOutputContractError, resolve_path, resolve_write_path,
@@ -20,6 +18,9 @@ from forge_worker_evidence import (
 )
 SUCCESS_STATUSES = {"accepted", "ok", "pass", "passed", "success", "succeeded"}
 EXPECTED_MANIFEST_FIELDS = set("status summary files artifacts validation metrics boundaries callback_packet".split())
+def newline_preserving_tempfile(*args: Any, _factory: Callable[..., Any] = tempfile.NamedTemporaryFile, **kwargs: Any) -> Any:
+    if kwargs.get("mode") == "w": kwargs.setdefault("newline", "")
+    return _factory(*args, **kwargs)
 def role_evidence(raw: dict[str, Any]) -> dict[str, Any]: return project_role_evidence(raw)[0]
 class ManifestContractError(ValueError):
     def __init__(self, code: str, details: dict[str, Any] | None = None):
@@ -425,8 +426,10 @@ def main() -> int:
         def persist_validated_response(changed_files: list[dict[str, Any]]) -> None:
             response = build_response(manifest, changed_files, delegate_envelope, intent, project_root)
             write_response_json(response_path, response)
-        changed = apply_files(project_root, scopes, files, required_output_paths,
-                              persist_validated_response)
+        original_tempfile = forge_worker_safety.tempfile.NamedTemporaryFile; forge_worker_safety.tempfile.NamedTemporaryFile = newline_preserving_tempfile
+        try:
+            changed = apply_files(project_root, scopes, files, required_output_paths, persist_validated_response)
+        finally: forge_worker_safety.tempfile.NamedTemporaryFile = original_tempfile
         print(json.dumps({
             **role_evidence(delegate_envelope),
             "status": "ok", "intent_id": os.environ.get("CSTAR_FORGE_EXECUTE_RECEIPT_ID"),
