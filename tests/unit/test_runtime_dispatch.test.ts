@@ -231,6 +231,45 @@ describe('retired Node runtime boundary', () => {
         }
     });
 
+    it('keeps registry-declared calculus compatibility out of runtime dispatch', async () => {
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'cstar-calculus-compat-'));
+        const previousProjectRoot = process.env.CSTAR_PROJECT_ROOT;
+        try {
+            process.env.CSTAR_PROJECT_ROOT = root;
+            fs.mkdirSync(path.join(root, '.agents'));
+            fs.writeFileSync(path.join(root, '.agents', 'skill_registry.json'), JSON.stringify({
+                entries: {
+                    calculus: {
+                        id: 'calculus',
+                        entry_surface: 'compatibility',
+                        execution: {
+                            mode: 'compatibility',
+                            adapter_id: 'prime:calculus',
+                            ownership_model: 'kernel-primitive',
+                        },
+                    },
+                },
+            }));
+            const dispatcher = RuntimeDispatcher.createIsolated();
+            bootstrapRuntime(dispatcher);
+            const before = snapshotTree(root);
+
+            const result = await dispatcher.dispatch(invocation('calculus', root));
+
+            assert.equal(result.status, 'FAILURE');
+            assert.equal(
+                result.metadata?.failure_code,
+                'legacy_runtime_capability_retired_use_cstar_kernel',
+            );
+            assert.deepEqual(dispatcher.listAdapterIds(), []);
+            assert.deepEqual(snapshotTree(root), before);
+        } finally {
+            if (previousProjectRoot === undefined) delete process.env.CSTAR_PROJECT_ROOT;
+            else process.env.CSTAR_PROJECT_ROOT = previousProjectRoot;
+            fs.rmSync(root, { recursive: true, force: true });
+        }
+    });
+
     it('contains no generic Hall lifecycle, host callback, or provider-selection path', () => {
         const source = fs.readFileSync(
             new URL('../../src/node/core/runtime/dispatcher.ts', import.meta.url),

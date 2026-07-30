@@ -1,4 +1,5 @@
 import { readBoundedJsonObject } from '../../../core/safe_local_file.js';
+import { getSkillRegistryEntries } from '../../../core/skill_registry.js';
 
 const CAPABILITY_REGISTRY_MAX_BYTES = 1024 * 1024;
 
@@ -33,13 +34,7 @@ export function loadRegistryEntries(projectRoot: string): Record<string, Surface
         '.agents/skill_registry.json',
         CAPABILITY_REGISTRY_MAX_BYTES,
     );
-    if (manifest?.entries && typeof manifest.entries === 'object') {
-        return manifest.entries;
-    }
-    if (manifest?.skills && typeof manifest.skills === 'object') {
-        return manifest.skills;
-    }
-    return {};
+    return getSkillRegistryEntries<SurfaceRegistryEntry>(manifest);
 }
 
 export function resolveEntrySurface(entry: SurfaceRegistryEntry, capabilityId: string): EntrySurface {

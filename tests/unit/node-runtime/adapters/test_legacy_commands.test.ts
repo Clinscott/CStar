@@ -19,7 +19,14 @@ describe('retired legacy command discovery', () => {
             fs.mkdirSync(path.join(root, 'scripts'), { recursive: true });
             fs.writeFileSync(
                 path.join(root, '.agents', 'skill_registry.json'),
-                JSON.stringify({ skills: { legacy: { entrypoint_path: 'scripts/legacy.py' } } }),
+                JSON.stringify({
+                    entries: {
+                        calculus: {
+                            id: 'calculus',
+                            entrypoint_path: 'scripts/legacy.py',
+                        },
+                    },
+                }),
             );
             fs.writeFileSync(path.join(root, 'scripts', 'legacy.py'), 'raise SystemExit(99)\n');
 

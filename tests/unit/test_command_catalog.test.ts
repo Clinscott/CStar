@@ -36,10 +36,19 @@ describe('Command catalog', () => {
         for (const retired of [
             'dominion', 'odin', 'dormancy', 'skill', 'lore', 'recreate',
             'vitals', 'one-mind', 'hall-doc', 'spoke', 'os', 'oracle', 'tui',
-            'pennyone', 'ravens', 'start', 'bifrost', 'bead', 'profile',
+            'pennyone', 'ravens', 'start', 'bifrost', 'bead', 'profile', 'calculus',
         ]) {
             assert.equal(names.has(retired), false, retired);
         }
+    });
+
+    it('keeps calculus out of the default catalog despite compatibility discovery', () => {
+        assert.equal(findCommandCatalogEntry('calculus'), null);
+        const launcher = fs.readFileSync(
+            new URL('../../cstar.ts', import.meta.url),
+            'utf-8',
+        );
+        assert.doesNotMatch(launcher, /registerCalculusCommand/);
     });
 
     it('preserves status, manifest, skill-info, trace, and Augury metadata', () => {

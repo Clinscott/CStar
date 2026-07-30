@@ -142,6 +142,11 @@ export interface PennyOneWeavePayload {
     ghosts?: boolean;
 }
 
+export interface CalculusWeavePayload {
+    action: 'score' | 'audit';
+    file: string;
+}
+
 export interface DynamicCommandPayload {
     command: string;
     args: string[];

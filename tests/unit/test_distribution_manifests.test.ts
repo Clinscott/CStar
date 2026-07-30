@@ -37,6 +37,21 @@ function createProjectRoot(): string {
         path.join(root, '.agents', 'skill_registry.json'),
         JSON.stringify({
             entries: {
+                calculus: {
+                    id: 'calculus',
+                    tier: 'PRIME',
+                    description: 'Explicit compatibility only',
+                    runtime_trigger: 'calculus',
+                    entry_surface: 'compatibility',
+                    execution: {
+                        mode: 'compatibility',
+                        ownership_model: 'kernel-primitive',
+                    },
+                    host_support: {
+                        gemini: 'unsupported',
+                        codex: 'unsupported',
+                    },
+                },
                 hall: {
                     tier: 'PRIME',
                     description: 'Hall lookup',
@@ -103,6 +118,14 @@ describe('distribution generator', () => {
         assert.deepEqual(
             build.codexCapabilities.map((entry) => entry.id),
             ['chant', 'hall'],
+        );
+        assert.equal(
+            build.geminiCapabilities.some((entry) => entry.id === 'calculus'),
+            false,
+        );
+        assert.equal(
+            build.codexCapabilities.some((entry) => entry.id === 'calculus'),
+            false,
         );
         assert.deepEqual(
             build.files.map((file) => file.relativePath),

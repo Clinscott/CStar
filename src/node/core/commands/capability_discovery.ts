@@ -6,6 +6,7 @@ import {
     readBoundedUtf8RelativeFile,
     resolveSafeRelativeFileInside,
 } from '../../../core/safe_local_file.js';
+import { getSkillRegistryEntries } from '../../../core/skill_registry.js';
 
 import {
     findCommandCatalogEntry,
@@ -39,13 +40,7 @@ const CAPABILITY_REGISTRY_MAX_BYTES = 1024 * 1024;
 const CAPABILITY_DOCUMENT_MAX_BYTES = 512 * 1024;
 
 function getRegistryEntries(manifest: CapabilityRegistryManifest): Record<string, CapabilityRegistryEntry> {
-    if (manifest.entries && typeof manifest.entries === 'object') {
-        return manifest.entries;
-    }
-    if (manifest.skills && typeof manifest.skills === 'object') {
-        return manifest.skills;
-    }
-    return {};
+    return getSkillRegistryEntries<CapabilityRegistryEntry>(manifest);
 }
 
 function toStringValue(value: unknown): string | null {

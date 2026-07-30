@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import { readBoundedJsonObject } from '../core/safe_local_file.js';
+import { getSkillRegistryEntries } from '../core/skill_registry.js';
 import {
     CSTAR_KERNEL_TOOL_CATALOG,
     CSTAR_KERNEL_TOOL_NAMES,
@@ -99,13 +100,7 @@ function loadRegistryManifest(projectRoot: string): RegistryManifest {
 }
 
 function getRegistryEntries(manifest: RegistryManifest): Record<string, RegistryEntry> {
-    if (manifest.entries && typeof manifest.entries === 'object') {
-        return manifest.entries;
-    }
-    if (manifest.skills && typeof manifest.skills === 'object') {
-        return manifest.skills;
-    }
-    return {};
+    return getSkillRegistryEntries<RegistryEntry>(manifest);
 }
 
 function normalizeHostSupportStatus(value: string | undefined): HostSupportStatus {

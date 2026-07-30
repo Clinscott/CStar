@@ -1,9 +1,9 @@
 import * as path from 'node:path';
 
+import { getSkillRegistryEntries } from '../../../../core/skill_registry.js';
 import type { ChantWeavePayload, WeaveInvocation } from '../contracts.ts';
 import type { SkillBead } from '../../skills/types.js';
 import {
-    getRegistryEntries,
     getRegistryIntentCategories,
     loadRegistryManifest,
     resolveIntentCategoryFromGrammar,
@@ -12,7 +12,6 @@ import {
 } from './chant_intent_grammar.js';
 
 export {
-    getRegistryEntries,
     getRegistryIntentCategories,
     INTENT_CATEGORIES,
     loadRegistryManifest,
@@ -100,6 +99,12 @@ export const TARGET_TERMS = [
 export const deps = {
     path: Object.assign({}, path),
 };
+
+export function getRegistryEntries(
+    manifest: RegistryManifest | null,
+): Record<string, RegistryEntry> {
+    return getSkillRegistryEntries<RegistryEntry>(manifest);
+}
 
 export function tokenize(query: string): string[] {
     return query
