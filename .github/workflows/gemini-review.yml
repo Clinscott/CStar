@@ -44,25 +44,24 @@ jobs:
           persist-credentials: false
 
       - name: 'Prepare bounded review context'
-        uses: 'actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd' # ratchet:actions/github-script@v8.0.0
         env:
           REPOSITORY: '${{ github.repository }}'
           PULL_REQUEST_NUMBER: '${{ github.event.pull_request.number || github.event.issue.number }}'
           ADDITIONAL_CONTEXT: '${{ inputs.additional_context }}'
-        with:
-          github-token: ''
-          script: |-
-            const fs = require('fs');
-            fs.mkdirSync('.gemini', { recursive: true });
-            const contextData = {
-              repository: process.env.REPOSITORY || '',
-              pull_request_number: Number(process.env.PULL_REQUEST_NUMBER || 0),
-              additional_context: process.env.ADDITIONAL_CONTEXT || '',
-            };
-            fs.writeFileSync('.gemini/context.json', JSON.stringify(contextData), {
-              encoding: 'utf8',
-              mode: 0o600,
-            });
+        run: |-
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          fs.mkdirSync('.gemini', { recursive: true });
+          const contextData = {
+            repository: process.env.REPOSITORY || '',
+            pull_request_number: Number(process.env.PULL_REQUEST_NUMBER || 0),
+            additional_context: process.env.ADDITIONAL_CONTEXT || '',
+          };
+          fs.writeFileSync('.gemini/context.json', JSON.stringify(contextData), {
+            encoding: 'utf8',
+            mode: 0o600,
+          });
+          NODE
 
       - name: 'Run Gemini pull request review'
         uses: 'google-github-actions/run-gemini-cli@v0' # ratchet:exclude

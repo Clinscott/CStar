@@ -26,7 +26,7 @@ const originalForgeRuntimeTestBypass = process.env.CSTAR_FORGE_RUNTIME_TEST_BYPA
 const originalAdapter = process.env.CSTAR_FORGE_HERMES_MINIMAX_ADAPTER_SCRIPT;
 const originalSentinel = process.env.CSTAR_FORGE_TEST_SENTINEL;
 const temporaryRoots: string[] = [];
-const CSTAR_TARGET = '/home/morderith/Corvus/CStar/AGENTS.md';
+const CSTAR_TARGET = path.resolve('AGENTS.md');
 const DURABLE_BEAD_ID = 'bead:test:durable-forge-handler';
 const handleForgeRequest: typeof rawHandleForgeRequest = (args, context) =>
     rawHandleForgeRequest(args, context);
@@ -133,7 +133,7 @@ function createFixture(decisionId = 'decision-test-durable-forge-handler') {
 }
 
 function restoreEnv(name: string, value: string | undefined) {
-    if (value === undefined) delete process.env[name];
+    if (value === undefined) Reflect.deleteProperty(process.env, name);
     else process.env[name] = value;
 }
 
@@ -147,7 +147,7 @@ afterEach(() => {
     restoreEnv('CSTAR_FORGE_RUNTIME_TEST_BYPASS', originalForgeRuntimeTestBypass);
     restoreEnv('CSTAR_FORGE_HERMES_MINIMAX_ADAPTER_SCRIPT', originalAdapter);
     restoreEnv('CSTAR_FORGE_TEST_SENTINEL', originalSentinel);
-    while (temporaryRoots.length > 0) fs.rmSync(temporaryRoots.pop()!, { recursive: true, force: true });
+    while (temporaryRoots.length > 0) fs.rmSync(temporaryRoots.pop() as string, { recursive: true, force: true });
 });
 
 describe('CStar durable Forge public path', () => {

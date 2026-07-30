@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { afterEach, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
@@ -12,8 +13,8 @@ import {
     validScope,
 } from './operator_authorization_test_support.js';
 
-const SECOND_TARGET = '/home/morderith/Corvus/CStar/package.json';
-const SECRET_PATH_MENTION = '/home/morderith/Corvus/CStar/.agents/config.json';
+const SECOND_TARGET = CSTAR_TARGET.replace(/AGENTS\.md$/, 'package.json');
+const SECRET_PATH_MENTION = CSTAR_TARGET.replace(/AGENTS\.md$/, '.agents/config.json');
 
 afterEach(cleanupOperatorAuthorizationFixtures);
 
@@ -92,5 +93,17 @@ describe('exact Forge operator scope binding', () => {
         });
         assert.deepEqual(verified.authorized_paths.sort(), [CSTAR_TARGET, SECOND_TARGET].sort());
         assert.equal(verified.authorized_paths.includes(SECRET_PATH_MENTION), false);
+    });
+
+    it('rejects a lookalike root prefix instead of extracting a shorter authorized path', async () => {
+        const lookalikeTarget = `${path.dirname(CSTAR_TARGET)}-lookalike${path.sep}AGENTS.md`;
+        const fixture = createSession({ textParts: [
+            `Corvus CStar 5.6. I authorize you to complete the audit in full through Hermes M3 for ${TEST_BEAD_ID} and ${TEST_DECISION_ID}, with zero retries, synthetic fixtures only, no live source collection, package-lock SHA-256 ${TEST_PACKAGE_LOCK_SHA256}, targeting exactly ${lookalikeTarget}.`,
+        ] });
+
+        await assert.rejects(
+            verifyOperatorAuthorization(fixture.reference, validScope(fixture.threadId)),
+            /operator_authorization_explicit_target_manifest_missing/,
+        );
     });
 });

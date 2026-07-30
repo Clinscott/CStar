@@ -215,7 +215,7 @@ describe('connection-bound Codex operator authorization', () => {
         await assert.rejects(
             verifyOperatorAuthorization(differentTarget.reference, {
                 ...validScope(differentTarget.threadId),
-                target_paths: ['/home/morderith/Corvus/CStar/package.json'],
+                target_paths: [CSTAR_TARGET.replace(/AGENTS\.md$/, 'package.json')],
             }),
             /operator_authorization_target_manifest_mismatch/,
         );

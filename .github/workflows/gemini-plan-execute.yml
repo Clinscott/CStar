@@ -45,7 +45,6 @@ jobs:
           persist-credentials: false
 
       - name: 'Prepare bounded planning context'
-        uses: 'actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd' # ratchet:actions/github-script@v8.0.0
         env:
           TITLE: '${{ github.event.pull_request.title || github.event.issue.title }}'
           DESCRIPTION: '${{ github.event.pull_request.body || github.event.issue.body }}'
@@ -54,24 +53,24 @@ jobs:
           ISSUE_NUMBER: '${{ github.event.pull_request.number || github.event.issue.number }}'
           REPOSITORY: '${{ github.repository }}'
           ADDITIONAL_CONTEXT: '${{ inputs.additional_context }}'
-        with:
-          github-token: ''
-          script: |-
-            const fs = require('fs');
-            fs.mkdirSync('.gemini', { recursive: true });
-            const contextData = {
-              title: process.env.TITLE || '',
-              description: process.env.DESCRIPTION || '',
-              event_name: process.env.EVENT_NAME || '',
-              is_pull_request: process.env.IS_PULL_REQUEST === 'true',
-              issue_number: Number(process.env.ISSUE_NUMBER || 0),
-              repository: process.env.REPOSITORY || '',
-              additional_context: process.env.ADDITIONAL_CONTEXT || '',
-            };
-            fs.writeFileSync('.gemini/context.json', JSON.stringify(contextData), {
-              encoding: 'utf8',
-              mode: 0o600,
-            });
+        run: |-
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          fs.mkdirSync('.gemini', { recursive: true });
+          const contextData = {
+            title: process.env.TITLE || '',
+            description: process.env.DESCRIPTION || '',
+            event_name: process.env.EVENT_NAME || '',
+            is_pull_request: process.env.IS_PULL_REQUEST === 'true',
+            issue_number: Number(process.env.ISSUE_NUMBER || 0),
+            repository: process.env.REPOSITORY || '',
+            additional_context: process.env.ADDITIONAL_CONTEXT || '',
+          };
+          fs.writeFileSync('.gemini/context.json', JSON.stringify(contextData), {
+            encoding: 'utf8',
+            mode: 0o600,
+          });
+          NODE
 
       - name: 'Run Gemini plan and execute'
         uses: 'google-github-actions/run-gemini-cli@v0' # ratchet:exclude

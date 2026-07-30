@@ -3,7 +3,9 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-export const CSTAR_TARGET = '/home/morderith/Corvus/CStar/AGENTS.md';
+import { CODE_ROOT } from '../../../src/tools/cstar-kernel-mcp/contracts/runtime.js';
+
+export const CSTAR_TARGET = path.join(CODE_ROOT, 'AGENTS.md');
 export const TEST_BEAD_ID = 'bead:repair:test-exact-authorization';
 export const TEST_DECISION_ID = 'decision:test-exact-authorization';
 export const TEST_PACKAGE_LOCK_SHA256 = 'a'.repeat(64);
@@ -166,7 +168,7 @@ export function validScope(threadId: string) {
 }
 
 export function restoreEnv(name: string, value: string | undefined): void {
-    if (value === undefined) delete process.env[name];
+    if (value === undefined) Reflect.deleteProperty(process.env, name);
     else process.env[name] = value;
 }
 
@@ -188,5 +190,5 @@ export function validRequestContext(threadId: string, turnId: string, overrides:
 export function cleanupOperatorAuthorizationFixtures(): void {
     if (originalCodexHome === undefined) delete process.env.CODEX_HOME;
     else process.env.CODEX_HOME = originalCodexHome;
-    while (roots.length > 0) fs.rmSync(roots.pop()!, { recursive: true, force: true });
+    while (roots.length > 0) fs.rmSync(roots.pop() as string, { recursive: true, force: true });
 }

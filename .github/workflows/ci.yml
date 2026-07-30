@@ -44,6 +44,12 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install -r requirements.txt
 
+    - name: Install Bubblewrap runtime
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install --yes bubblewrap
+
     - name: Bind the selected Python executable
       run: python -c "import os, sys; open(os.environ['GITHUB_ENV'], 'a', encoding='utf-8').write('CSTAR_PYTHON_EXECUTABLE=' + sys.executable + '\n')"
         

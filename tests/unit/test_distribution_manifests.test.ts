@@ -10,6 +10,21 @@ import {
     writeDistributions,
 } from '../../src/packaging/distributions.js';
 
+const GENERATED_DISTRIBUTION_PATHS = [
+    'gemini-extension.json',
+    'GEMINI.md',
+    'plugins/corvus-star/.codex-plugin/plugin.json',
+    'plugins/corvus-star/skills/corvus-star/SKILL.md',
+    'plugins/corvus-star/README.md',
+    'plugins/corvus-star/lineage.json',
+    '.agents/plugins/marketplace.json',
+    'distributions/README.md',
+] as const;
+
+function portablePath(relativePath: string): string {
+    return relativePath.replaceAll('\\', '/');
+}
+
 function createProjectRoot(): string {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-distributions-'));
     fs.mkdirSync(path.join(root, '.agents'), { recursive: true });
@@ -128,17 +143,8 @@ describe('distribution generator', () => {
             false,
         );
         assert.deepEqual(
-            build.files.map((file) => file.relativePath),
-            [
-                'gemini-extension.json',
-                'GEMINI.md',
-                path.join('plugins', 'corvus-star', '.codex-plugin', 'plugin.json'),
-                path.join('plugins', 'corvus-star', 'skills', 'corvus-star', 'SKILL.md'),
-                path.join('plugins', 'corvus-star', 'README.md'),
-                path.join('plugins', 'corvus-star', 'lineage.json'),
-                path.join('.agents', 'plugins', 'marketplace.json'),
-                path.join('distributions', 'README.md'),
-            ],
+            build.files.map((file) => portablePath(file.relativePath)),
+            GENERATED_DISTRIBUTION_PATHS,
         );
     });
 
@@ -272,6 +278,43 @@ describe('distribution generator', () => {
 
     it('keeps checked-in distribution materializations synchronized', () => {
         assert.deepEqual(validateDistributions(process.cwd()), []);
+    });
+
+    it('pins every generated materialization to LF and emits no CR bytes', () => {
+        const projectRoot = createProjectRoot();
+        const build = buildDistributions(projectRoot);
+        const generatedPaths = build.files.map((file) => portablePath(file.relativePath));
+        const attributes = fs.readFileSync(path.join(process.cwd(), '.gitattributes'), 'utf-8');
+
+        assert.equal(attributes.includes('\r'), false);
+        assert.deepEqual(
+            attributes.trimEnd().split('\n'),
+            generatedPaths.map((relativePath) => `${relativePath} text eol=lf`),
+        );
+        assert.deepEqual(generatedPaths, GENERATED_DISTRIBUTION_PATHS);
+
+        for (const file of build.files) {
+            assert.equal(
+                Buffer.from(file.content, 'utf-8').includes(0x0d),
+                false,
+                `${file.relativePath} generator output contains CR bytes`,
+            );
+            assert.equal(
+                fs.readFileSync(path.join(process.cwd(), file.relativePath)).includes(0x0d),
+                false,
+                `${file.relativePath} materialization contains CR bytes`,
+            );
+        }
+    });
+
+    it('keeps exact-byte validation strict for CRLF drift', () => {
+        const projectRoot = createProjectRoot();
+        writeDistributions(projectRoot);
+        const target = path.join(projectRoot, 'GEMINI.md');
+        const content = fs.readFileSync(target, 'utf-8');
+        fs.writeFileSync(target, content.replaceAll('\n', '\r\n'), 'utf-8');
+
+        assert.deepEqual(validateDistributions(projectRoot), ['GEMINI.md: stale']);
     });
 
     it('does not rewrite already synchronized materializations', () => {

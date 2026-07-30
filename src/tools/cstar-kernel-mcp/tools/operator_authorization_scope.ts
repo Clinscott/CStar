@@ -2,9 +2,25 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import type { McpRequestContext } from '../contracts/request_context.js';
+import { CODE_ROOT } from '../contracts/runtime.js';
 
-const CSTAR_AUTHORIZATION_ROOT = '/home/morderith/Corvus/CStar';
-const CSTAR_ABSOLUTE_PATH_PATTERN = /\/home\/morderith\/Corvus\/CStar(?:\/[^\s<>"'`]+)?/g;
+/**
+ * Escape a validated literal before embedding it in a regular expression.
+ *
+ * @param value - Literal value to escape.
+ * @returns The escaped regular-expression source.
+ */
+function escapeRegexLiteral(value: string): string {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+const CSTAR_PATH_SUFFIX_PATTERN = /(?:[\\/][^\s<>"'`]+)?/.source;
+const CSTAR_PATH_TOKEN_BOUNDARY = String.raw`A-Za-z0-9._~+\\/:-`;
+const CSTAR_ABSOLUTE_PATH_PATTERN = new RegExp(
+    `(?<![${CSTAR_PATH_TOKEN_BOUNDARY}])${escapeRegexLiteral(CODE_ROOT)}`
+    + `${CSTAR_PATH_SUFFIX_PATTERN}(?![${CSTAR_PATH_TOKEN_BOUNDARY}])`,
+    'g',
+);
 const POSITIVE_TARGET_MANIFEST_PATTERN = /\b(?:targeting|targets?|writes?\s+limited)\s+exactly(?:\s+to)?\b\s*:?\s*/ig;
 const PACKAGE_LOCK_SHA256_PATTERN = /\bpackage[-\s]?lock(?:\s+sha(?:-?256)?)?\s*(?:[:=]\s*)?([a-f0-9]{64})\b/ig;
 const SAFE_BOUND_IDENTIFIER = /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,255}$/;
@@ -80,7 +96,7 @@ function extractExplicitAuthorizationPaths(text: string): string[] {
 }
 
 function assertTargetsExplicitlyAuthorized(targets: string[], authorizedPaths: string[]): void {
-    const canonicalRoot = fs.realpathSync(CSTAR_AUTHORIZATION_ROOT);
+    const canonicalRoot = fs.realpathSync(CODE_ROOT);
     const canonicalAuthorized = new Set(authorizedPaths.map((candidate) => {
         const canonical = canonicalProspectivePath(candidate);
         if (!isInside(canonical, canonicalRoot)) {
@@ -104,7 +120,8 @@ function assertTargetsExplicitlyAuthorized(targets: string[], authorizedPaths: s
 function extractPackageLockSha256s(text: string): string[] {
     return [...new Set(
         [...text.matchAll(PACKAGE_LOCK_SHA256_PATTERN)]
-            .map((match) => match[1]!.toLowerCase()),
+            .map((match) => match[1]?.toLowerCase())
+            .filter((digest): digest is string => Boolean(digest)),
     )].sort();
 }
 
@@ -115,8 +132,8 @@ function assertBoundIdentifier(text: string, value: string | undefined, label: s
     }
     let index = text.indexOf(literal);
     while (index >= 0) {
-        const before = index === 0 ? '' : text[index - 1]!;
-        const after = index + literal.length >= text.length ? '' : text[index + literal.length]!;
+        const before = text.charAt(index - 1);
+        const after = text.charAt(index + literal.length);
         if (!/[A-Za-z0-9._:/-]/.test(before) && !/[A-Za-z0-9._:/-]/.test(after)) return literal;
         index = text.indexOf(literal, index + 1);
     }
