@@ -8,7 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 CI = ROOT / ".github" / "workflows" / "ci.yml"
 PACKAGE = ROOT / "package.json"
-PORTABLE_HOST_NODE_TESTS = [
+MACOS_NODE_TESTS = [
     "tests/node/cli_bootstrap.test.ts",
     "tests/unit/cstar-kernel-mcp/test_augury_bead_result.test.ts",
     "tests/unit/cstar-kernel-mcp/test_codex_request_identity.test.ts",
@@ -23,6 +23,15 @@ PORTABLE_HOST_NODE_TESTS = [
     "tests/unit/test_release_archives.test.ts",
     "tests/unit/test_release_bundles.test.ts",
     "tests/unit/test_repository_verification_authority.test.ts",
+]
+WINDOWS_NODE_TESTS = [
+    "tests/node/cli_bootstrap.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_forge_adapter_runtime_portability.test.ts",
+    "tests/unit/test_distribution_manifests.test.ts",
+    "tests/unit/test_path_registry.test.ts",
+    "tests/unit/test_persona_runtime_neutrality.test.ts",
+    "tests/unit/test_release_archives.test.ts",
+    "tests/unit/test_release_bundles.test.ts",
 ]
 PYTHON_SUITE = (
     "node scripts/run-python.mjs -m pytest tests/test_*.py tests/unit "
@@ -66,11 +75,30 @@ def test_ci_uses_the_validated_lock_and_explicit_python_executable() -> None:
     assert r".venv\\Scripts" not in workflow
 
 
+def test_ci_binds_all_temp_variables_to_the_runner_owned_root() -> None:
+    workflow = CI.read_text(encoding="utf-8")
+    job_start = workflow.index("  build:\n")
+    strategy_start = workflow.index("    strategy:\n", job_start)
+    job_preamble = workflow[job_start:strategy_start]
+
+    assert job_preamble.strip().splitlines() == [
+        "build:",
+        "    runs-on: ${{ matrix.os }}",
+        "    env:",
+        "      TEMP: ${{ runner.temp }}",
+        "      TMP: ${{ runner.temp }}",
+        "      TMPDIR: ${{ runner.temp }}",
+    ]
+    assert workflow.count("TEMP: ${{ runner.temp }}") == 1
+    assert workflow.count("TMP: ${{ runner.temp }}") == 1
+    assert workflow.count("TMPDIR: ${{ runner.temp }}") == 1
+
+
 def test_ci_prepares_a_sealed_forge_runtime_only_for_linux_tests() -> None:
     workflow = CI.read_text(encoding="utf-8")
     fixture_start = workflow.index("- name: Prepare sealed Forge test runtime")
     test_start = workflow.index(
-        "- name: Test complete unified suite (Node & Python, Linux)"
+        "- name: Test complete authority/runtime suite (Node & Python, Linux/WSL)"
     )
     fixture = workflow[fixture_start:test_start]
 
@@ -95,53 +123,75 @@ def test_ci_prepares_a_sealed_forge_runtime_only_for_linux_tests() -> None:
 def test_ci_keeps_complete_unified_coverage_on_linux() -> None:
     workflow = CI.read_text(encoding="utf-8")
     linux_start = workflow.index(
-        "- name: Test complete unified suite (Node & Python, Linux)"
+        "- name: Test complete authority/runtime suite (Node & Python, Linux/WSL)"
     )
-    portable_start = workflow.index(
-        "- name: Test portable-host contracts (Node)"
+    macos_start = workflow.index(
+        "- name: Test broad portable contracts (Node, macOS)"
     )
-    linux_step = workflow[linux_start:portable_start]
+    linux_step = workflow[linux_start:macos_start]
 
     assert linux_step.strip().splitlines() == [
-        "- name: Test complete unified suite (Node & Python, Linux)",
+        "- name: Test complete authority/runtime suite (Node & Python, Linux/WSL)",
         "      if: runner.os == 'Linux'",
         "      run: npm test",
     ]
 
 
-def test_ci_routes_the_exact_serial_node_suite_to_both_portable_hosts() -> None:
+def test_ci_routes_the_exact_serial_node_suite_to_macos() -> None:
     workflow = CI.read_text(encoding="utf-8")
-    flag = "CSTAR_HALL_STORE_WINDOWS_CI_TEST_ONLY"
-    portable_start = workflow.index(
-        "- name: Test portable-host contracts (Node)"
+    macos_start = workflow.index(
+        "- name: Test broad portable contracts (Node, macOS)"
     )
-    python_start = workflow.index(
-        "- name: Test configured Python suite (portable hosts)"
+    windows_start = workflow.index(
+        "- name: Test native Windows compatibility subset "
+        "(Node, no authority/runtime)"
     )
-    portable_step = workflow[portable_start:python_start]
-    command_start = portable_step.index("      run: >-\n") + len(
+    macos_step = workflow[macos_start:windows_start]
+    command_start = macos_step.index("      run: >-\n") + len(
         "      run: >-\n"
     )
-    command_end = portable_step.index("      env:\n")
     command = " ".join(
         line.strip()
-        for line in portable_step[command_start:command_end].splitlines()
+        for line in macos_step[command_start:].strip().splitlines()
     )
     expected_command = " ".join(
         [
             "node scripts/run-tsx.mjs --test --test-concurrency=1",
-            *PORTABLE_HOST_NODE_TESTS,
+            *MACOS_NODE_TESTS,
         ]
     )
 
-    assert "if: runner.os != 'Linux'" in portable_step
+    assert "if: runner.os == 'macOS'" in macos_step
     assert command == expected_command
-    assert portable_step.rstrip().endswith(
-        "      env:\n"
-        "        CSTAR_HALL_STORE_WINDOWS_CI_TEST_ONLY: "
-        "${{ runner.os == 'Windows' && '1' || '0' }}"
+
+
+def test_ci_routes_only_the_exact_compatibility_subset_to_windows() -> None:
+    workflow = CI.read_text(encoding="utf-8")
+    windows_start = workflow.index(
+        "- name: Test native Windows compatibility subset "
+        "(Node, no authority/runtime)"
     )
-    assert workflow.count(flag) == 1
+    python_start = workflow.index(
+        "- name: Test configured Python suite (portable hosts)"
+    )
+    windows_step = workflow[windows_start:python_start]
+    command_start = windows_step.index("      run: >-\n") + len(
+        "      run: >-\n"
+    )
+    command = " ".join(
+        line.strip()
+        for line in windows_step[command_start:].strip().splitlines()
+    )
+    expected_command = " ".join(
+        [
+            "node scripts/run-tsx.mjs --test --test-concurrency=1",
+            *WINDOWS_NODE_TESTS,
+        ]
+    )
+
+    assert "if: runner.os == 'Windows'" in windows_step
+    assert command == expected_command
+    assert "CSTAR_HALL_STORE_WINDOWS_CI_TEST_ONLY" not in workflow
 
 
 def test_ci_runs_the_configured_python_suite_on_portable_hosts() -> None:

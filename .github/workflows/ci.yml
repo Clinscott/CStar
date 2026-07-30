@@ -9,6 +9,10 @@ on:
 jobs:
   build:
     runs-on: ${{ matrix.os }}
+    env:
+      TEMP: ${{ runner.temp }}
+      TMP: ${{ runner.temp }}
+      TMPDIR: ${{ runner.temp }}
     strategy:
       fail-fast: false
       matrix:
@@ -80,12 +84,12 @@ jobs:
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
         fi
         
-    - name: Test complete unified suite (Node & Python, Linux)
+    - name: Test complete authority/runtime suite (Node & Python, Linux/WSL)
       if: runner.os == 'Linux'
       run: npm test
 
-    - name: Test portable-host contracts (Node)
-      if: runner.os != 'Linux'
+    - name: Test broad portable contracts (Node, macOS)
+      if: runner.os == 'macOS'
       run: >-
         node scripts/run-tsx.mjs --test --test-concurrency=1
         tests/node/cli_bootstrap.test.ts
@@ -102,8 +106,18 @@ jobs:
         tests/unit/test_release_archives.test.ts
         tests/unit/test_release_bundles.test.ts
         tests/unit/test_repository_verification_authority.test.ts
-      env:
-        CSTAR_HALL_STORE_WINDOWS_CI_TEST_ONLY: ${{ runner.os == 'Windows' && '1' || '0' }}
+
+    - name: Test native Windows compatibility subset (Node, no authority/runtime)
+      if: runner.os == 'Windows'
+      run: >-
+        node scripts/run-tsx.mjs --test --test-concurrency=1
+        tests/node/cli_bootstrap.test.ts
+        tests/unit/cstar-kernel-mcp/test_forge_adapter_runtime_portability.test.ts
+        tests/unit/test_distribution_manifests.test.ts
+        tests/unit/test_path_registry.test.ts
+        tests/unit/test_persona_runtime_neutrality.test.ts
+        tests/unit/test_release_archives.test.ts
+        tests/unit/test_release_bundles.test.ts
 
     - name: Test configured Python suite (portable hosts)
       if: runner.os != 'Linux'
