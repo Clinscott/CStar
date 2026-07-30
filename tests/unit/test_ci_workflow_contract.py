@@ -37,6 +37,12 @@ PYTHON_SUITE = (
     "node scripts/run-python.mjs -m pytest tests/test_*.py tests/unit "
     "tests/integration tests/contracts tests/empire_tests tests/crucible"
 )
+TEMP_ENV_LINES = [
+    "      env:",
+    "        TEMP: ${{ runner.temp }}",
+    "        TMP: ${{ runner.temp }}",
+    "        TMPDIR: ${{ runner.temp }}",
+]
 
 
 def test_ci_uses_the_validated_lock_and_explicit_python_executable() -> None:
@@ -80,18 +86,32 @@ def test_ci_binds_all_temp_variables_to_the_runner_owned_root() -> None:
     job_start = workflow.index("  build:\n")
     strategy_start = workflow.index("    strategy:\n", job_start)
     job_preamble = workflow[job_start:strategy_start]
+    macos_start = workflow.index(
+        "- name: Test broad portable contracts (Node, macOS)"
+    )
+    windows_start = workflow.index(
+        "- name: Test native Windows compatibility subset "
+        "(Node, no authority/runtime)"
+    )
+    python_start = workflow.index(
+        "- name: Test configured Python suite (portable hosts)"
+    )
+    portable_steps = [
+        workflow[macos_start:windows_start],
+        workflow[windows_start:python_start],
+        workflow[python_start:],
+    ]
 
     assert job_preamble.strip().splitlines() == [
         "build:",
         "    runs-on: ${{ matrix.os }}",
-        "    env:",
-        "      TEMP: ${{ runner.temp }}",
-        "      TMP: ${{ runner.temp }}",
-        "      TMPDIR: ${{ runner.temp }}",
     ]
-    assert workflow.count("TEMP: ${{ runner.temp }}") == 1
-    assert workflow.count("TMP: ${{ runner.temp }}") == 1
-    assert workflow.count("TMPDIR: ${{ runner.temp }}") == 1
+    assert "runner.temp" not in job_preamble
+    for step in portable_steps:
+        assert step.rstrip().splitlines()[-4:] == TEMP_ENV_LINES
+    assert workflow.count("TEMP: ${{ runner.temp }}") == 3
+    assert workflow.count("TMP: ${{ runner.temp }}") == 3
+    assert workflow.count("TMPDIR: ${{ runner.temp }}") == 3
 
 
 def test_ci_prepares_a_sealed_forge_runtime_only_for_linux_tests() -> None:
@@ -150,9 +170,10 @@ def test_ci_routes_the_exact_serial_node_suite_to_macos() -> None:
     command_start = macos_step.index("      run: >-\n") + len(
         "      run: >-\n"
     )
+    command_end = macos_step.index("      env:\n")
     command = " ".join(
         line.strip()
-        for line in macos_step[command_start:].strip().splitlines()
+        for line in macos_step[command_start:command_end].strip().splitlines()
     )
     expected_command = " ".join(
         [
@@ -178,9 +199,10 @@ def test_ci_routes_only_the_exact_compatibility_subset_to_windows() -> None:
     command_start = windows_step.index("      run: >-\n") + len(
         "      run: >-\n"
     )
+    command_end = windows_step.index("      env:\n")
     command = " ".join(
         line.strip()
-        for line in windows_step[command_start:].strip().splitlines()
+        for line in windows_step[command_start:command_end].strip().splitlines()
     )
     expected_command = " ".join(
         [
@@ -206,6 +228,7 @@ def test_ci_runs_the_configured_python_suite_on_portable_hosts() -> None:
         "- name: Test configured Python suite (portable hosts)",
         "      if: runner.os != 'Linux'",
         "      run: npm run test:python",
+        *TEMP_ENV_LINES,
     ]
     assert package["scripts"]["test:python"] == PYTHON_SUITE
     assert "tests/quarantine" not in PYTHON_SUITE

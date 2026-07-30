@@ -9,10 +9,6 @@ on:
 jobs:
   build:
     runs-on: ${{ matrix.os }}
-    env:
-      TEMP: ${{ runner.temp }}
-      TMP: ${{ runner.temp }}
-      TMPDIR: ${{ runner.temp }}
     strategy:
       fail-fast: false
       matrix:
@@ -106,6 +102,10 @@ jobs:
         tests/unit/test_release_archives.test.ts
         tests/unit/test_release_bundles.test.ts
         tests/unit/test_repository_verification_authority.test.ts
+      env:
+        TEMP: ${{ runner.temp }}
+        TMP: ${{ runner.temp }}
+        TMPDIR: ${{ runner.temp }}
 
     - name: Test native Windows compatibility subset (Node, no authority/runtime)
       if: runner.os == 'Windows'
@@ -118,7 +118,15 @@ jobs:
         tests/unit/test_persona_runtime_neutrality.test.ts
         tests/unit/test_release_archives.test.ts
         tests/unit/test_release_bundles.test.ts
+      env:
+        TEMP: ${{ runner.temp }}
+        TMP: ${{ runner.temp }}
+        TMPDIR: ${{ runner.temp }}
 
     - name: Test configured Python suite (portable hosts)
       if: runner.os != 'Linux'
       run: npm run test:python
+      env:
+        TEMP: ${{ runner.temp }}
+        TMP: ${{ runner.temp }}
+        TMPDIR: ${{ runner.temp }}
