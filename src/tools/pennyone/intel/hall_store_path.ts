@@ -12,7 +12,17 @@ export interface HallStorePath {
     created: boolean;
 }
 
-function currentUid(): number {
+const WINDOWS_CI_TEST_FLAG = 'CSTAR_HALL_STORE_WINDOWS_CI_TEST_ONLY';
+
+function allowUnverifiedWindowsCiTestPermissions(): boolean {
+    // Test execution only: this does not assert Windows owner or DACL safety.
+    return process.platform === 'win32'
+        && Boolean(process.env.NODE_TEST_CONTEXT)
+        && process.env[WINDOWS_CI_TEST_FLAG] === '1';
+}
+
+function currentUid(): number | null {
+    if (typeof process.getuid !== 'function' && allowUnverifiedWindowsCiTestPermissions()) return null;
     if (typeof process.getuid !== 'function') throw new Error('hall_store_owner_check_unavailable');
     return process.getuid();
 }
@@ -30,7 +40,9 @@ function assertIdentity(actual: fs.Stats, expected: FileIdentity, error: string)
 }
 
 function assertOwnedNotWritableByOthers(stat: fs.Stats, prefix: string): void {
-    if (stat.uid !== currentUid()) throw new Error(`${prefix}_owner_mismatch`);
+    const uid = currentUid();
+    if (uid === null) return;
+    if (stat.uid !== uid) throw new Error(`${prefix}_owner_mismatch`);
     if ((stat.mode & 0o022) !== 0) throw new Error(`${prefix}_permissions_unsafe`);
 }
 
@@ -64,7 +76,8 @@ function createPrivateHallStore(dbPath: string): fs.Stats {
         descriptor = fs.openSync(dbPath, flags, 0o600);
         const stat = fs.fstatSync(descriptor);
         if (!stat.isFile() || stat.nlink !== 1) throw new Error('hall_store_creation_unsafe');
-        if (stat.uid !== currentUid() || (stat.mode & 0o777) !== 0o600) {
+        const uid = currentUid();
+        if (uid !== null && (stat.uid !== uid || (stat.mode & 0o777) !== 0o600)) {
             throw new Error('hall_store_creation_permissions_unsafe');
         }
         return stat;

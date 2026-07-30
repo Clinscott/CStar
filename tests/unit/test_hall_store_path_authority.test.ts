@@ -9,14 +9,56 @@ import {
     database,
     getDb as getLegacyDb,
 } from '../../src/tools/pennyone/intel/database.js';
+import {
+    resolveHallRootPath,
+    resolveHallStorePath,
+} from '../../src/tools/pennyone/intel/hall_store_path.js';
 
 const RETIRED_ALIAS = 'legacy_hall_writable_facade_retired_use_explicit_kernel_controller';
+const WINDOWS_CI_TEST_FLAG = 'CSTAR_HALL_STORE_WINDOWS_CI_TEST_ONLY';
 const roots: string[] = [];
 
 function temporaryRoot(prefix: string): string {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
     roots.push(root);
     return root;
+}
+
+function restoreEnv(name: string, value: string | undefined): void {
+    if (value === undefined) delete process.env[name];
+    else process.env[name] = value;
+}
+
+function withUnavailableUid(
+    platform: NodeJS.Platform,
+    env: { nodeTestContext?: string; windowsCiTestFlag?: string },
+    run: () => void,
+): void {
+    const platformDescriptor = Object.getOwnPropertyDescriptor(process, 'platform')!;
+    const getuidDescriptor = Object.getOwnPropertyDescriptor(process, 'getuid');
+    const nodeTestContext = process.env.NODE_TEST_CONTEXT;
+    const windowsCiTestFlag = process.env[WINDOWS_CI_TEST_FLAG];
+    try {
+        Object.defineProperty(process, 'platform', {
+            ...platformDescriptor,
+            value: platform,
+        });
+        Object.defineProperty(process, 'getuid', {
+            configurable: true,
+            enumerable: true,
+            value: undefined,
+            writable: true,
+        });
+        restoreEnv('NODE_TEST_CONTEXT', env.nodeTestContext);
+        restoreEnv(WINDOWS_CI_TEST_FLAG, env.windowsCiTestFlag);
+        run();
+    } finally {
+        Object.defineProperty(process, 'platform', platformDescriptor);
+        if (getuidDescriptor) Object.defineProperty(process, 'getuid', getuidDescriptor);
+        else Reflect.deleteProperty(process, 'getuid');
+        restoreEnv('NODE_TEST_CONTEXT', nodeTestContext);
+        restoreEnv(WINDOWS_CI_TEST_FLAG, windowsCiTestFlag);
+    }
 }
 
 afterEach(() => {
@@ -27,6 +69,58 @@ afterEach(() => {
 });
 
 describe('Hall store path and facade authority', () => {
+    it('keeps production Windows fail-closed without either test gate', () => {
+        const root = temporaryRoot('cstar-hall-windows-production-');
+        withUnavailableUid('win32', {}, () => {
+            assert.throws(
+                () => resolveHallRootPath(root),
+                /hall_store_owner_check_unavailable/,
+            );
+        });
+    });
+
+    it('requires both Node test context and the exact Windows CI test flag', () => {
+        const root = temporaryRoot('cstar-hall-windows-gates-');
+        for (const env of [
+            { windowsCiTestFlag: '1' },
+            { nodeTestContext: 'child-v8' },
+            { nodeTestContext: 'child-v8', windowsCiTestFlag: 'true' },
+        ]) {
+            withUnavailableUid('win32', env, () => {
+                assert.throws(
+                    () => resolveHallRootPath(root),
+                    /hall_store_owner_check_unavailable/,
+                );
+            });
+        }
+    });
+
+    it('allows the unverified ownership seam only for dual-gated Windows CI tests', () => {
+        const root = temporaryRoot('cstar-hall-windows-ci-test-');
+        withUnavailableUid('win32', {
+            nodeTestContext: 'child-v8',
+            windowsCiTestFlag: '1',
+        }, () => {
+            assert.equal(resolveHallRootPath(root), path.resolve(root));
+            const store = resolveHallStorePath(root, true);
+            assert.equal(store.created, true);
+            assert.equal(store.dbPath, path.join(root, '.stats', 'pennyone.db'));
+        });
+    });
+
+    it('keeps the test seam unavailable outside Windows', () => {
+        const root = temporaryRoot('cstar-hall-non-windows-gate-');
+        withUnavailableUid('linux', {
+            nodeTestContext: 'child-v8',
+            windowsCiTestFlag: '1',
+        }, () => {
+            assert.throws(
+                () => resolveHallRootPath(root),
+                /hall_store_owner_check_unavailable/,
+            );
+        });
+    });
+
     it('retires both ambiguous writable aliases before creating state', () => {
         const root = temporaryRoot('cstar-hall-alias-');
         assert.throws(() => database.getDb(root), new RegExp(RETIRED_ALIAS));
@@ -93,7 +187,9 @@ describe('Hall store path and facade authority', () => {
         assert.equal(fs.readFileSync(sourceFile, 'utf8'), 'synthetic-not-a-database');
     });
 
-    it('rejects foreign-writable root, stats, and store permissions', () => {
+    it('rejects POSIX group- or other-writable root, stats, and store permissions', {
+        skip: process.platform === 'win32',
+    }, () => {
         const unsafeRoot = temporaryRoot('cstar-hall-root-mode-');
         fs.chmodSync(unsafeRoot, 0o777);
         assert.throws(() => database.getWritableDb(unsafeRoot), /hall_root_permissions_unsafe/);
@@ -150,8 +246,10 @@ describe('Hall store path and facade authority', () => {
 
         const writable = database.getWritableDb(root);
         const dbPath = path.join(root, '.stats', 'pennyone.db');
-        assert.equal(fs.statSync(path.join(root, '.stats')).mode & 0o777, 0o700);
-        assert.equal(fs.statSync(dbPath).mode & 0o777, 0o600);
+        if (process.platform !== 'win32') {
+            assert.equal(fs.statSync(path.join(root, '.stats')).mode & 0o777, 0o700);
+            assert.equal(fs.statSync(dbPath).mode & 0o777, 0o600);
+        }
         writable.prepare('SELECT 1 AS ok').get();
         database.close();
 

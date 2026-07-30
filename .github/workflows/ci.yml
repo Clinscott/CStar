@@ -67,6 +67,25 @@ jobs:
     - name: Prepare Release Artifacts
       if: runner.os == 'Linux'
       run: npm run release:prepare
+
+    - name: Prepare sealed Forge test runtime
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        sealed_runtime_dir="$RUNNER_TEMP/cstar-forge-runtime"
+        install -d -m 0700 "$sealed_runtime_dir"
+        install -m 0755 "$(command -v node)" "$sealed_runtime_dir/node"
+        echo "$sealed_runtime_dir" >> "$GITHUB_PATH"
+        if [[ -f /proc/sys/kernel/apparmor_restrict_unprivileged_userns ]]; then
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+        fi
         
     - name: Test Unified Suite (Node & Python)
+      if: runner.os != 'Windows'
       run: npm test
+
+    - name: Test Unified Suite (Node & Python, Windows Hall fixture)
+      if: runner.os == 'Windows'
+      run: npm test
+      env:
+        CSTAR_HALL_STORE_WINDOWS_CI_TEST_ONLY: '1'

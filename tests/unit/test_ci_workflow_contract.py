@@ -37,3 +37,48 @@ def test_ci_uses_the_validated_lock_and_explicit_python_executable() -> None:
     assert "sys.executable" in workflow
     assert ".venv/bin" not in workflow
     assert r".venv\\Scripts" not in workflow
+
+
+def test_ci_prepares_a_sealed_forge_runtime_only_for_linux_tests() -> None:
+    workflow = CI.read_text(encoding="utf-8")
+    fixture_start = workflow.index("- name: Prepare sealed Forge test runtime")
+    test_start = workflow.index("- name: Test Unified Suite (Node & Python)")
+    fixture = workflow[fixture_start:test_start]
+
+    assert "if: runner.os == 'Linux'" in fixture
+    assert 'sealed_runtime_dir="$RUNNER_TEMP/cstar-forge-runtime"' in fixture
+    assert 'install -d -m 0700 "$sealed_runtime_dir"' in fixture
+    assert (
+        'install -m 0755 "$(command -v node)" "$sealed_runtime_dir/node"'
+        in fixture
+    )
+    assert 'echo "$sealed_runtime_dir" >> "$GITHUB_PATH"' in fixture
+    assert (
+        "/proc/sys/kernel/apparmor_restrict_unprivileged_userns"
+        in fixture
+    )
+    assert (
+        "sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0"
+        in fixture
+    )
+
+
+def test_ci_scopes_the_hall_store_fixture_to_the_windows_test_step() -> None:
+    workflow = CI.read_text(encoding="utf-8")
+    flag = "CSTAR_HALL_STORE_WINDOWS_CI_TEST_ONLY"
+    default_test_start = workflow.index(
+        "- name: Test Unified Suite (Node & Python)\n"
+    )
+    windows_test_start = workflow.index(
+        "- name: Test Unified Suite (Node & Python, Windows Hall fixture)"
+    )
+    default_test = workflow[default_test_start:windows_test_start]
+    windows_test = workflow[windows_test_start:]
+
+    assert "if: runner.os != 'Windows'" in default_test
+    assert "run: npm test" in default_test
+    assert flag not in default_test
+    assert "if: runner.os == 'Windows'" in windows_test
+    assert "run: npm test" in windows_test
+    assert f"{flag}: '1'" in windows_test
+    assert workflow.count(flag) == 1
