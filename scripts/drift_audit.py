@@ -10,8 +10,10 @@ SRC_DIR = PROJECT_ROOT / "src"
 REPORT_PATH = PROJECT_ROOT / "docs" / "reports" / "DRIFT_REPORT.qmd"
 
 try:
+    from src.core.engine.gungnir.schema import is_canonical_gungnir_score
     from src.core.engine.gungnir.universal import UniversalGungnir
 except ImportError:
+    is_canonical_gungnir_score = None
     UniversalGungnir = None
 
 class DriftAuditor:
@@ -22,6 +24,25 @@ class DriftAuditor:
     def __init__(self):
         self.gungnir = UniversalGungnir() if UniversalGungnir else None
         self.ghost_files = []
+
+    def _score_file(self, file_path: Path) -> tuple[float, int]:
+        if self.gungnir is None:
+            return 0.0, 0
+
+        try:
+            code = file_path.read_text(encoding="utf-8")
+            breaches = self.gungnir.audit_logic(code, file_path.suffix)
+            matrix = self.gungnir.score_matrix(code, file_path.suffix)
+            score = float(matrix["overall"])
+            if (
+                is_canonical_gungnir_score is None
+                or not is_canonical_gungnir_score(score)
+            ):
+                raise ValueError("Drift Audit received a non-canonical Gungnir score")
+        except (KeyError, OSError, SyntaxError, TypeError, ValueError):
+            return 0.0, 0
+
+        return score, len(breaches)
 
     def run_audit(self):
         print("◤ INITIATING SYSTEM DRIFT AUDIT ◢")
@@ -47,20 +68,12 @@ class DriftAuditor:
                     
                     # Heuristic: does the filename (stem) match a skill name?
                     if file_path.stem.lower() not in skill_names:
-                        score = 0.0
-                        breaches = []
-                        if self.gungnir:
-                            try:
-                                code = file_path.read_text(encoding='utf-8')
-                                breaches = self.gungnir.audit_logic(code, file_path.suffix)
-                                score = max(0, 100 - (len(breaches) * 5))
-                            except Exception:
-                                score = 0.0
+                        score, breach_count = self._score_file(file_path)
                         
                         self.ghost_files.append({
                             "path": rel_path,
                             "score": score,
-                            "breaches": len(breaches)
+                            "breaches": breach_count
                         })
 
         self._generate_report()

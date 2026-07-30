@@ -222,7 +222,14 @@ function checkAudit(
     files: VerifiedMandateArtifact[],
     now: number,
 ): MandateLegReport {
-    const validationId = evidence.audit?.validation_id?.trim();
+    const audit = evidence.audit;
+    if (
+        !audit
+        || Object.keys(audit).some((key) => key !== 'validation_id')
+    ) {
+        return unsatisfied('audit', 'unsupported_audit_proof_fields');
+    }
+    const validationId = audit.validation_id?.trim();
     if (!validationId) return unsatisfied('audit', 'verified_validation_id_required');
     const run = database.getValidationRunById(validationId);
     const manifest = run?.evidence_manifest;

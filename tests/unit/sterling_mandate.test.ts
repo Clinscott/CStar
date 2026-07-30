@@ -368,7 +368,8 @@ describe('Sterling independent validation authority boundary', () => {
     it('rejects caller scalar scores, claimed Wardens, exemptions, and force-like evidence', () => {
         saveVerifiedValidation();
         for (const hostile of [
-            { ...evidence(), audit: { gungnir_score: 100 } },
+            { ...evidence(), audit: { ...evidence().audit, gungnir_score: 8 } },
+            { ...evidence(), audit: { ...evidence().audit, gungnir_score: 80 } },
             { ...evidence(), audit: { warden_results: [{ name: 'claimed', verdict: 'ACCEPTED' }] } },
             { mandate_exempt: true, exemption_reason: 'caller says so' },
             { force: true, force_reason: 'caller says so' },
