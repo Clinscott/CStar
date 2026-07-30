@@ -7,7 +7,8 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-CURRENT_SKILLS = {"corvus-forge", "researcher", "cstar-closeout"}
+DEFAULT_OPERATOR_SKILLS = {"corvus-forge", "researcher", "cstar-closeout"}
+COMPATIBILITY_SKILLS = {"calculus"}
 
 
 def _read(relative: str) -> str:
@@ -21,13 +22,32 @@ def _flat(text: str) -> str:
 def test_current_registry_and_docs_expose_only_three_agent_native_skills() -> None:
     registry = json.loads(_read(".agents/skill_registry.json"))
     entries = registry["entries"]
+    default_entries = {
+        name for name, entry in entries.items()
+        if entry["entry_surface"] == "host-only"
+    }
+    compatibility_entries = {
+        name for name, entry in entries.items()
+        if entry["entry_surface"] == "compatibility"
+    }
 
-    assert set(entries) == CURRENT_SKILLS
-    for entry in entries.values():
+    assert set(entries) == DEFAULT_OPERATOR_SKILLS | COMPATIBILITY_SKILLS
+    assert default_entries == DEFAULT_OPERATOR_SKILLS
+    assert compatibility_entries == COMPATIBILITY_SKILLS
+    for name in DEFAULT_OPERATOR_SKILLS:
+        entry = entries[name]
         assert entry["tier"] == "SKILL"
         assert entry["entry_surface"] == "host-only"
         assert entry["execution"]["mode"] == "agent-native"
         assert entry["owner_runtime"] == "host-agent"
+
+    calculus = entries["calculus"]
+    assert calculus["tier"] == "PRIME"
+    assert calculus["entry_surface"] == "compatibility"
+    assert calculus["execution"]["mode"] == "compatibility"
+    assert calculus["owner_runtime"] == "compatibility-library"
+    assert set(calculus["host_support"].values()) == {"unsupported"}
+    assert "not registered in the default operator catalog" in calculus["description"]
 
     for relative in (
         "docs/architecture/SKILL_REGISTRY.md",
@@ -36,8 +56,9 @@ def test_current_registry_and_docs_expose_only_three_agent_native_skills() -> No
         "docs/integrations/cstar_capability_discovery_api.md",
     ):
         text = _read(relative)
-        for skill in CURRENT_SKILLS:
+        for skill in DEFAULT_OPERATOR_SKILLS:
             assert f"`{skill}`" in text, (relative, skill)
+        assert "`calculus`" not in text, relative
 
 
 def test_current_architecture_docs_reject_legacy_execution_topology() -> None:

@@ -88,9 +88,13 @@ describe('CStar Forge provider evidence', () => {
         });
         assert.equal(result.status, 0, result.stderr || result.stdout);
         const proof = JSON.parse(result.stdout);
+        const manifest = JSON.parse(
+            fs.readFileSync(path.join(RUNTIME, 'manifest.json'), 'utf-8'),
+        );
         assert.equal(proof.runtime_owner, 'cstar');
         assert.equal(proof.credential_profile_owner, 'hermes');
-        assert.equal(proof.source_file_count, 5);
+        assert.ok(Array.isArray(manifest.source_files));
+        assert.equal(proof.source_file_count, manifest.source_files.length);
         assert.equal(proof.oauth_required_until_unix_ms, started + 2_100_000);
         assert.doesNotMatch(result.stdout + result.stderr, new RegExp(tokenCanary));
     });

@@ -21,6 +21,7 @@ const SOURCE_FILES = [
     'hermes_cli/forge_minimax_oauth.py',
     'hermes_cli/forge_provider_journal.py',
     'hermes_cli/forge_entrypoint.py',
+    'hermes_cli/forge_entrypoint_support.py',
 ];
 const MANIFEST_KEYS = [
     'allow_arbitrary_source_root',

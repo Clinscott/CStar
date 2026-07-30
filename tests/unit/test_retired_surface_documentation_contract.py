@@ -98,10 +98,12 @@ def test_legacy_authority_pointer_matches_the_kernel_only_boundary() -> None:
 
     for required in (
         "compatibility pointer only",
-        "PMTs are project-scoped information repositories only",
+        "Current repository instructions live in `AGENTS.md`",
+        "current `CODE_ROOT/.agents/AGENTS.feature` for situation routing",
+        "runbook named by its selected row",
+        "Do not copy procedures back into this file",
+        "PMTs are information-only",
         "MM has no active routing role",
-        "does not create lifecycle beads",
-        "fail closed before Hall, state, provider, process",
     ):
         assert required in flat_pointer
 
@@ -114,6 +116,9 @@ def test_legacy_authority_pointer_matches_the_kernel_only_boundary() -> None:
     ):
         assert stale not in pointer
 
+    assert pointer.startswith("# CStar Authority Pointer\n")
+    assert "## " not in pointer
+    assert len(pointer.splitlines()) <= 20
     assert "exact empty adapter inventory" in flat_weave_doc
     assert "direct `registerAdapter` calls cannot restore" in flat_weave_doc
     assert "Direct `DynamicCommandAdapter`, `UniversalAdapter`, and `PythonSkillAdapter`" in weave_doc

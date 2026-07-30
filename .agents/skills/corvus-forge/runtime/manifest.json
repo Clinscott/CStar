@@ -11,7 +11,8 @@
     "hermes_cli/forge_mode.py",
     "hermes_cli/forge_minimax_oauth.py",
     "hermes_cli/forge_provider_journal.py",
-    "hermes_cli/forge_entrypoint.py"
+    "hermes_cli/forge_entrypoint.py",
+    "hermes_cli/forge_entrypoint_support.py"
   ],
   "bootstrap_mode": "cstar_owned_python_system_stdlib_snapshot_v2",
   "dependency_mode": "stdlib_only_no_site_packages_v2",
