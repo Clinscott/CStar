@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ["3.10", "3.11", "3.12"]
 
     steps:
@@ -80,12 +80,31 @@ jobs:
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
         fi
         
-    - name: Test Unified Suite (Node & Python)
-      if: runner.os != 'Windows'
+    - name: Test complete unified suite (Node & Python, Linux)
+      if: runner.os == 'Linux'
       run: npm test
 
-    - name: Test Unified Suite (Node & Python, Windows Hall fixture)
-      if: runner.os == 'Windows'
-      run: npm test
+    - name: Test portable-host contracts (Node)
+      if: runner.os != 'Linux'
+      run: >-
+        node scripts/run-tsx.mjs --test --test-concurrency=1
+        tests/node/cli_bootstrap.test.ts
+        tests/unit/cstar-kernel-mcp/test_augury_bead_result.test.ts
+        tests/unit/cstar-kernel-mcp/test_codex_request_identity.test.ts
+        tests/unit/cstar-kernel-mcp/test_codex_session_locator_boundary.test.ts
+        tests/unit/cstar-kernel-mcp/test_forge_adapter_runtime_portability.test.ts
+        tests/unit/cstar-kernel-mcp/test_operator_authorization.test.ts
+        tests/unit/cstar-kernel-mcp/test_operator_authorization_scope_binding.test.ts
+        tests/unit/test_distribution_manifests.test.ts
+        tests/unit/test_hall_store_path_authority.test.ts
+        tests/unit/test_path_registry.test.ts
+        tests/unit/test_persona_runtime_neutrality.test.ts
+        tests/unit/test_release_archives.test.ts
+        tests/unit/test_release_bundles.test.ts
+        tests/unit/test_repository_verification_authority.test.ts
       env:
-        CSTAR_HALL_STORE_WINDOWS_CI_TEST_ONLY: '1'
+        CSTAR_HALL_STORE_WINDOWS_CI_TEST_ONLY: ${{ runner.os == 'Windows' && '1' || '0' }}
+
+    - name: Test configured Python suite (portable hosts)
+      if: runner.os != 'Linux'
+      run: npm run test:python
