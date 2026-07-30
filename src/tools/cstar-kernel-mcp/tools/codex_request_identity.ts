@@ -69,6 +69,10 @@ function optionalLineageFieldIsEmpty(value: unknown): boolean {
     return value === undefined || value === null || value === '';
 }
 
+function threadSourceIsCanonicalRoot(value: unknown): boolean {
+    return value === undefined || value === 'user';
+}
+
 export interface CanonicalCodexUserTurnAccumulator {
     consume(record: FixedCodexSessionRecord): void;
     finish(): CanonicalCodexUserTurn;
@@ -95,7 +99,7 @@ export function createCanonicalCodexUserTurnAccumulator(
 
         if (row.type === 'session_meta') {
             const canonical = payload?.id === expectedThreadId
-                && payload.thread_source === 'user'
+                && threadSourceIsCanonicalRoot(payload.thread_source)
                 && optionalLineageFieldIsEmpty(payload.parent_thread_id)
                 && optionalLineageFieldIsEmpty(payload.agent_path)
                 && optionalLineageFieldIsEmpty(payload.forked_from_id);

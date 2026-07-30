@@ -19,7 +19,7 @@ export const FORGE_AUTHORIZATION_SCHEMA = `
         operator_message_sha256 TEXT NOT NULL,
         operator_record_sha256 TEXT NOT NULL,
         operator_record_set_sha256 TEXT NOT NULL,
-        operator_record_count INTEGER NOT NULL CHECK(operator_record_count = 1),
+        operator_record_count INTEGER NOT NULL CHECK(operator_record_count >= 1),
         execution_grant_schema TEXT,
         execution_grant_sha256 TEXT,
         execution_grant_json TEXT,
@@ -85,6 +85,7 @@ function isCurrentAuthorizationSchema(
         && normalized.includes('authorization_binding_sha256 text not null')
         && normalized.includes('request_id text not null unique')
         && normalized.includes('operator_authorization_ref text not null unique')
+        && normalized.includes('operator_record_count integer not null check(operator_record_count >= 1)')
         && normalized.includes('unique(operator_thread_id, operator_turn_id)')
         && normalized.includes('authorization_binding_sha256 = challenge_sha256')
         && normalized.includes('challenge_sha256 is null')

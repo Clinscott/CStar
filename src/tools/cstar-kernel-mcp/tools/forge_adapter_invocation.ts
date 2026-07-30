@@ -26,6 +26,7 @@ import {
 import {
     prepareForgeWorkspaceProjection,
     projectForgeAdapterIntent,
+    FORGE_MODEL_MATERIAL_POLICY,
     type ForgeWorkspaceProjection,
 } from './forge_workspace_projection.js';
 import {
@@ -172,6 +173,7 @@ function buildForgeAdapterIntent(
         target_paths: args.target_paths ?? [],
         required_output_paths: args.required_output_paths ?? [],
         package_locks: args.package_locks ?? [],
+        material_policy: FORGE_MODEL_MATERIAL_POLICY,
         action_authority: actionAuthority,
         adapter_runtime: adapterRuntimeProof,
         hermes_preflight: hermesPreflight,
@@ -206,6 +208,7 @@ export async function prepareForgeHermesMinimaxAdapterInvocation(
     expectedHermesRuntime?: ForgeHermesRuntimeExpectation | null,
     preReservationHermesPreflight?: ForgeHermesPreflightProof | null,
     oauthHorizon?: ForgeOAuthHorizon | null,
+    sourceRoot = root,
 ): Promise<PreparedForgeAdapterInvocation> {
     const os = await import('node:os');
     const fsp = await import('node:fs/promises');
@@ -336,7 +339,7 @@ export async function prepareForgeHermesMinimaxAdapterInvocation(
             args,
             decisionId,
             executionReceiptId,
-            root,
+            sourceRoot,
             workerResponsePath,
             selectedAdapter,
             runtimeProof,
@@ -344,7 +347,7 @@ export async function prepareForgeHermesMinimaxAdapterInvocation(
         );
         const workspaceProjection = prepareForgeWorkspaceProjection(
             args,
-            root,
+            sourceRoot,
             String(canonicalIntent.project_root),
             temporaryDirectory,
         );

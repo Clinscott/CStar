@@ -5,6 +5,7 @@ export type {
     HallValidationEvidenceManifest,
     HallValidationEvidenceManifestV1,
     HallValidationEvidenceManifestV2,
+    HallValidationEvidenceManifestV3,
 } from './validation_evidence.js';
 
 export type HallRepositoryStatus = 'DORMANT' | 'AWAKE' | 'AGENT_LOOP';
@@ -144,7 +145,7 @@ export interface HallValidationRun {
     post_scores?: Record<string, unknown>;
     benchmark?: Record<string, unknown>;
     notes?: string;
-    authority_class?: 'reported' | 'verified' | 'verified_v2' | 'internal' | 'legacy_unverified';
+    authority_class?: 'reported' | 'verified' | 'verified_v2' | 'verified_v3' | 'internal' | 'legacy_unverified';
     evidence_sha256?: string;
     validator_identity?: string;
     validator_identity_source?: HallValidationEvidenceManifest['validator_identity_source'];

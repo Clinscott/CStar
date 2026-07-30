@@ -4,6 +4,7 @@ import path from 'node:path';
 import { readBoundedUtf8FileInside } from '../contracts/runtime.js';
 import type { McpRequestContext } from '../contracts/request_context.js';
 import {
+    type HallValidationEvidenceManifest,
     type HallValidationEvidenceManifestV2,
     hashValidationEvidenceManifest,
     VALIDATION_EVIDENCE_SHA256,
@@ -49,7 +50,7 @@ export interface ValidationEvidenceSubject {
 
 export interface VerifiedValidationEvidence {
     validator_identity: string;
-    validator_identity_source: 'codex_request_meta' | 'test_fixture';
+    validator_identity_source: 'codex_request_meta' | 'codex_subagent_receipt' | 'test_fixture';
     request_thread_id?: string;
     request_turn_id?: string;
     session_turn_record_sha256?: string;
@@ -58,16 +59,23 @@ export interface VerifiedValidationEvidence {
     session_turn_first_timestamp?: string;
     session_turn_timestamp?: string;
     evidence_sha256: string;
-    manifest: HallValidationEvidenceManifestV2;
+    manifest: HallValidationEvidenceManifest;
     artifact_paths: string[];
     artifact_hashes: string[];
     check_count: number;
 }
 
 const kernelVerifiedEvidence = new WeakMap<object, {
-    manifest: HallValidationEvidenceManifestV2;
+    manifest: HallValidationEvidenceManifest;
     evidence_sha256: string;
 }>();
+
+export function markKernelVerifiedValidationEvidence(evidence: VerifiedValidationEvidence): void {
+    kernelVerifiedEvidence.set(evidence, {
+        manifest: evidence.manifest,
+        evidence_sha256: evidence.evidence_sha256,
+    });
+}
 
 export function consumeKernelVerifiedValidationEvidence(
     evidence: VerifiedValidationEvidence | undefined,
@@ -228,9 +236,6 @@ export async function verifyValidationEvidence(
         artifact_hashes: artifacts.map((entry) => entry.sha256),
         check_count: checks.length,
     };
-    kernelVerifiedEvidence.set(verified, {
-        manifest,
-        evidence_sha256: verified.evidence_sha256,
-    });
+    markKernelVerifiedValidationEvidence(verified);
     return verified;
 }

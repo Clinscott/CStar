@@ -2,6 +2,7 @@ import Database from 'better-sqlite3';
 
 import { database } from './database.js';
 import { ensureForgeAuthorizationSchema } from './forge_authorization_schema.js';
+import { ensureForgeContinuationSchema } from './forge_continuation_controller.js';
 import { assertStableHallStoreIdentity, resolveHallStorePath } from './hall_store_path.js';
 
 interface HallDatabaseCompatibility {
@@ -41,6 +42,18 @@ export function ensureForgeActivationSchema(db: Database.Database): void {
             ['hall_forge_requests', 'authorization_challenge_sha256', 'TEXT'],
             ['hall_forge_attempts', 'validation_authority', 'TEXT'],
             ['hall_forge_attempts', 'validation_evidence_sha256', 'TEXT'],
+            ['hall_forge_attempts', 'attempt_budget_class', "TEXT NOT NULL DEFAULT 'provider_or_unknown'"],
+            ['hall_forge_attempts', 'provider_evidence_valid', 'INTEGER NOT NULL DEFAULT 0'],
+            ['hall_forge_attempts', 'provider_requests_started', 'INTEGER'],
+            ['hall_forge_attempts', 'provider_requests_completed', 'INTEGER'],
+            ['hall_forge_attempts', 'provider_requests_ambiguous', 'INTEGER'],
+            ['hall_forge_attempts', 'live_spend', 'INTEGER'],
+            ['hall_forge_attempts', 'live_spend_unknown', 'INTEGER NOT NULL DEFAULT 1'],
+            ['hall_forge_attempts', 'known_spend_observed', 'INTEGER NOT NULL DEFAULT 0'],
+            ['hall_forge_attempts', 'live_source_collection', 'INTEGER'],
+            ['hall_forge_attempts', 'workspace_commit_present', 'INTEGER'],
+            ['hall_forge_attempts', 'failure_evidence_sha256', 'TEXT'],
+            ['hall_forge_attempts', 'failure_signature_sha256', 'TEXT'],
             ['hall_forge_authorizations', 'execution_grant_schema', 'TEXT'],
             ['hall_forge_authorizations', 'execution_grant_sha256', 'TEXT'],
             ['hall_forge_authorizations', 'execution_grant_json', 'TEXT'],
@@ -52,6 +65,7 @@ export function ensureForgeActivationSchema(db: Database.Database): void {
         ] as const) {
             ensureColumn(db, table, column, declaration);
         }
+        ensureForgeContinuationSchema(db);
     }).immediate();
 }
 

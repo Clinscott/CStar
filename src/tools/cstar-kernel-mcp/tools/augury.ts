@@ -1,7 +1,7 @@
 import { registry } from '../../pennyone/pathRegistry.js';
 import { selectCouncilExpert } from '../../../core/council_experts.js';
 import { buildProjectedPersonaAdvice, type PersonaAdvice } from '../../../core/persona_advice.js';
-import { readHallPersonaProjection } from '../../pennyone/persona_projection.js';
+import { readActivePersonaProjectionState } from '../../pennyone/persona_projection.js';
 import {
     buildTraceAgentHandoffPayload,
     resolveActivePlanningSession,
@@ -304,9 +304,9 @@ export async function handleAugury({ prompt, inferred_intent, target_paths, scop
         };
 
         // Persona Advice — wires the active CStar persona into the Augury payload.
-        let personaProjection: ReturnType<typeof readHallPersonaProjection> | undefined;
+        let personaProjection: ReturnType<typeof readActivePersonaProjectionState> | undefined;
         try {
-            personaProjection = readHallPersonaProjection(root) ?? undefined;
+            personaProjection = readActivePersonaProjectionState(root);
         } catch {
             // Persona is optional projection context, never a reason for the
             // read-only routing surface to bootstrap or fail.
@@ -314,12 +314,20 @@ export async function handleAugury({ prompt, inferred_intent, target_paths, scop
         }
         const advice: PersonaAdvice | null = buildProjectedPersonaAdvice(
             resolvedIntentCategory,
-            personaProjection,
+            personaProjection?.active_persona ?? undefined,
+            personaProjection?.projection_status === 'bounded_config_projection'
+                ? 'bounded_active_persona_projection'
+                : 'hall_active_persona_projection',
         );
         if (advice) {
             result.persona_advice = advice;
         } else {
-            result.persona_freshness_gap = 'active_persona_projection_unavailable';
+            result.persona_freshness_gap = personaProjection?.projection_status
+                === 'bounded_config_invalid'
+                ? 'active_persona_configuration_invalid'
+                : personaProjection?.projection_status === 'bounded_config_reader_unavailable'
+                    ? 'active_persona_reader_unavailable'
+                    : 'active_persona_projection_unavailable';
         }
 
         result.token_path = buildTokenPathQuarantineStatus();

@@ -18,11 +18,15 @@ import {
     textResponse,
 } from '../contracts/responses.js';
 import type { McpRequestContext } from '../contracts/request_context.js';
-import { PROJECT_ROOT, logBootstrapError } from '../contracts/runtime.js';
+import { CODE_ROOT, PROJECT_ROOT, logBootstrapError } from '../contracts/runtime.js';
 import {
     verifyValidationEvidence,
     type ValidationEvidencePayload,
 } from './validation_evidence.js';
+import {
+    verifyHostWorkflowValidationEvidence,
+    type HostValidationReceiptInput,
+} from './host_workflow_validation.js';
 import { verifyCodexRequestIdentity } from './operator_authorization.js';
 import { saveValidationRunToDb } from './validation_run_store.js';
 
@@ -30,24 +34,25 @@ function isPositiveValidationVerdict(verdict: string): boolean {
     return verdict === 'ACCEPTED' || verdict === 'SUCCESS';
 }
 
-export async function handleRecordResult({ bead_id, verdict, notes, validation_id, forge_execution_receipt_id, validation_evidence }: {
+export async function handleRecordResult({ bead_id, verdict, notes, validation_id, forge_execution_receipt_id, host_validation_receipt, validation_evidence }: {
     bead_id: string,
     verdict: CStarValidationVerdict,
     notes?: string,
     validation_id?: string,
     forge_execution_receipt_id?: string,
+    host_validation_receipt?: HostValidationReceiptInput,
     validation_evidence?: ValidationEvidencePayload,
 }, requestContext?: McpRequestContext) {
     let requestIdentityVerified = false;
     try {
-        await verifyCodexRequestIdentity(requestContext);
+        const requestIdentity = await verifyCodexRequestIdentity(requestContext);
         requestIdentityVerified = true;
         let root = PROJECT_ROOT;
         let repoId = 'cstar';
         const validationId = validation_id?.trim()
             || `val-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
         let validationError: string | undefined;
-        let validationAuthority: 'reported' | 'verified_v2' = 'reported';
+        let validationAuthority: 'reported' | 'verified_v2' | 'verified_v3' = 'reported';
         let storedVerdict: CStarValidationVerdict = verdict;
         let verifiedEvidence: Awaited<ReturnType<typeof verifyValidationEvidence>> = null;
         let beadTargetPath: string | undefined;
@@ -73,6 +78,9 @@ export async function handleRecordResult({ bead_id, verdict, notes, validation_i
             repoId = bead.repo_id;
             beadTargetPath = bead.target_path;
             const forgeExecutionReceiptId = forge_execution_receipt_id?.trim();
+            if (forgeExecutionReceiptId && host_validation_receipt) {
+                throw new Error('validation_subject_kind_ambiguous');
+            }
             const forgeSubject = forgeExecutionReceiptId
                 ? resolveForgeValidationSubject(readHandle.db, {
                     execution_receipt_id: forgeExecutionReceiptId,
@@ -80,13 +88,28 @@ export async function handleRecordResult({ bead_id, verdict, notes, validation_i
                     bead_id,
                 }).subject
                 : undefined;
-            verifiedEvidence = await verifyValidationEvidence(
-                root,
-                validation_evidence,
-                requestContext,
-                forgeSubject,
-            );
-            validationAuthority = verifiedEvidence ? 'verified_v2' : 'reported';
+            verifiedEvidence = host_validation_receipt
+                ? verifyHostWorkflowValidationEvidence(
+                    CODE_ROOT,
+                    validation_evidence,
+                    host_validation_receipt,
+                    {
+                        repository_id: repoId,
+                        bead_id,
+                        target_path: beadTargetPath ?? null,
+                        validation_id: validationId,
+                        verdict,
+                    },
+                    requestIdentity,
+                )
+                : await verifyValidationEvidence(
+                    root,
+                    validation_evidence,
+                    requestContext,
+                    forgeSubject,
+                );
+            validationAuthority = verifiedEvidence?.manifest.schema === 'cstar.validation-evidence.v3'
+                ? 'verified_v3' : verifiedEvidence ? 'verified_v2' : 'reported';
             if (isPositiveValidationVerdict(verdict) && !verifiedEvidence) {
                 storedVerdict = 'INCONCLUSIVE';
             }
@@ -137,7 +160,8 @@ export async function handleRecordResult({ bead_id, verdict, notes, validation_i
         const response: Record<string, unknown> = {
             status: validationError || forgeValidationError
                 ? 'partial'
-                : validationAuthority === 'verified_v2' ? 'recorded_verified' : 'recorded_unverified',
+                : validationAuthority === 'verified_v2' || validationAuthority === 'verified_v3'
+                    ? 'recorded_verified' : 'recorded_unverified',
             bead_id,
             reported_verdict: verdict,
             stored_verdict: validationPersisted ? storedVerdict : null,
@@ -145,7 +169,8 @@ export async function handleRecordResult({ bead_id, verdict, notes, validation_i
             validation_id: validationId,
             validation_persisted: validationPersisted,
             validation_authority: validationPersisted ? validationAuthority : 'not_persisted',
-            authoritative: validationPersisted && validationAuthority === 'verified_v2',
+            authoritative: validationPersisted
+                && (validationAuthority === 'verified_v2' || validationAuthority === 'verified_v3'),
             validation_evidence_sha256: verifiedEvidence?.evidence_sha256 ?? null,
             validator_identity: verifiedEvidence?.validator_identity ?? null,
             validator_identity_source: verifiedEvidence?.validator_identity_source ?? null,

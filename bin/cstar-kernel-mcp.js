@@ -21,6 +21,7 @@ import {
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DERIVED_CODE_ROOT = join(__dirname, '..');
+const KERNEL_CHILD_GRACE_MS = 2_100_000;
 let bootstrapLogRoot = null;
 
 try {
@@ -53,12 +54,32 @@ try {
     });
     const { spawn } = await import('node:child_process');
     const child = spawn(process.execPath, args, {
-        stdio: 'inherit',
+        stdio: ['pipe', 'inherit', 'inherit'],
         env,
         cwd: CODE_ROOT,
     });
+    process.stdin.pipe(child.stdin);
+    child.stdin.on('error', (error) => {
+        if (error?.code !== 'EPIPE') logBootstrapError(CONTROL_ROOT, error);
+    });
+
+    let terminationTimer = null;
+    let terminationRequested = false;
+    const terminateChild = (reason) => {
+        if (terminationRequested || child.exitCode !== null) return;
+        terminationRequested = true;
+        child.kill('SIGTERM');
+        terminationTimer = setTimeout(() => {
+            if (child.exitCode === null) child.kill('SIGKILL');
+        }, KERNEL_CHILD_GRACE_MS);
+        terminationTimer.unref();
+        if (process.env.CSTAR_DEBUG_LOGS === '1') {
+            process.stderr.write(`[cstar-kernel-launcher] terminating child: ${reason}\n`);
+        }
+    };
 
     child.on('exit', (code) => {
+        if (terminationTimer) clearTimeout(terminationTimer);
         process.exit(code ?? 0);
     });
 
@@ -66,6 +87,13 @@ try {
         logBootstrapError(CONTROL_ROOT, err);
         process.exit(1);
     });
+
+    process.stdin.resume();
+    process.stdin.once('end', () => terminateChild('stdin end'));
+    process.stdin.once('close', () => terminateChild('stdin close'));
+    process.once('SIGINT', () => terminateChild('SIGINT'));
+    process.once('SIGTERM', () => terminateChild('SIGTERM'));
+    process.once('SIGHUP', () => terminateChild('SIGHUP'));
 } catch (error) {
     if (bootstrapLogRoot) {
         logBootstrapError(bootstrapLogRoot, error);

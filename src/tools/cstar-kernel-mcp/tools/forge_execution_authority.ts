@@ -4,6 +4,7 @@ import {
     forgeAuthorizationLineageMatchesRequest,
     getForgeAuthorizationByRequest,
 } from '../../pennyone/intel/forge_receipt_controller.js';
+import { getPendingForgeContinuation } from '../../pennyone/intel/forge_continuation_controller.js';
 import type {
     HallForgeAuthorizationRecord,
     HallForgeRequestRecord,
@@ -13,6 +14,18 @@ import {
     verifyCodexRequestIdentity,
     type VerifiedCodexRequestIdentity,
 } from './operator_authorization.js';
+import { verifyForgeContinuationCaller } from './forge_continuation_authority.js';
+import {
+    parseForgeStructuralCaller,
+    verifyPersistedForgeSetManifestAuthority,
+    type ForgeStructuralCaller,
+} from './forge_set_manifest_autonomous_authority.js';
+
+type ForgeReplayAuthority =
+    | { authorization: HallForgeAuthorizationRecord; caller: VerifiedCodexRequestIdentity; mode: 'full' }
+    | { authorization: HallForgeAuthorizationRecord; caller: ForgeStructuralCaller; mode: 'autonomous_set_manifest_v1' };
+
+type ForgeExecutionCaller = VerifiedCodexRequestIdentity | ForgeStructuralCaller;
 
 export function forgeAuthorizationMatches(
     expected: HallForgeAuthorizationRecord,
@@ -26,7 +39,14 @@ export function forgeExecutionAuthorityMatches(
     current: Awaited<ReturnType<typeof verifyForgeExecutionAuthorization>>,
 ): boolean {
     return forgeAuthorizationMatches(expected.authorization, current.authorization)
-        && JSON.stringify(expected.executor) === JSON.stringify(current.executor);
+        && JSON.stringify(expected.executor) === JSON.stringify(current.executor)
+        && expected.mode === current.mode
+        && expected.continuation_fingerprint === current.continuation_fingerprint;
+}
+
+function isSetAuthorization(authorization: HallForgeAuthorizationRecord): boolean {
+    return authorization.authorization_profile === 'root_user_forge_intent_v1'
+        && authorization.operator_authorization_ref.startsWith('cstar-forge-set-manifest:');
 }
 
 export async function verifyForgeReplayAuthorization(
@@ -34,11 +54,7 @@ export async function verifyForgeReplayAuthorization(
     request: HallForgeRequestRecord,
     suppliedAuthorizationRef: string | undefined,
     requestContext: McpRequestContext | undefined,
-): Promise<{
-    authorization: HallForgeAuthorizationRecord;
-    caller: VerifiedCodexRequestIdentity;
-}> {
-    const caller = await verifyCodexRequestIdentity(requestContext);
+): Promise<ForgeReplayAuthority> {
     const authorization = getForgeAuthorizationByRequest(db, request.request_id);
     if (!authorization) throw new Error('forge_replay_authorization_receipt_missing');
     if (
@@ -47,7 +63,17 @@ export async function verifyForgeReplayAuthorization(
     ) {
         throw new Error('forge_replay_authorization_receipt_mismatch');
     }
-    return { authorization, caller };
+    const structuralCaller = parseForgeStructuralCaller(requestContext);
+    const continuation = getPendingForgeContinuation(db, request.request_id);
+    if (isSetAuthorization(authorization) && !continuation
+        && structuralCaller.turn_id !== authorization.operator_turn_id) {
+        verifyPersistedForgeSetManifestAuthority({
+            db, request, authorization, caller: structuralCaller,
+        });
+        return { authorization, caller: structuralCaller, mode: 'autonomous_set_manifest_v1' };
+    }
+    const caller = await verifyCodexRequestIdentity(requestContext);
+    return { authorization, caller, mode: 'full' };
 }
 
 export async function verifyForgeExecutionAuthorization(
@@ -58,7 +84,9 @@ export async function verifyForgeExecutionAuthorization(
     now = Date.now(),
 ): Promise<{
     authorization: HallForgeAuthorizationRecord;
-    executor: VerifiedCodexRequestIdentity;
+    executor: ForgeExecutionCaller;
+    mode: 'authorizing_turn' | 'autonomous_set_manifest_v1' | 'pre_provider_continuation';
+    continuation_fingerprint: string | null;
 }> {
     const authorization = getForgeAuthorizationByRequest(db, request.request_id);
     if (!authorization) throw new Error('forge_exact_authorization_receipt_missing');
@@ -69,18 +97,40 @@ export async function verifyForgeExecutionAuthorization(
     ) {
         throw new Error('forge_exact_authorization_receipt_mismatch');
     }
+    if (authorization.expires_at <= now) throw new Error('forge_exact_authorization_expired');
+
+    const structuralCaller = parseForgeStructuralCaller(requestContext);
+    const continuation = getPendingForgeContinuation(db, request.request_id);
+    if (isSetAuthorization(authorization) && !continuation
+        && structuralCaller.turn_id !== authorization.operator_turn_id) {
+        verifyPersistedForgeSetManifestAuthority({
+            db, request, authorization, caller: structuralCaller, now,
+        });
+        return {
+            authorization,
+            executor: structuralCaller,
+            mode: 'autonomous_set_manifest_v1',
+            continuation_fingerprint: null,
+        };
+    }
+
+    // Ordinary authorizing turns and every pre-provider continuation require a
+    // complete current root-user turn, including its immutable record hashes.
     const executor = await verifyCodexRequestIdentity(requestContext, now);
-    if (
-        executor.thread_id !== authorization.operator_thread_id
-        || executor.turn_id !== authorization.operator_turn_id
-        || executor.turn_record_sha256 !== authorization.operator_record_sha256
-        || executor.turn_record_set_sha256 !== authorization.operator_record_set_sha256
-        || executor.turn_record_count !== authorization.operator_record_count
-    ) {
-        throw new Error('forge_execute_requires_current_authorizing_turn');
+    const exactAuthorizingTurn = executor.thread_id === authorization.operator_thread_id
+        && executor.turn_id === authorization.operator_turn_id
+        && executor.turn_record_sha256 === authorization.operator_record_sha256
+        && executor.turn_record_set_sha256 === authorization.operator_record_set_sha256
+        && executor.turn_record_count === authorization.operator_record_count;
+    if (continuation) {
+        verifyForgeContinuationCaller({ authorization, continuation, caller: executor, now });
+        return {
+            authorization, executor, mode: 'pre_provider_continuation',
+            continuation_fingerprint: continuation.failure_fingerprint_sha256,
+        };
     }
-    if (authorization.expires_at <= now) {
-        throw new Error('forge_exact_authorization_expired');
+    if (exactAuthorizingTurn) {
+        return { authorization, executor, mode: 'authorizing_turn', continuation_fingerprint: null };
     }
-    return { authorization, executor };
+    throw new Error('forge_execute_requires_current_authorizing_turn');
 }

@@ -112,6 +112,8 @@ export const forgeAuthorizeSchema = {
         .describe('Immutable pending Forge request receipt returned by cstar_forge_request'),
     request_sha256: z.string().regex(/^[a-f0-9]{64}$/)
         .describe('Exact canonical request digest returned by cstar_forge_request'),
+    goal_resume_id: z.string().regex(/^goal-resume:[a-f0-9]{64}$/).optional()
+        .describe('Router-supplied immutable CStar goal-continuation receipt; never operator-authored request material'),
 };
 
 export const forgeExecuteSchema = {
@@ -124,5 +126,5 @@ export const forgeExecuteSchema = {
     execution_adapter_ref: z.string().optional().describe('Explicit approved Forge/Hermes/MiniMax adapter reference; unregistered adapters fail closed'),
     operator_authorization_ref: z.string().optional().describe('Request-bound operator attestation reference; a nonempty string alone is not authority'),
     idempotency_key: z.string().min(1).describe('Caller-stable key for this exact execution attempt; replays never invoke the adapter twice'),
-    retry_of_attempt_id: z.string().optional().describe('Required only for an authorized retry of a FAILED_RETRYABLE attempt'),
+    retry_of_attempt_id: z.string().optional().describe('Kernel/router-populated parent for an exact independently validated FAILED_RETRYABLE pre-provider continuation; never operator-authored'),
 };

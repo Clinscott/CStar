@@ -15,6 +15,7 @@ import type {
 import {
     hashValidationEvidenceManifest,
     isValidationEvidenceManifestV2StructurallyValid,
+    isValidationEvidenceManifestV3StructurallyValid,
     VALIDATION_EVIDENCE_SHA256,
 } from '../../types/validation_evidence.js';
 
@@ -130,23 +131,37 @@ function manifestIsAuthoritative(
     hubRoot: string,
     now: number,
 ): boolean {
-    if (manifest.schema !== 'cstar.validation-evidence.v2') return false;
-    if (!isValidationEvidenceManifestV2StructurallyValid(manifest)) return false;
+    const forgeV2 = manifest.schema === 'cstar.validation-evidence.v2'
+        && isValidationEvidenceManifestV2StructurallyValid(manifest);
+    const hostV3 = manifest.schema === 'cstar.validation-evidence.v3'
+        && isValidationEvidenceManifestV3StructurallyValid(manifest);
+    if (!forgeV2 && !hostV3) return false;
     const identitySourceAllowed = manifest.validator_identity_source === 'codex_request_meta'
+        || manifest.validator_identity_source === 'codex_subagent_receipt'
         || (manifest.validator_identity_source === 'test_fixture' && Boolean(process.env.NODE_TEST_CONTEXT));
+    const authorityMatchesSchema = forgeV2
+        ? run.authority_class === 'verified_v2' : run.authority_class === 'verified_v3';
+    const independenceMatches = forgeV2
+        ? manifest.request_thread_id !== manifest.independence.requester_thread_id
+            && manifest.request_thread_id !== manifest.independence.executor_thread_id
+        : manifest.subject.target_path === (bead.target_path ?? null)
+            && manifest.subject.validation_id === run.validation_id
+            && manifest.independence.validator_parent_thread_id
+                === manifest.independence.recorder_thread_id
+            && manifest.independence.recorder_thread_id === manifest.request_thread_id
+            && manifest.independence.validator_thread_id
+                !== manifest.independence.recorder_thread_id;
     const structurallyAuthoritative = run.repo_id === bead.repo_id
         && run.bead_id === bead.bead_id
         && (run.verdict === 'ACCEPTED' || run.verdict === 'SUCCESS')
-        && run.authority_class === 'verified_v2'
+        && authorityMatchesSchema
         && run.validator_identity === manifest.validator_identity
         && run.validator_identity_source === manifest.validator_identity_source
         && Boolean(run.validator_identity?.trim())
         && identitySourceAllowed
         && manifest.subject.repository_id === bead.repo_id
         && manifest.subject.bead_id === bead.bead_id
-        && manifest.independence.validator_thread_id === manifest.request_thread_id
-        && manifest.request_thread_id !== manifest.independence.requester_thread_id
-        && manifest.request_thread_id !== manifest.independence.executor_thread_id
+        && independenceMatches
         && manifest.artifacts.length > 0
         && manifest.artifacts.length <= 50
         && manifest.checks.length > 0
@@ -159,6 +174,7 @@ function manifestIsAuthoritative(
         && run.created_at <= now + 60_000
         && now - run.created_at <= MAX_VALIDATION_AGE_MS;
     if (!structurallyAuthoritative) return false;
+    if (hostV3) return true;
     try {
         assertForgeValidationManifestCurrent(database.getReadDb(hubRoot), manifest);
         return true;
@@ -172,6 +188,10 @@ function manifestFilesRemainValid(
     manifest: HallValidationEvidenceManifest,
 ): boolean {
     const files = [
+        ...(manifest.schema === 'cstar.validation-evidence.v3' ? [{
+            path: manifest.subject.validation_manifest_path,
+            sha256: manifest.subject.validation_manifest_sha256,
+        }] : []),
         ...manifest.artifacts.map((artifact) => ({ path: artifact.path, sha256: artifact.sha256 })),
         ...manifest.checks.map((check) => ({ path: check.evidence_path, sha256: check.sha256 })),
     ];
@@ -198,6 +218,7 @@ function checkAudit(
     bead: HallBeadRecord,
     evidence: MandateEvidence,
     hubRoot: string,
+    evidenceRoot: string,
     files: VerifiedMandateArtifact[],
     now: number,
 ): MandateLegReport {
@@ -208,7 +229,7 @@ function checkAudit(
     if (!run || !manifest || !manifestIsAuthoritative(run, bead, manifest, hubRoot, now)) {
         return unsatisfied('audit', 'validation_receipt_not_authoritative_for_bead');
     }
-    if (!manifestFilesRemainValid(hubRoot, manifest)) {
+    if (!manifestFilesRemainValid(evidenceRoot, manifest)) {
         return unsatisfied('audit', 'validation_evidence_files_changed_or_unavailable');
     }
     if (!auditContainsDeclaredArtifacts(manifest, files)) {
@@ -227,11 +248,19 @@ export function verifySterlingMandate(
     evidence: MandateEvidence | undefined,
     hubRoot: string,
     now = Date.now(),
+    evidenceRoot = hubRoot,
 ): MandateVerdict {
     const fresh = evidence ?? {};
-    const lore = checkDeclaredArtifacts(fresh, hubRoot, 'lore');
-    const isolation = checkDeclaredArtifacts(fresh, hubRoot, 'isolation');
-    const audit = checkAudit(bead, fresh, hubRoot, [...lore.files, ...isolation.files], now);
+    const lore = checkDeclaredArtifacts(fresh, evidenceRoot, 'lore');
+    const isolation = checkDeclaredArtifacts(fresh, evidenceRoot, 'isolation');
+    const audit = checkAudit(
+        bead,
+        fresh,
+        hubRoot,
+        evidenceRoot,
+        [...lore.files, ...isolation.files],
+        now,
+    );
     const legs = [lore.report, isolation.report, audit];
     const reasons = legs
         .filter((leg) => leg.status === 'unsatisfied')

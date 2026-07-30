@@ -275,6 +275,38 @@ export function hashCanonicalForgeRequest(request: CanonicalForgeRequest): strin
     return sha256(stableJson(request));
 }
 
+export function hashForgeRuntimeBinding(request: CanonicalForgeRequest): string {
+    return sha256(stableJson({
+        adapter_ref: request.adapter_ref,
+        adapter_runtime: request.adapter_runtime,
+        hermes_runtime: request.hermes_runtime,
+    }));
+}
+
+/** Hash every operator-authorized field while excluding repairable runtime bytes. */
+export function hashForgeContinuationAuthority(request: CanonicalForgeRequest): string {
+    return sha256(stableJson({
+        ...request,
+        adapter_runtime: null,
+        hermes_runtime: null,
+    }));
+}
+
+export function assertForgeContinuationScope(
+    recorded: CanonicalForgeRequest,
+    current: CanonicalForgeRequest,
+): void {
+    if (hashForgeContinuationAuthority(recorded) !== hashForgeContinuationAuthority(current)) {
+        throw new Error('forge_continuation_authority_drift');
+    }
+    if (stableJson(recorded.target_paths) !== stableJson(current.target_paths)) {
+        throw new Error('forge_continuation_target_paths_drift');
+    }
+    if (stableJson(recorded.required_output_paths) !== stableJson(current.required_output_paths)) {
+        throw new Error('forge_continuation_required_outputs_drift');
+    }
+}
+
 /** Rebuild model-visible request fields from the durable canonical envelope. */
 export function projectCanonicalForgeInvocationArgs<T extends ForgeRequestContractArgs>(
     args: T,

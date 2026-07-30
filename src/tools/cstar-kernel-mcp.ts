@@ -77,7 +77,8 @@ export { handleEngramRecord, handleWarGameScore } from './cstar-kernel-mcp/tools
 export { handleManifest, handleSkillInfo, handleSpokeJournal } from './cstar-kernel-mcp/tools/capability.js';
 export { handleMongoMailbox, type MongoMailboxArgs } from './cstar-kernel-mcp/tools/mongo_mailbox.js';
 export { handlePennyOneContext, type PennyOneContextArgs } from './cstar-kernel-mcp/tools/pennyone_context.js';
-export { handleStatus } from './cstar-kernel-mcp/tools/status.js';
+export { handleStatus, type StatusArgs } from './cstar-kernel-mcp/tools/status.js';
+export { handlePersonaSet, type PersonaSetArgs } from './cstar-kernel-mcp/tools/persona_set.js';
 export { handleEvolve } from './cstar-kernel-mcp/tools/evolve.js';
 export { handleSpoke } from './cstar-kernel-mcp/tools/spoke.js';
 export { handleIntentRoute } from './cstar-kernel-mcp/tools/intent_route.js';

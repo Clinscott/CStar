@@ -14,14 +14,11 @@ import {
 } from './forge_receipt_controller.js';
 import {
     forgeAuthorizationRecordMatches,
-    forgeOperatorIntentProjectionMatchesRequest,
     forgeRequestAuthorizationMatches,
     forgeRequestContentMatches,
-    hashRootUserForgeIntentBinding,
     isForgeAuthorizationProfile,
     LEGACY_EXACT_FORGE_CHALLENGE_PROFILE,
     normalizeForgeRequestAuthorizationExtension,
-    parseForgeOperatorIntentProjection,
     ROOT_USER_FORGE_INTENT_PROFILE,
     validateForgeExecutionGrant,
     validateLegacyExactAuthorizationBinding,
@@ -30,6 +27,11 @@ import {
     forgeRequesterLineageMatchesRequest,
     isForgeRequesterLineageValid,
 } from './forge_requester_lineage.js';
+import {
+    forgeAuthorizationRecordCountIsValid,
+    parseForgeAuthorizationIntent,
+    resolveForgeRequestAuthorizationBinding,
+} from './forge_request_authorization_binding.js';
 
 function extendPendingRequestAuthorization(
     db: Database.Database,
@@ -204,9 +206,7 @@ export function authorizeForgeRequest(
         : rawInput;
     const now = input.now ?? Date.now();
     const executionGrant = validateForgeExecutionGrant(input);
-    const naturalProjection = input.authorization_profile === ROOT_USER_FORGE_INTENT_PROFILE
-        ? parseForgeOperatorIntentProjection(input.operator_intent_json)
-        : null;
+    const authorizationIntent = parseForgeAuthorizationIntent(input);
     if (
         !input.operator_authorization_ref.trim()
         || !input.operator_thread_id.trim()
@@ -214,11 +214,12 @@ export function authorizeForgeRequest(
         || !/^[a-f0-9]{64}$/.test(input.request_sha256)
         || !isForgeAuthorizationProfile(input.authorization_profile)
         || !/^[a-f0-9]{64}$/.test(input.authorization_binding_sha256 ?? '')
-        || (naturalProjection !== null && input.challenge_sha256 !== undefined)
+        || (input.authorization_profile === ROOT_USER_FORGE_INTENT_PROFILE
+            && input.challenge_sha256 !== undefined)
         || !/^[a-f0-9]{64}$/.test(input.operator_message_sha256)
         || !/^[a-f0-9]{64}$/.test(input.operator_record_sha256)
         || !/^[a-f0-9]{64}$/.test(input.operator_record_set_sha256)
-        || input.operator_record_count !== 1
+        || !forgeAuthorizationRecordCountIsValid(input, authorizationIntent)
         || !Number.isSafeInteger(input.authorized_at)
         || !Number.isSafeInteger(input.expires_at)
         || input.authorized_at > now + 60_000
@@ -233,45 +234,9 @@ export function authorizeForgeRequest(
         let request = getForgeRequest(db, input.request_id);
         if (!request) throw new Error('forge_request_not_found');
         const existingAuthorization = getForgeAuthorizationByRequest(db, request.request_id);
-        if (naturalProjection?.requester_lineage_mode === 'same_turn_request') {
-            if (
-                request.requester_thread_id !== input.operator_thread_id
-                || request.requester_turn_id !== input.operator_turn_id
-                || request.requester_record_set_sha256 !== input.operator_record_set_sha256
-            ) throw new Error('forge_operator_intent_requester_lineage_mismatch');
-        } else if (naturalProjection?.requester_lineage_mode
-            === 'explicit_legacy_request_upgrade') {
-            const exactPendingUpgrade = request.status === 'PENDING_AUTH'
-                && request.authorization_profile === LEGACY_EXACT_FORGE_CHALLENGE_PROFILE;
-            const exactUpgradeReplay = request.authorization_profile === ROOT_USER_FORGE_INTENT_PROFILE
-                && existingAuthorization?.operator_intent_json === input.operator_intent_json;
-            if (!exactPendingUpgrade && !exactUpgradeReplay) {
-                throw new Error('forge_operator_intent_legacy_upgrade_invalid');
-            }
-        }
-        const expectedBinding = naturalProjection
-            ? hashRootUserForgeIntentBinding({
-                request,
-                projection: naturalProjection,
-                operator_thread_id: input.operator_thread_id,
-                operator_turn_id: input.operator_turn_id,
-                operator_message_sha256: input.operator_message_sha256,
-                operator_record_sha256: input.operator_record_sha256,
-                operator_record_set_sha256: input.operator_record_set_sha256,
-                operator_record_count: input.operator_record_count,
-            })
-            : validateLegacyExactAuthorizationBinding(
-                input.authorization_binding_sha256,
-                input.challenge_sha256,
-            );
-        if (naturalProjection) {
-            const targetRef = (db.prepare(
-                'SELECT target_ref FROM hall_beads WHERE bead_id = ? AND repo_id = ?',
-            ).pluck().get(request.bead_id, request.repo_id) as string | null | undefined) ?? undefined;
-            if (!forgeOperatorIntentProjectionMatchesRequest(request, naturalProjection, targetRef)) {
-                throw new Error('forge_operator_intent_selected_request_mismatch');
-            }
-        }
+        const expectedBinding = resolveForgeRequestAuthorizationBinding({
+            db, request, input, existingAuthorization, intent: authorizationIntent,
+        });
         if (input.authorization_binding_sha256 !== expectedBinding) {
             throw new Error('forge_authorization_binding_mismatch');
         }

@@ -1,5 +1,4 @@
 import type Database from 'better-sqlite3';
-
 import type {
     HallForgeAttemptRecord,
     HallForgeAttemptStatus,
@@ -12,9 +11,12 @@ import {
     isForgeAuthorizationProfile,
     LEGACY_EXACT_FORGE_CHALLENGE_PROFILE,
 } from './forge_authorization_policy.js';
-
+import {
+    countForgeProviderAttempts,
+    isForgePreProviderRetryParent,
+    markForgeContinuationResumed,
+} from './forge_continuation_controller.js';
 export { forgeAuthorizationLineageMatchesRequest };
-
 export interface ReserveForgeAttemptInput {
     request_id: string;
     authorization_id: string;
@@ -28,9 +30,9 @@ export interface ReserveForgeAttemptInput {
     reasoning_profile?: string;
     adapter_version?: string;
     retry_of_attempt_id?: string;
+    continuation_runtime_sha256?: string;
     now?: number;
 }
-
 export interface FinalizeForgeAttemptInput {
     attempt_id: string;
     status: Extract<HallForgeAttemptStatus, 'SUCCEEDED' | 'FAILED_RETRYABLE' | 'FAILED_FINAL' | 'UNKNOWN'>;
@@ -140,6 +142,25 @@ function mapForgeAttempt(row: Record<string, unknown>): HallForgeAttemptRecord {
         model_source: optionalString(row.model_source),
         reasoning_profile: optionalString(row.reasoning_profile),
         adapter_version: optionalString(row.adapter_version),
+        attempt_budget_class: row.attempt_budget_class === 'mechanical_no_provider'
+            ? 'mechanical_no_provider' : 'provider_or_unknown',
+        provider_evidence_valid: Number(row.provider_evidence_valid) === 1 ? 1 : 0,
+        provider_requests_started: optionalNumber(row.provider_requests_started),
+        provider_requests_completed: optionalNumber(row.provider_requests_completed),
+        provider_requests_ambiguous: optionalNumber(row.provider_requests_ambiguous),
+        live_spend: row.live_spend === null || row.live_spend === undefined
+            ? undefined : Number(row.live_spend) === 1 ? 1 : 0,
+        live_spend_unknown: row.live_spend_unknown === undefined
+            ? 1 : Number(row.live_spend_unknown) === 1 ? 1 : 0,
+        known_spend_observed: Number(row.known_spend_observed) === 1 ? 1 : 0,
+        live_source_collection: row.live_source_collection === null
+            || row.live_source_collection === undefined
+            ? undefined : Number(row.live_source_collection) === 1 ? 1 : 0,
+        workspace_commit_present: row.workspace_commit_present === null
+            || row.workspace_commit_present === undefined
+            ? undefined : Number(row.workspace_commit_present) === 1 ? 1 : 0,
+        failure_evidence_sha256: optionalString(row.failure_evidence_sha256),
+        failure_signature_sha256: optionalString(row.failure_signature_sha256),
         status: String(row.status) as HallForgeAttemptStatus,
         retry_of_attempt_id: optionalString(row.retry_of_attempt_id),
         external_execution_id: optionalString(row.external_execution_id),
@@ -314,10 +335,11 @@ export function reserveForgeAttempt(
             LIMIT 1
         `).get(input.request_id) as { attempt_id?: string } | undefined;
         if (active) throw new Error(`forge_request_has_unresolved_attempt:${active.attempt_id}`);
-        const count = Number((db.prepare(
+        const totalCount = Number((db.prepare(
             'SELECT COUNT(*) AS count FROM hall_forge_attempts WHERE request_id = ?',
         ).get(input.request_id) as { count?: number }).count ?? 0);
-        if (count >= request.max_attempts) {
+        const providerAttemptCount = countForgeProviderAttempts(db, request.request_id);
+        if (providerAttemptCount >= request.max_attempts) {
             db.prepare(`
                 UPDATE hall_forge_requests
                 SET status = 'EXHAUSTED', updated_at = ?, completed_at = ?
@@ -326,17 +348,18 @@ export function reserveForgeAttempt(
             throw new Error('forge_request_attempt_budget_exhausted');
         }
         if (input.retry_of_attempt_id) {
-            const parent = db.prepare(`
-                SELECT status FROM hall_forge_attempts
-                WHERE request_id = ? AND attempt_id = ?
-            `).get(input.request_id, input.retry_of_attempt_id) as { status?: string } | undefined;
-            if (parent?.status !== 'FAILED_RETRYABLE') {
+            if (!isForgePreProviderRetryParent(
+                db, input.request_id, input.retry_of_attempt_id,
+            )) {
                 throw new Error('forge_attempt_retry_parent_invalid');
             }
-        } else if (count > 0) {
+            if (!input.continuation_runtime_sha256) {
+                throw new Error('forge_continuation_runtime_digest_required');
+            }
+        } else if (totalCount > 0) {
             throw new Error('forge_attempt_retry_parent_required');
         }
-        const ordinal = count + 1;
+        const ordinal = totalCount + 1;
         const attemptId = `forge-attempt-${input.request_id.replace(/^dispatch-forge-/, '')}-${ordinal}`;
         db.prepare(`
             INSERT INTO hall_forge_attempts (
@@ -361,6 +384,15 @@ export function reserveForgeAttempt(
             now,
             now,
         );
+        if (input.retry_of_attempt_id) {
+            markForgeContinuationResumed(
+                db,
+                request.request_id,
+                input.retry_of_attempt_id,
+                input.continuation_runtime_sha256!,
+                now,
+            );
+        }
         const claimed = db.prepare(`
             UPDATE hall_forge_requests
             SET active_attempt_id = ?, updated_at = ?
@@ -399,6 +431,9 @@ export function finalizeForgeAttempt(
     input: FinalizeForgeAttemptInput,
 ): { attempt: HallForgeAttemptRecord; request: HallForgeRequestRecord } {
     const now = input.now ?? Date.now();
+    if (input.status === 'FAILED_RETRYABLE') {
+        throw new Error('forge_preprovider_continuation_evidence_required');
+    }
     const finish = db.transaction(() => {
         const attempt = getForgeAttempt(db, input.attempt_id);
         if (!attempt) throw new Error('forge_attempt_not_found');
@@ -432,9 +467,7 @@ export function finalizeForgeAttempt(
             attempt.attempt_id,
         );
         const request = getForgeRequest(db, attempt.request_id)!;
-        const attemptCount = Number((db.prepare(
-            'SELECT COUNT(*) AS count FROM hall_forge_attempts WHERE request_id = ?',
-        ).get(request.request_id) as { count?: number }).count ?? 0);
+        const attemptCount = countForgeProviderAttempts(db, request.request_id);
         const requestStatus: HallForgeRequestStatus = input.status === 'SUCCEEDED'
             ? 'SUCCEEDED'
             : input.status === 'FAILED_FINAL'

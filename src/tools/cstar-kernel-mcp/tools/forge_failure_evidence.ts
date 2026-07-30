@@ -1,4 +1,7 @@
 import {
+    FORGE_PRE_PROVIDER_RECOVERABLE_FAILURE_CODES,
+} from '../../../types/forge.js';
+import {
     FORGE_ROLE_ORDER,
     projectForgeRoleEvidence,
     type ForgeRoleReceiptEvidence,
@@ -51,6 +54,53 @@ export interface ForgeFailureEvidenceProjection {
     live_spend: boolean | null;
     live_spend_unknown: boolean;
     known_spend_observed: boolean;
+}
+
+export interface ForgeZeroProviderProof {
+    provider_evidence_valid: true;
+    provider_requests_started: 0;
+    provider_requests_completed: 0;
+    provider_requests_ambiguous: 0;
+    provider_request_receipts: [];
+    input_tokens: 0 | null;
+    output_tokens: 0 | null;
+    live_spend: false;
+    live_spend_unknown: false;
+    known_spend_observed: false;
+}
+
+export const FORGE_PRE_PROVIDER_RECOVERABLE_FAILURES = new Set<string>([
+    ...FORGE_PRE_PROVIDER_RECOVERABLE_FAILURE_CODES,
+]);
+
+/** Return only a complete, journal-derived proof that no provider boundary ran. */
+export function verifiedZeroProviderProof(
+    evidence: ForgeFailureEvidenceProjection,
+): ForgeZeroProviderProof | null {
+    if (
+        !evidence.provider_evidence_valid
+        || evidence.provider_requests_started !== 0
+        || evidence.provider_requests_completed !== 0
+        || evidence.provider_requests_ambiguous !== 0
+        || evidence.provider_request_receipts.length !== 0
+        || (evidence.input_tokens !== 0 && evidence.input_tokens !== null)
+        || (evidence.output_tokens !== 0 && evidence.output_tokens !== null)
+        || evidence.live_spend !== false
+        || evidence.live_spend_unknown
+        || evidence.known_spend_observed
+    ) return null;
+    return {
+        provider_evidence_valid: true,
+        provider_requests_started: 0,
+        provider_requests_completed: 0,
+        provider_requests_ambiguous: 0,
+        provider_request_receipts: [],
+        input_tokens: evidence.input_tokens,
+        output_tokens: evidence.output_tokens,
+        live_spend: false,
+        live_spend_unknown: false,
+        known_spend_observed: false,
+    };
 }
 
 function hasOwn(value: Record<string, unknown>, key: string): boolean {
