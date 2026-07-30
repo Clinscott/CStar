@@ -4,7 +4,7 @@
 
 ## Identity
 - Package: `corvusstar` v1.0.1
-- Persona: read only the bounded `cstar_status.persona` projection at runtime; omit it when unavailable.
+- Persona: read only `cstar_status.persona`; apply O.D.I.N. as build-run-repair and A.L.F.R.E.D. as secure-harden guidance without changing authority or operator gates.
 - Repository: `git+https://github.com/Clinscott/CStar.git`
 
 ## Authority Order
@@ -36,7 +36,7 @@
 - Treat `native-session` and `exec-bridge` capabilities as host-routed, and treat `supported` capabilities as kernel-backed launch surfaces.
 - Treat `host-workflow` entries as host-owned cognition/workflow surfaces and `kernel-primitive` entries as deterministic kernel control-plane primitives.
 - Public host fronts marked with kernel fallback forbidden must fail closed when no host session is active; they must not degrade into legacy kernel cognition.
-- Persona is style-only. Read only the bounded persona projection returned by `cstar_status`; omit persona context when unavailable.
+- Persona is non-authoritative process guidance. Read only `cstar_status.persona`; O.D.I.N. means build-run-repair and A.L.F.R.E.D. means secure-harden. Omit it when unavailable.
 
 ## Corvus Star Augury [Ω]
 - Augury is a read-only typed route explanation, not permission, ownership, a vote, or a generic trace ritual.
@@ -47,7 +47,7 @@
 - Foundational CStar work uses `Scope: brain:CStar`; use `Scope: spoke:<name>` only when a spoke is explicit.
 - Do not echo a full Augury block unless the operator asks for the route packet.
 
-## Kernel MCP Tools (27)
+## Kernel MCP Tools (28)
 
 The `cstar-kernel` MCP server is the authoritative kernel surface — invoke these tools directly via MCP rather than shelling out to `./cstar` whenever the needed primitive exists. Tool classes declare bounded effects; observed runtime remains evidence and cannot grant authority. Full API reference: `docs/integrations/cstar-kernel-mcp.md`.
 
@@ -68,7 +68,8 @@ The `cstar-kernel` MCP server is the authoritative kernel surface — invoke the
 - `cstar_spoke_journal` (READ) — Four-file journal state for a registered spoke.
 - `cstar_pennyone_context` (READ) — Bounded PennyOne/Hall state summaries. No arbitrary SQL is accepted.
 - `cstar_mongo_mailbox` (LEGACY) — Decommissioned Mongo mirror/intent compatibility surface; always fails closed without secret, network, or write activity.
-- `cstar_status` (READ) — Deterministic kernel state snapshot.
+- `cstar_status` (READ) — Deterministic kernel state snapshot with optional exact Forge execution lifecycle status.
+- `cstar_persona_set` (MUTATION) — Explicitly select O.D.I.N. or A.L.F.R.E.D. for the next workflow boundary; style-only and never expands authority or bypasses gates.
 - `cstar_evolve` (READ) — Read-only inspection of Karpathy-loop artifacts: list_proposals, get_proposal, list_sprt_history.
 - `cstar_spoke` (READ) — Redacted mounted-spoke inspection and exact-match prune preview; link, unlink, project, and destructive prune fail closed until a request-scoped operator-attestation contract exists.
 - `cstar_intent_route` (READ) — Deterministic grammar-only routing. Prefer cstar_augury when session context is needed.
@@ -76,8 +77,8 @@ The `cstar-kernel` MCP server is the authoritative kernel surface — invoke the
 - `cstar_telemetry` (READ) — Read-only MCP telemetry summaries over the last 24h.
 - `cstar_researcher_request` (REQUEST) — Create a CStar-native no-spend Researcher request receipt.
 - `cstar_forge_request` (REQUEST) — Persist an immutable no-spend Forge request; machine challenge material stays hidden from the normal operator workflow.
-- `cstar_forge_authorize` (MUTATION) — Bind one current explicit work-referenced root-user build or resume instruction to one unchanged pending Forge request; performs no provider call.
-- `cstar_forge_execute` (EXECUTION) — Atomically reserve and invoke the private Hermes/MiniMax adapter once, with durable replay and delivered-pending-validation semantics.
+- `cstar_forge_authorize` (MUTATION) — Bind one explicit root-user build instruction or immutable CStar goal-continuation receipt to one unchanged pending Forge request; performs no provider call.
+- `cstar_forge_execute` (EXECUTION) — Atomically run one provider attempt through the private Hermes/MiniMax adapter, with durable replay, independently validated pre-provider continuity, and delivered-pending-validation semantics.
 
 ## Exported Gemini Capabilities (3)
 - `corvus-forge` (SKILL, native-session, host-workflow, kernel fallback forbidden)

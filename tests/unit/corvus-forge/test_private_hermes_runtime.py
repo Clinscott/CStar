@@ -116,23 +116,34 @@ class PrivateRuntimeTest(unittest.TestCase):
 
     def test_network_boundaries_advance_and_fsync_token_free_journal(self) -> None:
         binding = "b" * 64; journal = self.initial_journal(binding)
+        captured: dict[str, object] = {}
 
         class Response:
             status = 200
+            lines = iter([
+                b'data: {"id":"chatcmpl-test","object":"chat.completion.chunk","model":"MiniMax-M3","choices":[{"index":0,"delta":{"role":"assistant","content":""},"finish_reason":null}]}\n',
+                b'\n',
+                b'data: {"id":"chatcmpl-test","object":"chat.completion.chunk","model":"MiniMax-M3","choices":[{"index":0,"delta":{"reasoning_content":"bounded reasoning"},"finish_reason":null}]}\n',
+                b'\n',
+                b'data: {"id":"chatcmpl-test","object":"chat.completion.chunk","model":"MiniMax-M3","choices":[{"index":0,"delta":{"content":"boun"},"finish_reason":null}]}\n',
+                b'\n',
+                b'data: {"id":"chatcmpl-test","object":"chat.completion.chunk","model":"MiniMax-M3","choices":[{"index":0,"delta":{"content":"ded"},"finish_reason":"stop"}]}\n',
+                b'\n',
+                b'data: {"id":"chatcmpl-test","object":"chat.completion.chunk","model":"MiniMax-M3","choices":[],"usage":{"prompt_tokens":1,"completion_tokens":2,"total_tokens":3}}\n',
+                b'\n',
+                b'data: [DONE]\n',
+                b'\n',
+            ])
             def getheader(self, _name: str, _default: str = "") -> str:
-                return "application/json"
-            def read(self, _size: int) -> bytes:
-                return json.dumps({
-                    "type": "message", "id": "message-test", "role": "assistant",
-                    "model": "MiniMax-M3", "stop_reason": "end_turn", "stop_sequence": None,
-                    "content": [{"type": "text", "text": "bounded"}],
-                    "usage": {"input_tokens": 1, "output_tokens": 2},
-                }).encode("utf-8")
+                return "text/event-stream; charset=utf-8"
+            def readline(self, _size: int) -> bytes:
+                return next(self.lines, b"")
             def close(self) -> None: pass
 
         class Connection:
             def __init__(self, *_args, **_kwargs): pass
-            def request(self, *_args, **_kwargs) -> None: pass
+            def request(self, method: str, path: str, *, body: bytes, headers: dict[str, str]) -> None:
+                captured.update({"method": method, "path": path, "body": body, "headers": headers})
             def getresponse(self) -> Response: return Response()
             def close(self) -> None: pass
 
@@ -153,6 +164,17 @@ class PrivateRuntimeTest(unittest.TestCase):
                 "specification_handoff_sha256": "0" * 64,
             })
         self.assertEqual((text, usage), ("bounded", {"input_tokens": 1, "output_tokens": 2}))
+        request_body = json.loads(bytes(captured["body"]).decode("utf-8"))
+        self.assertEqual((captured["method"], captured["path"]), ("POST", "/v1/chat/completions"))
+        self.assertIs(request_body["stream"], True)
+        self.assertEqual(request_body["stream_options"], {"include_usage": True})
+        self.assertEqual(request_body["reasoning_split"], True)
+        self.assertEqual(request_body["model"], "MiniMax-M3")
+        self.assertIn("max_completion_tokens", request_body)
+        self.assertNotIn("max_tokens", request_body)
+        self.assertEqual(captured["headers"]["accept"], "text/event-stream")
+        self.assertNotIn("anthropic-version", captured["headers"])
+        self.assertNotIn("anthropic-beta", captured["headers"])
         events = [json.loads(line) for line in journal.read_text(encoding="ascii").splitlines()]
         self.assertEqual([item["state"] for item in events], [
             "not_reached", "capability_consumed", "dispatch_attempted", "request_sent",

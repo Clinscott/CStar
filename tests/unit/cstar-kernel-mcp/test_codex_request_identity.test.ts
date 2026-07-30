@@ -119,6 +119,19 @@ afterEach(() => {
 });
 
 describe('canonical Codex root-user turn scanner', () => {
+    it('accepts omitted root thread_source but rejects an explicit subagent source', async () => {
+        const omitted = await scan([
+            sessionMeta({ thread_source: undefined }),
+            userRecord('root request without host thread_source'),
+        ]);
+
+        assert.equal(omitted.recordCount, 1);
+        await expectFailure([
+            sessionMeta({ thread_source: 'subagent' }),
+            userRecord('nested request'),
+        ], 'codex_request_identity_session_is_not_canonical_root_user');
+    });
+
     it('preserves the exact singleton raw-line hash and binds the indexed domain-separated set', async () => {
         const user = userRecord('authorized singleton request');
         const rawUser = serialize(user);

@@ -18,6 +18,8 @@ const EXECUTION_IDENTITY = {
     forge_request_receipt_id: 'forge-request-test', forge_execute_receipt_id: 'forge-execute-test',
     decision_id: 'decision-test',
     adapter_ref: 'cstar-forge-hermes-minimax-worker-adapter' };
+const MATERIAL_POLICY = { schema: 'cstar.forge_material_policy.v1', file_max_bytes: 512 * 1024,
+    total_max_bytes: 512 * 1024, prompt_max_bytes: 1024 * 1024 };
 const roots: string[] = [];
 function createFixture() {
     const secureTmp = process.platform === 'linux' ? '/tmp' : os.tmpdir();
@@ -35,6 +37,7 @@ function createFixture() {
         execution_identity: EXECUTION_IDENTITY,
         project_root: root,
         target_paths: [target],
+        material_policy: MATERIAL_POLICY,
         payload: {
             hermes_profile: 'cstar-hub',
             model: 'MiniMax-M3',
@@ -46,7 +49,6 @@ function createFixture() {
     fs.writeFileSync(intentPath, JSON.stringify(intent));
     return { root, home, profileHome, target, response, intentPath, intent };
 }
-
 function writeFakeHermes(root: string, mode = 0o700) {
     const script = path.join(root, 'fake-hermes.mjs');
     fs.writeFileSync(script, [
@@ -89,7 +91,6 @@ function writeFakeHermes(root: string, mode = 0o700) {
     fs.chmodSync(script, mode);
     return script;
 }
-
 function writeLingeringFakeHermes(root: string) {
     const script = path.join(root, 'fake-hermes-lingering.mjs');
     const marker = path.join(root, 'descendant-survived');
@@ -107,7 +108,6 @@ function writeLingeringFakeHermes(root: string) {
     fs.chmodSync(script, 0o700);
     return { script, marker };
 }
-
 function writeFailingFakeHermes(root: string, stderrCanary: string) {
     const script = path.join(root, 'fake-hermes-failure.mjs');
     fs.writeFileSync(script, [
@@ -329,7 +329,7 @@ describe('Forge-private Hermes MiniMax delegate', () => {
 
     it('fails closed instead of truncating an oversized target', () => {
         const fixture = createFixture();
-        fs.writeFileSync(fixture.target, 'x'.repeat(64 * 1024 + 1));
+        fs.writeFileSync(fixture.target, 'x'.repeat(512 * 1024 + 1));
 
         const result = runDelegate(fixture.intentPath, writeFakeHermes(fixture.root));
 
@@ -403,6 +403,7 @@ describe('Forge-private Hermes MiniMax delegate', () => {
         fs.writeFileSync(workerIntent, JSON.stringify({
             intent: 'Bounded synthetic delegate failure fixture.',
             execution_identity: EXECUTION_IDENTITY,
+            material_policy: MATERIAL_POLICY,
             project_root: fixture.root,
             target_paths: [fixture.target],
             required_output_paths: [fixture.target],

@@ -62,9 +62,28 @@ describe('release bundle generation', () => {
                 '.codex-plugin/plugin.json',
                 'README.md',
                 path.join('skills', 'corvus-star', 'SKILL.md'),
+                'lineage.json',
                 'INSTALL.md',
             ],
         );
+
+        const lineageFile = bundles[1]?.files.find((file) => file.relativePath === 'lineage.json');
+        assert.ok(lineageFile);
+        const lineage = JSON.parse(lineageFile.content) as {
+            schema_version?: number;
+            plugin?: { name?: string; version?: string };
+            runtime_binding?: { integration_mode?: string; kernel_bundled?: boolean };
+            files?: Record<string, unknown>;
+        };
+        assert.equal(lineage.schema_version, 1);
+        assert.deepEqual(lineage.plugin, { name: 'corvus-star', version: '2.4.6' });
+        assert.equal(lineage.runtime_binding?.integration_mode, 'skill-only');
+        assert.equal(lineage.runtime_binding?.kernel_bundled, false);
+        assert.deepEqual(Object.keys(lineage.files ?? {}).sort(), [
+            '.codex-plugin/plugin.json',
+            'README.md',
+            'skills/corvus-star/SKILL.md',
+        ]);
     });
 
     it('writes release bundles into dist/host-distributions', () => {
@@ -82,6 +101,10 @@ describe('release bundle generation', () => {
         );
         assert.equal(
             fs.existsSync(path.join(projectRoot, 'dist', 'host-distributions', 'codex-plugin', '.codex-plugin', 'plugin.json')),
+            true,
+        );
+        assert.equal(
+            fs.existsSync(path.join(projectRoot, 'dist', 'host-distributions', 'codex-plugin', 'lineage.json')),
             true,
         );
     });

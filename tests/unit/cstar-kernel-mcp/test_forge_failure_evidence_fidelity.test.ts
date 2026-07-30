@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { projectForgeFailureEvidence } from
+import { projectForgeFailureEvidence, verifiedZeroProviderProof } from
     '../../../src/tools/cstar-kernel-mcp/tools/forge_failure_evidence.js';
 
 const ROLES = ['specifier', 'coder', 'cleaner', 'architect', 'hardener', 'qa'];
@@ -129,6 +129,7 @@ describe('CStar Forge conservative failure-evidence projection', () => {
         assert.equal(projected.live_spend, false);
         assert.equal(projected.live_spend_unknown, false);
         assert.equal(projected.known_spend_observed, false);
+        assert.ok(verifiedZeroProviderProof(projected));
     });
 
     it('preserves provider-acknowledged spend when headers arrive before a failed body', () => {
@@ -148,6 +149,7 @@ describe('CStar Forge conservative failure-evidence projection', () => {
         assert.equal(projected.known_spend_observed, true);
         assert.equal(projected.live_spend, null);
         assert.equal(projected.live_spend_unknown, true);
+        assert.equal(verifiedZeroProviderProof(projected), null);
     });
 
     it('recognizes only ENOENT and E2BIG as proven pre-spawn no-spend', () => {

@@ -13,6 +13,11 @@ const identity = {
     decision_id: 'decision-envelope-test',
     adapter_ref: 'cstar-forge-hermes-minimax-worker-adapter',
 };
+const materialPolicy = {
+    schema: 'cstar.forge_material_policy.v1',
+    file_max_bytes: 512 * 1024, total_max_bytes: 512 * 1024,
+    prompt_max_bytes: 1024 * 1024,
+};
 
 function fixture(forgeIdentity = false) {
     const root = fs.mkdtempSync('/tmp/forge-provider-envelope-'); roots.push(root);
@@ -23,7 +28,7 @@ function fixture(forgeIdentity = false) {
     const intentPath = path.join(root, 'intent.json');
     fs.writeFileSync(intentPath, JSON.stringify({
         intent: 'Return the exact bounded manifest.', execution_identity: identity,
-        project_root: root, target_paths: [target],
+        material_policy: materialPolicy, project_root: root, target_paths: [target],
         payload: { hermes_profile: 'cstar-hub', model: 'MiniMax-M3', expected_output: 'json',
             write_to: response, timeout_seconds: 60 },
     }));

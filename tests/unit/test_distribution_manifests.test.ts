@@ -112,6 +112,7 @@ describe('distribution generator', () => {
                 path.join('plugins', 'corvus-star', '.codex-plugin', 'plugin.json'),
                 path.join('plugins', 'corvus-star', 'skills', 'corvus-star', 'SKILL.md'),
                 path.join('plugins', 'corvus-star', 'README.md'),
+                path.join('plugins', 'corvus-star', 'lineage.json'),
                 path.join('.agents', 'plugins', 'marketplace.json'),
                 path.join('distributions', 'README.md'),
             ],
@@ -180,7 +181,34 @@ describe('distribution generator', () => {
             assert.doesNotMatch(materialized, /Confidence belongs in learning metadata/);
         }
 
-        const marketplace = JSON.parse(build.files[5]?.content ?? '{}') as {
+        const lineage = JSON.parse(build.files[5]?.content ?? '{}') as {
+            schema_version?: number;
+            plugin?: { name?: string; version?: string };
+            runtime_binding?: { integration_mode?: string; kernel_bundled?: boolean };
+            tool_catalog?: { count?: number; sha256?: string };
+            capability_exports?: { codex_count?: number; gemini_count?: number; sha256?: string };
+            files?: Record<string, { bytes?: number; sha256?: string }>;
+        };
+        assert.equal(lineage.schema_version, 1);
+        assert.deepEqual(lineage.plugin, { name: 'corvus-star', version: '2.4.6' });
+        assert.equal(lineage.runtime_binding?.integration_mode, 'skill-only');
+        assert.equal(lineage.runtime_binding?.kernel_bundled, false);
+        assert.ok((lineage.tool_catalog?.count ?? 0) > 0);
+        assert.match(lineage.tool_catalog?.sha256 ?? '', /^[a-f0-9]{64}$/);
+        assert.equal(lineage.capability_exports?.codex_count, 2);
+        assert.equal(lineage.capability_exports?.gemini_count, 3);
+        assert.match(lineage.capability_exports?.sha256 ?? '', /^[a-f0-9]{64}$/);
+        assert.deepEqual(Object.keys(lineage.files ?? {}).sort(), [
+            '.codex-plugin/plugin.json',
+            'README.md',
+            'skills/corvus-star/SKILL.md',
+        ]);
+        for (const record of Object.values(lineage.files ?? {})) {
+            assert.ok((record.bytes ?? 0) > 0);
+            assert.match(record.sha256 ?? '', /^[a-f0-9]{64}$/);
+        }
+
+        const marketplace = JSON.parse(build.files[6]?.content ?? '{}') as {
             plugins?: Array<{ source?: { path?: string } }>;
         };
         assert.equal(marketplace.plugins?.[0]?.source?.path, './plugins/corvus-star');
@@ -188,11 +216,13 @@ describe('distribution generator', () => {
         const pluginReadme = build.files[4]?.content ?? '';
         assert.match(pluginReadme, /source plugin under `plugins\/corvus-star\/` is skill-only/);
         assert.match(pluginReadme, /host-global CStar kernel is managed independently/);
+        assert.match(pluginReadme, /lineage\.json` binds the immutable version/);
+        assert.match(pluginReadme, /Source staging only/);
+        assert.match(pluginReadme, /does not run `codex plugin add`/);
         assert.match(pluginReadme, /Augury as an advisory route explanation/);
         assert.match(pluginReadme, /fail closed when the host session is unavailable/);
-        assert.doesNotMatch(pluginReadme, /install:codex-local/);
 
-        const distReadme = build.files[6]?.content ?? '';
+        const distReadme = build.files[7]?.content ?? '';
         assert.match(distReadme, /npm run build:distributions/);
         assert.match(distReadme, /never hand-edit Codex plugin caches or marketplace state/);
     });

@@ -42,13 +42,48 @@ import {
     callerRequestedActiveSessionContinuity,
     resolveAuguryCurrentIntentCategory
 } from './shared_test_setup.js';
+import { registry } from '../../../src/tools/pennyone/pathRegistry.js';
+import { formatAugurySteeringBlock } from '../../../src/core/host_session_augury.js';
+
+async function withUnavailableSyntheticPersona<T>(operation: () => Promise<T>): Promise<T> {
+    const previousRoot = registry.getRoot();
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'cstar-augury-persona-unavailable-'));
+    registry.setRoot(root);
+    try {
+        return await operation();
+    } finally {
+        registry.setRoot(previousRoot);
+        fs.rmSync(root, { recursive: true, force: true });
+    }
+}
+
+async function withSyntheticPersona<T>(
+    persona: 'O.D.I.N.' | 'A.L.F.R.E.D.',
+    operation: () => Promise<T>,
+): Promise<T> {
+    const previousRoot = registry.getRoot();
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'cstar-augury-persona-'));
+    fs.mkdirSync(path.join(root, '.agents'), { recursive: true });
+    fs.writeFileSync(path.join(root, '.agents', 'config.json'), JSON.stringify({
+        system: { persona }, secret: 'AUGURY_SECRET_CANARY',
+    }));
+    registry.setRoot(root);
+    try {
+        return await operation();
+    } finally {
+        registry.setRoot(previousRoot);
+        fs.rmSync(root, { recursive: true, force: true });
+    }
+}
 
 describe("CStar MCP Augury, bead, telemetry, and result tools", () => {
 it('cstar_augury tool handler should return routing advice', async () => {
     // Prompt with the 'test' trigger word should resolve VERIFY via the
     // deterministic grammar resolver (no session active), not the legacy
     // blind ORCHESTRATE fallback.
-    const result = await handleAugury({ prompt: 'test mission' });
+    const result = await withUnavailableSyntheticPersona(
+        () => handleAugury({ prompt: 'test mission' }),
+    );
     assert.ok(result.content);
     const parsed = JSON.parse(result.content[0].text);
     if (parsed.error) console.error('Augury Error:', parsed.error);
@@ -79,7 +114,9 @@ it('cstar_augury falls back to ORCHESTRATE when no grammar trigger and no sessio
     // 'xyzzy noise' contains no grammar trigger word, so the deterministic
     // resolver returns null and the handler should use the ORCHESTRATE
     // fallback path (source='fallback', with no unscored confidence claim).
-    const result = await handleAugury({ prompt: 'xyzzy noise' });
+    const result = await withUnavailableSyntheticPersona(
+        () => handleAugury({ prompt: 'xyzzy noise' }),
+    );
     const parsed = JSON.parse(result.content[0].text);
     assert.strictEqual(parsed.intent_category, 'ORCHESTRATE');
     assert.strictEqual(parsed.routing_provenance.source, 'fallback');
@@ -88,6 +125,20 @@ it('cstar_augury falls back to ORCHESTRATE when no grammar trigger and no sessio
     assert.strictEqual(parsed.confidence, undefined);
     assert.strictEqual(parsed.persona_advice, undefined);
     assert.strictEqual(parsed.persona_freshness_gap, 'active_persona_projection_unavailable');
+});
+
+it('projects configured persona posture into lite steering without leaking config', async () => {
+    const result = await withSyntheticPersona(
+        'A.L.F.R.E.D.',
+        () => handleAugury({ prompt: 'build the bounded repair' }),
+    );
+    const parsed = JSON.parse(result.content[0].text);
+    assert.equal(parsed.persona_advice.persona, 'A.L.F.R.E.D.');
+    assert.equal(parsed.persona_advice.source, 'bounded_active_persona_projection');
+    assert.equal(parsed.persona_advice.development_posture, 'secure_harden');
+    const steering = formatAugurySteeringBlock(parsed, { mode: 'lite' });
+    assert.match(steering, /Development Posture \(secure_harden\)/);
+    assert.doesNotMatch(JSON.stringify(parsed) + steering, /AUGURY_SECRET_CANARY/);
 });
 
 it('detects stale Augury session target divergence', () => {

@@ -45,7 +45,9 @@ describe("CStar MCP promoted kernel surfaces core", () => {
         assert.ok(parsed.framework, 'framework block must be present');
         assert.ok(typeof parsed.framework.status === 'string');
         assert.ok(parsed.persona === null || parsed.persona === 'O.D.I.N.' || parsed.persona === 'A.L.F.R.E.D.');
-        assert.ok(['self_consistent_unverified', 'legacy_self_consistent_unverified', 'unavailable']
+        assert.ok(['bounded_config_projection', 'bounded_config_invalid',
+            'bounded_config_reader_unavailable', 'self_consistent_unverified',
+            'legacy_self_consistent_unverified', 'unavailable']
             .includes(parsed.persona_projection_status));
         assert.equal(parsed.framework.active_persona, undefined);
         assert.ok(typeof parsed.workspace === 'string');

@@ -39,7 +39,7 @@ def test_no_production_source_names_or_constructs_the_secret_config_path() -> No
     assert violations == []
 
 
-def test_persona_advice_is_presentation_only() -> None:
+def test_persona_advice_is_non_authoritative_process_guidance() -> None:
     source = (ROOT / "src/core/persona_advice.ts").read_text(encoding="utf-8")
     forbidden = [
         "risk_tolerance",
@@ -50,6 +50,9 @@ def test_persona_advice_is_presentation_only() -> None:
         "direction:",
     ]
     assert [token for token in forbidden if token in source] == []
+    assert "build_run_repair" in source
+    assert "secure_harden" in source
+    assert "non_authoritative_process_guidance" in source
 
 
 def test_compatibility_docs_do_not_turn_persona_style_into_authority() -> None:
@@ -57,8 +60,9 @@ def test_compatibility_docs_do_not_turn_persona_style_into_authority() -> None:
     assert "Do not ask for permission" not in source
     assert "MUST execute" not in source
     assert "Fix them" not in source
-    assert "Persona affects presentation style" in source
-    assert "No persona may initiate automatic repair" in source
+    assert "O.D.I.N. means build-run-repair" in source
+    assert "A.L.F.R.E.D. means secure-harden" in source
+    assert "cannot" in source and "authority" in source
 
 
 def test_legacy_persona_and_dormancy_entrypoints_fail_closed() -> None:

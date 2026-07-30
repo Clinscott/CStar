@@ -398,15 +398,15 @@ describe('Forge live-runtime readiness', () => {
             assert.ok(firstIndex < secondIndex);
         };
         assertBefore(request, 'if (liveRequested) assertLiveForgeRuntimeReady();',
-            'const db = getForgeWritableDb(root);');
+            'const db = getForgeWritableDb(controlRoot);');
         assertBefore(authorize, 'assertLiveForgeRuntimeReady();',
             'const writable = getForgeWritableDb(root);');
         const assertions = [...execute.matchAll(/assertStableRuntimeReady\(\);/g)].map((match) => match.index!);
         assert.equal(assertions.length, 3);
         assertBefore(execute, 'assertStableRuntimeReady();',
-            'preflightForgeHermesOAuthBeforeReservation(');
+            'const reservation = reserveVerifiedForgeExecution');
         assertBefore(execute.slice(assertions[1]), 'assertStableRuntimeReady();',
-            'const reservation = reserveForgeAttempt');
+            'const reservation = reserveVerifiedForgeExecution');
         assertBefore(execute.slice(assertions[2]), 'assertStableRuntimeReady();',
             'markForgeAttemptStarted(');
         assertBefore(execute.slice(assertions[2]), 'assertStableRuntimeReady();',

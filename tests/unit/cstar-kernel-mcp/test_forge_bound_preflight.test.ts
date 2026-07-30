@@ -21,6 +21,11 @@ const identityEnv = {
     CSTAR_FORGE_EXECUTE_DECISION_ID: identity.decision_id,
     CSTAR_FORGE_EXECUTE_ADAPTER_REF: identity.adapter_ref,
 };
+const materialPolicy = {
+    schema: 'cstar.forge_material_policy.v1',
+    file_max_bytes: 512 * 1024, total_max_bytes: 512 * 1024,
+    prompt_max_bytes: 1024 * 1024,
+};
 
 function fixture(preflight?: Record<string, unknown>) {
     const root = fs.mkdtempSync(path.join('/tmp', 'forge-bound-preflight-'));
@@ -32,7 +37,8 @@ function fixture(preflight?: Record<string, unknown>) {
     fs.mkdirSync(home); fs.writeFileSync(target, 'export const bounded = true;\n');
     fs.writeFileSync(intentPath, JSON.stringify({
         intent: 'Return a bounded synthetic manifest.', execution_identity: identity,
-        project_root: root, target_paths: [target], hermes_preflight: preflight,
+        material_policy: materialPolicy, project_root: root,
+        target_paths: [target], hermes_preflight: preflight,
         payload: { hermes_profile: 'cstar-hub', model: 'MiniMax-M3', expected_output: 'json',
             write_to: response, timeout_seconds: 60 },
     }));

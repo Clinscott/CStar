@@ -162,7 +162,8 @@ def test_forge_docs_require_natural_work_authorization_and_safe_replay() -> None
     assert "one user record" in kernel and "bounded canonical `input_text`" in kernel
     assert "forge_operator_authorization_required" in kernel
     assert "operator never pastes machine tokens" in kernel
-    assert "A later root-user turn can only retrieve an already durable attempt" in kernel
+    assert "A later root-user turn can retrieve an already durable attempt" in kernel
+    assert "cstar.forge_pre_provider_continuation.v1" in kernel
 
 
 def test_forge_natural_authorization_feature_is_fail_closed() -> None:
@@ -341,7 +342,7 @@ def test_host_goal_resume_is_append_only_and_continuity_only() -> None:
     assert "no second coordination event" in feature
 
 
-def test_persona_context_is_status_only_with_no_local_file_fallback() -> None:
+def test_persona_context_is_status_only_with_isolated_bounded_reader() -> None:
     agents = _read("AGENTS.md")
     kernel_doc = _read("docs/integrations/cstar-kernel-mcp.md")
     boundary_doc = _read("docs/integrations/safe_persona_reader.md")
@@ -351,9 +352,12 @@ def test_persona_context_is_status_only_with_no_local_file_fallback() -> None:
     assert "Never read or print `.agents/config.json`" in agents
     for text in (kernel_doc, boundary_doc, feature):
         assert "cstar_status" in text
-        assert "no local-file fallback" in text or "no local file fallback" in text
-    assert "there is no active persona default" in _flat(kernel_doc)
-    assert "activePersona" not in boundary_doc
+    assert "there is no active persona default" in _flat(kernel_doc).lower()
+    assert "system.persona" in boundary_doc
+    assert "scripts/read_active_persona.py" in boundary_doc
+    assert "bounded_config_projection" in kernel_doc
+    assert "build_run_repair" in feature
+    assert "secure_harden" in feature
     flattened_kernel_doc = _flat(kernel_doc)
     for source in ("Bootstrap rows", "legacy migrations", "document ingestion", "profile digests", "SessionStart hooks"):
         assert source in flattened_kernel_doc
@@ -366,7 +370,8 @@ def test_persona_context_is_status_only_with_no_local_file_fallback() -> None:
     assert "READ THIS FIRST" not in claude_pointer
     assert "Do not ask for permission" not in claude_pointer
     assert "MUST execute" not in claude_pointer
-    assert "No persona may initiate automatic repair" in claude_pointer
+    assert "O.D.I.N. means build-run-repair" in claude_pointer
+    assert "A.L.F.R.E.D. means secure-harden" in claude_pointer
 
 
 def test_gemini_pointer_contains_no_persona_or_state_snapshot() -> None:
@@ -374,7 +379,9 @@ def test_gemini_pointer_contains_no_persona_or_state_snapshot() -> None:
 
     assert "cstar_status" in pointer
     assert "cstar_handoff" in pointer
-    assert "style-only" in pointer
+    assert "build-run-repair" in pointer
+    assert "secure-harden" in pointer
+    assert "grants no execution authority" in pointer
     assert "has no default" in pointer
     for stale in (
         "Active Mind",
