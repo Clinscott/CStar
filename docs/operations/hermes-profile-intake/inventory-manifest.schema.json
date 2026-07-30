@@ -1,0 +1,253 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:cstar:schema:hermes-profile-intake-manifest:v1",
+  "title": "Hermes Profile Intake Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "profile_kind",
+    "source_root_alias",
+    "phase",
+    "candidates",
+    "excluded_summary",
+    "authority",
+    "attestation"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "hermes.profile.intake.manifest.v1"
+    },
+    "profile_kind": {
+      "enum": [
+        "forge",
+        "researcher"
+      ]
+    },
+    "source_root_alias": {
+      "type": "string",
+      "enum": [
+        "HERMES_FORGE_PROFILE_ROOT",
+        "HERMES_RESEARCHER_PROFILE_ROOT"
+      ]
+    },
+    "phase": {
+      "const": "metadata_only"
+    },
+    "candidates": {
+      "type": "array",
+      "maxItems": 5000,
+      "items": {
+        "$ref": "#/$defs/candidate"
+      }
+    },
+    "excluded_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "categories_applied",
+        "individual_excluded_paths_recorded"
+      ],
+      "properties": {
+        "categories_applied": {
+          "type": "array",
+          "minItems": 19,
+          "maxItems": 19,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "profile_contents",
+              "oauth_state",
+              "tokens",
+              "credentials",
+              "secrets",
+              "commands",
+              "endpoints",
+              "logs",
+              "transcripts_and_traces",
+              "sessions",
+              "cookies_and_browser_state",
+              "databases",
+              "caches",
+              "runtime_state",
+              "local_secret_paths",
+              "live_configuration",
+              "memories_and_personal_context",
+              "raw_vaults_and_private_data",
+              "generated_artifacts"
+            ]
+          }
+        },
+        "individual_excluded_paths_recorded": {
+          "const": false
+        }
+      }
+    },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "worker_enrollment",
+        "source_authority",
+        "execution",
+        "spend",
+        "provider_selection",
+        "model_selection",
+        "profile_mutation",
+        "activation"
+      ],
+      "properties": {
+        "worker_enrollment": {
+          "const": false
+        },
+        "source_authority": {
+          "const": false
+        },
+        "execution": {
+          "const": false
+        },
+        "spend": {
+          "const": false
+        },
+        "provider_selection": {
+          "const": false
+        },
+        "model_selection": {
+          "const": false
+        },
+        "profile_mutation": {
+          "const": false
+        },
+        "activation": {
+          "const": false
+        }
+      }
+    },
+    "attestation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile_contents_included",
+        "oauth_state_included",
+        "tokens_included",
+        "credentials_included",
+        "commands_included",
+        "endpoints_included",
+        "logs_included",
+        "sessions_included",
+        "databases_included",
+        "runtime_state_included",
+        "absolute_paths_included",
+        "local_secret_paths_included",
+        "live_configuration_included",
+        "private_data_included",
+        "archive_created",
+        "operator_review_required"
+      ],
+      "properties": {
+        "profile_contents_included": {
+          "const": false
+        },
+        "oauth_state_included": {
+          "const": false
+        },
+        "tokens_included": {
+          "const": false
+        },
+        "credentials_included": {
+          "const": false
+        },
+        "commands_included": {
+          "const": false
+        },
+        "endpoints_included": {
+          "const": false
+        },
+        "logs_included": {
+          "const": false
+        },
+        "sessions_included": {
+          "const": false
+        },
+        "databases_included": {
+          "const": false
+        },
+        "runtime_state_included": {
+          "const": false
+        },
+        "absolute_paths_included": {
+          "const": false
+        },
+        "local_secret_paths_included": {
+          "const": false
+        },
+        "live_configuration_included": {
+          "const": false
+        },
+        "private_data_included": {
+          "const": false
+        },
+        "archive_created": {
+          "const": false
+        },
+        "operator_review_required": {
+          "const": true
+        }
+      }
+    }
+  },
+  "$defs": {
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "relative_path",
+        "size_bytes",
+        "modified_epoch",
+        "asset_kind",
+        "review_status",
+        "sha256"
+      ],
+      "properties": {
+        "relative_path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "pattern": "^(?!/|~|[A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$))(?!\\./)(?!.*//)(?!.*\\/$).+",
+          "not": {
+            "pattern": "(?:^|/)(?:\\.env(?:\\..*)?|secrets?|credentials?|oauth|tokens?|sessions?|cookies?|logs?|runtime|databases?|db|cache|\\.cache)(?:/|$)"
+          }
+        },
+        "size_bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "modified_epoch": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "asset_kind": {
+          "enum": [
+            "source",
+            "skill_contract",
+            "test",
+            "schema",
+            "template",
+            "documentation",
+            "dependency_manifest",
+            "config_example"
+          ]
+        },
+        "review_status": {
+          "enum": [
+            "candidate",
+            "manual_review"
+          ]
+        },
+        "sha256": {
+          "type": "null"
+        }
+      }
+    }
+  }
+}
