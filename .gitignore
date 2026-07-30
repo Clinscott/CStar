@@ -53,6 +53,9 @@ gha-creds-*.json
 .lore/
 
 # Runtime artifacts and local state
+/.agents/cachebro.json
+/.agents/daemon.key
+/.agents/daemon.pid
 .agents/.agents/
 .agents/chroma_db/
 .agents/exchange/
