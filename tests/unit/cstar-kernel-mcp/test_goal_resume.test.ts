@@ -151,7 +151,8 @@ describe('dedicated continuity-only host goal resume tool', () => {
             host_resume_capability: 'unavailable',
         }, undefined);
 
-        assert.equal(response.isError, true);
+        assert.equal(response.isError, undefined);
+        assert.equal(responseBody(response).outcome, 'guardrail_block');
         assert.match(responseBody(response).error, /codex_request_identity_metadata_required/);
         assert.deepEqual(fs.readdirSync(root), []);
     });
@@ -322,7 +323,8 @@ describe('dedicated continuity-only host goal resume tool', () => {
             /goal_resume_operator_signal_negated/,
         );
         const response = await handleGoalResume(fixture.args, fixture.context);
-        assert.equal(response.isError, true);
+        assert.equal(response.isError, undefined);
+        assert.equal(responseBody(response).outcome, 'guardrail_block');
         const count = fixture.db.prepare('SELECT COUNT(*) AS count FROM hall_coordination_events').get() as { count: number };
         assert.equal(count.count, 0);
     });
@@ -335,7 +337,8 @@ describe('dedicated continuity-only host goal resume tool', () => {
             /goal_resume_operator_signal_missing/,
         );
         const response = await handleGoalResume(fixture.args, fixture.context);
-        assert.equal(response.isError, true);
+        assert.equal(response.isError, undefined);
+        assert.equal(responseBody(response).outcome, 'guardrail_block');
         const count = fixture.db.prepare('SELECT COUNT(*) AS count FROM hall_coordination_events').get() as { count: number };
         assert.equal(count.count, 0);
     });
@@ -346,7 +349,8 @@ describe('dedicated continuity-only host goal resume tool', () => {
         );
 
         const response = await handleGoalResume(fixture.args, fixture.context);
-        assert.equal(response.isError, true);
+        assert.equal(response.isError, undefined);
+        assert.equal(responseBody(response).outcome, 'guardrail_block');
         assert.match(responseBody(response).error, /goal_resume_operator_signal_missing/);
     });
 
@@ -372,7 +376,8 @@ describe('dedicated continuity-only host goal resume tool', () => {
         ].join(' '));
 
         const response = await handleGoalResume(fixture.args, fixture.context);
-        assert.equal(response.isError, true);
+        assert.equal(response.isError, undefined);
+        assert.equal(responseBody(response).outcome, 'guardrail_block');
         assert.match(responseBody(response).error, /goal_resume_operator_signal_missing/);
     });
 
@@ -383,7 +388,8 @@ describe('dedicated continuity-only host goal resume tool', () => {
         ].join(' '));
 
         const response = await handleGoalResume(fixture.args, fixture.context);
-        assert.equal(response.isError, true);
+        assert.equal(response.isError, undefined);
+        assert.equal(responseBody(response).outcome, 'guardrail_block');
         assert.match(responseBody(response).error, /goal_resume_operator_signal_missing/);
     });
 
@@ -405,7 +411,8 @@ describe('dedicated continuity-only host goal resume tool', () => {
         ]) {
             const fixture = createFixture(text);
             const response = await handleGoalResume(fixture.args, fixture.context);
-            assert.equal(response.isError, true);
+            assert.equal(response.isError, undefined);
+            assert.equal(responseBody(response).outcome, 'guardrail_block');
             assert.match(
                 responseBody(response).error,
                 /goal_resume_operator_signal_(?:missing|negated|ambiguous)/,
@@ -423,7 +430,8 @@ describe('dedicated continuity-only host goal resume tool', () => {
         ]) {
             const fixture = createFixture(text);
             const response = await handleGoalResume(fixture.args, fixture.context);
-            assert.equal(response.isError, true);
+            assert.equal(response.isError, undefined);
+            assert.equal(responseBody(response).outcome, 'guardrail_block');
             assert.match(responseBody(response).error, /goal_resume_operator_signal_missing/);
             database.close();
         }
@@ -440,7 +448,8 @@ describe('dedicated continuity-only host goal resume tool', () => {
             ]) {
                 const fixture = createFixture(records);
                 const response = await handleGoalResume(fixture.args, fixture.context);
-                assert.equal(response.isError, true);
+                assert.equal(response.isError, undefined);
+                assert.equal(responseBody(response).outcome, 'guardrail_block');
                 assert.match(responseBody(response).error, /goal_resume_operator_signal_negated/);
                 database.close();
             }
