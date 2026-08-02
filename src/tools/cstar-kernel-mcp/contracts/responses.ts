@@ -6,6 +6,34 @@ export interface McpTextResponse {
     isError?: boolean;
 }
 
+export const MCP_OUTCOMES = [
+    'ok',
+    'needs_input',
+    'guardrail_block',
+    'domain_terminal',
+    'transport_error',
+    'internal_error',
+] as const;
+
+export type McpOutcome = typeof MCP_OUTCOMES[number];
+export type McpOutcomeKind = McpOutcome;
+
+export const MCP_OUTCOME_KINDS = MCP_OUTCOMES;
+
+export type McpOutcomeCategory =
+    | 'success'
+    | 'input'
+    | 'guardrail'
+    | 'domain'
+    | 'transport'
+    | 'internal';
+
+export interface McpOutcomeMetadata {
+    outcome: McpOutcome;
+    outcome_kind: McpOutcomeCategory;
+    is_error: boolean;
+}
+
 export type McpGuardrailVerdict = 'allow' | 'caution' | 'block';
 export type McpGuardrailAction = 'continue' | 'recover' | 'repair' | 'verify' | 'refuse';
 
@@ -26,6 +54,45 @@ export interface McpMutationPayload {
 
 const nonRecordablePreAuthorizationResponses = new WeakSet<object>();
 const nonRecordablePreAuthorizationErrors = new WeakSet<object>();
+
+const MCP_OUTCOME_CATEGORIES: Record<McpOutcome, McpOutcomeCategory> = {
+    ok: 'success',
+    needs_input: 'input',
+    guardrail_block: 'guardrail',
+    domain_terminal: 'domain',
+    transport_error: 'transport',
+    internal_error: 'internal',
+};
+
+export function isMcpOutcome(value: unknown): value is McpOutcome {
+    return typeof value === 'string'
+        && (MCP_OUTCOMES as readonly string[]).includes(value);
+}
+
+export function isMcpErrorOutcome(outcome: McpOutcome): boolean {
+    return outcome === 'transport_error' || outcome === 'internal_error';
+}
+
+export function mcpOutcomeMetadata(outcome: McpOutcome): McpOutcomeMetadata {
+    return {
+        outcome,
+        outcome_kind: MCP_OUTCOME_CATEGORIES[outcome],
+        is_error: isMcpErrorOutcome(outcome),
+    };
+}
+
+function inferMcpOutcome(payload: unknown): McpOutcome | undefined {
+    if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return undefined;
+    const candidate = (payload as Record<string, unknown>).outcome;
+    if (isMcpOutcome(candidate)) return candidate;
+    const guardrail = (payload as Record<string, unknown>).guardrail;
+    if (
+        guardrail
+        && typeof guardrail === 'object'
+        && (guardrail as Record<string, unknown>).verdict === 'block'
+    ) return 'guardrail_block';
+    return undefined;
+}
 
 export function mcpErrorCode(error: unknown, fallback = 'cstar_internal_error'): string {
     const message = normalizeErrorMessage(error, 256);
@@ -59,11 +126,25 @@ export function mcpMutation(kind: string, recordId: string | undefined, reason: 
 }
 
 export function textResponse(payload: unknown, isError = false): McpTextResponse {
+    const outcome = inferMcpOutcome(payload);
+    const effectiveIsError = outcome === undefined ? isError : isMcpErrorOutcome(outcome);
     return {
         content: [{ type: 'text', text: JSON.stringify(payload) }],
-        ...(isError ? { isError: true } : {}),
+        ...(effectiveIsError ? { isError: true } : {}),
     };
 }
+
+export function mcpOutcomeResponse(
+    outcome: McpOutcome,
+    payload: Record<string, unknown> = {},
+): McpTextResponse {
+    return textResponse({
+        ...payload,
+        ...mcpOutcomeMetadata(outcome),
+    });
+}
+
+export const typedOutcomeResponse = mcpOutcomeResponse;
 
 export function normalizeErrorMessage(error: unknown, maxLength = MCP_ERROR_MESSAGE_MAX): string {
     const raw = error instanceof Error ? error.message : String(error);
@@ -83,18 +164,24 @@ export function errorPayloadResponse(
     error: unknown = payload.error ?? errorCode,
     maxLength = MCP_ERROR_MESSAGE_MAX,
 ): McpTextResponse {
-    return textResponse({
+    const outcome = inferMcpOutcome(payload) ?? 'internal_error';
+    return mcpOutcomeResponse(outcome, {
         ...payload,
         error_code: mcpErrorCode(errorCode, 'cstar_internal_error'),
         error: normalizeErrorMessage(error, maxLength),
-    }, true);
+    });
 }
 
 export function nonRecordablePreAuthorizationResponse(
     payload: unknown,
-    isError = false,
+    _isError = false,
 ): McpTextResponse {
-    return markNonRecordablePreAuthorizationResponse(textResponse(payload, isError));
+    const responsePayload = payload && typeof payload === 'object' && !Array.isArray(payload)
+        ? payload as Record<string, unknown>
+        : { value: payload };
+    return markNonRecordablePreAuthorizationResponse(
+        mcpOutcomeResponse('guardrail_block', responsePayload),
+    );
 }
 
 export function markNonRecordablePreAuthorizationResponse(
@@ -109,7 +196,11 @@ export function preAuthorizationResponse(
     errorCode: string,
     error: unknown = payload.error ?? errorCode,
 ): McpTextResponse {
-    const response = errorPayloadResponse(payload, errorCode, error);
+    const response = mcpOutcomeResponse('guardrail_block', {
+        ...payload,
+        error_code: mcpErrorCode(errorCode, 'cstar_guardrail_block'),
+        error: normalizeErrorMessage(error),
+    });
     return markNonRecordablePreAuthorizationResponse(response);
 }
 
