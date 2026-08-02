@@ -7,6 +7,15 @@ import type {
 import { KERNEL_RUNTIME_GENERATION_SCHEMA } from '../../../types/kernel_runtime_generation.js';
 
 export type RuntimePathPlatform = 'auto' | 'linux' | 'wsl' | 'darwin' | 'macos';
+export type RuntimePathKind = 'relative' | 'posix' | 'windows' | 'wsl' | 'unc';
+export type RuntimePathAlphabet = 'relative' | 'posix' | 'windows';
+
+export interface RuntimePathClassification {
+    absolute: boolean;
+    alphabet: RuntimePathAlphabet;
+    kind: RuntimePathKind;
+    normalized: string;
+}
 
 export const RUNTIME_GENERATION_ERROR_CODES = {
     invalid_receipt: 'kernel_runtime_generation_receipt_invalid',
@@ -73,14 +82,122 @@ function relativePath(value: string): string {
     return segments.length > 0 ? segments.join('/') : '.';
 }
 
-function isWindowsDrivePath(value: string): boolean {
-    return /^[a-z]:(?:\/|$)/i.test(value);
+function normalizedPathInput(input: string): string {
+    if (typeof input !== 'string' || input.trim() === '' || input.includes('\0')) {
+        throw new Error('runtime_path_invalid');
+    }
+    return input.trim();
 }
 
-function isAbsolutePath(value: string): boolean {
-    return value.startsWith('/')
-        || isWindowsDrivePath(value)
-        || /^(?:wsl|windows):\/\//i.test(value);
+function assertPlatform(platform: RuntimePathPlatform): void {
+    if (!['auto', 'linux', 'wsl', 'darwin', 'macos'].includes(platform)) {
+        throw new Error(`runtime_path_platform_invalid:${platform}`);
+    }
+}
+
+function authority(value: string, field: string): string {
+    if (!value || value === '.' || value === '..') {
+        throw new Error(`runtime_path_authority_invalid:${field}`);
+    }
+    return value.toLowerCase();
+}
+
+function uncPath(server: string, share: string, suffix = ''): string {
+    if (!share || share === '.' || share === '..') throw new Error('runtime_unc_share_invalid');
+    return `unc://${authority(server, 'unc_server')}/${share}${absolutePath(suffix)}`;
+}
+
+/** Classify only after both slash alphabets have been normalized. */
+export function classifyRuntimePath(
+    input: string,
+    platform: RuntimePathPlatform = 'auto',
+): RuntimePathClassification {
+    assertPlatform(platform);
+    const value = normalizedPathInput(input);
+    const canonicalUnc = /^unc:\/\/([^/]+)\/([^/]+)(?:\/(.*))?$/i.exec(value);
+    if (canonicalUnc) {
+        return {
+            absolute: true,
+            alphabet: 'windows',
+            kind: 'unc',
+            normalized: uncPath(canonicalUnc[1], canonicalUnc[2], canonicalUnc[3]),
+        };
+    }
+
+    const canonical = /^(wsl|windows):\/\/([^/]+)(?:\/(.*))?$/i.exec(value);
+    if (canonical) {
+        const kind = canonical[1].toLowerCase() as 'wsl' | 'windows';
+        if (kind === 'windows' && !/^[a-z]$/i.test(canonical[2])) {
+            throw new Error('runtime_windows_drive_invalid');
+        }
+        return {
+            absolute: true,
+            alphabet: kind === 'windows' ? 'windows' : 'posix',
+            kind,
+            normalized: `${kind}://${authority(canonical[2], `${kind}_authority`)}${absolutePath(canonical[3] ?? '')}`,
+        };
+    }
+    if (/^(?:wsl|windows|unc):\/\//i.test(value)) throw new Error('runtime_path_invalid');
+
+    const hasUncAlphabet = value.startsWith('\\\\')
+        || (value.startsWith('//') && !value.startsWith('///'));
+    if (hasUncAlphabet) {
+        const slashValue = value.replaceAll('\\', '/');
+        if (/^\/\/[?.]\//.test(slashValue)) throw new Error('runtime_windows_device_path_forbidden');
+        const wslUnc = /^\/\/wsl(?:\.localhost|\$)\/([^/]+)(?:\/(.*))?$/i.exec(slashValue);
+        if (wslUnc) {
+            return {
+                absolute: true,
+                alphabet: 'windows',
+                kind: 'wsl',
+                normalized: `wsl://${authority(wslUnc[1], 'wsl_distro')}${absolutePath(wslUnc[2] ?? '')}`,
+            };
+        }
+
+        const unc = /^\/\/([^/]+)\/([^/]+)(?:\/(.*))?$/.exec(slashValue);
+        if (unc) {
+            return {
+                absolute: true,
+                alphabet: 'windows',
+                kind: 'unc',
+                normalized: uncPath(unc[1], unc[2], unc[3]),
+            };
+        }
+        throw new Error('runtime_unc_path_invalid');
+    }
+
+    const drive = /^([a-z]):[\\/](.*)$/i.exec(value);
+    if (drive) {
+        const kind = platform === 'wsl' ? 'wsl' : 'windows';
+        return {
+            absolute: true,
+            alphabet: 'windows',
+            kind,
+            normalized: `${kind}://${drive[1].toLowerCase()}${absolutePath(drive[2].replaceAll('\\', '/'))}`,
+        };
+    }
+    if (/^[a-z]:/i.test(value)) throw new Error('runtime_windows_drive_relative_forbidden');
+    if (value.startsWith('\\')) throw new Error('runtime_windows_root_relative_forbidden');
+
+    const mountedDrive = /^\/mnt\/([a-z])(?:\/(.*))?$/i.exec(value);
+    if (mountedDrive && (platform === 'auto' || platform === 'wsl')) {
+        return {
+            absolute: true,
+            alphabet: 'posix',
+            kind: 'wsl',
+            normalized: `wsl://${mountedDrive[1].toLowerCase()}${absolutePath(mountedDrive[2] ?? '')}`,
+        };
+    }
+
+    if (value.startsWith('/')) {
+        return { absolute: true, alphabet: 'posix', kind: 'posix', normalized: absolutePath(value) };
+    }
+    return {
+        absolute: false,
+        alphabet: 'relative',
+        kind: 'relative',
+        normalized: relativePath(value),
+    };
 }
 
 /**
@@ -92,36 +209,9 @@ export function normalizeRuntimePath(
     input: string,
     platform: RuntimePathPlatform = 'auto',
 ): string {
-    if (typeof input !== 'string' || input.trim() === '' || input.includes('\0')) {
-        throw new Error('runtime_path_invalid');
-    }
-    const value = input.trim().replaceAll('\\', '/');
-    const canonical = /^(wsl|windows):\/\/([^/]+)(?:\/(.*))?$/i.exec(value);
-    if (canonical) {
-        return `${canonical[1].toLowerCase()}://${canonical[2].toLowerCase()}${absolutePath(canonical[3] ?? '')}`;
-    }
-    const wslUnc = /^\/\/wsl(?:\.localhost|\$)\/([^/]+)(?:\/(.*))?$/i.exec(value);
-    if (wslUnc) {
-        const distro = relativePath(wslUnc[1]).toLowerCase();
-        return `wsl://${distro}${absolutePath(wslUnc[2] ?? '')}`;
-    }
-
-    const drive = /^([a-z]):(?:\/(.*))?$/i.exec(value);
-    if (drive) {
-        const scheme = platform === 'wsl' ? 'wsl' : 'windows';
-        return `${scheme}://${drive[1].toLowerCase()}${absolutePath(drive[2] ?? '')}`;
-    }
-
-    const mountedDrive = /^\/mnt\/([a-z])(?:\/(.*))?$/i.exec(value);
-    if (mountedDrive && (platform === 'auto' || platform === 'wsl')) {
-        return `wsl://${mountedDrive[1].toLowerCase()}${absolutePath(mountedDrive[2] ?? '')}`;
-    }
-
-    if (!value.startsWith('/')) throw new Error('runtime_path_must_be_absolute');
-    if (platform !== 'auto' && !['linux', 'wsl', 'darwin', 'macos'].includes(platform)) {
-        throw new Error(`runtime_path_platform_invalid:${platform}`);
-    }
-    return absolutePath(value);
+    const classified = classifyRuntimePath(input, platform);
+    if (!classified.absolute) throw new Error('runtime_path_must_be_absolute');
+    return classified.normalized;
 }
 
 export const normalizeCodeRoot = normalizeRuntimePath;
@@ -142,20 +232,22 @@ export interface RuntimeFingerprintFile {
 
 function fingerprintPath(filePath: string, codeRoot?: string): string {
     if (!codeRoot) return normalizeRuntimePath(filePath);
-    const normalizedRoot = normalizeRuntimePath(codeRoot);
-    const normalizedFile = isAbsolutePath(filePath)
-        ? normalizeRuntimePath(filePath)
-        : relativePath(filePath);
-    if (!isAbsolutePath(filePath)) {
+    const root = classifyRuntimePath(codeRoot);
+    if (!root.absolute) throw new Error('runtime_path_must_be_absolute');
+    const file = classifyRuntimePath(filePath, root.kind === 'wsl' ? 'wsl' : 'auto');
+    if (!file.absolute) {
+        const normalizedFile = root.alphabet === 'windows'
+            ? relativePath(normalizedPathInput(filePath).replaceAll('\\', '/'))
+            : file.normalized;
         if (normalizedFile === '..' || normalizedFile.startsWith('../')) {
             fail(RUNTIME_GENERATION_ERROR_CODES.fingerprint_path);
         }
         return normalizedFile;
     }
-    if (normalizedFile === normalizedRoot) return '.';
-    const prefix = normalizedRoot.endsWith('/') ? normalizedRoot : `${normalizedRoot}/`;
-    if (!normalizedFile.startsWith(prefix)) fail(RUNTIME_GENERATION_ERROR_CODES.fingerprint_path);
-    return normalizedFile.slice(prefix.length);
+    if (file.normalized === root.normalized) return '.';
+    const prefix = root.normalized.endsWith('/') ? root.normalized : `${root.normalized}/`;
+    if (!file.normalized.startsWith(prefix)) fail(RUNTIME_GENERATION_ERROR_CODES.fingerprint_path);
+    return file.normalized.slice(prefix.length);
 }
 
 /** Build a stable content fingerprint from sorted relative paths and bytes. */
