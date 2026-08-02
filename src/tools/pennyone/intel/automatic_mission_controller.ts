@@ -47,6 +47,10 @@ function errorCode(error: unknown): string {
 }
 
 function errorKind(code: string): AutomaticMissionOutcome<'never'>['outcome'] {
+    if (code.includes('hash_input_forbidden') || code.includes('text_content_mismatch')
+        || code.includes('record_duplicate')) {
+        return 'guardrail_block';
+    }
     if (code.includes('design') || code.includes('root_user_record') || code.includes('grant_missing')) {
         return 'needs_input';
     }

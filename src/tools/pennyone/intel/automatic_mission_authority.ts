@@ -11,7 +11,7 @@ import {
 import {
     canonicalizeRootUserInstructionRecords,
     hashAutomaticMissionRootRecordSet,
-    hashLegacySingletonV1Message,
+    hashAutomaticMissionRootMessage,
     sha256,
     stableAutomaticMissionJson,
 } from './automatic_mission_schema.js';
@@ -204,18 +204,10 @@ export function buildAutomaticMissionAuthorityBinding(
     const setHash = hashAutomaticMissionRootRecordSet(records);
     if (!setHash) throw new Error('automatic_mission_root_record_set_missing');
     requiredHash(setHash, 'root_record_set_hash');
-    const messageSha256 = mission.compatibility_profile === 'legacy_singleton_v1'
-        && records.length === 1
-        ? hashLegacySingletonV1Message(selected.record)
-        : sha256(stableAutomaticMissionJson({
-            schema: 'cstar.mission_root_user_message.v1',
-            records: records.map((record, index) => ({
-                index,
-                record_sha256: record.record_sha256,
-                content: record.content,
-            })),
-            selected_record_index: selected.index,
-        }));
+    const messageSha256 = hashAutomaticMissionRootMessage(
+        records,
+        mission.compatibility_profile,
+    );
     const bindingSha256 = sha256(stableAutomaticMissionJson({
         schema: 'cstar.mission_set_authority_binding.v1',
         grant_kind: selected.grantKind,
