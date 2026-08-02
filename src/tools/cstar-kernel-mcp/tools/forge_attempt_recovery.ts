@@ -75,7 +75,12 @@ export function classifyForgeAttemptForDurableDispatch(
             && attempt.provider_requests_ambiguous > attempt.provider_requests_started);
     const invalidOptionalFlag = (value: number | undefined): boolean => value !== undefined
         && value !== 0 && value !== 1;
+    const assertedSpend = attempt.live_spend === 1 || attempt.known_spend_observed === 1;
+    const contradictorySpendAccounting = assertedSpend
+        && boundedProviderCount(attempt.provider_requests_started)
+        && attempt.provider_requests_started === 0;
     const malformedEvidence = malformedProviderAccounting || invalidOptionalFlag(attempt.live_spend)
+        || contradictorySpendAccounting
         || ![0, 1].includes(attempt.live_spend_unknown)
         || ![0, 1].includes(attempt.known_spend_observed);
     const ambiguous = malformedEvidence || attempt.status === 'UNKNOWN'
@@ -141,6 +146,7 @@ export function classifyForgeAttemptForDurableDispatch(
             && acceptedVerdict
             && completeProviderAccounting
             && attempt.provider_evidence_valid === 1
+            && attempt.provider_requests_started! > 0
             && attempt.provider_requests_completed === attempt.provider_requests_started
             && attempt.provider_requests_ambiguous === 0
             && providerSpendState === 'known'

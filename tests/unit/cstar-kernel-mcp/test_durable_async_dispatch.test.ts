@@ -427,6 +427,31 @@ describe('durable asynchronous dispatch seam', () => {
             result_artifact_sha256: hash('7'),
         };
         assert.equal(classifyForgeAttemptForDurableDispatch(accepted).state, 'accepted');
+        const zeroRequestLiveSpend = classifyForgeAttemptForDurableDispatch({
+            ...accepted,
+            provider_requests_started: 0,
+            provider_requests_completed: 0,
+            live_spend: 1,
+            known_spend_observed: 0,
+        });
+        assert.equal(zeroRequestLiveSpend.state, 'unknown');
+        assert.equal(zeroRequestLiveSpend.retry_allowed, false);
+        const zeroRequestKnownSpend = classifyForgeAttemptForDurableDispatch({
+            ...accepted,
+            provider_requests_started: 0,
+            provider_requests_completed: 0,
+            live_spend: 0,
+            known_spend_observed: 1,
+        });
+        assert.equal(zeroRequestKnownSpend.state, 'unknown');
+        assert.equal(zeroRequestKnownSpend.retry_allowed, false);
+        assert.equal(classifyForgeAttemptForDurableDispatch({
+            ...accepted,
+            provider_requests_started: 1,
+            provider_requests_completed: 1,
+            live_spend: 0,
+            known_spend_observed: 1,
+        }).state, 'accepted');
         const malformedAccounting = [
             { name: 'completed exceeds started', provider_requests_started: 1, provider_requests_completed: 2 },
             { name: 'negative count', provider_requests_completed: -1 },
