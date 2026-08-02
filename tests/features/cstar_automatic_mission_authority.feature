@@ -23,6 +23,14 @@ Feature: Compatibility-first ordinary-language mission ingress and SET authority
       Then the selected grant is bound to the exact operative record
       And the full record-set hash is stored
 
+    Scenario: Stable root records are canonical and hash-derived
+      Given a complete ordered structured root-user record set
+      When mission ingress derives its authority binding
+      Then bare strings and caller-supplied digest fields are rejected
+      And top-level text must exactly match concatenated structured content
+      And duplicate canonical records are rejected
+      And modern record-set hashes never inherit singleton-v1 compatibility bytes
+
     Scenario: Duplicate and mixed operative grants fail closed
       Given a root-user turn containing two operative mission or receipt grants
       When the mission authority evaluates the complete ordered record set

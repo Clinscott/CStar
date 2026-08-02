@@ -15,10 +15,17 @@ import {
     createAutomaticMissionRecord,
 } from '../../../src/tools/pennyone/intel/automatic_mission_controller.js';
 import {
+    canonicalizeRootUserInstructionRecords,
     hashLegacySingletonRecordSetV1,
     legacySingletonV1MessageBytes,
+    sha256,
 } from '../../../src/tools/pennyone/intel/automatic_mission_schema.js';
-import type { AutomaticMissionDesign, AutomaticMissionRecord } from '../../../src/types/automatic_mission.js';
+import type {
+    AutomaticMissionDesign,
+    AutomaticMissionInput,
+    AutomaticMissionRecord,
+    RootUserInstructionInput,
+} from '../../../src/types/automatic_mission.js';
 
 const NOW = 1_000_000;
 const DESIGN: AutomaticMissionDesign = {
@@ -68,7 +75,78 @@ function exactReceiptText(): string {
     return buildAutomaticMissionInstructionText(draft(), 'receipt');
 }
 
+function rootRecord(text: string): RootUserInstructionInput {
+    return {
+        thread_id: 'thread:direct-root',
+        turn_id: 'turn:direct-root',
+        timestamp: '2026-08-02T14:00:00.000Z',
+        text,
+        content: [{ type: 'input_text', text }],
+    };
+}
+
 describe('automatic mission SET authority', () => {
+    it('rejects bare strings instead of manufacturing stable root authority', () => {
+        const malformed = {
+            objective: draft().objective,
+            design: DESIGN,
+            root_user_record: exactMissionText(),
+        } as unknown as AutomaticMissionInput;
+        assert.throws(
+            () => createAutomaticMissionRecord(malformed, NOW),
+            /automatic_mission_root_user_record_must_be_structured/,
+        );
+    });
+
+    it('rejects caller-supplied root and request hash injection', () => {
+        const injectedRoot = {
+            ...rootRecord(exactMissionText()),
+            record_sha256: 'f'.repeat(64),
+            record_set_sha256: 'e'.repeat(64),
+            message_sha256: 'd'.repeat(64),
+        } as unknown as RootUserInstructionInput;
+        assert.throws(
+            () => createAutomaticMissionRecord({
+                objective: draft().objective,
+                design: DESIGN,
+                root_user_record: injectedRoot,
+            }, NOW),
+            /automatic_mission_root_user_hash_input_forbidden/,
+        );
+        const injectedRequest = {
+            objective: draft().objective,
+            design: DESIGN,
+            request_sha256: 'c'.repeat(64),
+        } as unknown as AutomaticMissionInput;
+        assert.throws(
+            () => createAutomaticMissionRecord(injectedRequest, NOW),
+            /automatic_mission_request_hash_input_forbidden/,
+        );
+    });
+
+    it('rejects conflicting top-level and structured content before SET binding', () => {
+        const conflicting = {
+            ...rootRecord(exactMissionText()),
+            content: [{ type: 'input_text' as const, text: 'Stop.' }],
+        };
+        assert.throws(
+            () => createAutomaticMissionRecord({
+                objective: draft().objective,
+                design: DESIGN,
+                root_user_record: conflicting,
+            }, NOW),
+            /automatic_mission_root_user_text_content_mismatch/,
+        );
+    });
+
+    it('rejects duplicate canonical root-user records', () => {
+        const record = rootRecord(exactMissionText());
+        assert.throws(
+            () => canonicalizeRootUserInstructionRecords([record, { ...record }]),
+            /automatic_mission_root_user_record_duplicate/,
+        );
+    });
+
     it('binds the full bounded mission and never derives identity from root prose', () => {
         const base = draft();
         const mission = missionWithText(exactMissionText());
@@ -193,6 +271,28 @@ describe('automatic mission SET authority', () => {
         }
     });
 
+    it('rejects terse revocation both before and after an otherwise exact grant', () => {
+        const base = draft();
+        const grant = exactMissionText();
+        for (const texts of [['Stop.', grant], [grant, 'Stop.']]) {
+            const mission = createAutomaticMissionRecord({
+                objective: base.objective,
+                design: DESIGN,
+                root_user_records: texts.map((text, index) => ({
+                    thread_id: 'thread:revocation-root',
+                    turn_id: 'turn:revocation-root',
+                    timestamp: `2026-08-02T14:00:0${index}.000Z`,
+                    text,
+                    content: [{ type: 'input_text', text }],
+                })),
+            }, NOW);
+            assert.throws(
+                () => bindAutomaticMissionAuthority({ mission, now: NOW }),
+                /automatic_mission_authority_revoked/,
+            );
+        }
+    });
+
     it('uses the complete identifier alphabet for suffix-collision rejection', () => {
         const mission = draft();
         const suffixes = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_:./-';
@@ -230,6 +330,7 @@ describe('automatic mission SET authority', () => {
         }, NOW);
         const record = mission.root_user_records[0]!;
         assert.match(record.record_sha256, /^[a-f0-9]{64}$/);
+        assert.equal(record.record_sha256, sha256('{"legacy":true}'));
         assert.equal(record.text, legacyText);
         assert.equal(record.content?.[0]?.text, legacyText);
         assert.equal(
@@ -246,6 +347,15 @@ describe('automatic mission SET authority', () => {
             }),
         );
         assert.equal(bindAutomaticMissionAuthority({ mission, now: NOW }).binding.record_count, 1);
+        const modern = canonicalizeRootUserInstructionRecords([{
+            thread_id: record.thread_id,
+            turn_id: record.turn_id,
+            timestamp: record.timestamp,
+            raw_line: record.raw_line,
+            text: legacyText,
+            content: [{ type: 'input_text', text: legacyText }],
+        }], 'cstar_mission_v1');
+        assert.notEqual(modern[0]!.record_set_sha256, record.record_set_sha256);
     });
 
     it('scopes replay, expiry, revocation, and tampering to the one bounded grant', () => {

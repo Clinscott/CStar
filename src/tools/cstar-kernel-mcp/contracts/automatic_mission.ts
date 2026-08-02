@@ -60,22 +60,16 @@ export const automaticMissionConstraintsSchema = z.object({
 export const automaticMissionRootRecordSchema = z.object({
     schema: z.literal('cstar.root_user_instruction_record.v1').optional(),
     record_id: boundedReference.optional(),
-    thread_id: boundedReference.optional(),
-    turn_id: boundedReference.optional(),
-    timestamp: boundedReference.optional(),
+    thread_id: boundedReference,
+    turn_id: boundedReference,
+    timestamp: boundedReference,
     text: boundedText,
     content: z.array(z.object({ type: z.literal('input_text'), text: boundedText }).strict())
         .max(64).optional(),
     raw_line: z.string().max(4 * 1024 * 1024).optional(),
-    message_sha256: digest.optional(),
-    record_sha256: digest.optional(),
-    record_set_sha256: digest.optional(),
 }).strict();
 
-export const automaticMissionRootRecordInputSchema = z.union([
-    boundedText,
-    automaticMissionRootRecordSchema,
-]);
+export const automaticMissionRootRecordInputSchema = automaticMissionRootRecordSchema;
 
 /** Internal cstar_mission ingress.  It describes work; it never launches it. */
 export const automaticMissionSchema = z.object({

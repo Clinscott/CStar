@@ -20,9 +20,11 @@ import {
 
 export const SHA256 = /^[a-f0-9]{64}$/;
 const CONTROL_TEXT = /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f\u061c\u200b-\u200f\u2028-\u202e\u2060-\u206f\ufeff]/u;
-const DEFAULT_THREAD = 'cstar:unbound-root-thread';
-const DEFAULT_TURN = 'cstar:unbound-root-turn';
-const DEFAULT_TIMESTAMP = '1970-01-01T00:00:00.000Z';
+const ROOT_HASH_FIELDS = ['message_sha256', 'record_sha256', 'record_set_sha256'] as const;
+const REQUEST_HASH_FIELDS = [
+    'request_sha256', 'binding_sha256', 'design_sha256', 'constraints_sha256',
+    'authority_binding_sha256', 'root_user_record_set_sha256',
+] as const;
 
 export function sha256(value: string): string {
     return createHash('sha256').update(value, 'utf-8').digest('hex');
@@ -64,6 +66,16 @@ function rootRecordText(value: unknown, name: string): string {
         throw new Error(`automatic_mission_${name}_invalid`);
     }
     if (value.length > 16_384) throw new Error(`automatic_mission_${name}_too_large`);
+    return value;
+}
+
+function rootRawLine(value: unknown): string {
+    if (typeof value !== 'string' || !value.trim() || CONTROL_TEXT.test(value)) {
+        throw new Error('automatic_mission_root_raw_line_invalid');
+    }
+    if (value.length > 4 * 1024 * 1024) {
+        throw new Error('automatic_mission_root_raw_line_too_large');
+    }
     return value;
 }
 
@@ -194,8 +206,16 @@ export function normalizeAutomaticMissionDesign(
 }
 
 function inputRecord(value: RootUserInstructionInput): Record<string, unknown> {
-    if (typeof value === 'string') return { text: value };
-    return value as Record<string, unknown>;
+    if (!isRecord(value)) {
+        throw new Error('automatic_mission_root_user_record_must_be_structured');
+    }
+    if (ROOT_HASH_FIELDS.some((field) => value[field] !== undefined)) {
+        throw new Error('automatic_mission_root_user_hash_input_forbidden');
+    }
+    if (value.schema !== undefined && value.schema !== AUTOMATIC_MISSION_ROOT_RECORD_SCHEMA) {
+        throw new Error('automatic_mission_root_user_record_schema_invalid');
+    }
+    return value;
 }
 
 function contentFor(source: Record<string, unknown>, text: string): Array<{ type: 'input_text'; text: string }> {
@@ -204,12 +224,16 @@ function contentFor(source: Record<string, unknown>, text: string): Array<{ type
     if (!Array.isArray(raw) || raw.length === 0 || raw.length > 64) {
         throw new Error('automatic_mission_root_record_content_invalid');
     }
-    return raw.map((entry) => {
+    const content = raw.map((entry) => {
         if (!isRecord(entry) || entry.type !== 'input_text') {
             throw new Error('automatic_mission_root_record_content_invalid');
         }
-        return { type: 'input_text', text: rootRecordText(entry.text, 'root_record_text') };
+        return { type: 'input_text' as const, text: rootRecordText(entry.text, 'root_record_text') };
     });
+    if (content.map((entry) => entry.text).join('') !== text) {
+        throw new Error('automatic_mission_root_user_text_content_mismatch');
+    }
+    return content;
 }
 
 export function legacySingletonV1RecordSetSha256(input: {
@@ -254,35 +278,42 @@ export function canonicalizeRootUserInstructionRecords(
     values: RootUserInstructionInput[] | undefined,
     compatibilityProfile: AutomaticMissionCompatibilityProfile = 'cstar_mission_v1',
 ): RootUserInstructionRecord[] {
+    if ((values?.length ?? 0) > 256) {
+        throw new Error('automatic_mission_root_user_record_set_too_large');
+    }
+    if (compatibilityProfile === 'legacy_singleton_v1' && (values?.length ?? 0) > 1) {
+        throw new Error('automatic_mission_legacy_singleton_record_count_invalid');
+    }
     const records: RootUserInstructionRecord[] = (values ?? []).map((value, index) => {
         const source = inputRecord(value);
         const text = rootRecordText(source.text, 'root_record_text');
         const content = contentFor(source, text);
-        const threadId = boundedReference(source.thread_id ?? DEFAULT_THREAD, 'root_thread_id');
-        const turnId = boundedReference(source.turn_id ?? DEFAULT_TURN, 'root_turn_id');
-        const timestamp = boundedReference(source.timestamp ?? DEFAULT_TIMESTAMP, 'root_timestamp');
-        const messageSha256 = typeof source.message_sha256 === 'string'
-            ? source.message_sha256
-            : sha256(text);
-        if (!SHA256.test(messageSha256)) throw new Error('automatic_mission_root_message_hash_invalid');
-        const rawLine = typeof source.raw_line === 'string' ? source.raw_line : undefined;
-        const recordSha256 = typeof source.record_sha256 === 'string'
-            ? source.record_sha256
-            : rawLine !== undefined
-                ? sha256(rawLine)
-                : sha256(stableAutomaticMissionJson({
-                    schema: AUTOMATIC_MISSION_ROOT_RECORD_SCHEMA,
-                    record_id: source.record_id ?? null,
-                    thread_id: threadId,
-                    turn_id: turnId,
-                    timestamp,
-                    text,
-                    content,
-                }));
-        if (!SHA256.test(recordSha256)) throw new Error('automatic_mission_root_record_hash_invalid');
-        const recordId = typeof source.record_id === 'string'
-            ? boundedReference(source.record_id, 'root_record_id')
-            : `root-record:${recordSha256.slice(0, 32)}`;
+        const threadId = boundedReference(source.thread_id, 'root_thread_id');
+        const turnId = boundedReference(source.turn_id, 'root_turn_id');
+        const timestamp = boundedReference(source.timestamp, 'root_timestamp');
+        if (!Number.isFinite(Date.parse(timestamp))) {
+            throw new Error('automatic_mission_root_timestamp_invalid');
+        }
+        const rawLine = source.raw_line === undefined ? undefined : rootRawLine(source.raw_line);
+        if (compatibilityProfile === 'legacy_singleton_v1' && rawLine === undefined) {
+            throw new Error('automatic_mission_legacy_raw_line_required');
+        }
+        const suppliedRecordId = source.record_id === undefined
+            ? null
+            : boundedReference(source.record_id, 'root_record_id');
+        const recordSha256 = compatibilityProfile === 'legacy_singleton_v1'
+            ? sha256(rawLine!)
+            : sha256(stableAutomaticMissionJson({
+                schema: AUTOMATIC_MISSION_ROOT_RECORD_SCHEMA,
+                record_id: suppliedRecordId,
+                thread_id: threadId,
+                turn_id: turnId,
+                timestamp,
+                text,
+                content,
+                raw_line_sha256: rawLine === undefined ? null : sha256(rawLine),
+            }));
+        const recordId = suppliedRecordId ?? `root-record:${recordSha256.slice(0, 32)}`;
         return {
             schema: AUTOMATIC_MISSION_ROOT_RECORD_SCHEMA,
             record_id: recordId,
@@ -292,16 +323,27 @@ export function canonicalizeRootUserInstructionRecords(
             text,
             content,
             ...(rawLine !== undefined ? { raw_line: rawLine } : {}),
-            message_sha256: messageSha256,
+            message_sha256: '0'.repeat(64),
             record_sha256: recordSha256,
             index,
         };
     });
+    const seenHashes = new Set<string>();
+    const setIdentity = records[0] === undefined
+        ? null
+        : `${records[0].thread_id}\u0000${records[0].turn_id}`;
+    for (const record of records) {
+        if (`${record.thread_id}\u0000${record.turn_id}` !== setIdentity) {
+            throw new Error('automatic_mission_root_user_record_set_identity_mismatch');
+        }
+        if (seenHashes.has(record.record_sha256)) {
+            throw new Error('automatic_mission_root_user_record_duplicate');
+        }
+        seenHashes.add(record.record_sha256);
+    }
     if (records.length === 1 && compatibilityProfile === 'legacy_singleton_v1') {
         records[0]!.record_set_sha256 = legacySingletonV1RecordSetSha256(records[0]!);
-        return records;
-    }
-    if (records.length > 0) {
+    } else if (records.length > 0) {
         const setHash = sha256(stableAutomaticMissionJson({
             schema: 'cstar.mission_root_user_record_set.v2',
             records: records.map((record, index) => ({
@@ -314,16 +356,50 @@ export function canonicalizeRootUserInstructionRecords(
         }));
         records.forEach((record) => { record.record_set_sha256 = setHash; });
     }
+    if (records.length > 0) {
+        const messageHash = hashAutomaticMissionRootMessage(records, compatibilityProfile);
+        records.forEach((record) => { record.message_sha256 = messageHash; });
+    }
     return records;
 }
 
 export function hashAutomaticMissionRootRecordSet(records: RootUserInstructionRecord[]): string | null {
-    return records[0]?.record_set_sha256 ?? null;
+    const setHash = records[0]?.record_set_sha256 ?? null;
+    if (setHash !== null && (!SHA256.test(setHash)
+        || records.some((record) => record.record_set_sha256 !== setHash))) {
+        throw new Error('automatic_mission_root_user_record_set_invalid');
+    }
+    return setHash;
+}
+
+export function hashAutomaticMissionRootMessage(
+    records: RootUserInstructionRecord[],
+    compatibilityProfile: AutomaticMissionCompatibilityProfile,
+): string {
+    if (compatibilityProfile === 'legacy_singleton_v1') {
+        if (records.length !== 1) throw new Error('automatic_mission_legacy_singleton_record_count_invalid');
+        return hashLegacySingletonV1Message(records[0]!);
+    }
+    const setHash = hashAutomaticMissionRootRecordSet(records);
+    if (!setHash) throw new Error('automatic_mission_root_user_record_set_missing');
+    return sha256(stableAutomaticMissionJson({
+        schema: 'cstar.mission_root_user_message.v2',
+        root_user_record_set_sha256: setHash,
+        records: records.map((record, index) => ({
+            index,
+            record_sha256: record.record_sha256,
+            content: record.content,
+        })),
+    }));
 }
 
 export function canonicalizeAutomaticMissionRequest(
     input: AutomaticMissionInput,
 ): CanonicalAutomaticMissionRequest {
+    const requestSource = input as unknown as Record<string, unknown>;
+    if (REQUEST_HASH_FIELDS.some((field) => requestSource[field] !== undefined)) {
+        throw new Error('automatic_mission_request_hash_input_forbidden');
+    }
     const objective = boundedText(input.objective, 'objective');
     const compatibilityProfile = input.compatibility_profile ?? 'cstar_mission_v1';
     const rawRecords = [

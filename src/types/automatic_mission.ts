@@ -104,18 +104,16 @@ export interface RootUserInstructionRecord {
     index?: number;
 }
 
-export type RootUserInstructionInput = RootUserInstructionRecord | string | {
+export interface RootUserInstructionInput {
+    schema?: typeof AUTOMATIC_MISSION_ROOT_RECORD_SCHEMA;
     record_id?: string;
-    thread_id?: string;
-    turn_id?: string;
-    timestamp?: string;
+    thread_id: string;
+    turn_id: string;
+    timestamp: string;
     text: string;
     content?: Array<{ type: 'input_text'; text: string }>;
     raw_line?: string;
-    message_sha256?: string;
-    record_sha256?: string;
-    record_set_sha256?: string;
-};
+}
 
 export interface AutomaticMissionInput {
     objective: string;
