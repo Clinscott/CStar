@@ -134,7 +134,8 @@ describe('MCP instrumentation authorization boundary', () => {
         );
 
         const missing = await wrapped({});
-        assert.equal(missing.isError, true);
+        assert.equal(missing.isError, undefined);
+        assert.equal(JSON.parse(missing.content[0]!.text).outcome, 'guardrail_block');
         assert.match(JSON.parse(missing.content[0]!.text).error, /^codex_request_identity_/);
         assert.equal(fs.existsSync(state), false);
         assert.equal(fs.existsSync(stats), false);
@@ -144,7 +145,8 @@ describe('MCP instrumentation authorization boundary', () => {
             parent_thread_id: 'parent-thread',
             subagent_kind: 'review',
         }));
-        assert.equal(subagent.isError, true);
+        assert.equal(subagent.isError, undefined);
+        assert.equal(JSON.parse(subagent.content[0]!.text).outcome, 'guardrail_block');
         assert.match(JSON.parse(subagent.content[0]!.text).error, /^codex_request_identity_/);
         assert.equal(fs.existsSync(state), false);
         assert.equal(fs.existsSync(stats), false);
@@ -189,7 +191,8 @@ describe('MCP instrumentation authorization boundary', () => {
         });
 
         assert.equal(JSON.parse(request.content[0]!.text).error_code, 'forge_request_contract_invalid');
-        assert.equal(authorize.isError, true);
+        assert.equal(authorize.isError, undefined);
+        assert.equal(JSON.parse(authorize.content[0]!.text).outcome, 'guardrail_block');
         assert.equal(
             JSON.parse(authorize.content[0]!.text).error_code,
             'forge_operator_authorization_required',
@@ -227,7 +230,8 @@ describe('MCP instrumentation authorization boundary', () => {
         });
 
         for (const response of [goal, bead, result]) {
-            assert.equal(response.isError, true);
+            assert.equal(response.isError, undefined);
+            assert.equal(JSON.parse(response.content[0]!.text).outcome, 'guardrail_block');
             assert.match(JSON.parse(response.content[0]!.text).error_code, /^codex_request_identity_/);
         }
         assert.equal(fs.existsSync(state), false);
