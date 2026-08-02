@@ -29,6 +29,13 @@
     "base_ref": "origin/master",
     "base_commit": "5887042deefaae240db2a546f3cc9640f601e9e2"
   },
+  "integration_gate": {
+    "branch": "codex/cstar-automatic-internal-machinery-refactor-20260802",
+    "worktree": null,
+    "observed_before_acceptance": "absent",
+    "independent_acceptance_required": true,
+    "creation_rule": "The integration branch and worktree are created only after A0 independent acceptance; their absence before acceptance is intentional."
+  },
   "base_verification": {
     "origin_master_resolves_to": "5887042deefaae240db2a546f3cc9640f601e9e2",
     "worktree_head": "5887042deefaae240db2a546f3cc9640f601e9e2",
@@ -87,9 +94,24 @@
     "implementation_bytes_copied": false,
     "donor_bytes_adopted": false,
     "unexplained_dirty_bytes_rejected": true,
+    "wholesale_donor_file_adoption_rejected": true,
     "adoption_mode": "metadata_only",
     "selection_rule": "A later adoption must name an exact donor path, base blob, donor hash, patch hash, and reviewed hunk description before any byte is copied.",
-    "rejection_rule": "Every dirty-truth byte not represented by the bounded donor inventory or the two-file allowlist is unexplained for A0 and rejected."
+    "rejection_rule": "Every candidate adopted byte must match a reviewed adopted-hunk digest. Entire donor-file byte sequences, unknown donor paths, and content without a recorded hunk digest are rejected."
+  },
+  "hash_contract": {
+    "schema": "cstar.automatic_adoption_patch.v1",
+    "donor_sha256_input": "The exact raw bytes read from the regular, non-symlink donor file at truth_checkout/path.",
+    "donor_blob_sha1_input": "ASCII 'blob ' plus the decimal raw-byte length plus NUL plus the exact donor bytes.",
+    "base_blob_sha1_input": "The Git blob bytes at base_commit:path; null is permitted only when git cat-file proves the path absent at the exact base.",
+    "patch_sha256_input": "A canonical UTF-8 JSON header with sorted keys and compact separators, followed by LF, followed by difflib.diff_bytes(unified_diff) over base and donor splitlines(keepends=True), context n=3, lineterm LF, fromfile a/path or /dev/null, and tofile b/path.",
+    "patch_header_keys": [
+      "base_present",
+      "change_kind",
+      "path",
+      "schema"
+    ],
+    "bounded_material_rule": "Each patch record binds the exact relative path, change kind, base-presence state, material byte count, and unified-diff hunk count."
   },
   "donor_inventory": [
     {
@@ -98,7 +120,9 @@
       "base_blob_sha1": "ea7338727cecfa4ed32388635da5c7bbb8c73f99",
       "donor_blob_sha1": "3f07b3523abe9c8af7148302c42cb3fda2c9ce58",
       "donor_sha256": "31612c20fc80c9ed954eca4153d4095a45fe87dd4d21e55eef6829bc1357d34d",
-      "patch_sha256": "16b4f58f1f0662769345a512c4635dbe0629620121350ddf4d16d0c83d2ca0cd",
+      "patch_sha256": "210552d2b881154ee567d06335edd2c5972b65b5c5029cbfc08469d8c8eaa7db",
+      "patch_material_bytes": 8795,
+      "patch_hunk_count": 6,
       "donor_lines": 313,
       "allowed_hunk_description": "Excludes complete host-carried subagent notifications from root-user classification and adds ordered turn-set/sealed-prefix provenance helpers.",
       "adoption_status": "metadata_only_rejected_for_byte_adoption",
@@ -110,7 +134,9 @@
       "base_blob_sha1": null,
       "donor_blob_sha1": "da9d51f412cebae0bae376f10b6547c2f478c278",
       "donor_sha256": "e99b97549569c48b9fc93d47a7a8883efb60284924baf5fb0caa0cd3326e7e54",
-      "patch_sha256": "23e4d18a7be16b7dad255ec2919bee38e8fce3a6d5a3fe434c7ae5d4cfcf4584",
+      "patch_sha256": "de139ba1c8ea65b397bf0966e255b08e29a8ecd4cda26755fe9d0ec6ddfb9e75",
+      "patch_material_bytes": 5406,
+      "patch_hunk_count": 1,
       "donor_lines": 136,
       "allowed_hunk_description": "Proposes bounded append-only session snapshots and retries with ownership, link-count, size, identity, and hash checks.",
       "adoption_status": "metadata_only_rejected_for_byte_adoption",
@@ -122,7 +148,9 @@
       "base_blob_sha1": "f863a28f8e0813929fd6703e1fcae8f581616d46",
       "donor_blob_sha1": "3f555d8007f94d3c3539cddf3ee2e091dc2eea70",
       "donor_sha256": "4dc651327e80587a78dc5530cea9be81d61175ccdfb5856bf2b91124c3021fee",
-      "patch_sha256": "e28dd66c51dde6800418ec7e79da06ed78e0b066d819c0e26538498fc8c5f72c",
+      "patch_sha256": "29576d9cdbf7190492b2a14d76c033ab6470ea237799ac563360d37243d65d59",
+      "patch_material_bytes": 1667,
+      "patch_hunk_count": 1,
       "donor_lines": 499,
       "allowed_hunk_description": "Broadens exact user-event mirror validation to optional empty audio fields while retaining a closed payload-key allowlist.",
       "adoption_status": "metadata_only_rejected_for_byte_adoption",
@@ -134,7 +162,9 @@
       "base_blob_sha1": null,
       "donor_blob_sha1": "f25bf919b3a529a45df31a78f8234c01119a313b",
       "donor_sha256": "da0b4c45135024bec6d7478e44a921b6d63ed2b206c78e7240de10d3cfa27470",
-      "patch_sha256": "b19ce5cd096bec9f0c59cbe5857c9af1cc0a0beaf81d9dd360f1861e74215cc8",
+      "patch_sha256": "84ff98240978c639fc418abe7089fc944694d3d0ccbb93fa9f6c6ac3d3c54c94",
+      "patch_material_bytes": 4915,
+      "patch_hunk_count": 1,
       "donor_lines": 126,
       "allowed_hunk_description": "Exercises append growth retry, retry caps, truncation/replacement/symlink/prefix drift, unsafe files, and non-retryable authority errors.",
       "adoption_status": "metadata_only_rejected_for_byte_adoption",
@@ -146,7 +176,9 @@
       "base_blob_sha1": null,
       "donor_blob_sha1": "cb768b7eb35f3783b75f0154084b617acf3089ef",
       "donor_sha256": "eae6ccff813815fda1d1aa22eaead5d6c050c1ec0fcf9c76eaf8291a43ce2721",
-      "patch_sha256": "44aa47c4705c37676f471f15df02d055d7b8b04c26cca6d007c0bf4b390c5c47",
+      "patch_sha256": "cb0489c74755af82fdea2b219ff3edb0957107b80b32e675c8431294fe55b627",
+      "patch_material_bytes": 3216,
+      "patch_hunk_count": 1,
       "donor_lines": 69,
       "allowed_hunk_description": "Checks that host-carried subagent notifications are non-user authority records and that only complete notification envelopes are isolated.",
       "adoption_status": "metadata_only_rejected_for_byte_adoption",
@@ -158,7 +190,9 @@
       "base_blob_sha1": null,
       "donor_blob_sha1": "65e5b8fd3c94b21028be9ae20e9cd029e7dc45c2",
       "donor_sha256": "ed5ebbb9fa030e67b045521d2d598564c03ccd4878f589efbe6eb2ff123fcb73",
-      "patch_sha256": "998edc28d1f1eabdce5c17774872b038e2f2abadc49cc2f90452e27936300b00",
+      "patch_sha256": "22709ebc3185d9f377bd087f2cc4167c9b743fa05eb0f3a60ce628cbf5146ddf",
+      "patch_material_bytes": 5240,
+      "patch_hunk_count": 1,
       "donor_lines": 95,
       "allowed_hunk_description": "Checks that CoS does not implement, self-validate, launch workers, own host goals, or silently substitute models.",
       "adoption_status": "metadata_only_rejected_for_byte_adoption",
@@ -196,6 +230,11 @@ later selective adoption, not an authorization to copy a dirty checkout. Any
 unexplained dirty byte is rejected until it receives its own exact path, base
 blob, donor hash, patch hash, and hunk-level review.
 
+The final integration branch
+`codex/cstar-automatic-internal-machinery-refactor-20260802` and its worktree
+are created only after A0 receives independent acceptance. Both are
+intentionally absent before that gate; A0 does not pre-create or mutate them.
+
 The future automatic attention path must preserve the state-manager/host-
 transport boundary. In particular, a worker must never be instructed to relay
 an error to a CoS task; the host transport must carry a structured attention
@@ -203,8 +242,10 @@ outcome directly.
 
 ## Verification contract
 
-The focused test parses the JSON ledger above, checks the exact allowlist and
-hash shapes, binds every donor record to its recorded evidence, asserts the
-future acceptance invariants, and rejects any changed path outside A0. The
-remaining mandated checks are listed in the ledger and are run from this
-worktree before commit.
+The focused test parses the JSON ledger above, reads each exact donor file from
+the read-only truth checkout, recomputes its raw SHA-256 and Git blob identity,
+reconstructs the path-bound canonical patch material from exact base and donor
+bytes, and verifies the patch hash, byte count, and hunk count. Adversarial
+checks reject wholesale donor-file content, unknown donor paths, and content
+without an adopted-hunk digest. The remaining mandated checks are listed in the
+ledger and are run from this worktree before commit.
