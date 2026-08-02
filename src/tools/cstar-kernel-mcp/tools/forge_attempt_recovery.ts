@@ -36,6 +36,66 @@ export interface ForgeAttemptRecoveryState {
     readonly reconciled: boolean;
 }
 
+export type ForgeDurableDispatchState =
+    | 'queued'
+    | 'running'
+    | 'delivered'
+    | 'validating'
+    | 'accepted'
+    | 'repair_queued'
+    | 'needs_input'
+    | 'domain_terminal'
+    | 'unknown';
+
+export interface ForgeAttemptDispatchClassification {
+    readonly state: ForgeDurableDispatchState;
+    readonly retry_allowed: boolean;
+    readonly provider_spend_state: 'not_started' | 'known' | 'ambiguous';
+}
+
+/** Translate legacy Forge receipts into the durable dispatch vocabulary. */
+export function classifyForgeAttemptForDurableDispatch(
+    attempt: HallForgeAttemptRecord,
+): ForgeAttemptDispatchClassification {
+    const ambiguous = attempt.status === 'UNKNOWN'
+        || attempt.live_spend_unknown === 1
+        || (attempt.provider_requests_ambiguous ?? 0) > 0;
+    const providerSpendState = ambiguous
+        ? 'ambiguous'
+        : attempt.known_spend_observed === 1 || attempt.provider_requests_started
+            ? 'known' : 'not_started';
+    if (ambiguous) return { state: 'unknown', retry_allowed: false, provider_spend_state: providerSpendState };
+    if (attempt.status === 'RESERVED') return {
+        state: 'queued', retry_allowed: false, provider_spend_state: providerSpendState,
+    };
+    if (attempt.status === 'STARTED') return {
+        state: 'running', retry_allowed: false, provider_spend_state: providerSpendState,
+    };
+    if (attempt.status === 'FAILED_RETRYABLE') return {
+        state: 'repair_queued', retry_allowed: true, provider_spend_state: providerSpendState,
+    };
+    if (attempt.status === 'FAILED_FINAL') {
+        const mechanical = attempt.attempt_budget_class === 'mechanical_no_provider'
+            && attempt.provider_evidence_valid === 1 && providerSpendState === 'not_started';
+        return {
+            state: mechanical ? 'repair_queued' : 'domain_terminal',
+            retry_allowed: mechanical,
+            provider_spend_state: providerSpendState,
+        };
+    }
+    if (attempt.status === 'SUCCEEDED') {
+        const result = attempt.result_status ?? '';
+        if (result.startsWith('DELIVERED_PENDING_VALIDATION')) return {
+            state: 'delivered', retry_allowed: false, provider_spend_state: providerSpendState,
+        };
+        if (result === 'VALIDATING') return {
+            state: 'validating', retry_allowed: false, provider_spend_state: providerSpendState,
+        };
+        return { state: 'accepted', retry_allowed: false, provider_spend_state: providerSpendState };
+    }
+    return { state: 'unknown', retry_allowed: false, provider_spend_state: providerSpendState };
+}
+
 function tracePath(root: string, attempt: HallForgeAttemptRecord): string | null {
     if (!EXECUTION_RECEIPT.test(attempt.execution_receipt_id)) return null;
     return path.join(

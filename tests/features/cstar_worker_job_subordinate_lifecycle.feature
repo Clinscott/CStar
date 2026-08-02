@@ -76,3 +76,32 @@ Feature: Subordinate asynchronous worker-job ledger
       When a synthetic fault interrupts migration
       Then the transaction rolls back
       And zero worker-job objects remain
+
+  Rule: Durable dispatch preserves the host launch boundary
+
+    Scenario: CStar reserves one dispatch without launching cognition
+      Given a queued job binds one canonical request and authorization
+      When CStar reserves the durable dispatch handoff
+      Then the job is leased for one bounded attempt
+      And the handoff marks the host as the launch owner
+      And CStar does not launch a worker, provider, daemon, or polling loop
+
+    Scenario: Delivery is not validation or acceptance
+      Given the host delivers the declared artifacts
+      When CStar records delivery
+      Then the job is DELIVERED_UNVERIFIED
+      And independent validation must move it through VALIDATING
+      And only an ACCEPTED validation can record acceptance
+
+    Scenario: A local zero-provider failure queues same-batch repair
+      Given local staging fails before any provider request or spend
+      When the bounded repair transition is recorded
+      Then the job is REPAIR_QUEUED on the same mission and batch
+      And one exact zero-provider replay may return the same attempt to QUEUED
+      And the retry ceiling is explicit and finite
+
+    Scenario: Ambiguous provider spend is permanently frozen
+      Given provider start or spend cannot be excluded
+      When the dispatch recovery transition is recorded
+      Then the job is UNKNOWN
+      And no replay, retry, or repair transition is allowed

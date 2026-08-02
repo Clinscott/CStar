@@ -3,10 +3,12 @@ import type {
     WorkerJobEventRecord,
     WorkerJobLeaseRecord,
     WorkerJobProgressPhase,
+    WorkerJobRepairInput,
     WorkerJobRecord,
     WorkerJobState,
     WorkerJobZeroProviderProof,
 } from '../../../types/worker_job.js';
+import { WORKER_JOB_ZERO_PROVIDER_REPLAY_CEILING } from '../../../types/worker_job.js';
 import { workerJobZeroProviderProofSchema } from '../../cstar-kernel-mcp/contracts/worker_jobs.js';
 import { WorkerJobLedgerError } from './worker_job_errors.js';
 import {
@@ -16,7 +18,11 @@ import {
     requireWorkerJobRecord,
 } from './worker_job_ledger.js';
 import { assertCurrentWorkerJobLedgerSchema } from './worker_job_subordinate_migration.js';
-import { boundedDetail } from './worker_job_validation.js';
+import {
+    boundedDetail,
+    sha256,
+    validateRepairInput,
+} from './worker_job_validation.js';
 
 type Row = Record<string, unknown>;
 const ACTIVE_STATES: WorkerJobState[] = ['LEASED', 'RUNNING', 'CANCEL_REQUESTED'];
@@ -117,7 +123,9 @@ export function requestWorkerJobCancellation(
         if (['CANCELLED', 'CANCEL_REQUESTED'].includes(job.state)) {
             return { job, changed: false };
         }
-        if (['DELIVERED_UNVERIFIED', 'FAILED', 'UNKNOWN'].includes(job.state)) {
+        if (['DELIVERED_UNVERIFIED', 'DELIVERED', 'VALIDATING', 'ACCEPTED',
+            'REPAIR_QUEUED', 'NEEDS_INPUT', 'DOMAIN_TERMINAL', 'FAILED', 'UNKNOWN']
+            .includes(job.state)) {
             throw new WorkerJobLedgerError(
                 'WORKER_JOB_CANCEL_STATE_INVALID',
                 `Cannot cancel a ${job.state} worker job.`,
@@ -273,4 +281,138 @@ export function listWorkerJobEvents(
         detail: optionalString(row.detail),
         created_at: Number(row.created_at),
     }));
+}
+
+function requireExactZeroProviderProof(
+    job: WorkerJobRecord,
+    proof: WorkerJobZeroProviderProof,
+    now: number,
+): void {
+    const parsed = workerJobZeroProviderProofSchema.safeParse(proof);
+    if (!parsed.success || parsed.data.attempt_id !== job.attempt_id
+        || parsed.data.observed_at > now || parsed.data.observed_at < job.created_at
+        || job.provider_evidence.provider_started
+        || job.provider_evidence.provider_requests_started !== 0
+        || job.spend_evidence.spend_uncertain || job.spend_evidence.known_spend_observed) {
+        throw new WorkerJobLedgerError(
+            'WORKER_JOB_REPAIR_NOT_ALLOWED',
+            'Repair or replay requires exact zero-provider and zero-spend proof.',
+        );
+    }
+}
+
+function retryWindow(db: Database.Database, jobId: string): [number, number] {
+    const row = db.prepare(
+        'SELECT retry_count, retry_ceiling FROM hall_worker_jobs WHERE job_id = ?',
+    ).get(jobId) as { retry_count?: number; retry_ceiling?: number } | undefined;
+    return [Number(row?.retry_count ?? 0), Number(row?.retry_ceiling ?? 0)];
+}
+
+/** Queue a recoverable local failure on the same mission and batch. */
+export function queueWorkerJobRepair(
+    db: Database.Database,
+    jobId: string,
+    leaseToken: string,
+    input: WorkerJobRepairInput,
+    now = Date.now(),
+): WorkerJobRecord {
+    assertCurrentWorkerJobLedgerSchema(db);
+    validateRepairInput(input);
+    return db.transaction(() => {
+        const job = requireWorkerJobRecord(db, jobId);
+        if (job.state === 'REPAIR_QUEUED') {
+            if (job.failure_code === boundedDetail(input.failure_code, 80)) return job;
+            throw new WorkerJobLedgerError(
+                'WORKER_JOB_VALIDATION_CONFLICT',
+                'A different repair is already queued for this worker job.',
+            );
+        }
+        if (job.state === 'UNKNOWN') throw new WorkerJobLedgerError(
+            'WORKER_JOB_DISPATCH_FROZEN', 'UNKNOWN worker jobs cannot be repaired or retried.',
+        );
+        if (!ACTIVE_STATES.includes(job.state)) throw new WorkerJobLedgerError(
+            'WORKER_JOB_REPAIR_NOT_ALLOWED', `Cannot queue repair for a ${job.state} worker job.`,
+        );
+        requireWorkerJobLease(db, job, leaseToken, now);
+        requireExactZeroProviderProof(job, input.zero_provider_proof, now);
+        const [count, ceiling] = retryWindow(db, job.job_id);
+        if (count >= ceiling) throw new WorkerJobLedgerError(
+            'WORKER_JOB_RETRY_CEILING_EXCEEDED', 'The bounded repair ceiling is exhausted.',
+        );
+        db.prepare(`
+            UPDATE hall_worker_jobs SET state = 'REPAIR_QUEUED', progress_phase = 'repair_queued',
+                failure_code = ?, failure_summary = ?, terminal_at = NULL,
+                updated_at = ?, version = version + 1 WHERE job_id = ?
+        `).run(boundedDetail(input.failure_code, 80), boundedDetail(input.failure_summary, 512) ?? null,
+            now, job.job_id);
+        db.prepare('DELETE FROM hall_worker_job_leases WHERE job_id = ?').run(job.job_id);
+        const repaired = requireWorkerJobRecord(db, job.job_id);
+        appendWorkerJobEvent(db, repaired, 'repair_queued', input.zero_provider_proof.evidence_sha256,
+            `same_mission=${job.bead_id} same_batch=${job.decision_id}`);
+        return repaired;
+    }).immediate();
+}
+
+/** Requeue the same attempt only after exact zero-provider proof; UNKNOWN is frozen. */
+export function replayWorkerJobAfterZeroProvider(
+    db: Database.Database,
+    jobId: string,
+    proof: WorkerJobZeroProviderProof,
+    now = Date.now(),
+): WorkerJobRecord {
+    assertCurrentWorkerJobLedgerSchema(db);
+    return db.transaction(() => {
+        const job = requireWorkerJobRecord(db, jobId);
+        if (job.state === 'UNKNOWN') throw new WorkerJobLedgerError(
+            'WORKER_JOB_DISPATCH_FROZEN', 'UNKNOWN worker jobs cannot be replayed.',
+        );
+        if (!['FAILED', 'REPAIR_QUEUED'].includes(job.state)) throw new WorkerJobLedgerError(
+            'WORKER_JOB_DISPATCH_STATE_INVALID', `Cannot replay a ${job.state} worker job.`,
+        );
+        requireExactZeroProviderProof(job, proof, now);
+        const [count, ceiling] = retryWindow(db, job.job_id);
+        if (count >= Math.min(ceiling, WORKER_JOB_ZERO_PROVIDER_REPLAY_CEILING)) {
+            throw new WorkerJobLedgerError(
+                'WORKER_JOB_RETRY_CEILING_EXCEEDED', 'The bounded replay ceiling is exhausted.',
+            );
+        }
+        db.prepare(`
+            UPDATE hall_worker_jobs SET state = 'QUEUED', progress_phase = 'queued',
+                progress_percent = 0, retry_count = retry_count + 1,
+                failure_code = NULL, failure_summary = NULL, terminal_at = NULL,
+                updated_at = ?, version = version + 1 WHERE job_id = ?
+        `).run(now, job.job_id);
+        const replay = requireWorkerJobRecord(db, job.job_id);
+        appendWorkerJobEvent(db, replay, 'zero_provider_replay_queued', proof.evidence_sha256,
+            `same_mission=${job.bead_id} same_batch=${job.decision_id}`);
+        return replay;
+    }).immediate();
+}
+
+export function freezeWorkerJobUnknown(
+    db: Database.Database,
+    jobId: string,
+    failureCode: string,
+    failureSummary?: string,
+    now = Date.now(),
+): WorkerJobRecord {
+    assertCurrentWorkerJobLedgerSchema(db);
+    return db.transaction(() => {
+        const job = requireWorkerJobRecord(db, jobId);
+        if (job.state === 'UNKNOWN') return job;
+        if (job.state === 'ACCEPTED') throw new WorkerJobLedgerError(
+            'WORKER_JOB_DISPATCH_STATE_INVALID', 'An accepted job cannot become UNKNOWN.',
+        );
+        db.prepare(`
+            UPDATE hall_worker_jobs SET state = 'UNKNOWN', progress_phase = 'unknown',
+                failure_code = ?, failure_summary = ?, terminal_at = ?,
+                updated_at = ?, version = version + 1 WHERE job_id = ?
+        `).run(boundedDetail(failureCode, 80) ?? 'WORKER_JOB_UNKNOWN',
+            boundedDetail(failureSummary, 512) ?? null, now, now, job.job_id);
+        rejectStagedArtifacts(db, job.job_id, now);
+        db.prepare('DELETE FROM hall_worker_job_leases WHERE job_id = ?').run(job.job_id);
+        const frozen = requireWorkerJobRecord(db, job.job_id);
+        appendWorkerJobEvent(db, frozen, 'unknown_frozen', sha256(failureCode), failureSummary);
+        return frozen;
+    }).immediate();
 }

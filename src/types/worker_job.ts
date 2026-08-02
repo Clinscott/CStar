@@ -8,6 +8,12 @@ export const WORKER_JOB_STATES = [
     'CANCEL_REQUESTED',
     'CANCELLED',
     'DELIVERED_UNVERIFIED',
+    'DELIVERED',
+    'VALIDATING',
+    'ACCEPTED',
+    'REPAIR_QUEUED',
+    'NEEDS_INPUT',
+    'DOMAIN_TERMINAL',
     'FAILED',
     'UNKNOWN',
 ] as const;
@@ -17,12 +23,30 @@ export const WORKER_JOB_PROGRESS_PHASES = [
     'queued',
     'preparing',
     'working',
+    'dispatching',
+    'delivered',
     'validating',
     'finalizing',
+    'accepted',
+    'repair_queued',
+    'needs_input',
+    'domain_terminal',
     'complete',
     'unknown',
 ] as const;
 export type WorkerJobProgressPhase = typeof WORKER_JOB_PROGRESS_PHASES[number];
+
+export const WORKER_JOB_VALIDATION_VERDICTS = [
+    'ACCEPTED',
+    'REPAIR_QUEUED',
+    'NEEDS_INPUT',
+    'DOMAIN_TERMINAL',
+] as const;
+export type WorkerJobValidationVerdict = typeof WORKER_JOB_VALIDATION_VERDICTS[number];
+
+/** One provider-bearing attempt is reserved at a time; only zero-provider replay can reuse it. */
+export const WORKER_JOB_ATTEMPT_CEILING = 1;
+export const WORKER_JOB_ZERO_PROVIDER_REPLAY_CEILING = 1;
 
 export const WORKER_JOB_ARTIFACT_KINDS = [
     'report',
@@ -108,6 +132,25 @@ export interface WorkerJobLeaseGrant {
     job: WorkerJobRecord;
     lease_token: string;
     lease_expires_at: number;
+}
+
+export interface WorkerJobDispatchReservation extends WorkerJobLeaseGrant {
+    dispatch_id: string;
+    host_launch_required: true;
+    cstar_launch: false;
+}
+
+export interface WorkerJobValidationInput {
+    validation_id: string;
+    verdict: WorkerJobValidationVerdict;
+    evidence_sha256: string;
+    summary?: string;
+}
+
+export interface WorkerJobRepairInput {
+    failure_code: string;
+    failure_summary?: string;
+    zero_provider_proof: WorkerJobZeroProviderProof;
 }
 
 export interface WorkerJobArtifactRecord {

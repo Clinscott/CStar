@@ -3,6 +3,7 @@ import type Database from 'better-sqlite3';
 import type {
     ExecutableWorkerJobContract,
     WorkerJobArtifactExpectation,
+    WorkerJobDispatchReservation,
     WorkerJobLeaseGrant,
     WorkerJobLeaseRecord,
     WorkerJobProgressPhase,
@@ -11,6 +12,7 @@ import type {
     WorkerJobSpendEvidence,
     WorkerJobState,
 } from '../../../types/worker_job.js';
+import { WORKER_JOB_ATTEMPT_CEILING } from '../../../types/worker_job.js';
 import { WorkerJobLedgerError } from './worker_job_errors.js';
 import { assertCurrentWorkerJobLedgerSchema } from './worker_job_subordinate_migration.js';
 import {
@@ -18,7 +20,7 @@ import {
     normalizeWorkerJobContract,
     requireExecutableAt,
     sha256,
-    validateActiveEvidence,
+    validateMonotonicExecutionEvidence,
     workerJobContractSha256,
 } from './worker_job_validation.js';
 
@@ -187,6 +189,16 @@ export function createWorkerJob(
             }
             return { job, deduplicated: true };
         }
+        const reserved = Number((db.prepare(`
+            SELECT COUNT(*) AS count FROM hall_worker_jobs
+            WHERE canonical_request_id = ?
+        `).get(contract.canonical_request_id) as { count?: number }).count ?? 0);
+        if (reserved >= WORKER_JOB_ATTEMPT_CEILING) {
+            throw new WorkerJobLedgerError(
+                'WORKER_JOB_ATTEMPT_CEILING_EXCEEDED',
+                'Only one provider-bearing attempt may be reserved for a canonical request.',
+            );
+        }
         requireExecutableAt(contract, now);
         const jobId = `worker-job-${crypto.randomUUID()}`;
         db.prepare(`
@@ -228,7 +240,13 @@ export function createWorkerJob(
             now,
         );
         const job = requireWorkerJobRecord(db, jobId);
-        appendWorkerJobEvent(db, job, 'queued', contractSha256);
+        appendWorkerJobEvent(
+            db,
+            job,
+            'queued',
+            contractSha256,
+            `request=${contract.canonical_request_id} authorization=${contract.authorization_id}`,
+        );
         return { job, deduplicated: false };
     });
     try {
@@ -303,8 +321,39 @@ export function leaseWorkerJob(
         `).run(now, job.job_id);
         const updated = requireWorkerJobRecord(db, job.job_id);
         appendWorkerJobEvent(db, updated, 'leased');
+        appendWorkerJobEvent(
+            db,
+            updated,
+            'dispatch_reserved',
+            undefined,
+            'host_launch_required=true cstar_launch=false',
+        );
         return { job: updated, lease_token: leaseToken, lease_expires_at: leaseExpiresAt };
     }).immediate();
+}
+
+/**
+ * Reserve one durable dispatch handoff. This records ownership of the lease;
+ * the returned host handoff never launches a worker or provider in CStar.
+ */
+export function reserveWorkerJobDispatch(
+    db: Database.Database,
+    jobId: string,
+    hostOwnerId: string,
+    leaseDurationMs: number,
+    now = Date.now(),
+): WorkerJobDispatchReservation {
+    const grant = leaseWorkerJob(db, jobId, hostOwnerId, leaseDurationMs, now);
+    return {
+        ...grant,
+        dispatch_id: workerJobDispatchId(grant.job.job_id),
+        host_launch_required: true,
+        cstar_launch: false,
+    };
+}
+
+export function workerJobDispatchId(jobId: string): string {
+    return `worker-dispatch-${sha256(jobId).slice(0, 32)}`;
 }
 
 export function markWorkerJobRunning(
@@ -353,7 +402,7 @@ export function recordWorkerJobExecutionEvidence(
                 'Execution evidence requires a running worker job.',
             );
         }
-        validateActiveEvidence(job.attempt_id, provider, spend);
+        validateMonotonicExecutionEvidence(job, provider, spend);
         if (provider.observed_at > now || spend.observed_at > now) {
             throw new WorkerJobLedgerError(
                 'WORKER_JOB_EVIDENCE_TIME_INVALID',
@@ -362,13 +411,18 @@ export function recordWorkerJobExecutionEvidence(
         }
         db.prepare(`
             UPDATE hall_worker_jobs SET
-                provider_started = 1, provider_requests_started = ?,
-                provider_evidence_sha256 = ?, provider_evidence_observed_at = ?,
-                spend_uncertain = ?, known_spend_observed = ?,
-                spend_evidence_sha256 = ?, spend_evidence_observed_at = ?,
+                provider_started = CASE WHEN provider_started = 1 OR ? = 1 THEN 1 ELSE 0 END,
+                provider_requests_started = MAX(provider_requests_started, ?),
+                provider_evidence_sha256 = ?, provider_evidence_observed_at =
+                    MAX(provider_evidence_observed_at, ?),
+                spend_uncertain = CASE WHEN spend_uncertain = 1 OR ? = 1 THEN 1 ELSE 0 END,
+                known_spend_observed = CASE WHEN known_spend_observed = 1 OR ? = 1 THEN 1 ELSE 0 END,
+                spend_evidence_sha256 = ?, spend_evidence_observed_at =
+                    MAX(spend_evidence_observed_at, ?),
                 updated_at = ?, version = version + 1
             WHERE job_id = ?
         `).run(
+            provider.provider_started ? 1 : 0,
             provider.provider_requests_started,
             provider.evidence_sha256,
             provider.observed_at,

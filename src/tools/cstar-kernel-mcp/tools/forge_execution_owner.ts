@@ -11,6 +11,17 @@ export interface ForgeExecutionOwnerProof {
     readonly boot_id_sha256: string;
 }
 
+export const FORGE_HOST_DISPATCH_HANDOFF_SCHEMA = 'cstar.forge_host_dispatch_handoff.v1';
+
+export interface ForgeHostDispatchHandoff {
+    readonly schema: typeof FORGE_HOST_DISPATCH_HANDOFF_SCHEMA;
+    readonly dispatch_id: string;
+    readonly attempt_id: string;
+    readonly owner: ForgeExecutionOwnerProof;
+    readonly host_launch_required: true;
+    readonly cstar_launch: false;
+}
+
 function readProcessStartTicks(pid: number): string | null {
     try {
         const stat = fs.readFileSync(`/proc/${pid}/stat`, 'utf8');
@@ -71,4 +82,43 @@ export function isForgeExecutionOwnerAlive(proof: ForgeExecutionOwnerProof): boo
     if (bootIdSha256 !== proof.boot_id_sha256) return false;
     const startTicks = readProcessStartTicks(proof.pid);
     return startTicks === null ? false : startTicks === proof.process_start_ticks;
+}
+
+/** Build an auditable host handoff; this helper performs no worker/provider launch. */
+export function buildForgeHostDispatchHandoff(
+    dispatchId: string,
+    attemptId: string,
+    owner = buildForgeExecutionOwnerProof(),
+): ForgeHostDispatchHandoff | null {
+    if (!owner || !/^[A-Za-z0-9][A-Za-z0-9._:/-]{0,191}$/.test(dispatchId)
+        || !/^[A-Za-z0-9][A-Za-z0-9._:/-]{0,191}$/.test(attemptId)) return null;
+    return Object.freeze({
+        schema: FORGE_HOST_DISPATCH_HANDOFF_SCHEMA,
+        dispatch_id: dispatchId,
+        attempt_id: attemptId,
+        owner,
+        host_launch_required: true,
+        cstar_launch: false,
+    });
+}
+
+export function parseForgeHostDispatchHandoff(value: unknown): ForgeHostDispatchHandoff | null {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+    const record = value as Record<string, unknown>;
+    if (record.schema !== FORGE_HOST_DISPATCH_HANDOFF_SCHEMA
+        || typeof record.dispatch_id !== 'string'
+        || typeof record.attempt_id !== 'string'
+        || record.host_launch_required !== true
+        || record.cstar_launch !== false) return null;
+    const owner = parseForgeExecutionOwnerProof(record.owner);
+    if (!owner || !/^[A-Za-z0-9][A-Za-z0-9._:/-]{0,191}$/.test(record.dispatch_id)
+        || !/^[A-Za-z0-9][A-Za-z0-9._:/-]{0,191}$/.test(record.attempt_id)) return null;
+    return {
+        schema: FORGE_HOST_DISPATCH_HANDOFF_SCHEMA,
+        dispatch_id: record.dispatch_id,
+        attempt_id: record.attempt_id,
+        owner,
+        host_launch_required: true,
+        cstar_launch: false,
+    };
 }

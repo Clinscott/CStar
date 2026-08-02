@@ -5,6 +5,8 @@ import type {
     WorkerJobArtifactExpectation,
     WorkerJobArtifactRecord,
     WorkerJobRecord,
+    WorkerJobState,
+    WorkerJobValidationInput,
 } from '../../../types/worker_job.js';
 import { WorkerJobLedgerError } from './worker_job_errors.js';
 import {
@@ -12,6 +14,10 @@ import {
     getWorkerJob,
 } from './worker_job_ledger.js';
 import { assertCurrentWorkerJobLedgerSchema } from './worker_job_subordinate_migration.js';
+import {
+    boundedDetail,
+    normalizeWorkerJobValidation,
+} from './worker_job_validation.js';
 import { sha256 } from './worker_job_validation.js';
 
 type Row = Record<string, unknown>;
@@ -190,6 +196,9 @@ export function deliverWorkerJobArtifacts(
     assertCurrentWorkerJobLedgerSchema(db);
     return db.transaction(() => {
         const job = requireJob(db, jobId);
+        if (job.state === 'DELIVERED_UNVERIFIED' || job.state === 'VALIDATING'
+            || job.state === 'ACCEPTED' || job.state === 'NEEDS_INPUT'
+            || job.state === 'DOMAIN_TERMINAL') return job;
         requireLease(db, job, leaseToken, now);
         if (job.state !== 'RUNNING') {
             throw new WorkerJobLedgerError(
@@ -223,10 +232,10 @@ export function deliverWorkerJobArtifacts(
         db.prepare(`
             UPDATE hall_worker_jobs
             SET state = 'DELIVERED_UNVERIFIED', progress_percent = 100,
-                progress_phase = 'complete', terminal_at = ?,
+                progress_phase = 'delivered', terminal_at = NULL,
                 updated_at = ?, version = version + 1
             WHERE job_id = ?
-        `).run(now, now, job.job_id);
+        `).run(now, job.job_id);
         db.prepare('DELETE FROM hall_worker_job_leases WHERE job_id = ?').run(job.job_id);
         const delivered = requireJob(db, job.job_id);
         appendWorkerJobEvent(db, delivered, 'delivered_unverified');
@@ -244,4 +253,116 @@ export function listWorkerJobArtifacts(
         SELECT * FROM hall_worker_job_artifacts
         WHERE job_id = ? ORDER BY created_at, artifact_id
     `).all(jobId) as Row[]).map(materializeArtifact);
+}
+
+function validationTransition(input: WorkerJobValidationInput): {
+    state: WorkerJobState;
+    phase: string;
+    terminal: boolean;
+} {
+    switch (input.verdict) {
+        case 'ACCEPTED': return { state: 'ACCEPTED', phase: 'accepted', terminal: true };
+        case 'REPAIR_QUEUED': return { state: 'REPAIR_QUEUED', phase: 'repair_queued', terminal: false };
+        case 'NEEDS_INPUT': return { state: 'NEEDS_INPUT', phase: 'needs_input', terminal: true };
+        case 'DOMAIN_TERMINAL': return { state: 'DOMAIN_TERMINAL', phase: 'domain_terminal', terminal: true };
+    }
+}
+
+export function beginWorkerJobValidation(
+    db: Database.Database,
+    jobId: string,
+    now = Date.now(),
+): WorkerJobRecord {
+    assertCurrentWorkerJobLedgerSchema(db);
+    return db.transaction(() => {
+        const job = requireJob(db, jobId);
+        if (job.state === 'VALIDATING') return job;
+        if (!['DELIVERED_UNVERIFIED', 'DELIVERED'].includes(job.state)) {
+            throw new WorkerJobLedgerError(
+                'WORKER_JOB_VALIDATION_STATE_INVALID',
+                `Cannot validate a ${job.state} worker job.`,
+            );
+        }
+        db.prepare(`
+            UPDATE hall_worker_jobs SET state = 'VALIDATING', progress_phase = 'validating',
+                updated_at = ?, version = version + 1
+            WHERE job_id = ? AND state IN ('DELIVERED_UNVERIFIED', 'DELIVERED')
+        `).run(now, job.job_id);
+        const validating = requireJob(db, job.job_id);
+        appendWorkerJobEvent(db, validating, 'validation_started');
+        return validating;
+    }).immediate();
+}
+
+export function recordWorkerJobValidation(
+    db: Database.Database,
+    jobId: string,
+    input: WorkerJobValidationInput,
+    now = Date.now(),
+): WorkerJobRecord {
+    assertCurrentWorkerJobLedgerSchema(db);
+    const validation = normalizeWorkerJobValidation(input);
+    const transition = validationTransition(validation);
+    return db.transaction(() => {
+        const job = requireJob(db, jobId);
+        const existing = db.prepare(`
+            SELECT validation_id, validation_verdict, validation_evidence_sha256
+            FROM hall_worker_jobs WHERE job_id = ?
+        `).get(job.job_id) as {
+            validation_id?: string;
+            validation_verdict?: string;
+            validation_evidence_sha256?: string;
+        } | undefined;
+        if (job.state === transition.state && existing?.validation_id) {
+            if (existing.validation_id === validation.validation_id
+                && existing.validation_verdict === validation.verdict
+                && existing.validation_evidence_sha256 === validation.evidence_sha256) return job;
+            throw new WorkerJobLedgerError(
+                'WORKER_JOB_VALIDATION_CONFLICT',
+                'A different validation is already bound to this worker job.',
+            );
+        }
+        if (job.state !== 'VALIDATING') throw new WorkerJobLedgerError(
+            'WORKER_JOB_VALIDATION_STATE_INVALID',
+            `Cannot record validation for a ${job.state} worker job.`,
+        );
+        db.prepare(`
+            UPDATE hall_worker_jobs SET state = ?, progress_phase = ?,
+                validation_id = ?, validation_verdict = ?, validation_evidence_sha256 = ?,
+                validation_summary = ?,
+                failure_code = CASE WHEN ? = 'REPAIR_QUEUED'
+                    THEN 'WORKER_JOB_VALIDATION_REPAIR' ELSE failure_code END,
+                failure_summary = CASE WHEN ? = 'REPAIR_QUEUED' THEN ? ELSE failure_summary END,
+                terminal_at = ?, updated_at = ?, version = version + 1 WHERE job_id = ?
+        `).run(
+            transition.state,
+            transition.phase,
+            validation.validation_id,
+            validation.verdict,
+            validation.evidence_sha256,
+            validation.summary ?? null,
+            validation.verdict,
+            validation.verdict,
+            boundedDetail(validation.summary, 512) ?? null,
+            transition.terminal ? now : null,
+            now,
+            job.job_id,
+        );
+        const recorded = requireJob(db, job.job_id);
+        appendWorkerJobEvent(db, recorded, `validation_${validation.verdict.toLowerCase()}`,
+            validation.evidence_sha256, validation.summary);
+        return recorded;
+    }).immediate();
+}
+
+export function acceptWorkerJob(
+    db: Database.Database,
+    jobId: string,
+    validation: WorkerJobValidationInput,
+    now = Date.now(),
+): WorkerJobRecord {
+    if (validation.verdict !== 'ACCEPTED') throw new WorkerJobLedgerError(
+        'WORKER_JOB_VALIDATION_INVALID', 'Acceptance requires an ACCEPTED validation verdict.',
+    );
+    return recordWorkerJobValidation(db, jobId, validation, now);
 }

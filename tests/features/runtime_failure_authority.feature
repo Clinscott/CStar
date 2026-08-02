@@ -41,3 +41,16 @@ Feature: Runtime failure authority
     When the dispatcher records its execution bead
     Then the assigned execution actor is unchanged by persona
     And persona grants no retry, routing, risk, or execution authority
+
+  Scenario: Recoverable local dispatch failure queues bounded repair
+    Given the host owns a leased dispatch for one exact mission and batch
+    When local delivery preparation fails before provider start
+    Then CStar records REPAIR_QUEUED on that same mission and batch
+    And no manual relay or fresh user gate is required for the repair queue
+    And the bounded zero-provider replay ceiling remains enforced
+
+  Scenario: Ambiguous-spend recovery is frozen
+    Given provider start or spend is ambiguous
+    When runtime failure recovery runs
+    Then the durable dispatch becomes UNKNOWN
+    And no provider retry or automatic repair is dispatched

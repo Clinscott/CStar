@@ -40,12 +40,14 @@ const objects: readonly SchemaObject[] = [
             contract_sha256 TEXT NOT NULL CHECK(length(contract_sha256) = 64),
             state TEXT NOT NULL CHECK(state IN (
                 'QUEUED', 'LEASED', 'RUNNING', 'CANCEL_REQUESTED', 'CANCELLED',
-                'DELIVERED_UNVERIFIED', 'FAILED', 'UNKNOWN'
+                'DELIVERED_UNVERIFIED', 'DELIVERED', 'VALIDATING', 'ACCEPTED',
+                'REPAIR_QUEUED', 'NEEDS_INPUT', 'DOMAIN_TERMINAL', 'FAILED', 'UNKNOWN'
             )),
             progress_percent INTEGER NOT NULL CHECK(progress_percent BETWEEN 0 AND 100),
             progress_phase TEXT NOT NULL CHECK(progress_phase IN (
-                'queued', 'preparing', 'working', 'validating', 'finalizing',
-                'complete', 'unknown'
+                'queued', 'preparing', 'working', 'dispatching', 'delivered',
+                'validating', 'finalizing', 'accepted', 'repair_queued',
+                'needs_input', 'domain_terminal', 'complete', 'unknown'
             )),
             provider_started INTEGER NOT NULL CHECK(provider_started IN (0, 1)),
             provider_requests_started INTEGER NOT NULL CHECK(provider_requests_started >= 0),
@@ -59,6 +61,16 @@ const objects: readonly SchemaObject[] = [
             cancel_reason TEXT,
             failure_code TEXT,
             failure_summary TEXT,
+            retry_count INTEGER NOT NULL DEFAULT 0 CHECK(retry_count >= 0),
+            retry_ceiling INTEGER NOT NULL DEFAULT 1 CHECK(retry_ceiling BETWEEN 0 AND 1),
+            validation_id TEXT,
+            validation_verdict TEXT CHECK(validation_verdict IS NULL OR validation_verdict IN (
+                'ACCEPTED', 'REPAIR_QUEUED', 'NEEDS_INPUT', 'DOMAIN_TERMINAL'
+            )),
+            validation_evidence_sha256 TEXT CHECK(
+                validation_evidence_sha256 IS NULL OR length(validation_evidence_sha256) = 64
+            ),
+            validation_summary TEXT,
             version INTEGER NOT NULL CHECK(version >= 1),
             created_at INTEGER NOT NULL,
             updated_at INTEGER NOT NULL,
