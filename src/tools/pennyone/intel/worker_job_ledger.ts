@@ -292,6 +292,26 @@ export function leaseWorkerJob(
                 `Cannot lease a ${job.state} worker job.`,
             );
         }
+        const owner = db.prepare(
+            'SELECT dispatch_owner_id FROM hall_worker_jobs WHERE job_id = ?',
+        ).get(job.job_id) as { dispatch_owner_id?: string | null };
+        const boundOwner = owner.dispatch_owner_id ?? null;
+        if (boundOwner !== null && boundOwner !== leaseOwnerId) {
+            throw new WorkerJobLedgerError(
+                'WORKER_JOB_OWNER_TRANSFER_NOT_AUTHORIZED',
+                'Worker-job ownership transfer is not authorized.',
+            );
+        }
+        if (boundOwner === null) {
+            const binding = db.prepare(`
+                UPDATE hall_worker_jobs SET dispatch_owner_id = ?
+                WHERE job_id = ? AND dispatch_owner_id IS NULL
+            `).run(leaseOwnerId, job.job_id);
+            if (binding.changes !== 1) throw new WorkerJobLedgerError(
+                'WORKER_JOB_OWNER_TRANSFER_NOT_AUTHORIZED',
+                'Worker-job owner changed during lease reservation.',
+            );
+        }
         requireExecutableAt(job, now);
         const leaseExpiresAt = Math.min(
             now + leaseDurationMs,
@@ -313,12 +333,16 @@ export function leaseWorkerJob(
             leaseExpiresAt,
             now,
         );
-        db.prepare(`
+        const transition = db.prepare(`
             UPDATE hall_worker_jobs
             SET state = 'LEASED', progress_phase = 'preparing',
                 updated_at = ?, version = version + 1
             WHERE job_id = ? AND state = 'QUEUED'
         `).run(now, job.job_id);
+        if (transition.changes !== 1) throw new WorkerJobLedgerError(
+            'WORKER_JOB_LEASE_STATE_INVALID',
+            'Worker-job lease lost its atomic state race.',
+        );
         const updated = requireWorkerJobRecord(db, job.job_id);
         appendWorkerJobEvent(db, updated, 'leased');
         appendWorkerJobEvent(

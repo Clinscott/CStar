@@ -63,6 +63,9 @@ const objects: readonly SchemaObject[] = [
             failure_summary TEXT,
             retry_count INTEGER NOT NULL DEFAULT 0 CHECK(retry_count >= 0),
             retry_ceiling INTEGER NOT NULL DEFAULT 1 CHECK(retry_ceiling BETWEEN 0 AND 1),
+            dispatch_owner_id TEXT CHECK(
+                dispatch_owner_id IS NULL OR length(dispatch_owner_id) BETWEEN 1 AND 160
+            ),
             validation_id TEXT,
             validation_verdict TEXT CHECK(validation_verdict IS NULL OR validation_verdict IN (
                 'ACCEPTED', 'REPAIR_QUEUED', 'NEEDS_INPUT', 'DOMAIN_TERMINAL'

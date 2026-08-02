@@ -100,12 +100,26 @@ function zeroProof(attemptId: string) {
 }
 
 describe('durable asynchronous dispatch seam', () => {
-    it('persists one dispatch and leaves launch to the host', () => {
+    it('atomically reserves one concurrent dispatch and leaves launch to the host', async () => {
         const database = db();
         const created = createWorkerJob(database, fixture('queue'), NOW).job;
-        const reservation = reserveWorkerJobDispatch(
-            database, created.job_id, 'a3-host', 2_000, NOW + 1,
-        );
+        const race = await Promise.allSettled([
+            Promise.resolve().then(() => reserveWorkerJobDispatch(
+                database, created.job_id, 'a3-host', 2_000, NOW + 1,
+            )),
+            Promise.resolve().then(() => reserveWorkerJobDispatch(
+                database, created.job_id, 'a3-host', 2_000, NOW + 1,
+            )),
+        ]);
+        assert.equal(race.filter((outcome) => outcome.status === 'fulfilled').length, 1);
+        assert.equal(race.filter((outcome) => outcome.status === 'rejected').length, 1);
+        const reservation = race.find((outcome) => outcome.status === 'fulfilled')!.value;
+        assert.equal(database.prepare(
+            'SELECT COUNT(*) FROM hall_worker_job_leases WHERE job_id = ?',
+        ).pluck().get(created.job_id), 1, 'the concurrent lease race must have one winner');
+        assert.equal(database.prepare(
+            "SELECT COUNT(*) FROM hall_worker_job_events WHERE job_id = ? AND event_kind = 'leased'",
+        ).pluck().get(created.job_id), 1, 'the concurrent lease race must record one lease');
         assert.equal(reservation.job.state, 'LEASED');
         assert.match(reservation.dispatch_id, /^worker-dispatch-[a-f0-9]{32}$/);
         assert.equal(reservation.host_launch_required, true);
@@ -170,7 +184,7 @@ describe('durable asynchronous dispatch seam', () => {
         database.close();
     });
 
-    it('queues same-batch local repair, permits one zero-provider replay, and enforces the ceiling', () => {
+    it('preserves the owner through one same-batch zero-provider replay and enforces the ceiling', () => {
         const database = db();
         const { created, dispatch } = running(database, 'repair');
         const proof = zeroProof(created.attempt_id);
@@ -189,9 +203,23 @@ describe('durable asynchronous dispatch seam', () => {
         assert.equal(replayWorkerJobAfterZeroProvider(
             database, created.job_id, proof, NOW + 22,
         ).state, 'QUEUED');
+        assert.throws(
+            () => reserveWorkerJobDispatch(
+                database, created.job_id, 'a3-host-transfer', 2_000, NOW + 23,
+            ),
+            /ownership transfer is not authorized/,
+        );
+        assert.equal(database.prepare(
+            'SELECT dispatch_owner_id FROM hall_worker_jobs WHERE job_id = ?',
+        ).pluck().get(created.job_id), 'a3-host');
         const replayDispatch = reserveWorkerJobDispatch(
             database, created.job_id, 'a3-host', 2_000, NOW + 23,
         );
+        assert.equal(replayDispatch.job.job_id, created.job_id);
+        assert.equal(replayDispatch.job.attempt_id, created.attempt_id);
+        assert.equal(database.prepare(
+            'SELECT COUNT(*) FROM hall_worker_jobs WHERE canonical_request_id = ?',
+        ).pluck().get(created.canonical_request_id), 1);
         markWorkerJobRunning(database, created.job_id, replayDispatch.lease_token, NOW + 24);
         assert.throws(
             () => queueWorkerJobRepair(database, created.job_id, replayDispatch.lease_token, {
@@ -245,7 +273,7 @@ describe('durable asynchronous dispatch seam', () => {
         database.close();
     });
 
-    it('keeps legacy Forge receipts host-owned and maps ambiguous attempts to frozen unknown', () => {
+    it('keeps Forge host-owned and fails closed adversarial spend, status, and result shapes', () => {
         const owner = buildForgeExecutionOwnerProof();
         assert.ok(owner);
         const handoff = buildForgeHostDispatchHandoff('worker-dispatch-a3', 'attempt-a3', owner);
@@ -263,5 +291,53 @@ describe('durable asynchronous dispatch seam', () => {
         assert.equal(classification.state, 'unknown');
         assert.equal(classification.retry_allowed, false);
         assert.equal(classification.provider_spend_state, 'ambiguous');
+
+        const exactZero = {
+            ...base,
+            attempt_budget_class: 'mechanical_no_provider' as const,
+            provider_evidence_valid: 1 as const,
+            provider_requests_started: 0,
+            provider_requests_completed: 0,
+            provider_requests_ambiguous: 0,
+            live_spend: 0 as const,
+            live_spend_unknown: 0 as const,
+            status: 'FAILED_RETRYABLE' as const,
+        };
+        assert.deepEqual(classifyForgeAttemptForDurableDispatch(exactZero), {
+            state: 'repair_queued', retry_allowed: true, provider_spend_state: 'not_started',
+        });
+        assert.deepEqual(classifyForgeAttemptForDurableDispatch({
+            ...exactZero, provider_requests_started: 1, known_spend_observed: 1,
+        }), {
+            state: 'domain_terminal', retry_allowed: false, provider_spend_state: 'known',
+        }, 'known-spend retry must fail closed');
+        assert.deepEqual(classifyForgeAttemptForDurableDispatch({
+            ...exactZero, live_spend_unknown: 1,
+        }), {
+            state: 'unknown', retry_allowed: false, provider_spend_state: 'ambiguous',
+        });
+        assert.equal(classifyForgeAttemptForDurableDispatch({
+            ...exactZero, status: 'UNRECOGNIZED_TERMINAL',
+        } as unknown as HallForgeAttemptRecord).state, 'unknown', 'unknown status must freeze');
+        assert.equal(classifyForgeAttemptForDurableDispatch({
+            ...exactZero, result_status: 'UNRECOGNIZED_RESULT',
+        }).retry_allowed, false, 'unknown result must not replay');
+        assert.deepEqual(classifyForgeAttemptForDurableDispatch({
+            ...exactZero,
+            status: 'SUCCEEDED',
+            result_status: 'unexpected-success-payload',
+        }), {
+            state: 'unknown', retry_allowed: false, provider_spend_state: 'not_started',
+        });
+        assert.equal(classifyForgeAttemptForDurableDispatch({
+            ...exactZero,
+            status: 'SUCCEEDED',
+            result_status: 'VALIDATION_ACCEPTED',
+            validation_id: 'validation-a3',
+            validation_verdict: 'ACCEPTED',
+            validation_authority: 'verified_v2',
+            validation_evidence_sha256: hash('8'),
+            result_artifact_sha256: hash('7'),
+        }).state, 'accepted');
     });
 });

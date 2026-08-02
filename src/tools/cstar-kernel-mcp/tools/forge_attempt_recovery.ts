@@ -57,26 +57,64 @@ export interface ForgeAttemptDispatchClassification {
 export function classifyForgeAttemptForDurableDispatch(
     attempt: HallForgeAttemptRecord,
 ): ForgeAttemptDispatchClassification {
-    const ambiguous = attempt.status === 'UNKNOWN'
+    const invalidProviderCount = (value: number | undefined): boolean => value !== undefined
+        && (!Number.isSafeInteger(value) || value < 0);
+    const invalidOptionalFlag = (value: number | undefined): boolean => value !== undefined
+        && value !== 0 && value !== 1;
+    const malformedEvidence = invalidProviderCount(attempt.provider_requests_started)
+        || invalidProviderCount(attempt.provider_requests_ambiguous)
+        || invalidOptionalFlag(attempt.live_spend)
+        || ![0, 1].includes(attempt.live_spend_unknown)
+        || ![0, 1].includes(attempt.known_spend_observed);
+    const ambiguous = malformedEvidence || attempt.status === 'UNKNOWN'
         || attempt.live_spend_unknown === 1
         || (attempt.provider_requests_ambiguous ?? 0) > 0;
     const providerSpendState = ambiguous
         ? 'ambiguous'
-        : attempt.known_spend_observed === 1 || attempt.provider_requests_started
+        : attempt.known_spend_observed === 1 || attempt.live_spend === 1
+            || (attempt.provider_requests_started ?? 0) > 0
             ? 'known' : 'not_started';
+    const exactZeroProviderEvidence = attempt.provider_evidence_valid === 1
+        && attempt.provider_requests_started === 0
+        && attempt.provider_requests_completed === 0
+        && attempt.provider_requests_ambiguous === 0
+        && attempt.live_spend === 0
+        && attempt.live_spend_unknown === 0
+        && attempt.known_spend_observed === 0;
     if (ambiguous) return { state: 'unknown', retry_allowed: false, provider_spend_state: providerSpendState };
     if (attempt.status === 'RESERVED') return {
-        state: 'queued', retry_allowed: false, provider_spend_state: providerSpendState,
+        state: attempt.result_status === undefined && providerSpendState === 'not_started'
+            ? 'queued' : 'unknown',
+        retry_allowed: false,
+        provider_spend_state: providerSpendState,
     };
-    if (attempt.status === 'STARTED') return {
-        state: 'running', retry_allowed: false, provider_spend_state: providerSpendState,
-    };
-    if (attempt.status === 'FAILED_RETRYABLE') return {
-        state: 'repair_queued', retry_allowed: true, provider_spend_state: providerSpendState,
-    };
+    if (attempt.status === 'STARTED') {
+        if (attempt.result_status === undefined) return {
+            state: 'running', retry_allowed: false, provider_spend_state: providerSpendState,
+        };
+        if (/^DELIVERED_PENDING_VALIDATION:.+/.test(attempt.result_status)) return {
+            state: 'delivered', retry_allowed: false, provider_spend_state: providerSpendState,
+        };
+        if (attempt.result_status === 'VALIDATING') return {
+            state: 'validating', retry_allowed: false, provider_spend_state: providerSpendState,
+        };
+        return { state: 'unknown', retry_allowed: false, provider_spend_state: providerSpendState };
+    }
+    if (attempt.status === 'FAILED_RETRYABLE') {
+        const exactZeroProvider = attempt.result_status === undefined
+            && attempt.attempt_budget_class === 'mechanical_no_provider'
+            && exactZeroProviderEvidence
+            && providerSpendState === 'not_started';
+        return {
+            state: exactZeroProvider ? 'repair_queued' : 'domain_terminal',
+            retry_allowed: exactZeroProvider,
+            provider_spend_state: providerSpendState,
+        };
+    }
     if (attempt.status === 'FAILED_FINAL') {
-        const mechanical = attempt.attempt_budget_class === 'mechanical_no_provider'
-            && attempt.provider_evidence_valid === 1 && providerSpendState === 'not_started';
+        const mechanical = attempt.result_status === undefined
+            && attempt.attempt_budget_class === 'mechanical_no_provider'
+            && exactZeroProviderEvidence && providerSpendState === 'not_started';
         return {
             state: mechanical ? 'repair_queued' : 'domain_terminal',
             retry_allowed: mechanical,
@@ -84,14 +122,19 @@ export function classifyForgeAttemptForDurableDispatch(
         };
     }
     if (attempt.status === 'SUCCEEDED') {
-        const result = attempt.result_status ?? '';
-        if (result.startsWith('DELIVERED_PENDING_VALIDATION')) return {
-            state: 'delivered', retry_allowed: false, provider_spend_state: providerSpendState,
+        const acceptedVerdict = ['SUCCESS', 'ACCEPTED', 'PASS', 'PASSED']
+            .includes(attempt.validation_verdict?.trim().toUpperCase() ?? '');
+        const exactAccepted = attempt.result_status === 'VALIDATION_ACCEPTED'
+            && Boolean(attempt.validation_id)
+            && acceptedVerdict
+            && attempt.validation_authority === 'verified_v2'
+            && /^[a-f0-9]{64}$/i.test(attempt.validation_evidence_sha256 ?? '')
+            && /^[a-f0-9]{64}$/i.test(attempt.result_artifact_sha256 ?? '');
+        return {
+            state: exactAccepted ? 'accepted' : 'unknown',
+            retry_allowed: false,
+            provider_spend_state: providerSpendState,
         };
-        if (result === 'VALIDATING') return {
-            state: 'validating', retry_allowed: false, provider_spend_state: providerSpendState,
-        };
-        return { state: 'accepted', retry_allowed: false, provider_spend_state: providerSpendState };
     }
     return { state: 'unknown', retry_allowed: false, provider_spend_state: providerSpendState };
 }
