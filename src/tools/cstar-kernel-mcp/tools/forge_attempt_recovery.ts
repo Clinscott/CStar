@@ -10,6 +10,7 @@ import {
 } from '../../pennyone/intel/forge_receipt_controller.js';
 import { readBoundedUtf8FileInside } from '../contracts/runtime.js';
 import { assertSafePrivateArtifact } from './forge_adapter_artifacts.js';
+import { FORGE_ROLE_ORDER } from './forge_role_evidence.js';
 import {
     FORGE_EXECUTION_GRACE_MS,
     isForgeExecutionOwnerAlive,
@@ -57,13 +58,24 @@ export interface ForgeAttemptDispatchClassification {
 export function classifyForgeAttemptForDurableDispatch(
     attempt: HallForgeAttemptRecord,
 ): ForgeAttemptDispatchClassification {
-    const invalidProviderCount = (value: number | undefined): boolean => value !== undefined
-        && (!Number.isSafeInteger(value) || value < 0);
+    const boundedProviderCount = (value: unknown): value is number => Number.isSafeInteger(value)
+        && Number(value) >= 0 && Number(value) <= FORGE_ROLE_ORDER.length;
+    const providerCounts = [attempt.provider_requests_started,
+        attempt.provider_requests_completed, attempt.provider_requests_ambiguous];
+    const completeProviderAccounting = providerCounts.every(boundedProviderCount)
+        && attempt.provider_requests_completed! <= attempt.provider_requests_started!
+        && attempt.provider_requests_ambiguous! <= attempt.provider_requests_started!;
+    const malformedProviderAccounting = providerCounts.some((value) =>
+        value !== undefined && !boundedProviderCount(value))
+        || (boundedProviderCount(attempt.provider_requests_started)
+            && boundedProviderCount(attempt.provider_requests_completed)
+            && attempt.provider_requests_completed > attempt.provider_requests_started)
+        || (boundedProviderCount(attempt.provider_requests_started)
+            && boundedProviderCount(attempt.provider_requests_ambiguous)
+            && attempt.provider_requests_ambiguous > attempt.provider_requests_started);
     const invalidOptionalFlag = (value: number | undefined): boolean => value !== undefined
         && value !== 0 && value !== 1;
-    const malformedEvidence = invalidProviderCount(attempt.provider_requests_started)
-        || invalidProviderCount(attempt.provider_requests_ambiguous)
-        || invalidOptionalFlag(attempt.live_spend)
+    const malformedEvidence = malformedProviderAccounting || invalidOptionalFlag(attempt.live_spend)
         || ![0, 1].includes(attempt.live_spend_unknown)
         || ![0, 1].includes(attempt.known_spend_observed);
     const ambiguous = malformedEvidence || attempt.status === 'UNKNOWN'
@@ -127,6 +139,11 @@ export function classifyForgeAttemptForDurableDispatch(
         const exactAccepted = attempt.result_status === 'VALIDATION_ACCEPTED'
             && Boolean(attempt.validation_id)
             && acceptedVerdict
+            && completeProviderAccounting
+            && attempt.provider_evidence_valid === 1
+            && attempt.provider_requests_completed === attempt.provider_requests_started
+            && attempt.provider_requests_ambiguous === 0
+            && providerSpendState === 'known'
             && attempt.validation_authority === 'verified_v2'
             && /^[a-f0-9]{64}$/i.test(attempt.validation_evidence_sha256 ?? '')
             && /^[a-f0-9]{64}$/i.test(attempt.result_artifact_sha256 ?? '');

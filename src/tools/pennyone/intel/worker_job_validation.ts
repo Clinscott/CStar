@@ -7,7 +7,10 @@ import type {
     WorkerJobSpendEvidence,
     WorkerJobValidationInput,
 } from '../../../types/worker_job.js';
-import { WORKER_JOB_VALIDATION_VERDICTS } from '../../../types/worker_job.js';
+import {
+    WORKER_JOB_PROVIDER_REQUEST_CEILING,
+    WORKER_JOB_VALIDATION_VERDICTS,
+} from '../../../types/worker_job.js';
 import { executableWorkerJobContractSchema } from '../../cstar-kernel-mcp/contracts/worker_jobs.js';
 import { WorkerJobLedgerError } from './worker_job_errors.js';
 
@@ -86,7 +89,10 @@ export function validateActiveEvidence(
     spend: WorkerJobSpendEvidence,
 ): void {
     if (provider.attempt_id !== attemptId || spend.attempt_id !== attemptId
-        || !provider.provider_started || provider.provider_requests_started < 1
+        || !provider.provider_started
+        || !Number.isSafeInteger(provider.provider_requests_started)
+        || provider.provider_requests_started < 1
+        || provider.provider_requests_started > WORKER_JOB_PROVIDER_REQUEST_CEILING
         || !SHA256.test(provider.evidence_sha256)
         || !SHA256.test(spend.evidence_sha256)) {
         throw new WorkerJobLedgerError(

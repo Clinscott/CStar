@@ -5,6 +5,7 @@ import type {
     WorkerJobProgressPhase,
     WorkerJobRepairInput,
     WorkerJobRecord,
+    WorkerJobReplayAuthorization,
     WorkerJobState,
     WorkerJobZeroProviderProof,
 } from '../../../types/worker_job.js';
@@ -345,7 +346,6 @@ export function queueWorkerJobRepair(
                 updated_at = ?, version = version + 1 WHERE job_id = ?
         `).run(boundedDetail(input.failure_code, 80), boundedDetail(input.failure_summary, 512) ?? null,
             now, job.job_id);
-        db.prepare('DELETE FROM hall_worker_job_leases WHERE job_id = ?').run(job.job_id);
         const repaired = requireWorkerJobRecord(db, job.job_id);
         appendWorkerJobEvent(db, repaired, 'repair_queued', input.zero_provider_proof.evidence_sha256,
             `same_mission=${job.bead_id} same_batch=${job.decision_id}`);
@@ -353,11 +353,12 @@ export function queueWorkerJobRepair(
     }).immediate();
 }
 
-/** Requeue the same attempt only after exact zero-provider proof; UNKNOWN is frozen. */
+/** Requeue once with exact zero-provider and current-owner lease proof; UNKNOWN is frozen. */
 export function replayWorkerJobAfterZeroProvider(
     db: Database.Database,
     jobId: string,
     proof: WorkerJobZeroProviderProof,
+    authorization: WorkerJobReplayAuthorization,
     now = Date.now(),
 ): WorkerJobRecord {
     assertCurrentWorkerJobLedgerSchema(db);
@@ -369,6 +370,24 @@ export function replayWorkerJobAfterZeroProvider(
         if (!['FAILED', 'REPAIR_QUEUED'].includes(job.state)) throw new WorkerJobLedgerError(
             'WORKER_JOB_DISPATCH_STATE_INVALID', `Cannot replay a ${job.state} worker job.`,
         );
+        if (!authorization || typeof authorization.lease_owner_id !== 'string'
+            || typeof authorization.lease_token !== 'string') {
+            throw new WorkerJobLedgerError(
+                'WORKER_JOB_REPLAY_AUTHORIZATION_INVALID',
+                'Replay requires an exact lease owner and replay token.',
+            );
+        }
+        const lease = requireWorkerJobLease(db, job, authorization.lease_token, now);
+        const owner = db.prepare(
+            'SELECT dispatch_owner_id FROM hall_worker_jobs WHERE job_id = ?',
+        ).pluck().get(job.job_id);
+        if (lease.lease_owner_id !== authorization.lease_owner_id
+            || owner !== authorization.lease_owner_id) {
+            throw new WorkerJobLedgerError(
+                'WORKER_JOB_OWNER_TRANSFER_NOT_AUTHORIZED',
+                'Only the exact repair owner may replay this worker job.',
+            );
+        }
         requireExactZeroProviderProof(job, proof, now);
         const [count, ceiling] = retryWindow(db, job.job_id);
         if (count >= Math.min(ceiling, WORKER_JOB_ZERO_PROVIDER_REPLAY_CEILING)) {
@@ -376,12 +395,19 @@ export function replayWorkerJobAfterZeroProvider(
                 'WORKER_JOB_RETRY_CEILING_EXCEEDED', 'The bounded replay ceiling is exhausted.',
             );
         }
-        db.prepare(`
+        const transition = db.prepare(`
             UPDATE hall_worker_jobs SET state = 'QUEUED', progress_phase = 'queued',
                 progress_percent = 0, retry_count = retry_count + 1,
                 failure_code = NULL, failure_summary = NULL, terminal_at = NULL,
-                updated_at = ?, version = version + 1 WHERE job_id = ?
-        `).run(now, job.job_id);
+                updated_at = ?, version = version + 1
+            WHERE job_id = ? AND state IN ('FAILED', 'REPAIR_QUEUED')
+                AND retry_count = ?
+        `).run(now, job.job_id, count);
+        if (transition.changes !== 1) throw new WorkerJobLedgerError(
+            'WORKER_JOB_DISPATCH_STATE_INVALID',
+            'Worker-job replay lost its atomic one-use transition.',
+        );
+        db.prepare('DELETE FROM hall_worker_job_leases WHERE job_id = ?').run(job.job_id);
         const replay = requireWorkerJobRecord(db, job.job_id);
         appendWorkerJobEvent(db, replay, 'zero_provider_replay_queued', proof.evidence_sha256,
             `same_mission=${job.bead_id} same_batch=${job.decision_id}`);

@@ -1,6 +1,8 @@
 export const WORKER_JOB_KINDS = ['forge', 'researcher'] as const;
 export type WorkerJobKind = typeof WORKER_JOB_KINDS[number];
 
+export const WORKER_JOB_PROVIDER_REQUEST_CEILING = 6;
+
 export const WORKER_JOB_STATES = [
     'QUEUED',
     'LEASED',
@@ -151,6 +153,11 @@ export interface WorkerJobRepairInput {
     failure_code: string;
     failure_summary?: string;
     zero_provider_proof: WorkerJobZeroProviderProof;
+}
+
+export interface WorkerJobReplayAuthorization {
+    lease_owner_id: string;
+    lease_token: string;
 }
 
 export interface WorkerJobArtifactRecord {
