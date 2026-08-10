@@ -16,9 +16,9 @@
     "sha256": "00e013d3b825106bfb2e948e0b3c456af52d22cfaa575c44b6f15d04a7e7af6a"
   },
   "capability_exports": {
-    "codex_count": 3,
-    "gemini_count": 3,
-    "sha256": "248433f08e3c46ec8183ab0a14c49abecf1a2e21f6353cf23b3bee14df3b7e10"
+    "codex_count": 4,
+    "gemini_count": 4,
+    "sha256": "86ca791b790c58dc6d1fa9e38512df36110161a3ba5f1cae4722ff4c8286c132"
   },
   "files": {
     ".codex-plugin/plugin.json": {
@@ -27,11 +27,11 @@
     },
     "README.md": {
       "bytes": 2259,
-      "sha256": "576652223fd036fd9c2db2342da8a8f1ceccef631a4fb4ea0436980316e563fc"
+      "sha256": "77e8bb6993ab25ce2731819f34e49f7b8050faf826614be487913df59de551af"
     },
     "skills/corvus-star/SKILL.md": {
-      "bytes": 11841,
-      "sha256": "3a19b3b5bc132b5bf90d11ae1b3b72988ef67f1b6def7d0d6551e452683c779e"
+      "bytes": 11929,
+      "sha256": "4b512dc6ff879d00aa71b70794d92a7596840793fc2330a514e87e65d87886ea"
     }
   }
 }

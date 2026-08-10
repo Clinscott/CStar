@@ -16,6 +16,7 @@ Feature: CStar operator workflow router
         | route or scope is ambiguous    | cstar_augury then at most one bounded cstar_hall_search             | docs/integrations/cstar-kernel-mcp.md                       |
         | implementation is requested    | cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute | docs/operations/corvus-forge-pipeline-playbook.md           |
         | external evidence is requested | cstar_researcher_request                                           | .agents/skills/researcher/SKILL.md                          |
+        | Council autoresearch is requested | host-owned council-autoresearch exec bridge                      | .agents/skills/council-autoresearch/SKILL.md                |
         | delivery needs validation      | independent cstar_record_result                                    | docs/operations/corvus-forge-pipeline-playbook.md           |
         | mapped project context is due  | one bounded PMT read and one compact state update                   | docs/architecture/cos-pmt-thread-architecture.md            |
         | daily freshness is due         | daily bootstrap                                                    | docs/operations/cstar-goal-driven-daily-bootstrap.md        |

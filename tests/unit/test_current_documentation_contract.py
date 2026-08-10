@@ -7,7 +7,9 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_OPERATOR_SKILLS = {"corvus-forge", "researcher", "cstar-closeout"}
+HOST_ONLY_SKILLS = {"corvus-forge", "researcher", "cstar-closeout"}
+TERMINAL_REQUIRED_SKILLS = {"council-autoresearch"}
+DEFAULT_OPERATOR_SKILLS = HOST_ONLY_SKILLS | TERMINAL_REQUIRED_SKILLS
 COMPATIBILITY_SKILLS = {"calculus"}
 
 
@@ -19,7 +21,7 @@ def _flat(text: str) -> str:
     return " ".join(text.split())
 
 
-def test_current_registry_and_docs_expose_only_three_agent_native_skills() -> None:
+def test_current_registry_and_docs_expose_four_bounded_agent_native_skills() -> None:
     registry = json.loads(_read(".agents/skill_registry.json"))
     entries = registry["entries"]
     default_entries = {
@@ -30,16 +32,32 @@ def test_current_registry_and_docs_expose_only_three_agent_native_skills() -> No
         name for name, entry in entries.items()
         if entry["entry_surface"] == "compatibility"
     }
+    terminal_entries = {
+        name for name, entry in entries.items()
+        if entry["entry_surface"] == "cli" and entry["tier"] == "SKILL"
+    }
 
     assert set(entries) == DEFAULT_OPERATOR_SKILLS | COMPATIBILITY_SKILLS
-    assert default_entries == DEFAULT_OPERATOR_SKILLS
+    assert default_entries == HOST_ONLY_SKILLS
+    assert terminal_entries == TERMINAL_REQUIRED_SKILLS
     assert compatibility_entries == COMPATIBILITY_SKILLS
-    for name in DEFAULT_OPERATOR_SKILLS:
+    for name in HOST_ONLY_SKILLS:
         entry = entries[name]
         assert entry["tier"] == "SKILL"
         assert entry["entry_surface"] == "host-only"
         assert entry["execution"]["mode"] == "agent-native"
         assert entry["owner_runtime"] == "host-agent"
+
+    council = entries["council-autoresearch"]
+    assert council["tier"] == "SKILL"
+    assert council["entry_surface"] == "cli"
+    assert council["execution"]["mode"] == "agent-native"
+    assert council["execution"]["requires_terminal"] is True
+    assert council["execution"]["terminal_contract"] == "required"
+    assert council["execution"]["allow_kernel_fallback"] is False
+    assert council["owner_runtime"] == "host-agent"
+    assert council["recursion_policy"] == "bounded-orchestrator"
+    assert set(council["host_support"].values()) == {"exec-bridge"}
 
     calculus = entries["calculus"]
     assert calculus["tier"] == "PRIME"

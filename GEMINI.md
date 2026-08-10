@@ -80,8 +80,9 @@ The `cstar-kernel` MCP server is the authoritative kernel surface — invoke the
 - `cstar_forge_authorize` (MUTATION) — Bind one explicit root-user build instruction or immutable CStar goal-continuation receipt to one unchanged pending Forge request; performs no provider call.
 - `cstar_forge_execute` (EXECUTION) — Atomically run one provider attempt through the private Hermes/MiniMax adapter, with durable replay, independently validated pre-provider continuity, and delivered-pending-validation semantics.
 
-## Exported Gemini Capabilities (3)
+## Exported Gemini Capabilities (4)
 - `corvus-forge` (SKILL, native-session, host-workflow, kernel fallback forbidden)
+- `council-autoresearch` (SKILL, exec-bridge, host-workflow, kernel fallback forbidden)
 - `cstar-closeout` (SKILL, native-session, host-workflow, kernel fallback forbidden)
 - `researcher` (SKILL, native-session, host-workflow, kernel fallback forbidden)
 

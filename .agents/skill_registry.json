@@ -101,6 +101,45 @@
         "ownership_model": "kernel-primitive"
       }
     },
+    "council-autoresearch": {
+      "id": "council-autoresearch",
+      "title": "Council Autoresearch",
+      "description": "Run a bounded, evidence-frozen Council evaluation workflow with exactly one authorized generation before an operator pause.",
+      "tier": "SKILL",
+      "viability": "ACTIVE",
+      "risk": "high",
+      "runtime_trigger": "council-autoresearch",
+      "entry_surface": "cli",
+      "instruction_path": ".agents/skills/council-autoresearch/SKILL.md",
+      "entrypoint_path": "src/tools/council-autoresearch.ts",
+      "contract_path": ".agents/skills/council-autoresearch/council-autoresearch.feature",
+      "authority_path": ".agents/skills/council-autoresearch",
+      "owner_runtime": "host-agent",
+      "host_support": {"codex": "exec-bridge", "gemini": "exec-bridge", "claude": "exec-bridge"},
+      "recursion_policy": "bounded-orchestrator",
+      "contracts": [
+        ".agents/skills/council-autoresearch/council-autoresearch.feature"
+      ],
+      "tests": [
+        "tests/unit/test_council_autoresearch_skill.test.ts",
+        "tests/unit/council-autoresearch/test_runner.test.ts",
+        "tests/unit/council-autoresearch/test_adversarial.test.ts",
+        "tests/unit/council-autoresearch/test_cli_schema.test.ts",
+        "tests/unit/council-autoresearch/test_publication_entries.test.ts",
+        "tests/unit/council-autoresearch/test_resource_bounds.test.ts",
+        "tests/unit/council-autoresearch/test_runner_checkpoint.test.ts"
+      ],
+      "intent_categories": ["ORCHESTRATE", "VERIFY", "SCORE", "EVOLVE"],
+      "execution": {
+        "mode": "agent-native",
+        "adapter_id": "council-autoresearch",
+        "cli": "node scripts/run-tsx.mjs src/tools/council-autoresearch.ts",
+        "ownership_model": "host-workflow",
+        "requires_terminal": true,
+        "terminal_contract": "required",
+        "allow_kernel_fallback": false
+      }
+    },
     "corvus-forge": {
       "id": "corvus-forge",
       "title": "Corvus Forge",
@@ -171,7 +210,7 @@
   "authority_audit": [
     {
       "status": "PASS",
-      "claim": "Default operator capabilities are host-native guidance; calculus is discoverable compatibility only and remains unregistered from the retired Node runtime."
+      "claim": "Default operator capabilities are host-owned guidance or an explicitly terminal-required exec bridge; calculus is discoverable compatibility only and remains unregistered from the retired Node runtime."
     }
   ]
 }

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+import sys
 import time
 from pathlib import Path, PurePosixPath
 from typing import Any
@@ -446,10 +447,15 @@ def write_outputs(manifest: dict[str, Any]) -> None:
     REPORT_PATH.write_text(render_report(manifest), encoding="utf-8")
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
+    arguments = sys.argv[1:] if argv is None else argv
+    if arguments not in ([], ["--check"]):
+        raise SystemExit("usage: audit_skill_registry.py [--check]")
     manifest = build_registry_manifest()
-    write_outputs(manifest)
+    if arguments != ["--check"]:
+        write_outputs(manifest)
     audit = manifest["authority_audit"]
+    print(f"Mode: {'check-only' if arguments == ['--check'] else 'write'}")
     print(f"Authoritative skills: {len(manifest['entries'])}")
     print(f"Duplicate definitions: {len(audit['duplicates'])}")
     print(f"Active capability authority issues: {len(audit['authority_issues'])}")

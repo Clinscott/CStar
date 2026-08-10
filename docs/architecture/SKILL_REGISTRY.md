@@ -19,25 +19,35 @@ policy remains above both surfaces.
 
 ## Current Inventory
 
-The active registry contains exactly three agent-native leaf skills:
+The active registry contains four agent-native skills: three host-only leaves
+and one bounded, terminal-required orchestrator:
 
 | Skill | Purpose | Mutation boundary |
 | --- | --- | --- |
 | `corvus-forge` | Route bounded implementation through durable Forge request, execute, and independent validation. | Only CStar lifecycle tools and the sealed private Forge adapter may mutate within the authorized request. |
 | `researcher` | Route bounded evidence work through authorized Researcher lanes. | Live collection and source-lane expansion remain separately gated. |
 | `cstar-closeout` | Assemble evidence-backed handoff and closeout packets. | Stage, commit, push, merge, install, restart, and deploy are distinct operator gates. |
+| `council-autoresearch` | Freeze a signed 19-lens comparison, evaluate exactly one generation, verify separately authorized Git publication, and pause. | The runner is evaluation-only; source mutation stays with Forge, publication stays separately gated, and every verdict remains advisory. |
 
-All three use:
+All four use:
 
 - `tier: SKILL`;
-- `entry_surface: host-only`;
 - `execution.mode: agent-native`;
 - `owner_runtime: host-agent`; and
-- `recursion_policy: leaf`.
+- capability declarations that grant no execution authority.
+
+The three leaf skills use `entry_surface: host-only`, `recursion_policy: leaf`,
+and `native-session` host support. `council-autoresearch` instead declares
+`entry_surface: cli`, `recursion_policy: bounded-orchestrator`, `exec-bridge`
+host support, an exact repository-wrapper command, both explicit
+terminal-required fields, and `allow_kernel_fallback: false`.
 
 `host-only` means the active host reads the corresponding `SKILL.md` and follows
 it in-session. It is not permission for `cstar run-skill`, a runtime adapter,
 shell wrapper, model callback, or dynamic dispatcher to execute the skill.
+The Council entry's explicit terminal contract permits only its fixed
+repository-owned CLI. It does not authorize dynamic `cstar` dispatch or a
+kernel-owned adapter.
 
 ## Routing
 
@@ -46,7 +56,9 @@ Registry intent grammar is advisory discovery metadata:
 - build, repair, and evolve intents route to `corvus-forge` and the
   `cstar_forge_request` lifecycle;
 - research intents route to `researcher` and `cstar_researcher_request`;
-- documentation and handoff intents route to `cstar-closeout`; and
+- documentation and handoff intents route to `cstar-closeout`;
+- explicit Council autoresearch, signed-rating, or bounded comparison intents
+  route to `council-autoresearch`; and
 - deterministic observation, lifecycle, and validation intents route to the
   matching `cstar-kernel` primitive.
 
@@ -61,9 +73,11 @@ Use the following read-only discovery surfaces:
 - `cstar manifest --json` for the normalized registry view; and
 - `cstar skill-info <id> --json` for one declared skill.
 
-The current skills intentionally have no shell invocation metadata. A manifest
-field such as `active_in_runtime` means the runtime recognizes the declaration;
-it does not mean the runtime may execute the agent-native instructions.
+The three host-only skills intentionally have no shell invocation metadata.
+The Council record exposes its exact `node scripts/run-tsx.mjs` bridge because
+terminal execution is intrinsic to that contract. A manifest field such as
+`active_in_runtime` means the runtime recognizes the declaration; it does not
+grant kernel ownership or make `cstar run-skill` valid.
 
 ## Retired Topology
 

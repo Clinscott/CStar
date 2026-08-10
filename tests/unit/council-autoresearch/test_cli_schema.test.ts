@@ -1,0 +1,166 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { afterEach, describe, it } from 'node:test';
+
+import {
+    COUNCIL_AUTORESEARCH_RUNNER,
+    COUNCIL_AUTORESEARCH_SCHEMA,
+    acquireRepositoryLease,
+    releaseRepositoryLease,
+} from '../../../src/core/council_autoresearch/index.js';
+import { runCouncilAutoresearchCli } from '../../../src/tools/council-autoresearch.js';
+import {
+    bundleFixture,
+    cleanup,
+    repository,
+    temporary,
+    writeJson,
+} from './test_helpers.js';
+
+afterEach(cleanup);
+
+function invoke(command: string, request: unknown, controlRoot: string): {
+    code: number;
+    body: Record<string, any>;
+} {
+    const requestRoot = temporary('cstar-council-cli-request-');
+    const requestFile = path.join(requestRoot, 'request.json');
+    writeJson(requestFile, request);
+    const previousRoot = process.env.CSTAR_CONTROL_ROOT;
+    const previousWrite = process.stdout.write;
+    let output = '';
+    process.env.CSTAR_CONTROL_ROOT = controlRoot;
+    process.stdout.write = ((chunk: string | Uint8Array) => {
+        output += typeof chunk === 'string' ? chunk : Buffer.from(chunk).toString('utf8');
+        return true;
+    }) as typeof process.stdout.write;
+    try {
+        const code = runCouncilAutoresearchCli([command, '--request', requestFile]);
+        return { code, body: JSON.parse(output) };
+    } finally {
+        process.stdout.write = previousWrite;
+        if (previousRoot === undefined) delete process.env.CSTAR_CONTROL_ROOT;
+        else process.env.CSTAR_CONTROL_ROOT = previousRoot;
+    }
+}
+
+function assertRejected(result: ReturnType<typeof invoke>, pattern: RegExp): void {
+    assert.equal(result.code, 1);
+    assert.equal(result.body.schema_version, COUNCIL_AUTORESEARCH_SCHEMA);
+    assert.equal(result.body.runner_version, COUNCIL_AUTORESEARCH_RUNNER);
+    assert.equal(result.body.status, 'fail');
+    assert.match(result.body.error.message, pattern);
+}
+
+describe('Council autoresearch CLI runtime schema', () => {
+    it('rejects extra, missing, and wrong-type top-level input before creating a receipt', () => {
+        const control = temporary('cstar-council-cli-control-');
+        const cases = [
+            {
+                request: {
+                    repo_root: '/does-not-matter', run_id: 'council-cli-run-1',
+                    governed_paths: ['src'], unexpected: true,
+                },
+                pattern: /unknown field: unexpected/i,
+            },
+            {
+                request: { repo_root: '/does-not-matter', governed_paths: ['src'] },
+                pattern: /missing required field: run_id/i,
+            },
+            {
+                request: {
+                    repo_root: '/does-not-matter', run_id: 'council-cli-run-1',
+                    governed_paths: ['src', 42],
+                },
+                pattern: /governed_paths must be a string array/i,
+            },
+        ];
+        for (const testCase of cases) {
+            assertRejected(invoke('lease-acquire', testCase.request, control), testCase.pattern);
+            assert.equal(fs.existsSync(path.join(control, 'council-autoresearch')), false);
+        }
+    });
+
+    it('rejects nested packet and rating schema drift without advancing the receipt chain', () => {
+        const source = repository();
+        const control = temporary('cstar-council-cli-control-');
+        const fixture = bundleFixture();
+        const lease = acquireRepositoryLease({
+            repoRoot: source,
+            controlRoot: control,
+            runId: 'council-cli-run-1',
+            governedPaths: ['src'],
+        });
+        const input = fixture.packetInput;
+        const packet = {
+            source_head: lease.record.source_head,
+            source_manifest_sha256: lease.record.source_manifest.manifest_sha256,
+            governed_paths: input.governedPaths,
+            contract_manifest: input.contractManifest,
+            council_order: input.councilOrder,
+            protocol_manifest: input.protocolManifest,
+            protocol_path_by_expert: input.protocolPathByExpert,
+            protocol_sha256_by_expert: input.protocolSha256ByExpert,
+            variants: input.variants,
+            rubric_manifest: input.rubricManifest,
+            evidence_manifest: input.evidenceManifest,
+            runner_publication: input.runnerPublication,
+            seed: input.seed,
+            blind_mapping_commitment_sha256: input.blindMappingCommitmentSha256,
+            rating_policy: input.ratingPolicy,
+            publication_subject: input.publicationSubject,
+        };
+        const base = {
+            repo_root: source,
+            run_id: lease.record.run_id,
+            resume_token: lease.resume_token,
+            bundle_root: fixture.bundle,
+            runner_publication_repo_root: input.runnerPublicationRepoRoot,
+            packet,
+        };
+        try {
+            const extra = structuredClone(base) as any;
+            extra.packet.contract_manifest.extra = true;
+            assertRejected(invoke('freeze-packet', extra, control), /contract_manifest.*unexpected or missing/i);
+
+            const missing = structuredClone(base) as any;
+            delete missing.packet.runner_publication.checkpoint;
+            assertRejected(invoke('freeze-packet', missing, control), /runner_publication.*unexpected or missing/i);
+
+            const wrongMap = structuredClone(base) as any;
+            wrongMap.packet.protocol_sha256_by_expert.torvalds = 42;
+            assertRejected(invoke('freeze-packet', wrongMap, control), /protocol_sha256_by_expert\.torvalds must be a string/i);
+
+            const wrongRating = {
+                repo_root: source,
+                run_id: lease.record.run_id,
+                resume_token: lease.resume_token,
+                bundle_root: fixture.bundle,
+                runner_publication_repo_root: input.runnerPublicationRepoRoot,
+                ratings: {
+                    packet_sha256: 'a'.repeat(64),
+                    records: [{
+                        rating: {
+                            expert: 'torvalds', preference: 'B', rationale: 'A sufficiently long rationale.',
+                            axis_scores: { truth: { A: '3', B: 4 } },
+                            protected_axis_regressions: { truth: false },
+                        },
+                        execution_receipt: {},
+                    }],
+                },
+            };
+            assertRejected(invoke('freeze-ratings', wrongRating, control), /rating\.axis_scores\.truth\.A must be a finite number/i);
+            const receiptRoot = path.join(control, 'council-autoresearch', lease.record.run_id);
+            assert.equal(fs.existsSync(path.join(receiptRoot, '10-packet.json')), false);
+            assert.equal(fs.existsSync(path.join(receiptRoot, '20-ratings.json')), false);
+        } finally {
+            releaseRepositoryLease({
+                repoRoot: source,
+                controlRoot: control,
+                runId: lease.record.run_id,
+                resumeToken: lease.resume_token,
+            });
+        }
+    });
+});

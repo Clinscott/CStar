@@ -19,6 +19,20 @@ Allowed only with an explicit terminal-required contract:
 
 `entry_surface: "cli"` is a discovery surface, not permission to execute a skill through the terminal.
 
+## Current Terminal-Required Bridge
+
+`council-autoresearch` is the current explicit exception. Its registry record
+declares both terminal-required fields, `exec-bridge` host support, and no
+kernel fallback. The authorized entrypoint is exactly:
+
+```text
+node scripts/run-tsx.mjs src/tools/council-autoresearch.ts <command> --request <request.json>
+```
+
+That declaration does not authorize `cstar run-skill`, an inferred `cstar
+council-autoresearch` command, or direct plugin execution without the installed
+CStar runtime.
+
 ## Harness Activation Shape
 
 Host-native skill activation must carry structured intent and payload:

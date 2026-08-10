@@ -119,5 +119,6 @@ The `cstar-kernel` MCP server is the authoritative kernel surface — invoke the
 ## Registry-Exported Codex Capabilities
 - This list is generated from `.agents/skill_registry.json` and may be empty when no Codex executable capabilities are registered.
 - `corvus-forge` (SKILL, native-session, host-workflow, kernel fallback forbidden)
+- `council-autoresearch` (SKILL, exec-bridge, host-workflow, kernel fallback forbidden)
 - `cstar-closeout` (SKILL, native-session, host-workflow, kernel fallback forbidden)
 - `researcher` (SKILL, native-session, host-workflow, kernel fallback forbidden)

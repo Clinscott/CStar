@@ -77,3 +77,25 @@ def test_audit_preserves_declared_typescript_entrypoint() -> None:
 def test_built_manifest_remains_canonical() -> None:
     entries = build_registry_manifest()["entries"]
     assert require_registry_entry_map(entries) is entries
+    council = entries["council-autoresearch"]
+    assert council["entry_surface"] == "cli"
+    assert council["execution"]["requires_terminal"] is True
+    assert council["execution"]["terminal_contract"] == "required"
+    assert council["execution"]["allow_kernel_fallback"] is False
+
+
+def test_check_mode_does_not_rewrite_registry_or_report(tmp_path, monkeypatch) -> None:
+    manifest = tmp_path / "skill_registry.json"
+    report = tmp_path / "report.qmd"
+    original = json.dumps({"version": "3.0", "entries": {}})
+    manifest.write_text(original, encoding="utf-8")
+    monkeypatch.setattr(registry_audit, "MANIFEST_PATH", manifest)
+    monkeypatch.setattr(registry_audit, "REPORT_PATH", report)
+    monkeypatch.setattr(registry_audit, "AUTHORITY_ROOT", tmp_path / "no-skills")
+    monkeypatch.setattr(registry_audit, "LOCAL_ROOT", tmp_path / "no-local-skills")
+    monkeypatch.setattr(registry_audit, "TEST_ROOT", tmp_path / "no-tests")
+
+    registry_audit.main(["--check"])
+
+    assert manifest.read_text(encoding="utf-8") == original
+    assert not report.exists()

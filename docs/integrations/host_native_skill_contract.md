@@ -9,8 +9,10 @@ This is the invocation contract for the three current capabilities marked
 - `researcher`; and
 - `cstar-closeout`.
 
-They are agent-native procedures. They are not public shell commands, runtime
-models, or dispatcher-owned executions.
+It also covers `council-autoresearch`, the single current agent-native
+capability marked `entry_surface: cli` with an explicit terminal-required
+contract. All four are host-owned procedures. None is a runtime model or
+dispatcher-owned execution.
 
 ## Host Path
 
@@ -31,11 +33,19 @@ host conversation. It does not create a callback from CStar into the host.
 CStar must not invoke a model, `MimirClient`, One Mind broker, provider shell,
 or generic `hostSessionInvoker` to simulate skill execution.
 
+For `council-autoresearch`, the host reads the skill first and then invokes only
+the fixed repository-owned TypeScript entrypoint declared by the registry. Its
+`exec-bridge` status does not create a reverse callback from CStar into the host.
+
 ## Kernel Boundary
 
 The kernel may catalog a host-only skill and fail closed if terminal or runtime
 dispatch is attempted. Recognition in `cstar manifest`, `active_in_runtime`, or
 an adapter map is discovery evidence only.
+
+The kernel likewise does not own the Council CLI. Its explicit terminal
+contract authorizes the host to use the fixed bridge; it does not register a
+kernel adapter or permit dynamic `cstar` command dispatch.
 
 A failed kernel adapter executes exactly once. CStar preserves the original
 failure and adds `operator_action_required: true` with
@@ -85,7 +95,7 @@ dispatched, is never retried, and cannot switch provider or surface.
 
 ## Terminal Policy
 
-Direct terminal skill dispatch is forbidden:
+Generic or dynamic terminal skill dispatch is forbidden:
 
 - no `cstar run-skill <id>`;
 - no dynamic registry-trigger execution;
@@ -96,6 +106,13 @@ A skill may explicitly direct the host to run a bounded terminal command when
 the command itself is intrinsic to authorized work, such as a focused test or
 read-only closeout inspection. That permission is command-specific. It does not
 make the skill terminal-executable.
+
+`council-autoresearch` is the current explicit terminal-required exception. The
+only skill entrypoint is
+`node scripts/run-tsx.mjs src/tools/council-autoresearch.ts`; the host supplies
+one supported subcommand and a bounded request file. Neither the dynamic
+`cstar run-skill` surface, an inferred `cstar council-autoresearch` command,
+nor a kernel fallback is permitted.
 
 ## Lane-Specific Rules
 
@@ -108,6 +125,10 @@ make the skill terminal-executable.
 - `cstar-closeout` assembles evidence and handoff state first. Stage, commit,
   push, merge, install, cache reconciliation, restart, and deploy are separate
   actions requiring their applicable explicit grants.
+- `council-autoresearch` freezes one signed 19-lens comparison, evaluates
+  generation one exactly once, verifies separately authorized remote
+  publication, derives `PAUSED`, and stops. It never implements source changes
+  or authorizes promotion.
 
 PMTs may be queried only as mapped project information repositories and may
 receive a compact `STATE_UPDATE`; they grant no authority. MM is legacy.

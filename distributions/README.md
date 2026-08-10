@@ -20,8 +20,8 @@ This repository generates verified host source-staging artifacts from the declar
 - Public host fronts marked as no-fallback are expected to fail closed when the host session is unavailable.
 
 ## Export Summary
-- Gemini executable capabilities: 3
-- Codex executable capabilities: 3
+- Gemini executable capabilities: 4
+- Codex executable capabilities: 4
 
 ## Regeneration
 - `npm run build:distributions`

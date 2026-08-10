@@ -6,10 +6,10 @@
 `.agents/skill_registry.json`. Discovery reports what the host may inspect. It
 does not grant execution, lifecycle, spend, mutation, or activation authority.
 
-The current registry contains exactly three agent-native skills:
-`corvus-forge`, `researcher`, and `cstar-closeout`. Deterministic kernel tools
-are declared by the typed `cstar-kernel` MCP catalog instead of being duplicated
-as registry entries.
+The current registry contains exactly four agent-native skills:
+`corvus-forge`, `researcher`, `cstar-closeout`, and
+`council-autoresearch`. Deterministic kernel tools are declared by the typed
+`cstar-kernel` MCP catalog instead of being duplicated as registry entries.
 
 ## Commands
 
@@ -31,17 +31,21 @@ Each capability record may include:
 - host-support declarations; and
 - normalized invocation metadata.
 
-For the current three entries:
+For all four current entries:
 
 - `tier` is `SKILL`;
-- `entry_surface` is `host-only`;
 - `execution_mode` is `agent-native`;
-- `owner_runtime` is `host-agent`; and
-- shell invocation is unavailable.
+- `owner_runtime` is `host-agent`.
+
+The three leaf skills use `entry_surface: host-only` and expose no shell
+invocation. `council-autoresearch` uses `entry_surface: cli`, an explicit
+terminal-required contract, `exec-bridge` host support, and the exact
+repository-owned `node scripts/run-tsx.mjs` entrypoint with no kernel fallback.
 
 `active_in_runtime: true` means the runtime recognizes the declaration and can
 enforce its boundary. It does not mean the dispatcher may execute the skill.
-`invoke.source: unavailable` is expected for these host-native skills.
+`invoke.source: unavailable` is expected for the three host-only skills;
+`invoke.source: inferred` is expected for the explicit Council bridge.
 
 ## Resolution
 
@@ -60,7 +64,8 @@ grant.
 ## Operator Guidance
 
 - Use `manifest --json` to confirm the exact registered skill set.
-- Use `skill-info` before activating one of those skills in the host harness.
+- Use `skill-info` before activating one of those skills in the host harness or,
+  for Council autoresearch, through its exact declared terminal bridge.
 - Use the typed `cstar-kernel` MCP catalog for kernel tool inventory.
 - Treat public AutoBot, One Mind, Ravens, model-memory workflows, legacy weaves,
   and recursive spells as retired even when historical source accepts their

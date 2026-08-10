@@ -21,6 +21,17 @@ Default classification:
 4. Block all other skill execution through terminal dispatch.
 5. Promote the terminal skill policy audit into the authoritative test suite once the registry has been classified.
 
+## Current Explicit Classification
+
+| Capability | Classification | Reason |
+| --- | --- | --- |
+| `council-autoresearch` | `terminal-required` | The host must run a bounded POSIX/Git receipt verifier and immutable local coordinator. The registry declares `execution.requires_terminal: true`, `execution.terminal_contract: "required"`, the exact repository wrapper, and no kernel fallback. |
+
+This classification authorizes only
+`node scripts/run-tsx.mjs src/tools/council-autoresearch.ts`. It does not make
+`cstar run-skill`, inferred registry dispatch, or a standalone plugin runtime
+valid.
+
 ## Non-Goals
 
 - Do not delete compatibility scripts blindly.

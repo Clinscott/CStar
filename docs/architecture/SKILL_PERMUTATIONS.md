@@ -4,7 +4,7 @@
 
 The former Prime/Skill/Weave/Spell permutation model is retained only as
 compatibility vocabulary in types and historical records. It is not the current
-execution topology. The current registry has three active `SKILL` entries and
+execution topology. The current registry has four active `SKILL` entries and
 no active registered weaves or spells.
 
 ## Current Composition Rule
@@ -25,6 +25,11 @@ The active compositions are:
 | Build, repair, improve | `corvus-forge` | `cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute -> cstar_record_result` |
 | Research, external evidence | `researcher` | `cstar_researcher_request -> authorized collection -> receipt/result` |
 | Handoff and session closeout | `cstar-closeout` | bounded evidence snapshot -> lifecycle update -> separately gated Git/activation actions |
+| One bounded Council comparison | `council-autoresearch` | frozen packet -> 19 signed ratings -> mapping reveal -> advisory decision -> separately authorized publication verification -> pause |
+
+The Council workflow is a bounded orchestrator, not a recursive weave. It has
+no generation-two transition, cannot mutate source, and cannot turn an
+`ACCEPTED` verdict into promotion authority.
 
 CoS owns sequencing. PMTs may supply or receive bounded project context but are
 information repositories only. MM has no active routing role.
