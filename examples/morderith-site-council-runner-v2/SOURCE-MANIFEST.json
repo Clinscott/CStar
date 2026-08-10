@@ -1,0 +1,58 @@
+{
+  "schema_version": "1.0.0",
+  "origin_repository": "northammer-reforged Sites source",
+  "origin_commit": "a8b3e4845009870cc518f7bb14b13e1767ff8e0a",
+  "cstar_runtime_commit": "5887042deefaae240db2a546f3cc9640f601e9e2",
+  "contract_sha256": "bbce3dc477889699063df9bc2e8039202f61b7a09f6d6a8d17e749a83815c2c3",
+  "scope": "host-native site-scoped runner; not canonical CStar autonomous runner",
+  "files": [
+    {
+      "source": "research/council-autoresearch/README.md",
+      "path": "examples/morderith-site-council-runner-v2/research/council-autoresearch/README.md"
+    },
+    {
+      "source": "research/council-autoresearch/workflow.v2.json",
+      "path": "examples/morderith-site-council-runner-v2/research/council-autoresearch/workflow.v2.json"
+    },
+    {
+      "source": "research/council-autoresearch/scripts/runner-core.mjs",
+      "path": "examples/morderith-site-council-runner-v2/research/council-autoresearch/scripts/runner-core.mjs"
+    },
+    {
+      "source": "research/council-autoresearch/scripts/augury-route.mjs",
+      "path": "examples/morderith-site-council-runner-v2/research/council-autoresearch/scripts/augury-route.mjs"
+    },
+    {
+      "source": "research/council-autoresearch/scripts/freeze-packet.mjs",
+      "path": "examples/morderith-site-council-runner-v2/research/council-autoresearch/scripts/freeze-packet.mjs"
+    },
+    {
+      "source": "research/council-autoresearch/scripts/init-control.ts",
+      "path": "examples/morderith-site-council-runner-v2/research/council-autoresearch/scripts/init-control.ts"
+    },
+    {
+      "source": "research/council-autoresearch/scripts/sprt-evaluate.mjs",
+      "path": "examples/morderith-site-council-runner-v2/research/council-autoresearch/scripts/sprt-evaluate.mjs"
+    },
+    {
+      "source": "research/council-autoresearch/scripts/validate-run.mjs",
+      "path": "examples/morderith-site-council-runner-v2/research/council-autoresearch/scripts/validate-run.mjs"
+    },
+    {
+      "source": "research/council-autoresearch/scripts/workflow-state.mjs",
+      "path": "examples/morderith-site-council-runner-v2/research/council-autoresearch/scripts/workflow-state.mjs"
+    },
+    {
+      "source": "tests/runner-v2.test.mjs",
+      "path": "examples/morderith-site-council-runner-v2/tests/runner-v2.test.mjs"
+    },
+    {
+      "source": "research/council-autoresearch/run-index.v2.json",
+      "path": "examples/morderith-site-council-runner-v2/research/council-autoresearch/run-index.v2.json"
+    },
+    {
+      "source": "research/council-autoresearch/visual-baseline.json",
+      "path": "examples/morderith-site-council-runner-v2/research/council-autoresearch/visual-baseline.json"
+    }
+  ]
+}

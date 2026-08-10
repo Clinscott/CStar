@@ -1,0 +1,42 @@
+{
+  "schema_version": "2.0.0",
+  "runner_version": "2.0.0",
+  "contract": {
+    "path": "research/council-autoresearch/workflow.v2.json",
+    "sha256": "bbce3dc477889699063df9bc2e8039202f61b7a09f6d6a8d17e749a83815c2c3"
+  },
+  "passes": {
+    "pass-1": {
+      "mode": "immutable-legacy-migration",
+      "status": "complete",
+      "active": [
+        {"aspect_id":"evidence","source_aspect_id":"evidence","path":"research/council-autoresearch/runs/pass-1/01-evidence.json","sha256":"867fe44fe8ad0646fc5c36c78d824441bf0d096ba8ff6caa00763cf83b4e26d2","supersedes":[]},
+        {"aspect_id":"architecture","source_aspect_id":"architecture","path":"research/council-autoresearch/runs/pass-1/02-architecture.json","sha256":"38867ef1ddc8c9398b417c6313e0de2635c57f9bcc83b34ed7605b010236eab0","supersedes":[]},
+        {"aspect_id":"visual-system","source_aspect_id":"visual-system","path":"research/council-autoresearch/runs/pass-1/03-visual-system.json","sha256":"ac396a4616b4dddceb268c87d400bb563f8f6e6f01b32c67c74d9f376250fd41","supersedes":[]},
+        {"aspect_id":"entry","source_aspect_id":"entry","path":"research/council-autoresearch/runs/pass-1/04-entry.json","sha256":"806949cad7a67b6be3920decfd0cdc9ea42df0a9506942fade5b1ae41e2d4c8f","supersedes":[{"path":"research/council-autoresearch/runs/pass-1/04-first-screen.json","sha256":"a38e65d3598832daa3813361bc863ca37483f39310c58c5f0e49896d4bf6140a"}]},
+        {"aspect_id":"stakes-moonshot","source_aspect_id":"stakes-moonshot","path":"research/council-autoresearch/runs/pass-1/05-stakes-moonshot.json","sha256":"661cc2dcd788512ba692769fa16f131ac2efe60418e96d211227c78521bf95f0","supersedes":[{"path":"research/council-autoresearch/runs/pass-1/05-human-stakes-moonshot.json","sha256":"e2a6eab42614dc5f0554f782d86a8477f79413b7bb7b6cd6b7e8bf4067e6f5f3"}]},
+        {"aspect_id":"estate-portfolio","source_aspect_id":"estate-portfolio","path":"research/council-autoresearch/runs/pass-1/06-estate-portfolio.json","sha256":"cadf9feae9262a150d7b0ebb09493b83640096108c47878ccd96f2e8e7181776","supersedes":[{"path":"research/council-autoresearch/runs/pass-1/06-estate-systems.json","sha256":"3379cd0d26c01133660702ee0faff965b44bdc18f084493ec4720419eccedd5f"}]},
+        {"aspect_id":"proof-closure","source_aspect_id":"proof-closure","path":"research/council-autoresearch/runs/pass-1/07-proof-closure.json","sha256":"9f424b1435ee70601f26e52b574bd820b32508b7e1961a1b951662b79e74eba8","supersedes":[{"path":"research/council-autoresearch/runs/pass-1/07-evidence-capabilities-footer.json","sha256":"cfd7318173fbc05a47aedf5cc27e2c348699ca69d6afa5e75dc206611d4c8487"}]},
+        {"aspect_id":"accessibility","source_aspect_id":"accessibility","path":"research/council-autoresearch/runs/pass-1/08-accessibility.json","sha256":"303cea1799cce9906c4846ef4008034fd29c6398d9f1d1410f651ec9e2ef5530","supersedes":[{"path":"research/council-autoresearch/runs/pass-1/08-accessibility-responsive.json","sha256":"a5eeb1d8462df38da404d8f19efe65075c2fefff3492972213ccdec252019b9e"}]},
+        {"aspect_id":"release-fitness","source_aspect_id":"runtime-maintainability","path":"research/council-autoresearch/runs/pass-1/09-runtime-maintainability.json","sha256":"a29bd17611943309254e17cdac7820f4a20a2668338d435c73ef1e983945dea2","supersedes":[]}
+      ]
+    },
+    "pass-2": {
+      "mode": "runner-v2",
+      "status": "running",
+      "active": [
+        {"aspect_id":"evidence","run_id":"pass-2-01-evidence","path":"research/council-autoresearch/runs/pass-2/01-evidence.json","sha256":"dbc8610a96c84ccc7454e1a589f035e98d5e9397e31c3cf2961493c942d3450b"}
+      ]
+    }
+  },
+  "reviews": {
+    "whole_site": {
+      "path": "research/council-autoresearch/runs/whole-site/01-integrated-review.json",
+      "sha256": "6144c4fdea8cc731c86d302ced55462859e8ca4a419b9bae19a31269f198dce4"
+    },
+    "workflow": {
+      "path": "research/council-autoresearch/runs/workflow/01-review.json",
+      "sha256": "cbd812442b2c93b27e683322ed9a22b2c5546e09a88edd67ee2f9d2f1774b872"
+    }
+  }
+}

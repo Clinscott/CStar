@@ -1,0 +1,47 @@
+{
+  "schema_version": "2.0.0",
+  "baseline_id": "post-integrated-review",
+  "fixed_viewports": [
+    { "id": "desktop", "width": 1440, "height": 900, "device_scale_factor": 1 },
+    { "id": "mobile", "width": 390, "height": 844, "device_scale_factor": 1 }
+  ],
+  "motion_modes": ["no-preference", "reduce"],
+  "rating_axes": {
+    "identity_coherence": "1 = generic or conflicting; 3 = recognizable but inconsistent; 5 = one coherent northern dossier identity",
+    "factual_restraint": "1 = decorative state reads as live proof; 3 = ambiguity remains; 5 = every telemetry-like mark is sourced or explicitly static",
+    "typography": "1 = unreadable hierarchy; 3 = usable with weak microcopy; 5 = readable, consistent sans/mono hierarchy",
+    "color_roles": "1 = accents carry conflicting meaning; 3 = mostly ordered; 5 = semantic roles remain clear without glow",
+    "motion": "1 = distracting or state-misleading; 3 = restrained but inconsistent; 5 = no ambient or state-simulating animation and immediate feedback",
+    "canadian_distinctiveness": "1 = generic cyberpunk; 3 = northern cues are incidental; 5 = restrained north-vector identity without stereotype"
+  },
+  "capture_protocol": {
+    "url": "http://terminal.local:4173/",
+    "wait_until": "networkidle",
+    "full_page": true,
+    "animations_during_capture": "disabled",
+    "checks": ["horizontal overflow", "computed infinite animations", "reduced-motion computed styles", "source hash"]
+  },
+  "motion_inventory": {
+    "ambient": [],
+    "computed_infinite_animations_expected": 0,
+    "interaction": { "fast_ms": 160, "state_ms": 240, "easing": "cubic-bezier(0.2, 0, 0, 1)" },
+    "reduced_motion": { "max_duration_ms": 0.01, "iterations": 1, "smooth_scroll": false }
+  },
+  "source_baseline": {
+    "before": {
+      "app/globals.css": "ea403d19871c68a0b779d46462d25e6f65329d438832d97ecfe2240b2536928b",
+      "app/page.tsx": "581235495a3126516a0a0f4b636cad9dc8a5d6b8574fad3cb80e8e92998a7020",
+      "public/favicon.svg": "e6d2e59b7b5bbb0342e0fb496dfc262decbfe4426bbb7b047aec8d467d1dc6f7"
+    },
+    "candidate": {
+      "app/globals.css": "ed49f8c72208d0cfcf3b797f2a08ce1766954e74d537106585a354f1f1423f2a",
+      "app/page.tsx": "9e26490b0008c8af9aa7498de1211bd076c1a32719d304c58a224dcd823dfa58",
+      "public/favicon.svg": "99c55d06cdf74ec6a477431d517fd8217f6c81285330e0f0420cb34be2ad5834"
+    }
+  },
+  "image_capture": {
+    "status": "environment_blocked",
+    "reason": "The supervised preview was healthy, but both the cloud-browser route and the local Playwright browser executable were unavailable in this run. No image hash is asserted.",
+    "required_before_promotion": true
+  }
+}

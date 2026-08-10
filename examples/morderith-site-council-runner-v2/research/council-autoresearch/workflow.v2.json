@@ -1,0 +1,150 @@
+{
+  "schema_version": "2.0.0",
+  "runner_version": "2.0.0",
+  "site": "northammer-reforged",
+  "description": "Host-native, site-scoped Council research runner. This is not a canonical CStar autonomous runner.",
+  "council_source": {
+    "repository": "https://github.com/Clinscott/CStar",
+    "commit": "5887042deefaae240db2a546f3cc9640f601e9e2",
+    "protocol_file": "src/core/council_experts.ts",
+    "protocol_sha256": "01b20f70533dbeb7d51401173b66b6ec13f6ad0fbbd1f180d544ce70cb7e38e8",
+    "launcher_file": "bin/cstar-kernel-mcp.js",
+    "launcher_sha256": "37a8fdddfbbeda5fee7ee11ee1e0b2e3430e76f355ccfb0f3b4c205dbc9baf79"
+  },
+  "council_order": [
+    "torvalds",
+    "karpathy",
+    "hamilton",
+    "shannon",
+    "dean",
+    "carmack",
+    "sakaguchi",
+    "nomura",
+    "miyazaki",
+    "adams",
+    "wright",
+    "heineman",
+    "sweeney",
+    "miyamoto",
+    "kojima",
+    "meier",
+    "linscott",
+    "brooks",
+    "parnas"
+  ],
+  "aspects": [
+    {"id":"evidence","label":"Evidence model, claims, provenance, and freshness","owners":["app/dossier.ts","app/page.tsx","tests"]},
+    {"id":"architecture","label":"Information architecture, navigation, and progressive disclosure","owners":["app/navigation.ts","app/page.tsx","tests"]},
+    {"id":"visual-system","label":"Visual identity, typography, colour, motion, and graphic language","owners":["app/globals.css","app/layout.tsx","public/favicon.svg","tests"]},
+    {"id":"entry","label":"Header, hero, metrics, and first-screen comprehension","owners":["app/page.tsx","app/globals.css","tests"]},
+    {"id":"stakes-moonshot","label":"Human stakes and Moonshot","owners":["app/dossier.ts","app/page.tsx","app/globals.css","tests"]},
+    {"id":"estate-portfolio","label":"Estate topology, Token-Path, and project cards","owners":["app/dossier.ts","app/page.tsx","app/globals.css","tests"]},
+    {"id":"proof-closure","label":"Proof manifest, capability ledger, manifesto, and footer","owners":["app/dossier.ts","app/page.tsx","app/globals.css","tests"]},
+    {"id":"accessibility","label":"Mobile, responsive interaction, accessibility, and reduced motion","owners":["app/page.tsx","app/globals.css","tests"]},
+    {"id":"release-fitness","label":"Metadata, privacy, performance, maintainability, tests, and runtime behavior","owners":["app/layout.tsx","app/page.tsx","app/dossier.ts","app/globals.css","proxy.ts","tests","scripts"]}
+  ],
+  "legacy_aspect_aliases": {
+    "first-screen": "entry",
+    "human-stakes-moonshot": "stakes-moonshot",
+    "estate-systems": "estate-portfolio",
+    "evidence-capabilities-footer": "proof-closure",
+    "accessibility-responsive": "accessibility",
+    "runtime-maintainability": "release-fitness"
+  },
+  "decision_precedence": [
+    "truth-provenance-safety-accessibility",
+    "operator-intent",
+    "comprehension-usability",
+    "visual-coherence",
+    "performance-maintainability",
+    "speculative-novelty"
+  ],
+  "state_machine": {
+    "initial": "pass-1-migrated",
+    "transitions": [
+      ["pass-1-migrated", "whole-site-reviewed"],
+      ["whole-site-reviewed", "workflow-reviewed"],
+      ["workflow-reviewed", "runner-v2-frozen"],
+      ["runner-v2-frozen", "pass-2-running"],
+      ["pass-2-running", "stable"],
+      ["stable", "generation-1-running"],
+      ["generation-1-running", "paused"]
+    ],
+    "terminal": "paused"
+  },
+  "limits": {
+    "accepted_change_groups_per_aspect": 3,
+    "repair_attempts_after_failed_validation": 1,
+    "full_site_passes": 2,
+    "workflow_remediation_rounds": 1,
+    "completed_generations_before_pause": 1,
+    "augury_initializer_timeout_ms": 10000,
+    "augury_request_timeout_ms": 12000,
+    "augury_wall_timeout_ms": 30000,
+    "diagnostic_buffer_bytes": 16384
+  },
+  "gates": {
+    "legacy_migration_required": ["build", "artifact", "lint", "tests", "scope_check"],
+    "pass_2_required": [
+      "build",
+      "artifact",
+      "rendered_content",
+      "claim_provenance",
+      "freshness",
+      "links",
+      "accessibility_static",
+      "responsive_static",
+      "reduced_motion",
+      "lint",
+      "typecheck_app",
+      "performance_budget",
+      "runner"
+    ],
+    "blocked_evidence": [
+      "browser_accessibility",
+      "assistive_technology",
+      "browser_performance",
+      "lighthouse",
+      "computed_translucent_contrast"
+    ]
+  },
+  "hash_contract": {
+    "algorithm": "sha256",
+    "site_roots": ["app", "public", "scripts", "tests"],
+    "site_files": ["package.json", "package-lock.json", "next.config.ts", "vite.config.ts", "proxy.ts", "tsconfig.json", "tsconfig.app.json"],
+    "excluded_from_site_tree": ["research/council-autoresearch/runs", "research/council-autoresearch/state"]
+  },
+  "augury": {
+    "intent": "VERIFY",
+    "scope": "spoke:morderith-dossier",
+    "environment_allowlist": ["PATH", "LANG", "LC_ALL", "TMPDIR", "TEMP", "TMP", "SYSTEMROOT", "WINDIR"],
+    "fixed_environment": {"NODE_OPTIONS":"--max-old-space-size=2048","TZ":"UTC"},
+    "provenance_required": ["runtime_commit", "protocol_sha256", "launcher_sha256", "node", "packet_sha256"],
+    "fail_closed_on_provenance_mismatch": true
+  },
+  "rating": {
+    "method": "bounded-council-sequential-preference-heuristic",
+    "not_claimed": ["independent-bernoulli-trials", "population-inference", "model-quality-estimate"],
+    "regime": {"p0":0.5,"p1":0.7,"alpha":0.05,"beta":0.05},
+    "preference_values": ["candidate", "baseline", "tie"],
+    "tie_policy": "no-preference; contributes zero log-likelihood and is excluded from effective Bernoulli trials",
+    "order_policy": "deterministic Fisher-Yates permutation of council_order derived from the declared seed",
+    "rating_axes": ["truth_provenance", "accessibility", "privacy", "comprehension", "visual_coherence", "maintainability", "artifact_budget"],
+    "protected_axes": ["truth_provenance", "accessibility", "privacy", "token_path_quarantine"],
+    "binding_fields": ["baseline_sha256", "candidate_sha256", "packet_sha256", "rubric_sha256", "evidence_sha256"],
+    "rationale_minimum_characters": 20,
+    "promotion_rule": "Only ACCEPTED may be promoted; REJECTED, REJECTED_PROTECTED_AXIS, and INCONCLUSIVE are completed runs without promotion."
+  },
+  "token_path": {
+    "status": "quarantined",
+    "actionable": false,
+    "steering_allowed": false,
+    "observation_writes_allowed": false,
+    "independent_promotion_required": true
+  },
+  "publication": {
+    "source_repository_required_before_pause": true,
+    "exact_commit_checkpoint_required": true,
+    "visibility": "owner-only"
+  }
+}
