@@ -73,6 +73,7 @@ export const REQUIRED_RUNNER_PUBLICATION_PATHS = Object.freeze([
     'src/core/skill_registry.ts',
     'src/packaging/distribution_content.ts',
     'src/packaging/distributions.ts',
+    'src/tools/council-autoresearch-request.ts',
     'src/tools/council-autoresearch.ts',
     'tests/unit/council-autoresearch/test_adversarial.test.ts',
     'tests/unit/council-autoresearch/test_cli_schema.test.ts',

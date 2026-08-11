@@ -299,6 +299,7 @@ include these canonical paths:
 - `src/core/skill_registry.ts`
 - `src/packaging/distribution_content.ts`
 - `src/packaging/distributions.ts`
+- `src/tools/council-autoresearch-request.ts`
 - `src/tools/council-autoresearch.ts`
 - `scripts/run-tsx.mjs`
 - `scripts/runtime-env.mjs`
