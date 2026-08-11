@@ -292,7 +292,9 @@ The schema-neutral frozen-effect plan is likewise internal and unreachable from
 the coordinator, barrel API, CLI, and schema-2.1 staging path. It binds the packet
 identity, deterministic destination root, exact UTF-8-sorted file inventory, raw
 modes, byte counts, and aggregate bounds without binding a transient source
-location. Full activation still requires target-bound file publication and
+location. Validation snapshots only own enumerable data properties and rejects
+accessor-backed plans before invoking a getter; it never trusts a memoized
+validation result. Full activation still requires target-bound file publication and
 recovery, a bundle-wide preflight, exact inventory rescan, offline verification,
 and the receipt-operation recovery owner. The later operation path must not be
 combined with the legacy UUID-alias staging classifier because an operation UUID
@@ -309,6 +311,17 @@ are rechecked around every mutation, and stable outcomes re-sync the parent so a
 retry closes prior unlink-sync uncertainty. Bundle-wide recovery and guard
 removal remain deliberately unavailable until the target-bound receipt operation
 lands.
+
+The internal bundle-wide operation foundation composes that plan and per-file
+primitive without making either reachable. It prepares and fsyncs only the exact
+empty private directory tree, admits only a complete UTF-8 prefix plus at most
+one writer-reachable interruption and an absent suffix, snapshots every entry
+before mutation, and repairs only exact guard-derived staged or committed
+aliases. Stable replay and recovery re-prove a complete destination offline and
+do not require the original witness. Extras, foreign temporaries, special files,
+ordering gaps, authority drift, overlap, and durability uncertainty fail closed.
+Guard creation/removal, receipt-body and claim ordering, packet sealing, and
+coordinator admission remain deferred to the cohesive schema-2.2 activation.
 
 The canonical URL and branch must match the external trust policy. The local
 runner manifest and checkpoint `required_files` must be the exact same
@@ -349,6 +362,7 @@ include these canonical paths:
 - `src/core/council_autoresearch/experiment_claim.ts`
 - `src/core/council_autoresearch/frozen_bundle.ts`
 - `src/core/council_autoresearch/frozen_bundle_effect_plan.ts`
+- `src/core/council_autoresearch/frozen_bundle_operation.ts`
 - `src/core/council_autoresearch/frozen_bundle_fs.ts`
 - `src/core/council_autoresearch/frozen_operation_file.ts`
 - `src/core/council_autoresearch/git_trust.ts`
@@ -384,6 +398,7 @@ include these canonical paths:
 - `tests/unit/council-autoresearch/test_experiment_claim.test.ts`
 - `tests/unit/council-autoresearch/test_frozen_bundle.test.ts`
 - `tests/unit/council-autoresearch/test_frozen_bundle_effect_plan.test.ts`
+- `tests/unit/council-autoresearch/test_frozen_bundle_operation.test.ts`
 - `tests/unit/council-autoresearch/test_frozen_operation_file.test.ts`
 - `tests/unit/council-autoresearch/test_helpers.ts`
 - `tests/unit/council-autoresearch/test_operation_identity.test.ts`

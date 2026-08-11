@@ -94,6 +94,42 @@ function operationInput(f: Fixture, observe = () => undefined) {
     };
 }
 
+function assertPostUnlinkAuthorityDrift(
+    f: Fixture,
+    action: (authority: () => FrozenBundleOperationAuthority) => unknown,
+): void {
+    const mutable = createRequire(import.meta.url)('node:fs') as typeof fs;
+    const originalUnlink = mutable.unlinkSync;
+    const originalFsync = mutable.fsyncSync;
+    const changed = Object.freeze({
+        ...f.authority,
+        operation_id: '00000000-0000-4000-8000-000000000779',
+    });
+    let unlinked = false;
+    let postUnlinkDirectorySyncs = 0;
+    mutable.unlinkSync = ((file: fs.PathLike) => {
+        originalUnlink(file);
+        if (file === f.temporary) unlinked = true;
+    }) as typeof fs.unlinkSync;
+    mutable.fsyncSync = ((descriptor: number) => {
+        if (unlinked && fs.fstatSync(descriptor).isDirectory()) postUnlinkDirectorySyncs += 1;
+        return originalFsync(descriptor);
+    }) as typeof fs.fsyncSync;
+    syncBuiltinESMExports();
+    try {
+        assert.throws(
+            () => action(() => unlinked ? changed : f.authority),
+            /authority changed/i,
+        );
+    } finally {
+        mutable.unlinkSync = originalUnlink;
+        mutable.fsyncSync = originalFsync;
+        syncBuiltinESMExports();
+    }
+    assert.equal(unlinked, true);
+    assert.equal(postUnlinkDirectorySyncs, 0);
+}
+
 describe('operation-bound frozen files', () => {
     it('writes exact bytes once, verifies raw mode, and replays without a new temporary', () => {
         const f = fixture(0o755);
@@ -214,10 +250,10 @@ describe('operation-bound frozen files', () => {
         fs.writeFileSync(f.temporary, Buffer.from('partial'), { mode: 0o600 });
         const expected = inspectOperationBoundFrozenFile(operationInput(f));
         let calls = 0;
-        const changed = {
+        const changed = Object.freeze({
             ...f.authority,
             operation_id: '00000000-0000-4000-8000-000000000779',
-        };
+        });
         assert.throws(() => repairOperationBoundFrozenFilePublication({
             plan: f.plan,
             entryIndex: 0,
@@ -231,6 +267,49 @@ describe('operation-bound frozen files', () => {
         assert.equal(fs.existsSync(f.temporary), true);
         assert.equal(fs.existsSync(f.target), false);
     });
+
+    it('rechecks authority after writer cleanup unlink and before parent fsync', () => {
+        const f = fixture();
+        assertPostUnlinkAuthorityDrift(f, (assertTargetBoundOperation) =>
+            writeOperationBoundFrozenFile({
+                plan: f.plan,
+                entryIndex: 0,
+                assertTargetBoundOperation,
+                witnessRoot: f.witness,
+            }));
+        assert.equal(fs.existsSync(f.temporary), false);
+        assert.equal(inspectOperationBoundFrozenFile(operationInput(f)).state, 'complete');
+        assert.deepEqual(writeOperationBoundFrozenFile({
+            ...operationInput(f), witnessRoot: f.witness,
+        }), { sha256: sha256(f.content), created: false });
+    });
+
+    for (const interruption of ['staged', 'committed'] as const) {
+        it(`rechecks authority after ${interruption} recovery unlink and before parent fsync`, () => {
+            const f = fixture();
+            fs.writeFileSync(f.temporary,
+                interruption === 'staged' ? Buffer.from('partial') : f.content,
+                { mode: interruption === 'staged' ? 0o600 : 0o644 });
+            fs.chmodSync(f.temporary, interruption === 'staged' ? 0o600 : 0o644);
+            if (interruption === 'committed') fs.linkSync(f.temporary, f.target);
+            const expected = inspectOperationBoundFrozenFile(operationInput(f));
+            assertPostUnlinkAuthorityDrift(f, (assertTargetBoundOperation) =>
+                repairOperationBoundFrozenFilePublication({
+                    plan: f.plan,
+                    entryIndex: 0,
+                    assertTargetBoundOperation,
+                    expected,
+                }));
+            const retry = inspectOperationBoundFrozenFile(operationInput(f));
+            const outcome = interruption === 'staged' ? 'absent' : 'complete';
+            assert.equal(retry.state, outcome);
+            assert.equal(fs.existsSync(f.temporary), false);
+            assert.equal(fs.existsSync(f.target), interruption === 'committed');
+            assert.deepEqual(repairOperationBoundFrozenFilePublication({
+                ...operationInput(f), expected: retry,
+            }), { outcome, repaired: 'none' });
+        });
+    }
 
     it('fsyncs the parent even when recovery observes a stable outcome', () => {
         const f = fixture();

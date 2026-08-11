@@ -388,6 +388,7 @@ export function writeOperationBoundFrozenFile(input: OperationInput & { witnessR
         assertDescriptorPathIdentity(alias, target, 'frozen bundle committed alias');
         assertSameAuthority(context);
         fs.unlinkSync(context.temporary);
+        assertSameAuthority(context);
         fsyncDirectory(context.parent);
         const final = fs.fstatSync(descriptor, { bigint: true });
         const finalTarget = fs.lstatSync(context.target, { bigint: true });
@@ -422,6 +423,7 @@ function unlinkStagedTemporary(
         assertSameAuthority(context);
         assertNoForeignTemporary(context);
         fs.unlinkSync(context.temporary);
+        assertSameAuthority(context);
         fsyncDirectory(context.parent);
         const unlinked = fs.fstatSync(opened.descriptor, { bigint: true });
         if (!sameInode(opened.stat, unlinked) || unlinked.nlink !== 0n
@@ -450,6 +452,7 @@ function normalizeCommittedAlias(context: OperationContext,
         assertSameAuthority(context);
         assertNoForeignTemporary(context);
         fs.unlinkSync(context.temporary);
+        assertSameAuthority(context);
         fsyncDirectory(context.parent);
         const heldTarget = fs.fstatSync(target.descriptor, { bigint: true });
         const heldTemporary = fs.fstatSync(temporary.descriptor, { bigint: true });

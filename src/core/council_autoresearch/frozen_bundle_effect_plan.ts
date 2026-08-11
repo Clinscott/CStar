@@ -59,7 +59,54 @@ const authorityKeys = Object.freeze([
     'owner_pid', 'operation_id', 'bundle_plan_sha256',
     'bundle_entry_count', 'bundle_total_bytes',
 ] as const);
-const validatedPlans = new WeakSet<object>();
+
+function ownDataFields(
+    value: unknown,
+    keys: readonly string[],
+    label: string,
+): Readonly<Record<string, unknown>> {
+    if (!value || typeof value !== 'object' || !Object.isFrozen(value)) {
+        fail(`${label} must be frozen`);
+    }
+    assertExactObjectKeys(value, keys, label);
+    const fields: Record<string, unknown> = {};
+    for (const key of keys) {
+        const descriptor = Object.getOwnPropertyDescriptor(value, key);
+        if (!descriptor || !descriptor.enumerable || !('value' in descriptor)) {
+            fail(`${label}.${key} must be an own enumerable data property`);
+        }
+        fields[key] = descriptor.value;
+    }
+    return fields;
+}
+
+function denseDataArray(value: unknown, label: string): unknown[] {
+    if (!Array.isArray(value) || !Object.isFrozen(value)) {
+        fail(`${label} must be a frozen array`);
+    }
+    const lengthDescriptor = Object.getOwnPropertyDescriptor(value, 'length');
+    if (!lengthDescriptor || !('value' in lengthDescriptor)
+        || !Number.isSafeInteger(lengthDescriptor.value)
+        || lengthDescriptor.value < 1
+        || lengthDescriptor.value > ARTIFACT_MANIFEST_MAX_ENTRIES) {
+        fail('frozen bundle effect entries are invalid');
+    }
+    const length = lengthDescriptor.value as number;
+    const keys = Object.keys(value);
+    if (keys.length !== length
+        || keys.some((key, index) => key !== String(index))) {
+        fail(`${label} must contain only dense array indices`);
+    }
+    const entries: unknown[] = [];
+    for (let index = 0; index < length; index += 1) {
+        const descriptor = Object.getOwnPropertyDescriptor(value, String(index));
+        if (!descriptor || !descriptor.enumerable || !('value' in descriptor)) {
+            fail(`${label}[${index}] must be an own enumerable data property`);
+        }
+        entries.push(descriptor.value);
+    }
+    return entries;
+}
 
 function canonicalDestinationRoot(input: string): string {
     if (typeof input !== 'string' || /[\r\n\0]/.test(input)
@@ -83,31 +130,37 @@ function assertDestinationRoot(value: unknown): asserts value is string {
 function assertEffectEntry(
     value: unknown,
     index: number,
-): asserts value is FrozenBundleEffectEntry {
+): FrozenBundleEffectEntry {
     const label = `frozen bundle effect entry ${index}`;
-    assertExactObjectKeys(value, entryKeys, label);
-    const entry = value as FrozenBundleEffectEntry;
-    canonicalFrozenPath(entry.path, `${label}.path`);
-    assertSha256(entry.sha256, `${label}.sha256`);
-    if (!Number.isSafeInteger(entry.bytes) || entry.bytes < 0
-        || entry.bytes > ARTIFACT_MANIFEST_MAX_FILE_BYTES) {
+    const fields = ownDataFields(value, entryKeys, label);
+    const entryPath = fields.path;
+    const entrySha256 = fields.sha256;
+    const entryBytes = fields.bytes;
+    const entryMode = fields.mode;
+    const canonicalEntryPath = canonicalFrozenPath(entryPath, `${label}.path`);
+    assertSha256(entrySha256, `${label}.sha256`);
+    if (!Number.isSafeInteger(entryBytes) || (entryBytes as number) < 0
+        || (entryBytes as number) > ARTIFACT_MANIFEST_MAX_FILE_BYTES) {
         fail(`${label}.bytes is invalid`);
     }
-    if (entry.mode !== 0o644 && entry.mode !== 0o755) {
+    if (entryMode !== 0o644 && entryMode !== 0o755) {
         fail(`${label}.mode must be canonical 0644 or 0755`);
     }
+    return {
+        path: canonicalEntryPath,
+        sha256: entrySha256,
+        bytes: entryBytes as number,
+        mode: entryMode,
+    };
 }
 
-function assertEntryInventory(entries: unknown): asserts entries is readonly FrozenBundleEffectEntry[] {
-    if (!Array.isArray(entries) || entries.length < 1
-        || entries.length > ARTIFACT_MANIFEST_MAX_ENTRIES) {
-        fail('frozen bundle effect entries are invalid');
-    }
+function assertEntryInventory(entries: unknown): FrozenBundleEffectEntry[] {
+    const values = denseDataArray(entries, 'frozen bundle effect entries');
+    const validated: FrozenBundleEffectEntry[] = [];
     const nodes = new Map<string, { path: string; kind: 'file' | 'directory' }>();
-    for (let index = 0; index < entries.length; index += 1) {
-        const entry = entries[index];
-        assertEffectEntry(entry, index);
-        if (index > 0 && compareFrozenPaths(entries[index - 1].path, entry.path) >= 0) {
+    for (let index = 0; index < values.length; index += 1) {
+        const entry = assertEffectEntry(values[index], index);
+        if (index > 0 && compareFrozenPaths(validated[index - 1].path, entry.path) >= 0) {
             fail('frozen bundle effect entries are not in strict UTF-8 path order');
         }
         const segments = entry.path.split('/');
@@ -130,56 +183,49 @@ function assertEntryInventory(entries: unknown): asserts entries is readonly Fro
             }
             nodes.set(key, { path: prefix, kind });
         }
+        validated.push(entry);
     }
-}
-
-function planBase(plan: FrozenBundleEffectPlan): FrozenBundleEffectPlanBase {
-    return {
-        packet_sha256: plan.packet_sha256,
-        destination_root: plan.destination_root,
-        entry_count: plan.entry_count,
-        total_bytes: plan.total_bytes,
-        entries: plan.entries,
-    };
-}
-
-function deeplyFrozen(plan: FrozenBundleEffectPlan): boolean {
-    return Object.isFrozen(plan) && Object.isFrozen(plan.entries)
-        && plan.entries.every((entry) => Object.isFrozen(entry));
+    return validated;
 }
 
 export function assertFrozenBundleEffectPlan(
     value: unknown,
 ): asserts value is FrozenBundleEffectPlan {
-    if (value && typeof value === 'object' && validatedPlans.has(value)) {
-        assertDestinationRoot((value as FrozenBundleEffectPlan).destination_root);
-        return;
-    }
-    assertExactObjectKeys(value, planKeys, 'frozen bundle effect plan');
-    const plan = value as FrozenBundleEffectPlan;
-    assertSha256(plan.packet_sha256, 'frozen bundle effect packet digest');
-    assertDestinationRoot(plan.destination_root);
-    assertEntryInventory(plan.entries);
-    if (!Number.isSafeInteger(plan.entry_count)
-        || plan.entry_count !== plan.entries.length) {
+    const fields = ownDataFields(value, planKeys, 'frozen bundle effect plan');
+    const packetSha256 = fields.packet_sha256;
+    const destinationRoot = fields.destination_root;
+    const entries = assertEntryInventory(fields.entries);
+    const entryCount = fields.entry_count;
+    const claimedTotalBytes = fields.total_bytes;
+    const claimedPlanSha256 = fields.bundle_plan_sha256;
+    assertSha256(packetSha256, 'frozen bundle effect packet digest');
+    assertDestinationRoot(destinationRoot);
+    if (!Number.isSafeInteger(entryCount)
+        || entryCount !== entries.length) {
         fail('frozen bundle effect entry count is invalid');
     }
     let totalBytes = 0;
-    for (const entry of plan.entries) {
+    for (const entry of entries) {
         if (totalBytes > ARTIFACT_MANIFEST_MAX_TOTAL_BYTES - entry.bytes) {
             fail('frozen bundle effect total bytes exceed the resource bound');
         }
         totalBytes += entry.bytes;
     }
-    if (totalBytes < 1 || plan.total_bytes !== totalBytes
-        || plan.total_bytes > ARTIFACT_MANIFEST_MAX_TOTAL_BYTES) {
+    if (totalBytes < 1 || claimedTotalBytes !== totalBytes
+        || totalBytes > ARTIFACT_MANIFEST_MAX_TOTAL_BYTES) {
         fail('frozen bundle effect total bytes are invalid');
     }
-    assertSha256(plan.bundle_plan_sha256, 'frozen bundle effect plan digest');
-    if (sha256(canonicalJson(planBase(plan))) !== plan.bundle_plan_sha256) {
+    assertSha256(claimedPlanSha256, 'frozen bundle effect plan digest');
+    const base: FrozenBundleEffectPlanBase = {
+        packet_sha256: packetSha256,
+        destination_root: destinationRoot,
+        entry_count: entryCount as number,
+        total_bytes: claimedTotalBytes as number,
+        entries,
+    };
+    if (sha256(canonicalJson(base)) !== claimedPlanSha256) {
         fail('frozen bundle effect plan digest mismatch');
     }
-    if (deeplyFrozen(plan)) validatedPlans.add(plan);
 }
 
 export function buildFrozenBundleEffectPlan(input: {
@@ -231,16 +277,20 @@ export function assertFrozenBundleOperationAuthority(
     value: unknown,
 ): asserts value is FrozenBundleOperationAuthority {
     assertFrozenBundleEffectPlan(plan);
-    assertExactObjectKeys(value, authorityKeys, 'frozen bundle operation authority');
-    const authority = value as FrozenBundleOperationAuthority;
-    if (!Number.isSafeInteger(authority.owner_pid) || authority.owner_pid < 1
-        || !UUID_V4_PATTERN.test(authority.operation_id)) {
+    const fields = ownDataFields(value, authorityKeys, 'frozen bundle operation authority');
+    const ownerPid = fields.owner_pid;
+    const operationId = fields.operation_id;
+    const bundlePlanSha256 = fields.bundle_plan_sha256;
+    const bundleEntryCount = fields.bundle_entry_count;
+    const bundleTotalBytes = fields.bundle_total_bytes;
+    if (!Number.isSafeInteger(ownerPid) || (ownerPid as number) < 1
+        || typeof operationId !== 'string' || !UUID_V4_PATTERN.test(operationId)) {
         fail('frozen bundle operation authority identity is invalid');
     }
-    assertSha256(authority.bundle_plan_sha256, 'frozen bundle operation plan digest');
-    if (authority.bundle_plan_sha256 !== plan.bundle_plan_sha256
-        || authority.bundle_entry_count !== plan.entry_count
-        || authority.bundle_total_bytes !== plan.total_bytes) {
+    assertSha256(bundlePlanSha256, 'frozen bundle operation plan digest');
+    if (bundlePlanSha256 !== plan.bundle_plan_sha256
+        || bundleEntryCount !== plan.entry_count
+        || bundleTotalBytes !== plan.total_bytes) {
         fail('frozen bundle operation authority does not bind the exact effect plan');
     }
 }
