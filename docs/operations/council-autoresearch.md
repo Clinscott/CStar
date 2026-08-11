@@ -277,6 +277,17 @@ Generic lease recovery deliberately refuses this new guard kind; no receipt
 writer, coordinator path, barrel export, or CLI can create it until dedicated
 receipt-operation recovery and schema-2.2 admission land together.
 
+The schema-2.2 experiment-claim namespace foundation is internal and unused.
+It derives a two-level SHA-256-sharded, exact-private claim path beneath the
+control root, binds the experiment, run, lease, packet, and exact source-lease
+body digest, and gives recovery only the one guard-derived temporary path.
+Namespace preparation is bounded and fsynced before a future receipt guard;
+ordinary preflight and verification remain read-only. Existing valid flat
+schema-2.1 claims permanently reserve the same experiment identity, while
+malformed, linked, redirected, conflicting, or foreign evidence fails closed.
+No coordinator, writer, barrel API, CLI, or schema-2.1 path uses this namespace
+until packet body, frozen closure, claim, and packet seal activate atomically.
+
 The schema-neutral frozen-effect plan is likewise internal and unreachable from
 the coordinator, barrel API, CLI, and schema-2.1 staging path. It binds the packet
 identity, deterministic destination root, exact UTF-8-sorted file inventory, raw
@@ -335,6 +346,7 @@ include these canonical paths:
 - `src/core/council_autoresearch/coordinator_state.ts`
 - `src/core/council_autoresearch/decision.ts`
 - `src/core/council_autoresearch/execution_trust.ts`
+- `src/core/council_autoresearch/experiment_claim.ts`
 - `src/core/council_autoresearch/frozen_bundle.ts`
 - `src/core/council_autoresearch/frozen_bundle_effect_plan.ts`
 - `src/core/council_autoresearch/frozen_bundle_fs.ts`
@@ -369,6 +381,7 @@ include these canonical paths:
 - `scripts/runtime-env.mjs`
 - `tests/unit/council-autoresearch/test_adversarial.test.ts`
 - `tests/unit/council-autoresearch/test_cli_schema.test.ts`
+- `tests/unit/council-autoresearch/test_experiment_claim.test.ts`
 - `tests/unit/council-autoresearch/test_frozen_bundle.test.ts`
 - `tests/unit/council-autoresearch/test_frozen_bundle_effect_plan.test.ts`
 - `tests/unit/council-autoresearch/test_frozen_operation_file.test.ts`
