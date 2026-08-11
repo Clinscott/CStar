@@ -9,6 +9,7 @@ export * from './operation_identity.js';
 export * from './packet.js';
 export * from './publication.js';
 export * from './rating.js';
+export * from './receipt_seal.js';
 export * from './repository_lease.js';
 export * from './runner_identity.js';
 export * from './source_attestation.js';

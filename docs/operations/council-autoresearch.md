@@ -232,6 +232,18 @@ presence is not a commit boundary; durable admission waits for the later sealed-
 receipt checkpoint. Same-UID mutation after the final observation and privileged
 mount aliases remain inside the declared local trust boundary.
 
+The rebuild also exposes descriptor-backed receipt-pair primitives without yet
+wiring them into the schema-2.1 coordinator. A future lifecycle receipt is a
+private, runner-owned, single-link `0600` JSON body plus a separately committed
+`.seal.json`. The seal binds the exact body bytes, source-lease bytes, lease and
+run identities, source HEAD, and source-manifest digest. Inspection never repairs
+an interrupted alias, and body/source descriptors remain held and are rechecked
+across seal publication. Atomic temp paths require the caller-supplied operation
+ID and owner PID that a later lifecycle guard will bind, and seal APIs require an
+already-authorized lease record. A body without its seal is evidence, not a committed
+lifecycle transition; operation-bound recovery and schema-2.2 admission remain
+later cohesive checkpoints.
+
 The canonical URL and branch must match the external trust policy. The local
 runner manifest and checkpoint `required_files` must be the exact same
 path-to-digest mapping—not merely the same multiset of content hashes—and must
@@ -273,6 +285,7 @@ include these canonical paths:
 - `src/core/council_autoresearch/packet.ts`
 - `src/core/council_autoresearch/publication.ts`
 - `src/core/council_autoresearch/rating.ts`
+- `src/core/council_autoresearch/receipt_seal.ts`
 - `src/core/council_autoresearch/repository_lease.ts`
 - `src/core/council_autoresearch/repository_lease_contract.ts`
 - `src/core/council_autoresearch/repository_lease_recovery.ts`
@@ -293,6 +306,7 @@ include these canonical paths:
 - `tests/unit/council-autoresearch/test_helpers.ts`
 - `tests/unit/council-autoresearch/test_operation_identity.test.ts`
 - `tests/unit/council-autoresearch/test_publication_entries.test.ts`
+- `tests/unit/council-autoresearch/test_receipt_seal.test.ts`
 - `tests/unit/council-autoresearch/test_repository_lease.test.ts`
 - `tests/unit/council-autoresearch/test_repository_lease_crash_safety.test.ts`
 - `tests/unit/council-autoresearch/test_repository_lease_lifecycle_adversarial.test.ts`

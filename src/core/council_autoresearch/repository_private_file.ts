@@ -147,7 +147,13 @@ export function openPrivateJson<T>(
     maxBytes: number,
     allowedLinks: readonly bigint[] = [1n],
 ): OpenedPrivateJson<T> {
-    const descriptor = fs.openSync(file, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+    if (typeof fs.constants.O_NONBLOCK !== 'number') {
+        fail(`${label} requires nonblocking descriptor support`);
+    }
+    const descriptor = fs.openSync(
+        file,
+        fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW | fs.constants.O_NONBLOCK,
+    );
     try {
         const owned = captureOwnedPrivateFile(
             descriptor,
@@ -353,7 +359,13 @@ export function repairAtomicPrivateFilePublication(input: {
     if (state === 'absent' || state === 'complete') return state;
     if (state === 'ambiguous') fail(`${input.label} publication state is ambiguous`);
     const selected = state === 'staged' ? input.temporary : input.file;
-    const descriptor = fs.openSync(selected, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+    if (typeof fs.constants.O_NONBLOCK !== 'number') {
+        fail(`${input.label} recovery requires nonblocking descriptor support`);
+    }
+    const descriptor = fs.openSync(
+        selected,
+        fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW | fs.constants.O_NONBLOCK,
+    );
     try {
         const allowedLinks = state === 'staged' ? [1n] : [2n];
         const owned = captureOwnedPrivateFile(
