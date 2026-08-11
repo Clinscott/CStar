@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import { verifyArtifactManifest } from './artifact_manifest.js';
 import {
     ArtifactManifest,
+    MAX_JSON_FILE_BYTES,
     BlindMappingReveal,
     COUNCIL_AUTORESEARCH_RUNNER,
     COUNCIL_AUTORESEARCH_SCHEMA,
@@ -35,7 +36,7 @@ function assertManifestReference(reference: ManifestReference, bundleRoot: strin
     assertSha256(reference?.sha256, `${label}.sha256`);
     const file = resolveContained(bundleRoot, reference.path, `${label}.path`);
     if (fs.realpathSync(file) !== file) fail(`${label} manifest path contains a symbolic link`);
-    const content = readRegularFileNoFollow(file, `${label} manifest`);
+    const content = readRegularFileNoFollow(file, `${label} manifest`, MAX_JSON_FILE_BYTES);
     if (sha256(content) !== reference.sha256) fail(`${label} file hash mismatch`);
     let manifest: ArtifactManifest;
     try {

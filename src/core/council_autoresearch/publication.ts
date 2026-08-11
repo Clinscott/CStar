@@ -251,7 +251,7 @@ function canonicalNetworkRemote(raw: string): CanonicalRemote | undefined {
         const repositoryPath = githubRepositoryPath(remotePath);
         if (repositoryPath) return { identity: `https://${host}${repositoryPath}`, transport: raw };
     }
-    return { identity: `ssh://${user}${host}${remotePath}`, transport: raw };
+    return { identity: `scp://${user}${host}${remotePath}`, transport: raw };
 }
 
 function canonicalRemote(raw: string, repoRoot: string): CanonicalRemote {

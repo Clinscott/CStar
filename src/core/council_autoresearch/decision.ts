@@ -10,7 +10,10 @@ import {
     fail,
     sha256,
 } from './contracts.js';
-import { CouncilExecutionTrustPolicy } from './execution_trust.js';
+import {
+    CouncilExecutionTrustPolicy,
+    verifyPacketAgainstTrustPolicy,
+} from './execution_trust.js';
 import { verifyFrozenPacket } from './packet.js';
 import {
     CouncilPreference,
@@ -175,6 +178,7 @@ export function evaluateCouncilRatings(
     runnerPublicationRepoRoot: string,
     trustPolicy: CouncilExecutionTrustPolicy,
 ): CouncilDecision {
+    verifyPacketAgainstTrustPolicy(packet, trustPolicy);
     verifyFrozenPacket(packet, bundleRoot, runnerPublicationRepoRoot);
     verifyFrozenRatings(packet, frozen, bundleRoot, trustPolicy);
     verifyMappingReveal(packet, frozen, reveal);

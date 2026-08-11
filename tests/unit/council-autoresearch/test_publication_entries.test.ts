@@ -90,9 +90,13 @@ describe('Council autoresearch publication Git-entry validation', () => {
             canonicalizeGitRemoteUrl('https://EXAMPLE.com:443/team/repo/', repo),
             canonicalizeGitRemoteUrl('https://example.com/team/repo', repo),
         );
-        assert.equal(
+        assert.notEqual(
             canonicalizeGitRemoteUrl('git@example.com:team/repo.git', repo),
             canonicalizeGitRemoteUrl('ssh://git@example.com:22/team/repo.git', repo),
+        );
+        assert.equal(
+            canonicalizeGitRemoteUrl('git@EXAMPLE.com:team/repo.git', repo),
+            canonicalizeGitRemoteUrl('git@example.com:team/repo.git', repo),
         );
         assert.equal(
             canonicalizeGitRemoteUrl('git@github.com:Clinscott/CStar.git', repo),

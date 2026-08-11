@@ -308,7 +308,10 @@ export function provisionTrustPolicy(
     controlRoot: string,
     fixture: ReturnType<typeof bundleFixture>,
 ): void {
-    const file = path.join(controlRoot, 'council-autoresearch', 'trust-policy.json');
+    const directory = path.join(controlRoot, 'council-autoresearch');
+    fs.mkdirSync(directory, { recursive: true, mode: 0o700 });
+    fs.chmodSync(directory, 0o700);
+    const file = path.join(directory, 'trust-policy.json');
     writeJson(file, fixture.trustPolicy);
     fs.chmodSync(file, 0o600);
 }

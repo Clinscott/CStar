@@ -12,6 +12,7 @@ import {
     freezeCouncilPacket,
     freezeCouncilRatings,
     freezeMappingReveal,
+    loadExecutionTrustPolicy,
     persistFirstDecision,
     persistFrozenPacket,
     persistFrozenRatings,
@@ -61,6 +62,24 @@ function rating(expert: string): CouncilRating {
 }
 
 describe('Council autoresearch adversarial boundaries', () => {
+    it('requires the external trust policy to use an exact private path and mode', () => {
+        const fixture = bundleFixture();
+        const control = temporary('cstar-council-control-');
+        provisionTrustPolicy(control, fixture);
+        const policyFile = path.join(control, 'council-autoresearch', 'trust-policy.json');
+        assert.doesNotThrow(() => loadExecutionTrustPolicy(control));
+        for (const mode of [0o644, 0o700]) {
+            fs.chmodSync(policyFile, mode);
+            assert.throws(() => loadExecutionTrustPolicy(control), /exact-mode 0600/i);
+        }
+        fs.chmodSync(policyFile, 0o600);
+        const policyDirectory = path.dirname(policyFile);
+        const realDirectory = path.join(control, 'council-autoresearch-real');
+        fs.renameSync(policyDirectory, realDirectory);
+        fs.symlinkSync(realDirectory, policyDirectory);
+        assert.throws(() => loadExecutionTrustPolicy(control), /real directory|symbolic-link/i);
+    });
+
     it('rejects fabricated unanimous ratings without signed host executions', () => {
         const fixture = bundleFixture();
         const packet = freezeCouncilPacket(fixture.packetInput);

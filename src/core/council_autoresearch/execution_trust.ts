@@ -89,14 +89,18 @@ export function verifyExecutionTrustPolicy(policy: CouncilExecutionTrustPolicy):
 }
 
 export function loadExecutionTrustPolicy(controlRoot: string): CouncilExecutionTrustPolicy {
-    const file = path.join(
-        canonicalPrivateDirectory(controlRoot, 'control root'),
-        'council-autoresearch',
-        'trust-policy.json',
+    const root = canonicalPrivateDirectory(controlRoot, 'control root');
+    const directory = canonicalPrivateDirectory(
+        path.join(root, 'council-autoresearch'),
+        'execution trust policy directory',
     );
+    const file = path.join(directory, 'trust-policy.json');
     const stat = fs.lstatSync(file);
-    if (!stat.isFile() || stat.isSymbolicLink() || stat.nlink !== 1 || (stat.mode & 0o077) !== 0) {
-        fail('execution trust policy must be a private single-link regular file');
+    if (!stat.isFile() || stat.isSymbolicLink() || stat.nlink !== 1
+        || (stat.mode & 0o777) !== 0o600
+        || fs.realpathSync(file) !== file
+        || (process.getuid && stat.uid !== process.getuid())) {
+        fail('execution trust policy must be an exact-mode 0600 single-link regular file');
     }
     const policy = readJson<CouncilExecutionTrustPolicy>(file);
     verifyExecutionTrustPolicy(policy);
