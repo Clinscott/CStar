@@ -1,6 +1,5 @@
 import fs from 'node:fs';
 import path from 'node:path';
-
 import {
     ARTIFACT_MANIFEST_MAX_ENTRIES,
     ARTIFACT_MANIFEST_MAX_FILE_BYTES,
@@ -18,7 +17,6 @@ import {
     sha256,
     writeImmutableFile,
 } from './contracts.js';
-import type { ContainedFrozenSnapshot, FrozenDirectoryIdentity } from './frozen_bundle_fs.js';
 import {
     assertFrozenDirectoriesUnchanged,
     assertPrivateExistingFrozenChain,
@@ -33,21 +31,20 @@ import {
     frozenTarget,
     assertTrustedFrozenDestination,
     snapshotContainedFrozenFile,
+    type ContainedFrozenSnapshot,
+    type FrozenDirectoryIdentity,
 } from './frozen_bundle_fs.js';
 import { verifyFrozenPacketStructure } from './packet.js';
 import { REQUIRED_RUNNER_PUBLICATION_PATHS } from './publication.js';
-
 export interface FrozenFileExpectation {
     sha256: string;
     bytes: number;
     mode: 0o644 | 0o755;
 }
-
 interface FrozenPlanEntry extends FrozenFileExpectation {
     path: string;
     role: string;
 }
-
 interface FrozenBundlePlan {
     root: string;
     entries: FrozenPlanEntry[];
@@ -55,14 +52,12 @@ interface FrozenBundlePlan {
     directories: Set<string>;
     maximumPhysicalNodes: number;
 }
-
 interface ClassifiedAlias {
     alias: string;
     targetStat: fs.BigIntStats;
     aliasStat: fs.BigIntStats;
     parent: FrozenDirectoryIdentity;
 }
-
 function validateExpectation(expected: FrozenFileExpectation, label: string): void {
     assertSha256(expected?.sha256, `${label}.sha256`);
     if (!Number.isSafeInteger(expected?.bytes) || expected.bytes < 0
@@ -231,6 +226,16 @@ function planFrozenPacketBundle(packet: FrozenCouncilPacket, rootInput: string):
         directories,
         maximumPhysicalNodes: directories.size + (files.size * 2),
     };
+}
+
+export function frozenPacketBundleEntries(
+    packet: FrozenCouncilPacket,
+    rootInput: string,
+): ReadonlyArray<Readonly<FrozenFileExpectation & { path: string }>> {
+    return Object.freeze(planFrozenPacketBundle(packet, rootInput).entries.map(
+        ({ path: entryPath, sha256: digest, bytes, mode }) =>
+            Object.freeze({ path: entryPath, sha256: digest, bytes, mode }),
+    ));
 }
 
 function assertSnapshotMatches(

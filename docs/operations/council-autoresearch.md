@@ -268,6 +268,16 @@ owner, bind the guard/effect plan, validate the frozen bundle and receipt
 semantics, re-attest source, and use a bounded precreated experiment-claim
 namespace.
 
+The schema-neutral frozen-effect plan is likewise internal and unreachable from
+the coordinator, barrel API, CLI, and schema-2.1 staging path. It binds the packet
+identity, deterministic destination root, exact UTF-8-sorted file inventory, raw
+modes, byte counts, and aggregate bounds without binding a transient source
+location. Full activation still requires target-bound file publication and
+recovery, a bundle-wide preflight, exact inventory rescan, offline verification,
+and the receipt-operation recovery owner. The later operation path must not be
+combined with the legacy UUID-alias staging classifier because an operation UUID
+has the same lexical form but different recovery authority.
+
 The canonical URL and branch must match the external trust policy. The local
 runner manifest and checkpoint `required_files` must be the exact same
 path-to-digest mapping—not merely the same multiset of content hashes—and must
@@ -305,6 +315,7 @@ include these canonical paths:
 - `src/core/council_autoresearch/decision.ts`
 - `src/core/council_autoresearch/execution_trust.ts`
 - `src/core/council_autoresearch/frozen_bundle.ts`
+- `src/core/council_autoresearch/frozen_bundle_effect_plan.ts`
 - `src/core/council_autoresearch/frozen_bundle_fs.ts`
 - `src/core/council_autoresearch/git_trust.ts`
 - `src/core/council_autoresearch/operation_identity.ts`
@@ -336,6 +347,7 @@ include these canonical paths:
 - `tests/unit/council-autoresearch/test_adversarial.test.ts`
 - `tests/unit/council-autoresearch/test_cli_schema.test.ts`
 - `tests/unit/council-autoresearch/test_frozen_bundle.test.ts`
+- `tests/unit/council-autoresearch/test_frozen_bundle_effect_plan.test.ts`
 - `tests/unit/council-autoresearch/test_helpers.ts`
 - `tests/unit/council-autoresearch/test_operation_identity.test.ts`
 - `tests/unit/council-autoresearch/test_publication_entries.test.ts`
