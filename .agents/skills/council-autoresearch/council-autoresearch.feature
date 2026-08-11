@@ -29,9 +29,12 @@ Feature: Bounded Council autoresearch
 
     Scenario: A command process exits while holding the operation guard
       Given the guard binds the active lease and resume-token digest
-      When its same-host owner PID is confirmed absent
-      Then the next authorized command may recover that exact stale guard
-      And live, foreign-host, malformed, or differently bound guards remain locked
+      When an explicit authorized recovery proves the exact machine, boot,
+        PID namespace, procfs PID, and process start are definitely dead
+      Then that recovery may remove the exact stale guard
+      And ordinary commands never remove an existing operation guard
+      And concurrent recovery is serialized before the stale inode is claimed
+      And ambiguous, live, malformed, or differently bound guards remain locked
 
     Scenario: Evidence is preregistered
       Given the source lease is valid

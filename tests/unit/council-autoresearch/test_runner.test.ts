@@ -1,15 +1,16 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { hostname as systemHostname } from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, it } from 'node:test';
 
 import {
+    COUNCIL_AUTORESEARCH_RUNNER,
     COUNCIL_AUTORESEARCH_SCHEMA,
     acquireRepositoryLease,
     assertCouncilRuntimePlatform,
     buildArtifactManifest,
     councilRunStatus,
+    currentOperationOwner,
     evaluateCouncilRatings,
     freezeCouncilPacket,
     freezeMappingReveal,
@@ -18,6 +19,7 @@ import {
     persistFrozenRatings,
     persistMappingReveal,
     persistPublicationReceipt,
+    recoverRepositoryLeaseOperation,
     releaseRepositoryLease,
     sha256,
     sha256File,
@@ -126,7 +128,7 @@ describe('Council autoresearch source lease and artifact manifests', () => {
         });
     });
 
-    it('recovers only a dead same-host operation guard bound to the active lease', () => {
+    it('requires explicit recovery of an exact definitely-dead operation guard', () => {
         const repo = repository();
         const control = temporary('cstar-council-control-');
         const lease = acquireRepositoryLease({
@@ -136,25 +138,113 @@ describe('Council autoresearch source lease and artifact manifests', () => {
             repo, git(repo, ['rev-parse', '--git-common-dir']),
         ));
         const guard = path.join(commonDirectory, 'cstar-council-autoresearch.lock.operation');
-        const record = (pid: number) => ({
+        const claim = `${guard}.recovery-claim`;
+        const currentOwner = currentOperationOwner();
+        const record = (owner: ReturnType<typeof currentOperationOwner>) => ({
+            schema_version: COUNCIL_AUTORESEARCH_SCHEMA,
+            runner_version: COUNCIL_AUTORESEARCH_RUNNER,
+            operation_id: '00000000-0000-4000-8000-000000000001',
+            lease_id: lease.record.lease_id,
+            run_id: lease.record.run_id,
+            resume_token_sha256: sha256(lease.resume_token),
+            owner,
+            acquired_at: new Date().toISOString(),
+        });
+        const recoveryInput = {
+            repoRoot: repo,
+            controlRoot: control,
+            runId: lease.record.run_id,
+            resumeToken: lease.resume_token,
+        };
+        const staleOwner = {
+            ...currentOwner,
+            process_start_ticks: (BigInt(currentOwner.process_start_ticks) + 1n).toString(),
+        };
+        const recoveryOwnerFile = `${guard}.recovery-owner`;
+        const recoveryOwnerRecord = (owner: ReturnType<typeof currentOperationOwner>) => ({
+            schema_version: COUNCIL_AUTORESEARCH_SCHEMA,
+            runner_version: COUNCIL_AUTORESEARCH_RUNNER,
+            recovery_id: '00000000-0000-4000-8000-000000000002',
+            lease_id: lease.record.lease_id,
+            run_id: lease.record.run_id,
+            resume_token_sha256: sha256(lease.resume_token),
+            owner,
+            acquired_at: new Date().toISOString(),
+        });
+        fs.writeFileSync(guard, `${JSON.stringify(record(currentOwner), null, 2)}\n`, { mode: 0o600 });
+        assert.throws(() => releaseRepositoryLease(recoveryInput), /explicit recovery is required/i);
+        assert.throws(() => recoverRepositoryLeaseOperation(recoveryInput), /operation is active/i);
+        assert.equal(fs.existsSync(guard), true);
+        fs.unlinkSync(guard);
+
+        fs.writeFileSync(
+            recoveryOwnerFile,
+            `${JSON.stringify(recoveryOwnerRecord(currentOwner), null, 2)}\n`,
+            { mode: 0o600 },
+        );
+        assert.throws(() => recoverRepositoryLeaseOperation(recoveryInput), /recovery is active/i);
+        assert.throws(() => releaseRepositoryLease(recoveryInput), /recovery claim requires explicit completion/i);
+        assert.equal(fs.existsSync(recoveryOwnerFile), true);
+        fs.unlinkSync(recoveryOwnerFile);
+
+        fs.writeFileSync(
+            recoveryOwnerFile,
+            `${JSON.stringify(recoveryOwnerRecord(staleOwner), null, 2)}\n`,
+            { mode: 0o600 },
+        );
+        assert.throws(() => recoverRepositoryLeaseOperation(recoveryInput), /interrupted.*operator investigation/i);
+        assert.equal(fs.existsSync(recoveryOwnerFile), true);
+        fs.unlinkSync(recoveryOwnerFile);
+
+        fs.writeFileSync(guard, `${JSON.stringify({
             schema_version: COUNCIL_AUTORESEARCH_SCHEMA,
             lease_id: lease.record.lease_id,
             run_id: lease.record.run_id,
             resume_token_sha256: sha256(lease.resume_token),
-            owner: { pid, hostname: systemHostname() },
+            owner: { pid: process.pid, hostname: currentOwner.hostname },
             acquired_at: new Date().toISOString(),
-        });
-        fs.writeFileSync(guard, `${JSON.stringify(record(process.pid), null, 2)}\n`, { mode: 0o600 });
-        assert.throws(() => releaseRepositoryLease({
-            repoRoot: repo, controlRoot: control, runId: lease.record.run_id, resumeToken: lease.resume_token,
-        }), /operation is active/i);
+        }, null, 2)}\n`, { mode: 0o600 });
+        assert.throws(() => recoverRepositoryLeaseOperation(recoveryInput), /unexpected or missing fields/i);
         assert.equal(fs.existsSync(guard), true);
         fs.unlinkSync(guard);
-        fs.writeFileSync(guard, `${JSON.stringify(record(2_147_483_647), null, 2)}\n`, { mode: 0o600 });
-        assert.doesNotThrow(() => releaseRepositoryLease({
-            repoRoot: repo, controlRoot: control, runId: lease.record.run_id, resumeToken: lease.resume_token,
-        }));
+
+        const stale = record(staleOwner);
+        fs.writeFileSync(guard, `${JSON.stringify({ ...stale, lease_id: 'wrong-lease' }, null, 2)}\n`, { mode: 0o600 });
+        assert.throws(() => recoverRepositoryLeaseOperation(recoveryInput), /does not bind the active lease/i);
+        assert.equal(fs.existsSync(guard), true);
+        fs.unlinkSync(guard);
+
+        fs.writeFileSync(guard, `${JSON.stringify(stale, null, 2)}\n`, { mode: 0o600 });
+        const unexplainedAlias = `${guard}.unexplained-alias`;
+        fs.linkSync(guard, unexplainedAlias);
+        assert.throws(() => recoverRepositoryLeaseOperation(recoveryInput), /exact private single-link owned/i);
+        assert.equal(fs.existsSync(guard), true);
+        fs.unlinkSync(unexplainedAlias);
+
+        fs.chmodSync(guard, 0o644);
+        assert.throws(() => recoverRepositoryLeaseOperation(recoveryInput), /exact private single-link owned/i);
+        assert.equal(fs.existsSync(guard), true);
+        fs.chmodSync(guard, 0o600);
+
+        fs.linkSync(guard, claim);
+        fs.unlinkSync(guard);
+        fs.writeFileSync(guard, `${JSON.stringify(record(currentOwner), null, 2)}\n`, { mode: 0o600 });
+        const interrupted = recoverRepositoryLeaseOperation(recoveryInput);
+        assert.equal(interrupted.recovered, true);
+        assert.equal(fs.existsSync(claim), false);
+        assert.equal(fs.existsSync(guard), true);
+        assert.throws(() => recoverRepositoryLeaseOperation(recoveryInput), /operation is active/i);
+        fs.unlinkSync(guard);
+
+        fs.writeFileSync(guard, `${JSON.stringify(stale, null, 2)}\n`, { mode: 0o600 });
+        assert.throws(() => releaseRepositoryLease(recoveryInput), /explicit recovery is required/i);
+        const recovered = recoverRepositoryLeaseOperation(recoveryInput);
+        assert.equal(recovered.recovered, true);
+        if (recovered.recovered) assert.equal(recovered.operation.operation_id, stale.operation_id);
         assert.equal(fs.existsSync(guard), false);
+        assert.deepEqual(recoverRepositoryLeaseOperation(recoveryInput), { recovered: false });
+        assert.doesNotThrow(() => verifyRepositoryLease(recoveryInput));
+        assert.doesNotThrow(() => releaseRepositoryLease(recoveryInput));
     });
 
     it('recursively binds nested files and rejects symlinks and content drift', () => {

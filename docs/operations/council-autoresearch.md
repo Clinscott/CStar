@@ -13,10 +13,12 @@ distribution metadata remain capability declarations, not execution authority.
 
 ## Runtime and external trust
 
-The registered runner is POSIX-only. It requires `O_NOFOLLOW`, single-link regular
-file checks, atomic hard-link publication, directory `fsync`, and Git common
-directory semantics. Windows and any runtime or filesystem that cannot provide
-those guarantees fail closed; no compatibility fallback is supported.
+The registered runner is Linux-only. Before any lease or control-root write it
+requires a canonical machine identity and trusted procfs with a proven PID-
+namespace mapping. It also requires `O_NOFOLLOW`, single-link regular file
+checks, atomic hard-link publication and recovery claims, directory `fsync`, and
+Git common-directory semantics. Any runtime or filesystem that cannot provide
+those guarantees fails closed; no compatibility fallback is supported.
 
 Before `lease-acquire`, an operator-controlled provisioning process must create:
 
@@ -120,12 +122,22 @@ reads run outside the governed repository so repository-local URL rewrites or
 transport commands cannot redirect them.
 
 Each durable command also takes a short-lived operation guard bound to the
-active lease and resume-token digest. If a command process exits after that
-guard is complete, the next authorized command recovers it only when the guard
-names the same lease, the same host, and an owner PID the operating system
-confirms is absent. A live owner, another host, malformed metadata, or a binding
-mismatch remains blocked for explicit operator investigation. This recovery
-does not remove or weaken the repository-wide source lease.
+active lease and resume-token digest. Ordinary commands never inspect and
+delete an existing guard: an exact explicit core recovery call is required. Recovery
+removes the guard only when its lease/run/token binding and private file identity
+remain stable and Linux machine, boot, PID-namespace, procfs-visible PID, and
+process-start evidence prove the original operation is definitely dead. A live
+or stopped owner, another host or namespace, malformed metadata, or ambiguous OS
+evidence remains blocked for operator investigation. Nested PID namespaces are
+bound through the kernel's `NSpid` mapping. This recovery does not remove or
+weaken the repository-wide source lease, and same-UID processes remain in the
+local trusted computing base. A crash between source-lease unlink and operation-
+guard cleanup is not yet a completed release and requires explicit investigation.
+The registered terminal command does not expose that recovery call yet.
+Concurrent recovery calls are serialized by an exact private recovery-owner
+record, and the stale guard inode is claimed by a fixed hard link before its
+pathname is removed. A recovery process that itself crashes leaves those records
+fail-closed for operator investigation; they are never taken over automatically.
 
 ## Packet and manifests
 

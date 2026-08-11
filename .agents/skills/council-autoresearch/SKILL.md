@@ -96,8 +96,10 @@ spend, Git, merge, deployment, or production authority.
 
 - A failed lease contender never removes a lock it did not acquire.
 - A per-command operation guard binds the active lease and resume-token digest.
-  It is recovered automatically only when its same-host owner PID is confirmed
-  absent; live, foreign-host, malformed, or differently bound guards fail closed.
+  Ordinary commands never remove an existing guard. Explicit recovery requires
+  exact lease binding plus stable machine, boot, PID-namespace, procfs PID, and
+  process-start evidence that the original owner is definitely dead; mismatched,
+  ambiguous, live, or interrupted recovery ownership remains fail-closed.
 - Source HEAD, cleanliness, and the recursive source manifest must match before
   and after each durable operation.
 - The verified contract manifest, runner checkpoint, canonical runner
