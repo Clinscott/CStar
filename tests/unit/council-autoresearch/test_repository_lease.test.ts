@@ -106,6 +106,13 @@ describe('Council autoresearch source lease and artifact manifests', () => {
             runId: 'council-test-run-2',
             governedPaths: ['src'],
         }), /EEXIST|exist|lock/i);
+        const commonDirectory = fs.realpathSync(path.resolve(
+            repo, git(repo, ['rev-parse', '--git-common-dir']),
+        ));
+        assert.equal(fs.existsSync(path.join(
+            commonDirectory,
+            'cstar-council-autoresearch.lock.operation',
+        )), false);
         assert.doesNotThrow(() => verifyRepositoryLease({
             repoRoot: repo, controlRoot: control, runId: lease.record.run_id, resumeToken: lease.resume_token,
         }));
@@ -143,6 +150,7 @@ describe('Council autoresearch source lease and artifact manifests', () => {
         const record = (owner: ReturnType<typeof currentOperationOwner>) => ({
             schema_version: COUNCIL_AUTORESEARCH_SCHEMA,
             runner_version: COUNCIL_AUTORESEARCH_RUNNER,
+            operation_kind: 'lease-command',
             operation_id: '00000000-0000-4000-8000-000000000001',
             lease_id: lease.record.lease_id,
             run_id: lease.record.run_id,
@@ -165,9 +173,13 @@ describe('Council autoresearch source lease and artifact manifests', () => {
             schema_version: COUNCIL_AUTORESEARCH_SCHEMA,
             runner_version: COUNCIL_AUTORESEARCH_RUNNER,
             recovery_id: '00000000-0000-4000-8000-000000000002',
-            lease_id: lease.record.lease_id,
-            run_id: lease.record.run_id,
-            resume_token_sha256: sha256(lease.resume_token),
+            target: {
+                operation_kind: 'lease-command',
+                operation_id: '00000000-0000-4000-8000-000000000001',
+                guard_sha256: '0'.repeat(64),
+                guard_device: '1',
+                guard_inode: '1',
+            },
             owner,
             acquired_at: new Date().toISOString(),
         });
@@ -204,13 +216,16 @@ describe('Council autoresearch source lease and artifact manifests', () => {
             owner: { pid: process.pid, hostname: currentOwner.hostname },
             acquired_at: new Date().toISOString(),
         }, null, 2)}\n`, { mode: 0o600 });
-        assert.throws(() => recoverRepositoryLeaseOperation(recoveryInput), /unexpected or missing fields/i);
+        assert.throws(() => recoverRepositoryLeaseOperation(recoveryInput), /guard kind|unexpected or missing fields/i);
         assert.equal(fs.existsSync(guard), true);
         fs.unlinkSync(guard);
 
         const stale = record(staleOwner);
-        fs.writeFileSync(guard, `${JSON.stringify({ ...stale, lease_id: 'wrong-lease' }, null, 2)}\n`, { mode: 0o600 });
-        assert.throws(() => recoverRepositoryLeaseOperation(recoveryInput), /does not bind the active lease/i);
+        fs.writeFileSync(guard, `${JSON.stringify({
+            ...stale,
+            lease_id: '00000000-0000-4000-8000-000000000099',
+        }, null, 2)}\n`, { mode: 0o600 });
+        assert.throws(() => recoverRepositoryLeaseOperation(recoveryInput), /does not bind the authorized lease/i);
         assert.equal(fs.existsSync(guard), true);
         fs.unlinkSync(guard);
 
@@ -240,7 +255,10 @@ describe('Council autoresearch source lease and artifact manifests', () => {
         assert.throws(() => releaseRepositoryLease(recoveryInput), /explicit recovery is required/i);
         const recovered = recoverRepositoryLeaseOperation(recoveryInput);
         assert.equal(recovered.recovered, true);
-        if (recovered.recovered) assert.equal(recovered.operation.operation_id, stale.operation_id);
+        if (recovered.recovered) {
+            assert.equal(recovered.outcome, 'command-guard-removed');
+            assert.equal(recovered.operation.operation_id, stale.operation_id);
+        }
         assert.equal(fs.existsSync(guard), false);
         assert.deepEqual(recoverRepositoryLeaseOperation(recoveryInput), { recovered: false });
         assert.doesNotThrow(() => verifyRepositoryLease(recoveryInput));

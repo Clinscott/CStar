@@ -121,23 +121,38 @@ Git-directory overrides fail before any lease or network effect. Remote-ref
 reads run outside the governed repository so repository-local URL rewrites or
 transport commands cannot redirect them.
 
-Each durable command also takes a short-lived operation guard bound to the
-active lease and resume-token digest. Ordinary commands never inspect and
-delete an existing guard: an exact explicit core recovery call is required. Recovery
-removes the guard only when its lease/run/token binding and private file identity
-remain stable and Linux machine, boot, PID-namespace, procfs-visible PID, and
-process-start evidence prove the original operation is definitely dead. A live
-or stopped owner, another host or namespace, malformed metadata, or ambiguous OS
-evidence remains blocked for operator investigation. Nested PID namespaces are
-bound through the kernel's `NSpid` mapping. This recovery does not remove or
-weaken the repository-wide source lease, and same-UID processes remain in the
-local trusted computing base. A crash between source-lease unlink and operation-
-guard cleanup is not yet a completed release and requires explicit investigation.
-The registered terminal command does not expose that recovery call yet.
-Concurrent recovery calls are serialized by an exact private recovery-owner
-record, and the stale guard inode is claimed by a fixed hard link before its
-pathname is removed. A recovery process that itself crashes leaves those records
-fail-closed for operator investigation; they are never taken over automatically.
+Lease acquisition, every durable command, and release share one short-lived
+repository lifecycle guard. Acquisition writes and directory-syncs that guard
+before creating a control directory, source lock, or receipt. Command and release
+guards bind the authorized lease and resume-token digest; acquisition guards bind
+the canonical repository/common directory, control target, run, pre-generated
+lease identity, token digest, and governed-path digest. Full active-lease and
+source verification occurs only after the caller owns this common guard, so a
+paused old command cannot cross a release and replacement acquisition.
+
+Ordinary commands never inspect and delete an existing guard: an exact explicit
+core recovery call is required. Recovery ownership binds the exact guard bytes,
+device, inode, operation kind, and operation ID. Removal additionally requires
+stable Linux machine, boot, PID-namespace, procfs-visible PID, and process-start
+evidence proving the original operation is definitely dead. A live or stopped
+owner, another host or namespace, malformed metadata, target drift, or ambiguous
+OS evidence remains blocked for operator investigation. Nested PID namespaces are
+bound through the kernel's `NSpid` mapping. Concurrent recovery calls are
+serialized before the stale inode is claimed by a fixed hard link; a different
+replacement inode at the guard pathname is preserved.
+
+Token-authorized recovery can now distinguish an unfinished release (the exact
+source lock remains) from a committed release (the lock is absent while the exact
+source receipt and source attestation remain valid). A separate exact-scope core
+recovery call may remove a dead acquisition guard with no lease effects or abort
+one matching partial source lock when no source receipt exists. It never removes
+a receipted lease without the matching resume token. A recovery process that
+itself crashes leaves its owner/claim records fail-closed for operator
+investigation; they are never taken over automatically. The registered terminal
+command does not expose either recovery call yet. Lost-response replay after a
+completed acquisition but before delivery of its generated token remains pending
+the sealed lease-intent lifecycle; same-UID processes remain in the local trusted
+computing base.
 
 ## Packet and manifests
 
@@ -215,6 +230,9 @@ include these canonical paths:
 - `src/core/council_autoresearch/rating.ts`
 - `src/core/council_autoresearch/repository_lease.ts`
 - `src/core/council_autoresearch/repository_lease_contract.ts`
+- `src/core/council_autoresearch/repository_lease_recovery.ts`
+- `src/core/council_autoresearch/repository_lease_state.ts`
+- `src/core/council_autoresearch/repository_operation_guard.ts`
 - `src/core/council_autoresearch/source_attestation.ts`
 - `src/core/skill_registry.ts`
 - `src/packaging/distribution_content.ts`
@@ -228,6 +246,8 @@ include these canonical paths:
 - `tests/unit/council-autoresearch/test_operation_identity.test.ts`
 - `tests/unit/council-autoresearch/test_publication_entries.test.ts`
 - `tests/unit/council-autoresearch/test_repository_lease.test.ts`
+- `tests/unit/council-autoresearch/test_repository_lease_lifecycle_adversarial.test.ts`
+- `tests/unit/council-autoresearch/test_repository_lease_lifecycle.test.ts`
 - `tests/unit/council-autoresearch/test_resource_bounds.test.ts`
 - `tests/unit/council-autoresearch/test_runner_checkpoint.test.ts`
 - `tests/unit/council-autoresearch/test_runner.test.ts`

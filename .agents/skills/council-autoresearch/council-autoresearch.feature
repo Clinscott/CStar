@@ -36,6 +36,19 @@ Feature: Bounded Council autoresearch
       And concurrent recovery is serialized before the stale inode is claimed
       And ambiguous, live, malformed, or differently bound guards remain locked
 
+    Scenario: Lease acquisition crosses a release boundary
+      Given acquisition, commands, and release share one repository lifecycle guard
+      When release has removed the source lock but has not removed its exact guard
+      Then a replacement acquisition creates no lock, control directory, or receipt
+      And exact token-authorized recovery may complete the committed release guard
+
+    Scenario: Acquisition exits before its receipt is committed
+      Given one acquisition guard binds the exact repository, control root, run, and governed paths
+      When Linux process identity proves the acquisition owner is definitely dead
+      Then exact core recovery may remove a guard with no lease effects
+      And it may abort only an exact matching partial lock with no source receipt
+      But a receipted lease requires the matching resume token and remains preserved
+
     Scenario: Evidence is preregistered
       Given the source lease is valid
       When the host freezes the Council packet

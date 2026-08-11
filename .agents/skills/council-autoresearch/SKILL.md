@@ -95,11 +95,15 @@ spend, Git, merge, deployment, or production authority.
 ## Fail-closed rules
 
 - A failed lease contender never removes a lock it did not acquire.
-- A per-command operation guard binds the active lease and resume-token digest.
-  Ordinary commands never remove an existing guard. Explicit recovery requires
-  exact lease binding plus stable machine, boot, PID-namespace, procfs PID, and
-  process-start evidence that the original owner is definitely dead; mismatched,
-  ambiguous, live, or interrupted recovery ownership remains fail-closed.
+- One repository lifecycle guard serializes lease acquisition, commands, and
+  release. Lease-bound guards bind the active lease and resume-token digest;
+  acquisition guards bind the exact repository, control root, governed-path
+  digest, lease identity, and token digest before any lease effect. Ordinary
+  commands never remove an existing guard. Explicit recovery requires an exact
+  guard-byte/inode target plus stable machine, boot, PID-namespace, procfs PID,
+  and process-start evidence that the original owner is definitely dead;
+  mismatched, ambiguous, live, or interrupted recovery ownership remains
+  fail-closed.
 - Source HEAD, cleanliness, and the recursive source manifest must match before
   and after each durable operation.
 - The verified contract manifest, runner checkpoint, canonical runner
