@@ -100,6 +100,15 @@ invalidate source cleanliness. Stale ownership has no automatic timeout;
 recovery is an explicit operator action because a guessed dead owner is less
 safe than a blocked run.
 
+All production repository inspection uses the fixed `/usr/bin/git` executable.
+The runner verifies that executable and its ancestors are canonical,
+root-controlled, and not group/world writable; it supplies a minimal child
+environment with system/global Git configuration, replacement objects, prompts,
+hooks, and filesystem monitoring disabled. Ambient object, index, worktree, or
+Git-directory overrides fail before any lease or network effect. Remote-ref
+reads run outside the governed repository so repository-local URL rewrites or
+transport commands cannot redirect them.
+
 Each durable command also takes a short-lived operation guard bound to the
 active lease and resume-token digest. If a command process exits after that
 guard is complete, the next authorized command recovers it only when the guard
@@ -177,6 +186,7 @@ include these canonical paths:
 - `src/core/council_autoresearch/coordinator.ts`
 - `src/core/council_autoresearch/decision.ts`
 - `src/core/council_autoresearch/execution_trust.ts`
+- `src/core/council_autoresearch/git_trust.ts`
 - `src/core/council_autoresearch/packet.ts`
 - `src/core/council_autoresearch/publication.ts`
 - `src/core/council_autoresearch/rating.ts`

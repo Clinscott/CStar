@@ -39,6 +39,59 @@ import {
 afterEach(cleanup);
 
 describe('Council autoresearch source lease and artifact manifests', () => {
+    it('requires the exact worktree top-level and a trusted absolute Git executable', () => {
+        const repo = repository();
+        assert.throws(() => acquireRepositoryLease({
+            repoRoot: path.join(repo, 'src'),
+            controlRoot: temporary('cstar-council-control-'),
+            runId: 'council-test-run-1',
+            governedPaths: ['site.txt'],
+        }), /Git worktree top-level/i);
+
+        const fakeBin = temporary('cstar-council-fake-git-');
+        const fakeGit = path.join(fakeBin, 'git');
+        fs.writeFileSync(fakeGit, '#!/bin/sh\nexit 99\n', { mode: 0o755 });
+        const previousPath = process.env.PATH;
+        process.env.PATH = `${fakeBin}:${previousPath ?? ''}`;
+        try {
+            const control = temporary('cstar-council-control-');
+            const lease = acquireRepositoryLease({
+                repoRoot: repo,
+                controlRoot: control,
+                runId: 'council-test-run-2',
+                governedPaths: ['src'],
+            });
+            releaseRepositoryLease({
+                repoRoot: repo,
+                controlRoot: control,
+                runId: lease.record.run_id,
+                resumeToken: lease.resume_token,
+            });
+        } finally {
+            if (previousPath === undefined) delete process.env.PATH;
+            else process.env.PATH = previousPath;
+        }
+    });
+
+    it('rejects inherited Git topology overrides before lease effects', () => {
+        const repo = repository();
+        for (const name of ['GIT_INDEX_FILE', 'GIT_WORK_TREE']) {
+            const previous = process.env[name];
+            process.env[name] = path.join(repo, `attacker-${name.toLowerCase()}`);
+            try {
+                assert.throws(() => acquireRepositoryLease({
+                    repoRoot: repo,
+                    controlRoot: temporary('cstar-council-control-'),
+                    runId: `council-${name.toLowerCase()}-test`,
+                    governedPaths: ['src'],
+                }), new RegExp(`ambient Git topology override.*${name}`, 'i'));
+            } finally {
+                if (previous === undefined) delete process.env[name];
+                else process.env[name] = previous;
+            }
+        }
+    });
+
     it('keeps an acquired lock when contenders and wrong-root tokens fail', () => {
         const repo = repository();
         const control = temporary('cstar-council-control-');

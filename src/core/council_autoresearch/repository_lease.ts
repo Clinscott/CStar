@@ -1,5 +1,4 @@
 import { randomBytes, randomUUID } from 'node:crypto';
-import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import { hostname as systemHostname } from 'node:os';
 import path from 'node:path';
@@ -22,6 +21,12 @@ import {
     validateDirectoryCreationTarget,
     writeImmutableJson,
 } from './contracts.js';
+import {
+    gitCommonDirectory,
+    repositoryRoot,
+    runTrustedGit,
+    sourceHead,
+} from './git_trust.js';
 
 export interface RepositoryLeaseRecord {
     schema_version: typeof COUNCIL_AUTORESEARCH_SCHEMA;
@@ -54,39 +59,15 @@ interface RepositoryOperationGuardRecord {
     acquired_at: string;
 }
 
-function runGit(repoRoot: string, args: string[]): string {
-    const result = spawnSync('git', args, {
-        cwd: repoRoot,
-        encoding: 'utf8',
-        timeout: 10_000,
-        maxBuffer: 1024 * 1024,
-    });
-    if (result.error || result.status !== 0) {
-        fail(`git ${args.join(' ')} failed`);
-    }
-    return result.stdout;
-}
-
-function gitCommonDirectory(repoRoot: string): string {
-    const value = runGit(repoRoot, ['rev-parse', '--git-common-dir']).trim();
-    return fs.realpathSync(path.resolve(repoRoot, value));
-}
-
-function sourceHead(repoRoot: string): string {
-    const head = runGit(repoRoot, ['rev-parse', 'HEAD']).trim();
-    if (!/^[a-f0-9]{40}$/.test(head)) fail('repository HEAD is not a full Git SHA');
-    return head;
-}
-
 function assertGovernedSourceClean(repoRoot: string, governedPaths: string[]): void {
-    const status = runGit(repoRoot, [
+    const status = String(runTrustedGit(repoRoot, [
         '--literal-pathspecs',
         'status',
         '--porcelain=v1',
         '--untracked-files=all',
         '--',
         ...governedPaths,
-    ]).trim();
+    ])).trim();
     if (status !== '') fail('governed source paths contain uncommitted changes');
 }
 
@@ -105,15 +86,12 @@ function assertGovernedPaths(governedPaths: string[]): void {
 
 function worktreeBlobOids(repoRoot: string, paths: string[]): Map<string, string> {
     if (paths.some((file) => /[\r\n\0]/.test(file))) fail('governed source path contains a control character');
-    const result = spawnSync('git', ['hash-object', '--stdin-paths'], {
-        cwd: repoRoot,
-        encoding: 'utf8',
+    const output = String(runTrustedGit(repoRoot, ['hash-object', '--stdin-paths'], {
         input: `${paths.join('\n')}\n`,
-        timeout: 30_000,
         maxBuffer: 16 * 1024 * 1024,
-    });
-    if (result.error || result.status !== 0) fail('could not hash governed worktree files');
-    const hashes = result.stdout.trim().split(/\r?\n/);
+        timeoutMs: 30_000,
+    }));
+    const hashes = output.trim().split(/\r?\n/);
     if (hashes.length !== paths.length || hashes.some((hash) => !/^[a-f0-9]{40,64}$/.test(hash))) {
         fail('governed worktree hash result is incomplete');
     }
@@ -125,9 +103,9 @@ function assertManifestMatchesHead(
     governedPaths: string[],
     manifest: ArtifactManifest,
 ): void {
-    const output = runGit(repoRoot, [
+    const output = String(runTrustedGit(repoRoot, [
         '--literal-pathspecs', 'ls-tree', '-r', '-z', '--full-tree', 'HEAD', '--', ...governedPaths,
-    ]);
+    ]));
     const tree = new Map<string, { mode: number; oid: string }>();
     for (const record of output.split('\0').filter(Boolean)) {
         const match = /^(\d+) (\w+) ([a-f0-9]+)\t([\s\S]+)$/.exec(record);
@@ -199,7 +177,7 @@ export function acquireRepositoryLease(input: {
     hostname?: string;
 }): OwnedRepositoryLease {
     assertRunId(input.runId);
-    const repoRoot = fs.realpathSync(input.repoRoot);
+    const repoRoot = repositoryRoot(input.repoRoot);
     const commonDirectory = gitCommonDirectory(repoRoot);
     const governedPaths = [...new Set(input.governedPaths)].sort();
     assertGovernedPaths(governedPaths);

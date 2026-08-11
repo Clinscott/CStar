@@ -1,4 +1,3 @@
-import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -18,6 +17,7 @@ import {
     readRegularFileNoFollow,
     sha256,
 } from './contracts.js';
+import { runTrustedGit, runTrustedGitWithoutRepository } from './git_trust.js';
 
 export const REQUIRED_RUNNER_PUBLICATION_PATHS = Object.freeze([
     '.agents/AGENTS.feature',
@@ -50,6 +50,7 @@ export const REQUIRED_RUNNER_PUBLICATION_PATHS = Object.freeze([
     'src/core/council_autoresearch/coordinator.ts',
     'src/core/council_autoresearch/decision.ts',
     'src/core/council_autoresearch/execution_trust.ts',
+    'src/core/council_autoresearch/git_trust.ts',
     'src/core/council_autoresearch/index.ts',
     'src/core/council_autoresearch/packet.ts',
     'src/core/council_autoresearch/publication.ts',
@@ -96,14 +97,11 @@ export interface PublicationReceipt {
 }
 
 function runGit(repoRoot: string, args: string[], encoding: BufferEncoding | 'buffer' = 'utf8'): string | Buffer {
-    const result = spawnSync('git', args, {
-        cwd: repoRoot,
-        encoding: encoding === 'buffer' ? null : encoding,
-        timeout: 30_000,
+    return runTrustedGit(repoRoot, args, {
+        encoding,
         maxBuffer: 16 * 1024 * 1024,
+        timeoutMs: 30_000,
     });
-    if (result.error || result.status !== 0) fail('Git publication verification failed');
-    return result.stdout as string | Buffer;
 }
 
 function assertRepositoryPath(file: string): void {
@@ -309,7 +307,10 @@ function verifyRemoteFiles(input: {
     const files = Object.entries(input.requiredFiles).sort(([left], [right]) => left.localeCompare(right));
     if (files.length < 1 || files.length > 256) fail('publication requires one to 256 files');
     const ref = `refs/heads/${input.branch}`;
-    const output = String(runGit(input.repoRoot, ['ls-remote', '--refs', remote.transport, ref])).trim();
+    const output = String(runTrustedGitWithoutRepository(
+        ['ls-remote', '--refs', remote.transport, ref],
+        { maxBuffer: 16 * 1024 * 1024, timeoutMs: 30_000 },
+    )).trim();
     const lines = output ? output.split(/\r?\n/) : [];
     if (lines.length !== 1) fail('remote branch did not resolve uniquely');
     const resolved = lines[0].trim().split(/\s+/);

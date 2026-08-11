@@ -127,4 +127,28 @@ describe('Council autoresearch publication Git-entry validation', () => {
             requiredFiles: { 'regular.txt': sha256('regular publication\n') },
         }), /does not match the pinned URL/i);
     });
+
+    it('rejects ambient Git topology before publication network access', () => {
+        const fixture = publishedEntryFixture();
+        const previous = process.env.GIT_OBJECT_DIRECTORY;
+        process.env.GIT_OBJECT_DIRECTORY = path.join(fixture.repo, 'attacker-objects');
+        try {
+            assert.throws(() => verifyPublication({
+                repoRoot: fixture.repo,
+                runId: 'publication-topology-test',
+                packetSha256: 'a'.repeat(64),
+                ratingsSha256: 'b'.repeat(64),
+                mappingRevealSha256: 'c'.repeat(64),
+                decisionSha256: 'd'.repeat(64),
+                repository: 'origin',
+                expectedRepositoryUrl: fixture.remote,
+                branch: 'main',
+                commit: fixture.commit,
+                requiredFiles: { 'regular.txt': sha256('regular publication\n') },
+            }), /ambient Git topology override.*GIT_OBJECT_DIRECTORY/i);
+        } finally {
+            if (previous === undefined) delete process.env.GIT_OBJECT_DIRECTORY;
+            else process.env.GIT_OBJECT_DIRECTORY = previous;
+        }
+    });
 });

@@ -3,6 +3,7 @@ export * from './contracts.js';
 export * from './coordinator.js';
 export * from './decision.js';
 export * from './execution_trust.js';
+export * from './git_trust.js';
 export * from './packet.js';
 export * from './publication.js';
 export * from './rating.js';
