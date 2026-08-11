@@ -322,6 +322,14 @@ export function recoverRepositoryLeaseAcquisition(input: {
                     label: 'foreign repository source lease seal',
                 },
             };
+            assertNoForeignRecoveryTemporary(
+                foreignLocations.receipt.target,
+                foreignLocations.receipt.temporary,
+            );
+            assertNoForeignRecoveryTemporary(
+                foreignLocations.seal.target,
+                foreignLocations.seal.temporary,
+            );
             const foreignEvidence = readEvidence(foreignLocations);
             if (!foreignEvidence.intent || foreignEvidence.intent.state !== 'complete'
                 || !foreignEvidence.receipt || foreignEvidence.receipt.state !== 'complete'
@@ -358,24 +366,27 @@ export function recoverRepositoryLeaseAcquisition(input: {
         }
 
         validateMatchingEvidence(evidence, acquisition, scope, sourceReceipt);
-        for (const key of ['intent', 'receipt', 'seal'] as const) {
-            const snapshot = evidence[key];
-            if (!snapshot || snapshot.state === 'complete') continue;
+        const repair = <T>(
+            location: ArtifactLocation,
+            snapshot: RecoveryArtifactSnapshot<T> | undefined,
+        ): void => {
+            if (!snapshot || snapshot.state === 'complete') return;
             assertDeadAcquisitionTarget(paths, target, boundInput);
             validateRunDirectory(runDirectory);
-            repairRecoveryArtifact(locations[key], snapshot);
+            repairRecoveryArtifact(location, snapshot);
             assertDeadAcquisitionTarget(paths, target, boundInput);
-        }
+        };
+        repair(locations.intent, evidence.intent);
+        repair(locations.receipt, evidence.receipt);
+        repair(locations.seal, evidence.seal);
         evidence = readEvidence(locations);
         validateMatchingEvidence(evidence, acquisition, scope, sourceReceipt);
-        const completeEvidence: MatchingEvidence = {
-            intent: evidence.intent?.state === 'complete' ? evidence.intent : undefined,
-            receipt: evidence.receipt?.state === 'complete' ? evidence.receipt : undefined,
-            seal: evidence.seal?.state === 'complete' ? evidence.seal : undefined,
-        };
-        if (canonicalJson(Object.keys(completeEvidence)) !== canonicalJson(Object.keys(evidence))) {
-            fail('repository lease recovery did not reach a stable publication state');
+        for (const snapshot of [evidence.intent, evidence.receipt, evidence.seal]) {
+            if (snapshot && snapshot.state !== 'complete') {
+                fail('repository lease recovery did not reach a stable publication state');
+            }
         }
+        const completeEvidence = evidence;
         if (completeEvidence.seal) {
             verifyRepositoryLease({
                 repoRoot: scope.repoRoot,
