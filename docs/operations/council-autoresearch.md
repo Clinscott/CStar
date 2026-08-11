@@ -93,7 +93,12 @@ the Git common directory. Acquisition happens before HEAD/status checks. Only a
 holder with the matching run ID and resume token can verify or release it. A
 contender that fails `O_EXCL` never enters cleanup. The runner rechecks HEAD,
 cleanliness of every governed path, and the recursive manifest before and after
-each durable operation.
+each durable operation. Attestation requires the real index to match the
+captured commit at stage zero; rejects assume-unchanged and skip-worktree flags,
+replacement refs, grafts, and alternate object databases; and compares each
+bounded worktree file byte-for-byte with its raw committed blob. It does not run
+Git status or clean filters, so repository-configured filter commands cannot
+execute during attestation or conceal worktree drift.
 
 The control root must be outside the source repository so receipt writes cannot
 invalidate source cleanliness. Stale ownership has no automatic timeout;
@@ -191,6 +196,7 @@ include these canonical paths:
 - `src/core/council_autoresearch/publication.ts`
 - `src/core/council_autoresearch/rating.ts`
 - `src/core/council_autoresearch/repository_lease.ts`
+- `src/core/council_autoresearch/source_attestation.ts`
 - `src/core/skill_registry.ts`
 - `src/packaging/distribution_content.ts`
 - `src/packaging/distributions.ts`
@@ -204,6 +210,7 @@ include these canonical paths:
 - `tests/unit/council-autoresearch/test_resource_bounds.test.ts`
 - `tests/unit/council-autoresearch/test_runner_checkpoint.test.ts`
 - `tests/unit/council-autoresearch/test_runner.test.ts`
+- `tests/unit/council-autoresearch/test_source_attestation.test.ts`
 - `tests/unit/test_council_autoresearch_skill.test.ts`
 - `tests/unit/test_current_documentation_contract.py`
 - `tests/unit/test_skill_registry_audit.py`

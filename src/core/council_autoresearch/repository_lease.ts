@@ -3,7 +3,6 @@ import fs from 'node:fs';
 import { hostname as systemHostname } from 'node:os';
 import path from 'node:path';
 
-import { buildArtifactManifest } from './artifact_manifest.js';
 import {
     ArtifactManifest,
     COUNCIL_AUTORESEARCH_RUNNER,
@@ -24,9 +23,8 @@ import {
 import {
     gitCommonDirectory,
     repositoryRoot,
-    runTrustedGit,
-    sourceHead,
 } from './git_trust.js';
+import { assertGovernedPaths, attestSource } from './source_attestation.js';
 
 export interface RepositoryLeaseRecord {
     schema_version: typeof COUNCIL_AUTORESEARCH_SCHEMA;
@@ -59,74 +57,6 @@ interface RepositoryOperationGuardRecord {
     acquired_at: string;
 }
 
-function assertGovernedSourceClean(repoRoot: string, governedPaths: string[]): void {
-    const status = String(runTrustedGit(repoRoot, [
-        '--literal-pathspecs',
-        'status',
-        '--porcelain=v1',
-        '--untracked-files=all',
-        '--',
-        ...governedPaths,
-    ])).trim();
-    if (status !== '') fail('governed source paths contain uncommitted changes');
-}
-
-function assertGovernedPaths(governedPaths: string[]): void {
-    if (governedPaths.length < 1 || governedPaths.length > 256) {
-        fail('one to 256 governed paths are required');
-    }
-    for (const entry of governedPaths) {
-        const segments = entry.split('/');
-        if (!entry || path.isAbsolute(entry) || entry.includes('\0') || entry.includes('\\')
-            || segments.some((segment) => !segment || segment === '.' || segment === '..')) {
-            fail(`governed source path is invalid: ${entry}`);
-        }
-    }
-}
-
-function worktreeBlobOids(repoRoot: string, paths: string[]): Map<string, string> {
-    if (paths.some((file) => /[\r\n\0]/.test(file))) fail('governed source path contains a control character');
-    const output = String(runTrustedGit(repoRoot, ['hash-object', '--stdin-paths'], {
-        input: `${paths.join('\n')}\n`,
-        maxBuffer: 16 * 1024 * 1024,
-        timeoutMs: 30_000,
-    }));
-    const hashes = output.trim().split(/\r?\n/);
-    if (hashes.length !== paths.length || hashes.some((hash) => !/^[a-f0-9]{40,64}$/.test(hash))) {
-        fail('governed worktree hash result is incomplete');
-    }
-    return new Map(paths.map((file, index) => [file, hashes[index]]));
-}
-
-function assertManifestMatchesHead(
-    repoRoot: string,
-    governedPaths: string[],
-    manifest: ArtifactManifest,
-): void {
-    const output = String(runTrustedGit(repoRoot, [
-        '--literal-pathspecs', 'ls-tree', '-r', '-z', '--full-tree', 'HEAD', '--', ...governedPaths,
-    ]));
-    const tree = new Map<string, { mode: number; oid: string }>();
-    for (const record of output.split('\0').filter(Boolean)) {
-        const match = /^(\d+) (\w+) ([a-f0-9]+)\t([\s\S]+)$/.exec(record);
-        if (!match || match[2] !== 'blob') fail('governed source contains a non-file Git entry');
-        const mode = match[1] === '100755' ? 0o755 : match[1] === '100644' ? 0o644 : -1;
-        if (mode < 0 || tree.has(match[4])) fail('governed Git tree contains an unsupported or duplicate entry');
-        tree.set(match[4], { mode, oid: match[3] });
-    }
-    const manifestPaths = manifest.entries.map((entry) => entry.path).sort();
-    const treePaths = [...tree.keys()].sort();
-    if (canonicalJson(manifestPaths) !== canonicalJson(treePaths)) {
-        fail('governed source manifest contains ignored, untracked, or missing files');
-    }
-    const worktree = worktreeBlobOids(repoRoot, manifestPaths);
-    for (const entry of manifest.entries) {
-        const committed = tree.get(entry.path)!;
-        if (committed.mode !== entry.mode) fail(`governed file mode differs from HEAD: ${entry.path}`);
-        if (committed.oid !== worktree.get(entry.path)) fail(`governed file bytes differ from HEAD: ${entry.path}`);
-    }
-}
-
 function lockPath(repoRoot: string): string {
     const common = gitCommonDirectory(repoRoot);
     return path.join(common, 'cstar-council-autoresearch.lock');
@@ -153,20 +83,6 @@ function writeLeaseDescriptor(descriptor: number, record: RepositoryLeaseRecord)
     fs.ftruncateSync(descriptor, 0);
     fs.writeSync(descriptor, bytes, 0, bytes.length, 0);
     fs.fsyncSync(descriptor);
-}
-
-function attestSource(repoRoot: string, governedPaths: string[], rootLabel: string): {
-    head: string;
-    manifest: ArtifactManifest;
-} {
-    const before = sourceHead(repoRoot);
-    assertGovernedSourceClean(repoRoot, governedPaths);
-    const manifest = buildArtifactManifest({ root: repoRoot, rootLabel, includedPaths: governedPaths });
-    assertManifestMatchesHead(repoRoot, governedPaths, manifest);
-    assertGovernedSourceClean(repoRoot, governedPaths);
-    const after = sourceHead(repoRoot);
-    if (before !== after) fail('repository HEAD changed during source attestation');
-    return { head: before, manifest };
 }
 
 export function acquireRepositoryLease(input: {

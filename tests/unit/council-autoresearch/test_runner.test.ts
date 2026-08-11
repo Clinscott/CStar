@@ -119,7 +119,7 @@ describe('Council autoresearch source lease and artifact manifests', () => {
         fs.writeFileSync(path.join(repo, 'src', 'site.txt'), 'drift\n');
         assert.throws(() => verifyRepositoryLease({
             repoRoot: repo, controlRoot: control, runId: lease.record.run_id, resumeToken: lease.resume_token,
-        }), /uncommitted|mismatch/i);
+        }), /uncommitted|mismatch|differ from HEAD/i);
         fs.writeFileSync(path.join(repo, 'src', 'site.txt'), 'stable source\n');
         releaseRepositoryLease({
             repoRoot: repo, controlRoot: control, runId: lease.record.run_id, resumeToken: lease.resume_token,
@@ -180,10 +180,13 @@ describe('Council autoresearch source lease and artifact manifests', () => {
             repoRoot: repo, controlRoot: control, runId: 'council-test-run-1', governedPaths: ['src'],
         });
         git(repo, ['update-index', '--assume-unchanged', 'src/site.txt']);
+        assert.throws(() => verifyRepositoryLease({
+            repoRoot: repo, controlRoot: control, runId: lease.record.run_id, resumeToken: lease.resume_token,
+        }), /hidden or unsupported flags/i);
         fs.writeFileSync(path.join(repo, 'src', 'site.txt'), 'hidden drift\n');
         assert.throws(() => verifyRepositoryLease({
             repoRoot: repo, controlRoot: control, runId: lease.record.run_id, resumeToken: lease.resume_token,
-        }), /bytes differ from HEAD/i);
+        }), /hidden or unsupported flags/i);
         git(repo, ['update-index', '--no-assume-unchanged', 'src/site.txt']);
         fs.writeFileSync(path.join(repo, 'src', 'site.txt'), 'stable source\n');
         releaseRepositoryLease({
