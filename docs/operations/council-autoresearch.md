@@ -189,6 +189,24 @@ read: it resolves the configured remote, canonicalizes its URL, verifies the
 exact remote ref and commit, and hashes files from that commit. It never fetches,
 pushes, commits, checks out, or rewrites Git state.
 
+The runner-v2.2 rebuild identity primitives additionally attest the exact canonical
+runner set against one commit-valued local HEAD and unchanged canonical index,
+worktree bytes, Git topology, and absence of noncanonical JavaScript siblings that
+could shadow canonical TypeScript imports or nearer package/TypeScript config
+files that could alter their resolution. Online verification brackets the remote-ref
+and committed-blob check with matching local attestations; the offline form
+repeats only the local binding and performs no network read. Production wrappers
+derive the loaded verifier's repository from its real module path and reject a
+different caller-nominated publication checkout. This is governed-source identity,
+not whole-checkout or runtime-loader identity: ignored dependencies and the
+Node/TypeScript loader remain outside this checkpoint and move behind the later
+frozen native runtime boundary. Wiring these primitives into packet freeze,
+persistence, and resume also remains a later rebuild checkpoint; the current
+schema-2.1 packet path must not yet be described as enforcing executing-HEAD
+identity. Callers must supply an already loaded and structurally verified bundle
+manifest; packet integration must bind it to the signed manifest reference before
+using these primitives.
+
 The canonical URL and branch must match the external trust policy. The local
 runner manifest and checkpoint `required_files` must be the exact same
 path-to-digest mapping—not merely the same multiset of content hashes—and must
@@ -233,6 +251,7 @@ include these canonical paths:
 - `src/core/council_autoresearch/repository_lease_recovery.ts`
 - `src/core/council_autoresearch/repository_lease_state.ts`
 - `src/core/council_autoresearch/repository_operation_guard.ts`
+- `src/core/council_autoresearch/runner_identity.ts`
 - `src/core/council_autoresearch/source_attestation.ts`
 - `src/core/skill_registry.ts`
 - `src/packaging/distribution_content.ts`
@@ -250,6 +269,7 @@ include these canonical paths:
 - `tests/unit/council-autoresearch/test_repository_lease_lifecycle.test.ts`
 - `tests/unit/council-autoresearch/test_resource_bounds.test.ts`
 - `tests/unit/council-autoresearch/test_runner_checkpoint.test.ts`
+- `tests/unit/council-autoresearch/test_runner_identity.test.ts`
 - `tests/unit/council-autoresearch/test_runner.test.ts`
 - `tests/unit/council-autoresearch/test_source_attestation.test.ts`
 - `tests/unit/test_council_autoresearch_skill.test.ts`

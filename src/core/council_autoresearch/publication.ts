@@ -62,6 +62,7 @@ export const REQUIRED_RUNNER_PUBLICATION_PATHS = Object.freeze([
     'src/core/council_autoresearch/repository_lease_recovery.ts',
     'src/core/council_autoresearch/repository_lease_state.ts',
     'src/core/council_autoresearch/repository_operation_guard.ts',
+    'src/core/council_autoresearch/runner_identity.ts',
     'src/core/council_autoresearch/source_attestation.ts',
     'src/core/skill_registry.ts',
     'src/packaging/distribution_content.ts',
@@ -77,6 +78,7 @@ export const REQUIRED_RUNNER_PUBLICATION_PATHS = Object.freeze([
     'tests/unit/council-autoresearch/test_repository_lease_lifecycle.test.ts',
     'tests/unit/council-autoresearch/test_resource_bounds.test.ts',
     'tests/unit/council-autoresearch/test_runner_checkpoint.test.ts',
+    'tests/unit/council-autoresearch/test_runner_identity.test.ts',
     'tests/unit/council-autoresearch/test_runner.test.ts',
     'tests/unit/council-autoresearch/test_source_attestation.test.ts',
     'tests/unit/test_council_autoresearch_skill.test.ts',
@@ -124,7 +126,7 @@ function assertRepositoryPath(file: string): void {
     }
 }
 
-function executingRunnerRepositoryRoot(): string {
+export function executingRunnerRepositoryRoot(): string {
     const moduleFile = fs.realpathSync(fileURLToPath(import.meta.url));
     const suffix = PUBLICATION_MODULE_PATH.split('/').join(path.sep);
     if (!moduleFile.endsWith(`${path.sep}${suffix}`)) {

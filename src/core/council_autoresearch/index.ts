@@ -9,4 +9,5 @@ export * from './packet.js';
 export * from './publication.js';
 export * from './rating.js';
 export * from './repository_lease.js';
+export * from './runner_identity.js';
 export * from './source_attestation.js';
