@@ -195,6 +195,63 @@ export function sha256(value: string | Buffer): Sha256 {
     return createHash('sha256').update(value).digest('hex');
 }
 
+function sameInode(left: fs.BigIntStats, right: fs.BigIntStats): boolean {
+    return left.dev === right.dev && left.ino === right.ino;
+}
+
+function immutableTemporaryPattern(target: string): RegExp {
+    const escaped = path.basename(target).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return new RegExp(`^${escaped}\\.tmp-[0-9]+-[a-f0-9-]{36}$`);
+}
+
+/**
+ * The target link is the commit point for an immutable write. A crash after that
+ * link is synced but before the temporary link is removed leaves one exact,
+ * runner-shaped alias. Repair only that fully accounted-for two-link state.
+ */
+export function repairInterruptedImmutableWrite(file: string): void {
+    const target = path.resolve(file);
+    let targetStat: fs.BigIntStats;
+    try {
+        targetStat = fs.lstatSync(target, { bigint: true });
+    } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === 'ENOENT') return;
+        throw error;
+    }
+    if (targetStat.isSymbolicLink() || !targetStat.isFile() || targetStat.nlink === 1n) return;
+    if (targetStat.nlink !== 2n) {
+        fail(`immutable target has unexplained hard links: ${target}`);
+    }
+
+    const directory = path.dirname(target);
+    const pattern = immutableTemporaryPattern(target);
+    const aliases = fs.readdirSync(directory)
+        .filter((name) => pattern.test(name))
+        .map((name) => path.join(directory, name))
+        .filter((candidate) => {
+            const stat = fs.lstatSync(candidate, { bigint: true });
+            return !stat.isSymbolicLink() && stat.isFile() && sameInode(stat, targetStat);
+        });
+    if (aliases.length !== 1) {
+        fail(`immutable target has unexplained hard links: ${target}`);
+    }
+
+    const alias = aliases[0];
+    const currentTarget = fs.lstatSync(target, { bigint: true });
+    const currentAlias = fs.lstatSync(alias, { bigint: true });
+    if (!sameInode(currentTarget, targetStat) || currentTarget.nlink !== 2n
+        || !sameInode(currentAlias, targetStat) || currentAlias.nlink !== 2n) {
+        fail(`immutable temporary alias changed during recovery: ${alias}`);
+    }
+    fs.unlinkSync(alias);
+    fsyncDirectory(directory);
+
+    const repaired = fs.lstatSync(target, { bigint: true });
+    if (!sameInode(repaired, targetStat) || repaired.nlink !== 1n) {
+        fail(`immutable target could not be repaired safely: ${target}`);
+    }
+}
+
 export function assertCouncilRuntimePlatform(platform: NodeJS.Platform = process.platform): void {
     if (platform === 'win32') fail('council-autoresearch currently requires a POSIX runtime');
     if (typeof fs.constants.O_NOFOLLOW !== 'number') {
@@ -208,11 +265,11 @@ function assertReadByteLimit(maxBytes: number, ceiling: number, label: string): 
     }
 }
 
-export function readRegularFileNoFollow(
+export function snapshotRegularFileNoFollow(
     file: string,
     label = 'file',
     maxBytes = MAX_REGULAR_FILE_BYTES,
-): Buffer {
+): { content: Buffer; mode: number } {
     assertCouncilRuntimePlatform();
     assertReadByteLimit(maxBytes, MAX_REGULAR_FILE_BYTES, `${label} read limit`);
     const noFollow = fs.constants.O_NOFOLLOW;
@@ -239,10 +296,31 @@ export function readRegularFileNoFollow(
             if (before[key] !== after[key]) fail(`${label} changed while it was being read`);
         }
         if (offset !== expectedBytes) fail(`${label} changed while it was being read`);
-        return content;
+        let linked: fs.BigIntStats;
+        try {
+            linked = fs.lstatSync(file, { bigint: true });
+        } catch {
+            fail(`${label} path changed while it was being read`);
+        }
+        if (linked.isSymbolicLink() || !linked.isFile() || linked.nlink !== 1n
+            || !sameInode(linked, after)) {
+            fail(`${label} path changed while it was being read`);
+        }
+        for (const key of ['mode', 'size', 'mtimeNs', 'ctimeNs'] as const) {
+            if (linked[key] !== after[key]) fail(`${label} path changed while it was being read`);
+        }
+        return { content, mode: Number(before.mode) & 0o777 };
     } finally {
         fs.closeSync(descriptor);
     }
+}
+
+export function readRegularFileNoFollow(
+    file: string,
+    label = 'file',
+    maxBytes = MAX_REGULAR_FILE_BYTES,
+): Buffer {
+    return snapshotRegularFileNoFollow(file, label, maxBytes).content;
 }
 
 export function sha256File(file: string, maxBytes = MAX_REGULAR_FILE_BYTES): Sha256 {
@@ -337,50 +415,104 @@ export function ensureDirectoryNoFollow(directory: string): string {
     return fs.realpathSync(target);
 }
 
-function existingImmutableDigest(target: string): Sha256 | undefined {
+function existingImmutableState(target: string): { digest: Sha256; mode: number } | undefined {
     try {
+        repairInterruptedImmutableWrite(target);
         const stat = fs.lstatSync(target);
         if (stat.isSymbolicLink() || !stat.isFile() || stat.nlink !== 1) {
             fail(`immutable receipt target is not a single-link regular file: ${target}`);
         }
-        return sha256File(target);
+        const snapshot = snapshotRegularFileNoFollow(target, target);
+        return { digest: sha256(snapshot.content), mode: snapshot.mode };
     } catch (error) {
         if ((error as NodeJS.ErrnoException).code === 'ENOENT') return undefined;
         throw error;
     }
 }
 
-export function writeImmutableJson(file: string, value: unknown): { sha256: Sha256; created: boolean } {
+export function writeImmutableFile(
+    file: string,
+    content: Buffer,
+    mode = 0o600,
+): { sha256: Sha256; created: boolean } {
     const target = path.resolve(file);
     const directory = path.dirname(target);
     ensureDirectoryNoFollow(directory);
-    const serialized = `${JSON.stringify(value, null, 2)}\n`;
-    const digest = sha256(serialized);
-    const existing = existingImmutableDigest(target);
+    if (!Number.isInteger(mode) || mode < 0 || mode > 0o777) {
+        fail('immutable file mode is invalid');
+    }
+    const digest = sha256(content);
+    const existing = existingImmutableState(target);
     if (existing !== undefined) {
-        if (existing !== digest) fail(`immutable receipt conflicts at ${target}`);
+        if (existing.digest !== digest || existing.mode !== mode) {
+            fail(`immutable receipt conflicts at ${target}`);
+        }
         return { sha256: digest, created: false };
     }
     const temporary = `${target}.tmp-${process.pid}-${randomUUID()}`;
     const descriptor = fs.openSync(temporary, 'wx', 0o600);
-    try {
-        fs.writeFileSync(descriptor, serialized);
-        fs.fsyncSync(descriptor);
-    } finally {
-        fs.closeSync(descriptor);
-    }
+    let temporaryIdentity: fs.BigIntStats | undefined;
+    let committed = false;
     let created = true;
     try {
+        fs.writeFileSync(descriptor, content);
+        fs.fchmodSync(descriptor, mode);
+        fs.fsyncSync(descriptor);
+        temporaryIdentity = fs.fstatSync(descriptor, { bigint: true });
+        if (!temporaryIdentity.isFile() || temporaryIdentity.nlink !== 1n
+            || temporaryIdentity.size !== BigInt(content.length)
+            || (Number(temporaryIdentity.mode) & 0o777) !== mode) {
+            fail(`immutable temporary file changed before commit: ${temporary}`);
+        }
         fs.linkSync(temporary, target);
         fsyncDirectory(directory);
+        const linkedTarget = fs.lstatSync(target, { bigint: true });
+        const linkedTemporary = fs.fstatSync(descriptor, { bigint: true });
+        if (linkedTarget.isSymbolicLink() || !linkedTarget.isFile()
+            || !sameInode(linkedTarget, temporaryIdentity)
+            || !sameInode(linkedTemporary, temporaryIdentity)
+            || linkedTarget.nlink !== 2n || linkedTemporary.nlink !== 2n
+            || linkedTarget.size !== BigInt(content.length)
+            || (Number(linkedTarget.mode) & 0o777) !== mode) {
+            fail(`immutable receipt target changed during commit: ${target}`);
+        }
+        committed = true;
     } catch (error) {
-        if ((error as NodeJS.ErrnoException).code !== 'EEXIST' || existingImmutableDigest(target) !== digest) throw error;
+        const winner = (error as NodeJS.ErrnoException).code === 'EEXIST'
+            ? existingImmutableState(target)
+            : undefined;
+        if (!winner || winner.digest !== digest || winner.mode !== mode) throw error;
+        committed = true;
         created = false;
     } finally {
-        fs.unlinkSync(temporary);
-        fsyncDirectory(directory);
+        fs.closeSync(descriptor);
+        try {
+            const currentTemporary = fs.lstatSync(temporary, { bigint: true });
+            if (!temporaryIdentity || currentTemporary.isSymbolicLink()
+                || !currentTemporary.isFile()
+                || !sameInode(currentTemporary, temporaryIdentity)) {
+                fail(`immutable temporary path changed during cleanup: ${temporary}`);
+            }
+            fs.unlinkSync(temporary);
+            fsyncDirectory(directory);
+        } catch (error) {
+            if (!committed || (error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+            // The target link is the commit point. A later immutable replay repairs
+            // the one exact same-inode temporary alias left by an interrupted cleanup.
+        }
+    }
+    if (created) {
+        const finalTarget = fs.lstatSync(target, { bigint: true });
+        if (!temporaryIdentity || finalTarget.isSymbolicLink() || !finalTarget.isFile()
+            || !sameInode(finalTarget, temporaryIdentity) || finalTarget.nlink !== 1n) {
+            fail(`immutable receipt target changed after commit: ${target}`);
+        }
     }
     return { sha256: digest, created };
+}
+
+export function writeImmutableJson(file: string, value: unknown): { sha256: Sha256; created: boolean } {
+    return writeImmutableFile(file, Buffer.from(`${JSON.stringify(value, null, 2)}\n`));
 }
 
 export function deterministicCouncilOrder(order: readonly string[], seed: string): string[] {

@@ -14,6 +14,9 @@ import {
     buildArtifactManifest,
     readJson,
     readRegularFileNoFollow,
+    repairInterruptedImmutableWrite,
+    writeImmutableFile,
+    writeImmutableJson,
 } from '../../../src/core/council_autoresearch/index.js';
 
 const roots: string[] = [];
@@ -34,6 +37,10 @@ function sparseFile(file: string, bytes: number): void {
     fs.truncateSync(file, bytes);
 }
 
+function interruptedAlias(target: string, suffix: string): string {
+    return `${target}.tmp-${process.pid}-${suffix}`;
+}
+
 describe('Council autoresearch resource bounds', () => {
     it('caps regular-file and JSON reads before allocating file-sized buffers', () => {
         const root = temporary('cstar-council-read-bounds-');
@@ -52,6 +59,72 @@ describe('Council autoresearch resource bounds', () => {
             () => readRegularFileNoFollow(smallJson, 'small JSON', MAX_REGULAR_FILE_BYTES + 1),
             /read limit must be a safe integer/i,
         );
+    });
+
+    it('repairs one exact interrupted immutable-write alias on identical replay', () => {
+        const root = temporary('cstar-council-immutable-repair-');
+        const target = path.join(root, 'receipt.json');
+        const value = { durable: true };
+        assert.equal(writeImmutableJson(target, value).created, true);
+        const alias = interruptedAlias(target, '00000000-0000-4000-8000-000000000001');
+        fs.linkSync(target, alias);
+        assert.equal(fs.statSync(target).nlink, 2);
+
+        assert.equal(writeImmutableJson(target, value).created, false);
+        assert.equal(fs.existsSync(alias), false);
+        assert.equal(fs.statSync(target).nlink, 1);
+    });
+
+    it('does not repair unexplained or multiply linked immutable targets', () => {
+        const root = temporary('cstar-council-immutable-links-');
+        const unexplained = path.join(root, 'unexplained.json');
+        writeImmutableJson(unexplained, { durable: true });
+        const foreignAlias = path.join(root, 'foreign-alias.json');
+        fs.linkSync(unexplained, foreignAlias);
+        assert.throws(
+            () => writeImmutableJson(unexplained, { durable: true }),
+            /unexplained hard links/i,
+        );
+        assert.equal(fs.existsSync(foreignAlias), true);
+        assert.equal(fs.statSync(unexplained).nlink, 2);
+
+        const multiple = path.join(root, 'multiple.json');
+        writeImmutableJson(multiple, { durable: true });
+        const firstAlias = interruptedAlias(multiple, '00000000-0000-4000-8000-000000000002');
+        const secondAlias = interruptedAlias(multiple, '00000000-0000-4000-8000-000000000003');
+        fs.linkSync(multiple, firstAlias);
+        fs.linkSync(multiple, secondAlias);
+        assert.throws(() => repairInterruptedImmutableWrite(multiple), /unexplained hard links/i);
+        assert.equal(fs.existsSync(firstAlias), true);
+        assert.equal(fs.existsSync(secondAlias), true);
+        assert.equal(fs.statSync(multiple).nlink, 3);
+    });
+
+    it('never repairs runner-shaped aliases during a generic artifact read', () => {
+        const root = temporary('cstar-council-generic-read-links-');
+        const target = path.join(root, 'artifact.txt');
+        fs.writeFileSync(target, 'artifact bytes\n');
+        const alias = interruptedAlias(target, '00000000-0000-4000-8000-000000000004');
+        fs.linkSync(target, alias);
+
+        assert.throws(() => readRegularFileNoFollow(target), /single-link regular file/i);
+        assert.equal(fs.existsSync(alias), true);
+        assert.equal(fs.statSync(target).nlink, 2);
+    });
+
+    it('preserves immutable file mode and rejects mode-conflicting replay', () => {
+        const root = temporary('cstar-council-immutable-mode-');
+        const target = path.join(root, 'bundle.mjs');
+        const content = Buffer.from('export default true;\n');
+
+        assert.equal(writeImmutableFile(target, content, 0o640).created, true);
+        assert.equal(fs.statSync(target).mode & 0o777, 0o640);
+        assert.equal(writeImmutableFile(target, content, 0o640).created, false);
+        assert.throws(
+            () => writeImmutableFile(target, content, 0o600),
+            /immutable receipt conflicts/i,
+        );
+        assert.equal(fs.statSync(target).mode & 0o777, 0o640);
     });
 
     it('rejects an oversized artifact file during metadata preflight', () => {
