@@ -22,10 +22,17 @@ Feature: Bounded Council autoresearch
   Rule: One source owner freezes one evidence identity
 
     Scenario: A run begins from committed source
-      Given one bounded run id and explicit governed paths
+      Given one bounded run id, explicit governed paths, and a caller-owned private resume token
       When the host acquires the repository-wide source lease
       Then the lease binds the exact HEAD and recursive source manifest
+      And the runner stores only the resume-token digest and never returns the raw token
       And a failed contender cannot remove the acquired lease
+
+    Scenario: The acquisition response is lost
+      Given one fully sealed source lease and the original caller-owned resume token
+      When the host repeats the exact acquisition request
+      Then the runner returns the same lease identity with created false
+      And it creates no different source intent, receipt, or operation guard
 
     Scenario: A command process exits while holding the operation guard
       Given the guard binds the active lease and resume-token digest

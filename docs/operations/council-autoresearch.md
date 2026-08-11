@@ -39,11 +39,12 @@ signer. A packet-carried public key is accepted only when it matches this
 external policy. Signed receipts attest the configured bridge invocation and
 bound inputs/outputs; they do not prove model identity or independent sampling.
 
-`lease-acquire` returns the raw resume token on stdout so later commands can
-prove lease possession. Treat it as a sensitive capability: capture it through
-a private channel, never commit it, never include it in a report or receipt,
-and avoid terminal/session logging that would retain it. Only its SHA-256 digest
-belongs in `00-source-lease.json`.
+Before `lease-acquire`, the authorized caller generates 32 random bytes encoded
+as 64 lowercase hexadecimal characters and supplies that resume token through a
+private request channel. The runner never returns or prints the raw capability;
+it stores only its SHA-256 digest. Keep the token out of commits, reports,
+receipts, and terminal/session logs. Retain it privately so an identical request
+can recover a lost response without creating a different lease identity.
 
 ## Formal lifecycle and advisory evaluator
 
@@ -95,8 +96,11 @@ bag of otherwise matching digests cannot swap or obscure receipt meaning.
 ## Source lease
 
 The exclusive anchor is keyed by the canonical repository root and stored under
-the Git common directory. Acquisition happens before HEAD/status checks. Only a
-holder with the matching run ID and resume token can verify or release it. A
+the Git common directory as an immutable lease intent; the sealed
+`00-source-lease.json` pair stores the fully attested record. Acquisition happens
+before HEAD/status checks. Only a holder with the matching run ID and caller-owned
+resume token can verify or release it. An exact lost-response replay returns the
+same record and lease ID with `created:false`, without returning the token. A
 contender that fails `O_EXCL` never enters cleanup. The runner rechecks HEAD,
 cleanliness of every governed path, and the recursive manifest before and after
 each durable operation. Attestation requires the real index to match the
@@ -137,7 +141,7 @@ publishes that guard before creating a control directory, source lock, or receip
 Command and release
 guards bind the authorized lease and resume-token digest; acquisition guards bind
 the canonical repository/common directory, control target, run, pre-generated
-lease identity, token digest, and governed-path digest. Full active-lease and
+lease identity, exact lease-intent digest, token digest, and governed-path digest. Full active-lease and
 source verification occurs only after the caller owns this common guard, so a
 paused old command cannot cross a release and replacement acquisition.
 
@@ -152,18 +156,17 @@ bound through the kernel's `NSpid` mapping. Concurrent recovery calls are
 serialized before the stale inode is claimed by a fixed hard link; a different
 replacement inode at the guard pathname is preserved.
 
-Token-authorized recovery can now distinguish an unfinished release (the exact
+Token-authorized recovery can distinguish an unfinished release (the exact
 source lock remains) from a committed release (the lock is absent while the exact
-source receipt and source attestation remain valid). A separate exact-scope core
-recovery call may remove a dead acquisition guard with no lease effects or abort
-one matching partial source lock when no source receipt exists. It never removes
-a receipted lease without the matching resume token. A recovery process that
+source receipt and source attestation remain valid). Exact acquisition recovery
+requires the caller token, scope, and operation ID. It may remove a dead guard
+with no effects, repair only guard-derived intent/body/seal publication aliases,
+and preserve a committed intent or body for same-token replay. It never invents a
+missing seal or removes a receipted lease under another capability. A recovery process that
 itself crashes leaves its owner/claim records fail-closed for operator
 investigation; they are never taken over automatically. The registered terminal
-command does not expose either recovery call yet. Lost-response replay after a
-completed acquisition but before delivery of its generated token remains pending
-the sealed lease-intent lifecycle; same-UID processes remain in the local trusted
-computing base.
+command does not expose either recovery call yet. Same-UID processes remain in
+the local trusted computing base.
 
 ## Packet and manifests
 

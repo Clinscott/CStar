@@ -11,7 +11,9 @@ import {
     currentOperationOwner,
     recoverRepositoryLeaseAcquisition,
     recoverRepositoryLeaseOperation,
+    receiptSealPath,
     releaseRepositoryLease,
+    repositoryLeaseIntentFromRecord,
     sha256,
     verifyRepositoryLease,
     withRepositoryLeaseOperation,
@@ -20,6 +22,7 @@ import {
     cleanup,
     git,
     repository,
+    resumeToken,
     temporary,
 } from './test_helpers.js';
 
@@ -66,6 +69,7 @@ function acquisitionGuard(input: {
     operationId: string;
     leaseId: string;
     resumeTokenSha256: string;
+    leaseIntentSha256: string;
     owner: ReturnType<typeof currentOperationOwner>;
 }): Record<string, unknown> {
     const paths = lifecyclePaths(input.repo);
@@ -77,6 +81,7 @@ function acquisitionGuard(input: {
         lease_id: input.leaseId,
         run_id: input.runId,
         resume_token_sha256: input.resumeTokenSha256,
+        lease_intent_sha256: input.leaseIntentSha256,
         owner: input.owner,
         acquired_at: new Date().toISOString(),
         repository_root: fs.realpathSync(input.repo),
@@ -90,10 +95,12 @@ describe('Council autoresearch repository lifecycle serialization', () => {
     it('blocks acquisition through the committed-release guard window', () => {
         const repo = repository();
         const control = temporary('cstar-council-control-');
+        const oldToken = resumeToken('council-old-run');
         const lease = acquireRepositoryLease({
             repoRoot: repo,
             controlRoot: control,
             runId: 'council-old-run',
+            resumeToken: oldToken,
             governedPaths: ['src'],
         });
         const paths = lifecyclePaths(repo);
@@ -104,7 +111,7 @@ describe('Council autoresearch repository lifecycle serialization', () => {
             operation_id: '00000000-0000-4000-8000-000000000101',
             lease_id: lease.record.lease_id,
             run_id: lease.record.run_id,
-            resume_token_sha256: sha256(lease.resume_token),
+            resume_token_sha256: sha256(oldToken),
             owner: deadOwner(),
             acquired_at: new Date().toISOString(),
         });
@@ -116,6 +123,7 @@ describe('Council autoresearch repository lifecycle serialization', () => {
             repoRoot: repo,
             controlRoot: newControl,
             runId: 'council-new-run',
+            resumeToken: resumeToken('council-new-run'),
             governedPaths: ['src'],
         }), /operation guard already exists|explicit recovery/i);
         assert.equal(fs.existsSync(newControl), false);
@@ -125,7 +133,7 @@ describe('Council autoresearch repository lifecycle serialization', () => {
             repoRoot: repo,
             controlRoot: control,
             runId: lease.record.run_id,
-            resumeToken: lease.resume_token,
+            resumeToken: oldToken,
         });
         assert.equal(recovered.recovered, true);
         if (recovered.recovered) assert.equal(recovered.outcome, 'release-committed');
@@ -135,37 +143,42 @@ describe('Council autoresearch repository lifecycle serialization', () => {
             repoRoot: repo,
             controlRoot: newControl,
             runId: 'council-new-run',
+            resumeToken: resumeToken('council-new-run'),
             governedPaths: ['src'],
         });
         releaseRepositoryLease({
             repoRoot: repo,
             controlRoot: newControl,
             runId: replacement.record.run_id,
-            resumeToken: replacement.resume_token,
+            resumeToken: resumeToken(replacement.record.run_id),
         });
     });
 
     it('rejects a stale old-lease command before effects and preserves the replacement lease', () => {
         const repo = repository();
         const oldControl = temporary('cstar-council-old-control-');
+        const oldToken = resumeToken('council-old-run');
         const oldLease = acquireRepositoryLease({
             repoRoot: repo,
             controlRoot: oldControl,
             runId: 'council-old-run',
+            resumeToken: oldToken,
             governedPaths: ['src'],
         });
         releaseRepositoryLease({
             repoRoot: repo,
             controlRoot: oldControl,
             runId: oldLease.record.run_id,
-            resumeToken: oldLease.resume_token,
+            resumeToken: oldToken,
         });
 
         const newControl = temporary('cstar-council-new-control-');
+        const newToken = resumeToken('council-new-run');
         const replacement = acquireRepositoryLease({
             repoRoot: repo,
             controlRoot: newControl,
             runId: 'council-new-run',
+            resumeToken: newToken,
             governedPaths: ['src'],
         });
         const paths = lifecyclePaths(repo);
@@ -176,7 +189,7 @@ describe('Council autoresearch repository lifecycle serialization', () => {
             repoRoot: repo,
             controlRoot: oldControl,
             runId: oldLease.record.run_id,
-            resumeToken: oldLease.resume_token,
+            resumeToken: oldToken,
         }, () => {
             effect = true;
         }), /lease identity mismatch|receipt does not match/i);
@@ -190,30 +203,32 @@ describe('Council autoresearch repository lifecycle serialization', () => {
             repoRoot: repo,
             controlRoot: newControl,
             runId: replacement.record.run_id,
-            resumeToken: replacement.resume_token,
+            resumeToken: newToken,
         }));
         releaseRepositoryLease({
             repoRoot: repo,
             controlRoot: newControl,
             runId: replacement.record.run_id,
-            resumeToken: replacement.resume_token,
+            resumeToken: newToken,
         });
     });
 
     it('does not wedge when a released run already has an immutable source receipt', () => {
         const repo = repository();
         const control = temporary('cstar-council-reused-control-');
+        const token = resumeToken('council-reused-run');
         const lease = acquireRepositoryLease({
             repoRoot: repo,
             controlRoot: control,
             runId: 'council-reused-run',
+            resumeToken: token,
             governedPaths: ['src'],
         });
         releaseRepositoryLease({
             repoRoot: repo,
             controlRoot: control,
             runId: lease.record.run_id,
-            resumeToken: lease.resume_token,
+            resumeToken: token,
         });
         const paths = lifecyclePaths(repo);
         const receipt = path.join(
@@ -224,19 +239,27 @@ describe('Council autoresearch repository lifecycle serialization', () => {
         );
         const receiptBytes = fs.readFileSync(receipt);
         const receiptStat = fs.lstatSync(receipt, { bigint: true });
+        const seal = receiptSealPath(receipt);
+        const sealBytes = fs.readFileSync(seal);
+        const sealStat = fs.lstatSync(seal, { bigint: true });
 
         assert.throws(() => acquireRepositoryLease({
             repoRoot: repo,
             controlRoot: control,
             runId: lease.record.run_id,
+            resumeToken: token,
             governedPaths: ['src'],
-        }), /source lease receipt already exists/i);
+        }), /source lease (?:receipt|evidence).*exists.*intent/i);
         assert.equal(fs.existsSync(paths.lock), false);
         assert.equal(fs.existsSync(paths.guard), false);
         assert.deepEqual(fs.readFileSync(receipt), receiptBytes);
         const preserved = fs.lstatSync(receipt, { bigint: true });
         assert.equal(preserved.dev, receiptStat.dev);
         assert.equal(preserved.ino, receiptStat.ino);
+        assert.deepEqual(fs.readFileSync(seal), sealBytes);
+        const preservedSeal = fs.lstatSync(seal, { bigint: true });
+        assert.equal(preservedSeal.dev, sealStat.dev);
+        assert.equal(preservedSeal.ino, sealStat.ino);
     });
 
     it('recovers a dead guard-only acquisition without creating lease effects', () => {
@@ -245,13 +268,15 @@ describe('Council autoresearch repository lifecycle serialization', () => {
         const control = path.join(controlParent, 'control');
         const paths = lifecyclePaths(repo);
         const operationId = '00000000-0000-4000-8000-000000000201';
+        const token = resumeToken('council-acquire-run');
         writePrivateJson(paths.guard, acquisitionGuard({
             repo,
             control,
             runId: 'council-acquire-run',
             operationId,
             leaseId: '00000000-0000-4000-8000-000000000202',
-            resumeTokenSha256: 'a'.repeat(64),
+            resumeTokenSha256: sha256(token),
+            leaseIntentSha256: 'b'.repeat(64),
             owner: deadOwner(),
         }));
 
@@ -261,6 +286,7 @@ describe('Council autoresearch repository lifecycle serialization', () => {
             runId: 'council-acquire-run',
             governedPaths: ['src'],
             operationId: '00000000-0000-4000-8000-000000000299',
+            resumeToken: token,
         }), /does not bind the recovery input/i);
         assert.equal(fs.existsSync(paths.guard), true);
         assert.equal(fs.existsSync(control), false);
@@ -272,6 +298,7 @@ describe('Council autoresearch repository lifecycle serialization', () => {
             runId: 'council-acquire-run',
             governedPaths: ['src'],
             operationId,
+            resumeToken: token,
         });
         assert.equal(recovered.recovered, true);
         if (recovered.recovered) {
@@ -287,10 +314,12 @@ describe('Council autoresearch repository lifecycle serialization', () => {
     it('aborts one exact partial acquisition but preserves a receipted lease', () => {
         const repo = repository();
         const control = temporary('cstar-council-partial-control-');
+        const token = resumeToken('council-partial-run');
         const lease = acquireRepositoryLease({
             repoRoot: repo,
             controlRoot: control,
             runId: 'council-partial-run',
+            resumeToken: token,
             governedPaths: ['src'],
         });
         const paths = lifecyclePaths(repo);
@@ -301,7 +330,8 @@ describe('Council autoresearch repository lifecycle serialization', () => {
             runId: lease.record.run_id,
             operationId,
             leaseId: lease.record.lease_id,
-            resumeTokenSha256: sha256(lease.resume_token),
+            resumeTokenSha256: sha256(token),
+            leaseIntentSha256: sha256(canonicalJson(repositoryLeaseIntentFromRecord(lease.record))),
             owner: currentOperationOwner(),
         });
         const receipt = path.join(
@@ -311,6 +341,7 @@ describe('Council autoresearch repository lifecycle serialization', () => {
             '00-source-lease.json',
         );
         fs.unlinkSync(receipt);
+        fs.unlinkSync(receiptSealPath(receipt));
         writePrivateJson(paths.guard, liveGuard);
         const liveLockStat = fs.lstatSync(paths.lock, { bigint: true });
         const liveLockBytes = fs.readFileSync(paths.lock);
@@ -320,6 +351,7 @@ describe('Council autoresearch repository lifecycle serialization', () => {
             runId: lease.record.run_id,
             governedPaths: ['src'],
             operationId,
+            resumeToken: token,
         }), /operation is active/i);
         assert.equal(fs.existsSync(paths.guard), true);
         assert.equal(fs.existsSync(paths.recoveryOwner), false);
@@ -340,15 +372,35 @@ describe('Council autoresearch repository lifecycle serialization', () => {
             runId: lease.record.run_id,
             governedPaths: ['src'],
             operationId,
+            resumeToken: token,
         });
         assert.equal(aborted.recovered, true);
-        assert.equal(fs.existsSync(paths.lock), false);
+        if (aborted.recovered) assert.equal(aborted.outcome, 'acquisition-not-committed');
+        assert.equal(fs.existsSync(paths.lock), true);
         assert.equal(fs.existsSync(paths.guard), false);
 
+        const resumed = acquireRepositoryLease({
+            repoRoot: repo,
+            controlRoot: control,
+            runId: lease.record.run_id,
+            resumeToken: token,
+            governedPaths: ['src'],
+        });
+        assert.equal(resumed.record.lease_id, lease.record.lease_id);
+        assert.equal(resumed.created, true);
+        releaseRepositoryLease({
+            repoRoot: repo,
+            controlRoot: control,
+            runId: lease.record.run_id,
+            resumeToken: token,
+        });
+
+        const activeToken = resumeToken('council-active-run');
         const active = acquireRepositoryLease({
             repoRoot: repo,
             controlRoot: temporary('cstar-council-active-control-'),
             runId: 'council-active-run',
+            resumeToken: activeToken,
             governedPaths: ['src'],
         });
         writePrivateJson(paths.guard, acquisitionGuard({
@@ -357,38 +409,32 @@ describe('Council autoresearch repository lifecycle serialization', () => {
             runId: active.record.run_id,
             operationId: '00000000-0000-4000-8000-000000000302',
             leaseId: active.record.lease_id,
-            resumeTokenSha256: sha256(active.resume_token),
+            resumeTokenSha256: sha256(activeToken),
+            leaseIntentSha256: sha256(canonicalJson(repositoryLeaseIntentFromRecord(active.record))),
             owner: deadOwner(),
         }));
-        assert.throws(() => recoverRepositoryLeaseAcquisition({
+        const completed = recoverRepositoryLeaseAcquisition({
             repoRoot: repo,
             controlRoot: active.record.control_root,
             runId: active.record.run_id,
             governedPaths: ['src'],
             operationId: '00000000-0000-4000-8000-000000000302',
-        }), /receipted repository lease requires resume-token recovery/i);
-        assert.equal(fs.existsSync(paths.guard), true);
-        assert.doesNotThrow(() => verifyRepositoryLease({
-            repoRoot: repo,
-            controlRoot: active.record.control_root,
-            runId: active.record.run_id,
-            resumeToken: active.resume_token,
-        }));
-
-        const completed = recoverRepositoryLeaseOperation({
-            repoRoot: repo,
-            controlRoot: active.record.control_root,
-            runId: active.record.run_id,
-            resumeToken: active.resume_token,
+            resumeToken: activeToken,
         });
         assert.equal(completed.recovered, true);
         if (completed.recovered) assert.equal(completed.outcome, 'acquisition-active');
         assert.equal(fs.existsSync(paths.guard), false);
+        assert.doesNotThrow(() => verifyRepositoryLease({
+            repoRoot: repo,
+            controlRoot: active.record.control_root,
+            runId: active.record.run_id,
+            resumeToken: activeToken,
+        }));
         releaseRepositoryLease({
             repoRoot: repo,
             controlRoot: active.record.control_root,
             runId: active.record.run_id,
-            resumeToken: active.resume_token,
+            resumeToken: activeToken,
         });
     });
 });

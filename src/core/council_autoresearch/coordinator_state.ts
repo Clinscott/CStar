@@ -119,6 +119,13 @@ function receiptExists(file: string): boolean {
     }
 }
 
+function receiptBodyAbsent(file: string): boolean {
+    if (receiptExists(file)) return false;
+    if (!physicalReceiptPresent(file)) return true;
+    receiptPairState(file);
+    return fail('receipt namespace changed while checking for a seal-only artifact');
+}
+
 function validateExperimentClaim(controlRoot: string, packet: FrozenCouncilPacket): void {
     const claimFile = path.join(
         path.resolve(controlRoot),
@@ -194,7 +201,7 @@ export function councilRunStatus(input: {
         assertNoReceiptGap(files, 'lease');
         return 'NEW';
     }
-    if (!receiptExists(files.packet)) {
+    if (receiptBodyAbsent(files.packet)) {
         assertNoReceiptGap(files, 'packet');
         return 'LEASED';
     }
@@ -212,19 +219,19 @@ export function councilRunStatus(input: {
         fail('packet does not bind the source lease');
     }
     validateExperimentClaim(input.controlRoot, packet);
-    if (!receiptExists(files.ratings)) {
+    if (receiptBodyAbsent(files.ratings)) {
         assertNoReceiptGap(files, 'ratings');
         return 'PACKET_FROZEN';
     }
     const ratings = readJson<FrozenRatings>(files.ratings);
     verifyFrozenRatings(packet, ratings, input.bundleRoot, trustPolicy);
-    if (!receiptExists(files.reveal)) {
+    if (receiptBodyAbsent(files.reveal)) {
         assertNoReceiptGap(files, 'reveal');
         return 'RATINGS_FROZEN';
     }
     const reveal = readJson<FrozenMappingReveal>(files.reveal);
     verifyMappingReveal(packet, ratings, reveal);
-    if (!receiptExists(files.decision)) {
+    if (receiptBodyAbsent(files.decision)) {
         assertNoReceiptGap(files, 'decision');
         return 'MAPPING_REVEALED';
     }
@@ -238,7 +245,7 @@ export function councilRunStatus(input: {
         runnerPublicationRepoRoot: input.runnerPublicationRepoRoot,
         trustPolicy,
     });
-    if (!receiptExists(files.publication)) return 'DECIDED';
+    if (receiptBodyAbsent(files.publication)) return 'DECIDED';
     const publication = readJson<PublicationReceipt>(files.publication);
     verifyPublicationReceiptStructure(publication);
     if (publication.run_id !== input.runId

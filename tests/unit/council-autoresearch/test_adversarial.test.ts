@@ -34,6 +34,7 @@ import {
     repository,
     provisionTrustPolicy,
     resignRecord,
+    resumeToken,
     signedRatings,
     temporary,
     writeJson,
@@ -175,14 +176,16 @@ describe('Council autoresearch adversarial boundaries', () => {
         const source = repository();
         const control = temporary('cstar-council-control-');
         const lease = acquireRepositoryLease({
-            repoRoot: source, controlRoot: control, runId: 'council-test-run-1', governedPaths: ['src'],
+            repoRoot: source, controlRoot: control, runId: 'council-test-run-1',
+            resumeToken: resumeToken('council-test-run-1'), governedPaths: ['src'],
         });
         provisionTrustPolicy(control, fixture);
         fixture.packetInput.sourceHead = lease.record.source_head;
         fixture.packetInput.sourceManifestSha256 = lease.record.source_manifest.manifest_sha256;
         const packet = freezeCouncilPacket(fixture.packetInput);
         const common = {
-            repoRoot: source, controlRoot: control, runId: packet.run_id, resumeToken: lease.resume_token,
+            repoRoot: source, controlRoot: control, runId: packet.run_id,
+            resumeToken: resumeToken(packet.run_id),
         };
         const evidence = {
             ...common,
@@ -241,7 +244,8 @@ describe('Council autoresearch adversarial boundaries', () => {
         const attacker = bundleFixture();
         provisionTrustPolicy(control, trusted);
         const lease = acquireRepositoryLease({
-            repoRoot: source, controlRoot: control, runId: 'council-test-run-1', governedPaths: ['src'],
+            repoRoot: source, controlRoot: control, runId: 'council-test-run-1',
+            resumeToken: resumeToken('council-test-run-1'), governedPaths: ['src'],
         });
         trusted.packetInput.sourceHead = lease.record.source_head;
         trusted.packetInput.sourceManifestSha256 = lease.record.source_manifest.manifest_sha256;
@@ -288,13 +292,14 @@ describe('Council autoresearch adversarial boundaries', () => {
             repoRoot: source,
             controlRoot: control,
             runId: lease.record.run_id,
-            resumeToken: lease.resume_token,
+            resumeToken: resumeToken(lease.record.run_id),
             bundleRoot: trusted.bundle,
             runnerPublicationRepoRoot: trusted.packetInput.runnerPublicationRepoRoot,
             packet: attackerPacket,
         }), /execution authority is not trusted/i);
         releaseRepositoryLease({
-            repoRoot: source, controlRoot: control, runId: lease.record.run_id, resumeToken: lease.resume_token,
+            repoRoot: source, controlRoot: control, runId: lease.record.run_id,
+            resumeToken: resumeToken(lease.record.run_id),
         });
     });
 
@@ -334,7 +339,8 @@ describe('Council autoresearch adversarial boundaries', () => {
         const fixture = bundleFixture();
         provisionTrustPolicy(control, fixture);
         const lease = acquireRepositoryLease({
-            repoRoot: source, controlRoot: control, runId: 'council-test-run-1', governedPaths: ['src'],
+            repoRoot: source, controlRoot: control, runId: 'council-test-run-1',
+            resumeToken: resumeToken('council-test-run-1'), governedPaths: ['src'],
         });
         fixture.packetInput.sourceHead = lease.record.source_head;
         fixture.packetInput.sourceManifestSha256 = lease.record.source_manifest.manifest_sha256;
@@ -343,7 +349,7 @@ describe('Council autoresearch adversarial boundaries', () => {
             repoRoot: source,
             controlRoot: control,
             runId: packet.run_id,
-            resumeToken: lease.resume_token,
+            resumeToken: resumeToken(packet.run_id),
             bundleRoot: fixture.bundle,
             runnerPublicationRepoRoot: fixture.packetInput.runnerPublicationRepoRoot,
         };
@@ -389,7 +395,8 @@ describe('Council autoresearch adversarial boundaries', () => {
             ...evidence, publicationRepoRoot: publication, receipt,
         }), /packet path does not bind/i);
         releaseRepositoryLease({
-            repoRoot: source, controlRoot: control, runId: lease.record.run_id, resumeToken: lease.resume_token,
+            repoRoot: source, controlRoot: control, runId: lease.record.run_id,
+            resumeToken: resumeToken(lease.record.run_id),
         });
     });
 
@@ -407,7 +414,8 @@ describe('Council autoresearch adversarial boundaries', () => {
         const fixture = bundleFixture();
         provisionTrustPolicy(control, fixture);
         const first = acquireRepositoryLease({
-            repoRoot: source, controlRoot: control, runId: 'council-test-run-1', governedPaths: ['src'],
+            repoRoot: source, controlRoot: control, runId: 'council-test-run-1',
+            resumeToken: resumeToken('council-test-run-1'), governedPaths: ['src'],
         });
         fixture.packetInput.sourceHead = first.record.source_head;
         fixture.packetInput.sourceManifestSha256 = first.record.source_manifest.manifest_sha256;
@@ -416,17 +424,19 @@ describe('Council autoresearch adversarial boundaries', () => {
             repoRoot: source,
             controlRoot: control,
             runId: first.record.run_id,
-            resumeToken: first.resume_token,
+            resumeToken: resumeToken(first.record.run_id),
             bundleRoot: fixture.bundle,
             runnerPublicationRepoRoot: fixture.packetInput.runnerPublicationRepoRoot,
             packet: packetOne,
         });
         releaseRepositoryLease({
-            repoRoot: source, controlRoot: control, runId: first.record.run_id, resumeToken: first.resume_token,
+            repoRoot: source, controlRoot: control, runId: first.record.run_id,
+            resumeToken: resumeToken(first.record.run_id),
         });
 
         const second = acquireRepositoryLease({
-            repoRoot: source, controlRoot: control, runId: 'council-test-run-2', governedPaths: ['src'],
+            repoRoot: source, controlRoot: control, runId: 'council-test-run-2',
+            resumeToken: resumeToken('council-test-run-2'), governedPaths: ['src'],
         });
         const secondInput = {
             ...fixture.packetInput,
@@ -440,13 +450,14 @@ describe('Council autoresearch adversarial boundaries', () => {
             repoRoot: source,
             controlRoot: control,
             runId: second.record.run_id,
-            resumeToken: second.resume_token,
+            resumeToken: resumeToken(second.record.run_id),
             bundleRoot: fixture.bundle,
             runnerPublicationRepoRoot: fixture.packetInput.runnerPublicationRepoRoot,
             packet: packetTwo,
         }), /immutable receipt conflicts/i);
         releaseRepositoryLease({
-            repoRoot: source, controlRoot: control, runId: second.record.run_id, resumeToken: second.resume_token,
+            repoRoot: source, controlRoot: control, runId: second.record.run_id,
+            resumeToken: resumeToken(second.record.run_id),
         });
         fs.unlinkSync(path.join(
             control,

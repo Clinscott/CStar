@@ -33,6 +33,7 @@ import {
     git,
     provisionTrustPolicy,
     repository,
+    resumeToken,
     signedRatings,
     temporary,
     writeJson,
@@ -47,6 +48,7 @@ describe('Council autoresearch source lease and artifact manifests', () => {
             repoRoot: path.join(repo, 'src'),
             controlRoot: temporary('cstar-council-control-'),
             runId: 'council-test-run-1',
+            resumeToken: resumeToken('council-test-run-1'),
             governedPaths: ['site.txt'],
         }), /Git worktree top-level/i);
 
@@ -61,13 +63,14 @@ describe('Council autoresearch source lease and artifact manifests', () => {
                 repoRoot: repo,
                 controlRoot: control,
                 runId: 'council-test-run-2',
+                resumeToken: resumeToken('council-test-run-2'),
                 governedPaths: ['src'],
             });
             releaseRepositoryLease({
                 repoRoot: repo,
                 controlRoot: control,
                 runId: lease.record.run_id,
-                resumeToken: lease.resume_token,
+                resumeToken: resumeToken(lease.record.run_id),
             });
         } finally {
             if (previousPath === undefined) delete process.env.PATH;
@@ -85,6 +88,7 @@ describe('Council autoresearch source lease and artifact manifests', () => {
                     repoRoot: repo,
                     controlRoot: temporary('cstar-council-control-'),
                     runId: `council-${name.toLowerCase()}-test`,
+                    resumeToken: resumeToken(`council-${name.toLowerCase()}-test`),
                     governedPaths: ['src'],
                 }), new RegExp(`ambient Git topology override.*${name}`, 'i'));
             } finally {
@@ -97,15 +101,20 @@ describe('Council autoresearch source lease and artifact manifests', () => {
     it('keeps an acquired lock when contenders and wrong-root tokens fail', () => {
         const repo = repository();
         const control = temporary('cstar-council-control-');
+        const token = resumeToken('council-test-run-1');
         const lease = acquireRepositoryLease({
-            repoRoot: repo, controlRoot: control, runId: 'council-test-run-1', governedPaths: ['src'],
+            repoRoot: repo, controlRoot: control, runId: 'council-test-run-1',
+            resumeToken: token, governedPaths: ['src'],
         });
+        assert.equal('resume_token' in lease, false);
+        assert.equal(JSON.stringify(lease).includes(token), false);
         assert.throws(() => acquireRepositoryLease({
             repoRoot: repo,
             controlRoot: temporary('cstar-council-contender-'),
             runId: 'council-test-run-2',
+            resumeToken: resumeToken('council-test-run-2'),
             governedPaths: ['src'],
-        }), /EEXIST|exist|lock/i);
+        }), /EEXIST|exist|lock|identity|control|token/i);
         const commonDirectory = fs.realpathSync(path.resolve(
             repo, git(repo, ['rev-parse', '--git-common-dir']),
         ));
@@ -114,32 +123,35 @@ describe('Council autoresearch source lease and artifact manifests', () => {
             'cstar-council-autoresearch.lock.operation',
         )), false);
         assert.doesNotThrow(() => verifyRepositoryLease({
-            repoRoot: repo, controlRoot: control, runId: lease.record.run_id, resumeToken: lease.resume_token,
+            repoRoot: repo, controlRoot: control, runId: lease.record.run_id, resumeToken: token,
         }));
         assert.throws(() => verifyRepositoryLease({
             repoRoot: repo,
             controlRoot: temporary('cstar-council-wrong-control-'),
             runId: lease.record.run_id,
-            resumeToken: lease.resume_token,
+            resumeToken: token,
         }), /identity|control/i);
         assert.throws(() => releaseRepositoryLease({
-            repoRoot: repo, controlRoot: control, runId: lease.record.run_id, resumeToken: 'wrong-token',
+            repoRoot: repo, controlRoot: control, runId: lease.record.run_id,
+            resumeToken: resumeToken('wrong-release-token'),
         }), /token/i);
         fs.writeFileSync(path.join(repo, 'src', 'site.txt'), 'drift\n');
         assert.throws(() => verifyRepositoryLease({
-            repoRoot: repo, controlRoot: control, runId: lease.record.run_id, resumeToken: lease.resume_token,
+            repoRoot: repo, controlRoot: control, runId: lease.record.run_id, resumeToken: token,
         }), /uncommitted|mismatch|differ from HEAD/i);
         fs.writeFileSync(path.join(repo, 'src', 'site.txt'), 'stable source\n');
         releaseRepositoryLease({
-            repoRoot: repo, controlRoot: control, runId: lease.record.run_id, resumeToken: lease.resume_token,
+            repoRoot: repo, controlRoot: control, runId: lease.record.run_id, resumeToken: token,
         });
     });
 
     it('requires explicit recovery of an exact definitely-dead operation guard', () => {
         const repo = repository();
         const control = temporary('cstar-council-control-');
+        const token = resumeToken('council-test-run-1');
         const lease = acquireRepositoryLease({
-            repoRoot: repo, controlRoot: control, runId: 'council-test-run-1', governedPaths: ['src'],
+            repoRoot: repo, controlRoot: control, runId: 'council-test-run-1',
+            resumeToken: token, governedPaths: ['src'],
         });
         const commonDirectory = fs.realpathSync(path.resolve(
             repo, git(repo, ['rev-parse', '--git-common-dir']),
@@ -154,7 +166,7 @@ describe('Council autoresearch source lease and artifact manifests', () => {
             operation_id: '00000000-0000-4000-8000-000000000001',
             lease_id: lease.record.lease_id,
             run_id: lease.record.run_id,
-            resume_token_sha256: sha256(lease.resume_token),
+            resume_token_sha256: sha256(token),
             owner,
             acquired_at: new Date().toISOString(),
         });
@@ -162,7 +174,7 @@ describe('Council autoresearch source lease and artifact manifests', () => {
             repoRoot: repo,
             controlRoot: control,
             runId: lease.record.run_id,
-            resumeToken: lease.resume_token,
+            resumeToken: token,
         };
         const staleOwner = {
             ...currentOwner,
@@ -212,7 +224,7 @@ describe('Council autoresearch source lease and artifact manifests', () => {
             schema_version: COUNCIL_AUTORESEARCH_SCHEMA,
             lease_id: lease.record.lease_id,
             run_id: lease.record.run_id,
-            resume_token_sha256: sha256(lease.resume_token),
+            resume_token_sha256: sha256(token),
             owner: { pid: process.pid, hostname: currentOwner.hostname },
             acquired_at: new Date().toISOString(),
         }, null, 2)}\n`, { mode: 0o600 });
@@ -285,20 +297,24 @@ describe('Council autoresearch source lease and artifact manifests', () => {
         const repo = repository();
         const control = temporary('cstar-council-control-');
         const lease = acquireRepositoryLease({
-            repoRoot: repo, controlRoot: control, runId: 'council-test-run-1', governedPaths: ['src'],
+            repoRoot: repo, controlRoot: control, runId: 'council-test-run-1',
+            resumeToken: resumeToken('council-test-run-1'), governedPaths: ['src'],
         });
         git(repo, ['update-index', '--assume-unchanged', 'src/site.txt']);
         assert.throws(() => verifyRepositoryLease({
-            repoRoot: repo, controlRoot: control, runId: lease.record.run_id, resumeToken: lease.resume_token,
+            repoRoot: repo, controlRoot: control, runId: lease.record.run_id,
+            resumeToken: resumeToken(lease.record.run_id),
         }), /hidden or unsupported flags/i);
         fs.writeFileSync(path.join(repo, 'src', 'site.txt'), 'hidden drift\n');
         assert.throws(() => verifyRepositoryLease({
-            repoRoot: repo, controlRoot: control, runId: lease.record.run_id, resumeToken: lease.resume_token,
+            repoRoot: repo, controlRoot: control, runId: lease.record.run_id,
+            resumeToken: resumeToken(lease.record.run_id),
         }), /hidden or unsupported flags/i);
         git(repo, ['update-index', '--no-assume-unchanged', 'src/site.txt']);
         fs.writeFileSync(path.join(repo, 'src', 'site.txt'), 'stable source\n');
         releaseRepositoryLease({
-            repoRoot: repo, controlRoot: control, runId: lease.record.run_id, resumeToken: lease.resume_token,
+            repoRoot: repo, controlRoot: control, runId: lease.record.run_id,
+            resumeToken: resumeToken(lease.record.run_id),
         });
     });
 
@@ -310,20 +326,23 @@ describe('Council autoresearch source lease and artifact manifests', () => {
         fs.mkdirSync(real, { mode: 0o700 });
         fs.symlinkSync(real, linked);
         assert.throws(() => acquireRepositoryLease({
-            repoRoot: repo, controlRoot: linked, runId: 'council-test-run-1', governedPaths: ['src'],
+            repoRoot: repo, controlRoot: linked, runId: 'council-test-run-1',
+            resumeToken: resumeToken('council-test-run-1'), governedPaths: ['src'],
         }), /real directory|symbolic-link/i);
         const missingBelowLink = path.join(linked, 'missing');
         assert.throws(() => acquireRepositoryLease({
             repoRoot: repo,
             controlRoot: missingBelowLink,
             runId: 'council-test-run-1',
+            resumeToken: resumeToken('council-test-run-1'),
             governedPaths: ['src'],
         }), /real directory|symbolic-link/i);
         assert.equal(fs.existsSync(path.join(real, 'missing')), false);
         const publicRoot = temporary('cstar-council-public-control-');
         fs.chmodSync(publicRoot, 0o755);
         assert.throws(() => acquireRepositoryLease({
-            repoRoot: repo, controlRoot: publicRoot, runId: 'council-test-run-1', governedPaths: ['src'],
+            repoRoot: repo, controlRoot: publicRoot, runId: 'council-test-run-1',
+            resumeToken: resumeToken('council-test-run-1'), governedPaths: ['src'],
         }), /private real directory/i);
     });
 
@@ -336,6 +355,7 @@ describe('Council autoresearch source lease and artifact manifests', () => {
             repoRoot: repo,
             controlRoot: invalidTarget,
             runId: 'council-test-run-1',
+            resumeToken: resumeToken('council-test-run-1'),
             governedPaths: ['src'],
         }), /must not contain or be contained/i);
         assert.equal(fs.existsSync(invalidParent), false);
@@ -351,6 +371,7 @@ describe('Council autoresearch source lease and artifact manifests', () => {
             repoRoot: repo,
             controlRoot: control,
             runId: 'council-test-run-1',
+            resumeToken: resumeToken('council-test-run-1'),
             governedPaths: ['src'],
         });
         assert.equal(lease.record.control_root, fs.realpathSync(control));
@@ -360,7 +381,7 @@ describe('Council autoresearch source lease and artifact manifests', () => {
             repoRoot: repo,
             controlRoot: control,
             runId: lease.record.run_id,
-            resumeToken: lease.resume_token,
+            resumeToken: resumeToken(lease.record.run_id),
         });
     });
 

@@ -10,7 +10,7 @@ import {
     sourceHead,
     verifyRepositoryLease,
 } from '../../../src/core/council_autoresearch/index.js';
-import { cleanup, git, repository, temporary } from './test_helpers.js';
+import { cleanup, git, repository, resumeToken, temporary } from './test_helpers.js';
 
 type SpawnSync = typeof import('node:child_process').spawnSync;
 type SpawnResult = import('node:child_process').SpawnSyncReturns<string | Buffer>;
@@ -63,7 +63,7 @@ function verify(repo: string, control: string, lease: ReturnType<typeof acquireR
         repoRoot: repo,
         controlRoot: control,
         runId: lease.record.run_id,
-        resumeToken: lease.resume_token,
+        resumeToken: resumeToken(lease.record.run_id),
     });
 }
 
@@ -72,7 +72,7 @@ function release(repo: string, control: string, lease: ReturnType<typeof acquire
         repoRoot: repo,
         controlRoot: control,
         runId: lease.record.run_id,
-        resumeToken: lease.resume_token,
+        resumeToken: resumeToken(lease.record.run_id),
     });
 }
 
@@ -96,7 +96,8 @@ describe('Council autoresearch raw source attestation', () => {
         const repo = repository();
         const control = temporary('cstar-council-control-');
         const lease = acquireRepositoryLease({
-            repoRoot: repo, controlRoot: control, runId: 'council-split-index-test', governedPaths: ['src'],
+            repoRoot: repo, controlRoot: control, runId: 'council-split-index-test',
+            resumeToken: resumeToken('council-split-index-test'), governedPaths: ['src'],
         });
         git(repo, ['update-index', '--split-index']);
         assert.throws(() => verify(repo, control, lease), /split indexes are forbidden/i);
@@ -112,7 +113,8 @@ describe('Council autoresearch raw source attestation', () => {
         git(repo, ['commit', '-m', 'add ordered race fixtures']);
         const control = temporary('cstar-council-control-');
         const lease = acquireRepositoryLease({
-            repoRoot: repo, controlRoot: control, runId: 'council-worktree-race-test', governedPaths: ['src'],
+            repoRoot: repo, controlRoot: control, runId: 'council-worktree-race-test',
+            resumeToken: resumeToken('council-worktree-race-test'), governedPaths: ['src'],
         });
         const interception = interceptTrustedBlobReads(repo, (call) => {
             if (call === 2) fs.writeFileSync(path.join(repo, 'src', 'a.txt'), 'a drifted\n');
@@ -137,7 +139,8 @@ describe('Council autoresearch raw source attestation', () => {
         const alternateOid = git(repo, ['hash-object', '-w', alternate]);
         const control = temporary('cstar-council-control-');
         const lease = acquireRepositoryLease({
-            repoRoot: repo, controlRoot: control, runId: 'council-index-race-test', governedPaths: ['src'],
+            repoRoot: repo, controlRoot: control, runId: 'council-index-race-test',
+            resumeToken: resumeToken('council-index-race-test'), governedPaths: ['src'],
         });
         const interception = interceptTrustedBlobReads(repo, (call, runOriginalGit) => {
             if (call === 1) {
@@ -163,7 +166,8 @@ describe('Council autoresearch raw source attestation', () => {
         const repo = repository();
         const control = temporary('cstar-council-control-');
         const lease = acquireRepositoryLease({
-            repoRoot: repo, controlRoot: control, runId: 'council-skip-worktree-test', governedPaths: ['src'],
+            repoRoot: repo, controlRoot: control, runId: 'council-skip-worktree-test',
+            resumeToken: resumeToken('council-skip-worktree-test'), governedPaths: ['src'],
         });
         git(repo, ['update-index', '--skip-worktree', 'src/site.txt']);
         assert.throws(() => verify(repo, control, lease), /hidden or unsupported flags/i);
@@ -175,7 +179,8 @@ describe('Council autoresearch raw source attestation', () => {
         const repo = repository();
         const control = temporary('cstar-council-control-');
         const lease = acquireRepositoryLease({
-            repoRoot: repo, controlRoot: control, runId: 'council-object-topology-test', governedPaths: ['src'],
+            repoRoot: repo, controlRoot: control, runId: 'council-object-topology-test',
+            resumeToken: resumeToken('council-object-topology-test'), governedPaths: ['src'],
         });
         const head = git(repo, ['rev-parse', 'HEAD']);
         const replacement = git(repo, ['commit-tree', `${head}^{tree}`, '-m', 'replacement commit']);
@@ -203,7 +208,8 @@ describe('Council autoresearch raw source attestation', () => {
         const repo = repository();
         const control = temporary('cstar-council-control-');
         const lease = acquireRepositoryLease({
-            repoRoot: repo, controlRoot: control, runId: 'council-index-map-test', governedPaths: ['src'],
+            repoRoot: repo, controlRoot: control, runId: 'council-index-map-test',
+            resumeToken: resumeToken('council-index-map-test'), governedPaths: ['src'],
         });
         const extra = path.join(repo, 'src', 'extra.txt');
         fs.writeFileSync(extra, 'untracked\n');
@@ -222,7 +228,8 @@ describe('Council autoresearch raw source attestation', () => {
         git(repo, ['commit', '-m', 'declare text normalization']);
         const control = temporary('cstar-council-control-');
         const lease = acquireRepositoryLease({
-            repoRoot: repo, controlRoot: control, runId: 'council-raw-bytes-test', governedPaths: ['src'],
+            repoRoot: repo, controlRoot: control, runId: 'council-raw-bytes-test',
+            resumeToken: resumeToken('council-raw-bytes-test'), governedPaths: ['src'],
         });
         fs.writeFileSync(path.join(repo, 'src', 'site.txt'), 'stable source\r\n');
         assert.equal(
@@ -252,7 +259,8 @@ describe('Council autoresearch raw source attestation', () => {
 
         const control = temporary('cstar-council-control-');
         const lease = acquireRepositoryLease({
-            repoRoot: repo, controlRoot: control, runId: 'council-filter-effect-test', governedPaths: ['src'],
+            repoRoot: repo, controlRoot: control, runId: 'council-filter-effect-test',
+            resumeToken: resumeToken('council-filter-effect-test'), governedPaths: ['src'],
         });
         assert.equal(fs.existsSync(sentinel), false);
         verify(repo, control, lease);

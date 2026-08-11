@@ -71,9 +71,10 @@ spend, Git, merge, deployment, or production authority.
 ## Lifecycle
 
 1. Verify the external trust policy and the already-published runner checkpoint.
-2. Acquire the repository-wide source lease before cleanliness checks or reads.
-   Treat the returned resume token as a secret capability: capture it privately,
-   never commit it, and do not paste it into logs or reports.
+2. Generate a private 32-byte lowercase-hex resume capability, then acquire the
+   repository-wide source lease before cleanliness checks or reads. Retain the
+   caller-owned token privately for later commands and exact lost-response
+   replay; the runner stores only its digest and never returns the raw token.
 3. Freeze `10-packet.json`; this is the sole packet identity and
    preregistration for every later receipt.
 4. Collect one complete 19-lens Council record. Synthesize at most three
@@ -140,7 +141,8 @@ Supported commands are `lease-acquire`, `freeze-packet`, `freeze-ratings`,
 `status` may read a configured Git remote. That is a separately authorized,
 read-only Git/network boundary: the request names a configured remote, while
 the runner canonicalizes and pins its URL, verifies the exact ref and files,
-and never fetches, pushes, or rewrites Git state. `lease-acquire` returns the
-raw resume token on stdout; handle that output as sensitive material.
+and never fetches, pushes, or rewrites Git state. `lease-acquire` requires the
+caller-owned resume token, returns only its digest inside the lease record, and
+never writes the raw capability to stdout.
 
 Full contract and receipt examples: `docs/operations/council-autoresearch.md`.

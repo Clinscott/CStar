@@ -8,12 +8,15 @@ import {
     COUNCIL_AUTORESEARCH_SCHEMA,
     acquireRepositoryLease,
     releaseRepositoryLease,
+    sha256,
 } from '../../../src/core/council_autoresearch/index.js';
 import { runCouncilAutoresearchCli } from '../../../src/tools/council-autoresearch.js';
 import {
     bundleFixture,
     cleanup,
+    provisionTrustPolicy,
     repository,
+    resumeToken,
     temporary,
     writeJson,
 } from './test_helpers.js';
@@ -60,20 +63,39 @@ describe('Council autoresearch CLI runtime schema', () => {
             {
                 request: {
                     repo_root: '/does-not-matter', run_id: 'council-cli-run-1',
+                    resume_token: resumeToken('council-cli-run-1'),
                     governed_paths: ['src'], unexpected: true,
                 },
                 pattern: /unknown field: unexpected/i,
             },
             {
-                request: { repo_root: '/does-not-matter', governed_paths: ['src'] },
+                request: {
+                    repo_root: '/does-not-matter', resume_token: resumeToken('council-cli-run-1'),
+                    governed_paths: ['src'],
+                },
                 pattern: /missing required field: run_id/i,
             },
             {
                 request: {
                     repo_root: '/does-not-matter', run_id: 'council-cli-run-1',
+                    resume_token: resumeToken('council-cli-run-1'),
                     governed_paths: ['src', 42],
                 },
                 pattern: /governed_paths must be a string array/i,
+            },
+            {
+                request: {
+                    repo_root: '/does-not-matter', run_id: 'council-cli-run-1',
+                    governed_paths: ['src'],
+                },
+                pattern: /missing required field: resume_token/i,
+            },
+            {
+                request: {
+                    repo_root: '/does-not-matter', run_id: 'council-cli-run-1',
+                    resume_token: 42, governed_paths: ['src'],
+                },
+                pattern: /resume_token must be a non-empty string/i,
             },
         ];
         for (const testCase of cases) {
@@ -82,14 +104,63 @@ describe('Council autoresearch CLI runtime schema', () => {
         }
     });
 
+    it('keeps the caller resume capability out of successful and replayed output', () => {
+        const source = repository();
+        const control = temporary('cstar-council-cli-control-');
+        const fixture = bundleFixture();
+        provisionTrustPolicy(control, fixture);
+        const token = resumeToken('council-cli-acquire-success');
+        const request = {
+            repo_root: source,
+            run_id: 'council-cli-acquire-success',
+            resume_token: token,
+            governed_paths: ['src'],
+        };
+        assertRejected(
+            invoke('lease-acquire', { ...request, resume_token: 'not-lowercase-hex' }, control),
+            /32 random bytes encoded as lowercase hex/i,
+        );
+        assert.equal(fs.existsSync(path.join(
+            control, 'council-autoresearch', request.run_id, '00-source-lease.json',
+        )), false);
+        const first = invoke('lease-acquire', request, control);
+        assert.equal(first.code, 0);
+        assert.equal(first.body.schema_version, COUNCIL_AUTORESEARCH_SCHEMA);
+        assert.equal(first.body.runner_version, COUNCIL_AUTORESEARCH_RUNNER);
+        assert.equal(first.body.command, 'lease-acquire');
+        assert.equal(first.body.status, 'pass');
+        assert.deepEqual(Object.keys(first.body.data).sort(), ['created', 'lock_file', 'record']);
+        assert.equal(first.body.data.created, true);
+        assert.equal(first.body.data.record.resume_token_sha256, sha256(token));
+        assert.equal('resume_token' in first.body.data, false);
+        assert.equal(JSON.stringify(first.body).includes(token), false);
+
+        const replay = invoke('lease-acquire', request, control);
+        assert.equal(replay.code, 0);
+        assert.equal(replay.body.status, 'pass');
+        assert.deepEqual(Object.keys(replay.body.data).sort(), ['created', 'lock_file', 'record']);
+        assert.equal(replay.body.data.created, false);
+        assert.deepEqual(replay.body.data.record, first.body.data.record);
+        assert.equal(replay.body.data.lock_file, first.body.data.lock_file);
+        assert.equal(JSON.stringify(replay.body).includes(token), false);
+        releaseRepositoryLease({
+            repoRoot: source,
+            controlRoot: control,
+            runId: request.run_id,
+            resumeToken: token,
+        });
+    });
+
     it('rejects nested packet and rating schema drift without advancing the receipt chain', () => {
         const source = repository();
         const control = temporary('cstar-council-cli-control-');
         const fixture = bundleFixture();
+        const token = resumeToken('council-cli-run-1');
         const lease = acquireRepositoryLease({
             repoRoot: source,
             controlRoot: control,
             runId: 'council-cli-run-1',
+            resumeToken: token,
             governedPaths: ['src'],
         });
         const input = fixture.packetInput;
@@ -114,7 +185,7 @@ describe('Council autoresearch CLI runtime schema', () => {
         const base = {
             repo_root: source,
             run_id: lease.record.run_id,
-            resume_token: lease.resume_token,
+            resume_token: token,
             bundle_root: fixture.bundle,
             runner_publication_repo_root: input.runnerPublicationRepoRoot,
             packet,
@@ -135,7 +206,7 @@ describe('Council autoresearch CLI runtime schema', () => {
             const wrongRating = {
                 repo_root: source,
                 run_id: lease.record.run_id,
-                resume_token: lease.resume_token,
+                resume_token: token,
                 bundle_root: fixture.bundle,
                 runner_publication_repo_root: input.runnerPublicationRepoRoot,
                 ratings: {
@@ -159,7 +230,7 @@ describe('Council autoresearch CLI runtime schema', () => {
                 repoRoot: source,
                 controlRoot: control,
                 runId: lease.record.run_id,
-                resumeToken: lease.resume_token,
+                resumeToken: token,
             });
         }
     });

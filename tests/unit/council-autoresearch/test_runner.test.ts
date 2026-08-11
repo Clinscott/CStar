@@ -19,6 +19,7 @@ import {
     persistFrozenRatings,
     persistMappingReveal,
     persistPublicationReceipt,
+    receiptSealPath,
     recoverRepositoryLeaseOperation,
     releaseRepositoryLease,
     sha256,
@@ -33,6 +34,7 @@ import {
     git,
     provisionTrustPolicy,
     repository,
+    resumeToken,
     signedRatings,
     temporary,
     writeJson,
@@ -41,6 +43,77 @@ import {
 afterEach(cleanup);
 
 describe('Council autoresearch signed generation lifecycle', () => {
+    it('admits only a sealed source lease and replays a lost acquisition response', () => {
+        const source = repository();
+        const control = temporary('cstar-council-control-');
+        const runId = 'council-status-replay-run';
+        const token = resumeToken(runId);
+        assert.equal(councilRunStatus({ controlRoot: control, runId }), 'NEW');
+
+        const first = acquireRepositoryLease({
+            repoRoot: source, controlRoot: control, runId, resumeToken: token,
+            governedPaths: ['src'],
+        });
+        assert.equal(first.created, true);
+        assert.equal(councilRunStatus({ controlRoot: control, runId }), 'LEASED');
+
+        const replay = acquireRepositoryLease({
+            repoRoot: source, controlRoot: control, runId, resumeToken: token,
+            governedPaths: ['src'],
+        });
+        assert.equal(replay.created, false);
+        assert.deepEqual(replay.record, first.record);
+        assert.equal(replay.lock_file, first.lock_file);
+        assert.equal(councilRunStatus({ controlRoot: control, runId }), 'LEASED');
+
+        const packetSeal = receiptSealPath(path.join(
+            control, 'council-autoresearch', runId, '10-packet.json',
+        ));
+        fs.writeFileSync(packetSeal, '{}\n', { mode: 0o600 });
+        assert.throws(
+            () => councilRunStatus({ controlRoot: control, runId }),
+            /seal exists without its body|exact private owned regular file/i,
+        );
+        fs.unlinkSync(packetSeal);
+        releaseRepositoryLease({ repoRoot: source, controlRoot: control, runId, resumeToken: token });
+        assert.equal(councilRunStatus({ controlRoot: control, runId }), 'LEASED');
+    });
+
+    it('reports exact body-only acquisition evidence as NEW and rejects later evidence', () => {
+        const source = repository();
+        const control = temporary('cstar-council-control-');
+        const runId = 'council-status-body-only-run';
+        const token = resumeToken(runId);
+        acquireRepositoryLease({
+            repoRoot: source, controlRoot: control, runId, resumeToken: token,
+            governedPaths: ['src'],
+        });
+        const sourceReceipt = path.join(
+            control, 'council-autoresearch', runId, '00-source-lease.json',
+        );
+        const sourceSeal = receiptSealPath(sourceReceipt);
+        const sealBytes = fs.readFileSync(sourceSeal);
+        fs.unlinkSync(sourceSeal);
+        assert.equal(councilRunStatus({ controlRoot: control, runId }), 'NEW');
+
+        const packetSeal = receiptSealPath(path.join(
+            control, 'council-autoresearch', runId, '10-packet.json',
+        ));
+        fs.writeFileSync(packetSeal, '{}\n', { mode: 0o600 });
+        assert.throws(
+            () => councilRunStatus({ controlRoot: control, runId }),
+            /out-of-order suffix/i,
+        );
+        fs.unlinkSync(packetSeal);
+
+        fs.unlinkSync(sourceReceipt);
+        fs.writeFileSync(sourceSeal, sealBytes, { mode: 0o600 });
+        assert.throws(
+            () => councilRunStatus({ controlRoot: control, runId }),
+            /seal exists without its body/i,
+        );
+    });
+
     it('evaluates signed ratings as advisory evidence and vetoes a protected regression', () => {
         const fixture = bundleFixture();
         const packet = freezeCouncilPacket(fixture.packetInput);
@@ -116,7 +189,8 @@ describe('Council autoresearch signed generation lifecycle', () => {
         const source = repository();
         const control = temporary('cstar-council-control-');
         const lease = acquireRepositoryLease({
-            repoRoot: source, controlRoot: control, runId: 'council-test-run-1', governedPaths: ['src'],
+            repoRoot: source, controlRoot: control, runId: 'council-test-run-1',
+            resumeToken: resumeToken('council-test-run-1'), governedPaths: ['src'],
         });
         const fixture = bundleFixture();
         provisionTrustPolicy(control, fixture);
@@ -124,7 +198,8 @@ describe('Council autoresearch signed generation lifecycle', () => {
         fixture.packetInput.sourceManifestSha256 = lease.record.source_manifest.manifest_sha256;
         const packet = freezeCouncilPacket(fixture.packetInput);
         const common = {
-            repoRoot: source, controlRoot: control, runId: packet.run_id, resumeToken: lease.resume_token,
+            repoRoot: source, controlRoot: control, runId: packet.run_id,
+            resumeToken: resumeToken(packet.run_id),
         };
         const evidence = {
             ...common,
@@ -212,7 +287,8 @@ describe('Council autoresearch signed generation lifecycle', () => {
         const fixture = bundleFixture();
         provisionTrustPolicy(control, fixture);
         const lease = acquireRepositoryLease({
-            repoRoot: source, controlRoot: control, runId: 'council-test-run-1', governedPaths: ['src'],
+            repoRoot: source, controlRoot: control, runId: 'council-test-run-1',
+            resumeToken: resumeToken('council-test-run-1'), governedPaths: ['src'],
         });
         fixture.packetInput.sourceHead = lease.record.source_head;
         fixture.packetInput.sourceManifestSha256 = lease.record.source_manifest.manifest_sha256;
@@ -221,7 +297,7 @@ describe('Council autoresearch signed generation lifecycle', () => {
             repoRoot: source,
             controlRoot: control,
             runId: first.run_id,
-            resumeToken: lease.resume_token,
+            resumeToken: resumeToken(first.run_id),
             bundleRoot: fixture.bundle,
             runnerPublicationRepoRoot: fixture.packetInput.runnerPublicationRepoRoot,
         };
@@ -250,7 +326,8 @@ describe('Council autoresearch signed generation lifecycle', () => {
         assert.throws(() => persistFrozenPacket({ ...evidence, packet: second }), /packet replay conflicts/i);
         assert.equal(fs.existsSync(secondClaim), false);
         releaseRepositoryLease({
-            repoRoot: source, controlRoot: control, runId: first.run_id, resumeToken: lease.resume_token,
+            repoRoot: source, controlRoot: control, runId: first.run_id,
+            resumeToken: resumeToken(first.run_id),
         });
     });
 });

@@ -32,8 +32,33 @@ export const runnerSourceRoot = fs.realpathSync(path.resolve(
     '../../..',
 ));
 
+function isStrictlyWithin(parent: string, target: string): boolean {
+    const relative = path.relative(parent, target);
+    return relative !== '' && !relative.startsWith(`..${path.sep}`)
+        && relative !== '..' && !path.isAbsolute(relative);
+}
+
 export function cleanup(): void {
-    while (roots.length > 0) fs.rmSync(roots.pop()!, { recursive: true, force: true });
+    const tempRoot = fs.realpathSync(os.tmpdir());
+    const protectedPaths = [runnerSourceRoot, fs.realpathSync(process.cwd())];
+    while (roots.length > 0) {
+        const target = path.resolve(roots.pop()!);
+        assert.equal(isStrictlyWithin(tempRoot, target), true, 'cleanup target must remain under temp');
+        assert.match(path.basename(target), /^cstar-[A-Za-z0-9._-]+$/);
+        if (!fs.existsSync(target)) continue;
+        const canonical = fs.realpathSync(target);
+        assert.equal(canonical, target, 'cleanup target must not be redirected');
+        const stat = fs.lstatSync(target);
+        assert.equal(stat.isDirectory() && !stat.isSymbolicLink(), true);
+        for (const protectedPath of protectedPaths) {
+            assert.equal(
+                target === protectedPath || isStrictlyWithin(target, protectedPath),
+                false,
+                'cleanup target must not contain the checkout or current working directory',
+            );
+        }
+        fs.rmSync(target, { recursive: true, force: true });
+    }
 }
 
 export function temporary(label: string): string {
@@ -46,6 +71,10 @@ export function git(root: string, args: string[]): string {
     const result = spawnSync('git', args, { cwd: root, encoding: 'utf8' });
     assert.equal(result.status, 0, result.stderr);
     return result.stdout.trim();
+}
+
+export function resumeToken(label: string): string {
+    return sha256(`cstar-council-test-resume-token\0${label}`);
 }
 
 export function repository(): string {

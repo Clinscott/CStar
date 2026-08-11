@@ -17,7 +17,7 @@ import {
     verifyReceiptSeal,
     writePrivateReceiptJson,
 } from '../../../src/core/council_autoresearch/index.js';
-import { cleanup, repository, temporary } from './test_helpers.js';
+import { cleanup, repository, resumeToken, temporary } from './test_helpers.js';
 
 afterEach(cleanup);
 
@@ -32,6 +32,7 @@ function receiptFixture(runId: string) {
         repoRoot: repo,
         controlRoot: control,
         runId,
+        resumeToken: resumeToken(runId),
         governedPaths: ['src'],
     });
     const directory = path.join(control, 'council-autoresearch', runId);
@@ -47,10 +48,14 @@ function receiptFixture(runId: string) {
 describe('Council autoresearch descriptor-backed receipt seals', () => {
     it('commits only an exact private body/source-lease pair and replays identically', () => {
         const fixture = receiptFixture('council-receipt-seal-1');
-        assert.equal(receiptPairState(fixture.source), 'body-only');
+        assert.equal(receiptPairState(fixture.source, fixture.lease.record), 'sealed');
+        assert.throws(
+            () => receiptPairState(fixture.source),
+            /source lease is required to verify a sealed receipt pair/i,
+        );
         assert.deepEqual(
             sealReceipt(fixture.source, fixture.lease.record, writeIdentity()),
-            { created: true },
+            { created: false },
         );
         assert.deepEqual(
             sealReceipt(fixture.source, fixture.lease.record, writeIdentity()),
@@ -156,7 +161,7 @@ describe('Council autoresearch descriptor-backed receipt seals', () => {
 
     it('rejects body, source-lease, seal, and pair drift while preserving evidence', () => {
         const fixture = receiptFixture('council-receipt-seal-3');
-        sealReceipt(fixture.source, fixture.lease.record, writeIdentity());
+        assert.equal(sealReceipt(fixture.source, fixture.lease.record, writeIdentity()).created, false);
         const packet = path.join(fixture.directory, '10-packet.json');
         writePrivateReceiptJson(packet, { durable: true }, writeIdentity());
         sealReceipt(packet, fixture.lease.record, writeIdentity());
