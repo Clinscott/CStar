@@ -78,6 +78,10 @@ conflicting content fails without overwriting the earlier receipt. Phase is
 derived only from a fully validated receipt prefix. `PAUSED` additionally
 requires fresh verification of the exact remote branch, commit, and file hashes;
 a preplanted or merely self-consistent JSON file cannot invent completion.
+An exact replay may remove the writer's sole UUIDv4 temporary hard-link alias
+only after matching the committed target's bytes, mode, inode, and two-link
+state. The original writer tolerates that post-commit cleanup race; ordinary
+reads and conflicting replays never remove an alias.
 Packet replay checks the already-frozen packet before writing an experiment
 claim, so a conflicting replay cannot leave an orphan claim that blocks a
 different valid run.

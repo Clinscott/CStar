@@ -37,8 +37,8 @@ function sparseFile(file: string, bytes: number): void {
     fs.truncateSync(file, bytes);
 }
 
-function interruptedAlias(target: string, suffix: string): string {
-    return `${target}.tmp-999999999-${suffix}`;
+function interruptedAlias(target: string, suffix: string, pid = 999999999): string {
+    return `${target}.tmp-${pid}-${suffix}`;
 }
 
 describe('Council autoresearch resource bounds', () => {
@@ -66,7 +66,11 @@ describe('Council autoresearch resource bounds', () => {
         const target = path.join(root, 'receipt.json');
         const value = { durable: true };
         assert.equal(writeImmutableJson(target, value).created, true);
-        const alias = interruptedAlias(target, '00000000-0000-4000-8000-000000000001');
+        const alias = interruptedAlias(
+            target,
+            '00000000-0000-4000-8000-000000000001',
+            process.pid,
+        );
         fs.linkSync(target, alias);
         assert.equal(fs.statSync(target).nlink, 2);
 
