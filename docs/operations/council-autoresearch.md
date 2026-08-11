@@ -197,6 +197,7 @@ include these canonical paths:
 - `src/core/council_autoresearch/decision.ts`
 - `src/core/council_autoresearch/execution_trust.ts`
 - `src/core/council_autoresearch/git_trust.ts`
+- `src/core/council_autoresearch/operation_identity.ts`
 - `src/core/council_autoresearch/packet.ts`
 - `src/core/council_autoresearch/publication.ts`
 - `src/core/council_autoresearch/rating.ts`
@@ -211,6 +212,7 @@ include these canonical paths:
 - `tests/unit/council-autoresearch/test_adversarial.test.ts`
 - `tests/unit/council-autoresearch/test_cli_schema.test.ts`
 - `tests/unit/council-autoresearch/test_helpers.ts`
+- `tests/unit/council-autoresearch/test_operation_identity.test.ts`
 - `tests/unit/council-autoresearch/test_publication_entries.test.ts`
 - `tests/unit/council-autoresearch/test_resource_bounds.test.ts`
 - `tests/unit/council-autoresearch/test_runner_checkpoint.test.ts`
