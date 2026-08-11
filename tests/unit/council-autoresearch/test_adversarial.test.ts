@@ -402,9 +402,15 @@ describe('Council autoresearch adversarial boundaries', () => {
 
     it('rejects preplanted progress and a second run id for the same experiment', () => {
         const poisonedControl = temporary('cstar-council-poisoned-control-');
-        writeJson(path.join(
-            poisonedControl, 'council-autoresearch', 'council-test-run-1', '40-publication.json',
-        ), {});
+        const poisonedRun = path.join(
+            poisonedControl, 'council-autoresearch', 'council-test-run-1',
+        );
+        fs.mkdirSync(poisonedRun, { recursive: true, mode: 0o700 });
+        fs.writeFileSync(
+            path.join(poisonedRun, '40-publication.json'),
+            '{}\n',
+            { mode: 0o600 },
+        );
         assert.throws(() => councilRunStatus({
             controlRoot: poisonedControl, runId: 'council-test-run-1',
         }), /out-of-order/i);
