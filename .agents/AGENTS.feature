@@ -53,6 +53,17 @@ Feature: CStar operator workflow router
       Then pause until the supported completion or status surface reports change
       And do not launch another attempt
 
+  Rule: Checkpoints survive the workspace
+
+    Scenario: Work reaches a durability boundary
+      Given Git publication for the checkpoint branch is authorized
+      When a coherent increment is ready before a long check, handoff, or turn boundary
+      Then commit only the scoped files in the authoritative full clone
+      And fast-forward the authorized remote branch
+      And verify the remote commit or equivalent tree before calling it durable
+      And treat linked worktrees, local commits, and stashes as non-durable
+      And grant no merge, deployment, execution, or production authority from the checkpoint
+
   Rule: Missing authority fails closed
 
     Scenario: A required operator grant is absent

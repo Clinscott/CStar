@@ -80,6 +80,19 @@ def test_persona_route_is_explicit_iterative_and_non_authoritative() -> None:
     assert "do not infer authority from persona" in router
 
 
+def test_durability_requires_verified_remote_storage_without_extra_authority() -> None:
+    agents = AGENTS.read_text(encoding="utf-8")
+    router = ROUTER.read_text(encoding="utf-8")
+    workflow = (ROOT / "docs" / "operations" / "cstar-iterative-development.md").read_text(
+        encoding="utf-8",
+    )
+    assert "authorized remote" in agents
+    assert "local commits, and stashes as non-durable" in router
+    assert "A local commit is not a durability checkpoint" in workflow
+    assert "one full clone" in workflow
+    assert "grants no merge, deployment, execution" in " ".join(workflow.split())
+
+
 def test_compatibility_pointer_cannot_reintroduce_a_short_forge_route() -> None:
     text = POINTER.read_text(encoding="utf-8")
     assert "compatibility pointer only" in text

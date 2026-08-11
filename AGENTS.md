@@ -14,6 +14,8 @@ global Corvus instructions first. This file contains repository deltas only.
   MM is retired.
 - Preserve explicit gates for spend, sources, retry, scope, Git, restart,
   activation, deployment, secrets/config, destructive action, and production.
+- A durability checkpoint exists only after its scoped commit is present on an
+  authorized remote and the remote ref or equivalent tree is verified.
 - Pause for live workers or external state. Do not poll or duplicate a provider
   attempt.
 

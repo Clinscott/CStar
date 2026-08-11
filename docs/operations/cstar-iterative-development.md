@@ -23,6 +23,22 @@ A failed iteration is evidence, not an automatic escalation. Escalate only
 when the next repair needs a new operator-gated effect or changes the execution
 boundary.
 
+## Durable checkpoint protocol
+
+A local commit is not a durability checkpoint. A checkpoint is durable only
+after the scoped commit is present on an authorized remote branch and the
+remote commit or equivalent Git tree has been independently verified.
+
+Use one full clone as the authoritative writable checkout. Linked worktrees,
+stashes, patches, and local-only commits may assist development but must never
+be the sole copy of recoverable work. Create and verify a remote checkpoint
+before a long validation run, a subagent handoff, a turn boundary, or a switch
+to another checkout. If the authorized remote cannot be advanced, stop at the
+current bounded increment instead of stacking additional local-only work.
+
+Checkpoint publication is storage and handoff evidence only. It grants no
+merge, deployment, execution, activation, production, or other authority.
+
 ## A.L.F.R.E.D.
 
 A.L.F.R.E.D. uses a secure-harden-verify loop:
