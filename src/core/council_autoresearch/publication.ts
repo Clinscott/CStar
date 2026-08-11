@@ -69,6 +69,7 @@ export const REQUIRED_RUNNER_PUBLICATION_PATHS = Object.freeze([
     'tests/unit/council-autoresearch/test_helpers.ts',
     'tests/unit/council-autoresearch/test_operation_identity.test.ts',
     'tests/unit/council-autoresearch/test_publication_entries.test.ts',
+    'tests/unit/council-autoresearch/test_repository_lease.test.ts',
     'tests/unit/council-autoresearch/test_resource_bounds.test.ts',
     'tests/unit/council-autoresearch/test_runner_checkpoint.test.ts',
     'tests/unit/council-autoresearch/test_runner.test.ts',
