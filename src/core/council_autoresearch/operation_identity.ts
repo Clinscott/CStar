@@ -2,11 +2,18 @@ import fs from 'node:fs';
 import { hostname as systemHostname } from 'node:os';
 
 import {
-    assertExactObjectKeys,
-    assertSha256,
     fail,
     sha256,
 } from './contracts.js';
+import {
+    assertRepositoryOperationOwner,
+    type RepositoryOperationOwner,
+} from './repository_lease_contract.js';
+
+export {
+    assertRepositoryOperationOwner,
+    type RepositoryOperationOwner,
+} from './repository_lease_contract.js';
 
 const PROC_SUPER_MAGIC = 0x9fa0n;
 const PROCESS_STAT_MAX_BYTES = 8 * 1024;
@@ -18,15 +25,6 @@ interface LinuxProcessStat {
     pid: number;
     state: string;
     startTicks: string;
-}
-
-export interface RepositoryOperationOwner {
-    pid: number;
-    hostname: string;
-    machine_id_sha256: string;
-    boot_id_sha256: string;
-    pid_namespace_sha256: string;
-    process_start_ticks: string;
 }
 
 function assertTrustedProcfs(): void {
@@ -190,27 +188,6 @@ function localIdentity(): Omit<RepositoryOperationOwner, 'pid' | 'process_start_
         boot_id_sha256: bootIdentity(),
         pid_namespace_sha256: pidNamespaceIdentity(),
     };
-}
-
-export function assertRepositoryOperationOwner(
-    owner: unknown,
-    label = 'repository operation owner',
-): asserts owner is RepositoryOperationOwner {
-    assertExactObjectKeys(owner, [
-        'pid', 'hostname', 'machine_id_sha256', 'boot_id_sha256',
-        'pid_namespace_sha256', 'process_start_ticks',
-    ], label);
-    const value = owner as RepositoryOperationOwner;
-    if (!Number.isSafeInteger(value.pid) || value.pid < 1
-        || typeof value.hostname !== 'string' || value.hostname.length < 1
-        || value.hostname.length > 255 || /[\r\n\0]/.test(value.hostname)
-        || typeof value.process_start_ticks !== 'string'
-        || !/^[1-9][0-9]*$/.test(value.process_start_ticks)) {
-        fail(`${label} is invalid`);
-    }
-    assertSha256(value.machine_id_sha256, `${label}.machine_id_sha256`);
-    assertSha256(value.boot_id_sha256, `${label}.boot_id_sha256`);
-    assertSha256(value.pid_namespace_sha256, `${label}.pid_namespace_sha256`);
 }
 
 export function currentOperationOwner(): RepositoryOperationOwner {

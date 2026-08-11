@@ -214,6 +214,7 @@ include these canonical paths:
 - `src/core/council_autoresearch/publication.ts`
 - `src/core/council_autoresearch/rating.ts`
 - `src/core/council_autoresearch/repository_lease.ts`
+- `src/core/council_autoresearch/repository_lease_contract.ts`
 - `src/core/council_autoresearch/source_attestation.ts`
 - `src/core/skill_registry.ts`
 - `src/packaging/distribution_content.ts`

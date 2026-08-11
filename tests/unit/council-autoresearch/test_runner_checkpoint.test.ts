@@ -12,7 +12,7 @@ afterEach(cleanup);
 
 describe('Council autoresearch runner publication checkpoint', () => {
     it('binds the exact executing source set and rejects subsets, extras, drift, and executable blobs', () => {
-        assert.equal(REQUIRED_RUNNER_PUBLICATION_PATHS.length, 57);
+        assert.equal(REQUIRED_RUNNER_PUBLICATION_PATHS.length, 58);
         const fixture = bundleFixture();
         const checkpoint = fixture.packetInput.runnerPublication.checkpoint;
         const base = {
