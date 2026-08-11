@@ -12,8 +12,14 @@ import {
     sha256,
     type ArtifactManifest,
 } from './contracts.js';
+import { readStablePrivateFile } from './repository_operation_file.js';
 
-export const OPERATION_GUARD_MAX_BYTES = 64 * 1024;
+export {
+    OPERATION_GUARD_MAX_BYTES,
+    assertPrivateOperationGuard,
+    assertSameOperationGuard,
+} from './repository_operation_file.js';
+
 export const UUID_V4_PATTERN = /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/;
 const TIMESTAMP_PATTERN = /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/;
 const DECIMAL_BIGINT_PATTERN = /^(?:0|[1-9][0-9]*)$/;
@@ -40,16 +46,16 @@ export interface OwnedRepositoryLease {
     lock_file: string;
     created: boolean;
 }
-export const repositoryLeaseIntentKeys = [
+export const repositoryLeaseIntentKeys = Object.freeze([
     'schema_version', 'runner_version', 'lease_id', 'run_id', 'repository_root',
     'git_common_directory', 'control_root', 'governed_paths', 'resume_token_sha256',
     'owner', 'acquired_at',
-] as const;
-export const repositoryLeaseRecordKeys = [
+] as const);
+export const repositoryLeaseRecordKeys = Object.freeze([
     ...repositoryLeaseIntentKeys,
     'source_head',
     'source_manifest',
-] as const;
+] as const);
 export interface RepositoryOperationOwner {
     pid: number;
     hostname: string;
@@ -337,67 +343,6 @@ export function assertAcquisitionBindsInput(
         || record.resume_token_sha256 !== sha256(input.resumeToken)
         || record.governed_paths_sha256 !== governedPathsSha256(input.governedPaths)) {
         fail('repository lease acquisition guard does not bind the recovery input');
-    }
-}
-
-export function assertPrivateOperationGuard(
-    stat: fs.BigIntStats,
-    allowedLinks: readonly bigint[] = [1n],
-): void {
-    const uid = process.getuid?.();
-    if (uid === undefined || !stat.isFile() || stat.isSymbolicLink()
-        || !allowedLinks.includes(stat.nlink)
-        || (stat.mode & 0o7777n) !== 0o600n || stat.uid !== BigInt(uid)) {
-        fail('repository operation guard must be an exact private owned regular file');
-    }
-}
-
-export function assertSameOperationGuard(
-    before: fs.BigIntStats,
-    after: fs.BigIntStats,
-    message: string,
-): void {
-    for (const key of [
-        'dev', 'ino', 'mode', 'nlink', 'uid', 'gid', 'size', 'mtimeNs', 'ctimeNs',
-    ] as const) {
-        if (before[key] !== after[key]) fail(message);
-    }
-}
-
-function readStablePrivateFile(
-    file: string,
-    label: string,
-    allowedLinks: readonly bigint[],
-): { content: Buffer; stat: fs.BigIntStats } {
-    if (typeof fs.constants.O_NONBLOCK !== 'number') {
-        fail(`${label} requires nonblocking descriptor support`);
-    }
-    const descriptor = fs.openSync(
-        file,
-        fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW | fs.constants.O_NONBLOCK,
-    );
-    try {
-        const before = fs.fstatSync(descriptor, { bigint: true });
-        assertPrivateOperationGuard(before, allowedLinks);
-        if (before.size < 1n || before.size > BigInt(OPERATION_GUARD_MAX_BYTES)) {
-            fail(`${label} exceeds its byte limit`);
-        }
-        const content = Buffer.allocUnsafe(Number(before.size));
-        let offset = 0;
-        while (offset < content.length) {
-            const count = fs.readSync(descriptor, content, offset, content.length - offset, offset);
-            if (count === 0) fail(`${label} changed while it was read`);
-            offset += count;
-        }
-        const after = fs.fstatSync(descriptor, { bigint: true });
-        assertPrivateOperationGuard(after, allowedLinks);
-        assertSameOperationGuard(before, after, `${label} changed while it was read`);
-        const linked = fs.lstatSync(file, { bigint: true });
-        assertPrivateOperationGuard(linked, allowedLinks);
-        assertSameOperationGuard(after, linked, `${label} path changed while it was read`);
-        return { content, stat: linked };
-    } finally {
-        fs.closeSync(descriptor);
     }
 }
 

@@ -69,6 +69,7 @@ export const REQUIRED_RUNNER_PUBLICATION_PATHS = Object.freeze([
     'src/core/council_autoresearch/repository_lease_contract.ts',
     'src/core/council_autoresearch/repository_lease_recovery.ts',
     'src/core/council_autoresearch/repository_lease_state.ts',
+    'src/core/council_autoresearch/repository_operation_file.ts',
     'src/core/council_autoresearch/repository_operation_guard.ts',
     'src/core/council_autoresearch/repository_private_file.ts',
     'src/core/council_autoresearch/runner_identity.ts',

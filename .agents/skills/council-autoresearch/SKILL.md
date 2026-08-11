@@ -143,6 +143,17 @@ read-only Git/network boundary: the request names a configured remote, while
 the runner canonicalizes and pins its URL, verifies the exact ref and files,
 and never fetches, pushes, or rewrites Git state. `lease-acquire` requires the
 caller-owned resume token, returns only its digest inside the lease record, and
-never writes the raw capability to stdout.
+never writes the raw capability to stdout. Every request file must be an owned,
+single-link `0600` regular file beneath an owned private real directory; the
+runner reads it through a bounded nonblocking no-follow descriptor and rechecks
+the descriptor/path identity before command effects.
+
+The source lease is admitted only by an exact body-plus-seal `00` receipt pair.
+Exact body-only evidence remains `NEW`; seal-only, tampered, aliased, or
+out-of-order evidence fails closed. Exact token-authorized acquisition recovery
+may repair only guard-derived publication aliases, preserves matching intent/body
+evidence for replay, and never invents a missing seal. Receipts `10` through `40`
+remain schema-2.1 body commit points until the complete schema-2.2 sealed-lifecycle
+checkpoint lands.
 
 Full contract and receipt examples: `docs/operations/council-autoresearch.md`.

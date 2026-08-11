@@ -13,11 +13,16 @@ import {
     type RunnerPublicationBinding,
     type RunnerPublicationCheckpoint,
 } from '../core/council_autoresearch/contract_schema.js';
+import { canonicalPrivateDirectory } from '../core/council_autoresearch/contracts.js';
 import type {
     CouncilExecutionReceipt,
     CouncilRating,
     FrozenRatingRecord,
 } from '../core/council_autoresearch/rating.js';
+import {
+    closeOwnedPrivateFile,
+    openPrivateJson,
+} from '../core/council_autoresearch/repository_private_file.js';
 
 export type CouncilAutoresearchRequest = Record<string, unknown>;
 
@@ -344,6 +349,29 @@ export function readArgs(argv: string[]): { command: string; requestFile: string
     }
     if (!requestSchemas[argv[0]]) fail(`unknown council-autoresearch command: ${argv[0]}`);
     return { command: argv[0], requestFile: path.resolve(argv[2]) };
+}
+
+export function readPrivateCouncilRequest(file: string): CouncilAutoresearchRequest {
+    try {
+        const requestFile = path.resolve(file);
+        const requestDirectory = canonicalPrivateDirectory(
+            path.dirname(requestFile),
+            'request directory',
+        );
+        const opened = openPrivateJson<unknown>(
+            requestFile,
+            requestDirectory,
+            'request file',
+            4 * 1024 * 1024,
+        );
+        try {
+            return objectValue(opened.record, 'request');
+        } finally {
+            closeOwnedPrivateFile(opened, 'request file');
+        }
+    } catch {
+        return fail('request file failed private request channel validation');
+    }
 }
 
 export function requestControlRoot(request: CouncilAutoresearchRequest): string {

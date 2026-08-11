@@ -8,7 +8,6 @@ import {
     assertRunId,
     canonicalJson,
     canonicalPrivateDirectory,
-    ensureDirectoryNoFollow,
     fail,
     sha256,
     validateDirectoryCreationTarget,
@@ -203,7 +202,11 @@ export function acquireRepositoryLease(input: {
         const controlRoot = canonicalPrivateDirectory(controlTarget, 'control root', true);
         if (controlRoot !== intent.control_root) fail('repository lease control root changed');
         if (optionalStat(receiptTarget) === undefined) effectStarted = true;
-        const receiptDirectory = ensureDirectoryNoFollow(receiptTarget);
+        const receiptDirectory = canonicalPrivateDirectory(
+            receiptTarget,
+            'receipt directory',
+            true,
+        );
         assertLeasePathSeparated(receiptDirectory, repoRoot, commonDirectory, 'receipt directory');
         const sourceReceipt = path.join(receiptDirectory, '00-source-lease.json');
 

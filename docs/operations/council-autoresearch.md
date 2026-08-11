@@ -41,10 +41,15 @@ bound inputs/outputs; they do not prove model identity or independent sampling.
 
 Before `lease-acquire`, the authorized caller generates 32 random bytes encoded
 as 64 lowercase hexadecimal characters and supplies that resume token through a
-private request channel. The runner never returns or prints the raw capability;
-it stores only its SHA-256 digest. Keep the token out of commits, reports,
-receipts, and terminal/session logs. Retain it privately so an identical request
-can recover a lost response without creating a different lease identity.
+private request channel. Create its directory under `umask 077` and explicitly
+`chmod 600` the request. It must be a runner-owned, single-link `0600` regular
+file in a runner-owned private real directory. The runner opens it with
+`O_NOFOLLOW` and nonblocking I/O, holds the descriptor while validating bounded
+JSON bytes, and rechecks the descriptor and pathname identity before any command
+effect. The runner never returns or prints the raw capability; it stores only its
+SHA-256 digest. Keep the token out of commits, reports, receipts, and
+terminal/session logs. Retain it privately so an identical request can recover a
+lost response without creating a different lease identity.
 
 ## Formal lifecycle and advisory evaluator
 
@@ -239,17 +244,17 @@ presence is not a commit boundary; durable admission waits for the later sealed-
 receipt checkpoint. Same-UID mutation after the final observation and privileged
 mount aliases remain inside the declared local trust boundary.
 
-The rebuild also exposes descriptor-backed receipt-pair primitives without yet
-wiring them into the schema-2.1 coordinator. A future lifecycle receipt is a
-private, runner-owned, single-link `0600` JSON body plus a separately committed
-`.seal.json`. The seal binds the exact body bytes, source-lease bytes, lease and
-run identities, source HEAD, and source-manifest digest. Inspection never repairs
-an interrupted alias, and body/source descriptors remain held and are rechecked
-across seal publication. Atomic temp paths require the caller-supplied operation
-ID and owner PID that a later lifecycle guard will bind, and seal APIs require an
-already-authorized lease record. A body without its seal is evidence, not a committed
-lifecycle transition; operation-bound recovery and schema-2.2 admission remain
-later cohesive checkpoints.
+The source lease now uses the descriptor-backed receipt-pair primitive: a private,
+runner-owned, single-link `0600` `00-source-lease.json` body plus a separately
+committed `.seal.json`. The seal binds the exact body bytes, source-lease bytes,
+lease and run identities, source HEAD, and source-manifest digest. Exact body-only
+evidence derives `NEW`; seal-only, malformed or tampered pairs, hard-link aliases,
+and out-of-order suffixes fail closed. Acquisition recovery may classify and
+repair only temporary aliases derived from the exact dead operation guard. It
+preserves a matching intent or body for same-token replay, removes only the dead
+guard after validation, and never invents a missing seal. The `10` through `40`
+receipts still use the schema-2.1 body commit points; converting the complete
+lifecycle to schema-2.2 sealed admission remains a later cohesive checkpoint.
 
 The canonical URL and branch must match the external trust policy. The local
 runner manifest and checkpoint `required_files` must be the exact same
@@ -302,6 +307,7 @@ include these canonical paths:
 - `src/core/council_autoresearch/repository_lease_contract.ts`
 - `src/core/council_autoresearch/repository_lease_recovery.ts`
 - `src/core/council_autoresearch/repository_lease_state.ts`
+- `src/core/council_autoresearch/repository_operation_file.ts`
 - `src/core/council_autoresearch/repository_operation_guard.ts`
 - `src/core/council_autoresearch/repository_private_file.ts`
 - `src/core/council_autoresearch/runner_identity.ts`

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { afterEach, describe, it } from 'node:test';
@@ -30,6 +31,14 @@ function invoke(command: string, request: unknown, controlRoot: string): {
     const requestRoot = temporary('cstar-council-cli-request-');
     const requestFile = path.join(requestRoot, 'request.json');
     writeJson(requestFile, request);
+    fs.chmodSync(requestFile, 0o600);
+    return invokeRequestFile(command, requestFile, controlRoot);
+}
+
+function invokeRequestFile(command: string, requestFile: string, controlRoot: string): {
+    code: number;
+    body: Record<string, any>;
+} {
     const previousRoot = process.env.CSTAR_CONTROL_ROOT;
     const previousWrite = process.stdout.write;
     let output = '';
@@ -57,6 +66,88 @@ function assertRejected(result: ReturnType<typeof invoke>, pattern: RegExp): voi
 }
 
 describe('Council autoresearch CLI runtime schema', () => {
+    it('requires an exact private descriptor-backed request channel', () => {
+        const control = temporary('cstar-council-cli-control-');
+        const token = resumeToken('private-request');
+        const request = { run_id: 'private-request', resume_token: token };
+        const root = temporary('cstar-council-cli-request-');
+        const file = path.join(root, 'request.json');
+        writeJson(file, request);
+        const publicFile = invokeRequestFile('status', file, control);
+        assertRejected(publicFile, /private request channel/i);
+        assert.equal(JSON.stringify(publicFile.body).includes(token), false);
+
+        const publicRoot = temporary('cstar-council-cli-public-request-');
+        fs.chmodSync(publicRoot, 0o755);
+        const privateFileInPublicRoot = path.join(publicRoot, 'request.json');
+        fs.writeFileSync(privateFileInPublicRoot, JSON.stringify(request), { mode: 0o600 });
+        assertRejected(
+            invokeRequestFile('status', privateFileInPublicRoot, control),
+            /private request channel/i,
+        );
+
+        fs.chmodSync(file, 0o600);
+        const alias = path.join(root, 'alias.json');
+        fs.linkSync(file, alias);
+        assertRejected(invokeRequestFile('status', file, control), /private request channel/i);
+        fs.unlinkSync(alias);
+        const symlink = path.join(root, 'symlink.json');
+        fs.symlinkSync(file, symlink);
+        assertRejected(invokeRequestFile('status', symlink, control), /private request channel/i);
+
+        const oversized = path.join(root, 'oversized.json');
+        fs.writeFileSync(oversized, Buffer.alloc((4 * 1024 * 1024) + 1), { mode: 0o600 });
+        assertRejected(invokeRequestFile('status', oversized, control), /private request channel/i);
+
+        const fifo = path.join(root, 'request.fifo');
+        const made = spawnSync('/usr/bin/mkfifo', [fifo], { encoding: 'utf8' });
+        assert.equal(made.status, 0, made.stderr);
+        fs.chmodSync(fifo, 0o600);
+        const originalOpen = fs.openSync;
+        let fifoOpen = false;
+        fs.openSync = ((target, flags, mode) => {
+            if (target === fifo) {
+                fifoOpen = true;
+                assert.equal(Number(flags) & fs.constants.O_NONBLOCK, fs.constants.O_NONBLOCK);
+                assert.equal(Number(flags) & fs.constants.O_NOFOLLOW, fs.constants.O_NOFOLLOW);
+            }
+            return originalOpen(target, flags, mode);
+        }) as typeof fs.openSync;
+        try {
+            assertRejected(invokeRequestFile('status', fifo, control), /private request channel/i);
+        } finally {
+            fs.openSync = originalOpen;
+        }
+        assert.equal(fifoOpen, true);
+
+        const replacement = path.join(root, 'replacement.json');
+        const originalOpenForRace = fs.openSync;
+        const originalRead = fs.readSync;
+        let requestDescriptor: number | undefined;
+        let replaced = false;
+        fs.openSync = ((target, flags, mode) => {
+            const descriptor = originalOpenForRace(target, flags, mode);
+            if (target === file) requestDescriptor = descriptor;
+            return descriptor;
+        }) as typeof fs.openSync;
+        fs.readSync = ((descriptor, buffer, offset, length, position) => {
+            const count = originalRead(descriptor, buffer, offset, length, position);
+            if (!replaced && descriptor === requestDescriptor) {
+                replaced = true;
+                fs.renameSync(file, replacement);
+                fs.writeFileSync(file, '{"run_id":"replacement"}\n', { mode: 0o600 });
+            }
+            return count;
+        }) as typeof fs.readSync;
+        try {
+            assertRejected(invokeRequestFile('status', file, control), /private request channel/i);
+        } finally {
+            fs.readSync = originalRead;
+            fs.openSync = originalOpenForRace;
+        }
+        assert.equal(replaced, true);
+    });
+
     it('rejects extra, missing, and wrong-type top-level input before creating a receipt', () => {
         const control = temporary('cstar-council-cli-control-');
         const cases = [

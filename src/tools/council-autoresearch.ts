@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import {
@@ -18,7 +17,6 @@ import {
     persistMappingReveal,
     persistPublicationReceipt,
     preregisteredPublicationSubject,
-    readJson,
     releaseRepositoryLease,
     verifyPublication,
     verifyRunnerPublication,
@@ -29,12 +27,12 @@ import {
     exactObject,
     manifestReference,
     mappingReveal,
-    objectValue,
     optionalString,
     publicationSubject,
     ratingPolicy,
     ratingRecords,
     readArgs,
+    readPrivateCouncilRequest,
     requestControlRoot,
     runnerBinding,
     stringArray,
@@ -201,15 +199,13 @@ function execute(command: string, request: Request): unknown {
 
 export function runCouncilAutoresearchCli(argv: string[]): number {
     let command = 'unknown';
+    let requestResumeToken: string | undefined;
     try {
         assertCouncilRuntimePlatform();
         const args = readArgs(argv);
         command = args.command;
-        const stat = fs.lstatSync(args.requestFile);
-        if (!stat.isFile() || stat.isSymbolicLink() || stat.nlink !== 1 || stat.size > 4 * 1024 * 1024) {
-            fail('request must be a single-link regular JSON file no larger than 4 MiB');
-        }
-        const request = objectValue(readJson<unknown>(args.requestFile), 'request');
+        const request = readPrivateCouncilRequest(args.requestFile);
+        if (typeof request.resume_token === 'string') requestResumeToken = request.resume_token;
         const data = execute(command, request);
         process.stdout.write(`${JSON.stringify({
             schema_version: COUNCIL_AUTORESEARCH_SCHEMA,
@@ -220,7 +216,10 @@ export function runCouncilAutoresearchCli(argv: string[]): number {
         }, null, 2)}\n`);
         return 0;
     } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
+        let message = error instanceof Error ? error.message : String(error);
+        if (requestResumeToken !== undefined) {
+            message = message.split(requestResumeToken).join('[REDACTED]');
+        }
         process.stdout.write(`${JSON.stringify({
             schema_version: COUNCIL_AUTORESEARCH_SCHEMA,
             runner_version: COUNCIL_AUTORESEARCH_RUNNER,

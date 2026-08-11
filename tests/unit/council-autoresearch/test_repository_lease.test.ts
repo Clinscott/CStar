@@ -346,6 +346,28 @@ describe('Council autoresearch source lease and artifact manifests', () => {
         }), /private real directory/i);
     });
 
+    it('rejects a non-private receipt directory before publishing lease evidence', () => {
+        const repo = repository();
+        const control = temporary('cstar-council-control-');
+        const runId = 'council-test-hostile-receipt-directory';
+        const receiptDirectory = path.join(control, 'council-autoresearch', runId);
+        fs.mkdirSync(receiptDirectory, { recursive: true, mode: 0o755 });
+        fs.chmodSync(receiptDirectory, 0o755);
+        assert.throws(() => acquireRepositoryLease({
+            repoRoot: repo,
+            controlRoot: control,
+            runId,
+            resumeToken: resumeToken(runId),
+            governedPaths: ['src'],
+        }), /receipt directory must be a private real directory/i);
+        const leaseLock = path.join(repo, '.git', 'cstar-council-autoresearch.lock');
+        assert.equal(fs.existsSync(leaseLock), false);
+        assert.equal(fs.existsSync(`${leaseLock}.operation`), false);
+        assert.equal(fs.existsSync(path.join(receiptDirectory, '00-source-lease.json')), false);
+        assert.equal(fs.existsSync(path.join(receiptDirectory, '00-source-lease.json.seal.json')), false);
+        assert.equal(fs.lstatSync(receiptDirectory).mode & 0o777, 0o755);
+    });
+
     it('rejects a missing repository-overlapping control root without creating it', () => {
         const repo = repository();
         const invalidParent = path.join(repo, 'missing-control');

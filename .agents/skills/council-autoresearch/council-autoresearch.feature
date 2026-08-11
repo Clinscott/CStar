@@ -53,8 +53,10 @@ Feature: Bounded Council autoresearch
       Given one acquisition guard binds the exact repository, control root, run, and governed paths
       When Linux process identity proves the acquisition owner is definitely dead
       Then exact core recovery may remove a guard with no lease effects
-      And it may abort only an exact matching partial lock with no source receipt
-      But a receipted lease requires the matching resume token and remains preserved
+      And the matching resume token may remove only a guard-derived staged alias
+      And an exact intent or body is preserved for same-token replay
+      And recovery never invents a missing source-receipt seal
+      But ambiguous, foreign, live, or differently bound evidence remains preserved
 
     Scenario: Evidence is preregistered
       Given the source lease is valid
