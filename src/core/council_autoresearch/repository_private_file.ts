@@ -356,7 +356,12 @@ export function repairAtomicPrivateFilePublication(input: {
     expected?: { content: Buffer; stat: fs.BigIntStats };
 }): AtomicPrivateFileState {
     const state = atomicPrivateFileState(input.file, input.temporary, input.label);
-    if (state === 'absent' || state === 'complete') return state;
+    if (state === 'absent' || state === 'complete') {
+        if (input.expected !== undefined) {
+            fail(`${input.label} publication changed before recovery`);
+        }
+        return state;
+    }
     if (state === 'ambiguous') fail(`${input.label} publication state is ambiguous`);
     const selected = state === 'staged' ? input.temporary : input.file;
     if (typeof fs.constants.O_NONBLOCK !== 'number') {

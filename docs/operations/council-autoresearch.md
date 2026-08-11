@@ -256,6 +256,18 @@ guard after validation, and never invents a missing seal. The `10` through `40`
 receipts still use the schema-2.1 body commit points; converting the complete
 lifecycle to schema-2.2 sealed admission remains a later cohesive checkpoint.
 
+The schema-neutral receipt-recovery primitive is internal and not reachable from
+the coordinator, barrel API, or CLI. It can normalize only exact operation-bound
+JSON aliases whose body, optional claim, and seal byte digests are supplied by a
+revalidated dead-operation authority, in body-then-claim-then-seal order. It
+never creates missing evidence, treats body-plus-claim without a seal as
+non-admitting, and re-fsyncs every private target directory before success.
+Alias normalization alone neither authorizes guard removal nor validates a run
+transition. Schema-2.2 activation must additionally hold the exact recovery
+owner, bind the guard/effect plan, validate the frozen bundle and receipt
+semantics, re-attest source, and use a bounded precreated experiment-claim
+namespace.
+
 The canonical URL and branch must match the external trust policy. The local
 runner manifest and checkpoint `required_files` must be the exact same
 path-to-digest mapping—not merely the same multiset of content hashes—and must
@@ -310,7 +322,9 @@ include these canonical paths:
 - `src/core/council_autoresearch/repository_operation_file.ts`
 - `src/core/council_autoresearch/repository_operation_guard.ts`
 - `src/core/council_autoresearch/repository_private_file.ts`
+- `src/core/council_autoresearch/repository_receipt_recovery.ts`
 - `src/core/council_autoresearch/runner_identity.ts`
+- `src/core/council_autoresearch/runner_publication_paths.ts`
 - `src/core/council_autoresearch/source_attestation.ts`
 - `src/core/skill_registry.ts`
 - `src/packaging/distribution_content.ts`
@@ -331,6 +345,7 @@ include these canonical paths:
 - `tests/unit/council-autoresearch/test_repository_lease_crash_safety.test.ts`
 - `tests/unit/council-autoresearch/test_repository_lease_lifecycle_adversarial.test.ts`
 - `tests/unit/council-autoresearch/test_repository_lease_lifecycle.test.ts`
+- `tests/unit/council-autoresearch/test_repository_receipt_recovery.test.ts`
 - `tests/unit/council-autoresearch/test_resource_bounds.test.ts`
 - `tests/unit/council-autoresearch/test_runner_checkpoint.test.ts`
 - `tests/unit/council-autoresearch/test_runner_identity.test.ts`
