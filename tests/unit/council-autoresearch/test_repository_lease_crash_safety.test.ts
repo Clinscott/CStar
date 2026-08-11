@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { afterEach, describe, it } from 'node:test';
@@ -13,6 +14,10 @@ import {
     releaseRepositoryLease,
     sha256,
 } from '../../../src/core/council_autoresearch/index.js';
+import {
+    readOperationGuard,
+    readRecoveryOwner,
+} from '../../../src/core/council_autoresearch/repository_lease_contract.js';
 import { cleanup, git, repository, temporary } from './test_helpers.js';
 
 afterEach(cleanup);
@@ -165,6 +170,35 @@ function recoverInterruptedAcquisition(interrupted: Interruption): void {
 }
 
 describe('Council autoresearch crash-safe private repository files', () => {
+    it('rejects guard and recovery-owner FIFOs without waiting for a writer', () => {
+        const paths = lifecyclePaths(repository());
+        const originalOpen = fs.openSync;
+        let targetedOpens = 0;
+        fs.openSync = ((file, flags, mode) => {
+            if ([paths.guard, paths.recoveryOwner].includes(path.resolve(String(file)))) {
+                targetedOpens += 1;
+                assert.equal(typeof flags, 'number');
+                assert.notEqual((flags as number) & fs.constants.O_NONBLOCK, 0);
+            }
+            return originalOpen(file, flags, mode);
+        }) as typeof fs.openSync;
+        try {
+            for (const [file, read] of [
+                [paths.guard, readOperationGuard],
+                [paths.recoveryOwner, readRecoveryOwner],
+            ] as const) {
+                assert.equal(spawnSync('/usr/bin/mkfifo', [file]).status, 0);
+                fs.chmodSync(file, 0o600);
+                assert.throws(() => read(file), /exact private owned regular file/i);
+                assert.equal(fs.existsSync(file), true);
+                fs.unlinkSync(file);
+            }
+        } finally {
+            fs.openSync = originalOpen;
+        }
+        assert.equal(targetedOpens, 2);
+    });
+
     it('normalizes private lifecycle files under a hostile umask', () => {
         const repo = repository();
         const control = temporary('cstar-council-hostile-umask-');

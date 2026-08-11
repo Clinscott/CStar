@@ -275,7 +275,13 @@ function readStablePrivateFile(
     label: string,
     allowedLinks: readonly bigint[],
 ): { content: Buffer; stat: fs.BigIntStats } {
-    const descriptor = fs.openSync(file, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+    if (typeof fs.constants.O_NONBLOCK !== 'number') {
+        fail(`${label} requires nonblocking descriptor support`);
+    }
+    const descriptor = fs.openSync(
+        file,
+        fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW | fs.constants.O_NONBLOCK,
+    );
     try {
         const before = fs.fstatSync(descriptor, { bigint: true });
         assertPrivateOperationGuard(before, allowedLinks);
