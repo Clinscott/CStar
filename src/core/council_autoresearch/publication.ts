@@ -223,6 +223,16 @@ function normalizedRemotePath(value: string): string {
     return normalized;
 }
 
+function normalizedScpRemotePath(value: string): { path: string; absolute: boolean } {
+    const absolute = value.startsWith('/');
+    const normalized = path.posix.normalize(value).replace(/\/+$/, '');
+    if (!normalized || normalized === '.' || normalized === '/'
+        || normalized.split('/').includes('..')) {
+        fail('publication SCP remote path is invalid');
+    }
+    return { path: normalized, absolute };
+}
+
 function githubRepositoryPath(remotePath: string): string | undefined {
     const normalized = normalizedRemotePath(remotePath);
     const parts = normalized.split('/').filter(Boolean);
@@ -270,12 +280,16 @@ function canonicalNetworkRemote(raw: string): CanonicalRemote | undefined {
     if (!scp) return undefined;
     const user = scp[1] ? `${scp[1]}@` : '';
     const host = scp[2].toLowerCase();
-    const remotePath = normalizedRemotePath(scp[3]);
-    if (host === 'github.com' && (!scp[1] || scp[1] === 'git')) {
-        const repositoryPath = githubRepositoryPath(remotePath);
+    const remotePath = normalizedScpRemotePath(scp[3]);
+    if (!remotePath.absolute && host === 'github.com' && (!scp[1] || scp[1] === 'git')) {
+        const repositoryPath = githubRepositoryPath(remotePath.path);
         if (repositoryPath) return { identity: `https://${host}${repositoryPath}`, transport: raw };
     }
-    return { identity: `scp://${user}${host}${remotePath}`, transport: raw };
+    const scope = remotePath.absolute ? 'absolute' : 'home-relative';
+    return {
+        identity: `scp://${user}${host}/${scope}/${remotePath.path.replace(/^\/+/, '')}`,
+        transport: raw,
+    };
 }
 
 function canonicalRemote(raw: string, repoRoot: string): CanonicalRemote {

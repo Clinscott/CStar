@@ -55,8 +55,8 @@ function attemptedReceiptState(
 ): 'absent' | 'exact' | 'conflict' | 'ambiguous' {
     try {
         if (optionalStat(file) === undefined) return 'absent';
-        repairInterruptedImmutableWrite(file);
         const expected = Buffer.from(`${JSON.stringify(record, null, 2)}\n`);
+        repairInterruptedImmutableWrite(file, { digest: sha256(expected), mode: 0o600 });
         const actual = readRegularFileNoFollow(file, 'repository source lease receipt');
         return actual.equals(expected) ? 'exact' : 'conflict';
     } catch {

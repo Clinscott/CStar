@@ -308,6 +308,7 @@ function repairClassifiedAlias(
     root: string,
     relative: string,
     classified: ClassifiedAlias,
+    expected: FrozenFileExpectation,
 ): void {
     const target = frozenTarget(root, relative, 'frozen bundle destination path');
     const alias = frozenTarget(root, classified.alias, 'frozen bundle alias path');
@@ -321,7 +322,10 @@ function repairClassifiedAlias(
         || !sameFileStat(classified.aliasStat, fs.lstatSync(alias, { bigint: true }))) {
         fail(`frozen bundle alias changed before repair: ${relative}`);
     }
-    repairInterruptedImmutableWrite(target);
+    repairInterruptedImmutableWrite(target, {
+        digest: expected.sha256,
+        mode: expected.mode,
+    });
 }
 
 function assertDestinationInventory(
@@ -430,7 +434,9 @@ export function stageFrozenFile(input: {
         maximumPhysicalNodes: ARTIFACT_MANIFEST_MAX_ENTRIES * 2,
     });
     const classified = aliases.get(relativePath);
-    if (classified) repairClassifiedAlias(destinationRoot, relativePath, classified);
+    if (classified) {
+        repairClassifiedAlias(destinationRoot, relativePath, classified, input.expected);
+    }
     ensurePrivateFrozenChain(destinationRoot, target);
     const result = writeImmutableFile(target, snapshot.content, input.expected.mode);
     const staged = snapshotContainedFrozenFile(
@@ -463,7 +469,7 @@ export function stageFrozenPacketBundle(input: {
     assertDestinationInventory(destinationPlan, false, aliases);
     for (const entry of plan.entries) {
         const classified = aliases.get(entry.path);
-        if (classified) repairClassifiedAlias(destinationRoot, entry.path, classified);
+        if (classified) repairClassifiedAlias(destinationRoot, entry.path, classified, entry);
     }
     for (const entry of plan.entries) {
         ensurePrivateFrozenChain(destinationRoot, frozenTarget(

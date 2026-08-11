@@ -144,8 +144,16 @@ describe('Council autoresearch publication Git-entry validation', () => {
             canonicalizeGitRemoteUrl('git@EXAMPLE.com:team/repo.git', repo),
             canonicalizeGitRemoteUrl('git@example.com:team/repo.git', repo),
         );
+        assert.notEqual(
+            canonicalizeGitRemoteUrl('git@example.com:team/repo.git', repo),
+            canonicalizeGitRemoteUrl('git@example.com:/team/repo.git', repo),
+        );
         assert.equal(
             canonicalizeGitRemoteUrl('git@github.com:Clinscott/CStar.git', repo),
+            canonicalizeGitRemoteUrl('https://github.com/Clinscott/CStar', repo),
+        );
+        assert.notEqual(
+            canonicalizeGitRemoteUrl('git@github.com:/Clinscott/CStar.git', repo),
             canonicalizeGitRemoteUrl('https://github.com/Clinscott/CStar', repo),
         );
         const localLookalike = path.join(repo, 'https:', 'example.com', 'team', 'repo');

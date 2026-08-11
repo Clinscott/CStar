@@ -379,7 +379,7 @@ describe('Council autoresearch frozen packet bundle', () => {
         const frozen = destination('cstar-frozen-repair-out-');
         stageFrozenPacketBundle({ packet, sourceRoot: source, destinationRoot: frozen });
         const target = path.join(frozen, packet.contract_manifest.path);
-        const alias = `${target}.tmp-${process.pid}-${randomUUID()}`;
+        const alias = `${target}.tmp-999999999-${randomUUID()}`;
         fs.linkSync(target, alias);
         const unexpected = path.join(frozen, 'unexpected-before-repair.txt');
         fs.writeFileSync(unexpected, 'unexpected\n', { mode: 0o644 });

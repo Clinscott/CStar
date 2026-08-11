@@ -38,7 +38,7 @@ function sparseFile(file: string, bytes: number): void {
 }
 
 function interruptedAlias(target: string, suffix: string): string {
-    return `${target}.tmp-${process.pid}-${suffix}`;
+    return `${target}.tmp-999999999-${suffix}`;
 }
 
 describe('Council autoresearch resource bounds', () => {
@@ -75,6 +75,38 @@ describe('Council autoresearch resource bounds', () => {
         assert.equal(fs.statSync(target).nlink, 1);
     });
 
+    it('preserves an interrupted alias on conflicting replay or a live owner', () => {
+        const root = temporary('cstar-council-immutable-conflict-');
+        const target = path.join(root, 'receipt.json');
+        assert.equal(writeImmutableJson(target, { durable: true }).created, true);
+        const alias = interruptedAlias(target, '00000000-0000-4000-8000-000000000005');
+        fs.linkSync(target, alias);
+        assert.throws(
+            () => writeImmutableJson(target, { durable: false }),
+            /immutable receipt conflicts/i,
+        );
+        assert.equal(fs.existsSync(alias), true);
+        assert.equal(fs.statSync(target).nlink, 2);
+
+        fs.renameSync(alias, `${target}.tmp-${process.pid}-00000000-0000-4000-8000-000000000005`);
+        assert.throws(
+            () => writeImmutableJson(target, { durable: true }),
+            /alias owner is not definitely dead/i,
+        );
+        assert.equal(fs.statSync(target).nlink, 2);
+    });
+
+    it('preserves malformed runner-shaped immutable aliases', () => {
+        const root = temporary('cstar-council-immutable-malformed-');
+        const target = path.join(root, 'receipt.json');
+        assert.equal(writeImmutableJson(target, { durable: true }).created, true);
+        const alias = `${target}.tmp-999999999-${'f'.repeat(36)}`;
+        fs.linkSync(target, alias);
+        assert.throws(() => writeImmutableJson(target, { durable: true }), /unexplained hard links/i);
+        assert.equal(fs.existsSync(alias), true);
+        assert.equal(fs.statSync(target).nlink, 2);
+    });
+
     it('does not repair unexplained or multiply linked immutable targets', () => {
         const root = temporary('cstar-council-immutable-links-');
         const unexplained = path.join(root, 'unexplained.json');
@@ -89,12 +121,18 @@ describe('Council autoresearch resource bounds', () => {
         assert.equal(fs.statSync(unexplained).nlink, 2);
 
         const multiple = path.join(root, 'multiple.json');
-        writeImmutableJson(multiple, { durable: true });
+        const multipleReceipt = writeImmutableJson(multiple, { durable: true });
         const firstAlias = interruptedAlias(multiple, '00000000-0000-4000-8000-000000000002');
         const secondAlias = interruptedAlias(multiple, '00000000-0000-4000-8000-000000000003');
         fs.linkSync(multiple, firstAlias);
         fs.linkSync(multiple, secondAlias);
-        assert.throws(() => repairInterruptedImmutableWrite(multiple), /unexplained hard links/i);
+        assert.throws(
+            () => repairInterruptedImmutableWrite(multiple, {
+                digest: multipleReceipt.sha256,
+                mode: 0o600,
+            }),
+            /unexplained hard links/i,
+        );
         assert.equal(fs.existsSync(firstAlias), true);
         assert.equal(fs.existsSync(secondAlias), true);
         assert.equal(fs.statSync(multiple).nlink, 3);

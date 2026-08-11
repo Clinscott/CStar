@@ -15,9 +15,25 @@ function sameInode(left: fs.BigIntStats, right: fs.BigIntStats): boolean {
     return left.dev === right.dev && left.ino === right.ino;
 }
 
+const IMMUTABLE_ALIAS_ENTRY_LIMIT = 4096;
+
 function immutableTemporaryPattern(target: string): RegExp {
     const escaped = path.basename(target).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    return new RegExp(`^${escaped}\\.tmp-[0-9]+-[a-f0-9-]{36}$`);
+    return new RegExp(
+        `^${escaped}\\.tmp-([1-9][0-9]*)-`
+        + '[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
+    );
+}
+
+function processDefinitelyAbsent(pid: number): boolean {
+    try {
+        process.kill(pid, 0);
+        return false;
+    } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === 'ESRCH') return true;
+        if ((error as NodeJS.ErrnoException).code === 'EPERM') return false;
+        throw error;
+    }
 }
 
 /**
@@ -25,7 +41,14 @@ function immutableTemporaryPattern(target: string): RegExp {
  * link is synced but before the temporary link is removed leaves one exact,
  * runner-shaped alias. Repair only that fully accounted-for two-link state.
  */
-export function repairInterruptedImmutableWrite(file: string): void {
+export function repairInterruptedImmutableWrite(
+    file: string,
+    expected: { digest: Sha256; mode: number },
+): void {
+    if (!/^[a-f0-9]{64}$/.test(expected.digest)
+        || !Number.isInteger(expected.mode) || expected.mode < 0 || expected.mode > 0o777) {
+        fail('immutable recovery expectation is invalid');
+    }
     const target = path.resolve(file);
     let targetStat: fs.BigIntStats;
     try {
@@ -38,21 +61,46 @@ export function repairInterruptedImmutableWrite(file: string): void {
     if (targetStat.nlink !== 2n) {
         fail(`immutable target has unexplained hard links: ${target}`);
     }
+    const snapshot = snapshotRegularFileNoFollow(
+        target, target, MAX_REGULAR_FILE_BYTES, [2n],
+    );
+    if (sha256(snapshot.content) !== expected.digest || snapshot.mode !== expected.mode) {
+        fail(`immutable receipt conflicts at ${target}`);
+    }
 
     const directory = path.dirname(target);
     const pattern = immutableTemporaryPattern(target);
-    const aliases = fs.readdirSync(directory)
-        .filter((name) => pattern.test(name))
-        .map((name) => path.join(directory, name))
-        .filter((candidate) => {
+    const aliases: Array<{ file: string; pid: number }> = [];
+    const handle = fs.opendirSync(directory);
+    let entries = 0;
+    try {
+        let entry: fs.Dirent | null;
+        while ((entry = handle.readSync()) !== null) {
+            entries += 1;
+            if (entries > IMMUTABLE_ALIAS_ENTRY_LIMIT) {
+                fail('immutable target directory exceeds its recovery entry limit');
+            }
+            const match = pattern.exec(entry.name);
+            if (!match) continue;
+            const pid = Number(match[1]);
+            if (!Number.isSafeInteger(pid)) continue;
+            const candidate = path.join(directory, entry.name);
             const stat = fs.lstatSync(candidate, { bigint: true });
-            return !stat.isSymbolicLink() && stat.isFile() && sameInode(stat, targetStat);
-        });
+            if (!stat.isSymbolicLink() && stat.isFile() && sameInode(stat, targetStat)) {
+                aliases.push({ file: candidate, pid });
+            }
+        }
+    } finally {
+        handle.closeSync();
+    }
     if (aliases.length !== 1) {
         fail(`immutable target has unexplained hard links: ${target}`);
     }
 
-    const alias = aliases[0];
+    const alias = aliases[0].file;
+    if (!processDefinitelyAbsent(aliases[0].pid)) {
+        fail(`immutable temporary alias owner is not definitely dead: ${alias}`);
+    }
     const currentTarget = fs.lstatSync(target, { bigint: true });
     const currentAlias = fs.lstatSync(alias, { bigint: true });
     if (!sameInode(currentTarget, targetStat) || currentTarget.nlink !== 2n
@@ -65,6 +113,12 @@ export function repairInterruptedImmutableWrite(file: string): void {
     const repaired = fs.lstatSync(target, { bigint: true });
     if (!sameInode(repaired, targetStat) || repaired.nlink !== 1n) {
         fail(`immutable target could not be repaired safely: ${target}`);
+    }
+    try {
+        fs.lstatSync(alias);
+        fail(`immutable temporary alias survived recovery: ${alias}`);
+    } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
     }
 }
 
@@ -85,6 +139,7 @@ export function snapshotRegularFileNoFollow(
     file: string,
     label = 'file',
     maxBytes = MAX_REGULAR_FILE_BYTES,
+    allowedLinks: readonly bigint[] = [1n],
 ): { content: Buffer; mode: number } {
     assertCouncilRuntimePlatform();
     assertReadByteLimit(maxBytes, MAX_REGULAR_FILE_BYTES, `${label} read limit`);
@@ -97,7 +152,9 @@ export function snapshotRegularFileNoFollow(
     }
     try {
         const before = fs.fstatSync(descriptor, { bigint: true });
-        if (!before.isFile() || before.nlink !== 1n) fail(`${label} must be a single-link regular file`);
+        if (!before.isFile() || !allowedLinks.includes(before.nlink)) {
+            fail(`${label} must be a single-link regular file`);
+        }
         if (before.size > BigInt(maxBytes)) fail(`${label} exceeds the ${maxBytes}-byte read limit`);
         const expectedBytes = Number(before.size);
         const content = Buffer.allocUnsafe(expectedBytes);
@@ -118,7 +175,7 @@ export function snapshotRegularFileNoFollow(
         } catch {
             fail(`${label} path changed while it was being read`);
         }
-        if (linked.isSymbolicLink() || !linked.isFile() || linked.nlink !== 1n
+        if (linked.isSymbolicLink() || !linked.isFile() || !allowedLinks.includes(linked.nlink)
             || !sameInode(linked, after)) {
             fail(`${label} path changed while it was being read`);
         }
@@ -231,15 +288,23 @@ export function ensureDirectoryNoFollow(directory: string): string {
     return fs.realpathSync(target);
 }
 
-function existingImmutableState(target: string): { digest: Sha256; mode: number } | undefined {
+function existingImmutableState(
+    target: string,
+): { digest: Sha256; mode: number; links: 1 | 2 } | undefined {
     try {
-        repairInterruptedImmutableWrite(target);
-        const stat = fs.lstatSync(target);
-        if (stat.isSymbolicLink() || !stat.isFile() || stat.nlink !== 1) {
-            fail(`immutable receipt target is not a single-link regular file: ${target}`);
+        const stat = fs.lstatSync(target, { bigint: true });
+        if (stat.isSymbolicLink() || !stat.isFile()
+            || (stat.nlink !== 1n && stat.nlink !== 2n)) {
+            fail(`immutable receipt target has invalid links or file type: ${target}`);
         }
-        const snapshot = snapshotRegularFileNoFollow(target, target);
-        return { digest: sha256(snapshot.content), mode: snapshot.mode };
+        const snapshot = snapshotRegularFileNoFollow(
+            target, target, MAX_REGULAR_FILE_BYTES, [stat.nlink],
+        );
+        return {
+            digest: sha256(snapshot.content),
+            mode: snapshot.mode,
+            links: stat.nlink === 1n ? 1 : 2,
+        };
     } catch (error) {
         if ((error as NodeJS.ErrnoException).code === 'ENOENT') return undefined;
         throw error;
@@ -262,6 +327,9 @@ export function writeImmutableFile(
     if (existing !== undefined) {
         if (existing.digest !== digest || existing.mode !== mode) {
             fail(`immutable receipt conflicts at ${target}`);
+        }
+        if (existing.links === 2) {
+            repairInterruptedImmutableWrite(target, { digest, mode });
         }
         return { sha256: digest, created: false };
     }
@@ -298,6 +366,9 @@ export function writeImmutableFile(
             ? existingImmutableState(target)
             : undefined;
         if (!winner || winner.digest !== digest || winner.mode !== mode) throw error;
+        if (winner.links === 2) {
+            repairInterruptedImmutableWrite(target, { digest, mode });
+        }
         committed = true;
         created = false;
     } finally {
