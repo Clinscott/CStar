@@ -27,6 +27,14 @@ import {
     type RepositoryOperationRecoveryOwnerRecord,
     type RepositoryOperationRecoveryTarget,
 } from './repository_lease_contract.js';
+import {
+    atomicPrivateTemporaryPath,
+    createAtomicPrivateFile,
+    optionalStat,
+    repairAtomicPrivateFilePublication,
+    sameInode,
+    type OwnedPrivateFile,
+} from './repository_private_file.js';
 
 export interface RepositoryOperationPaths {
     commonDirectory: string;
@@ -35,32 +43,12 @@ export interface RepositoryOperationPaths {
     recoveryOwner: string;
 }
 
-export interface OwnedOperationGuard {
-    descriptor: number;
-    file: string;
-    commonDirectory: string;
+export interface OwnedOperationGuard extends OwnedPrivateFile {
     record: RepositoryOperationRecord;
-    stat: fs.BigIntStats;
 }
 
-export interface OwnedPrivateFile {
-    descriptor: number;
-    file: string;
-    commonDirectory: string;
-    stat: fs.BigIntStats;
-}
-
-export interface OpenedPrivateJson<T> extends OwnedPrivateFile {
-    content: Buffer;
-    record: T;
-}
-
-interface OwnedRecoveryOwner {
-    descriptor: number;
-    file: string;
-    commonDirectory: string;
+interface OwnedRecoveryOwner extends OwnedPrivateFile {
     record: RepositoryOperationRecoveryOwnerRecord;
-    stat: fs.BigIntStats;
 }
 
 export function repositoryOperationPaths(repoRoot: string): RepositoryOperationPaths {
@@ -72,123 +60,6 @@ export function repositoryOperationPaths(repoRoot: string): RepositoryOperationP
         claim: `${guard}.recovery-claim`,
         recoveryOwner: `${guard}.recovery-owner`,
     };
-}
-
-export function optionalStat(file: string): fs.BigIntStats | undefined {
-    try {
-        return fs.lstatSync(file, { bigint: true });
-    } catch (error) {
-        if ((error as NodeJS.ErrnoException).code === 'ENOENT') return undefined;
-        throw error;
-    }
-}
-
-function sameInode(left: fs.BigIntStats, right: fs.BigIntStats): boolean {
-    return left.dev === right.dev && left.ino === right.ino;
-}
-
-function assertPrivateOwnedFile(stat: fs.BigIntStats, label: string, links = 1n): void {
-    const uid = process.getuid?.();
-    if (uid === undefined || !stat.isFile() || stat.isSymbolicLink()
-        || stat.nlink !== links || (stat.mode & 0o7777n) !== 0o600n
-        || stat.uid !== BigInt(uid)) {
-        fail(`${label} must be an exact private owned regular file`);
-    }
-}
-
-function assertSameOwnedFile(
-    before: fs.BigIntStats,
-    after: fs.BigIntStats,
-    label: string,
-): void {
-    for (const key of [
-        'dev', 'ino', 'mode', 'nlink', 'uid', 'gid', 'size', 'mtimeNs', 'ctimeNs',
-    ] as const) {
-        if (before[key] !== after[key]) fail(`${label} identity changed`);
-    }
-}
-
-export function captureOwnedPrivateFile(
-    descriptor: number,
-    file: string,
-    commonDirectory: string,
-    label: string,
-): OwnedPrivateFile {
-    const owned = fs.fstatSync(descriptor, { bigint: true });
-    const linked = fs.lstatSync(file, { bigint: true });
-    assertPrivateOwnedFile(owned, label);
-    assertPrivateOwnedFile(linked, label);
-    assertSameOwnedFile(owned, linked, label);
-    return { descriptor, file, commonDirectory, stat: linked };
-}
-
-export function assertOwnedPrivateFile(owned: OwnedPrivateFile, label: string): void {
-    const descriptor = fs.fstatSync(owned.descriptor, { bigint: true });
-    const linked = fs.lstatSync(owned.file, { bigint: true });
-    assertPrivateOwnedFile(descriptor, label);
-    assertPrivateOwnedFile(linked, label);
-    assertSameOwnedFile(owned.stat, descriptor, label);
-    assertSameOwnedFile(descriptor, linked, label);
-}
-
-export function closeOwnedPrivateFile(owned: OwnedPrivateFile, label: string): void {
-    try {
-        assertOwnedPrivateFile(owned, label);
-    } finally {
-        fs.closeSync(owned.descriptor);
-    }
-}
-
-export function unlinkOwnedPrivateFile(owned: OwnedPrivateFile, label: string): void {
-    try {
-        assertOwnedPrivateFile(owned, label);
-        fs.unlinkSync(owned.file);
-        fsyncDirectory(owned.commonDirectory);
-        if (optionalStat(owned.file) !== undefined) fail(`${label} path survived unlink`);
-        const unlinked = fs.fstatSync(owned.descriptor, { bigint: true });
-        if (!sameInode(unlinked, owned.stat) || unlinked.nlink !== 0n
-            || unlinked.mode !== owned.stat.mode || unlinked.uid !== owned.stat.uid
-            || unlinked.gid !== owned.stat.gid || unlinked.size !== owned.stat.size) {
-            fail(`${label} inode changed during unlink`);
-        }
-    } finally {
-        fs.closeSync(owned.descriptor);
-    }
-}
-
-export function openPrivateJson<T>(
-    file: string,
-    commonDirectory: string,
-    label: string,
-    maxBytes: number,
-): OpenedPrivateJson<T> {
-    const descriptor = fs.openSync(file, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
-    try {
-        const owned = captureOwnedPrivateFile(descriptor, file, commonDirectory, label);
-        if (owned.stat.size < 1n || owned.stat.size > BigInt(maxBytes)) {
-            fail(`${label} exceeds its byte limit`);
-        }
-        const content = Buffer.allocUnsafe(Number(owned.stat.size));
-        let offset = 0;
-        while (offset < content.length) {
-            const count = fs.readSync(descriptor, content, offset, content.length - offset, offset);
-            if (count === 0) fail(`${label} changed while it was read`);
-            offset += count;
-        }
-        assertOwnedPrivateFile(owned, label);
-        let record: T;
-        try {
-            record = JSON.parse(content.toString('utf8')) as T;
-        } catch (error) {
-            fail(`${label} is not valid JSON: ${
-                error instanceof Error ? error.message : String(error)
-            }`);
-        }
-        return { ...owned, content, record };
-    } catch (error) {
-        fs.closeSync(descriptor);
-        throw error;
-    }
 }
 
 function removeOwnedGuard(owned: {
@@ -223,50 +94,27 @@ export function createOwnedOperationGuard(
     record: RepositoryOperationRecord,
 ): OwnedOperationGuard {
     validateRepositoryOperationRecord(record);
-    let descriptor: number;
+    let owned: OwnedPrivateFile;
     try {
-        descriptor = fs.openSync(paths.guard, 'wx', 0o600);
-    } catch (error) {
-        if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
-        fail('repository operation guard already exists; explicit recovery is required');
-    }
-    try {
-        fs.writeFileSync(descriptor, `${JSON.stringify(record, null, 2)}\n`);
-        fs.fsyncSync(descriptor);
-        fsyncDirectory(paths.commonDirectory);
-        const stat = fs.fstatSync(descriptor, { bigint: true });
-        const linked = fs.lstatSync(paths.guard, { bigint: true });
-        assertPrivateOperationGuard(stat);
-        assertPrivateOperationGuard(linked);
-        assertSameOperationGuard(stat, linked, 'repository operation guard changed during creation');
-        return {
-            descriptor,
+        owned = createAtomicPrivateFile({
             file: paths.guard,
-            commonDirectory: paths.commonDirectory,
-            record,
-            stat: linked,
-        };
-    } catch (error) {
-        try {
-            const partial = captureOwnedPrivateFile(
-                descriptor,
+            temporary: atomicPrivateTemporaryPath(
                 paths.guard,
-                paths.commonDirectory,
-                'repository operation guard',
-            );
-            unlinkOwnedPrivateFile(partial, 'repository operation guard');
-        } catch (cleanupError) {
-            try {
-                fs.closeSync(descriptor);
-            } catch {
-                // The cleanup error is the actionable fail-closed result.
-            }
-            fail(`repository operation guard creation failed and cleanup was unsafe: ${
-                cleanupError instanceof Error ? cleanupError.message : String(cleanupError)
-            }`);
+                record.owner.pid,
+                record.operation_id,
+            ),
+            commonDirectory: paths.commonDirectory,
+            content: Buffer.from(`${JSON.stringify(record, null, 2)}\n`),
+            label: 'repository operation guard',
+        });
+    } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === 'EEXIST') {
+            fail('repository operation guard already exists; explicit recovery is required');
         }
         throw error;
     }
+    assertPrivateOperationGuard(owned.stat);
+    return { ...owned, record };
 }
 
 export function releaseOwnedOperationGuard(owned: OwnedOperationGuard): void {
@@ -296,44 +144,54 @@ function createRecoveryOwner(
         acquired_at: new Date().toISOString(),
     };
     validateRecoveryOwnerRecord(record);
-    const descriptor = fs.openSync(paths.recoveryOwner, 'wx', 0o600);
-    try {
-        fs.writeFileSync(descriptor, `${JSON.stringify(record, null, 2)}\n`);
-        fs.fsyncSync(descriptor);
-        fsyncDirectory(paths.commonDirectory);
-        const stat = fs.fstatSync(descriptor, { bigint: true });
-        const linked = fs.lstatSync(paths.recoveryOwner, { bigint: true });
-        assertPrivateOperationGuard(stat);
-        assertPrivateOperationGuard(linked);
-        assertSameOperationGuard(stat, linked, 'repository operation recovery owner changed');
-        return {
-            descriptor,
-            file: paths.recoveryOwner,
-            commonDirectory: paths.commonDirectory,
-            record,
-            stat: linked,
-        };
-    } catch (error) {
-        try {
-            const partial = captureOwnedPrivateFile(
-                descriptor,
-                paths.recoveryOwner,
-                paths.commonDirectory,
-                'repository operation recovery owner',
-            );
-            unlinkOwnedPrivateFile(partial, 'repository operation recovery owner');
-        } catch (cleanupError) {
-            try {
-                fs.closeSync(descriptor);
-            } catch {
-                // The cleanup error below is the actionable fail-closed result.
-            }
-            fail(`repository operation recovery owner creation failed and cleanup was unsafe: ${
-                cleanupError instanceof Error ? cleanupError.message : String(cleanupError)
-            }`);
-        }
-        throw error;
+    const owned = createAtomicPrivateFile({
+        file: paths.recoveryOwner,
+        temporary: atomicPrivateTemporaryPath(
+            paths.recoveryOwner,
+            record.owner.pid,
+            record.recovery_id,
+        ),
+        commonDirectory: paths.commonDirectory,
+        content: Buffer.from(`${JSON.stringify(record, null, 2)}\n`),
+        label: 'repository operation recovery owner',
+    });
+    assertPrivateOperationGuard(owned.stat);
+    return { ...owned, record };
+}
+
+function rejectInterruptedRecoveryOwner(
+    paths: RepositoryOperationPaths,
+    target: RepositoryOperationRecoveryTarget,
+): never {
+    const previous = readRecoveryOwner(paths.recoveryOwner, [1n, 2n]);
+    assertRecoveryOwnerTargets(previous.record, target);
+    if (!operationOwnerDefinitelyDead(previous.record.owner)) {
+        fail('another repository operation recovery is active');
     }
+    if (previous.stat.nlink === 2n) {
+        const repeated = readRecoveryOwner(paths.recoveryOwner, [2n]);
+        assertRecoveryOwnerTargets(repeated.record, target);
+        if (!operationOwnerDefinitelyDead(repeated.record.owner)) {
+            fail('another repository operation recovery is active');
+        }
+        repairAtomicPrivateFilePublication({
+            file: paths.recoveryOwner,
+            temporary: atomicPrivateTemporaryPath(
+                paths.recoveryOwner,
+                repeated.record.owner.pid,
+                repeated.record.recovery_id,
+            ),
+            commonDirectory: paths.commonDirectory,
+            label: 'repository operation recovery owner',
+            expected: { content: repeated.content, stat: repeated.stat },
+        });
+        const repaired = readRecoveryOwner(paths.recoveryOwner);
+        assertRecoveryOwnerTargets(repaired.record, target);
+        if (!operationOwnerDefinitelyDead(repaired.record.owner)) {
+            fail('another repository operation recovery is active');
+        }
+    }
+    fail('an interrupted repository operation recovery requires operator investigation');
 }
 
 export function acquireRecoveryOwner(
@@ -345,12 +203,7 @@ export function acquireRecoveryOwner(
     } catch (error) {
         if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
     }
-    const previous = readRecoveryOwner(paths.recoveryOwner);
-    assertRecoveryOwnerTargets(previous.record, target);
-    if (operationOwnerDefinitelyDead(previous.record.owner)) {
-        fail('an interrupted repository operation recovery requires operator investigation');
-    }
-    fail('another repository operation recovery is active');
+    return rejectInterruptedRecoveryOwner(paths, target);
 }
 
 export function releaseRecoveryOwner(owned: OwnedRecoveryOwner): void {
@@ -371,9 +224,9 @@ export function selectRecoveryTarget(
     paths: RepositoryOperationPaths,
 ): RepositoryOperationGuardSnapshot | undefined {
     if (optionalStat(paths.claim) !== undefined) return readOperationGuard(paths.claim, [1n, 2n]);
-    if (optionalStat(paths.guard) !== undefined) return readOperationGuard(paths.guard);
+    if (optionalStat(paths.guard) !== undefined) return readOperationGuard(paths.guard, [1n, 2n]);
     if (optionalStat(paths.recoveryOwner) !== undefined) {
-        const previous = readRecoveryOwner(paths.recoveryOwner);
+        const previous = readRecoveryOwner(paths.recoveryOwner, [1n, 2n]);
         if (operationOwnerDefinitelyDead(previous.record.owner)) {
             fail('an interrupted repository operation recovery requires operator investigation');
         }
@@ -382,11 +235,46 @@ export function selectRecoveryTarget(
     return undefined;
 }
 
+export function normalizeOperationGuardPublication(
+    paths: RepositoryOperationPaths,
+    target: RepositoryOperationRecoveryTarget,
+): void {
+    if (optionalStat(paths.claim) !== undefined) return;
+    const guarded = readOperationGuard(paths.guard, [1n, 2n]);
+    assertSnapshotTarget(guarded, target);
+    if (!operationOwnerDefinitelyDead(guarded.record.owner)) {
+        fail('another repository operation is active');
+    }
+    if (guarded.stat.nlink === 1n) return;
+    const repeated = readOperationGuard(paths.guard, [2n]);
+    assertSnapshotTarget(repeated, target);
+    if (!operationOwnerDefinitelyDead(repeated.record.owner)) {
+        fail('another repository operation is active');
+    }
+    repairAtomicPrivateFilePublication({
+        file: paths.guard,
+        temporary: atomicPrivateTemporaryPath(
+            paths.guard,
+            repeated.record.owner.pid,
+            repeated.record.operation_id,
+        ),
+        commonDirectory: paths.commonDirectory,
+        label: 'repository operation guard',
+        expected: { content: repeated.content, stat: repeated.stat },
+    });
+    const repaired = readOperationGuard(paths.guard);
+    assertSnapshotTarget(repaired, target);
+    if (!operationOwnerDefinitelyDead(repaired.record.owner)) {
+        fail('another repository operation is active');
+    }
+}
+
 export function claimAndRemoveOperationGuard(
     paths: RepositoryOperationPaths,
     target: RepositoryOperationRecoveryTarget,
     validate: (record: RepositoryOperationRecord) => void,
 ): RepositoryOperationRecord {
+    normalizeOperationGuardPublication(paths, target);
     let claimed: RepositoryOperationGuardSnapshot;
     if (optionalStat(paths.claim) !== undefined) {
         claimed = readOperationGuard(paths.claim, [1n, 2n]);

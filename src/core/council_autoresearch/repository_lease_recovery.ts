@@ -16,13 +16,10 @@ import {
 import {
     acquireRecoveryOwner,
     claimAndRemoveOperationGuard,
-    closeOwnedPrivateFile,
-    openPrivateJson,
-    optionalStat,
+    normalizeOperationGuardPublication,
     releaseRecoveryOwner,
     repositoryOperationPaths,
     selectRecoveryTarget,
-    unlinkOwnedPrivateFile,
 } from './repository_operation_guard.js';
 import {
     UUID_V4_PATTERN,
@@ -31,11 +28,21 @@ import {
     governedPathsSha256,
     operationRecoveryTarget,
     type RepositoryLeaseRecord,
+    type RepositoryLeaseAcquisitionOperationRecord,
     type RepositoryOperationRecord,
     type RepositoryOperationRecovery,
     type RepositoryOperationRecoveryOutcome,
     type RepositoryOperationRecoveryTarget,
 } from './repository_lease_contract.js';
+import {
+    atomicPrivateFileState,
+    atomicPrivateTemporaryPath,
+    closeOwnedPrivateFile,
+    openPrivateJson,
+    optionalStat,
+    repairAtomicPrivateFilePublication,
+    unlinkOwnedPrivateFile,
+} from './repository_private_file.js';
 import {
     assertLeasePathSeparated,
     assertLeaseRecord,
@@ -112,6 +119,7 @@ function acquisitionRecoveryScope(input: {
     commonDirectory: string;
     controlRoot: string;
     governedPaths: string[];
+    runId: string;
 } {
     assertRunId(input.runId);
     if (!UUID_V4_PATTERN.test(input.operationId)) {
@@ -123,7 +131,7 @@ function acquisitionRecoveryScope(input: {
     assertLeasePathSeparated(controlRoot, repoRoot, commonDirectory, 'control root');
     const governedPaths = [...new Set(input.governedPaths)].sort();
     assertGovernedPaths(governedPaths);
-    return { repoRoot, commonDirectory, controlRoot, governedPaths };
+    return { repoRoot, commonDirectory, controlRoot, governedPaths, runId: input.runId };
 }
 
 function assertDeadAcquisitionTarget(
@@ -170,6 +178,26 @@ function assertUnchangedPrivateJson(
     }
 }
 
+function sourceLockMatchesAcquisition(
+    record: RepositoryLeaseRecord,
+    operation: RepositoryLeaseAcquisitionOperationRecord,
+    scope: {
+        repoRoot: string;
+        commonDirectory: string;
+        controlRoot: string;
+        runId: string;
+    },
+): boolean {
+    return record.lease_id === operation.lease_id
+        && record.run_id === scope.runId
+        && record.repository_root === scope.repoRoot
+        && record.git_common_directory === scope.commonDirectory
+        && record.control_root === scope.controlRoot
+        && record.resume_token_sha256 === operation.resume_token_sha256
+        && Array.isArray(record.governed_paths)
+        && governedPathsSha256(record.governed_paths) === operation.governed_paths_sha256;
+}
+
 export function recoverRepositoryLeaseAcquisition(input: {
     repoRoot: string;
     controlRoot: string;
@@ -182,7 +210,8 @@ export function recoverRepositoryLeaseAcquisition(input: {
     const paths = repositoryOperationPaths(scope.repoRoot);
     const selected = selectRecoveryTarget(paths);
     if (selected === undefined) return { recovered: false };
-    assertAcquisitionBindsInput(selected.record, {
+    const acquisition = selected.record;
+    assertAcquisitionBindsInput(acquisition, {
         operationId: input.operationId,
         runId: input.runId,
         repositoryRoot: scope.repoRoot,
@@ -204,6 +233,7 @@ export function recoverRepositoryLeaseAcquisition(input: {
             controlRoot: scope.controlRoot,
             governedPaths: scope.governedPaths,
         };
+        normalizeOperationGuardPublication(paths, target);
         assertDeadAcquisitionTarget(paths, target, boundInput);
         const runReceipt = path.join(
             scope.controlRoot,
@@ -227,11 +257,11 @@ export function recoverRepositoryLeaseAcquisition(input: {
                     runId: input.runId,
                 }, opened.record.resume_token_sha256);
                 verifyLeaseSource(opened.record);
-                const bindsAcquisition = opened.record.lease_id === selected.record.lease_id
+                const bindsAcquisition = opened.record.lease_id === acquisition.lease_id
                     && opened.record.resume_token_sha256
-                        === selected.record.resume_token_sha256
+                        === acquisition.resume_token_sha256
                     && governedPathsSha256(opened.record.governed_paths)
-                        === selected.record.governed_paths_sha256;
+                        === acquisition.governed_paths_sha256;
                 if (bindsAcquisition) {
                     fail('a receipted repository lease requires resume-token recovery');
                 }
@@ -244,6 +274,59 @@ export function recoverRepositoryLeaseAcquisition(input: {
             }
         }
         const sourceLockPath = repositoryLeaseLockPathFromCommon(scope.commonDirectory);
+        const sourceTemporary = atomicPrivateTemporaryPath(
+            sourceLockPath,
+            acquisition.owner.pid,
+            acquisition.operation_id,
+        );
+        const publicationState = atomicPrivateFileState(
+            sourceLockPath,
+            sourceTemporary,
+            'repository source lease',
+        );
+        if (publicationState === 'ambiguous') {
+            fail('repository source lease publication state is ambiguous');
+        }
+        if (publicationState === 'staged' || publicationState === 'committed') {
+            const stagedPath = publicationState === 'staged'
+                ? sourceTemporary
+                : sourceLockPath;
+            const allowedLinks = publicationState === 'staged' ? [1n] : [2n];
+            const opened = openPrivateJson<RepositoryLeaseRecord>(
+                stagedPath,
+                scope.commonDirectory,
+                'repository source lease',
+                MAX_JSON_FILE_BYTES,
+                allowedLinks,
+            );
+            const expected = { content: Buffer.from(opened.content), stat: opened.stat };
+            try {
+                if (!sourceLockMatchesAcquisition(opened.record, acquisition, scope)) {
+                    fail('partial repository source lease does not bind the acquisition');
+                }
+                if (conflictingReceipt !== undefined) {
+                    fail('partial repository lease conflicts with an existing receipt');
+                }
+                assertLeaseRecord(opened.record, {
+                    repoRoot: scope.repoRoot,
+                    commonDirectory: scope.commonDirectory,
+                    controlRoot: scope.controlRoot,
+                    runId: input.runId,
+                }, acquisition.resume_token_sha256);
+                verifyLeaseSource(opened.record);
+            } finally {
+                closeOwnedPrivateFile(opened, 'repository source lease', allowedLinks);
+            }
+            assertDeadAcquisitionTarget(paths, target, boundInput);
+            repairAtomicPrivateFilePublication({
+                file: sourceLockPath,
+                temporary: sourceTemporary,
+                commonDirectory: scope.commonDirectory,
+                label: 'repository source lease',
+                expected,
+            });
+            assertDeadAcquisitionTarget(paths, target, boundInput);
+        }
         let foreignLock: { content: Buffer; stat: fs.BigIntStats } | undefined;
         if (optionalStat(sourceLockPath) !== undefined) {
             const opened = openPrivateJson<RepositoryLeaseRecord>(
@@ -254,15 +337,11 @@ export function recoverRepositoryLeaseAcquisition(input: {
             );
             let remove = false;
             try {
-                const matchesAcquisition = opened.record.lease_id === selected.record.lease_id
-                    && opened.record.run_id === input.runId
-                    && opened.record.repository_root === scope.repoRoot
-                    && opened.record.git_common_directory === scope.commonDirectory
-                    && opened.record.control_root === scope.controlRoot
-                    && opened.record.resume_token_sha256 === selected.record.resume_token_sha256
-                    && Array.isArray(opened.record.governed_paths)
-                    && governedPathsSha256(opened.record.governed_paths)
-                        === selected.record.governed_paths_sha256;
+                const matchesAcquisition = sourceLockMatchesAcquisition(
+                    opened.record,
+                    acquisition,
+                    scope,
+                );
                 if (matchesAcquisition) {
                     if (conflictingReceipt !== undefined) {
                         fail('partial repository lease conflicts with an existing receipt');
@@ -272,7 +351,7 @@ export function recoverRepositoryLeaseAcquisition(input: {
                         commonDirectory: scope.commonDirectory,
                         controlRoot: scope.controlRoot,
                         runId: input.runId,
-                    }, selected.record.resume_token_sha256);
+                    }, acquisition.resume_token_sha256);
                     verifyLeaseSource(opened.record);
                     assertDeadAcquisitionTarget(paths, target, boundInput);
                     if (optionalStat(runReceipt) !== undefined) {

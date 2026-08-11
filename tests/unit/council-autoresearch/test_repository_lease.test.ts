@@ -232,12 +232,12 @@ describe('Council autoresearch source lease and artifact manifests', () => {
         fs.writeFileSync(guard, `${JSON.stringify(stale, null, 2)}\n`, { mode: 0o600 });
         const unexplainedAlias = `${guard}.unexplained-alias`;
         fs.linkSync(guard, unexplainedAlias);
-        assert.throws(() => recoverRepositoryLeaseOperation(recoveryInput), /exact private single-link owned/i);
+        assert.throws(() => recoverRepositoryLeaseOperation(recoveryInput), /publication state is ambiguous/i);
         assert.equal(fs.existsSync(guard), true);
         fs.unlinkSync(unexplainedAlias);
 
         fs.chmodSync(guard, 0o644);
-        assert.throws(() => recoverRepositoryLeaseOperation(recoveryInput), /exact private single-link owned/i);
+        assert.throws(() => recoverRepositoryLeaseOperation(recoveryInput), /exact private.*owned/i);
         assert.equal(fs.existsSync(guard), true);
         fs.chmodSync(guard, 0o600);
 

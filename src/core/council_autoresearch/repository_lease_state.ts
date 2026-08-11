@@ -15,15 +15,15 @@ import {
 } from './contracts.js';
 import { gitCommonDirectory, repositoryRoot } from './git_trust.js';
 import {
+    UUID_V4_PATTERN,
+    type RepositoryLeaseRecord,
+} from './repository_lease_contract.js';
+import {
     assertOwnedPrivateFile,
     closeOwnedPrivateFile,
     openPrivateJson,
     type OpenedPrivateJson,
-} from './repository_operation_guard.js';
-import {
-    UUID_V4_PATTERN,
-    type RepositoryLeaseRecord,
-} from './repository_lease_contract.js';
+} from './repository_private_file.js';
 import { assertGovernedPaths, attestSource } from './source_attestation.js';
 
 export interface LeaseAuthorizationInput {

@@ -122,8 +122,15 @@ reads run outside the governed repository so repository-local URL rewrites or
 transport commands cannot redirect them.
 
 Lease acquisition, every durable command, and release share one short-lived
-repository lifecycle guard. Acquisition writes and directory-syncs that guard
-before creating a control directory, source lock, or receipt. Command and release
+repository lifecycle guard. Guards, recovery-owner records, and source locks are
+fully written and file-synced through `0600` descriptors before one exact hard-link
+publication; the containing directory is synced before and after removing the
+temporary alias. Interrupted publication may repair only the record-derived exact
+alias after proving its owner dead and revalidating its bytes and inode. Unexplained
+aliases, hostile metadata, replacement bytes, or uncertain post-unlink directory
+durability remain fail-closed behind the lifecycle guard. Acquisition durably
+publishes that guard before creating a control directory, source lock, or receipt.
+Command and release
 guards bind the authorized lease and resume-token digest; acquisition guards bind
 the canonical repository/common directory, control target, run, pre-generated
 lease identity, token digest, and governed-path digest. Full active-lease and
@@ -251,6 +258,7 @@ include these canonical paths:
 - `src/core/council_autoresearch/repository_lease_recovery.ts`
 - `src/core/council_autoresearch/repository_lease_state.ts`
 - `src/core/council_autoresearch/repository_operation_guard.ts`
+- `src/core/council_autoresearch/repository_private_file.ts`
 - `src/core/council_autoresearch/runner_identity.ts`
 - `src/core/council_autoresearch/source_attestation.ts`
 - `src/core/skill_registry.ts`
@@ -265,6 +273,7 @@ include these canonical paths:
 - `tests/unit/council-autoresearch/test_operation_identity.test.ts`
 - `tests/unit/council-autoresearch/test_publication_entries.test.ts`
 - `tests/unit/council-autoresearch/test_repository_lease.test.ts`
+- `tests/unit/council-autoresearch/test_repository_lease_crash_safety.test.ts`
 - `tests/unit/council-autoresearch/test_repository_lease_lifecycle_adversarial.test.ts`
 - `tests/unit/council-autoresearch/test_repository_lease_lifecycle.test.ts`
 - `tests/unit/council-autoresearch/test_resource_bounds.test.ts`

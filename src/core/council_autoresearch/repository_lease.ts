@@ -1,5 +1,4 @@
 import { randomBytes, randomUUID } from 'node:crypto';
-import fs from 'node:fs';
 import path from 'node:path';
 
 import {
@@ -9,7 +8,6 @@ import {
     canonicalPrivateDirectory,
     ensureDirectoryNoFollow,
     fail,
-    fsyncDirectory,
     readRegularFileNoFollow,
     repairInterruptedImmutableWrite,
     sha256,
@@ -21,17 +19,10 @@ import { currentOperationOwner } from './operation_identity.js';
 import {
     abandonOwnedOperationGuard,
     assertNoRecoverySidecars,
-    assertOwnedPrivateFile,
-    captureOwnedPrivateFile,
-    closeOwnedPrivateFile,
     createOwnedOperationGuard,
-    optionalStat,
     releaseOwnedOperationGuard,
     repositoryOperationPaths,
-    unlinkOwnedPrivateFile,
-    type OpenedPrivateJson,
     type OwnedOperationGuard,
-    type OwnedPrivateFile,
 } from './repository_operation_guard.js';
 import {
     governedPathsSha256,
@@ -42,6 +33,18 @@ import {
     type RepositoryOperationRecord,
     type RepositoryOperationRecovery,
 } from './repository_lease_contract.js';
+import {
+    assertOwnedPrivateFile,
+    atomicPrivateFileState,
+    atomicPrivateTemporaryPath,
+    closeOwnedPrivateFile,
+    createAtomicPrivateFile,
+    optionalStat,
+    privateFileDurabilityUncertain,
+    unlinkOwnedPrivateFile,
+    type OpenedPrivateJson,
+    type OwnedPrivateFile,
+} from './repository_private_file.js';
 import {
     assertLeasePathSeparated,
     canonicalLeaseScope,
@@ -68,16 +71,6 @@ export type {
     RepositoryOperationRecord,
     RepositoryOperationRecovery,
 } from './repository_lease_contract.js';
-
-function writeLeaseDescriptor(descriptor: number, record: RepositoryLeaseRecord): void {
-    const bytes = Buffer.from(`${JSON.stringify(record, null, 2)}\n`);
-    fs.ftruncateSync(descriptor, 0);
-    fs.writeFileSync(descriptor, bytes);
-    fs.fsyncSync(descriptor);
-    if (fs.fstatSync(descriptor, { bigint: true }).size !== BigInt(bytes.length)) {
-        fail('repository source lease write was incomplete');
-    }
-}
 
 function attemptedReceiptState(
     file: string,
@@ -130,7 +123,13 @@ export function acquireRepositoryLease(input: {
         governed_paths_sha256: governedPathsSha256(governedPaths),
     };
     const paths = repositoryOperationPaths(repoRoot);
-    if (optionalStat(repositoryLeaseLockPathFromCommon(commonDirectory)) !== undefined) {
+    const sourceLockPath = repositoryLeaseLockPathFromCommon(commonDirectory);
+    const sourceTemporary = atomicPrivateTemporaryPath(
+        sourceLockPath,
+        operation.owner.pid,
+        operation.operation_id,
+    );
+    if (optionalStat(sourceLockPath) !== undefined) {
         fail('repository source lease already exists');
     }
     if (optionalStat(sourceReceiptTarget) !== undefined) {
@@ -139,8 +138,8 @@ export function acquireRepositoryLease(input: {
     assertNoRecoverySidecars(paths);
 
     let guard: OwnedOperationGuard | undefined;
-    let sourceDescriptor: number | undefined;
     let sourceLock: OwnedPrivateFile | undefined;
+    let sourcePublicationStarted = false;
     let attemptedRecord: RepositoryLeaseRecord | undefined;
     let receiptWriteStarted = false;
     let receiptCommitted = false;
@@ -149,7 +148,7 @@ export function acquireRepositoryLease(input: {
     try {
         guard = createOwnedOperationGuard(paths, operation);
         assertNoRecoverySidecars(paths);
-        if (optionalStat(repositoryLeaseLockPathFromCommon(commonDirectory)) !== undefined) {
+        if (optionalStat(sourceLockPath) !== undefined) {
             fail('repository source lease already exists');
         }
 
@@ -178,17 +177,14 @@ export function acquireRepositoryLease(input: {
             acquired_at: new Date().toISOString(),
         };
         attemptedRecord = record;
-        const file = repositoryLeaseLockPathFromCommon(commonDirectory);
-        sourceDescriptor = fs.openSync(file, 'wx', 0o600);
-        writeLeaseDescriptor(sourceDescriptor, record);
-        fsyncDirectory(commonDirectory);
-        sourceLock = captureOwnedPrivateFile(
-            sourceDescriptor,
-            file,
+        sourcePublicationStarted = true;
+        sourceLock = createAtomicPrivateFile({
+            file: sourceLockPath,
+            temporary: sourceTemporary,
             commonDirectory,
-            'repository source lease',
-        );
-        sourceDescriptor = undefined;
+            content: Buffer.from(`${JSON.stringify(record, null, 2)}\n`),
+            label: 'repository source lease',
+        });
         const staged = openMatchingLeaseLock(record, {
             repoRoot,
             commonDirectory,
@@ -218,33 +214,24 @@ export function acquireRepositoryLease(input: {
         const heldGuard = guard;
         guard = undefined;
         releaseOwnedOperationGuard(heldGuard);
-        return { record, lock_file: file, resume_token: resumeToken };
+        return { record, lock_file: sourceLockPath, resume_token: resumeToken };
     } catch (error) {
         let cleanupError: unknown;
+        preserveAfterFailure ||= privateFileDurabilityUncertain(error);
         if (!receiptCommitted && receiptWriteStarted && attemptedRecord !== undefined
             && sourceReceipt !== undefined) {
             const state = attemptedReceiptState(sourceReceipt, attemptedRecord);
             receiptCommitted = state === 'exact';
-            preserveAfterFailure = state === 'ambiguous';
+            preserveAfterFailure ||= state === 'ambiguous';
         }
-        if (sourceDescriptor !== undefined) {
-            const descriptor = sourceDescriptor;
-            sourceDescriptor = undefined;
-            try {
-                const partial = captureOwnedPrivateFile(
-                    descriptor,
-                    repositoryLeaseLockPathFromCommon(commonDirectory),
-                    commonDirectory,
-                    'repository source lease',
-                );
-                unlinkOwnedPrivateFile(partial, 'repository source lease');
-            } catch (caught) {
-                try {
-                    fs.closeSync(descriptor);
-                } catch {
-                    // The cleanup error below is the actionable fail-closed result.
-                }
-                cleanupError = caught;
+        if (sourcePublicationStarted && sourceLock === undefined) {
+            const state = atomicPrivateFileState(
+                sourceLockPath,
+                sourceTemporary,
+                'repository source lease',
+            );
+            if (state !== 'absent') {
+                preserveAfterFailure = true;
             }
         }
         if (sourceLock !== undefined) {
@@ -263,7 +250,9 @@ export function acquireRepositoryLease(input: {
             const held = guard;
             guard = undefined;
             try {
-                if (receiptCommitted || preserveAfterFailure) abandonOwnedOperationGuard(held);
+                if (receiptCommitted || preserveAfterFailure || cleanupError !== undefined) {
+                    abandonOwnedOperationGuard(held);
+                }
                 else releaseOwnedOperationGuard(held);
             } catch (caught) {
                 cleanupError ??= caught;

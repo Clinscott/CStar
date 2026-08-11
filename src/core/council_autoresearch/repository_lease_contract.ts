@@ -254,7 +254,7 @@ export function assertPrivateOperationGuard(
     if (uid === undefined || !stat.isFile() || stat.isSymbolicLink()
         || !allowedLinks.includes(stat.nlink)
         || (stat.mode & 0o7777n) !== 0o600n || stat.uid !== BigInt(uid)) {
-        fail('repository operation guard must be an exact private single-link owned regular file');
+        fail('repository operation guard must be an exact private owned regular file');
     }
 }
 
@@ -363,8 +363,17 @@ export function validateRecoveryOwnerRecord(
 
 export function readRecoveryOwner(
     file: string,
-): { record: RepositoryOperationRecoveryOwnerRecord; stat: fs.BigIntStats } {
-    const snapshot = readStablePrivateFile(file, 'repository operation recovery owner', [1n]);
+    allowedLinks: readonly bigint[] = [1n],
+): {
+    content: Buffer;
+    record: RepositoryOperationRecoveryOwnerRecord;
+    stat: fs.BigIntStats;
+} {
+    const snapshot = readStablePrivateFile(
+        file,
+        'repository operation recovery owner',
+        allowedLinks,
+    );
     let record: unknown;
     try {
         record = JSON.parse(snapshot.content.toString('utf8'));
@@ -374,7 +383,7 @@ export function readRecoveryOwner(
         }`);
     }
     validateRecoveryOwnerRecord(record);
-    return { record, stat: snapshot.stat };
+    return { content: snapshot.content, record, stat: snapshot.stat };
 }
 
 export function assertRecoveryOwnerTargets(
