@@ -278,6 +278,18 @@ and the receipt-operation recovery owner. The later operation path must not be
 combined with the legacy UUID-alias staging classifier because an operation UUID
 has the same lexical form but different recovery authority.
 
+The internal operation-bound file primitive supplies that per-file publication
+and recovery layer without activating it. Every temporary path derives from the
+future guard owner PID and operation ID. A writer-plausible partial staged file
+may be removed but never promoted; an exact committed two-link target/temporary
+inode may be normalized while preserving the target; complete targets are
+replayed without replacement. Raw bytes, modes, sizes, ownership, link counts,
+parent identity, foreign temporary absence, and the frozen operation authority
+are rechecked around every mutation, and stable outcomes re-sync the parent so a
+retry closes prior unlink-sync uncertainty. Bundle-wide recovery and guard
+removal remain deliberately unavailable until the target-bound receipt operation
+lands.
+
 The canonical URL and branch must match the external trust policy. The local
 runner manifest and checkpoint `required_files` must be the exact same
 path-to-digest mapping—not merely the same multiset of content hashes—and must
@@ -317,6 +329,7 @@ include these canonical paths:
 - `src/core/council_autoresearch/frozen_bundle.ts`
 - `src/core/council_autoresearch/frozen_bundle_effect_plan.ts`
 - `src/core/council_autoresearch/frozen_bundle_fs.ts`
+- `src/core/council_autoresearch/frozen_operation_file.ts`
 - `src/core/council_autoresearch/git_trust.ts`
 - `src/core/council_autoresearch/operation_identity.ts`
 - `src/core/council_autoresearch/packet.ts`
@@ -348,6 +361,7 @@ include these canonical paths:
 - `tests/unit/council-autoresearch/test_cli_schema.test.ts`
 - `tests/unit/council-autoresearch/test_frozen_bundle.test.ts`
 - `tests/unit/council-autoresearch/test_frozen_bundle_effect_plan.test.ts`
+- `tests/unit/council-autoresearch/test_frozen_operation_file.test.ts`
 - `tests/unit/council-autoresearch/test_helpers.ts`
 - `tests/unit/council-autoresearch/test_operation_identity.test.ts`
 - `tests/unit/council-autoresearch/test_publication_entries.test.ts`
