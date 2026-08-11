@@ -47,6 +47,7 @@ export const REQUIRED_RUNNER_PUBLICATION_PATHS = Object.freeze([
     'scripts/run-tsx.mjs',
     'scripts/runtime-env.mjs',
     'src/core/council_autoresearch/artifact_manifest.ts',
+    'src/core/council_autoresearch/contract_schema.ts',
     'src/core/council_autoresearch/contracts.ts',
     'src/core/council_autoresearch/coordinator.ts',
     'src/core/council_autoresearch/decision.ts',

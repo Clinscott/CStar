@@ -273,6 +273,7 @@ include these canonical paths:
 - `plugins/corvus-star/README.md`
 - `plugins/corvus-star/lineage.json`
 - `src/core/council_autoresearch/artifact_manifest.ts`
+- `src/core/council_autoresearch/contract_schema.ts`
 - `src/core/council_autoresearch/index.ts`
 - `src/core/council_autoresearch/contracts.ts`
 - `src/core/council_autoresearch/coordinator.ts`
