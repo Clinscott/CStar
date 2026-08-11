@@ -24,6 +24,28 @@ interface GitFileEntry {
     oid: string;
 }
 
+interface FileIdentity {
+    dev: bigint;
+    ino: bigint;
+    mode: bigint;
+    nlink: bigint;
+    uid: bigint;
+    gid: bigint;
+    size: bigint;
+    mtimeNs: bigint;
+    ctimeNs: bigint;
+}
+
+interface IndexSnapshot {
+    path: string;
+    identity: FileIdentity;
+}
+
+interface WorktreeSnapshot {
+    path: string;
+    identity: FileIdentity;
+}
+
 function assertCanonicalRepositoryPath(file: string): void {
     const segments = file.split('/');
     if (!file || path.isAbsolute(file) || /[\\\r\n\0]/.test(file)
@@ -56,6 +78,45 @@ function assertAbsent(file: string, message: string): void {
     }
 }
 
+function regularFileIdentity(file: string, label: string): FileIdentity {
+    const stat = fs.lstatSync(file, { bigint: true });
+    if (stat.isSymbolicLink() || !stat.isFile() || stat.nlink !== 1n) {
+        fail(`${label} is not a single-link regular file`);
+    }
+    return {
+        dev: stat.dev,
+        ino: stat.ino,
+        mode: stat.mode,
+        nlink: stat.nlink,
+        uid: stat.uid,
+        gid: stat.gid,
+        size: stat.size,
+        mtimeNs: stat.mtimeNs,
+        ctimeNs: stat.ctimeNs,
+    };
+}
+
+function sameFileIdentity(left: FileIdentity, right: FileIdentity): boolean {
+    return left.dev === right.dev && left.ino === right.ino && left.mode === right.mode
+        && left.nlink === right.nlink && left.uid === right.uid && left.gid === right.gid
+        && left.size === right.size && left.mtimeNs === right.mtimeNs
+        && left.ctimeNs === right.ctimeNs;
+}
+
+function repositoryIndexSnapshot(repoRoot: string): IndexSnapshot {
+    const indexPath = resolvedGitPath(repoRoot, 'index');
+    return {
+        path: indexPath,
+        identity: regularFileIdentity(indexPath, 'Git index'),
+    };
+}
+
+function assertSameIndexSnapshot(before: IndexSnapshot, after: IndexSnapshot): void {
+    if (before.path !== after.path || !sameFileIdentity(before.identity, after.identity)) {
+        fail('Git index changed during source attestation');
+    }
+}
+
 export function assertRepositoryObjectTopology(repoRootInput: string): void {
     const repoRoot = repositoryRoot(repoRootInput);
     const common = gitCommonDirectory(repoRoot);
@@ -71,11 +132,11 @@ export function assertRepositoryObjectTopology(repoRootInput: string): void {
     ])).trim();
     if (replacements !== '') fail('Git replacement refs are forbidden');
 
+    const sharedIndex = String(runTrustedGit(repoRoot, ['rev-parse', '--shared-index-path'])).trim();
+    if (sharedIndex !== '') fail('Git split indexes are forbidden');
+
     const index = resolvedGitPath(repoRoot, 'index');
-    const indexStat = fs.lstatSync(index);
-    if (indexStat.isSymbolicLink() || !indexStat.isFile() || indexStat.nlink !== 1) {
-        fail('Git index is not a canonical single-link regular file');
-    }
+    regularFileIdentity(index, 'Git index');
 }
 
 function headEntries(repoRoot: string, commit: string, governedPaths: string[]): Map<string, GitFileEntry> {
@@ -133,7 +194,7 @@ function assertManifestMatchesHead(
     commit: string,
     governedPaths: string[],
     manifest: ArtifactManifest,
-): void {
+): { index: Map<string, GitFileEntry>; flags: string[]; worktree: WorktreeSnapshot[] } {
     const tree = headEntries(repoRoot, commit, governedPaths);
     const index = indexEntries(repoRoot, governedPaths);
     const flags = ordinaryIndexPaths(repoRoot, governedPaths);
@@ -142,6 +203,7 @@ function assertManifestMatchesHead(
     assertSamePathSet('governed Git index', [...index.keys()], [...tree.keys()]);
     assertSamePathSet('governed Git index flags', flags, [...tree.keys()]);
 
+    const worktree: WorktreeSnapshot[] = [];
     for (const entry of manifest.entries) {
         const committed = tree.get(entry.path)!;
         const staged = index.get(entry.path)!;
@@ -149,12 +211,18 @@ function assertManifestMatchesHead(
             || staged.oid !== committed.oid) {
             fail(`governed file index or mode differs from HEAD: ${entry.path}`);
         }
-        const worktree = readRegularFileNoFollow(
-            path.join(repoRoot, ...entry.path.split('/')),
+        const absolute = path.join(repoRoot, ...entry.path.split('/'));
+        const before = regularFileIdentity(absolute, `governed worktree file ${entry.path}`);
+        const worktreeBytes = readRegularFileNoFollow(
+            absolute,
             `governed worktree file ${entry.path}`,
             ARTIFACT_MANIFEST_MAX_FILE_BYTES,
         );
-        if (worktree.length !== entry.bytes || sha256(worktree) !== entry.sha256) {
+        const after = regularFileIdentity(absolute, `governed worktree file ${entry.path}`);
+        if (!sameFileIdentity(before, after)) {
+            fail(`governed worktree file changed while it was measured: ${entry.path}`);
+        }
+        if (worktreeBytes.length !== entry.bytes || sha256(worktreeBytes) !== entry.sha256) {
             fail(`governed worktree manifest changed during attestation: ${entry.path}`);
         }
         const committedBytes = runTrustedGit(repoRoot, ['cat-file', 'blob', committed.oid], {
@@ -162,8 +230,33 @@ function assertManifestMatchesHead(
             maxBuffer: ARTIFACT_MANIFEST_MAX_FILE_BYTES + 1024,
         }) as Buffer;
         if (committedBytes.length > ARTIFACT_MANIFEST_MAX_FILE_BYTES
-            || !committedBytes.equals(worktree)) {
+            || !committedBytes.equals(worktreeBytes)) {
             fail(`governed raw worktree bytes differ from HEAD: ${entry.path}`);
+        }
+        worktree.push({ path: absolute, identity: after });
+    }
+    return { index, flags, worktree };
+}
+
+function assertSameIndexView(
+    beforeEntries: Map<string, GitFileEntry>,
+    beforeFlags: string[],
+    afterEntries: Map<string, GitFileEntry>,
+    afterFlags: string[],
+): void {
+    const entries = (value: Map<string, GitFileEntry>) => [...value.entries()]
+        .sort(([left], [right]) => Buffer.compare(Buffer.from(left), Buffer.from(right)));
+    if (canonicalJson(entries(beforeEntries)) !== canonicalJson(entries(afterEntries))
+        || canonicalJson(beforeFlags) !== canonicalJson(afterFlags)) {
+        fail('Git index view changed during source attestation');
+    }
+}
+
+function assertWorktreeSnapshotsUnchanged(snapshots: WorktreeSnapshot[]): void {
+    for (const snapshot of snapshots) {
+        const after = regularFileIdentity(snapshot.path, 'governed worktree file');
+        if (!sameFileIdentity(snapshot.identity, after)) {
+            fail('governed worktree changed during source attestation');
         }
     }
 }
@@ -176,10 +269,22 @@ export function attestSource(repoRootInput: string, governedPaths: string[], roo
     assertGovernedPaths(governedPaths);
     assertRepositoryObjectTopology(repoRoot);
     const before = sourceHead(repoRoot);
+    const indexBefore = repositoryIndexSnapshot(repoRoot);
     const manifest = buildArtifactManifest({ root: repoRoot, rootLabel, includedPaths: governedPaths });
-    assertManifestMatchesHead(repoRoot, before, governedPaths, manifest);
+    const verified = assertManifestMatchesHead(repoRoot, before, governedPaths, manifest);
+    const rebuilt = buildArtifactManifest({ root: repoRoot, rootLabel, includedPaths: governedPaths });
+    if (canonicalJson(manifest) !== canonicalJson(rebuilt)) {
+        fail('governed worktree manifest changed during source attestation');
+    }
+    const finalIndex = indexEntries(repoRoot, governedPaths);
+    const finalFlags = ordinaryIndexPaths(repoRoot, governedPaths);
+    assertSameIndexView(verified.index, verified.flags, finalIndex, finalFlags);
+    assertWorktreeSnapshotsUnchanged(verified.worktree);
+    assertSameIndexSnapshot(indexBefore, repositoryIndexSnapshot(repoRoot));
     assertRepositoryObjectTopology(repoRoot);
     const after = sourceHead(repoRoot);
     if (before !== after) fail('repository HEAD changed during source attestation');
+    assertWorktreeSnapshotsUnchanged(verified.worktree);
+    assertSameIndexSnapshot(indexBefore, repositoryIndexSnapshot(repoRoot));
     return { head: before, manifest };
 }

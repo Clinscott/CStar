@@ -95,10 +95,15 @@ contender that fails `O_EXCL` never enters cleanup. The runner rechecks HEAD,
 cleanliness of every governed path, and the recursive manifest before and after
 each durable operation. Attestation requires the real index to match the
 captured commit at stage zero; rejects assume-unchanged and skip-worktree flags,
-replacement refs, grafts, and alternate object databases; and compares each
-bounded worktree file byte-for-byte with its raw committed blob. It does not run
-Git status or clean filters, so repository-configured filter commands cannot
-execute during attestation or conceal worktree drift.
+split indexes, replacement refs, grafts, and alternate object databases; and
+compares each bounded worktree file byte-for-byte with its raw committed blob.
+The logical index and worktree manifest must match a second scan, while the
+canonical single-link index inode and metadata and all observed worktree file
+identities must remain unchanged across the scan. It does not run Git status or
+clean filters, so repository-configured filter commands cannot execute during
+attestation or conceal worktree drift. The kernel, filesystem enforcement, and
+same-UID processes remain part of the local trusted computing base; no sequence
+of userspace observations can exclude a hostile write after its final check.
 
 The control root must be outside the source repository so receipt writes cannot
 invalidate source cleanliness. Stale ownership has no automatic timeout;
