@@ -277,6 +277,7 @@ include these canonical paths:
 - `src/core/council_autoresearch/index.ts`
 - `src/core/council_autoresearch/contracts.ts`
 - `src/core/council_autoresearch/coordinator.ts`
+- `src/core/council_autoresearch/coordinator_state.ts`
 - `src/core/council_autoresearch/decision.ts`
 - `src/core/council_autoresearch/execution_trust.ts`
 - `src/core/council_autoresearch/frozen_bundle.ts`
