@@ -155,8 +155,12 @@ export function gitCommonDirectory(repoRoot: string): string {
 export function sourceHead(repoRoot: string): string {
     const root = repositoryRoot(repoRoot);
     const head = String(runTrustedGit(root, [
-        'rev-parse', '--verify', '--end-of-options', 'HEAD^{commit}',
+        'rev-parse', '--verify', '--end-of-options', 'HEAD',
     ])).trim();
     if (!/^[a-f0-9]{40}$/.test(head)) fail('repository HEAD is not a full Git commit SHA');
+    const type = String(runTrustedGit(root, [
+        'cat-file', '-t', '--', head,
+    ])).trim();
+    if (type !== 'commit') fail('repository HEAD must directly name a commit');
     return head;
 }

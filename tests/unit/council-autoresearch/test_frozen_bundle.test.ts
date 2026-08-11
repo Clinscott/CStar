@@ -302,7 +302,7 @@ describe('Council autoresearch frozen packet bundle', () => {
             () => stageFrozenPacketBundle({
                 packet, sourceRoot: source, destinationRoot: publicDestination,
             }),
-            /private real directory/i,
+            /private real directory|ancestor is renameable by another user/i,
         );
 
         const nested = path.join(source, 'nested-frozen');

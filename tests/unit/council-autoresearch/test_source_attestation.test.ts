@@ -77,17 +77,17 @@ function release(repo: string, control: string, lease: ReturnType<typeof acquire
 }
 
 describe('Council autoresearch raw source attestation', () => {
-    it('requires HEAD to resolve to a commit and returns the peeled commit identity', () => {
+    it('requires HEAD itself to name a commit without peeling annotated tags', () => {
         const repo = repository();
         const commit = git(repo, ['rev-parse', 'HEAD']);
         git(repo, ['tag', '-a', 'annotated-source', '-m', 'annotated source']);
         const headFile = path.join(repo, '.git', 'HEAD');
         fs.writeFileSync(headFile, 'ref: refs/tags/annotated-source\n');
-        assert.equal(sourceHead(repo), commit);
+        assert.throws(() => sourceHead(repo), /HEAD must directly name a commit/i);
 
         const tree = git(repo, ['rev-parse', `${commit}^{tree}`]);
         fs.writeFileSync(headFile, `${tree}\n`);
-        assert.throws(() => sourceHead(repo), /trusted Git command failed/i);
+        assert.throws(() => sourceHead(repo), /HEAD must directly name a commit/i);
         fs.writeFileSync(headFile, `${commit}\n`);
         assert.equal(sourceHead(repo), commit);
     });
