@@ -3,6 +3,7 @@ export * from './contracts.js';
 export * from './coordinator.js';
 export * from './decision.js';
 export * from './execution_trust.js';
+export * from './frozen_bundle.js';
 export * from './git_trust.js';
 export * from './operation_identity.js';
 export * from './packet.js';

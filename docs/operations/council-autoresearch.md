@@ -214,6 +214,24 @@ identity. Callers must supply an already loaded and structurally verified bundle
 manifest; packet integration must bind it to the signed manifest reference before
 using these primitives.
 
+The runner-v2.2 rebuild also exposes offline frozen-bundle staging primitives.
+`stageFrozenPacketBundle` validates the complete seven-manifest packet input closure
+before creating a private destination, rejects cross-role path/case/ancestor
+collisions and aggregate resource overruns, and immutably stages only exact bounded
+regular files in UTF-8 path order. Staging requires `O_NOFOLLOW` and nonblocking
+file opens. Exact partial replay is allowed; conflicts, unexplained residue, source
+or destination races, extras, and source/destination overlap fail closed.
+`verifyFrozenPacketBundle` reverifies the final exact destination inventory without
+a Git remote read. `stageFrozenFile` is only a low-level bounded partial-staging
+helper; it does not validate packet closure or establish admission. The destination
+is a dedicated packet-input root; future signed outputs require a separate sibling
+or an explicit sealed union inventory. These inventory-only primitives do not
+verify the execution trust policy, executing HEAD, remote publication, or receipt
+admission. They are not wired into the schema-2.1 packet lifecycle and file
+presence is not a commit boundary; durable admission waits for the later sealed-
+receipt checkpoint. Same-UID mutation after the final observation and privileged
+mount aliases remain inside the declared local trust boundary.
+
 The canonical URL and branch must match the external trust policy. The local
 runner manifest and checkpoint `required_files` must be the exact same
 path-to-digest mapping—not merely the same multiset of content hashes—and must
@@ -248,6 +266,8 @@ include these canonical paths:
 - `src/core/council_autoresearch/coordinator.ts`
 - `src/core/council_autoresearch/decision.ts`
 - `src/core/council_autoresearch/execution_trust.ts`
+- `src/core/council_autoresearch/frozen_bundle.ts`
+- `src/core/council_autoresearch/frozen_bundle_fs.ts`
 - `src/core/council_autoresearch/git_trust.ts`
 - `src/core/council_autoresearch/operation_identity.ts`
 - `src/core/council_autoresearch/packet.ts`
@@ -269,6 +289,7 @@ include these canonical paths:
 - `scripts/runtime-env.mjs`
 - `tests/unit/council-autoresearch/test_adversarial.test.ts`
 - `tests/unit/council-autoresearch/test_cli_schema.test.ts`
+- `tests/unit/council-autoresearch/test_frozen_bundle.test.ts`
 - `tests/unit/council-autoresearch/test_helpers.ts`
 - `tests/unit/council-autoresearch/test_operation_identity.test.ts`
 - `tests/unit/council-autoresearch/test_publication_entries.test.ts`
