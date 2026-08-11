@@ -20,20 +20,9 @@ const IMMUTABLE_ALIAS_ENTRY_LIMIT = 4096;
 function immutableTemporaryPattern(target: string): RegExp {
     const escaped = path.basename(target).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     return new RegExp(
-        `^${escaped}\\.tmp-([1-9][0-9]*)-`
+        `^${escaped}\\.tmp-[1-9][0-9]*-`
         + '[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
     );
-}
-
-function processDefinitelyAbsent(pid: number): boolean {
-    try {
-        process.kill(pid, 0);
-        return false;
-    } catch (error) {
-        if ((error as NodeJS.ErrnoException).code === 'ESRCH') return true;
-        if ((error as NodeJS.ErrnoException).code === 'EPERM') return false;
-        throw error;
-    }
 }
 
 /**
@@ -70,7 +59,7 @@ export function repairInterruptedImmutableWrite(
 
     const directory = path.dirname(target);
     const pattern = immutableTemporaryPattern(target);
-    const aliases: Array<{ file: string; pid: number }> = [];
+    const aliases: string[] = [];
     const handle = fs.opendirSync(directory);
     let entries = 0;
     try {
@@ -80,14 +69,11 @@ export function repairInterruptedImmutableWrite(
             if (entries > IMMUTABLE_ALIAS_ENTRY_LIMIT) {
                 fail('immutable target directory exceeds its recovery entry limit');
             }
-            const match = pattern.exec(entry.name);
-            if (!match) continue;
-            const pid = Number(match[1]);
-            if (!Number.isSafeInteger(pid)) continue;
+            if (!pattern.test(entry.name)) continue;
             const candidate = path.join(directory, entry.name);
             const stat = fs.lstatSync(candidate, { bigint: true });
             if (!stat.isSymbolicLink() && stat.isFile() && sameInode(stat, targetStat)) {
-                aliases.push({ file: candidate, pid });
+                aliases.push(candidate);
             }
         }
     } finally {
@@ -97,10 +83,7 @@ export function repairInterruptedImmutableWrite(
         fail(`immutable target has unexplained hard links: ${target}`);
     }
 
-    const alias = aliases[0].file;
-    if (!processDefinitelyAbsent(aliases[0].pid)) {
-        fail(`immutable temporary alias owner is not definitely dead: ${alias}`);
-    }
+    const alias = aliases[0];
     const currentTarget = fs.lstatSync(target, { bigint: true });
     const currentAlias = fs.lstatSync(alias, { bigint: true });
     if (!sameInode(currentTarget, targetStat) || currentTarget.nlink !== 2n

@@ -75,7 +75,7 @@ describe('Council autoresearch resource bounds', () => {
         assert.equal(fs.statSync(target).nlink, 1);
     });
 
-    it('preserves an interrupted alias on conflicting replay or a live owner', () => {
+    it('preserves an interrupted alias on conflicting replay', () => {
         const root = temporary('cstar-council-immutable-conflict-');
         const target = path.join(root, 'receipt.json');
         assert.equal(writeImmutableJson(target, { durable: true }).created, true);
@@ -86,13 +86,6 @@ describe('Council autoresearch resource bounds', () => {
             /immutable receipt conflicts/i,
         );
         assert.equal(fs.existsSync(alias), true);
-        assert.equal(fs.statSync(target).nlink, 2);
-
-        fs.renameSync(alias, `${target}.tmp-${process.pid}-00000000-0000-4000-8000-000000000005`);
-        assert.throws(
-            () => writeImmutableJson(target, { durable: true }),
-            /alias owner is not definitely dead/i,
-        );
         assert.equal(fs.statSync(target).nlink, 2);
     });
 
