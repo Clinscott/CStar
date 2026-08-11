@@ -58,9 +58,39 @@ function publishedEntryFixture(): { repo: string; remote: string; commit: string
 describe('Council autoresearch publication Git-entry validation', () => {
     it('accepts only exact regular 100644 blobs before hashing content', () => {
         const fixture = publishedEntryFixture();
-        const verify = (file: string) => verifyPublication({
+        const verify = (file: string) => {
+            const oid = git(fixture.repo, ['rev-parse', `${fixture.commit}:${file}`]);
+            const digest = file === 'regular.txt'
+                ? sha256(gitBytes(fixture.repo, ['cat-file', 'blob', oid]))
+                : sha256('invalid Git entry mode');
+            return verifyPublication({
+                repoRoot: fixture.repo,
+                runId: 'publication-entry-test',
+                packetSha256: 'a'.repeat(64),
+                ratingsSha256: 'b'.repeat(64),
+                mappingRevealSha256: 'c'.repeat(64),
+                decisionSha256: 'd'.repeat(64),
+                repository: 'origin',
+                expectedRepositoryUrl: fixture.remote,
+                branch: 'main',
+                commit: fixture.commit,
+                requiredFiles: { [file]: digest },
+            });
+        };
+
+        assert.doesNotThrow(() => verify('regular.txt'));
+        for (const file of ['executable.sh', 'link.txt', 'nested', 'gitlink']) {
+            assert.throws(() => verify(file), /regular 100644 blob/i, file);
+        }
+    });
+
+    it('rejects replacement refs, grafts, and alternate object databases before object reads', () => {
+        const fixture = publishedEntryFixture();
+        const regularOid = git(fixture.repo, ['rev-parse', `${fixture.commit}:regular.txt`]);
+        const digest = sha256(gitBytes(fixture.repo, ['cat-file', 'blob', regularOid]));
+        const verify = () => verifyPublication({
             repoRoot: fixture.repo,
-            runId: 'publication-entry-test',
+            runId: 'publication-object-topology-test',
             packetSha256: 'a'.repeat(64),
             ratingsSha256: 'b'.repeat(64),
             mappingRevealSha256: 'c'.repeat(64),
@@ -69,15 +99,31 @@ describe('Council autoresearch publication Git-entry validation', () => {
             expectedRepositoryUrl: fixture.remote,
             branch: 'main',
             commit: fixture.commit,
-            requiredFiles: {
-                [file]: sha256(gitBytes(fixture.repo, ['show', `${fixture.commit}:${file}`])),
-            },
+            requiredFiles: { 'regular.txt': digest },
         });
+        assert.doesNotThrow(verify);
 
-        assert.doesNotThrow(() => verify('regular.txt'));
-        for (const file of ['executable.sh', 'link.txt', 'nested', 'gitlink']) {
-            assert.throws(() => verify(file), /regular 100644 blob/i, file);
-        }
+        const replacementPayload = path.join(fixture.repo, 'replacement-payload');
+        fs.writeFileSync(replacementPayload, 'replacement publication\n');
+        const replacementOid = git(fixture.repo, ['hash-object', '-w', replacementPayload]);
+        fs.unlinkSync(replacementPayload);
+        git(fixture.repo, ['replace', regularOid, replacementOid]);
+        assert.throws(verify, /replacement refs are forbidden/i);
+        git(fixture.repo, ['replace', '-d', regularOid]);
+
+        const common = path.resolve(fixture.repo, git(fixture.repo, ['rev-parse', '--git-common-dir']));
+        const grafts = path.join(common, 'info', 'grafts');
+        fs.writeFileSync(grafts, `${fixture.commit}\n`);
+        assert.throws(verify, /grafts are forbidden/i);
+        fs.unlinkSync(grafts);
+
+        const alternates = path.join(common, 'objects', 'info', 'alternates');
+        fs.mkdirSync(path.dirname(alternates), { recursive: true });
+        fs.writeFileSync(alternates, `${path.join(fixture.remote, 'objects')}\n`);
+        assert.throws(verify, /alternate Git object databases are forbidden/i);
+        fs.unlinkSync(alternates);
+
+        assert.doesNotThrow(verify);
     });
 
     it('normalizes equivalent network and local remotes without cross-scheme collisions', () => {

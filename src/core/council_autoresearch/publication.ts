@@ -18,6 +18,7 @@ import {
     sha256,
 } from './contracts.js';
 import { runTrustedGit, runTrustedGitWithoutRepository } from './git_trust.js';
+import { assertRepositoryObjectTopology } from './source_attestation.js';
 
 export const REQUIRED_RUNNER_PUBLICATION_PATHS = Object.freeze([
     '.agents/AGENTS.feature',
@@ -278,7 +279,7 @@ function configuredRemote(repoRoot: string, repository: string): CanonicalRemote
     return canonicalRemote(raw, repoRoot);
 }
 
-function assertRegularPublishedBlob(repoRoot: string, commit: string, file: string): void {
+function assertRegularPublishedBlob(repoRoot: string, commit: string, file: string): string {
     const listing = runGit(repoRoot, [
         '--literal-pathspecs', 'ls-tree', '-z', '--full-tree', commit, '--', file,
     ], 'buffer') as Buffer;
@@ -292,6 +293,7 @@ function assertRegularPublishedBlob(repoRoot: string, commit: string, file: stri
     if (match[1] !== '100644' || match[2] !== 'blob') {
         fail(`published path must be a regular 100644 blob: ${file}`);
     }
+    return match[3];
 }
 
 function verifyRemoteFiles(input: {
@@ -306,6 +308,7 @@ function verifyRemoteFiles(input: {
     const remote = configuredRemote(input.repoRoot, input.repository);
     const expected = canonicalizeGitRemoteUrl(input.expectedRepositoryUrl, input.repoRoot);
     if (remote.identity !== expected) fail('publication configured remote does not match the pinned URL');
+    assertRepositoryObjectTopology(input.repoRoot);
     const files = Object.entries(input.requiredFiles).sort(([left], [right]) => left.localeCompare(right));
     if (files.length < 1 || files.length > 256) fail('publication requires one to 256 files');
     const ref = `refs/heads/${input.branch}`;
@@ -323,10 +326,11 @@ function verifyRemoteFiles(input: {
     for (const [file, digest] of files) {
         assertRepositoryPath(file);
         assertSha256(digest, `required_files.${file}`);
-        assertRegularPublishedBlob(input.repoRoot, input.commit, file);
-        const content = runGit(input.repoRoot, ['show', `${input.commit}:${file}`], 'buffer') as Buffer;
+        const oid = assertRegularPublishedBlob(input.repoRoot, input.commit, file);
+        const content = runGit(input.repoRoot, ['cat-file', 'blob', oid], 'buffer') as Buffer;
         if (sha256(content) !== digest) fail(`published file hash mismatch: ${file}`);
     }
+    assertRepositoryObjectTopology(input.repoRoot);
     return { ref, repositoryUrl: remote.identity, files };
 }
 
