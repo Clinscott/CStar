@@ -13,6 +13,11 @@ import {
     type ArtifactManifest,
 } from './contracts.js';
 import { readStablePrivateFile } from './repository_operation_file.js';
+import {
+    repositoryReceiptOperationFieldKeys,
+    validateRepositoryReceiptOperationFields,
+    type RepositoryReceiptOperationFields,
+} from './repository_receipt_operation_contract.js';
 
 export {
     OPERATION_GUARD_MAX_BYTES,
@@ -69,11 +74,12 @@ export type RepositoryOperationKind =
     | 'lease-acquisition'
     | 'lease-command'
     | 'lease-release';
+export type RepositoryGuardOperationKind = RepositoryOperationKind | 'receipt-command';
 
 interface RepositoryOperationBase {
     schema_version: typeof COUNCIL_AUTORESEARCH_SCHEMA;
     runner_version: typeof COUNCIL_AUTORESEARCH_RUNNER;
-    operation_kind: RepositoryOperationKind;
+    operation_kind: RepositoryGuardOperationKind;
     operation_id: string;
     lease_id: string;
     run_id: string;
@@ -95,6 +101,10 @@ export interface RepositoryLeaseCommandOperationRecord extends RepositoryOperati
     operation_kind: 'lease-command';
 }
 
+export type RepositoryReceiptCommandOperationRecord = RepositoryOperationBase
+    & RepositoryReceiptOperationFields
+    & { operation_kind: 'receipt-command' };
+
 export interface RepositoryLeaseReleaseOperationRecord extends RepositoryOperationBase {
     operation_kind: 'lease-release';
 }
@@ -102,10 +112,11 @@ export interface RepositoryLeaseReleaseOperationRecord extends RepositoryOperati
 export type RepositoryOperationRecord =
     | RepositoryLeaseAcquisitionOperationRecord
     | RepositoryLeaseCommandOperationRecord
+    | RepositoryReceiptCommandOperationRecord
     | RepositoryLeaseReleaseOperationRecord;
 
 export interface RepositoryOperationRecoveryTarget {
-    operation_kind: RepositoryOperationKind;
+    operation_kind: RepositoryGuardOperationKind;
     operation_id: string;
     guard_sha256: string;
     guard_device: string;
@@ -241,12 +252,13 @@ export function assertRepositoryOperationOwner(
     assertSha256(value.pid_namespace_sha256, `${label}.pid_namespace_sha256`);
 }
 
-function operationKind(record: unknown): RepositoryOperationKind {
+function operationKind(record: unknown): RepositoryGuardOperationKind {
     if (!record || typeof record !== 'object' || Array.isArray(record)) {
         fail('repository operation guard must be an object');
     }
     const kind = (record as { operation_kind?: unknown }).operation_kind;
-    if (kind !== 'lease-acquisition' && kind !== 'lease-command' && kind !== 'lease-release') {
+    if (kind !== 'lease-acquisition' && kind !== 'lease-command'
+        && kind !== 'receipt-command' && kind !== 'lease-release') {
         fail('repository operation guard kind is invalid');
     }
     return kind;
@@ -256,16 +268,18 @@ export function validateRepositoryOperationRecord(
     record: unknown,
 ): asserts record is RepositoryOperationRecord {
     const kind = operationKind(record);
-    const acquisitionKeys = kind === 'lease-acquisition'
+    const extraKeys = kind === 'lease-acquisition'
         ? [
             'repository_root', 'git_common_directory', 'control_root',
             'governed_paths_sha256', 'lease_intent_sha256',
         ]
-        : [];
+        : kind === 'receipt-command'
+            ? repositoryReceiptOperationFieldKeys(record)
+            : [];
     assertExactObjectKeys(record, [
         'schema_version', 'runner_version', 'operation_kind', 'operation_id',
         'lease_id', 'run_id', 'resume_token_sha256', 'owner', 'acquired_at',
-        ...acquisitionKeys,
+        ...extraKeys,
     ], 'repository operation guard');
     const value = record as RepositoryOperationRecord;
     if (value.schema_version !== COUNCIL_AUTORESEARCH_SCHEMA
@@ -292,6 +306,8 @@ export function validateRepositoryOperationRecord(
             'repository lease acquisition guard governed paths hash',
         );
         assertSha256(value.lease_intent_sha256, 'repository lease acquisition guard intent hash');
+    } else if (value.operation_kind === 'receipt-command') {
+        validateRepositoryReceiptOperationFields(value);
     }
 }
 
@@ -299,7 +315,7 @@ export function assertOperationBindsLease(
     record: RepositoryOperationRecord,
     lease: RepositoryLeaseRecord,
     resumeToken: string,
-    allowedKinds: readonly RepositoryOperationKind[],
+    allowedKinds: readonly RepositoryGuardOperationKind[],
 ): void {
     assertResumeToken(resumeToken);
     validateRepositoryOperationRecord(record);
@@ -395,7 +411,7 @@ export function validateRecoveryOwnerRecord(
     assertExactObjectKeys(value.target, [
         'operation_kind', 'operation_id', 'guard_sha256', 'guard_device', 'guard_inode',
     ], 'repository operation recovery target');
-    if (!['lease-acquisition', 'lease-command', 'lease-release'].includes(
+    if (!['lease-acquisition', 'lease-command', 'receipt-command', 'lease-release'].includes(
         value.target.operation_kind,
     ) || !UUID_V4_PATTERN.test(value.target.operation_id)
         || !DECIMAL_BIGINT_PATTERN.test(value.target.guard_device)

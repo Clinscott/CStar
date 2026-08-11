@@ -268,6 +268,15 @@ owner, bind the guard/effect plan, validate the frozen bundle and receipt
 semantics, re-attest source, and use a bounded precreated experiment-claim
 namespace.
 
+The target-bound receipt-command wire contract is also internal and unused. It
+leaves every legacy `lease-command` guard byte-for-byte compatible, while a
+distinct `receipt-command` guard binds a closed `10` through `50` receipt name
+and exact body/seal digests. The packet-only variant additionally binds the
+experiment, claim, frozen-bundle plan, entry count, and aggregate byte count.
+Generic lease recovery deliberately refuses this new guard kind; no receipt
+writer, coordinator path, barrel export, or CLI can create it until dedicated
+receipt-operation recovery and schema-2.2 admission land together.
+
 The schema-neutral frozen-effect plan is likewise internal and unreachable from
 the coordinator, barrel API, CLI, and schema-2.1 staging path. It binds the packet
 identity, deterministic destination root, exact UTF-8-sorted file inventory, raw
@@ -346,6 +355,7 @@ include these canonical paths:
 - `src/core/council_autoresearch/repository_operation_file.ts`
 - `src/core/council_autoresearch/repository_operation_guard.ts`
 - `src/core/council_autoresearch/repository_private_file.ts`
+- `src/core/council_autoresearch/repository_receipt_operation_contract.ts`
 - `src/core/council_autoresearch/repository_receipt_recovery.ts`
 - `src/core/council_autoresearch/runner_identity.ts`
 - `src/core/council_autoresearch/runner_publication_paths.ts`
@@ -371,6 +381,7 @@ include these canonical paths:
 - `tests/unit/council-autoresearch/test_repository_lease_crash_safety.test.ts`
 - `tests/unit/council-autoresearch/test_repository_lease_lifecycle_adversarial.test.ts`
 - `tests/unit/council-autoresearch/test_repository_lease_lifecycle.test.ts`
+- `tests/unit/council-autoresearch/test_repository_receipt_operation_contract.test.ts`
 - `tests/unit/council-autoresearch/test_repository_receipt_recovery.test.ts`
 - `tests/unit/council-autoresearch/test_resource_bounds.test.ts`
 - `tests/unit/council-autoresearch/test_runner_checkpoint.test.ts`
