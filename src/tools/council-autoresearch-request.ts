@@ -26,7 +26,10 @@ function isRequest(value: unknown): value is CouncilAutoresearchRequest {
 }
 
 const requestSchemas: Record<string, { required: string[]; optional?: string[] }> = {
-    'lease-acquire': { required: ['repo_root', 'run_id', 'governed_paths'], optional: ['control_root'] },
+    'lease-acquire': {
+        required: ['repo_root', 'run_id', 'resume_token', 'governed_paths'],
+        optional: ['control_root'],
+    },
     'lease-release': { required: ['repo_root', 'run_id', 'resume_token'], optional: ['control_root'] },
     'verify-runner-checkpoint': { required: ['runner_publication', 'runner_publication_repo_root'] },
     status: {

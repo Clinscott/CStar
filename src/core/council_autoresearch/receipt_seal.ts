@@ -13,8 +13,10 @@ import {
     sha256,
     type Sha256,
 } from './contracts.js';
-import type { RepositoryLeaseRecord } from './repository_lease_contract.js';
-import { UUID_V4_PATTERN } from './repository_lease_contract.js';
+import {
+    verifyRepositoryLeaseRecordStructure,
+    type RepositoryLeaseRecord,
+} from './repository_lease_contract.js';
 import {
     assertOwnedPrivateFile,
     atomicPrivateTemporaryPath,
@@ -122,43 +124,8 @@ export function writePrivateReceiptJson(
 }
 
 function validateLeaseForSeal(lease: RepositoryLeaseRecord): string {
-    if (!lease || typeof lease !== 'object'
-        || typeof lease.repository_root !== 'string'
-        || typeof lease.git_common_directory !== 'string'
-        || typeof lease.control_root !== 'string'
-        || typeof lease.run_id !== 'string'
-        || typeof lease.resume_token_sha256 !== 'string') {
-        fail('receipt seal source lease is malformed');
-    }
-    for (const candidate of [
-        lease.repository_root, lease.git_common_directory, lease.control_root,
-    ]) {
-        if (!path.isAbsolute(candidate) || path.resolve(candidate) !== candidate
-            || /[\r\n\0]/.test(candidate)) {
-            fail('receipt seal source lease paths are invalid');
-        }
-    }
-    const controlRoot = canonicalPrivateDirectory(lease.control_root, 'receipt seal control root');
-    assertExactObjectKeys(lease, [
-        'schema_version', 'runner_version', 'lease_id', 'run_id', 'repository_root',
-        'git_common_directory', 'control_root', 'source_head', 'governed_paths',
-        'source_manifest', 'resume_token_sha256', 'owner', 'acquired_at',
-    ], 'receipt seal source lease');
-    if (lease.schema_version !== COUNCIL_AUTORESEARCH_SCHEMA
-        || lease.runner_version !== COUNCIL_AUTORESEARCH_RUNNER
-        || !UUID_V4_PATTERN.test(lease.lease_id)
-        || !/^[a-f0-9]{40}$/.test(lease.source_head)
-        || !Array.isArray(lease.governed_paths)
-        || lease.governed_paths.length < 1
-        || new Set(lease.governed_paths).size !== lease.governed_paths.length
-        || canonicalJson(lease.governed_paths)
-            !== canonicalJson([...lease.governed_paths].sort())) {
-        fail('receipt seal source lease identity is invalid');
-    }
-    assertRunId(lease.run_id, 'receipt seal source lease run_id');
-    assertSha256(lease.resume_token_sha256, 'receipt seal source lease token digest');
-    assertSha256(lease.source_manifest?.manifest_sha256, 'source lease manifest digest');
-    return controlRoot;
+    verifyRepositoryLeaseRecordStructure(lease, 'receipt seal source lease');
+    return canonicalPrivateDirectory(lease.control_root, 'receipt seal control root');
 }
 
 function receiptLocation(receiptFile: string, lease: RepositoryLeaseRecord): {
@@ -203,7 +170,7 @@ function openReceipt<T>(file: string, directory: string, label: string): OpenedP
     return openPrivateJson<T>(file, directory, label, MAX_JSON_FILE_BYTES);
 }
 
-function assertSealStructure(seal: ReceiptSeal): void {
+export function validateReceiptSealStructure(seal: ReceiptSeal): void {
     assertExactObjectKeys(seal, [
         'schema_version', 'runner_version', 'run_id', 'lease_id', 'receipt_name',
         'receipt_sha256', 'source_lease_sha256', 'source_head', 'source_manifest_sha256',
@@ -220,6 +187,26 @@ function assertSealStructure(seal: ReceiptSeal): void {
     assertSha256(seal.receipt_sha256, 'receipt seal body digest');
     assertSha256(seal.source_lease_sha256, 'receipt seal source lease digest');
     assertSha256(seal.source_manifest_sha256, 'receipt seal source manifest digest');
+}
+
+export function expectedReceiptSeal(
+    receiptFile: string,
+    lease: RepositoryLeaseRecord,
+    receiptContent: Buffer,
+    sourceLeaseContent: Buffer = receiptContent,
+): ReceiptSeal {
+    const location = receiptLocation(receiptFile, lease);
+    return {
+        schema_version: COUNCIL_AUTORESEARCH_SCHEMA,
+        runner_version: COUNCIL_AUTORESEARCH_RUNNER,
+        run_id: lease.run_id,
+        lease_id: lease.lease_id,
+        receipt_name: location.name,
+        receipt_sha256: sha256(receiptContent),
+        source_lease_sha256: sha256(sourceLeaseContent),
+        source_head: lease.source_head,
+        source_manifest_sha256: lease.source_manifest.manifest_sha256,
+    };
 }
 
 function openSealInputs(receiptFile: string, lease: RepositoryLeaseRecord): {
@@ -244,17 +231,12 @@ function openSealInputs(receiptFile: string, lease: RepositoryLeaseRecord): {
         if (canonicalJson(source.record) !== canonicalJson(lease)) {
             fail('source lease receipt does not match the seal authority');
         }
-        const seal = {
-            schema_version: COUNCIL_AUTORESEARCH_SCHEMA,
-            runner_version: COUNCIL_AUTORESEARCH_RUNNER,
-            run_id: lease.run_id,
-            lease_id: lease.lease_id,
-            receipt_name: location.name,
-            receipt_sha256: sha256(body.content),
-            source_lease_sha256: sha256(source.content),
-            source_head: lease.source_head,
-            source_manifest_sha256: lease.source_manifest.manifest_sha256,
-        };
+        const seal = expectedReceiptSeal(
+            location.receipt,
+            lease,
+            body.content,
+            source.content,
+        );
         return { seal, opened, location };
     } catch (error) {
         closeOpened(opened);
@@ -274,7 +256,7 @@ export function verifyReceiptSeal(
             inputs.location.directory,
             'receipt seal',
         );
-        assertSealStructure(opened.record);
+        validateReceiptSealStructure(opened.record);
         if (canonicalJson(opened.record) !== canonicalJson(inputs.seal)) {
             fail('receipt seal does not bind the exact body and source lease');
         }
@@ -319,7 +301,7 @@ export function receiptPairState(
     const directory = privateReceiptDirectory(sealFile);
     const opened = openReceipt<ReceiptSeal>(sealFile, directory, 'receipt seal');
     try {
-        assertSealStructure(opened.record);
+        validateReceiptSealStructure(opened.record);
     } finally {
         closeOwnedPrivateFile(opened, 'receipt seal');
     }

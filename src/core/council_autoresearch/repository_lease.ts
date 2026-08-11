@@ -17,6 +17,7 @@ import {
 } from './repository_operation_guard.js';
 import {
     type RepositoryLeaseRecord,
+    type RepositoryLeaseIntent,
     type RepositoryOperationKind,
     type RepositoryOperationRecord,
 } from './repository_lease_contract.js';
@@ -46,6 +47,7 @@ export { verifyRepositoryLease } from './repository_lease_state.js';
 export type {
     OwnedRepositoryLease,
     RepositoryLeaseAcquisitionOperationRecord,
+    RepositoryLeaseIntent,
     RepositoryLeaseRecord,
     RepositoryOperationRecord,
     RepositoryOperationRecovery,
@@ -125,7 +127,7 @@ export function releaseRepositoryLease(input: LeaseAuthorizationInput): Reposito
         paths,
         operationRecord('lease-release', authorized, input.resumeToken),
     );
-    let opened: OpenedPrivateJson<RepositoryLeaseRecord> | undefined;
+    let opened: OpenedPrivateJson<RepositoryLeaseIntent> | undefined;
     let effectStarted = false;
     try {
         assertNoRecoverySidecars(paths);
@@ -134,7 +136,7 @@ export function releaseRepositoryLease(input: LeaseAuthorizationInput): Reposito
         effectStarted = true;
         const heldLock = opened;
         opened = undefined;
-        unlinkOwnedPrivateFile(heldLock, 'repository source lease');
+        unlinkOwnedPrivateFile(heldLock, 'repository source lease intent');
         if (optionalStat(repositoryLeaseLockPath(record.repository_root)) !== undefined) {
             fail('repository source lease survived release');
         }
@@ -149,7 +151,7 @@ export function releaseRepositoryLease(input: LeaseAuthorizationInput): Reposito
         if (opened !== undefined) {
             const held = opened;
             opened = undefined;
-            closeOwnedPrivateFile(held, 'repository source lease');
+            closeOwnedPrivateFile(held, 'repository source lease intent');
         }
         if (guard !== undefined) {
             const held = guard;

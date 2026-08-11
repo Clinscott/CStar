@@ -1,21 +1,20 @@
 import path from 'node:path';
 
 import {
-    COUNCIL_AUTORESEARCH_RUNNER,
-    COUNCIL_AUTORESEARCH_SCHEMA,
     MAX_JSON_FILE_BYTES,
-    assertExactObjectKeys,
     assertRunId,
-    assertSha256,
     canonicalJson,
     canonicalPrivateDirectory,
     fail,
-    readJson,
     sha256,
 } from './contracts.js';
 import { gitCommonDirectory, repositoryRoot } from './git_trust.js';
 import {
-    UUID_V4_PATTERN,
+    assertResumeToken,
+    repositoryLeaseIntentFromRecord,
+    validateRepositoryLeaseIntent,
+    verifyRepositoryLeaseRecordStructure,
+    type RepositoryLeaseIntent,
     type RepositoryLeaseRecord,
 } from './repository_lease_contract.js';
 import {
@@ -24,7 +23,8 @@ import {
     openPrivateJson,
     type OpenedPrivateJson,
 } from './repository_private_file.js';
-import { assertGovernedPaths, attestSource } from './source_attestation.js';
+import { verifyReceiptSeal } from './receipt_seal.js';
+import { attestSource } from './source_attestation.js';
 
 export interface LeaseAuthorizationInput {
     repoRoot: string;
@@ -85,54 +85,103 @@ export function canonicalLeaseScope(
     return { repoRoot, commonDirectory, controlRoot, runId: input.runId };
 }
 
+export function assertLeaseIntent(
+    intent: RepositoryLeaseIntent,
+    scope: CanonicalLeaseScope,
+    expectedTokenSha256: string,
+): void {
+    validateRepositoryLeaseIntent(intent);
+    if (intent.run_id !== scope.runId
+        || intent.repository_root !== scope.repoRoot
+        || intent.git_common_directory !== scope.commonDirectory
+        || intent.control_root !== scope.controlRoot) {
+        fail('repository lease identity mismatch');
+    }
+    if (intent.resume_token_sha256 !== expectedTokenSha256) {
+        fail('repository lease resume token mismatch');
+    }
+}
+
 export function assertLeaseRecord(
     record: RepositoryLeaseRecord,
     scope: CanonicalLeaseScope,
     expectedTokenSha256: string,
 ): void {
-    assertExactObjectKeys(record, [
-        'schema_version', 'runner_version', 'lease_id', 'run_id', 'repository_root',
-        'git_common_directory', 'control_root', 'source_head', 'governed_paths',
-        'source_manifest', 'resume_token_sha256', 'owner', 'acquired_at',
-    ], 'repository lease');
-    if (record.schema_version !== COUNCIL_AUTORESEARCH_SCHEMA
-        || record.runner_version !== COUNCIL_AUTORESEARCH_RUNNER
-        || !UUID_V4_PATTERN.test(record.lease_id)
-        || record.run_id !== scope.runId
-        || record.repository_root !== scope.repoRoot
-        || record.git_common_directory !== scope.commonDirectory
-        || record.control_root !== scope.controlRoot
-        || !/^[a-f0-9]{40}$/.test(record.source_head)
-        || !/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/.test(record.acquired_at)) {
-        fail('repository lease identity mismatch');
+    verifyRepositoryLeaseRecordStructure(record);
+    assertLeaseIntent(repositoryLeaseIntentFromRecord(record), scope, expectedTokenSha256);
+}
+
+function openLeaseIntent(
+    scope: CanonicalLeaseScope,
+    expectedTokenSha256: string,
+): OpenedPrivateJson<RepositoryLeaseIntent> {
+    const opened = openPrivateJson<RepositoryLeaseIntent>(
+        repositoryLeaseLockPathFromCommon(scope.commonDirectory),
+        scope.commonDirectory,
+        'repository source lease intent',
+        MAX_JSON_FILE_BYTES,
+    );
+    try {
+        assertLeaseIntent(opened.record, scope, expectedTokenSha256);
+        return opened;
+    } catch (error) {
+        closeOwnedPrivateFile(opened, 'repository source lease intent');
+        throw error;
     }
-    assertRunId(record.run_id);
-    assertSha256(record.resume_token_sha256, 'repository lease resume token hash');
-    if (record.resume_token_sha256 !== expectedTokenSha256) {
-        fail('repository lease resume token mismatch');
+}
+
+function openSealedLeaseReceipt(
+    scope: CanonicalLeaseScope,
+    expectedTokenSha256: string,
+): OpenedPrivateJson<RepositoryLeaseRecord> {
+    const file = repositoryLeaseReceiptFile(scope);
+    const opened = openPrivateJson<RepositoryLeaseRecord>(
+        file,
+        path.dirname(file),
+        'repository source lease receipt',
+        MAX_JSON_FILE_BYTES,
+    );
+    try {
+        assertLeaseRecord(opened.record, scope, expectedTokenSha256);
+        verifyReceiptSeal(file, opened.record);
+        assertOwnedPrivateFile(opened, 'repository source lease receipt');
+        return opened;
+    } catch (error) {
+        closeOwnedPrivateFile(opened, 'repository source lease receipt');
+        throw error;
     }
-    if (!Array.isArray(record.governed_paths) || record.governed_paths.length < 1
-        || new Set(record.governed_paths).size !== record.governed_paths.length
-        || canonicalJson(record.governed_paths)
-            !== canonicalJson([...record.governed_paths].sort())) {
-        fail('repository lease governed paths are invalid');
-    }
-    assertGovernedPaths(record.governed_paths);
-    assertExactObjectKeys(record.owner, ['pid', 'hostname'], 'repository lease owner');
-    if (!Number.isSafeInteger(record.owner.pid) || record.owner.pid < 1
-        || typeof record.owner.hostname !== 'string' || record.owner.hostname.length < 1
-        || record.owner.hostname.length > 255 || /[\r\n\0]/.test(record.owner.hostname)) {
-        fail('repository lease owner is invalid');
+}
+
+function authorizedScope(input: LeaseAuthorizationInput): {
+    scope: CanonicalLeaseScope;
+    tokenSha256: string;
+} {
+    assertResumeToken(input.resumeToken);
+    return { scope: canonicalLeaseScope(input), tokenSha256: sha256(input.resumeToken) };
+}
+
+export function readAuthorizedIntent(
+    input: LeaseAuthorizationInput,
+): { intent: RepositoryLeaseIntent; scope: CanonicalLeaseScope } {
+    const { scope, tokenSha256 } = authorizedScope(input);
+    const opened = openLeaseIntent(scope, tokenSha256);
+    try {
+        return { intent: opened.record, scope };
+    } finally {
+        closeOwnedPrivateFile(opened, 'repository source lease intent');
     }
 }
 
 export function readAuthorizedReceipt(
     input: LeaseAuthorizationInput,
 ): { record: RepositoryLeaseRecord; scope: CanonicalLeaseScope } {
-    const scope = canonicalLeaseScope(input);
-    const record = readJson<RepositoryLeaseRecord>(repositoryLeaseReceiptFile(scope));
-    assertLeaseRecord(record, scope, sha256(input.resumeToken));
-    return { record, scope };
+    const { scope, tokenSha256 } = authorizedScope(input);
+    const opened = openSealedLeaseReceipt(scope, tokenSha256);
+    try {
+        return { record: opened.record, scope };
+    } finally {
+        closeOwnedPrivateFile(opened, 'repository source lease receipt');
+    }
 }
 
 export function verifyLeaseSource(record: RepositoryLeaseRecord): void {
@@ -150,21 +199,16 @@ export function verifyLeaseSource(record: RepositoryLeaseRecord): void {
 export function openMatchingLeaseLock(
     record: RepositoryLeaseRecord,
     scope: CanonicalLeaseScope,
-): OpenedPrivateJson<RepositoryLeaseRecord> {
-    const opened = openPrivateJson<RepositoryLeaseRecord>(
-        repositoryLeaseLockPathFromCommon(scope.commonDirectory),
-        scope.commonDirectory,
-        'repository source lease',
-        MAX_JSON_FILE_BYTES,
-    );
+): OpenedPrivateJson<RepositoryLeaseIntent> {
+    const opened = openLeaseIntent(scope, record.resume_token_sha256);
     try {
-        assertLeaseRecord(opened.record, scope, record.resume_token_sha256);
-        if (JSON.stringify(opened.record) !== JSON.stringify(record)) {
-            fail('repository lease receipt does not match the active lock');
+        if (canonicalJson(opened.record)
+            !== canonicalJson(repositoryLeaseIntentFromRecord(record))) {
+            fail('repository lease receipt does not match the active intent');
         }
         return opened;
     } catch (error) {
-        closeOwnedPrivateFile(opened, 'repository source lease');
+        closeOwnedPrivateFile(opened, 'repository source lease intent');
         throw error;
     }
 }
@@ -173,42 +217,60 @@ export function readVerifiedReceiptAgain(
     input: LeaseAuthorizationInput,
     expected: RepositoryLeaseRecord,
 ): void {
-    const repeated = readAuthorizedReceipt(input).record;
-    if (JSON.stringify(repeated) !== JSON.stringify(expected)) {
-        fail('repository lease receipt changed during the operation');
+    const { scope, tokenSha256 } = authorizedScope(input);
+    const repeated = openSealedLeaseReceipt(scope, tokenSha256);
+    try {
+        if (canonicalJson(repeated.record) !== canonicalJson(expected)) {
+            fail('repository lease receipt changed during the operation');
+        }
+    } finally {
+        closeOwnedPrivateFile(repeated, 'repository source lease receipt');
     }
 }
 
-export function verifySelfBoundLeaseRecord(record: RepositoryLeaseRecord): void {
-    if (typeof record.repository_root !== 'string'
-        || typeof record.control_root !== 'string'
-        || typeof record.run_id !== 'string'
-        || typeof record.resume_token_sha256 !== 'string') {
-        fail('foreign repository source lease identity is malformed');
-    }
+export function verifySelfBoundLeaseIntent(
+    intent: RepositoryLeaseIntent,
+): RepositoryLeaseRecord {
+    validateRepositoryLeaseIntent(intent, 'foreign repository source lease intent');
     const scope = canonicalLeaseScope({
-        repoRoot: record.repository_root,
-        controlRoot: record.control_root,
-        runId: record.run_id,
+        repoRoot: intent.repository_root,
+        controlRoot: intent.control_root,
+        runId: intent.run_id,
     });
-    assertLeaseRecord(record, scope, record.resume_token_sha256);
-    const receipt = readJson<RepositoryLeaseRecord>(repositoryLeaseReceiptFile(scope));
-    assertLeaseRecord(receipt, scope, record.resume_token_sha256);
-    if (JSON.stringify(receipt) !== JSON.stringify(record)) {
-        fail('foreign repository source lease receipt does not match its lock');
+    assertLeaseIntent(intent, scope, intent.resume_token_sha256);
+    const receipt = openSealedLeaseReceipt(scope, intent.resume_token_sha256);
+    try {
+        if (canonicalJson(repositoryLeaseIntentFromRecord(receipt.record))
+            !== canonicalJson(intent)) {
+            fail('foreign repository source lease receipt does not match its intent');
+        }
+        verifyLeaseSource(receipt.record);
+        verifyReceiptSeal(repositoryLeaseReceiptFile(scope), receipt.record);
+        assertOwnedPrivateFile(receipt, 'repository source lease receipt');
+        return receipt.record;
+    } finally {
+        closeOwnedPrivateFile(receipt, 'repository source lease receipt');
     }
-    verifyLeaseSource(record);
 }
 
 export function verifyRepositoryLease(input: LeaseAuthorizationInput): RepositoryLeaseRecord {
-    const { record, scope } = readAuthorizedReceipt(input);
-    const opened = openMatchingLeaseLock(record, scope);
+    const { scope, tokenSha256 } = authorizedScope(input);
+    const receipt = openSealedLeaseReceipt(scope, tokenSha256);
+    let intent: OpenedPrivateJson<RepositoryLeaseIntent> | undefined;
     try {
-        verifyLeaseSource(record);
-        readVerifiedReceiptAgain(input, record);
-        assertOwnedPrivateFile(opened, 'repository source lease');
-        return record;
+        intent = openMatchingLeaseLock(receipt.record, scope);
+        verifyLeaseSource(receipt.record);
+        verifyReceiptSeal(repositoryLeaseReceiptFile(scope), receipt.record);
+        assertOwnedPrivateFile(receipt, 'repository source lease receipt');
+        assertOwnedPrivateFile(intent, 'repository source lease intent');
+        return receipt.record;
     } finally {
-        closeOwnedPrivateFile(opened, 'repository source lease');
+        try {
+            if (intent !== undefined) {
+                closeOwnedPrivateFile(intent, 'repository source lease intent');
+            }
+        } finally {
+            closeOwnedPrivateFile(receipt, 'repository source lease receipt');
+        }
     }
 }

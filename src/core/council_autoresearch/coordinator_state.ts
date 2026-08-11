@@ -2,9 +2,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import {
-    COUNCIL_AUTORESEARCH_RUNNER,
     COUNCIL_AUTORESEARCH_SCHEMA,
     FrozenCouncilPacket,
+    MAX_JSON_FILE_BYTES,
     assertExactObjectKeys,
     assertRunId,
     assertSha256,
@@ -28,7 +28,16 @@ import {
     verifyPublicationReceiptStructure,
     type PublicationReceipt,
 } from './publication.js';
-import type { RepositoryLeaseRecord } from './repository_lease_contract.js';
+import {
+    verifyRepositoryLeaseRecordStructure,
+    type RepositoryLeaseRecord,
+} from './repository_lease_contract.js';
+import {
+    assertOwnedPrivateFile,
+    closeOwnedPrivateFile,
+    openPrivateJson,
+} from './repository_private_file.js';
+import { physicalReceiptPresent, receiptPairState } from './receipt_seal.js';
 
 export type CouncilRunPhase =
     | 'NEW'
@@ -133,25 +142,19 @@ function validateExperimentClaim(controlRoot: string, packet: FrozenCouncilPacke
 }
 
 function validateLeaseReceipt(record: RepositoryLeaseRecord, controlRoot: string, runId: string): void {
-    assertExactObjectKeys(record, [
-        'schema_version', 'runner_version', 'lease_id', 'run_id', 'repository_root',
-        'git_common_directory', 'control_root', 'source_head', 'governed_paths', 'source_manifest',
-        'resume_token_sha256', 'owner', 'acquired_at',
-    ], 'source lease receipt');
-    if (record.schema_version !== COUNCIL_AUTORESEARCH_SCHEMA
-        || record.runner_version !== COUNCIL_AUTORESEARCH_RUNNER
-        || record.run_id !== runId
+    verifyRepositoryLeaseRecordStructure(record, 'source lease receipt');
+    if (record.run_id !== runId
         || record.control_root !== canonicalPrivateDirectory(controlRoot, 'control root')
         || !/^[a-f0-9]{40}$/.test(record.source_head)) fail('source lease receipt identity is invalid');
-    assertSha256(record.resume_token_sha256, 'resume_token_sha256');
-    assertSha256(record.source_manifest?.manifest_sha256, 'source_manifest.manifest_sha256');
 }
 
 function assertNoReceiptGap(files: CouncilReceiptPaths, last: keyof typeof receiptNames): void {
     const ordered = Object.keys(receiptNames) as Array<keyof typeof receiptNames>;
     const lastIndex = ordered.indexOf(last);
     for (let index = lastIndex + 1; index < ordered.length; index += 1) {
-        if (receiptExists(files[ordered[index]])) fail('receipt chain contains an out-of-order suffix');
+        if (physicalReceiptPresent(files[ordered[index]])) {
+            fail('receipt chain contains an out-of-order suffix');
+        }
     }
 }
 
@@ -163,12 +166,34 @@ export function councilRunStatus(input: {
     publicationRepoRoot?: string;
 }): CouncilRunPhase {
     const files = coordinatorReceiptPaths(input.controlRoot, input.runId);
-    if (!receiptExists(files.lease)) {
+    if (!physicalReceiptPresent(files.lease)) {
         assertNoReceiptGap(files, 'lease');
         return 'NEW';
     }
-    const lease = readJson<RepositoryLeaseRecord>(files.lease);
-    validateLeaseReceipt(lease, input.controlRoot, input.runId);
+    if (!receiptExists(files.lease)) {
+        receiptPairState(files.lease);
+        return fail('source lease seal exists without its body');
+    }
+    const openedLease = openPrivateJson<RepositoryLeaseRecord>(
+        files.lease,
+        path.dirname(files.lease),
+        'source lease receipt',
+        MAX_JSON_FILE_BYTES,
+    );
+    let lease: RepositoryLeaseRecord;
+    let leaseState: ReturnType<typeof receiptPairState>;
+    try {
+        lease = openedLease.record;
+        validateLeaseReceipt(lease, input.controlRoot, input.runId);
+        leaseState = receiptPairState(files.lease, lease);
+        assertOwnedPrivateFile(openedLease, 'source lease receipt');
+    } finally {
+        closeOwnedPrivateFile(openedLease, 'source lease receipt');
+    }
+    if (leaseState === 'body-only') {
+        assertNoReceiptGap(files, 'lease');
+        return 'NEW';
+    }
     if (!receiptExists(files.packet)) {
         assertNoReceiptGap(files, 'packet');
         return 'LEASED';

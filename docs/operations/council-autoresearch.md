@@ -295,6 +295,7 @@ include these canonical paths:
 - `src/core/council_autoresearch/repository_lease.ts`
 - `src/core/council_autoresearch/repository_lease_acquisition.ts`
 - `src/core/council_autoresearch/repository_lease_acquisition_recovery.ts`
+- `src/core/council_autoresearch/repository_lease_recovery_artifact.ts`
 - `src/core/council_autoresearch/repository_lease_contract.ts`
 - `src/core/council_autoresearch/repository_lease_recovery.ts`
 - `src/core/council_autoresearch/repository_lease_state.ts`

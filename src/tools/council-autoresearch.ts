@@ -48,6 +48,7 @@ function execute(command: string, request: Request): unknown {
         const controlRoot = requestControlRoot(request);
         const repoRoot = stringField(request, 'repo_root');
         const runId = stringField(request, 'run_id');
+        const resumeToken = stringField(request, 'resume_token');
         const governedPaths = stringArray(request.governed_paths, 'governed_paths');
         loadExecutionTrustPolicy(controlRoot);
         return acquireRepositoryLease({
@@ -55,6 +56,7 @@ function execute(command: string, request: Request): unknown {
             controlRoot,
             runId,
             governedPaths,
+            resumeToken,
         });
     }
     if (command === 'lease-release') return releaseRepositoryLease(common(request));
