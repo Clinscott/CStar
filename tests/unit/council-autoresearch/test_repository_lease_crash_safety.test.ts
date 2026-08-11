@@ -375,7 +375,10 @@ describe('Council autoresearch crash-safe private repository files', () => {
         };
 
         writePrivateJson(interrupted.intentTemporary, { unrelated: true });
-        assert.throws(() => recoverRepositoryLeaseAcquisition(input), /does not bind the acquisition/i);
+        assert.throws(
+            () => recoverRepositoryLeaseAcquisition(input),
+            /does not bind the acquisition|incomplete foreign repository lease intent/i,
+        );
         assert.equal(fs.existsSync(interrupted.intentTemporary), true);
         assert.equal(fs.existsSync(interrupted.paths.guard), true);
 

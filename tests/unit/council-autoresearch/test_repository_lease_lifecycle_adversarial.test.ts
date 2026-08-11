@@ -13,11 +13,13 @@ import {
     recoverRepositoryLeaseOperation,
     receiptSealPath,
     releaseRepositoryLease,
-    repositoryLeaseIntentFromRecord,
     sha256,
     verifyRepositoryLease,
     withRepositoryLeaseOperation,
 } from '../../../src/core/council_autoresearch/index.js';
+import {
+    repositoryLeaseIntentFromRecord,
+} from '../../../src/core/council_autoresearch/repository_lease_contract.js';
 import { cleanup, git, repository, resumeToken, temporary } from './test_helpers.js';
 
 afterEach(cleanup);
