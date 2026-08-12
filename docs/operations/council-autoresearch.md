@@ -414,6 +414,7 @@ include these canonical paths:
 - `tests/unit/council-autoresearch/test_repository_lease_lifecycle.test.ts`
 - `tests/unit/council-autoresearch/test_repository_receipt_operation_contract.test.ts`
 - `tests/unit/council-autoresearch/test_repository_receipt_recovery.test.ts`
+- `tests/unit/council-autoresearch/test_repository_receipt_staged_recovery_adversarial.test.ts`
 - `tests/unit/council-autoresearch/test_resource_bounds.test.ts`
 - `tests/unit/council-autoresearch/test_runner_checkpoint.test.ts`
 - `tests/unit/council-autoresearch/test_runner_identity.test.ts`
