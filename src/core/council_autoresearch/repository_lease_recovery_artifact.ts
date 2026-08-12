@@ -363,6 +363,12 @@ export function removeOpaqueStagedRecoveryArtifact(
             fail(`${input.label} target appeared before staged recovery`);
         }
         fs.unlinkSync(input.temporary);
+        let authorityError: unknown;
+        try {
+            recheckOperationAuthority();
+        } catch (error) {
+            authorityError = error;
+        }
         let syncError: unknown;
         try {
             fs.fsyncSync(parent.descriptor);
@@ -386,10 +392,13 @@ export function removeOpaqueStagedRecoveryArtifact(
         }
         if (syncError !== undefined) throw new PrivateFileDurabilityError(input.label, syncError);
         if (verificationError !== undefined) throw verificationError;
-        recheckOperationAuthority();
+        if (authorityError !== undefined) throw authorityError;
     } finally {
-        if (opened !== undefined) fs.closeSync(opened.descriptor);
-        fs.closeSync(parent.descriptor);
+        try {
+            if (opened !== undefined) fs.closeSync(opened.descriptor);
+        } finally {
+            fs.closeSync(parent.descriptor);
+        }
     }
 }
 

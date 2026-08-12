@@ -135,17 +135,18 @@ describe('Council autoresearch staged receipt recovery adversarial durability', 
         }
     });
 
-    it('fsyncs the held parent inode before reporting post-unlink authority drift', () => {
+    it('checks post-unlink authority before fsync but fsyncs despite authority drift', () => {
         const f = fixture();
         install(f, Buffer.from('{'), 0o600);
         const parentInode = fs.lstatSync(f.directory, { bigint: true }).ino;
         const mutable = mutableFs();
         const originalFsync = mutable.fsyncSync;
         const synced: bigint[] = [];
+        const order: string[] = [];
         let calls = 0;
-        let syncedBeforeDrift = false;
         mutable.fsyncSync = ((descriptor) => {
             if (!fs.existsSync(f.temporary)) {
+                order.push('fsync');
                 synced.push(fs.fstatSync(descriptor, { bigint: true }).ino);
             }
             return originalFsync(descriptor);
@@ -155,7 +156,8 @@ describe('Council autoresearch staged receipt recovery adversarial durability', 
             assert.throws(() => recover(f, () => {
                 calls += 1;
                 if (calls === 5) {
-                    syncedBeforeDrift = synced.includes(parentInode);
+                    assert.equal(fs.existsSync(f.temporary), false);
+                    order.push('authority');
                     f.authority.body_sha256 = 'a'.repeat(64);
                 }
             }), /operation authority changed/i);
@@ -164,9 +166,33 @@ describe('Council autoresearch staged receipt recovery adversarial durability', 
             syncBuiltinESMExports();
         }
         assert.equal(calls, 5);
-        assert.equal(syncedBeforeDrift, true);
+        assert.deepEqual(order, ['authority', 'fsync']);
+        assert.deepEqual(synced, [parentInode]);
         assert.equal(fs.existsSync(f.temporary), false);
         assert.equal(fs.existsSync(f.body.file), false);
+    });
+
+    it('leaves a mode-000 hard-linked target and temporary generically ambiguous', () => {
+        const f = fixture();
+        install(f, Buffer.alloc(0), 0o000);
+        fs.linkSync(f.temporary, f.body.file);
+        const temporaryBefore = fs.lstatSync(f.temporary, { bigint: true });
+        const targetBefore = fs.lstatSync(f.body.file, { bigint: true });
+        assert.equal(temporaryBefore.ino, targetBefore.ino);
+        assert.equal(temporaryBefore.nlink, 2n);
+        assert.equal(
+            atomicPrivateFileState(f.body.file, f.temporary, f.body.label),
+            'ambiguous',
+        );
+        assert.throws(() => recover(f), /publication state is ambiguous/i);
+        const temporaryAfter = fs.lstatSync(f.temporary, { bigint: true });
+        const targetAfter = fs.lstatSync(f.body.file, { bigint: true });
+        for (const key of [
+            'dev', 'ino', 'mode', 'nlink', 'uid', 'gid', 'size', 'mtimeNs', 'ctimeNs',
+        ] as const) {
+            assert.equal(temporaryAfter[key], temporaryBefore[key], `temporary ${key}`);
+            assert.equal(targetAfter[key], targetBefore[key], `target ${key}`);
+        }
     });
 
     it('fsyncs the held inode and fails when the parent path is replaced after unlink', () => {
