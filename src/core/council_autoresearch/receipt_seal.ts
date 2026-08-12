@@ -19,13 +19,18 @@ import {
 } from './repository_lease_contract.js';
 import {
     assertOwnedPrivateFile,
-    atomicPrivateTemporaryPath,
     closeOwnedPrivateFile,
-    createAtomicPrivateFile,
     openPrivateJson,
     optionalStat,
     type OpenedPrivateJson,
 } from './repository_private_file.js';
+import {
+    writePrivateReceiptJson,
+    type ReceiptWriteIdentity,
+} from './repository_receipt_content.js';
+
+export { writePrivateReceiptJson };
+export type { ReceiptWriteIdentity };
 
 export interface ReceiptSeal {
     schema_version: typeof COUNCIL_AUTORESEARCH_SCHEMA;
@@ -40,11 +45,6 @@ export interface ReceiptSeal {
 }
 
 export type ReceiptPairState = 'absent' | 'body-only' | 'sealed';
-
-export interface ReceiptWriteIdentity {
-    ownerPid: number;
-    operationId: string;
-}
 
 const RECEIPT_NAME = /^(?:00-source-lease|10-packet|20-ratings|25-mapping-reveal|30-decision|40-publication|50-source-release)\.json$/;
 
@@ -63,64 +63,6 @@ export function receiptSealPath(receiptFile: string): string {
 
 function privateReceiptDirectory(file: string): string {
     return canonicalPrivateDirectory(path.dirname(file), 'receipt directory');
-}
-
-function serializePrivateJson(value: unknown): Buffer {
-    let serialized: string | undefined;
-    try {
-        serialized = JSON.stringify(value, null, 2);
-    } catch (error) {
-        fail(`private receipt is not serializable JSON: ${
-            error instanceof Error ? error.message : String(error)
-        }`);
-    }
-    if (serialized === undefined) fail('private receipt is not serializable JSON');
-    const content = Buffer.from(`${serialized}\n`);
-    if (content.length < 1 || content.length > MAX_JSON_FILE_BYTES) {
-        fail('private receipt exceeds its byte limit');
-    }
-    return content;
-}
-
-export function writePrivateReceiptJson(
-    file: string,
-    value: unknown,
-    identity: ReceiptWriteIdentity,
-): { sha256: Sha256; created: boolean } {
-    const target = canonicalJsonFile(file, 'private receipt path');
-    const commonDirectory = privateReceiptDirectory(target);
-    const content = serializePrivateJson(value);
-    if (!identity || typeof identity !== 'object') fail('private receipt write identity is required');
-    if (optionalStat(target) !== undefined) {
-        const opened = openPrivateJson<unknown>(
-            target,
-            commonDirectory,
-            'private receipt',
-            MAX_JSON_FILE_BYTES,
-        );
-        try {
-            if (!opened.content.equals(content)) fail(`private receipt conflicts at ${target}`);
-            return { sha256: sha256(content), created: false };
-        } finally {
-            closeOwnedPrivateFile(opened, 'private receipt');
-        }
-    }
-    const owned = createAtomicPrivateFile({
-        file: target,
-        temporary: atomicPrivateTemporaryPath(
-            target,
-            identity.ownerPid,
-            identity.operationId,
-        ),
-        commonDirectory,
-        content,
-        label: 'private receipt',
-    });
-    try {
-        return { sha256: sha256(content), created: true };
-    } finally {
-        closeOwnedPrivateFile(owned, 'private receipt');
-    }
 }
 
 function validateLeaseForSeal(lease: RepositoryLeaseRecord): string {

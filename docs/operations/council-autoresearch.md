@@ -271,6 +271,13 @@ owner, bind the guard/effect plan, validate the frozen bundle and receipt
 semantics, re-attest source, and use a bounded precreated experiment-claim
 namespace.
 
+The exact receipt-content leaf is also internal and non-admitting. It exposes the
+same deterministic pretty-JSON-plus-newline bytes used by current private receipt
+writes, plus an exact-content writer that validates a copied buffer, canonical
+encoding, digest, and operation-derived temporary identity before inspecting the
+target namespace. The existing JSON writer remains a byte-compatible wrapper;
+no coordinator, guard, schema, barrel, or CLI path is newly enabled.
+
 The target-bound receipt-command wire contract is also internal and unused. It
 leaves every legacy `lease-command` guard byte-for-byte compatible, while a
 distinct `receipt-command` guard binds a closed `10` through `50` receipt name
@@ -384,6 +391,7 @@ include these canonical paths:
 - `src/core/council_autoresearch/repository_operation_file.ts`
 - `src/core/council_autoresearch/repository_operation_guard.ts`
 - `src/core/council_autoresearch/repository_private_file.ts`
+- `src/core/council_autoresearch/repository_receipt_content.ts`
 - `src/core/council_autoresearch/repository_receipt_operation_contract.ts`
 - `src/core/council_autoresearch/repository_receipt_recovery.ts`
 - `src/core/council_autoresearch/runner_identity.ts`
@@ -412,6 +420,7 @@ include these canonical paths:
 - `tests/unit/council-autoresearch/test_repository_lease_crash_safety.test.ts`
 - `tests/unit/council-autoresearch/test_repository_lease_lifecycle_adversarial.test.ts`
 - `tests/unit/council-autoresearch/test_repository_lease_lifecycle.test.ts`
+- `tests/unit/council-autoresearch/test_repository_receipt_content.test.ts`
 - `tests/unit/council-autoresearch/test_repository_receipt_operation_contract.test.ts`
 - `tests/unit/council-autoresearch/test_repository_receipt_recovery.test.ts`
 - `tests/unit/council-autoresearch/test_repository_receipt_staged_recovery_adversarial.test.ts`
