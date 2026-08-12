@@ -4,7 +4,11 @@ import { createRequire, syncBuiltinESMExports } from 'node:module';
 import path from 'node:path';
 import { afterEach, describe, it } from 'node:test';
 
-import { sha256 } from '../../../src/core/council_autoresearch/index.js';
+import { MAX_JSON_FILE_BYTES, sha256 } from '../../../src/core/council_autoresearch/index.js';
+import {
+    experimentClaimRecoveryTarget,
+    prepareExperimentClaimNamespace,
+} from '../../../src/core/council_autoresearch/experiment_claim.js';
 import {
     recoverRepositoryReceiptAliases,
     type RepositoryReceiptRecoveryAuthority,
@@ -72,7 +76,14 @@ function fixture(): Fixture {
 function install(f: Fixture, role: Role, state: State): void {
     if (state === 'absent') return;
     const selected = state === 'complete' ? f.targets[role].file : f.temporary[role];
-    fs.writeFileSync(selected, f.content[role], { mode: 0o600 });
+    const staged = {
+        body: Buffer.alloc(0),
+        claim: Buffer.from('{'),
+        seal: Buffer.from('not-json'),
+    };
+    fs.writeFileSync(selected, state === 'staged' ? staged[role] : f.content[role], {
+        mode: 0o600,
+    });
     fs.chmodSync(selected, 0o600);
     if (state === 'committed') fs.linkSync(selected, f.targets[role].file);
 }
@@ -181,7 +192,9 @@ describe('Council autoresearch operation-bound receipt alias recovery', () => {
         { name: 'wrong-digest', error: /operation-bound digest/i },
         { name: 'foreign-temporary', error: /foreign temporary/i },
         { name: 'claim-without-body', error: /claim crossed an incomplete body/i },
+        { name: 'staged-claim-without-body', error: /claim crossed an incomplete body/i },
         { name: 'seal-without-claim', error: /seal crossed an incomplete prerequisite/i },
+        { name: 'staged-seal-without-claim', error: /seal crossed an incomplete prerequisite/i },
         { name: 'ambiguous-mode', error: /publication state is ambiguous/i },
     ] as const) {
         it(`fails closed for ${scenario.name.replaceAll('-', ' ')}`, () => {
@@ -197,9 +210,14 @@ describe('Council autoresearch operation-bound receipt alias recovery', () => {
                 );
             } else if (scenario.name === 'claim-without-body') {
                 install(f, 'claim', 'complete');
+            } else if (scenario.name === 'staged-claim-without-body') {
+                install(f, 'claim', 'staged');
             } else if (scenario.name === 'seal-without-claim') {
                 install(f, 'body', 'complete');
                 install(f, 'seal', 'complete');
+            } else if (scenario.name === 'staged-seal-without-claim') {
+                install(f, 'body', 'complete');
+                install(f, 'seal', 'staged');
             } else {
                 install(f, 'body', 'complete');
                 fs.chmodSync(f.targets.body.file, 0o644);
@@ -268,6 +286,54 @@ describe('Council autoresearch operation-bound receipt alias recovery', () => {
         });
         assert.equal(fs.existsSync(f.temporary.claim), false);
         assert.deepEqual(fs.readFileSync(f.targets.claim.file), f.content.claim);
+    });
+
+    it('composes with an exact sharded experiment-claim recovery target', () => {
+        const f = fixture();
+        const controlRoot = temporary('cstar-council-experiment-claim-control-');
+        const experimentSha256 = 'd'.repeat(64);
+        const paths = prepareExperimentClaimNamespace(controlRoot, experimentSha256);
+        f.targets.claim = experimentClaimRecoveryTarget({
+            controlRoot,
+            experimentSha256,
+            ownerPid: process.pid,
+            operationId,
+        });
+        f.temporary.claim = atomicPrivateTemporaryPath(
+            f.targets.claim.file,
+            process.pid,
+            operationId,
+        );
+        install(f, 'body', 'complete');
+        fs.writeFileSync(f.temporary.claim, Buffer.from('{'), { mode: 0o600 });
+        assert.deepEqual(recover(f), {
+            outcome: 'body-only', repaired: ['claim'],
+        });
+        assert.equal(fs.existsSync(paths.claimFile), false);
+        assert.equal(fs.existsSync(f.temporary.claim), false);
+    });
+
+    it('rechecks authority before removing an opaque staged temporary', () => {
+        const f = fixture();
+        install(f, 'body', 'staged');
+        const before = snapshot([f.temporary.body]);
+        let assertions = 0;
+        assert.throws(() => recover(f, () => {
+            assertions += 1;
+            if (assertions === 4) f.authority.body_sha256 = 'a'.repeat(64);
+        }, false), /operation authority changed/i);
+        assert.equal(assertions, 4);
+        assertSnapshot(before);
+    });
+
+    it('rejects an oversized opaque staged temporary without mutation', () => {
+        const f = fixture();
+        install(f, 'body', 'staged');
+        fs.truncateSync(f.temporary.body, MAX_JSON_FILE_BYTES + 1);
+        const before = stat(f.temporary.body);
+        assert.throws(() => recover(f, () => undefined, false), /byte limit/i);
+        assert.equal(stat(f.temporary.body)?.size, before?.size);
+        assert.equal(fs.existsSync(f.targets.body.file), false);
     });
 
     for (const scenario of [
@@ -385,5 +451,43 @@ describe('Council autoresearch operation-bound receipt alias recovery', () => {
         assert.equal(injected, true);
         assert.ok(retrySyncs >= 1);
         assert.equal(fs.existsSync(f.temporary.body), false);
+    });
+
+    it('re-fsyncs stable absence after an opaque staged unlink sync fails', () => {
+        const f = fixture();
+        install(f, 'body', 'staged');
+        const mutable = createRequire(import.meta.url)('node:fs') as {
+            fsyncSync: typeof fs.fsyncSync;
+        };
+        const original = mutable.fsyncSync;
+        let injected = false;
+        let retrying = false;
+        let retrySyncs = 0;
+        mutable.fsyncSync = ((descriptor) => {
+            if (!injected && !fs.existsSync(f.temporary.body)) {
+                injected = true;
+                throw new Error('injected staged directory fsync failure');
+            }
+            if (retrying) retrySyncs += 1;
+            return original(descriptor);
+        }) as typeof fs.fsyncSync;
+        syncBuiltinESMExports();
+        try {
+            assert.throws(
+                () => recover(f, () => undefined, false),
+                /durability is uncertain after unlink/i,
+            );
+            retrying = true;
+            assert.deepEqual(recover(f, () => undefined, false), {
+                outcome: 'absent', repaired: [],
+            });
+        } finally {
+            mutable.fsyncSync = original;
+            syncBuiltinESMExports();
+        }
+        assert.equal(injected, true);
+        assert.ok(retrySyncs >= 1);
+        assert.equal(fs.existsSync(f.temporary.body), false);
+        assert.equal(fs.existsSync(f.targets.body.file), false);
     });
 });

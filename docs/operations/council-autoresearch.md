@@ -260,7 +260,10 @@ The schema-neutral receipt-recovery primitive is internal and not reachable from
 the coordinator, barrel API, or CLI. It can normalize only exact operation-bound
 JSON aliases whose body, optional claim, and seal byte digests are supplied by a
 revalidated dead-operation authority, in body-then-claim-then-seal order. It
-never creates missing evidence, treats body-plus-claim without a seal as
+never creates missing evidence. An exact guard-derived staged temporary is
+bounded and snapshotted as opaque private bytes, then removed without parsing,
+digest admission, or promotion; committed and complete artifacts still require
+exact JSON and bound digests. The primitive treats body-plus-claim without a seal as
 non-admitting, and re-fsyncs every private target directory before success.
 Alias normalization alone neither authorizes guard removal nor validates a run
 transition. Schema-2.2 activation must additionally hold the exact recovery

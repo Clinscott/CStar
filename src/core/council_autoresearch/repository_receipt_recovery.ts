@@ -12,10 +12,11 @@ import {
 import { atomicPrivateTemporaryPath } from './repository_private_file.js';
 import {
     assertNoForeignRecoveryTemporary,
-    assertSameRecoveryArtifact,
-    readRecoveryArtifact,
+    assertSameOpaqueStagedRecoveryArtifact,
+    readOpaqueStagedRecoveryArtifact,
+    removeOpaqueStagedRecoveryArtifact,
     repairRecoveryArtifact,
-    type RecoveryArtifactSnapshot,
+    type OpaqueStagedRecoveryArtifactSnapshot,
 } from './repository_lease_recovery_artifact.js';
 
 export type RepositoryReceiptRecoveryOutcome =
@@ -39,7 +40,7 @@ export interface RepositoryReceiptRecoveryAuthority {
 }
 
 type ReceiptRecoveryRole = 'claim' | 'body' | 'seal';
-type ReceiptSnapshot = RecoveryArtifactSnapshot<unknown> | undefined;
+type ReceiptSnapshot = OpaqueStagedRecoveryArtifactSnapshot<unknown> | undefined;
 
 interface RecoveryLocation {
     target: string;
@@ -109,7 +110,9 @@ function readSnapshots(locations: RecoveryLocations): RecoverySnapshots {
     const snapshots: RecoverySnapshots = {};
     for (const role of ['claim', 'body', 'seal'] as const) {
         const location = locations[role];
-        if (location !== undefined) snapshots[role] = readRecoveryArtifact(location);
+        if (location !== undefined) {
+            snapshots[role] = readOpaqueStagedRecoveryArtifact(location);
+        }
     }
     return snapshots;
 }
@@ -121,7 +124,7 @@ function assertSnapshotDigests(
     for (const role of ['claim', 'body', 'seal'] as const) {
         const location = locations[role];
         const snapshot = snapshots[role];
-        if (location !== undefined && snapshot !== undefined
+        if (location !== undefined && snapshot !== undefined && snapshot.state !== 'staged'
             && sha256(snapshot.content) !== location.digest) {
             fail(`${location.label} does not match the operation-bound digest`);
         }
@@ -160,7 +163,7 @@ function assertSnapshotsUnchanged(
     for (const role of ['claim', 'body', 'seal'] as const) {
         const location = locations[role];
         if (location !== undefined) {
-            assertSameRecoveryArtifact(location, expected[role]);
+            assertSameOpaqueStagedRecoveryArtifact(location, expected[role]);
         }
     }
 }
@@ -251,7 +254,14 @@ export function recoverRepositoryReceiptAliases(input: {
         assertSnapshotsUnchanged(locations, snapshots);
         assertNoForeignTemporaries();
         assertAuthority();
-        repairRecoveryArtifact(location, snapshot);
+        if (snapshot.state === 'staged') {
+            removeOpaqueStagedRecoveryArtifact(location, snapshot, () => {
+                assertNoForeignTemporaries();
+                assertAuthority();
+            });
+        } else {
+            repairRecoveryArtifact(location, snapshot);
+        }
         repaired.push(role);
         assertAuthority();
         snapshots = readSnapshots(locations);
