@@ -1,0 +1,19 @@
+Validation: validation:cstar-host-validation-task-complete-normalization-20260804-r2
+Scope: independent read-only inspection of the four supplied artifacts and their directly used session/message helpers.
+
+Matcher review:
+- taskCompleteMessageMatchesFinalAnswer accepts exact byte equality, or exactly one final well-formed <oai-mem-citation> block omitted from task_complete.
+- CRLF is normalized only inside the citation block; the block must be the sole final block, contain nonempty structured citation entries and UUID rollout ids, and no extra trailing newline or second block is accepted.
+
+Lineage and turn review:
+- The validator session must be distinct from the recorder root and have exactly one session_meta at index 0 with thread_source=subagent, session/session parent/fork and spawn parent bound to the recorder root, depth=1, and a matched explicit validator path or the fixed default-host /root/validator label only for the omitted/null default shape.
+- Exactly one final assistant response_item for the supplied validator turn is required; it must contain bounded output text (<=256 KiB). Exactly one matching task_complete must follow it, bind the final message, and have consistent timestamps.
+- Any later completed turn or later activity carrying a different turn id rejects the receipt; completion must be within the bounded 24-hour receipt age and not future-dated.
+
+Binding, size, and independence review:
+- The final validator text must contain exact identifier-bound manifest SHA-256 and validation_id tokens; identifier boundaries treat letters, numbers, underscore, colon, dot, slash, and hyphen as identifier alphabet.
+- The manifest is bounded to 4 MiB, must be cstar.independent_validation_input.v1, match the exact bead/validation/verdict, contain bounded unique artifacts and checks, require pass checks, verify every artifact/check digest and optional byte count, and reject duplicate paths/names.
+- Receipt-only verification derives the kernel v3 evidence manifest and marks it with depth_one_codex_subagent_from_recording_root_v1, validator identity, recorder binding, final/task-complete/session hashes, and the supplied validation scope. Legacy payloads are accepted only when their canonical evidence equals the receipt-derived manifest.
+- The session locator bounds the session file to 512 MiB, requires one safe non-symlink file inside the sessions root, and the fixed scanner bounds each JSONL record to 64 MiB and the scan to 1,000,000 records.
+
+Result: matcher and preserved lineage/latest-turn/hash/validation-id/timestamp/size/independence gates are present and covered by the focused green suite.

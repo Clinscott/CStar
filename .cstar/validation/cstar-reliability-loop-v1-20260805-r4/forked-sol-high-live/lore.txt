@@ -1,0 +1,25 @@
+schema: cstar.independent_validation_lore.v1
+validation_id: validation:cstar-reliability-loop-v1-20260805-r4-forked-sol-high-live
+bead_id: bead:mcp:turn-the-accepted-sprt-autoresearcher-gungnir-fi-msg4t12q
+verdict: ACCEPTED
+
+validator_thread_id: 019fd2d0-fe5d-7be0-b637-2dc6ce274903
+validator_turn_id: unreported
+requested_model: gpt-5.6-sol
+requested_reasoning: high
+actual_model: unreported
+actual_reasoning: unreported
+model_note: configured Sol High fallback; host did not expose actual model or reasoning variables
+
+scope: independent read-only validation of frozen CStar Reliability Loop v1 r4 bytes
+source_edits: none
+cstar_calls: none
+restart_or_install: none
+git_mutation: none
+written_scope: .cstar/validation/cstar-reliability-loop-v1-20260805-r4/forked-sol-high-live only
+
+source_hashes:
+  src/tools/cstar-kernel-mcp/tools/result.ts: 1a1f978aa33037ea44a03e058023e9dc9b691558254cb40a3fd7b76954c974c1
+  src/tools/cstar-kernel-mcp/tools/reliability_loop.ts: 221eb19a93c400e2f5fd0e2abc89319457230feaed30a6b5e256707a6bcd5453
+
+conclusion: frozen implementation and declared reliability contract passed the prescribed independent checks

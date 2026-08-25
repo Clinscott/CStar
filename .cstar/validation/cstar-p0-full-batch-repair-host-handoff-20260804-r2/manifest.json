@@ -1,0 +1,131 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:mcp:repair-aggregate-full-suite-current-v3-codex-hos-msfai02i",
+  "validation_id": "validation:cstar-p0-full-batch-repair-host-handoff-20260804-r2",
+  "worktree": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803",
+  "reported_verdict": "ACCEPTED",
+  "requested_model": "gpt-5.6-luna/max",
+  "actual_model": "gpt-5",
+  "artifacts": [
+    {
+      "path": "src/tools/cstar-kernel-mcp/contracts/runtime.ts",
+      "sha256": "9d019ebf7505dfca782a8d702df3fc6299e88cee0c541a08d0fbf923714b1f8a",
+      "bytes": 10593
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/contracts/worker_jobs.ts",
+      "sha256": "c74b06adb7b4c6843c581505fa8a29a28830f3f9d348d2468340a52932dfef1b",
+      "bytes": 15473
+    },
+    {
+      "path": "src/types/worker_job.ts",
+      "sha256": "36a377e26e22a7afa2365133df043e99feea8da5042a79016c1ad815cdcefe4c",
+      "bytes": 7828
+    },
+    {
+      "path": "src/tools/pennyone/intel/worker_job_validation.ts",
+      "sha256": "ebe32fe9ec23d733a73eddd262f2b266c5e1f427eedd89198feeacd9b1271319",
+      "bytes": 6185
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/forge_execute.ts",
+      "sha256": "61ca3d98f16e33b375ca6830d811a414430c59657c5ff5abaf5d4e17cc65a253",
+      "bytes": 24562
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/forge_execute_contract.ts",
+      "sha256": "40a3c0011f341cc2a2f97838e7bb4c4c5f59c9d758531a4e77338c3bb9b5d2c5",
+      "bytes": 2685
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/forge_execute_reservation.ts",
+      "sha256": "7e724ac421e8cf599f50b3a0ef371828f9de45212cdc55ec28e1bed78fc7dc66",
+      "bytes": 3804
+    },
+    {
+      "path": "src/tools/pennyone/intel/forge_host_worker_dispatch.ts",
+      "sha256": "bcd2e57499bab4d48743e42302f6a379ad08ac2e5f45b5d10c9605de165662bb",
+      "bytes": 26168
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_preprovider_execute_integration.test.ts",
+      "sha256": "6f9a796113b630c10458f04aa723c9f0242d7e7ae0e758e5da7854a2ae52c66f",
+      "bytes": 11079
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts",
+      "sha256": "0b32401d6411bb431be9456142ca172e388f8283133920c903bd842d2046b3a1",
+      "bytes": 12554
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_worker_job_lifecycle_binding.test.ts",
+      "sha256": "06b9dbcd851ec4f67001788db5f1fd9ca265b01e33ec678f51ca2035109d9758",
+      "bytes": 13551
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_durable_async_dispatch.test.ts",
+      "sha256": "a07825a6b713a85c8a1007a716d07b55e95211b1c7a26cef126e89b54e438514",
+      "bytes": 21276
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_codex_host_worker_dispatch.test.ts",
+      "sha256": "01a4ff9b01afecc6c770e0b2a3412169772477d46224353a684649486b159b6b",
+      "bytes": 7526
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_adapter_project_root.test.ts",
+      "sha256": "0862a1fdfe851a7a7c38d922dec5c32adc2a37539cfa3975e1e885455c6ba892",
+      "bytes": 6798
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_natural_language_authorization.test.ts",
+      "sha256": "ae7a3f780ba15f8effc12008cd5639a5f3646aaddefdf18055117304b61f7c7b",
+      "bytes": 18799
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_authorization_one_shot.test.ts",
+      "sha256": "18fb78387a606c3ab57d45851f2d2fed1ef329d40d650d8a6b1871a0bcead28a",
+      "bytes": 4787
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_operator_authorization_scope_binding.test.ts",
+      "sha256": "8c14e4ca4c4c5b38ddfeebfea9bd641b32e45b7340c5ccf3c7cf370e3e44e5d1",
+      "bytes": 5570
+    },
+    {
+      "path": ".cstar/validation/cstar-p0-full-batch-repair-host-handoff-20260804-r2/focused-check.json",
+      "sha256": "08c7d13b0a9eedec7882d06132b7213c246dcd929d4593f15b08011e05df72ea",
+      "bytes": 2475
+    },
+    {
+      "path": ".cstar/validation/cstar-p0-full-batch-repair-host-handoff-20260804-r2/structural-check.json",
+      "sha256": "026a26a1d8f1cacb200f72f57e7025f0c8e7a2b608d45640439718b879feac69",
+      "bytes": 2708
+    },
+    {
+      "path": ".cstar/validation/cstar-p0-full-batch-repair-host-handoff-20260804-r2/report.md",
+      "sha256": "56d207b471149fc22de81bfa7352c6468a1af4fe87f343243219179c089ae2a0",
+      "bytes": 2242
+    }
+  ],
+  "checks": [
+    {
+      "name": "focused_lane_c_suite_and_typecheck",
+      "status": "pass",
+      "evidence_path": ".cstar/validation/cstar-p0-full-batch-repair-host-handoff-20260804-r2/focused-check.json",
+      "sha256": "08c7d13b0a9eedec7882d06132b7213c246dcd929d4593f15b08011e05df72ea"
+    },
+    {
+      "name": "runtime_scope_contract_diff_and_line_policy",
+      "status": "pass",
+      "evidence_path": ".cstar/validation/cstar-p0-full-batch-repair-host-handoff-20260804-r2/structural-check.json",
+      "sha256": "026a26a1d8f1cacb200f72f57e7025f0c8e7a2b608d45640439718b879feac69"
+    },
+    {
+      "name": "independent_lane_c_report",
+      "status": "pass",
+      "evidence_path": ".cstar/validation/cstar-p0-full-batch-repair-host-handoff-20260804-r2/report.md",
+      "sha256": "56d207b471149fc22de81bfa7352c6468a1af4fe87f343243219179c089ae2a0"
+    }
+  ]
+}

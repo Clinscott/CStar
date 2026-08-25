@@ -1,0 +1,4315 @@
+{
+  "actual_model": null,
+  "actual_reasoning": null,
+  "autoresearcher": {
+    "failed_stage_fingerprints": [],
+    "mode": "proposal_only",
+    "next_action": "none"
+  },
+  "candidate_source_digest": "a12d758dc302d960129212e816e10a2664654f89181a1d1bab4828b6c18bb674",
+  "candidate_source_paths": [
+    ".agents/AGENTS.feature",
+    ".agents/skills/corvus-forge/SKILL.md",
+    ".agents/skills/corvus-forge/runtime/host-manifest.json",
+    ".agents/skills/corvus-forge/runtime/host-manifest.schema.json",
+    ".agents/skills/corvus-forge/scripts/codex_host_runtime_lineage.mjs",
+    ".agents/skills/cstar-reliability-loop/SKILL.md",
+    ".agents/skills/cstar-reliability-loop/references/reliability-continuation.schema.json",
+    ".agents/skills/cstar-sprt-autoresearcher/SKILL.md",
+    ".agents/skills/cstar-sprt-autoresearcher/scripts/cstar_workflow_gungnir.py",
+    ".agents/skills/cstar-sprt-autoresearcher/scripts/cstar_workflow_sprt_core.py",
+    ".agents/skills/cstar-sprt-autoresearcher/scripts/run_cstar_workflow_sprt.py",
+    "AGENTS.md",
+    "src/core/engine/gungnir/calculus.ts",
+    "src/core/engine/gungnir/python_syntax.ts",
+    "src/node/core/commands/capability_discovery.ts",
+    "src/node/core/sterling_mandate.ts",
+    "src/tools/cstar-kernel-mcp/contracts/augury_mission.ts",
+    "src/tools/cstar-kernel-mcp/contracts/augury_mission_schema.ts",
+    "src/tools/cstar-kernel-mcp/contracts/forge_child_request_template.ts",
+    "src/tools/cstar-kernel-mcp/contracts/record_result_input.ts",
+    "src/tools/cstar-kernel-mcp/contracts/responses.ts",
+    "src/tools/cstar-kernel-mcp/contracts/runtime_lineage.ts",
+    "src/tools/cstar-kernel-mcp/contracts/runtime_lineage_forge.ts",
+    "src/tools/cstar-kernel-mcp/contracts/schemas.ts",
+    "src/tools/cstar-kernel-mcp/contracts/validation_evidence_root.ts",
+    "src/tools/cstar-kernel-mcp/contracts/worker_jobs.ts",
+    "src/tools/cstar-kernel-mcp/register_core_tools.ts",
+    "src/tools/cstar-kernel-mcp/telemetry/usage.ts",
+    "src/tools/cstar-kernel-mcp/tools/augury.ts",
+    "src/tools/cstar-kernel-mcp/tools/augury_mission_binding.ts",
+    "src/tools/cstar-kernel-mcp/tools/augury_mission_binding_v2.ts",
+    "src/tools/cstar-kernel-mcp/tools/augury_mission_dispatch_controller.ts",
+    "src/tools/cstar-kernel-mcp/tools/augury_mission_natural_translation.ts",
+    "src/tools/cstar-kernel-mcp/tools/automatic_mission.ts",
+    "src/tools/cstar-kernel-mcp/tools/bead.ts",
+    "src/tools/cstar-kernel-mcp/tools/dispatch_request.ts",
+    "src/tools/cstar-kernel-mcp/tools/forge_execute.ts",
+    "src/tools/cstar-kernel-mcp/tools/forge_execute_contract.ts",
+    "src/tools/cstar-kernel-mcp/tools/forge_execute_reservation.ts",
+    "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_consumption.ts",
+    "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_natural_revocation.ts",
+    "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_signal.ts",
+    "src/tools/cstar-kernel-mcp/tools/host_workflow_message.ts",
+    "src/tools/cstar-kernel-mcp/tools/host_workflow_validation.ts",
+    "src/tools/cstar-kernel-mcp/tools/persona_set.ts",
+    "src/tools/cstar-kernel-mcp/tools/reliability_loop.ts",
+    "src/tools/cstar-kernel-mcp/tools/result.ts",
+    "src/tools/cstar-kernel-mcp/tools/status.ts",
+    "src/tools/cstar-kernel-mcp/tools/validation_evidence.ts",
+    "src/tools/pennyone/intel/augury_mission_child_template_binding.ts",
+    "src/tools/pennyone/intel/augury_mission_receipt_controller.ts",
+    "src/tools/pennyone/intel/augury_mission_receipt_schema.ts",
+    "src/tools/pennyone/intel/augury_mission_receipt_validation.ts",
+    "src/tools/pennyone/intel/augury_mission_receipt_validation_v2.ts",
+    "src/tools/pennyone/intel/automatic_mission_controller.ts",
+    "src/tools/pennyone/intel/automatic_mission_dispatch_store.ts",
+    "src/tools/pennyone/intel/forge_authorization_schema.ts",
+    "src/tools/pennyone/intel/forge_host_worker_dispatch.ts",
+    "src/tools/pennyone/intel/forge_validation_controller.ts",
+    "src/tools/pennyone/intel/persona_state.ts",
+    "src/tools/pennyone/intel/schema.ts",
+    "src/tools/pennyone/intel/schema_tables_core.ts",
+    "src/tools/pennyone/intel/schema_tables_runtime.ts",
+    "src/tools/pennyone/intel/validation_ticket_controller.ts",
+    "src/tools/pennyone/intel/worker_job_validation.ts",
+    "src/tools/pennyone/persona_projection.ts",
+    "src/types/worker_job.ts",
+    "tests/features/cstar_autonomous_hermes_dispatch_policy.feature",
+    "tests/features/cstar_durable_work_routing_and_recovery.feature",
+    "tests/features/cstar_reliability_loop.feature",
+    "tests/features/cstar_sprt_autoresearcher.feature",
+    "tests/features/cstar_validation_evidence_root.feature",
+    "tests/unit/cstar-kernel-mcp/forge_natural_authorization_test_support.ts",
+    "tests/unit/cstar-kernel-mcp/forge_set_manifest_natural_revocation_test_cases.ts",
+    "tests/unit/cstar-kernel-mcp/test_augury_bead_result.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_augury_natural_translation_integration.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_automatic_mission_durable_dispatch.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_automatic_mission_state.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_bead_forge_schema_isolation.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_capability_compatibility_discovery.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_code_control_root_separation.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_dispatch_action_authority.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_dispatch_requests.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_forge_adapter_project_root.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_forge_authorization_schema_legacy_duplicates.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_forge_authorization_schema_profiles.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_forge_codex_host_worker_dispatch.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_forge_durable_execution.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_forge_execute.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_forge_execute_authority.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_forge_legacy_v2_public_path.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_forge_preprovider_execute_integration.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_forge_runtime_readiness.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_forge_set_manifest_autonomous_dispatch.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_forge_set_manifest_natural_translation.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_host_workflow_message.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_mcp_outcome_deadline_instrumentation.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_persona_set.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_persona_status_boundary.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_reliability_loop.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_reliability_loop_result.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_runtime_lineage_codex_host.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_sterling_repository_root_binding.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_tool_catalog.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_validation_evidence_root.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_validation_ticket_spoke_result.test.ts",
+    "tests/unit/cstar-kernel-mcp/validation_ticket_test_helpers.ts",
+    "tests/unit/test_cstar_reliability_loop_skill.py",
+    "tests/unit/test_cstar_sprt_autoresearcher.py",
+    "tests/unit/test_cstar_sprt_autoresearcher_gungnir.py",
+    "tests/unit/test_gungnir_python_syntax.test.ts"
+  ],
+  "checker_root": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803",
+  "command_argv": {
+    "full_lifecycle": [
+      "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+      "scripts/run-tsx.mjs",
+      "--test",
+      "--test-reporter=tap",
+      "tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_worker_job_lifecycle_binding.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_terminal_forge_validation_linkage.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts"
+    ],
+    "stage_pass": [
+      "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+      "scripts/run-tsx.mjs",
+      "--test",
+      "--test-reporter=tap",
+      "tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_worker_job_lifecycle_binding.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_terminal_forge_validation_linkage.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts"
+    ]
+  },
+  "command_argv_sha256": {
+    "full_lifecycle": "2abd1b9ddb4f4b7d213fa3081a2fce623e2fbe3722ef87032f1ce6c7962d8424",
+    "stage_pass": "2abd1b9ddb4f4b7d213fa3081a2fce623e2fbe3722ef87032f1ce6c7962d8424"
+  },
+  "cstar_acceptance": "UNVERIFIED",
+  "duration_ms": 46790.02302401932,
+  "external_effects": {
+    "deployment": false,
+    "direct_hall_sqlite_writes": false,
+    "git_mutation": false,
+    "install_activation_restart": false,
+    "live_mcp": false,
+    "live_provider": false,
+    "live_source": false,
+    "network": false,
+    "production": false,
+    "receipt_write": true,
+    "secrets_or_config": false
+  },
+  "failed": 0,
+  "failed_stage_fingerprints": [],
+  "gungnir": {
+    "aggregate_evidence_sha256": "1879bd4126e1c8cdfa09645aab5ead38e7b164674c787551917a5fcbbd1bc409",
+    "authority": "heuristic_evidence_only",
+    "candidate_count": 113,
+    "candidate_source_paths": [
+      ".agents/AGENTS.feature",
+      ".agents/skills/corvus-forge/SKILL.md",
+      ".agents/skills/corvus-forge/runtime/host-manifest.json",
+      ".agents/skills/corvus-forge/runtime/host-manifest.schema.json",
+      ".agents/skills/corvus-forge/scripts/codex_host_runtime_lineage.mjs",
+      ".agents/skills/cstar-reliability-loop/SKILL.md",
+      ".agents/skills/cstar-reliability-loop/references/reliability-continuation.schema.json",
+      ".agents/skills/cstar-sprt-autoresearcher/SKILL.md",
+      ".agents/skills/cstar-sprt-autoresearcher/scripts/cstar_workflow_gungnir.py",
+      ".agents/skills/cstar-sprt-autoresearcher/scripts/cstar_workflow_sprt_core.py",
+      ".agents/skills/cstar-sprt-autoresearcher/scripts/run_cstar_workflow_sprt.py",
+      "AGENTS.md",
+      "src/core/engine/gungnir/calculus.ts",
+      "src/core/engine/gungnir/python_syntax.ts",
+      "src/node/core/commands/capability_discovery.ts",
+      "src/node/core/sterling_mandate.ts",
+      "src/tools/cstar-kernel-mcp/contracts/augury_mission.ts",
+      "src/tools/cstar-kernel-mcp/contracts/augury_mission_schema.ts",
+      "src/tools/cstar-kernel-mcp/contracts/forge_child_request_template.ts",
+      "src/tools/cstar-kernel-mcp/contracts/record_result_input.ts",
+      "src/tools/cstar-kernel-mcp/contracts/responses.ts",
+      "src/tools/cstar-kernel-mcp/contracts/runtime_lineage.ts",
+      "src/tools/cstar-kernel-mcp/contracts/runtime_lineage_forge.ts",
+      "src/tools/cstar-kernel-mcp/contracts/schemas.ts",
+      "src/tools/cstar-kernel-mcp/contracts/validation_evidence_root.ts",
+      "src/tools/cstar-kernel-mcp/contracts/worker_jobs.ts",
+      "src/tools/cstar-kernel-mcp/register_core_tools.ts",
+      "src/tools/cstar-kernel-mcp/telemetry/usage.ts",
+      "src/tools/cstar-kernel-mcp/tools/augury.ts",
+      "src/tools/cstar-kernel-mcp/tools/augury_mission_binding.ts",
+      "src/tools/cstar-kernel-mcp/tools/augury_mission_binding_v2.ts",
+      "src/tools/cstar-kernel-mcp/tools/augury_mission_dispatch_controller.ts",
+      "src/tools/cstar-kernel-mcp/tools/augury_mission_natural_translation.ts",
+      "src/tools/cstar-kernel-mcp/tools/automatic_mission.ts",
+      "src/tools/cstar-kernel-mcp/tools/bead.ts",
+      "src/tools/cstar-kernel-mcp/tools/dispatch_request.ts",
+      "src/tools/cstar-kernel-mcp/tools/forge_execute.ts",
+      "src/tools/cstar-kernel-mcp/tools/forge_execute_contract.ts",
+      "src/tools/cstar-kernel-mcp/tools/forge_execute_reservation.ts",
+      "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_consumption.ts",
+      "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_natural_revocation.ts",
+      "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_signal.ts",
+      "src/tools/cstar-kernel-mcp/tools/host_workflow_message.ts",
+      "src/tools/cstar-kernel-mcp/tools/host_workflow_validation.ts",
+      "src/tools/cstar-kernel-mcp/tools/persona_set.ts",
+      "src/tools/cstar-kernel-mcp/tools/reliability_loop.ts",
+      "src/tools/cstar-kernel-mcp/tools/result.ts",
+      "src/tools/cstar-kernel-mcp/tools/status.ts",
+      "src/tools/cstar-kernel-mcp/tools/validation_evidence.ts",
+      "src/tools/pennyone/intel/augury_mission_child_template_binding.ts",
+      "src/tools/pennyone/intel/augury_mission_receipt_controller.ts",
+      "src/tools/pennyone/intel/augury_mission_receipt_schema.ts",
+      "src/tools/pennyone/intel/augury_mission_receipt_validation.ts",
+      "src/tools/pennyone/intel/augury_mission_receipt_validation_v2.ts",
+      "src/tools/pennyone/intel/automatic_mission_controller.ts",
+      "src/tools/pennyone/intel/automatic_mission_dispatch_store.ts",
+      "src/tools/pennyone/intel/forge_authorization_schema.ts",
+      "src/tools/pennyone/intel/forge_host_worker_dispatch.ts",
+      "src/tools/pennyone/intel/forge_validation_controller.ts",
+      "src/tools/pennyone/intel/persona_state.ts",
+      "src/tools/pennyone/intel/schema.ts",
+      "src/tools/pennyone/intel/schema_tables_core.ts",
+      "src/tools/pennyone/intel/schema_tables_runtime.ts",
+      "src/tools/pennyone/intel/validation_ticket_controller.ts",
+      "src/tools/pennyone/intel/worker_job_validation.ts",
+      "src/tools/pennyone/persona_projection.ts",
+      "src/types/worker_job.ts",
+      "tests/features/cstar_autonomous_hermes_dispatch_policy.feature",
+      "tests/features/cstar_durable_work_routing_and_recovery.feature",
+      "tests/features/cstar_reliability_loop.feature",
+      "tests/features/cstar_sprt_autoresearcher.feature",
+      "tests/features/cstar_validation_evidence_root.feature",
+      "tests/unit/cstar-kernel-mcp/forge_natural_authorization_test_support.ts",
+      "tests/unit/cstar-kernel-mcp/forge_set_manifest_natural_revocation_test_cases.ts",
+      "tests/unit/cstar-kernel-mcp/test_augury_bead_result.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_augury_natural_translation_integration.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_automatic_mission_durable_dispatch.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_automatic_mission_state.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_bead_forge_schema_isolation.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_capability_compatibility_discovery.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_code_control_root_separation.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_dispatch_action_authority.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_dispatch_requests.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_forge_adapter_project_root.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_forge_authorization_schema_legacy_duplicates.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_forge_authorization_schema_profiles.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_forge_codex_host_worker_dispatch.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_forge_durable_execution.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_forge_execute.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_forge_execute_authority.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_forge_legacy_v2_public_path.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_forge_preprovider_execute_integration.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_forge_runtime_readiness.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_forge_set_manifest_autonomous_dispatch.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_forge_set_manifest_natural_translation.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_host_workflow_message.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_mcp_outcome_deadline_instrumentation.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_persona_set.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_persona_status_boundary.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_reliability_loop.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_reliability_loop_result.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_runtime_lineage_codex_host.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_sterling_repository_root_binding.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_tool_catalog.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_validation_evidence_root.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_validation_ticket_spoke_result.test.ts",
+      "tests/unit/cstar-kernel-mcp/validation_ticket_test_helpers.ts",
+      "tests/unit/test_cstar_reliability_loop_skill.py",
+      "tests/unit/test_cstar_sprt_autoresearcher.py",
+      "tests/unit/test_cstar_sprt_autoresearcher_gungnir.py",
+      "tests/unit/test_gungnir_python_syntax.test.ts"
+    ],
+    "canonical_sources": {
+      "engine": {
+        "path": "src/core/engine/gungnir/calculus.ts",
+        "sha256": "0a4a8157096ba66f053056640bdda6085b213fbc19f07de58aced2034b323d87"
+      },
+      "matrix_schema": {
+        "path": "src/types/gungnir.ts",
+        "sha256": "c7f886a9c07da7b8a78129af9415d1bee7e0d32783d4c46c900f870f869dbd28"
+      }
+    },
+    "excluded_count": 7,
+    "exclusions": [
+      {
+        "path": ".agents/AGENTS.feature",
+        "reason": "unsupported_extension",
+        "source_sha256": "ecc7bda3216df9885381a88cbb072e7447f827b15eedb13fdc6d93c5807adff3"
+      },
+      {
+        "path": ".agents/skills/corvus-forge/scripts/codex_host_runtime_lineage.mjs",
+        "reason": "unsupported_extension",
+        "source_sha256": "12aa42315ac98396fc7438cf14065b611bff3f152fbf763ce8277412943535c0"
+      },
+      {
+        "path": "tests/features/cstar_autonomous_hermes_dispatch_policy.feature",
+        "reason": "unsupported_extension",
+        "source_sha256": "7aa983df0c74a3821d835279c41a684be3aef752d10ab4f79d5785cf48b80641"
+      },
+      {
+        "path": "tests/features/cstar_durable_work_routing_and_recovery.feature",
+        "reason": "unsupported_extension",
+        "source_sha256": "67cbe80af1984052a3b84b114c51e28386f96ca2d03e6a125785c6bfcfd2dbf2"
+      },
+      {
+        "path": "tests/features/cstar_reliability_loop.feature",
+        "reason": "unsupported_extension",
+        "source_sha256": "ec7719d36f330e7b4512cd2047b6507507485946573baef4b12b81e438e92fab"
+      },
+      {
+        "path": "tests/features/cstar_sprt_autoresearcher.feature",
+        "reason": "unsupported_extension",
+        "source_sha256": "fd64d528f230419a24d1d8d7cbbb61a52f360a5ae7edd50da3f9fb930a1bc112"
+      },
+      {
+        "path": "tests/features/cstar_validation_evidence_root.feature",
+        "reason": "unsupported_extension",
+        "source_sha256": "69b039a4ca9af6c74df87c536b3115dc9a5fd91f1e18a747a5760e54e8c1d217"
+      }
+    ],
+    "formula": "arithmetic_mean(records[*].matrix.overall) over scored_count",
+    "overall_score": 9.500072641509433,
+    "process": {
+      "duration_ms": 345.735009992495,
+      "exit_code": 0,
+      "spawn_error": null,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "2b7bc205c9a9faa53163cece567f0180915998cc1b59516ce29e7349fb4332bd",
+      "timed_out": false
+    },
+    "process_evidence": {
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "2b7bc205c9a9faa53163cece567f0180915998cc1b59516ce29e7349fb4332bd"
+    },
+    "records": [
+      {
+        "breaches": [],
+        "coverage": "heuristic",
+        "evidence_sha256": "33833ec4db7da8d22ded76434db7e017d99f84fc761005c058c1742a5747ad3f",
+        "extension": ".md",
+        "matrix": {
+          "aesthetic": 10,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 10,
+          "gravity": 0,
+          "intel": 10,
+          "logic": 10,
+          "overall": 10,
+          "sovereignty": 10,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": ".agents/skills/corvus-forge/SKILL.md",
+        "source_sha256": "c768409d2911e8bcd38fb40370749836a6de0a9ceef26eb6770a10aaf1c665ae"
+      },
+      {
+        "breaches": [],
+        "coverage": "heuristic",
+        "evidence_sha256": "fb4ffddb4145e84ed50a837b897db47be4f45a241bc9ae87ae22e63741dcbc3f",
+        "extension": ".json",
+        "matrix": {
+          "aesthetic": 10,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 10,
+          "gravity": 0,
+          "intel": 10,
+          "logic": 10,
+          "overall": 10,
+          "sovereignty": 10,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": ".agents/skills/corvus-forge/runtime/host-manifest.json",
+        "source_sha256": "63ff3b31feb9991501c0cd3a4a300cc4bb1f259145e9781e9d6f03409c8d69ef"
+      },
+      {
+        "breaches": [],
+        "coverage": "heuristic",
+        "evidence_sha256": "44992ff1db27500701c9b94da39804d751a647fb47525e6ae9aaae5acb55c4c7",
+        "extension": ".json",
+        "matrix": {
+          "aesthetic": 10,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 10,
+          "gravity": 0,
+          "intel": 10,
+          "logic": 10,
+          "overall": 10,
+          "sovereignty": 10,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": ".agents/skills/corvus-forge/runtime/host-manifest.schema.json",
+        "source_sha256": "bdeeae11caaff13209ab45306a84d5354d7f170341b44e6563d57a2db7c3ab78"
+      },
+      {
+        "breaches": [],
+        "coverage": "heuristic",
+        "evidence_sha256": "5ab043a421901daa90f8a43850a0385201e146ff3f384467ce1b5d2aa8b23b5e",
+        "extension": ".md",
+        "matrix": {
+          "aesthetic": 10,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 10,
+          "gravity": 0,
+          "intel": 10,
+          "logic": 10,
+          "overall": 10,
+          "sovereignty": 10,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": ".agents/skills/cstar-reliability-loop/SKILL.md",
+        "source_sha256": "54ea0de97b0e5ada81bf8d5d697cb962d354029e09da3aa6a94322cabacf8e2f"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.data.nesting",
+            "message": "GUNGNIR_DATA_BREACH: Excessive data nesting (Depth: 7). Refactor for readability.",
+            "severity": "HIGH"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "2645a091a9b342342383509fe0b43e20819aca67c480d1866dc16cd16634c0ed",
+        "extension": ".json",
+        "matrix": {
+          "aesthetic": 9.1667,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.375,
+          "gravity": 0,
+          "intel": 7.5,
+          "logic": 10,
+          "overall": 9.349,
+          "sovereignty": 9.2188,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": ".agents/skills/cstar-reliability-loop/references/reliability-continuation.schema.json",
+        "source_sha256": "ae462ae308ada26cde61d5b516e74c5e9537ef9a6065e909029e3859fd4c00eb"
+      },
+      {
+        "breaches": [],
+        "coverage": "heuristic",
+        "evidence_sha256": "041b8034f0ba05d873cbfc112c5b0efc4197c51e45ed072a1cc3ec63bb732d0d",
+        "extension": ".md",
+        "matrix": {
+          "aesthetic": 10,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 10,
+          "gravity": 0,
+          "intel": 10,
+          "logic": 10,
+          "overall": 10,
+          "sovereignty": 10,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": ".agents/skills/cstar-sprt-autoresearcher/SKILL.md",
+        "source_sha256": "925b72845760be82e53600fbe231a7d009e8090c6c201ebff3e002369fec9754"
+      },
+      {
+        "breaches": [
+          {
+            "code": "logic.python.coupling",
+            "message": "GUNGNIR_COUPLING_BREACH: Over-entangled (13 imports). Isolate dependencies.",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "intel.python.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.01). Add intents/docstrings.",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "logic.python.balance",
+            "message": "GUNGNIR_LOGIC_BREACH: top-heavy setup detected (2.0). Reduce preamble before execution.",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "style.python.claustrophobia",
+            "message": "GUNGNIR_STYLE_BREACH: Claustrophobic code block (>12 lines).",
+            "severity": "LOW"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "adcdf4b1feca15c84cbd3130231c735d51967e625dac734aa0d32986611768cf",
+        "extension": ".py",
+        "matrix": {
+          "aesthetic": 8.3333,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 8.75,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 7,
+          "overall": 8.6979,
+          "sovereignty": 8.4375,
+          "stability": 7,
+          "style": 9.5,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": ".agents/skills/cstar-sprt-autoresearcher/scripts/cstar_workflow_gungnir.py",
+        "source_sha256": "70e0e43ee505701b804957ed29e5c5aa8dbad009f7fdc977c0e8df2031ba9286"
+      },
+      {
+        "breaches": [
+          {
+            "code": "logic.python.coupling",
+            "message": "GUNGNIR_COUPLING_BREACH: Over-entangled (11 imports). Isolate dependencies.",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "intel.python.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00). Add intents/docstrings.",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "logic.python.balance",
+            "message": "GUNGNIR_LOGIC_BREACH: top-heavy setup detected (2.0). Reduce preamble before execution.",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "style.python.claustrophobia",
+            "message": "GUNGNIR_STYLE_BREACH: Claustrophobic code block (>12 lines).",
+            "severity": "LOW"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "a12ee4477138907c86e9bf32630e76a8507ca07869317cbe07d4d8483c7d031a",
+        "extension": ".py",
+        "matrix": {
+          "aesthetic": 8.3333,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 8.75,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 7,
+          "overall": 8.6979,
+          "sovereignty": 8.4375,
+          "stability": 7,
+          "style": 9.5,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": ".agents/skills/cstar-sprt-autoresearcher/scripts/cstar_workflow_sprt_core.py",
+        "source_sha256": "c69c5970db7fe5b18611f1fdbcf65c4e7befaee0146ff6cdb584a11624dc354b"
+      },
+      {
+        "breaches": [
+          {
+            "code": "logic.python.coupling",
+            "message": "GUNGNIR_COUPLING_BREACH: Over-entangled (12 imports). Isolate dependencies.",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "intel.python.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.01). Add intents/docstrings.",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "logic.python.balance",
+            "message": "GUNGNIR_LOGIC_BREACH: top-heavy setup detected (2.5). Reduce preamble before execution.",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "style.python.claustrophobia",
+            "message": "GUNGNIR_STYLE_BREACH: Claustrophobic code block (>12 lines).",
+            "severity": "LOW"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "dbc2f8fa1a1898a2f2583a77f9ddfe073a6dfc0a8912f3558308577dc065ca08",
+        "extension": ".py",
+        "matrix": {
+          "aesthetic": 8.3333,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 8.75,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 7,
+          "overall": 8.6979,
+          "sovereignty": 8.4375,
+          "stability": 7,
+          "style": 9.5,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": ".agents/skills/cstar-sprt-autoresearcher/scripts/run_cstar_workflow_sprt.py",
+        "source_sha256": "07f154ff6074501f1db2e81dbaa67034fc5338af588003dcd7cfcaa2a059fa5a"
+      },
+      {
+        "breaches": [],
+        "coverage": "heuristic",
+        "evidence_sha256": "f4f110655540660fcf3b1823749ad7fc44b3c6b1a712ef57e766261cfade1d3d",
+        "extension": ".md",
+        "matrix": {
+          "aesthetic": 10,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 10,
+          "gravity": 0,
+          "intel": 10,
+          "logic": 10,
+          "overall": 10,
+          "sovereignty": 10,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "AGENTS.md",
+        "source_sha256": "016c9aa6413e853d5347ed7ce8cf7a1e48f140b749f617211aadcfc783e23eda"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "d80067b3a23a637321cb967bee5eab6fa40f11dbf885eb4848f07f955deebb0d",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/core/engine/gungnir/calculus.ts",
+        "source_sha256": "0a4a8157096ba66f053056640bdda6085b213fbc19f07de58aced2034b323d87"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.01).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "f4aa17a8fd577da395613c6e302efc9f419410f52d30519e32cd1cffa65b2c90",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/core/engine/gungnir/python_syntax.ts",
+        "source_sha256": "dcaa98551ed59c4786ac12c0d12d15b8fcf434b188f26f0100d919240be8b106"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "29cc5e39dd771e1552f2624de265353b7110ef4d4599aee2909508f909550c4e",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/node/core/commands/capability_discovery.ts",
+        "source_sha256": "75f9b3b0505ce76d90beb0736658db5df6d8b41b426ffe57cc0402e3714ebe2f"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "ca5483d18cb30351d0b3bfb0a626437c6008504df7717f94d1fb07928cb6a67e",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/node/core/sterling_mandate.ts",
+        "source_sha256": "2cb1c515b25cd997890bf304609e61d43dfb185569e8c1a9d27a068b3195561e"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "a21a265e8da5f96a685403795b8abc58d006fd867824ca92282c0a80caa90924",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/cstar-kernel-mcp/contracts/augury_mission.ts",
+        "source_sha256": "69a7556dda08af463295a5c4140e94b8553f8f41b552b4d63a9f6d20367366c7"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "7b608cef71952f7bbb2424ac22fc0627dd3079108652cc13d48871b702bb881e",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/cstar-kernel-mcp/contracts/augury_mission_schema.ts",
+        "source_sha256": "405a709d34c485621d278822b22d420ab63a02e26c300d6f289f337eef26fa5d"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "eefe4a49ea5dbd993235b243f9b74ce6780e8630b539a72f32b6b45762917c89",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/cstar-kernel-mcp/contracts/forge_child_request_template.ts",
+        "source_sha256": "489eb5dc0d441a6a82511073895e4503f99e3cc701a7a86d6daa09023debd60b"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "8eeaea11814b5d04f162682b1e0978f092b22d87a84741f2a9cc70689566f89d",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/cstar-kernel-mcp/contracts/record_result_input.ts",
+        "source_sha256": "573b019c9e79533d603969a3fd3606b07ed23113db1e16c8d98ec4f9c58968bb"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.03).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "a9cbd299b76be55c5de5b6607275087b7d959333e053b6026bed0b2a81042337",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/cstar-kernel-mcp/contracts/responses.ts",
+        "source_sha256": "64bb908c07fded134fd6b95e9f70471a6ae900063b7185cc1a9f4fddb638c3d4"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "dd09dbccdaa5348f61f0f7662988d7387b24d1c8609587abd0d7d9d157f3e728",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/cstar-kernel-mcp/contracts/runtime_lineage.ts",
+        "source_sha256": "a44c6669801048ff0ec326bfa776cd577f2b50940379b4f720665f620cb11113"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "0822e22d4461179131300b721e1b3ce19212ef9ba14e277796eb3c97d7358a89",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/cstar-kernel-mcp/contracts/runtime_lineage_forge.ts",
+        "source_sha256": "4cd69cc299d2a238d9c21c8df5cd01d1a2acd223d9bae514ca77ec7ce6cdfdf1"
+      },
+      {
+        "breaches": [
+          {
+            "code": "logic.script.complexity",
+            "message": "GUNGNIR_LOGIC_BREACH: High average branch complexity (16.0).",
+            "severity": "HIGH"
+          },
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "style.script.line-length",
+            "message": "GUNGNIR_STYLE_BREACH: Source contains a line longer than 180 characters.",
+            "severity": "LOW"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "32abe7306ce00554f851e27e5f2445ad0233a055eccabc4446af6af58bd42bc9",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 8.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 8.875,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 7.5,
+          "overall": 8.8281,
+          "sovereignty": 8.5938,
+          "stability": 7.5,
+          "style": 9.5,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/cstar-kernel-mcp/contracts/schemas.ts",
+        "source_sha256": "259728283efdb653f21f8ffdcc587bbe922d8563bf64bc830e66b6c2467f85a3"
+      },
+      {
+        "breaches": [],
+        "coverage": "heuristic",
+        "evidence_sha256": "a1e68d5690628b6ed0de303923373ce99bd9bef35ab42ca9226c9f490dea46d2",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 10,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 10,
+          "gravity": 0,
+          "intel": 10,
+          "logic": 10,
+          "overall": 10,
+          "sovereignty": 10,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/cstar-kernel-mcp/contracts/validation_evidence_root.ts",
+        "source_sha256": "1731998ce42232317b681f1b4efb142997f1fa9834b917441ab644c298f23a20"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.02).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "a42a11b69cf1cd2019c75c49ed6f158759a3a15d932fb505b5422e11fa3beb17",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/cstar-kernel-mcp/contracts/worker_jobs.ts",
+        "source_sha256": "c74b06adb7b4c6843c581505fa8a29a28830f3f9d348d2468340a52932dfef1b"
+      },
+      {
+        "breaches": [
+          {
+            "code": "logic.script.coupling",
+            "message": "GUNGNIR_COUPLING_BREACH: Over-entangled (30 imports).",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "style.script.line-length",
+            "message": "GUNGNIR_STYLE_BREACH: Source contains a line longer than 180 characters.",
+            "severity": "LOW"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "08a9154dec9bcd8d0b25b28571ce7cd82099f026c9a6889710fd0b90abc4f75a",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 8.8333,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.125,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 8.5,
+          "overall": 9.0886,
+          "sovereignty": 8.9063,
+          "stability": 8.5,
+          "style": 9.5,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/cstar-kernel-mcp/register_core_tools.ts",
+        "source_sha256": "07fae8a93cd41cf9064bffe80122986bc8efbd819d659a4ff20e6b2ffb005eaa"
+      },
+      {
+        "breaches": [
+          {
+            "code": "logic.script.coupling",
+            "message": "GUNGNIR_COUPLING_BREACH: Over-entangled (11 imports).",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.01).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "76534582c57e024f0ce2989d190128dda553410fb92a2d562bcc69ecb5c535a1",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.25,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 8.5,
+          "overall": 9.2188,
+          "sovereignty": 9.0625,
+          "stability": 8.5,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/cstar-kernel-mcp/telemetry/usage.ts",
+        "source_sha256": "77a8a1e10a3861a88ef5d6770574562db589f0528f2adfad6a7ebb91ee401013"
+      },
+      {
+        "breaches": [
+          {
+            "code": "logic.script.complexity",
+            "message": "GUNGNIR_LOGIC_BREACH: High average branch complexity (25.0).",
+            "severity": "HIGH"
+          },
+          {
+            "code": "logic.script.coupling",
+            "message": "GUNGNIR_COUPLING_BREACH: Over-entangled (15 imports).",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.03).",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "style.script.line-length",
+            "message": "GUNGNIR_STYLE_BREACH: Source contains a line longer than 180 characters.",
+            "severity": "LOW"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "5ebf908d644d7381a7905bc8cecf461caf16f01b2c1ad85ed0d3927719fae5a0",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 8,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 8.5,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 6,
+          "overall": 8.4375,
+          "sovereignty": 8.125,
+          "stability": 6,
+          "style": 9.5,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/cstar-kernel-mcp/tools/augury.ts",
+        "source_sha256": "016002af45a8cb23f4b5f881010a8e92e03f520b7e2c6599199b4500e49b0dc7"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "b167290902ab5a99cc8d6b0881fa19e13a044fc8e7412977ebd3ac693386ee2e",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/cstar-kernel-mcp/tools/augury_mission_binding.ts",
+        "source_sha256": "e22206645dad031fb90809146b119b064e2e109f1558cfafb46cd84544862abc"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "98ea6ce3d735551845a645facb9f58ac14a93f5d0417c89d8d39d3a36d9bdfc9",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/cstar-kernel-mcp/tools/augury_mission_binding_v2.ts",
+        "source_sha256": "09c58c624656b28e6103b38aab55d89ce847f8d1537a242ae1060bfab609b896"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.03).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "414972f968747199f66f34a0fdcef8df972002180131e82ba7739a6943e67ab4",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/cstar-kernel-mcp/tools/augury_mission_dispatch_controller.ts",
+        "source_sha256": "00283a80aaadce364825336fb81d2bc614fe540208ca4139ed7bd04f43311d74"
+      },
+      {
+        "breaches": [],
+        "coverage": "heuristic",
+        "evidence_sha256": "f7b6d4996114eeca0eb469401b93461e759f30dd7ff8080980b6840b420b8320",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 10,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 10,
+          "gravity": 0,
+          "intel": 10,
+          "logic": 10,
+          "overall": 10,
+          "sovereignty": 10,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/cstar-kernel-mcp/tools/augury_mission_natural_translation.ts",
+        "source_sha256": "12bbada2266a3a31c30ea7238f57dccac3701227d800606022e017e9dcd1af5f"
+      },
+      {
+        "breaches": [],
+        "coverage": "heuristic",
+        "evidence_sha256": "bab7a8bb56a190799efaa648d7b6612c0bb515ebac38a352768d0fd233540bcc",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 10,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 10,
+          "gravity": 0,
+          "intel": 10,
+          "logic": 10,
+          "overall": 10,
+          "sovereignty": 10,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/cstar-kernel-mcp/tools/automatic_mission.ts",
+        "source_sha256": "e1ae69b8bd07f119e9c349fcb8f2c257e31149ae3300821ac0982989fddf9a32"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.01).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "62613f4861962dc9f1cad79e7f40542050c492f36919d67ddb0848904d68a535",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/cstar-kernel-mcp/tools/bead.ts",
+        "source_sha256": "85a3f5b09f9ead714ebc8e10bcd95aba4c87b5773e04c42659453d2b8d30dd9b"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "88e2d71dab6ec4688248b4b084f08079bdb9c59490b6239eb4f6d6287cb344fd",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/cstar-kernel-mcp/tools/dispatch_request.ts",
+        "source_sha256": "960fe4af7342f3c08300a65c7733f16fe6fe3d2bbde1a9c4d49d9c2b6debfc69"
+      },
+      {
+        "breaches": [
+          {
+            "code": "logic.script.complexity",
+            "message": "GUNGNIR_LOGIC_BREACH: High average branch complexity (44.5).",
+            "severity": "HIGH"
+          },
+          {
+            "code": "logic.script.coupling",
+            "message": "GUNGNIR_COUPLING_BREACH: Over-entangled (25 imports).",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.01).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "33c6bbb68048df3492cda1040c47fcabb4ee7fa16cad8094f87568d92d306d3e",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 8.1667,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 8.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 6,
+          "overall": 8.5677,
+          "sovereignty": 8.2813,
+          "stability": 6,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/cstar-kernel-mcp/tools/forge_execute.ts",
+        "source_sha256": "61ca3d98f16e33b375ca6830d811a414430c59657c5ff5abaf5d4e17cc65a253"
+      },
+      {
+        "breaches": [
+          {
+            "code": "logic.script.complexity",
+            "message": "GUNGNIR_LOGIC_BREACH: High average branch complexity (27.0).",
+            "severity": "HIGH"
+          },
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.02).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "2060621967cfffd83cb9f43a38a2a514b8517567ef2173309b2d93a0ca65feff",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 8.6667,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 7.5,
+          "overall": 8.9583,
+          "sovereignty": 8.75,
+          "stability": 7.5,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/cstar-kernel-mcp/tools/forge_execute_contract.ts",
+        "source_sha256": "40a3c0011f341cc2a2f97838e7bb4c4c5f59c9d758531a4e77338c3bb9b5d2c5"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.02).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "e26436fa9398514f2d3881013b288b90527c6a90a9505dd4c6a82fe6f709219f",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/cstar-kernel-mcp/tools/forge_execute_reservation.ts",
+        "source_sha256": "7e724ac421e8cf599f50b3a0ef371828f9de45212cdc55ec28e1bed78fc7dc66"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.02).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "d9bd1c99920dd22bb5ec6fd39a18b8d8d4402d91f1c45c47155946a660652836",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_consumption.ts",
+        "source_sha256": "d11e137d12ffebabc01336b6b18c9ae3bf872b5796eb07d9bd73fab7bb76aa41"
+      },
+      {
+        "breaches": [],
+        "coverage": "heuristic",
+        "evidence_sha256": "963a792804d163fa3e407b8b0fed57e88aa945e63e2bd91e4cc43e515f13d078",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 10,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 10,
+          "gravity": 0,
+          "intel": 10,
+          "logic": 10,
+          "overall": 10,
+          "sovereignty": 10,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_natural_revocation.ts",
+        "source_sha256": "8edfb2ed68b9e0d2e08e1747b689d37b377faf3ef1416f074ec1f929d0cebf39"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.03).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "63fce9a69969da7ef121962a04901f6f43a30ae9670f9328f796908550d25a3f",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_signal.ts",
+        "source_sha256": "e0cf3af76e1669f3656b7ef6b39e7588f5e5450583e13c14d360ef3258154cf0"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "2e3aabcf15e48e5b11d49af2cd39d4ff3c4ce9681d6c03fcbe3da597376de7ed",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/cstar-kernel-mcp/tools/host_workflow_message.ts",
+        "source_sha256": "d3054f593e693ae97d888f029a8afd4c927d5776935b64a91e46719853b0752d"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "481b1074d15ba92029206050e6f66fb6bbdb5aaea7c83a793bb15d94690c9b82",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/cstar-kernel-mcp/tools/host_workflow_validation.ts",
+        "source_sha256": "57b702151c7cd80866a34a0925ecf11316a70ded6892c88ac15b9bd9fe373b91"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "89e492fbeb8884beb4f10017e9ce8c49a4645c80476c6136cdec0f2f6811926a",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/cstar-kernel-mcp/tools/persona_set.ts",
+        "source_sha256": "cb9d62bcd7f88649240bd8ddb1693bd1b12440d142db97483a3001d433f8ec40"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "924539f1f534c3856129215e4fdc1d869604b7a08a1cbf2c46c869f349d53d5a",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/cstar-kernel-mcp/tools/reliability_loop.ts",
+        "source_sha256": "ff91bc417a8c5e3e7ed5c0cf201fc3e8b17bc3dddbf428a7d1bd2d1d293d3c1f"
+      },
+      {
+        "breaches": [
+          {
+            "code": "logic.script.coupling",
+            "message": "GUNGNIR_COUPLING_BREACH: Over-entangled (14 imports).",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "691d63da3764a23f3ffd514f5efb25f601e944383fa9237c55839f550b7b9975",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.25,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 8.5,
+          "overall": 9.2188,
+          "sovereignty": 9.0625,
+          "stability": 8.5,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/cstar-kernel-mcp/tools/result.ts",
+        "source_sha256": "7c3a4874f3cdb3e18c4fc6ffd0cffba117c3d784cbd5f3d6327e86ce2b495147"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.01).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "311d33d68a51bcf487052bcf2954b6db8fd69b5d8fd447cca2da45b9d785b491",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/cstar-kernel-mcp/tools/status.ts",
+        "source_sha256": "2dbee9c1a3ada4ef32a17f664b4751b654c6791450540403853b2d68274b64a2"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "b51c41a6e113db736200423d0344fc1d14076b4448f8f491a1b07214d57e525b",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/cstar-kernel-mcp/tools/validation_evidence.ts",
+        "source_sha256": "cc237efa20c89833683b0da9348fbb7becc04691587f5bdcb44b3e013f33723f"
+      },
+      {
+        "breaches": [],
+        "coverage": "heuristic",
+        "evidence_sha256": "9a3efddf09d544924ea24db980e50147e835baf67797aff8a6ad509f7ce2c25f",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 10,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 10,
+          "gravity": 0,
+          "intel": 10,
+          "logic": 10,
+          "overall": 10,
+          "sovereignty": 10,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/pennyone/intel/augury_mission_child_template_binding.ts",
+        "source_sha256": "b3d99c078aba6fc0cdbcdef4239acfbf9288161ce190fbcc6c35e16dff3e76b1"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "514deafbfadeca5b58de1c5e5ddd7b6636493acdd779f5f8dd1570b11b160ab2",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/pennyone/intel/augury_mission_receipt_controller.ts",
+        "source_sha256": "6b316706956655ff9772baef2059db28c8b8f0695529b5c15347f20708f615bd"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "e68e698a78fcf296153f5a33d941e6a147ddb7ffb61b50ffb4a13a241c16ef82",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/pennyone/intel/augury_mission_receipt_schema.ts",
+        "source_sha256": "b2e73a9fa7dcfbda61b164f4ece0a29ec1ddd383917904a5a31f47e0f6421b59"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "7e354d267c4a59b5ca72bb830cc39ca99c4fcddaaa53c0aafddd5cbb4fbcab71",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/pennyone/intel/augury_mission_receipt_validation.ts",
+        "source_sha256": "93e57e063476f36426607317eed131c2d599461ed2a4b84c70349c59ed538333"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "d1692b6acd37a4a82c0936e1cb5b15e077a22a615a893360584211cbb8150ae6",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/pennyone/intel/augury_mission_receipt_validation_v2.ts",
+        "source_sha256": "fa2a73c52e2ca28ac7ef5b0ec814eb3bff11f168dd92fa036f84050ae22a927e"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "5116140a2b587f813670e72ec2772755ca898898e1584c8173f5eac16ddf2bdf",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/pennyone/intel/automatic_mission_controller.ts",
+        "source_sha256": "b90fb2a7d6ffb23f669c2ffcfa1247c7b38cbe46683b6ad362e34845f328c5d2"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "d62b089c3535a8b65a14767c33defca93c388b1ef852b1ed672f02c84ed53767",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/pennyone/intel/automatic_mission_dispatch_store.ts",
+        "source_sha256": "cfcd01a8efb80bb4843162f5e911c1c0fa6a76d19efbf6129f4bd88fbc164f7b"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "1ad5c42b39993fc7675f60eee2b9f637a4cca5229c888867c0980790a233796f",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/pennyone/intel/forge_authorization_schema.ts",
+        "source_sha256": "e1779144d27256560e0dbb3ff210c16a4a4e6eb340646cb0ed9cb56978d33502"
+      },
+      {
+        "breaches": [
+          {
+            "code": "logic.script.coupling",
+            "message": "GUNGNIR_COUPLING_BREACH: Over-entangled (17 imports).",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "style.script.line-length",
+            "message": "GUNGNIR_STYLE_BREACH: Source contains a line longer than 180 characters.",
+            "severity": "LOW"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "8bd3f17c5355cd04967558ae640346aed530e9d5a3b8d193c4830ed92b93bde9",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 8.8333,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.125,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 8.5,
+          "overall": 9.0886,
+          "sovereignty": 8.9063,
+          "stability": 8.5,
+          "style": 9.5,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/pennyone/intel/forge_host_worker_dispatch.ts",
+        "source_sha256": "bcd2e57499bab4d48743e42302f6a379ad08ac2e5f45b5d10c9605de165662bb"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "23a0dcaa5f6d8724c53b9a5d88041fa1e7c270c1824cd637ee616342c042535a",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/pennyone/intel/forge_validation_controller.ts",
+        "source_sha256": "e257caba3ca9000387c85453a9e23128d276a648e70ee8e582dc76d47315417b"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "674c75d837f8f40d826f739604d7924fcc74dfbf6a29fba8b50ceb5d174fa420",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/pennyone/intel/persona_state.ts",
+        "source_sha256": "684906a2a8ffc39a4c844a0cf6c31e6ba747298b601772f7792ff3418839e7e8"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.01).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "3083e7bf89d861755c710d8588801c9e0d282bcc4e05393649ecb82d47ccd322",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/pennyone/intel/schema.ts",
+        "source_sha256": "5ec66256c3c45bb8905a2562d08d6d2435c90419a818fb59739b784a67119fae"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "330c4195fe4013b0a4e99f3d639eccf4fdc31511cce306460cdbe24236c2a118",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/pennyone/intel/schema_tables_core.ts",
+        "source_sha256": "67daf77d3cb0e47be2cb2ba191d444a5cf388e8bf8b3f3714bcbc64a07285c54"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "54c5005d75f099754527e30cbefc9bfca217c5048b3fee715098551dbc2a6f14",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/pennyone/intel/schema_tables_runtime.ts",
+        "source_sha256": "d10aa4eb87cd27baddfbe7a6a6dbe05ab00d771c65feec6f50dd761106710b6b"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "bcf1629e50843408b15774c61648a3965e7755fc9104820e8f2246e5ec883a9d",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/pennyone/intel/validation_ticket_controller.ts",
+        "source_sha256": "34f933f0d98e98e47a40cf66a6163f3fa3a66ce116f1303130341b3d17aa2e22"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "df4023d97e9983dd410bfdca19222b8a4b065d6e1af196f509f6b821eb5148f2",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/pennyone/intel/worker_job_validation.ts",
+        "source_sha256": "ebe32fe9ec23d733a73eddd262f2b266c5e1f427eedd89198feeacd9b1271319"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.04).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "8dda2465ccc62431eb9ffc24482fcb6847df8c68da5cf1f374558d866d872771",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/pennyone/persona_projection.ts",
+        "source_sha256": "6c2a73eeb54c34f9c6e04b5c05af35de4c7b856d67b34a6e23a3d1e606f852ea"
+      },
+      {
+        "breaches": [
+          {
+            "code": "logic.script.complexity",
+            "message": "GUNGNIR_LOGIC_BREACH: High average branch complexity (23.0).",
+            "severity": "HIGH"
+          },
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.02).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "dc48809293dfb6c5c0bd826a17c6d1bcdda0765b0e4f9b4480d2e3252292ee34",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 8.6667,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 7.5,
+          "overall": 8.9583,
+          "sovereignty": 8.75,
+          "stability": 7.5,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/types/worker_job.ts",
+        "source_sha256": "36a377e26e22a7afa2365133df043e99feea8da5042a79016c1ad815cdcefe4c"
+      },
+      {
+        "breaches": [
+          {
+            "code": "logic.script.coupling",
+            "message": "GUNGNIR_COUPLING_BREACH: Over-entangled (12 imports).",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "5a46e726ab3a07307c10a4ba72d7219c9c8a88d6bcbdef16fb027dc7b15ccf16",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.25,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 8.5,
+          "overall": 9.2188,
+          "sovereignty": 9.0625,
+          "stability": 8.5,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "tests/unit/cstar-kernel-mcp/forge_natural_authorization_test_support.ts",
+        "source_sha256": "d1ce3aab1dfa7521dd4ed7a65555fb11374a24e09db26ee38ebb00aea05e3876"
+      },
+      {
+        "breaches": [],
+        "coverage": "heuristic",
+        "evidence_sha256": "62f4f00a4fd46db4d5bfc6c7960b4c19f1191e6c2f02c993f90182779c6dfcd8",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 10,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 10,
+          "gravity": 0,
+          "intel": 10,
+          "logic": 10,
+          "overall": 10,
+          "sovereignty": 10,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "tests/unit/cstar-kernel-mcp/forge_set_manifest_natural_revocation_test_cases.ts",
+        "source_sha256": "7252fab917fa2f4130e9f9d093701f477d9a47a6dc47a9c119d26ae4128ba6f3"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.02).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "59a857ddb261136e80b0ed9480551eb64e29098eadf45622f7b3fb0d38481631",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "tests/unit/cstar-kernel-mcp/test_augury_bead_result.test.ts",
+        "source_sha256": "5f9777aa7e1328032260c43b9611557c842db0f4e09c9be84d84c1339eadfb12"
+      },
+      {
+        "breaches": [
+          {
+            "code": "logic.script.coupling",
+            "message": "GUNGNIR_COUPLING_BREACH: Over-entangled (14 imports).",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "18f6b224831ecf6b79be333dd50c1c83ffb4b2ef04c4cc45b156c68ecd1ba316",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.25,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 8.5,
+          "overall": 9.2188,
+          "sovereignty": 9.0625,
+          "stability": 8.5,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "tests/unit/cstar-kernel-mcp/test_augury_natural_translation_integration.test.ts",
+        "source_sha256": "c0234309a795e2c41cac1b1d47c0b6458f0950c198a4c1ac79ffaaf5294dd753"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "24c15e630b29ee0a4db48ddb2d58b41bc6a9e853a13c8b390713631e3a0da40a",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "tests/unit/cstar-kernel-mcp/test_automatic_mission_durable_dispatch.test.ts",
+        "source_sha256": "b7698c6c4cdc79f92c0dbb6f015fb54e3b2ff87908ea0990244d7bf9158864af"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "cc6e8371dce5f884cc466cc370c3e633f5700e5ed4559fd7e921cb423d169012",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "tests/unit/cstar-kernel-mcp/test_automatic_mission_state.test.ts",
+        "source_sha256": "08cb45e3b2ab53becab469207b6b3a06e8a94cad5f2ca91b23cb322e7930c95c"
+      },
+      {
+        "breaches": [
+          {
+            "code": "logic.script.coupling",
+            "message": "GUNGNIR_COUPLING_BREACH: Over-entangled (13 imports).",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "638a2851bc5ff1265edae445429992bc4077e2f434fdc00cd4d9b55897f57a21",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.25,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 8.5,
+          "overall": 9.2188,
+          "sovereignty": 9.0625,
+          "stability": 8.5,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "tests/unit/cstar-kernel-mcp/test_bead_forge_schema_isolation.test.ts",
+        "source_sha256": "98a19241830735d709bbd5fe12cd6d5be1bfdedcab13d597dce1c02a35e74685"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "1d2b081f2a135818e82ed140a9ef275fc0f9a0bff53d0a00aab98d8686d282c6",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "tests/unit/cstar-kernel-mcp/test_capability_compatibility_discovery.test.ts",
+        "source_sha256": "458647c9aebe3be835f45804fe51d9c9b083a8ac35a8b060752e5285bb89affb"
+      },
+      {
+        "breaches": [
+          {
+            "code": "logic.script.coupling",
+            "message": "GUNGNIR_COUPLING_BREACH: Over-entangled (12 imports).",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "ca752a7fd1b3374237b645288065cb628bf2ff905e8a5d6b5e76e4c0b0708f37",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.25,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 8.5,
+          "overall": 9.2188,
+          "sovereignty": 9.0625,
+          "stability": 8.5,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "tests/unit/cstar-kernel-mcp/test_code_control_root_separation.test.ts",
+        "source_sha256": "d286f4e7e6621f409f3d50b12527d406248d6687f1440bc00cbf5fb3b82c303a"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "9e4f5c69eabeced9fff70c28f331e547a035dd591f74aa645f551a048a4b3df7",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "tests/unit/cstar-kernel-mcp/test_dispatch_action_authority.test.ts",
+        "source_sha256": "797e96d2ea7f5c45a88bd8c2207d13e21f73603fd059a592705aca44bbe7a857"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.01).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "ccd2ad9dcf132b4203adf619c97fa1b8d42f67b4f30eb9005e232fbdeb3d12dd",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "tests/unit/cstar-kernel-mcp/test_dispatch_requests.test.ts",
+        "source_sha256": "cff14d1ac525d8395ebbb355227ae86688123c70c41bbbeeecfaa3985caeaf37"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "9ce67460ac7232aab0bebeb67037fcad04e7e93c9dddc1660cc25ced30d3915a",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "tests/unit/cstar-kernel-mcp/test_forge_adapter_project_root.test.ts",
+        "source_sha256": "0862a1fdfe851a7a7c38d922dec5c32adc2a37539cfa3975e1e885455c6ba892"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "8037f8caf4043b948c524e68a8a095a1df9b05d15f31052a33a1ad6fad2454ba",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "tests/unit/cstar-kernel-mcp/test_forge_authorization_schema_legacy_duplicates.test.ts",
+        "source_sha256": "33698fd80c3c423a1651a805cb035c4f174acde774a501a4fe3690d871adc533"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "e958d5d8c9bbd7cddc50dc47decc3289ff1db2c6861905540971ab8f3bb2c290",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "tests/unit/cstar-kernel-mcp/test_forge_authorization_schema_profiles.test.ts",
+        "source_sha256": "78554da446cfb7eac7d206078431f1bfff21be99a5d915f2ace0f1108a7700e3"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "a2232b9fff3746c0d3ce43fd6b4a33054ab8fde3153a920d02a39af4791b02ac",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "tests/unit/cstar-kernel-mcp/test_forge_codex_host_worker_dispatch.test.ts",
+        "source_sha256": "01a4ff9b01afecc6c770e0b2a3412169772477d46224353a684649486b159b6b"
+      },
+      {
+        "breaches": [
+          {
+            "code": "logic.script.coupling",
+            "message": "GUNGNIR_COUPLING_BREACH: Over-entangled (14 imports).",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "7425f1382cda62719bf882273512e84b74869ca3c50b9b4f60dc8b2ff2b2a594",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.25,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 8.5,
+          "overall": 9.2188,
+          "sovereignty": 9.0625,
+          "stability": 8.5,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "tests/unit/cstar-kernel-mcp/test_forge_durable_execution.test.ts",
+        "source_sha256": "ed5eee08bc6626840bf995abcadd69cf3f3cc3e9de0806ece057db7366ff2cca"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "6236d1251a85ace785938daf0d20e1c9465ad447a034f38c26e0dd43df2a3661",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "tests/unit/cstar-kernel-mcp/test_forge_execute.test.ts",
+        "source_sha256": "62d7ce91a65a53a6710bbd2e8d011aa4ec282812234fff31ba062aa2eab8f207"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "1d68d61e34cab663d89a4bc173e3108a2e83c0d386f801d7b249883431231ee1",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "tests/unit/cstar-kernel-mcp/test_forge_execute_authority.test.ts",
+        "source_sha256": "9a77cdb9337129d3fbfd4ecacf923b951cbcca0b211d49aaf9e959a1b5a7b149"
+      },
+      {
+        "breaches": [
+          {
+            "code": "logic.script.coupling",
+            "message": "GUNGNIR_COUPLING_BREACH: Over-entangled (19 imports).",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "style.script.line-length",
+            "message": "GUNGNIR_STYLE_BREACH: Source contains a line longer than 180 characters.",
+            "severity": "LOW"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "3c921bbabeaed6fa7d4abf876a85c3fc08ea69259b021fad97115bcb8f5d5e5e",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 8.8333,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.125,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 8.5,
+          "overall": 9.0886,
+          "sovereignty": 8.9063,
+          "stability": 8.5,
+          "style": 9.5,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "tests/unit/cstar-kernel-mcp/test_forge_legacy_v2_public_path.test.ts",
+        "source_sha256": "f8d0e57d203959e7f30522233e85752730ebd276e8a081864356ac52113b3e41"
+      },
+      {
+        "breaches": [
+          {
+            "code": "logic.script.coupling",
+            "message": "GUNGNIR_COUPLING_BREACH: Over-entangled (12 imports).",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "9e8bbaf0ee36ff83be06ad9825147a38f644a2fb6d189bf417f715827e140b33",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.25,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 8.5,
+          "overall": 9.2188,
+          "sovereignty": 9.0625,
+          "stability": 8.5,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "tests/unit/cstar-kernel-mcp/test_forge_preprovider_execute_integration.test.ts",
+        "source_sha256": "6f9a796113b630c10458f04aa723c9f0242d7e7ae0e758e5da7854a2ae52c66f"
+      },
+      {
+        "breaches": [
+          {
+            "code": "logic.script.coupling",
+            "message": "GUNGNIR_COUPLING_BREACH: Over-entangled (13 imports).",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "0f0e9c47af74a2dd08e6db9fb2d8a80b3b817e13def10a8e525c8bf83b4e9740",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.25,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 8.5,
+          "overall": 9.2188,
+          "sovereignty": 9.0625,
+          "stability": 8.5,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts",
+        "source_sha256": "0b32401d6411bb431be9456142ca172e388f8283133920c903bd842d2046b3a1"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "c8b721a6a331e897ae6c5fbe9e00c80ce06733579a7629b1307677a27eb64615",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "tests/unit/cstar-kernel-mcp/test_forge_runtime_readiness.test.ts",
+        "source_sha256": "42ce333447b07d19b0567b1c5df16380a15c01f162d4b1596847f3164095328b"
+      },
+      {
+        "breaches": [
+          {
+            "code": "logic.script.coupling",
+            "message": "GUNGNIR_COUPLING_BREACH: Over-entangled (12 imports).",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "514fc0b35893bb0f6b7979a1366bfe1758d2d834ff850a6ef2275b703f39484e",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.25,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 8.5,
+          "overall": 9.2188,
+          "sovereignty": 9.0625,
+          "stability": 8.5,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "tests/unit/cstar-kernel-mcp/test_forge_set_manifest_autonomous_dispatch.test.ts",
+        "source_sha256": "108a24c9ff91f89e9247739c45e63988b67ff252cc1d9ed6ea0b13c15d9e124c"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "aca18748a43758b744590cc63205ec0c23f22cab7bf49d7b6f7bee1096a92227",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "tests/unit/cstar-kernel-mcp/test_forge_set_manifest_natural_translation.test.ts",
+        "source_sha256": "e758a886f2e6ee3c890ee8f254a252474c4d1caa3cdd20430e8b3df49e74c6c6"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "c700b4253792e59871ddb6a293d79c2ae9fa222b6bd891cf673179cfda63c2cf",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "tests/unit/cstar-kernel-mcp/test_host_workflow_message.test.ts",
+        "source_sha256": "add76585c585478c2e4694d83ed677ca791f0f93812e480ddc28b219ff683f7c"
+      },
+      {
+        "breaches": [
+          {
+            "code": "logic.script.coupling",
+            "message": "GUNGNIR_COUPLING_BREACH: Over-entangled (12 imports).",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "4ef41fbff91a962aac9ff67d451d229318e7cae439424f1d3c065421595485f0",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.25,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 8.5,
+          "overall": 9.2188,
+          "sovereignty": 9.0625,
+          "stability": 8.5,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts",
+        "source_sha256": "3cf4fc4668688e23ae567019ae733c54de6b5dae36ca5e497a5c77e350cf5ff5"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "3ac1b3b7cda8905c6aa26acf5da39996224a2926926465a260b3bc6527443ccf",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "tests/unit/cstar-kernel-mcp/test_mcp_outcome_deadline_instrumentation.test.ts",
+        "source_sha256": "e5c8b68f4bef52f8d40519cb9f7e0afecb1cf14a2bbf29fbf84e3b08ccbb116d"
+      },
+      {
+        "breaches": [
+          {
+            "code": "logic.script.coupling",
+            "message": "GUNGNIR_COUPLING_BREACH: Over-entangled (11 imports).",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "86c1fe8f89b1194997a6139333bb0222fe4301501b913678e25f4e7872424477",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.25,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 8.5,
+          "overall": 9.2188,
+          "sovereignty": 9.0625,
+          "stability": 8.5,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "tests/unit/cstar-kernel-mcp/test_persona_set.test.ts",
+        "source_sha256": "5887b66921c4a374ea93ea2b11c5f19cb28410fc09477f81f42011b71d604b41"
+      },
+      {
+        "breaches": [
+          {
+            "code": "logic.script.coupling",
+            "message": "GUNGNIR_COUPLING_BREACH: Over-entangled (12 imports).",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "142c81dd11b9d769d3f5625b96ff2db23a17a968a167ae1c74a9f8033858b0c3",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.25,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 8.5,
+          "overall": 9.2188,
+          "sovereignty": 9.0625,
+          "stability": 8.5,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "tests/unit/cstar-kernel-mcp/test_persona_status_boundary.test.ts",
+        "source_sha256": "b3ef408a68fc143b68ba8538d791cec28563064109bdda302cc0e0004226ff6e"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "af086d29e60271830383f1e843e9a516dc95798faac63561d1f9b2890cafb09c",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "tests/unit/cstar-kernel-mcp/test_reliability_loop.test.ts",
+        "source_sha256": "59ff8b69b33d7114a4fa130a5258b2cb1fc678658d54a9cce33ba8a64e3cde38"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "728c42a649ea9e456e46338421da24cd36a598ee5215932a11f6a5af64ee7791",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "tests/unit/cstar-kernel-mcp/test_reliability_loop_result.test.ts",
+        "source_sha256": "1e821153f6506bd9c79eb33749b48867df2bb06d6f63a17ed28a3098492e77e3"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "5ec8718f67b212573cebbb27f8c9d2967acc0ba21ec20fc56809238e59337f9d",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "tests/unit/cstar-kernel-mcp/test_runtime_lineage_codex_host.test.ts",
+        "source_sha256": "c53f91aff5b0e1cde71979c97f79c1a7d01297205be80a4fb56d576eecea054a"
+      },
+      {
+        "breaches": [
+          {
+            "code": "logic.script.coupling",
+            "message": "GUNGNIR_COUPLING_BREACH: Over-entangled (12 imports).",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "24184ec7282db39e032ce3e43c6e9e06412c6aa9a03c8c9610ec9edbe624ec57",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.25,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 8.5,
+          "overall": 9.2188,
+          "sovereignty": 9.0625,
+          "stability": 8.5,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "tests/unit/cstar-kernel-mcp/test_sterling_repository_root_binding.test.ts",
+        "source_sha256": "18ba4e94b680bc00a2b9d2fdccd3f44f1479002a6fdbf7423574d4272e75cbc4"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "fb18366de82723ac602be73f6122e924d6d7f36b4a833ec52cd3b826bc120a78",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "tests/unit/cstar-kernel-mcp/test_tool_catalog.test.ts",
+        "source_sha256": "d29f4df5e8d8b52bb60ef9ec1932c6bc1fbbdec92b931963e98bae6327841760"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "0663f7fb30a7b1e39bc5fd417319c9301b7d3bb66f2688f33a8e1f946304124e",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "tests/unit/cstar-kernel-mcp/test_validation_evidence_root.test.ts",
+        "source_sha256": "b668d3edf7a963531f09f1f9ae6c2d22372671af81acf9efae33686c243139f4"
+      },
+      {
+        "breaches": [
+          {
+            "code": "logic.script.coupling",
+            "message": "GUNGNIR_COUPLING_BREACH: Over-entangled (16 imports).",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "828366a9b77c8799e1bbcc42117f8fe981f91cc5a5f8001fa8de3b4813982c85",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.25,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 8.5,
+          "overall": 9.2188,
+          "sovereignty": 9.0625,
+          "stability": 8.5,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "tests/unit/cstar-kernel-mcp/test_validation_ticket_spoke_result.test.ts",
+        "source_sha256": "9dd3c0fbf230d614d5d798e9274cbe3c1c07c207632c236cc83861064f1d21ae"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "98832a8df92941ce9df66b81af732c56b939f485e1aec9e041674309e41de2b7",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "tests/unit/cstar-kernel-mcp/validation_ticket_test_helpers.ts",
+        "source_sha256": "c517d826393ac46b73a330d6e2827a9ece035f531034b83786efb10374ad7114"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.python.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00). Add intents/docstrings.",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "style.python.claustrophobia",
+            "message": "GUNGNIR_STYLE_BREACH: Claustrophobic code block (>12 lines).",
+            "severity": "LOW"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "abc867c574e754022a4e0c5a844f6d4bc4008f498c22994a4f3aca9b8f53e634",
+        "extension": ".py",
+        "matrix": {
+          "aesthetic": 9.3333,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.5,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.4792,
+          "sovereignty": 9.375,
+          "stability": 10,
+          "style": 9.5,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "tests/unit/test_cstar_reliability_loop_skill.py",
+        "source_sha256": "ef73b402e1ad29d17a9591b0a33e476c8f0aadc23d83efdf5028eda220680d76"
+      },
+      {
+        "breaches": [
+          {
+            "code": "logic.python.coupling",
+            "message": "GUNGNIR_COUPLING_BREACH: Over-entangled (12 imports). Isolate dependencies.",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "intel.python.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.03). Add intents/docstrings.",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "logic.python.balance",
+            "message": "GUNGNIR_LOGIC_BREACH: top-heavy setup detected (5.0). Reduce preamble before execution.",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "style.python.claustrophobia",
+            "message": "GUNGNIR_STYLE_BREACH: Claustrophobic code block (>12 lines).",
+            "severity": "LOW"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "b473a326a19cbf5190f2545e511e81f178643b8c033f343f443302a7094d9263",
+        "extension": ".py",
+        "matrix": {
+          "aesthetic": 8.3333,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 8.75,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 7,
+          "overall": 8.6979,
+          "sovereignty": 8.4375,
+          "stability": 7,
+          "style": 9.5,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "tests/unit/test_cstar_sprt_autoresearcher.py",
+        "source_sha256": "3324eb931c85107311b4afec5c17132d12cf325ada91eba0d64e8f7e8381e43d"
+      },
+      {
+        "breaches": [
+          {
+            "code": "logic.python.coupling",
+            "message": "GUNGNIR_COUPLING_BREACH: Over-entangled (12 imports). Isolate dependencies.",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "intel.python.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00). Add intents/docstrings.",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "style.python.claustrophobia",
+            "message": "GUNGNIR_STYLE_BREACH: Claustrophobic code block (>12 lines).",
+            "severity": "LOW"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "0182d8fdb2feb16012ce3dc8fec8877bfa988117f6b5b1988a6d4acf6632ab42",
+        "extension": ".py",
+        "matrix": {
+          "aesthetic": 8.8333,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.125,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 8.5,
+          "overall": 9.0886,
+          "sovereignty": 8.9063,
+          "stability": 8.5,
+          "style": 9.5,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "tests/unit/test_cstar_sprt_autoresearcher_gungnir.py",
+        "source_sha256": "e0b250248c286d1317271f6cbdbbb5a1fbdca2f3f397da424f3dbfdc675c80c7"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.02).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "c5b993a81cb08bdeca11a20b32147ca334c1872ddf46e547f384abebe909d178",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "tests/unit/test_gungnir_python_syntax.test.ts",
+        "source_sha256": "978a99838a4fbfa578730f4ea897795cb06cc623c1fc9253be15fd888d0be364"
+      }
+    ],
+    "schema": "cstar.gungnir_evidence.v1",
+    "score_scale": {
+      "max": 10,
+      "min": 0
+    },
+    "scored_count": 106,
+    "scorer_command": {
+      "argv_sha256": "1dacb6a9e29eaf9d542a540d858793ce01f786ce54ba3aea1dba7d72fcc0af66",
+      "fixed_scorer_command_sha256": "d58561b54f173a940d4231e4684556322d5e84a52067b88176fbbc4cceadf0dd",
+      "node_path": "/home/morderith/.nvm/versions/node/v25.8.1/bin/node"
+    },
+    "valid": true,
+    "version": "1.0"
+  },
+  "lifecycle": {
+    "authorization": true,
+    "closeout_terminal": true,
+    "cstar_acceptance_authority": "independent_cstar_record_result_required",
+    "cstar_record_result_called": false,
+    "delivered_unverified": true,
+    "independent_validation_record_result": true,
+    "request": true,
+    "synthetic_execute": true
+  },
+  "lifecycle_source_digest": "14fc4103d6cfd38bbd8a66109c59155f9d60c4a94cebf5f08bb05c274eda417e",
+  "lifecycle_source_paths": [
+    "scripts/run-tsx.mjs",
+    "tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_terminal_forge_validation_linkage.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_worker_job_lifecycle_binding.test.ts"
+  ],
+  "limits": {
+    "effective": {
+      "max_trials": 12,
+      "per_process_timeout_seconds": 120.0,
+      "total_wall_seconds": 900.0
+    },
+    "hard": {
+      "max_trials": 12,
+      "per_process_timeout_seconds": 120.0,
+      "total_wall_seconds": 900.0
+    }
+  },
+  "model_identity": {
+    "actual": null,
+    "requested": {
+      "model": "gpt-5.6-luna",
+      "reasoning": "max"
+    }
+  },
+  "node_runtime": {
+    "candidate_limit": 16,
+    "candidates": [
+      {
+        "path": "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+        "source": "current_path"
+      },
+      {
+        "path": "/home/morderith/.nvm/versions/node/v26.5.0/bin/node",
+        "source": "standard_nvm"
+      }
+    ],
+    "compatibility_smoke": "in_memory_select_1_no_write",
+    "discovered_count": 2,
+    "native_dependency": "better-sqlite3",
+    "policy": "path_then_standard_nvm_semver_desc_first_compatible_v1",
+    "probes": [
+      {
+        "argv": [
+          "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+          "-e",
+          "const path = require('node:path');\nconst dependency = path.join(process.cwd(), 'node_modules', 'better-sqlite3');\nconst evidence = {\n  node_version: process.version,\n  modules_abi: process.versions.modules,\n  exec_path: process.execPath,\n  compatible: false\n};\ntry {\n  evidence.better_sqlite3_version = require(path.join(dependency, 'package.json')).version;\n  const Database = require(dependency);\n  const db = new Database(':memory:');\n  const row = db.prepare('SELECT 1 AS value').get();\n  db.close();\n  evidence.compatible = row.value === 1;\n  evidence.smoke = 'in_memory_select_1_no_write';\n} catch (error) {\n  evidence.error_code = error && (error.code || error.name) || 'native_dependency_error';\n}\nprocess.stdout.write(JSON.stringify(evidence));\nprocess.exitCode = evidence.compatible ? 0 : 1;\n"
+        ],
+        "argv_sha256": "8c2de6a7b6652fb6efbcf861c7a0cbcfa3e6027f324dee7b1a6b4bfde621bdf3",
+        "better_sqlite3_version": "12.6.2",
+        "compatible": true,
+        "deadline_exhausted": false,
+        "duration_ms": 35.148279974237,
+        "error_code": null,
+        "exit_code": 0,
+        "modules_abi": "141",
+        "node_version": "v25.8.1",
+        "path": "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+        "selected": true,
+        "source": "current_path",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "796f476d1f4350e4fe692e91810c645c1a61ae9c1f53f571407e7b725a5856da",
+        "timed_out": false
+      }
+    ],
+    "selected": {
+      "argv_sha256": "8c2de6a7b6652fb6efbcf861c7a0cbcfa3e6027f324dee7b1a6b4bfde621bdf3",
+      "better_sqlite3_version": "12.6.2",
+      "modules_abi": "141",
+      "node_version": "v25.8.1",
+      "path": "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+      "source": "current_path"
+    },
+    "selection_evidence_sha256": "10bb32f3c2ad5740f5b615b6d6953e6ddb40ceb5543be801dc67d31cc9bdec16",
+    "smoke_is_no_write": true,
+    "smoke_source_sha256": "f3082e3c1375bb01f6f851f6ac9499df58a6aba43af617f9e09b6a339394d8e8",
+    "truncated": false
+  },
+  "passed": 11,
+  "requested_model": "gpt-5.6-luna",
+  "requested_reasoning": "max",
+  "runner_mode": "host_only_deterministic",
+  "schema": "cstar.workflow_sprt_autoresearcher.v1",
+  "sprt": {
+    "alpha": 0.05,
+    "beta": 0.1,
+    "failed": 0,
+    "llr": -2.344025370068,
+    "lower_boundary": -2.251291798606,
+    "p0": 0.01,
+    "p1": 0.2,
+    "passed": 11,
+    "raw_status": "ACCEPT",
+    "total": 11,
+    "upper_boundary": 2.890371757896
+  },
+  "sprt_verdict": "ACCEPTED",
+  "stage_coverage": {
+    "covered": [
+      "request",
+      "authorization",
+      "synthetic_execute",
+      "delivered_unverified",
+      "independent_validation_record_result",
+      "closeout_terminal"
+    ],
+    "full_lifecycle_trials": [
+      {
+        "covered": [
+          "request",
+          "authorization",
+          "synthetic_execute",
+          "delivered_unverified",
+          "independent_validation_record_result",
+          "closeout_terminal"
+        ],
+        "missing": [],
+        "trial": 1
+      },
+      {
+        "covered": [
+          "request",
+          "authorization",
+          "synthetic_execute",
+          "delivered_unverified",
+          "independent_validation_record_result",
+          "closeout_terminal"
+        ],
+        "missing": [],
+        "trial": 2
+      },
+      {
+        "covered": [
+          "request",
+          "authorization",
+          "synthetic_execute",
+          "delivered_unverified",
+          "independent_validation_record_result",
+          "closeout_terminal"
+        ],
+        "missing": [],
+        "trial": 3
+      },
+      {
+        "covered": [
+          "request",
+          "authorization",
+          "synthetic_execute",
+          "delivered_unverified",
+          "independent_validation_record_result",
+          "closeout_terminal"
+        ],
+        "missing": [],
+        "trial": 4
+      },
+      {
+        "covered": [
+          "request",
+          "authorization",
+          "synthetic_execute",
+          "delivered_unverified",
+          "independent_validation_record_result",
+          "closeout_terminal"
+        ],
+        "missing": [],
+        "trial": 5
+      },
+      {
+        "covered": [
+          "request",
+          "authorization",
+          "synthetic_execute",
+          "delivered_unverified",
+          "independent_validation_record_result",
+          "closeout_terminal"
+        ],
+        "missing": [],
+        "trial": 6
+      },
+      {
+        "covered": [
+          "request",
+          "authorization",
+          "synthetic_execute",
+          "delivered_unverified",
+          "independent_validation_record_result",
+          "closeout_terminal"
+        ],
+        "missing": [],
+        "trial": 7
+      },
+      {
+        "covered": [
+          "request",
+          "authorization",
+          "synthetic_execute",
+          "delivered_unverified",
+          "independent_validation_record_result",
+          "closeout_terminal"
+        ],
+        "missing": [],
+        "trial": 8
+      },
+      {
+        "covered": [
+          "request",
+          "authorization",
+          "synthetic_execute",
+          "delivered_unverified",
+          "independent_validation_record_result",
+          "closeout_terminal"
+        ],
+        "missing": [],
+        "trial": 9
+      },
+      {
+        "covered": [
+          "request",
+          "authorization",
+          "synthetic_execute",
+          "delivered_unverified",
+          "independent_validation_record_result",
+          "closeout_terminal"
+        ],
+        "missing": [],
+        "trial": 10
+      },
+      {
+        "covered": [
+          "request",
+          "authorization",
+          "synthetic_execute",
+          "delivered_unverified",
+          "independent_validation_record_result",
+          "closeout_terminal"
+        ],
+        "missing": [],
+        "trial": 11
+      }
+    ],
+    "missing": [],
+    "required": [
+      "request",
+      "authorization",
+      "synthetic_execute",
+      "delivered_unverified",
+      "independent_validation_record_result",
+      "closeout_terminal"
+    ],
+    "stage_pass": [
+      "request",
+      "authorization",
+      "synthetic_execute",
+      "delivered_unverified",
+      "independent_validation_record_result",
+      "closeout_terminal"
+    ]
+  },
+  "stage_pass": {
+    "argv": [
+      "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+      "scripts/run-tsx.mjs",
+      "--test",
+      "--test-reporter=tap",
+      "tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_worker_job_lifecycle_binding.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_terminal_forge_validation_linkage.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts"
+    ],
+    "cancelled_tests": 0,
+    "coverage": [
+      "request",
+      "authorization",
+      "synthetic_execute",
+      "delivered_unverified",
+      "independent_validation_record_result",
+      "closeout_terminal"
+    ],
+    "duration_ms": 3883.962186984718,
+    "evidence_hash": "70d0ecb02c7dd1ad372bf7717ae656b6eec01683f9e5ee9232ade2e21e93e503",
+    "exit_code": 0,
+    "failed_tests": 0,
+    "failure_reason": null,
+    "missing_stages": [],
+    "output_sha256": "336c7645338abe94ca847e5ea4742e933273c4ae0b515094caac4f3c0c04f3c2",
+    "passed_tests": 29,
+    "skipped_tests": 0,
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "success": true,
+    "timed_out": false,
+    "todo_tests": 0,
+    "total_tests": 29
+  },
+  "stop_reason": "wald_stable",
+  "timeout_seconds": 120.0,
+  "total": 11,
+  "total_wall_seconds": 900.0,
+  "trial_hashes": [
+    "22a628d6a8f068496771f2d11a900386240bc9dfe5807202edd013128a4c8fd1",
+    "3c6554d4b449f4f105a1b4adf706f92c8addc0848b6a9cbb5ecde4bd982c40c7",
+    "248119c08b0c41039ae9a4ad741297cf8e498b71515425c26294175ce8b09a40",
+    "b6ca0798f37d1d32182c54ab845c5eea73adf01975c93995754a2a17e84386e7",
+    "809f6e51e4c27fb66bbe24f7d71f06a9b913ad44b2f09d94e0acbe0a9feb7028",
+    "802ff9d40d9a30f43ba88de118ffdf6d56372d336ad0d57f0665074631ead159",
+    "b72ff085ae1645e8434361cfa008fbb233e59522893eaff6d9076eed36758f4c",
+    "7c7e490722a7c035aa3d8f38fcdc2e85856ca75be5030d9a5067612cbbe87975",
+    "7f5bce66f0b2e2da75bf6c7425e473a3d9710aad97758ec7b51b31806b17922e",
+    "73837ddd79e1c1410c0b2220c5424e29517ab1fab14a7b61d135d7ea14fb3c70",
+    "0f40d9bda10491e6644e5b1125245d38c3f1401216d3407b4f0b1191f9496cd7"
+  ],
+  "trials": [
+    {
+      "argv": [
+        "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+        "scripts/run-tsx.mjs",
+        "--test",
+        "--test-reporter=tap",
+        "tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_worker_job_lifecycle_binding.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_terminal_forge_validation_linkage.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts"
+      ],
+      "cancelled_tests": 0,
+      "coverage": [
+        "request",
+        "authorization",
+        "synthetic_execute",
+        "delivered_unverified",
+        "independent_validation_record_result",
+        "closeout_terminal"
+      ],
+      "duration_ms": 3713.823047000915,
+      "exit_code": 0,
+      "failed_tests": 0,
+      "failure_reason": null,
+      "missing_stages": [],
+      "output_sha256": "bfc4aa4f81eb3aef42fbe4b6be8e4a7c1c4411e8c3016028006a07b97549e1fe",
+      "passed_tests": 29,
+      "skipped_tests": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "success": true,
+      "timed_out": false,
+      "todo_tests": 0,
+      "total_tests": 29,
+      "trial": 1,
+      "trial_hash": "22a628d6a8f068496771f2d11a900386240bc9dfe5807202edd013128a4c8fd1"
+    },
+    {
+      "argv": [
+        "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+        "scripts/run-tsx.mjs",
+        "--test",
+        "--test-reporter=tap",
+        "tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_worker_job_lifecycle_binding.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_terminal_forge_validation_linkage.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts"
+      ],
+      "cancelled_tests": 0,
+      "coverage": [
+        "request",
+        "authorization",
+        "synthetic_execute",
+        "delivered_unverified",
+        "independent_validation_record_result",
+        "closeout_terminal"
+      ],
+      "duration_ms": 3785.684870032128,
+      "exit_code": 0,
+      "failed_tests": 0,
+      "failure_reason": null,
+      "missing_stages": [],
+      "output_sha256": "bff3ad11e9e6e67cda539e528e73a5f370c4c7a77f28408590df94b5cc36b12e",
+      "passed_tests": 29,
+      "skipped_tests": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "success": true,
+      "timed_out": false,
+      "todo_tests": 0,
+      "total_tests": 29,
+      "trial": 2,
+      "trial_hash": "3c6554d4b449f4f105a1b4adf706f92c8addc0848b6a9cbb5ecde4bd982c40c7"
+    },
+    {
+      "argv": [
+        "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+        "scripts/run-tsx.mjs",
+        "--test",
+        "--test-reporter=tap",
+        "tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_worker_job_lifecycle_binding.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_terminal_forge_validation_linkage.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts"
+      ],
+      "cancelled_tests": 0,
+      "coverage": [
+        "request",
+        "authorization",
+        "synthetic_execute",
+        "delivered_unverified",
+        "independent_validation_record_result",
+        "closeout_terminal"
+      ],
+      "duration_ms": 3783.256048045587,
+      "exit_code": 0,
+      "failed_tests": 0,
+      "failure_reason": null,
+      "missing_stages": [],
+      "output_sha256": "3a2fcd75016220a5d0599bcb1f31b92a7131299215e56c36386c9ff66090bc8c",
+      "passed_tests": 29,
+      "skipped_tests": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "success": true,
+      "timed_out": false,
+      "todo_tests": 0,
+      "total_tests": 29,
+      "trial": 3,
+      "trial_hash": "248119c08b0c41039ae9a4ad741297cf8e498b71515425c26294175ce8b09a40"
+    },
+    {
+      "argv": [
+        "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+        "scripts/run-tsx.mjs",
+        "--test",
+        "--test-reporter=tap",
+        "tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_worker_job_lifecycle_binding.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_terminal_forge_validation_linkage.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts"
+      ],
+      "cancelled_tests": 0,
+      "coverage": [
+        "request",
+        "authorization",
+        "synthetic_execute",
+        "delivered_unverified",
+        "independent_validation_record_result",
+        "closeout_terminal"
+      ],
+      "duration_ms": 3751.930080004968,
+      "exit_code": 0,
+      "failed_tests": 0,
+      "failure_reason": null,
+      "missing_stages": [],
+      "output_sha256": "fad848a39efeb2bfa193cf43332fbeda9fae6726837450db4832019e8cc9ae54",
+      "passed_tests": 29,
+      "skipped_tests": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "success": true,
+      "timed_out": false,
+      "todo_tests": 0,
+      "total_tests": 29,
+      "trial": 4,
+      "trial_hash": "b6ca0798f37d1d32182c54ab845c5eea73adf01975c93995754a2a17e84386e7"
+    },
+    {
+      "argv": [
+        "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+        "scripts/run-tsx.mjs",
+        "--test",
+        "--test-reporter=tap",
+        "tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_worker_job_lifecycle_binding.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_terminal_forge_validation_linkage.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts"
+      ],
+      "cancelled_tests": 0,
+      "coverage": [
+        "request",
+        "authorization",
+        "synthetic_execute",
+        "delivered_unverified",
+        "independent_validation_record_result",
+        "closeout_terminal"
+      ],
+      "duration_ms": 3779.908852011431,
+      "exit_code": 0,
+      "failed_tests": 0,
+      "failure_reason": null,
+      "missing_stages": [],
+      "output_sha256": "795fe87268dd483378adf031434f09278006b1052268d968241b240af33c0549",
+      "passed_tests": 29,
+      "skipped_tests": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "success": true,
+      "timed_out": false,
+      "todo_tests": 0,
+      "total_tests": 29,
+      "trial": 5,
+      "trial_hash": "809f6e51e4c27fb66bbe24f7d71f06a9b913ad44b2f09d94e0acbe0a9feb7028"
+    },
+    {
+      "argv": [
+        "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+        "scripts/run-tsx.mjs",
+        "--test",
+        "--test-reporter=tap",
+        "tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_worker_job_lifecycle_binding.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_terminal_forge_validation_linkage.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts"
+      ],
+      "cancelled_tests": 0,
+      "coverage": [
+        "request",
+        "authorization",
+        "synthetic_execute",
+        "delivered_unverified",
+        "independent_validation_record_result",
+        "closeout_terminal"
+      ],
+      "duration_ms": 3760.751440015156,
+      "exit_code": 0,
+      "failed_tests": 0,
+      "failure_reason": null,
+      "missing_stages": [],
+      "output_sha256": "54c153d33c07a2c01f2b24ee53b44da01ada9215a72c02d15e95f9ca2d8a892b",
+      "passed_tests": 29,
+      "skipped_tests": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "success": true,
+      "timed_out": false,
+      "todo_tests": 0,
+      "total_tests": 29,
+      "trial": 6,
+      "trial_hash": "802ff9d40d9a30f43ba88de118ffdf6d56372d336ad0d57f0665074631ead159"
+    },
+    {
+      "argv": [
+        "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+        "scripts/run-tsx.mjs",
+        "--test",
+        "--test-reporter=tap",
+        "tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_worker_job_lifecycle_binding.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_terminal_forge_validation_linkage.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts"
+      ],
+      "cancelled_tests": 0,
+      "coverage": [
+        "request",
+        "authorization",
+        "synthetic_execute",
+        "delivered_unverified",
+        "independent_validation_record_result",
+        "closeout_terminal"
+      ],
+      "duration_ms": 3810.788635979407,
+      "exit_code": 0,
+      "failed_tests": 0,
+      "failure_reason": null,
+      "missing_stages": [],
+      "output_sha256": "9f1cc587aab318deaffce0a51b78ccadd35b96cbbaad33e1bb12028ef13f7e62",
+      "passed_tests": 29,
+      "skipped_tests": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "success": true,
+      "timed_out": false,
+      "todo_tests": 0,
+      "total_tests": 29,
+      "trial": 7,
+      "trial_hash": "b72ff085ae1645e8434361cfa008fbb233e59522893eaff6d9076eed36758f4c"
+    },
+    {
+      "argv": [
+        "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+        "scripts/run-tsx.mjs",
+        "--test",
+        "--test-reporter=tap",
+        "tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_worker_job_lifecycle_binding.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_terminal_forge_validation_linkage.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts"
+      ],
+      "cancelled_tests": 0,
+      "coverage": [
+        "request",
+        "authorization",
+        "synthetic_execute",
+        "delivered_unverified",
+        "independent_validation_record_result",
+        "closeout_terminal"
+      ],
+      "duration_ms": 3759.598065982573,
+      "exit_code": 0,
+      "failed_tests": 0,
+      "failure_reason": null,
+      "missing_stages": [],
+      "output_sha256": "d531d6f598cb473dd34f4a6a5813f64863522eba880e47e737bb663e8782a6d2",
+      "passed_tests": 29,
+      "skipped_tests": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "success": true,
+      "timed_out": false,
+      "todo_tests": 0,
+      "total_tests": 29,
+      "trial": 8,
+      "trial_hash": "7c7e490722a7c035aa3d8f38fcdc2e85856ca75be5030d9a5067612cbbe87975"
+    },
+    {
+      "argv": [
+        "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+        "scripts/run-tsx.mjs",
+        "--test",
+        "--test-reporter=tap",
+        "tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_worker_job_lifecycle_binding.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_terminal_forge_validation_linkage.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts"
+      ],
+      "cancelled_tests": 0,
+      "coverage": [
+        "request",
+        "authorization",
+        "synthetic_execute",
+        "delivered_unverified",
+        "independent_validation_record_result",
+        "closeout_terminal"
+      ],
+      "duration_ms": 3703.779914998449,
+      "exit_code": 0,
+      "failed_tests": 0,
+      "failure_reason": null,
+      "missing_stages": [],
+      "output_sha256": "c435f0158962f6ae804ec1fb6fd9152640334cc5aca1ba92259607d6f8365f12",
+      "passed_tests": 29,
+      "skipped_tests": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "success": true,
+      "timed_out": false,
+      "todo_tests": 0,
+      "total_tests": 29,
+      "trial": 9,
+      "trial_hash": "7f5bce66f0b2e2da75bf6c7425e473a3d9710aad97758ec7b51b31806b17922e"
+    },
+    {
+      "argv": [
+        "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+        "scripts/run-tsx.mjs",
+        "--test",
+        "--test-reporter=tap",
+        "tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_worker_job_lifecycle_binding.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_terminal_forge_validation_linkage.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts"
+      ],
+      "cancelled_tests": 0,
+      "coverage": [
+        "request",
+        "authorization",
+        "synthetic_execute",
+        "delivered_unverified",
+        "independent_validation_record_result",
+        "closeout_terminal"
+      ],
+      "duration_ms": 3943.606341956183,
+      "exit_code": 0,
+      "failed_tests": 0,
+      "failure_reason": null,
+      "missing_stages": [],
+      "output_sha256": "db0205d2083d14708513472493870ff135f316bfa6b957f8b3ea8aa49a1b18b5",
+      "passed_tests": 29,
+      "skipped_tests": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "success": true,
+      "timed_out": false,
+      "todo_tests": 0,
+      "total_tests": 29,
+      "trial": 10,
+      "trial_hash": "73837ddd79e1c1410c0b2220c5424e29517ab1fab14a7b61d135d7ea14fb3c70"
+    },
+    {
+      "argv": [
+        "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+        "scripts/run-tsx.mjs",
+        "--test",
+        "--test-reporter=tap",
+        "tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_worker_job_lifecycle_binding.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_terminal_forge_validation_linkage.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts"
+      ],
+      "cancelled_tests": 0,
+      "coverage": [
+        "request",
+        "authorization",
+        "synthetic_execute",
+        "delivered_unverified",
+        "independent_validation_record_result",
+        "closeout_terminal"
+      ],
+      "duration_ms": 4191.127277037594,
+      "exit_code": 0,
+      "failed_tests": 0,
+      "failure_reason": null,
+      "missing_stages": [],
+      "output_sha256": "dceccedde24eb417c0f4e758b67943b4bbefd1617ad40d779e7b9915ee8c939e",
+      "passed_tests": 29,
+      "skipped_tests": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "success": true,
+      "timed_out": false,
+      "todo_tests": 0,
+      "total_tests": 29,
+      "trial": 11,
+      "trial_hash": "0f40d9bda10491e6644e5b1125245d38c3f1401216d3407b4f0b1191f9496cd7"
+    }
+  ],
+  "workflow_score": 100.0
+}

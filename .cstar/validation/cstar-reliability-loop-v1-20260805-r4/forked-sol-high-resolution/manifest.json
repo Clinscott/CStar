@@ -1,0 +1,83 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:mcp:turn-the-accepted-sprt-autoresearcher-gungnir-fi-msg4t12q",
+  "validation_id": "validation:cstar-reliability-loop-v1-20260805-r4-resolution",
+  "reported_verdict": "ACCEPTED",
+  "artifacts": [
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/tests/features/cstar_reliability_loop.feature",
+      "sha256": "ec7719d36f330e7b4512cd2047b6507507485946573baef4b12b81e438e92fab",
+      "bytes": 3380
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/tests/features/cstar_validation_evidence_root.feature",
+      "sha256": "69b039a4ca9af6c74df87c536b3115dc9a5fd91f1e18a747a5760e54e8c1d217",
+      "bytes": 669
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/tests/unit/cstar-kernel-mcp/test_reliability_loop.test.ts",
+      "sha256": "abcf9826a1535f3780e4f88ec349898dcc0a9a69211b4ff2895d303c24e6b810",
+      "bytes": 16158
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/tests/unit/cstar-kernel-mcp/test_reliability_loop_result.test.ts",
+      "sha256": "56418c4119637638c59976102fa030228968edd53b18668981a814a8c4134515",
+      "bytes": 7345
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/tests/unit/cstar-kernel-mcp/test_validation_evidence_root.test.ts",
+      "sha256": "b668d3edf7a963531f09f1f9ae6c2d22372671af81acf9efae33686c243139f4",
+      "bytes": 4327
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/tests/unit/cstar-kernel-mcp/test_sterling_repository_root_binding.test.ts",
+      "sha256": "18ba4e94b680bc00a2b9d2fdccd3f44f1479002a6fdbf7423574d4272e75cbc4",
+      "bytes": 9182
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/tests/unit/cstar-kernel-mcp/test_code_control_root_separation.test.ts",
+      "sha256": "d286f4e7e6621f409f3d50b12527d406248d6687f1440bc00cbf5fb3b82c303a",
+      "bytes": 13262
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-reliability-loop-v1-20260805-r4/sprt/receipt.json",
+      "sha256": "da57e25788452d700d6215fb4f7db4e897872ec877277df12b0bb3db3d13d400",
+      "bytes": 43374
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-reliability-loop-v1-20260805-r4/forked-sol-high-live/lore.txt",
+      "sha256": "db8cb0d9997d235cb1bac07dabfb9afbda27eaea68b221b620baa56a484e8469",
+      "bytes": 1142
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-reliability-loop-v1-20260805-r4/forked-sol-high-live/isolation.txt",
+      "sha256": "d68bce00edc7f28b2d4f07d8d2fcffce3f30e4e090c0afe704b137daaf57dc33",
+      "bytes": 1853
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-reliability-loop-v1-20260805-r4/forked-sol-high-live/sprt.txt",
+      "sha256": "d85d98fdec4fb66a73d7dc46644641aa93e9a27c681f40365afa881f4f6e1e11",
+      "bytes": 1485
+    }
+  ],
+  "checks": [
+    {
+      "name": "Forked Sol High frozen-source and model-identity evidence accepted",
+      "status": "pass",
+      "evidence_path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-reliability-loop-v1-20260805-r4/forked-sol-high-live/lore.txt",
+      "sha256": "db8cb0d9997d235cb1bac07dabfb9afbda27eaea68b221b620baa56a484e8469"
+    },
+    {
+      "name": "Forked Sol High focused isolation evidence accepted",
+      "status": "pass",
+      "evidence_path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-reliability-loop-v1-20260805-r4/forked-sol-high-live/isolation.txt",
+      "sha256": "d68bce00edc7f28b2d4f07d8d2fcffce3f30e4e090c0afe704b137daaf57dc33"
+    },
+    {
+      "name": "Forked Sol High SPRT and Gungnir evidence accepted",
+      "status": "pass",
+      "evidence_path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-reliability-loop-v1-20260805-r4/forked-sol-high-live/sprt.txt",
+      "sha256": "d85d98fdec4fb66a73d7dc46644641aa93e9a27c681f40365afa881f4f6e1e11"
+    }
+  ]
+}

@@ -1,0 +1,161 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:mcp:replace-the-process-local-automatic-mission-queu-msey1zqx",
+  "validation_id": "validation:cstar-durable-mission-dispatch-intent-20260804-r3",
+  "reported_verdict": "ACCEPTED",
+  "verdict": "ACCEPTED",
+  "verdict_scope": "current source bytes, focused durable-dispatch runtime tests, adjacent SET-authority tests, public catalog contract, Node 25 typecheck, diff integrity, pinned hashes, line limits, and durable-dispatch authority probes",
+  "validation_date": "2026-08-04",
+  "code_root": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803",
+  "validator_identity": "fresh direct depth-one Codex host validator with exact current-turn lineage binding",
+  "validator_thread_id": "019fce20-86da-71c3-85be-abfde45b796b",
+  "validator_turn_id": "019fce20-8ff7-7c93-a777-983041b54048",
+  "latest_turn_id": "019fce20-8ff7-7c93-a777-983041b54048",
+  "validator_parent_thread_id": "019f71dc-af61-7a73-a72d-1ec3a638a011",
+  "validator_depth": 1,
+  "validator_thread_source": "subagent",
+  "validator_agent_path": "/root/validator",
+  "requested_model": "gpt-5.6-luna",
+  "requested_effort": "max",
+  "actual_model": "gpt-5.6-luna",
+  "actual_effort": "max",
+  "selector_status": "enforced",
+  "selector_claim": "The bound turn context reports the requested gpt-5.6-luna/max selector; requested and actual identity are recorded separately.",
+  "test_counts": {
+    "focused_suites": 3,
+    "focused_tests": 18,
+    "focused_passed": 18,
+    "adjacent_set_authority_suites": 4,
+    "adjacent_set_authority_tests": 113,
+    "adjacent_set_authority_passed": 113,
+    "requested_matrix_suites": 7,
+    "requested_matrix_tests": 131,
+    "requested_matrix_passed": 131,
+    "requested_matrix_failed": 0,
+    "catalog_suites": 1,
+    "catalog_tests": 6,
+    "catalog_passed": 6,
+    "all_executed_suites": 8,
+    "all_executed_tests": 137,
+    "all_executed_passed": 137,
+    "all_executed_failed": 0
+  },
+  "suite_paths": {
+    "focused": [
+      "tests/unit/cstar-kernel-mcp/test_automatic_mission_state.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_augury_natural_translation_integration.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_automatic_mission_durable_dispatch.test.ts"
+    ],
+    "adjacent_set_authority": [
+      "tests/unit/cstar-kernel-mcp/test_automatic_mission_authority.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_forge_set_manifest_natural_translation.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_forge_set_manifest_autonomous_dispatch.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_forge_set_manifest_authorization.test.ts"
+    ],
+    "catalog": [
+      "tests/unit/cstar-kernel-mcp/test_tool_catalog.test.ts"
+    ]
+  },
+  "commands": {
+    "runtime": "PATH=/home/morderith/.nvm/versions/node/v25.8.1/bin:$PATH node scripts/run-tsx.mjs --test --test-concurrency=2 <focused-or-adjacent-suite-paths>",
+    "typecheck": "PATH=/home/morderith/.nvm/versions/node/v25.8.1/bin:$PATH npm run typecheck",
+    "diff_check": "git diff --check --",
+    "line_audit": "wc -l on all ten pinned artifacts"
+  },
+  "covered_probes": {
+    "active_registered_spoke": "pass: exactly one Augury receipt and one dispatch intent materialized",
+    "inactive_unknown_and_mismatch_spokes": "pass: each rejected before persistence with zero receipt and dispatch rows",
+    "hub_code_root_binding": "pass: hub mission repository remains bound to live CODE_ROOT and derived repository id",
+    "omitted_deadline_replay": "pass: later retry replays the original receipt and stored deadline",
+    "conflicting_deadline": "pass: explicit changed deadline rejects without replacing the original row",
+    "stable_field_replay": "pass: changed stable fields reject as idempotency conflict",
+    "typed_transitions_and_cancellation": "pass: bounded queued/claimed/delivered_unverified/validated and terminal failure/cancel/expiry behavior",
+    "atomic_augury_boundary": "pass: receipt materialization and dispatch enqueue share one immediate transaction",
+    "worker_provider_and_spend": "pass: no launch/provider call; receipts require worker_launch_performed=false and spend_authority=not_granted",
+    "catalog": "pass: exactly 28 unique public tools; internal cstar_mission is not registered and no AutoBot is exposed"
+  },
+  "source_review": {
+    "authoritative_map_absent": "pass: no Map/WeakMap mission or dispatch authority in the reviewed path; authority is Hall-backed",
+    "worker_launch_and_provider_spend_absent": "pass",
+    "default_catalog_expansion_absent": "pass",
+    "root_user_set_and_scope_gates_preserved": "pass",
+    "worktree_and_mounted_spoke_identity_bound": "pass",
+    "augury_materialization_and_dispatch_atomic": "pass"
+  },
+  "reused_evidence_basis": "The existing bounded r2 evidence file was cross-checked against this fresh r3 run; all ten pinned artifacts were rehashed in this bound turn and remained exact.",
+  "host_final_binding": {
+    "validator_thread_id": "019fce20-86da-71c3-85be-abfde45b796b",
+    "validator_turn_id": "019fce20-8ff7-7c93-a777-983041b54048",
+    "root_thread_id": "019f71dc-af61-7a73-a72d-1ec3a638a011",
+    "validation_id_required_in_exact_final_answer": "validation:cstar-durable-mission-dispatch-intent-20260804-r3",
+    "manifest_sha256_required_in_exact_final_answer": true,
+    "final_and_task_complete_binding": "Both records must bind this validator turn to the validation id and resulting manifest digest; the host-known trailing memory citation may be omitted from task_complete.last_agent_message.",
+    "matching_policy": "exact host assistant final_answer and task_complete last_agent_message semantic binding"
+  },
+  "mutation_boundary": {
+    "source_edits": false,
+    "test_edits": false,
+    "cstar_or_hall_mutation": false,
+    "install_or_rebuild": false,
+    "restart": false,
+    "git_commit_push_or_merge": false,
+    "deploy": false,
+    "config_or_secret_mutation": false,
+    "written_scope": ".cstar/validation/cstar-durable-mission-dispatch-intent-20260804-r3/cstar-durable-mission-dispatch-intent-20260804-independent-r3.json"
+  },
+  "closeout_boundary": {
+    "record_result_performed": false,
+    "bead_closed": false,
+    "host_validation_package_only": true
+  },
+  "artifacts": [
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/src/tools/pennyone/intel/automatic_mission_controller.ts",
+      "sha256": "b90fb2a7d6ffb23f669c2ffcfa1247c7b38cbe46683b6ad362e34845f328c5d2"
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/src/tools/pennyone/intel/automatic_mission_dispatch_store.ts",
+      "sha256": "cfcd01a8efb80bb4843162f5e911c1c0fa6a76d19efbf6129f4bd88fbc164f7b"
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/src/tools/cstar-kernel-mcp/tools/automatic_mission.ts",
+      "sha256": "e1ae69b8bd07f119e9c349fcb8f2c257e31149ae3300821ac0982989fddf9a32"
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/src/tools/cstar-kernel-mcp/tools/augury.ts",
+      "sha256": "016002af45a8cb23f4b5f881010a8e92e03f520b7e2c6599199b4500e49b0dc7"
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/src/tools/cstar-kernel-mcp/tools/augury_mission_dispatch_controller.ts",
+      "sha256": "00283a80aaadce364825336fb81d2bc614fe540208ca4139ed7bd04f43311d74"
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/tests/unit/cstar-kernel-mcp/test_automatic_mission_state.test.ts",
+      "sha256": "08cb45e3b2ab53becab469207b6b3a06e8a94cad5f2ca91b23cb322e7930c95c"
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/tests/unit/cstar-kernel-mcp/test_augury_natural_translation_integration.test.ts",
+      "sha256": "c0234309a795e2c41cac1b1d47c0b6458f0950c198a4c1ac79ffaaf5294dd753"
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/tests/unit/cstar-kernel-mcp/test_automatic_mission_durable_dispatch.test.ts",
+      "sha256": "b7698c6c4cdc79f92c0dbb6f015fb54e3b2ff87908ea0990244d7bf9158864af"
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/src/tools/pennyone/intel/schema.ts",
+      "sha256": "5ec66256c3c45bb8905a2562d08d6d2435c90419a818fb59739b784a67119fae"
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/src/tools/pennyone/intel/repository_spokes.ts",
+      "sha256": "4c4550c448706efc9b7f164f7b7443adfe062d812b0fa905c5007054810064a5"
+    }
+  ],
+  "checks": [
+    {
+      "name": "fresh_r3_matrix_hash_typecheck_diff_line_and_source_review",
+      "status": "pass",
+      "evidence_path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-durable-mission-dispatch-intent-20260804-r2/validation-evidence.txt",
+      "sha256": "0dd160a44a80099bb4e6fb9fb1d60b9277c9a6ed5f011125c7248e1f0471a8fc"
+    }
+  ]
+}

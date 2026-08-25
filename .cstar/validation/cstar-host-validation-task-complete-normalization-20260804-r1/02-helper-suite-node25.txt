@@ -1,0 +1,13 @@
+command:
+  /home/morderith/.nvm/versions/node/v25.8.1/bin/node --import ./node_modules/tsx/dist/loader.mjs tests/unit/cstar-kernel-mcp/test_host_workflow_message.test.ts
+runtime: node v25.8.1; npm 11.11.0
+exit_status: 0
+suite: host-workflow task-complete message normalization
+tests: 3
+passed: 3
+failed: 0
+skipped: 0
+todo: 0
+coverage: exact equality; one trailing well-formed citation with and without
+separator; arbitrary truncation; prefix/suffix mismatch; malformed, multiple,
+in-body, citation-only, trailing-newline, and ordinary mismatches

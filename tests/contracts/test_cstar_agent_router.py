@@ -93,7 +93,7 @@ def test_researcher_contract_keeps_pmts_information_only() -> None:
     assert "state_update_thread_id" in text
     assert "deprecated compatibility alias" in text
     assert "PMT unavailability is a freshness gap, not" in text
-    assert "MM is legacy and has no active routing role" in text
+    assert "MM is inactive and has no active routing, synthesis, ownership, relay, review, or execution role" in " ".join(text.split())
     assert "A PMT is never that" in text
     for forbidden in (
         "PMT-owned",

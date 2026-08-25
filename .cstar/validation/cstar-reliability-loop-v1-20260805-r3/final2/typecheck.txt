@@ -1,0 +1,6 @@
+check: typecheck
+command: PATH=/home/morderith/.nvm/versions/node/v25.8.1/bin:$PATH npm run typecheck
+node: v25.8.1
+exit_code: 0
+result: tsc --noEmit -p tsconfig.json passed
+

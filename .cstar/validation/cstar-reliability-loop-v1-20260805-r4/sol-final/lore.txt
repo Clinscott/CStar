@@ -1,0 +1,56 @@
+schema: cstar.independent_validation_lore.v1
+validation_id: validation:cstar-reliability-loop-v1-20260805-r4-sol-final
+bead_id: bead:mcp:turn-the-accepted-sprt-autoresearcher-gungnir-fi-msg4t12q
+verdict: ACCEPTED
+
+validator_identity:
+  thread_id: 019fd2ae-a3b6-77b2-888a-1b3e527f0bdf
+  turn_id: 019fd2b9-7ec1-7a83-8e69-c0876b29390d
+  requested_model: gpt-5.6-sol
+  requested_reasoning: max
+  actual_model: gpt-5.6-sol
+  actual_reasoning: max
+
+frozen_candidate:
+  root: /home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803
+  branch: codex/cstar-state-only-luna-host-seam-batch1-20260803
+  head: afbbc1770ec6a7a2adc15b83f91c5586ac2525c0
+  frozen_scope_files: 34
+  current_scope_digest_before_checks: ffec759885efdcbb1aad9aca4db550cd1756159272c3f271bf865b19865c1868
+  current_scope_digest_after_checks: ffec759885efdcbb1aad9aca4db550cd1756159272c3f271bf865b19865c1868
+  frozen_scope_drift: 0
+  candidate_source_entries: 13
+  recorded_candidate_source_digest: fa3c91f0f2aa7397575dc36484ac7ce177fb2eaa16aa1b5e94fbd27549cd9d4c
+  recomputed_candidate_source_digest: fa3c91f0f2aa7397575dc36484ac7ce177fb2eaa16aa1b5e94fbd27549cd9d4c
+  candidate_source_entry_hash_mismatches: 0
+
+repaired_defect:
+  reliability_loop_path: src/tools/cstar-kernel-mcp/tools/reliability_loop.ts
+  reliability_loop_sha256: 221eb19a93c400e2f5fd0e2abc89319457230feaed30a6b5e256707a6bcd5453
+  parser_contract: validateRunnerGungnir requires entry.coverage === heuristic
+  fixture_path: tests/unit/cstar-kernel-mcp/test_reliability_loop.test.ts
+  fixture_sha256: abcf9826a1535f3780e4f88ec349898dcc0a9a69211b4ff2895d303c24e6b810
+  fixture_contract: coverage is the string heuristic
+  canonical_producer_contract: coverage is the string heuristic
+  exact_prior_defect_status: closed
+
+repository_root_binding:
+  result_source: src/tools/cstar-kernel-mcp/tools/result.ts
+  result_sha256: 1a1f978aa33037ea44a03e058023e9dc9b691558254cb40a3fd7b76954c974c1
+  result_line_283: beadRepositoryRoot is resolved from repoId, registered repository root, CODE_ROOT, and CONTROL_ROOT
+  result_lines_285_303: beadRepositoryRoot is passed to host-v3 and legacy validation-evidence verification
+  result_line_306: beadRepositoryRoot is passed to verifyReliabilityReceipt
+  root_binding_conclusion: pass
+
+named_gate_audit:
+  hub_gate: pass
+  spoke_gate: pass
+  controller_gate: pass
+  callback_gate: pass
+  legacy_gate: pass
+
+authority_boundary:
+  source_edits: none
+  cstar_calls_or_mutations: none
+  restart_install_git_mutation: none
+  lifecycle_transition_recorded: false

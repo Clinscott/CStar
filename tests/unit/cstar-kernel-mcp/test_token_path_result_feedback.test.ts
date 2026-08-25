@@ -1,16 +1,28 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
+import { buildHallRepositoryId, normalizeHallPath } from '../../../src/types/hall.js';
 import { registerCoreTools } from '../../../src/tools/cstar-kernel-mcp/register_core_tools.js';
+import { registry } from '../../../src/tools/pennyone/pathRegistry.js';
 import {
+    beadStore,
     handleRecordResult,
     seedValidationBead,
 } from './shared_test_setup.js';
 
+function seedRootBoundValidationBead(
+    beadId: string,
+    targetPath = 'src/validation-target.ts',
+): void {
+    seedValidationBead(beadId, targetPath);
+    const bead = beadStore.get(beadId);
+    bead.repo_id = buildHallRepositoryId(normalizeHallPath(registry.getRoot()));
+}
+
 describe('CStar generic result boundary excludes TokenPath', () => {
     it('does not infer or auto-record an observation from a bead result', async () => {
         const beadId = 'bead-token-path-no-auto-observation';
-        seedValidationBead(beadId, 'src/tools/cstar-kernel-mcp/telemetry/token_path.ts');
+        seedRootBoundValidationBead(beadId, 'src/tools/cstar-kernel-mcp/telemetry/token_path.ts');
 
         const result = await handleRecordResult({
             bead_id: beadId,
@@ -41,7 +53,7 @@ describe('CStar generic result boundary excludes TokenPath', () => {
 
     it('ignores legacy extra properties without emitting TokenPath response fields', async () => {
         const beadId = 'bead-token-path-legacy-extra';
-        seedValidationBead(beadId);
+        seedRootBoundValidationBead(beadId);
         const legacyArgs = {
             bead_id: beadId,
             verdict: 'SUCCESS',

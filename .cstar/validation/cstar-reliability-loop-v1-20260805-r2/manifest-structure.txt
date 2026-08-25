@@ -1,0 +1,11 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "validation_id": "validation:cstar-reliability-loop-v1-20260805-r2",
+  "reported_verdict": "REJECTED",
+  "artifact_count": 45,
+  "check_count": 8,
+  "artifact_paths_unique": true,
+  "check_evidence_paths_unique": true,
+  "hashes_and_bytes_match": true,
+  "valid": true
+}

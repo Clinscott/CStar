@@ -1,0 +1,69 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:mcp:activate-the-existing-six-typed-outcomes-and-bou-msf54nco",
+  "validation_id": "validation:cstar-auto-p0-outcome-deadline-telemetry-20260804-r2",
+  "reported_verdict": "ACCEPTED",
+  "artifacts": [
+    {
+      "path": "src/tools/cstar-kernel-mcp/contracts/responses.ts",
+      "sha256": "64bb908c07fded134fd6b95e9f70471a6ae900063b7185cc1a9f4fddb638c3d4",
+      "bytes": 8008
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/telemetry/usage.ts",
+      "sha256": "77a8a1e10a3861a88ef5d6770574562db589f0528f2adfad6a7ebb91ee401013",
+      "bytes": 19865
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_mcp_outcome_deadline_instrumentation.test.ts",
+      "sha256": "e5c8b68f4bef52f8d40519cb9f7e0afecb1cf14a2bbf29fbf84e3b08ccbb116d",
+      "bytes": 6302
+    },
+    {
+      "path": ".cstar/validation/cstar-auto-p0-outcome-deadline-telemetry-20260804-r2/report.md",
+      "sha256": "cf681367c35943de4b21fb4709a67fe81850e8355cb5a7f5c83238ab0769092f",
+      "bytes": 3613
+    },
+    {
+      "path": ".cstar/validation/cstar-auto-p0-outcome-deadline-telemetry-20260804-r2/focused-check.json",
+      "sha256": "c5c21ad6aeecc87ec14c092be425c45aa6f434ff58fec4b19b1322f18835f40a",
+      "bytes": 992
+    },
+    {
+      "path": ".cstar/validation/cstar-auto-p0-outcome-deadline-telemetry-20260804-r2/adjacent-check.json",
+      "sha256": "76396cbbe862118fd57186795c4559c3e1423bc5e6ce1bab3cd6c606669910f9",
+      "bytes": 1190
+    },
+    {
+      "path": ".cstar/validation/cstar-auto-p0-outcome-deadline-telemetry-20260804-r2/structural-check.json",
+      "sha256": "040815eb02081f15a161f88edcb310fd7add69e9d206c95cb7dc7e55879fd155",
+      "bytes": 4850
+    }
+  ],
+  "checks": [
+    {
+      "name": "focused SET-01 behavior and compatibility",
+      "status": "pass",
+      "evidence_path": ".cstar/validation/cstar-auto-p0-outcome-deadline-telemetry-20260804-r2/focused-check.json",
+      "sha256": "c5c21ad6aeecc87ec14c092be425c45aa6f434ff58fec4b19b1322f18835f40a"
+    },
+    {
+      "name": "adjacent suites typecheck and diff check",
+      "status": "pass",
+      "evidence_path": ".cstar/validation/cstar-auto-p0-outcome-deadline-telemetry-20260804-r2/adjacent-check.json",
+      "sha256": "76396cbbe862118fd57186795c4559c3e1423bc5e6ce1bab3cd6c606669910f9"
+    },
+    {
+      "name": "changed source and test line limit",
+      "status": "pass",
+      "evidence_path": ".cstar/validation/cstar-auto-p0-outcome-deadline-telemetry-20260804-r2/structural-check.json",
+      "sha256": "040815eb02081f15a161f88edcb310fd7add69e9d206c95cb7dc7e55879fd155"
+    },
+    {
+      "name": "scope and semantic review",
+      "status": "pass",
+      "evidence_path": ".cstar/validation/cstar-auto-p0-outcome-deadline-telemetry-20260804-r2/report.md",
+      "sha256": "cf681367c35943de4b21fb4709a67fe81850e8355cb5a7f5c83238ab0769092f"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:mcp:repair-cstar-researcher-request-so-the-kernel-de-msg5pl64",
+  "validation_id": "validation:cstar-researcher-callback-derived-20260805-r3",
+  "reported_verdict": "ACCEPTED",
+  "verdict": "ACCEPTED",
+  "requested_model": "gpt-5.6-luna",
+  "actual_model": "unreported",
+  "validator_role": "independent_luna_max_validator",
+  "artifacts": [
+    {
+      "path": "work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/src/tools/cstar-kernel-mcp/contracts/schemas.ts",
+      "sha256": "259728283efdb653f21f8ffdcc587bbe922d8563bf64bc830e66b6c2467f85a3",
+      "bytes": 8690
+    },
+    {
+      "path": "work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/src/tools/cstar-kernel-mcp/tools/dispatch_request.ts",
+      "sha256": "960fe4af7342f3c08300a65c7733f16fe6fe3d2bbde1a9c4d49d9c2b6debfc69",
+      "bytes": 14643
+    },
+    {
+      "path": "work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/tests/unit/cstar-kernel-mcp/test_dispatch_requests.test.ts",
+      "sha256": "cff14d1ac525d8395ebbb355227ae86688123c70c41bbbeeecfaa3985caeaf37",
+      "bytes": 16672
+    }
+  ],
+  "checks": [
+    {
+      "name": "independent_callback_contract_validation",
+      "status": "pass",
+      "evidence_path": "work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-researcher-callback-derived-20260805-r3/checks.json",
+      "sha256": "27da3b311a42f9f1233931bd02ecc59d4a1c2f4d043d313eaedf2e768aa9bf90"
+    }
+  ],
+  "notes": [
+    "Researcher callback omission is compatibility-first and derives one decision-bound CSTAR_RESEARCHER_RESULT packet plus source callback thread.",
+    "Explicit legacy Researcher callback contracts remain unchanged; Forge request and execute callback contracts remain required.",
+    "The prior r1 typecheck rejection is repaired: the exact requested typecheck exits 0.",
+    "No CStar, Researcher, Forge, provider, restart, install, Git mutation, or source edit occurred during validation."
+  ]
+}

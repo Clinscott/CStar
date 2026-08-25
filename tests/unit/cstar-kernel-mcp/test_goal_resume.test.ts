@@ -9,6 +9,7 @@ import SqliteDatabase from 'better-sqlite3';
 import type { McpRequestContext } from '../../../src/tools/cstar-kernel-mcp/contracts/request_context.js';
 import { handleGoalResume, type GoalResumeArgs } from '../../../src/tools/cstar-kernel-mcp/tools/goal_resume.js';
 import { verifyCurrentGoalResumeIntent } from '../../../src/tools/cstar-kernel-mcp/tools/operator_intent_attestation.js';
+import { canonicalizeHostGoalSnapshot, type HostGoalSnapshotInput } from '../../../src/tools/pennyone/intel/host_goal_snapshot.js';
 import {
     listHallCoordinationEvents,
     saveHallCoordinationEvent,
@@ -21,12 +22,21 @@ const originalRoot = registry.getRoot();
 const originalCodexHome = process.env.CODEX_HOME;
 const temporaryRoots: string[] = [];
 const STRUCTURED_GRANT = 'Authorize goal continuation for repair bead:repair:test-goal-resume with continued bead:test:continued-mission and decision decision:test:goal-resume now.';
+const HOST_GOAL_OBJECTIVE = 'Host goal exact UTF-8 objective: e\u0301; counters are not authority.';
 
+function makeHostGoalSnapshot(threadId: string, createdAt: number, updatedAt: number): HostGoalSnapshotInput {
+    return { schema: 'cstar.host_goal_snapshot.v1', threadId, objective: HOST_GOAL_OBJECTIVE,
+        status: 'blocked', hostResumeCapability: 'unavailable', createdAt, updatedAt };
+}
+function snapshotArgs(snapshot: HostGoalSnapshotInput) {
+    const canonical = canonicalizeHostGoalSnapshot(snapshot);
+    return { host_goal_snapshot: snapshot, host_goal_objective_sha256: canonical.objectiveSha256,
+        host_goal_snapshot_sha256: canonical.snapshotSha256 };
+}
 function restoreEnv(name: string, value: string | undefined): void {
     if (value === undefined) delete process.env[name];
     else process.env[name] = value;
 }
-
 function contextFor(threadId: string, turnId: string): McpRequestContext {
     return { _meta: {
         threadId,
@@ -41,7 +51,6 @@ function contextFor(threadId: string, turnId: string): McpRequestContext {
         },
     } };
 }
-
 function createFixture(text: string | string[] = STRUCTURED_GRANT) {
     const root = fs.mkdtempSync(path.join(process.platform === 'linux' ? '/tmp' : os.tmpdir(), 'cstar-goal-resume-'));
     temporaryRoots.push(root);
@@ -68,6 +77,7 @@ function createFixture(text: string | string[] = STRUCTURED_GRANT) {
     const threadId = randomUUID();
     const turnId = randomUUID();
     const timestamp = new Date(now).toISOString();
+    const snapshot = makeHostGoalSnapshot(threadId, Math.floor(now / 1_000), Math.floor(now / 1_000) + 1);
     const sessionPath = path.join(sessions, `rollout-goal-${threadId}.jsonl`);
     const texts = Array.isArray(text) ? text : [text];
     const rows = [
@@ -86,8 +96,7 @@ function createFixture(text: string | string[] = STRUCTURED_GRANT) {
         repair_bead_id: repairBeadId,
         continued_bead_id: continuedBeadId,
         decision_id: 'decision:test:goal-resume',
-        host_goal_objective_sha256: 'a'.repeat(64),
-        host_goal_snapshot_sha256: 'b'.repeat(64),
+        ...snapshotArgs(snapshot),
         observed_host_status: 'blocked',
         host_resume_capability: 'unavailable',
     };
@@ -100,12 +109,12 @@ function createFixture(text: string | string[] = STRUCTURED_GRANT) {
         threadId,
         turnId,
         sessionPath,
+        snapshot,
         now,
         context: contextFor(threadId, turnId),
         args,
     };
 }
-
 function appendResumeTurn(fixture: ReturnType<typeof createFixture>, offsetMs = 1_000): McpRequestContext {
     const turnId = randomUUID();
     const row = {
@@ -124,46 +133,38 @@ function appendResumeTurn(fixture: ReturnType<typeof createFixture>, offsetMs = 
     fs.appendFileSync(fixture.sessionPath, `${JSON.stringify(row)}\n`);
     return contextFor(fixture.threadId, turnId);
 }
-
 function responseBody(response: Awaited<ReturnType<typeof handleGoalResume>>) {
     return JSON.parse(response.content[0]!.text) as Record<string, any>;
 }
-
 afterEach(() => {
     database.close();
     registry.setRoot(originalRoot);
     restoreEnv('CODEX_HOME', originalCodexHome);
     while (temporaryRoots.length > 0) fs.rmSync(temporaryRoots.pop()!, { recursive: true, force: true });
 });
-
 describe('dedicated continuity-only host goal resume tool', () => {
     it('rejects missing request identity before creating Hall state', async () => {
         const root = fs.mkdtempSync(path.join('/tmp', 'cstar-goal-resume-preauth-'));
         temporaryRoots.push(root);
         registry.setRoot(root);
-
         const response = await handleGoalResume({
             repair_bead_id: 'bead:repair:preauth',
             decision_id: 'decision:preauth',
-            host_goal_objective_sha256: 'a'.repeat(64),
-            host_goal_snapshot_sha256: 'b'.repeat(64),
+            ...snapshotArgs(makeHostGoalSnapshot(randomUUID(), 1, 2)),
             observed_host_status: 'blocked',
             host_resume_capability: 'unavailable',
         }, undefined);
-
         assert.equal(response.isError, undefined);
         assert.equal(responseBody(response).outcome, 'guardrail_block');
         assert.match(responseBody(response).error, /codex_request_identity_metadata_required/);
         assert.deepEqual(fs.readdirSync(root), []);
     });
-
     it('records and exactly replays one immutable event without changing bead or host status', async () => {
         const fixture = createFixture();
         const firstResponse = await handleGoalResume(fixture.args, fixture.context);
         const replayResponse = await handleGoalResume(fixture.args, fixture.context);
         const first = responseBody(firstResponse);
         const replay = responseBody(replayResponse);
-
         assert.equal(first.status, 'recorded');
         assert.equal(replay.status, 'replayed');
         assert.equal(first.resume_id, replay.resume_id);
@@ -177,41 +178,47 @@ describe('dedicated continuity-only host goal resume tool', () => {
         assert.equal(payload.resume_generation, 1);
         assert.equal(payload.host_status_mutated, false);
         assert.match(payload.operator_attestation_sha256, /^[a-f0-9]{64}$/);
-        assert.equal(JSON.stringify(payload).includes('work the problems'), false);
+        assert.equal(JSON.stringify(payload).includes(HOST_GOAL_OBJECTIVE), false);
         assert.deepEqual(metadata, { source: 'cstar-kernel-mcp', immutable: true });
         const beads = fixture.db.prepare('SELECT bead_id, status FROM hall_beads ORDER BY bead_id').all() as Array<{ bead_id: string; status: string }>;
         assert.deepEqual(beads.map(({ status }) => status), ['IN_PROGRESS', 'IN_PROGRESS']);
     });
-
     it('rejects reuse of one operator record set with changed lifecycle inputs', async () => {
         const fixture = createFixture();
         assert.equal(responseBody(await handleGoalResume(fixture.args, fixture.context)).status, 'recorded');
-
         const conflict = await handleGoalResume({
             ...fixture.args,
-            host_goal_snapshot_sha256: 'c'.repeat(64),
+            ...snapshotArgs({ ...fixture.snapshot, updatedAt: fixture.snapshot.updatedAt + 1 }),
         }, fixture.context);
-
         assert.equal(conflict.isError, true);
         assert.match(responseBody(conflict).error, /goal_resume_replay_conflict/);
+        const threadConflict = await handleGoalResume({ ...fixture.args,
+            ...snapshotArgs({ ...fixture.snapshot, threadId: randomUUID(), updatedAt: fixture.snapshot.updatedAt + 1 }) }, fixture.context);
+        assert.match(responseBody(threadConflict).error, /goal_resume_host_goal_thread_mismatch/);
         const count = fixture.db.prepare('SELECT COUNT(*) AS count FROM hall_coordination_events').get() as { count: number };
         assert.equal(count.count, 1);
     });
-
     it('chains a fresh root-user turn as generation two', async () => {
         const fixture = createFixture();
         const first = responseBody(await handleGoalResume(fixture.args, fixture.context));
         const secondContext = appendResumeTurn(fixture);
         const second = responseBody(await handleGoalResume({
             ...fixture.args,
-            host_goal_snapshot_sha256: 'c'.repeat(64),
+            ...snapshotArgs({ ...fixture.snapshot, updatedAt: fixture.snapshot.updatedAt + 1 }),
         }, secondContext));
-
         assert.equal(second.status, 'recorded');
         assert.equal(second.resume_generation, 2);
         assert.equal(second.previous_resume_id, first.resume_id);
+        const [secondEvent] = listHallCoordinationEvents(fixture.root, { limit: 2 });
+        assert.ok(secondEvent);
+        const secondPayload = secondEvent.payload as Record<string, unknown>;
+        fixture.db.prepare('UPDATE hall_coordination_events SET payload_json = ? WHERE event_id = ?')
+            .run(JSON.stringify({ ...secondPayload, previous_resume_id: null }), second.resume_id);
+        const fork = await handleGoalResume({ ...fixture.args,
+            ...snapshotArgs({ ...fixture.snapshot, updatedAt: fixture.snapshot.updatedAt + 2 }) }, appendResumeTurn(fixture, 2_000));
+        assert.equal(fork.isError, true);
+        assert.match(responseBody(fork).error, /goal_resume_history_chain_invalid/);
     });
-
     it('fails closed on tampered immutable history and prevents generic overwrite', async () => {
         const fixture = createFixture();
         const first = responseBody(await handleGoalResume(fixture.args, fixture.context));
@@ -226,12 +233,10 @@ describe('dedicated continuity-only host goal resume tool', () => {
             SET metadata_json = '{"source":"cstar-kernel-mcp","immutable":false}'
             WHERE event_id = ?
         `).run(first.resume_id);
-
         const replay = await handleGoalResume(fixture.args, fixture.context);
         assert.equal(replay.isError, true);
         assert.match(responseBody(replay).error, /goal_resume_history_immutable_marker_invalid/);
     });
-
     it('atomically rejects a generic overwrite while a second connection observes the immutable row', async () => {
         const fixture = createFixture();
         const dbPath = path.join(fixture.root, '.stats', 'pennyone.db');
@@ -263,7 +268,6 @@ describe('dedicated continuity-only host goal resume tool', () => {
             observer.close();
         }
     });
-
     it('binds stored operator lineage fields to the resume identifier', async () => {
         const fixture = createFixture();
         const first = responseBody(await handleGoalResume(fixture.args, fixture.context));
@@ -274,14 +278,15 @@ describe('dedicated continuity-only host goal resume tool', () => {
         `).get(first.resume_id) as { payload_json: string };
         const originalPayload = JSON.parse(row.payload_json) as Record<string, unknown>;
         const secondContext = appendResumeTurn(fixture);
-        const secondArgs = { ...fixture.args, host_goal_snapshot_sha256: 'c'.repeat(64) };
-
+        const secondArgs = {
+            ...fixture.args,
+            ...snapshotArgs({ ...fixture.snapshot, updatedAt: fixture.snapshot.updatedAt + 1 }),
+        };
         fixture.db.prepare('UPDATE hall_coordination_events SET payload_json = ? WHERE event_id = ?')
             .run(JSON.stringify({ ...originalPayload, operator_resume_ref: 'tampered-ref' }), first.resume_id);
         const tamperedRef = await handleGoalResume(secondArgs, secondContext);
         assert.equal(tamperedRef.isError, true);
         assert.match(responseBody(tamperedRef).error, /goal_resume_history_operator_resume_ref_invalid/);
-
         fixture.db.prepare('UPDATE hall_coordination_events SET payload_json = ? WHERE event_id = ?')
             .run(JSON.stringify({
                 ...originalPayload,
@@ -293,7 +298,6 @@ describe('dedicated continuity-only host goal resume tool', () => {
         const count = fixture.db.prepare('SELECT COUNT(*) AS count FROM hall_coordination_events').get() as { count: number };
         assert.equal(count.count, 1);
     });
-
     it('rejects missing and terminal repair beads', async () => {
         const missingBeadId = 'bead:repair:missing';
         const fixture = createFixture(
@@ -305,7 +309,6 @@ describe('dedicated continuity-only host goal resume tool', () => {
         }, fixture.context);
         assert.equal(missing.isError, true);
         assert.match(responseBody(missing).error, /goal_resume_repair_bead_not_found/);
-
         database.close();
         const terminalFixture = createFixture();
         terminalFixture.db.prepare("UPDATE hall_beads SET status = 'RESOLVED' WHERE bead_id = ?")

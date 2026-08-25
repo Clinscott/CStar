@@ -4,6 +4,7 @@ import {
     createGungnirMatrix,
     type GungnirMatrix,
 } from '../../../types/gungnir.js';
+import { isParseablePythonSource } from './python_syntax.js';
 import { auditScriptHeuristics } from './script_rules.js';
 
 const SCORE_MIN = 0;
@@ -69,79 +70,9 @@ function createBreach(
     return Object.freeze({ severity, code, message });
 }
 
-function hasBalancedPythonDelimiters(source: string): boolean {
-    const expectedClosers: Record<string, string> = {
-        '(': ')',
-        '[': ']',
-        '{': '}',
-    };
-    const closers = new Set(Object.values(expectedClosers));
-    const stack: string[] = [];
-    let quote = '';
-    let tripleQuoted = false;
-    let escaped = false;
-
-    for (let index = 0; index < source.length; index += 1) {
-        const character = source[index] ?? '';
-        const nextThree = source.slice(index, index + 3);
-
-        if (quote) {
-            if (escaped) {
-                escaped = false;
-                continue;
-            }
-            if (character === '\\') {
-                escaped = true;
-                continue;
-            }
-            if (tripleQuoted && nextThree === quote.repeat(3)) {
-                quote = '';
-                tripleQuoted = false;
-                index += 2;
-            } else if (!tripleQuoted && character === quote) {
-                quote = '';
-            }
-            continue;
-        }
-
-        if (character === '#') {
-            const newline = source.indexOf('\n', index);
-            if (newline < 0) break;
-            index = newline;
-            continue;
-        }
-        if ((character === '"' || character === '\'') && nextThree === character.repeat(3)) {
-            quote = character;
-            tripleQuoted = true;
-            index += 2;
-            continue;
-        }
-        if (character === '"' || character === '\'') {
-            quote = character;
-            continue;
-        }
-        if (expectedClosers[character]) {
-            stack.push(expectedClosers[character]);
-            continue;
-        }
-        if (closers.has(character) && stack.pop() !== character) {
-            return false;
-        }
-    }
-
-    return !quote && stack.length === 0;
-}
-
-function hasValidPythonFunctionHeaders(source: string): boolean {
-    return source.split('\n').every((line) => {
-        if (!/^\s*(?:async\s+)?def\s+/.test(line)) return true;
-        return /^\s*(?:async\s+)?def\s+[A-Za-z_]\w*\s*\(.*\)\s*(?:->\s*[^:]+)?\s*:\s*(?:#.*)?$/.test(line);
-    });
-}
-
 function isParseable(source: string, extension: GungnirCalculusExtension): boolean {
     if (extension === '.py') {
-        return hasBalancedPythonDelimiters(source) && hasValidPythonFunctionHeaders(source);
+        return isParseablePythonSource(source);
     }
     if (extension === '.json') {
         try {

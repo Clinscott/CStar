@@ -36,7 +36,13 @@ Kernel root health and Forge readiness are separate. Forge readiness requires:
    install-script marker, plus a real `CODE_ROOT/node_modules` dependency tree
    matching the checked-in lock, including the installed TSX version (a symlink
    or ancestor fallback is only partial lineage);
-3. the manifest-bound private Hermes runtime under the validated code closure.
+3. the manifest-bound Codex-host runtime under the validated code closure,
+   with current transport fixed to `codex-host` and current worker cognition
+   and provider requests still owned by the host.
+
+The private Hermes/MiniMax runtime is readable only as explicitly labeled
+legacy v2 compatibility history. It is not current readiness, ownership, an
+optional host transport, or a fallback for the Codex-host v3 handoff.
 
 The clean-source activation worktree initially has no dependency tree. Reusing
 canonical CStar `node_modules` is forbidden when its lock differs. An exact-lock

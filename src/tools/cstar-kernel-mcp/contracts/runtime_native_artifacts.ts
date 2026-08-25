@@ -4,9 +4,27 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
+import {
+    currentRuntimeObservation,
+    evaluateRuntimePolicy,
+    loadRuntimePolicy,
+    type RuntimePolicy,
+    type RuntimePolicyCheck,
+} from './runtime_policy.js';
+
 type JsonRecord = Record<string, unknown>;
 
 export type NativeBinaryFormat = 'elf' | 'mach_o' | 'pe';
+
+/** The exact artifact identity the child smoke process must load. */
+export interface NativeArtifactLoadBinding {
+    resolved_path: string;
+    sha256: string;
+    device: string;
+    inode: string;
+    size: number;
+    nlink: 1;
+}
 
 export interface NativeArtifactEvidence {
     dependency_name: string;
@@ -17,21 +35,18 @@ export interface NativeArtifactEvidence {
     sha256: string | null;
     bytes: number | null;
     binary_format: NativeBinaryFormat | null;
+    load_binding: NativeArtifactLoadBinding | null;
 }
 
 export interface NativeArtifactProof {
     contract: 'verified_required_native_artifacts' | 'partial';
     required_artifacts: number;
     verified_artifacts: number;
+    runtime_policy: RuntimePolicyCheck;
     artifacts: NativeArtifactEvidence[];
     mismatch_reasons: string[];
 }
 
-const REQUIREMENTS = [{
-    dependency_name: 'better-sqlite3',
-    package_lock_key: 'node_modules/better-sqlite3',
-    relative_path: 'build/Release/better_sqlite3.node',
-}] as const;
 const MAX_NATIVE_ARTIFACT_BYTES = 64 * 1024 * 1024;
 
 function asRecord(value: unknown): JsonRecord | null {
@@ -133,10 +148,10 @@ function inspectArtifact(candidate: string): Omit<NativeArtifactEvidence,
         if (!before.isFile() || before.isSymbolicLink() || before.nlink !== 1
             || !stat.isFile() || stat.nlink !== 1
             || before.dev !== stat.dev || before.ino !== stat.ino || before.size !== stat.size) {
-            return { status: 'unsafe', sha256: null, bytes: null, binary_format: null };
+            return { status: 'unsafe', sha256: null, bytes: null, binary_format: null, load_binding: null };
         }
         if (stat.size <= 0 || stat.size > MAX_NATIVE_ARTIFACT_BYTES) {
-            return { status: 'invalid_size', sha256: null, bytes: stat.size, binary_format: null };
+            return { status: 'invalid_size', sha256: null, bytes: stat.size, binary_format: null, load_binding: null };
         }
         const content = Buffer.alloc(stat.size);
         let offset = 0;
@@ -146,38 +161,96 @@ function inspectArtifact(candidate: string): Omit<NativeArtifactEvidence,
             offset += read;
         }
         if (offset !== content.length) {
-            return { status: 'unsafe', sha256: null, bytes: null, binary_format: null };
+            return { status: 'unsafe', sha256: null, bytes: null, binary_format: null, load_binding: null };
         }
         const after = fs.fstatSync(descriptor);
         if (after.dev !== stat.dev || after.ino !== stat.ino || after.size !== stat.size
-            || after.mtimeMs !== stat.mtimeMs || after.ctimeMs !== stat.ctimeMs) {
-            return { status: 'unsafe', sha256: null, bytes: null, binary_format: null };
+            || after.nlink !== stat.nlink || after.mtimeMs !== stat.mtimeMs || after.ctimeMs !== stat.ctimeMs) {
+            return { status: 'unsafe', sha256: null, bytes: null, binary_format: null, load_binding: null };
         }
         const binaryFormat = inspectPlatformBinary(content);
         if (!binaryFormat) {
-            return { status: 'invalid_binary', sha256: null, bytes: content.length, binary_format: null };
+            return { status: 'invalid_binary', sha256: null, bytes: content.length, binary_format: null, load_binding: null };
         }
+        const sha256 = createHash('sha256').update(content).digest('hex');
         return {
             status: 'verified_platform_binary',
-            sha256: createHash('sha256').update(content).digest('hex'),
+            sha256,
             bytes: content.length,
             binary_format: binaryFormat,
+            load_binding: {
+                resolved_path: fs.realpathSync(candidate),
+                sha256,
+                device: String(stat.dev),
+                inode: String(stat.ino),
+                size: stat.size,
+                nlink: 1,
+            },
         };
     } catch {
-        return { status: 'unsafe', sha256: null, bytes: null, binary_format: null };
+        return { status: 'unsafe', sha256: null, bytes: null, binary_format: null, load_binding: null };
     } finally {
         if (descriptor !== null) fs.closeSync(descriptor);
     }
 }
 
+export function inspectNativeArtifactLoadBinding(candidate: string): NativeArtifactLoadBinding | null {
+    const evidence = inspectArtifact(candidate);
+    return evidence.status === 'verified_platform_binary' ? evidence.load_binding : null;
+}
+
 export type NativeRuntimeSmoke = (args: {
     artifactPath: string;
     packageRoot: string;
+    policy: RuntimePolicy;
+    load_binding: NativeArtifactLoadBinding;
 }) => boolean;
 
-function runBetterSqliteRuntimeSmoke(args: {
+export function buildBetterSqliteRuntimeSmokeSource(): string {
+    return [
+        "const fs = require('node:fs');",
+        "const crypto = require('node:crypto');",
+        "const path = require('node:path');",
+        "const policy = JSON.parse(process.env.CSTAR_RUNTIME_POLICY_JSON || 'null');",
+        "const packageRoot = path.resolve(process.argv[1]);",
+        "const packageVersion = JSON.parse(fs.readFileSync(path.join(packageRoot, 'package.json'), 'utf8')).version;",
+        "const policyMatches = policy && process.version.slice(1) === policy.node.version && process.versions.modules === policy.node.node_module_version && process.versions.napi === policy.node.napi_version && packageVersion === policy.native.version;",
+        "if (!policyMatches) process.exit(19);",
+        "const artifactPath = path.resolve(process.argv[2]);",
+        "const binding = JSON.parse(process.argv[3] || 'null');",
+        "const policyArtifactPath = path.resolve(packageRoot, policy.native.artifact);",
+        "if (artifactPath !== policyArtifactPath) process.exit(20);",
+        "if (!binding || binding.resolved_path !== artifactPath || !/^[a-f0-9]{64}$/.test(binding.sha256) || !/^[0-9]+$/.test(binding.device) || !/^[0-9]+$/.test(binding.inode) || binding.nlink !== 1 || !Number.isSafeInteger(binding.size) || binding.size <= 0 || binding.size > 67108864) process.exit(21);",
+        "const resolvedArtifactPath = path.resolve(require.resolve(artifactPath));",
+        "if (resolvedArtifactPath !== artifactPath || resolvedArtifactPath !== binding.resolved_path) process.exit(22);",
+        "const Database = require(packageRoot);",
+        "const revalidateBinding = () => {",
+        "  const lexical = fs.lstatSync(binding.resolved_path);",
+        "  if (!lexical.isFile() || lexical.isSymbolicLink() || lexical.nlink !== 1 || fs.realpathSync(binding.resolved_path) !== binding.resolved_path) process.exit(23);",
+        "  const fd = fs.openSync(binding.resolved_path, fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW || 0));",
+        "  try {",
+        "    const before = fs.fstatSync(fd);",
+        "    if (!before.isFile() || before.nlink !== 1 || String(before.dev) !== binding.device || String(before.ino) !== binding.inode || before.size !== binding.size) process.exit(24);",
+        "    const content = Buffer.alloc(before.size); let offset = 0;",
+        "    while (offset < content.length) { const read = fs.readSync(fd, content, offset, content.length - offset, offset); if (read === 0) process.exit(25); offset += read; }",
+        "    const after = fs.fstatSync(fd);",
+        "    if (after.dev !== before.dev || after.ino !== before.ino || after.size !== before.size || after.nlink !== before.nlink || crypto.createHash('sha256').update(content).digest('hex') !== binding.sha256) process.exit(26);",
+        "  } finally { fs.closeSync(fd); }",
+        "};",
+        "revalidateBinding();",
+        "const db = new Database(':memory:', { nativeBinding: binding.resolved_path });",
+        "try {",
+        "  const row = db.prepare('SELECT 1 AS value').get();",
+        "  if (!row || row.value !== 1) process.exitCode = 17;",
+        "} finally { db.close(); }",
+    ].join('\n');
+}
+
+export function runBetterSqliteRuntimeSmoke(args: {
     artifactPath: string;
     packageRoot: string;
+    policy: RuntimePolicy;
+    load_binding: NativeArtifactLoadBinding;
 }): boolean {
     const childEnvironment: NodeJS.ProcessEnv = {
         HOME: os.tmpdir(),
@@ -185,19 +258,16 @@ function runBetterSqliteRuntimeSmoke(args: {
         LC_ALL: 'C',
         NODE_NO_WARNINGS: '1',
         PATH: path.dirname(process.execPath),
+        CSTAR_RUNTIME_POLICY_JSON: JSON.stringify(args.policy),
     };
     for (const key of ['ComSpec', 'PATHEXT', 'SystemRoot', 'WINDIR']) {
         if (process.env[key]) childEnvironment[key] = process.env[key];
     }
-    const source = [
-        "const Database = require(process.argv[1]);",
-        "const db = new Database(':memory:');",
-        "try {",
-        "  const row = db.prepare('SELECT 1 AS value').get();",
-        "  if (!row || row.value !== 1) process.exitCode = 17;",
-        "} finally { db.close(); }",
-    ].join('\n');
-    const result = spawnSync(process.execPath, ['--no-warnings', '--eval', source, args.packageRoot], {
+    const source = buildBetterSqliteRuntimeSmokeSource();
+    const result = spawnSync(process.execPath, [
+        '--no-warnings', '--eval', source, args.packageRoot, args.artifactPath,
+        JSON.stringify(args.load_binding),
+    ], {
         cwd: args.packageRoot,
         env: childEnvironment,
         timeout: 5_000,
@@ -213,22 +283,36 @@ export function verifyRequiredNativeArtifacts(args: {
     expectedPackages: JsonRecord;
     installedPackages: JsonRecord;
 }, smoke: NativeRuntimeSmoke = runBetterSqliteRuntimeSmoke): NativeArtifactProof {
-    const artifacts: NativeArtifactEvidence[] = [];
-    const reasons: string[] = [];
+    const runtimePolicy = loadRuntimePolicy();
+    const requirements = [{
+        dependency_name: runtimePolicy.native.dependency,
+        package_lock_key: `node_modules/${runtimePolicy.native.dependency}`,
+        relative_path: runtimePolicy.native.artifact,
+    }] as const;
     const declaredDependencies = asRecord(args.sourceManifest.dependencies) ?? {};
-    const activeRequirements = REQUIREMENTS.filter(
+    const activeRequirements = requirements.filter(
         (requirement) => typeof declaredDependencies[requirement.dependency_name] === 'string',
+    );
+    const runtimePolicyCheck = evaluateRuntimePolicy(
+        runtimePolicy,
+        activeRequirements.length > 0
+            ? currentRuntimeObservation(runtimePolicy, args.nodeModulesRoot)
+            : currentRuntimeObservation(runtimePolicy),
+    );
+    const artifacts: NativeArtifactEvidence[] = [];
+    const reasons: string[] = runtimePolicyCheck.mismatches.map(
+        (reason) => `runtime_policy_mismatch:${reason}`,
     );
     for (const requirement of activeRequirements) {
         const label = `${requirement.package_lock_key}/${requirement.relative_path}`;
         if (!asRecord(args.expectedPackages[requirement.package_lock_key])) {
             reasons.push(`required_native_package_lock_entry_missing:${requirement.package_lock_key}`);
-            artifacts.push({ ...requirement, status: 'missing', runtime_smoke: 'not_run', sha256: null, bytes: null, binary_format: null });
+            artifacts.push({ ...requirement, status: 'missing', runtime_smoke: 'not_run', sha256: null, bytes: null, binary_format: null, load_binding: null });
             continue;
         }
         if (!asRecord(args.installedPackages[requirement.package_lock_key])) {
             reasons.push(`required_native_package_install_entry_missing:${requirement.package_lock_key}`);
-            artifacts.push({ ...requirement, status: 'missing', runtime_smoke: 'not_run', sha256: null, bytes: null, binary_format: null });
+            artifacts.push({ ...requirement, status: 'missing', runtime_smoke: 'not_run', sha256: null, bytes: null, binary_format: null, load_binding: null });
             continue;
         }
         const resolved = resolveArtifact(
@@ -237,7 +321,7 @@ export function verifyRequiredNativeArtifacts(args: {
         if (resolved.status !== 'found' || !resolved.path) {
             const status = resolved.status === 'missing' ? 'missing' : 'unsafe';
             reasons.push(`required_native_artifact_${status}:${label}`);
-            artifacts.push({ ...requirement, status, runtime_smoke: 'not_run', sha256: null, bytes: null, binary_format: null });
+            artifacts.push({ ...requirement, status, runtime_smoke: 'not_run', sha256: null, bytes: null, binary_format: null, load_binding: null });
             continue;
         }
         const evidence = inspectArtifact(resolved.path);
@@ -245,12 +329,14 @@ export function verifyRequiredNativeArtifacts(args: {
             args.nodeModulesRoot,
             ...requirement.package_lock_key.split('/').slice(1),
         );
-        const smokeVerified = evidence.status === 'verified_platform_binary'
-            && smoke({ artifactPath: resolved.path, packageRoot });
+        const smokeVerified = runtimePolicyCheck.compatible
+            && evidence.status === 'verified_platform_binary'
+            && evidence.load_binding !== null
+            && smoke({ artifactPath: resolved.path, packageRoot, policy: runtimePolicy, load_binding: evidence.load_binding });
         artifacts.push({
             ...requirement,
             ...evidence,
-            runtime_smoke: smokeVerified ? 'verified' : evidence.status === 'verified_platform_binary'
+            runtime_smoke: !runtimePolicyCheck.compatible ? 'not_run' : smokeVerified ? 'verified' : evidence.status === 'verified_platform_binary'
                 ? 'failed' : 'not_run',
         });
         if (evidence.status !== 'verified_platform_binary') {
@@ -265,6 +351,7 @@ export function verifyRequiredNativeArtifacts(args: {
         contract: reasons.length === 0 ? 'verified_required_native_artifacts' : 'partial',
         required_artifacts: activeRequirements.length,
         verified_artifacts: verified,
+        runtime_policy: runtimePolicyCheck,
         artifacts,
         mismatch_reasons: reasons,
     };

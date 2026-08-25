@@ -1,0 +1,34 @@
+schema: cstar.independent_check.v1
+validation_id: validation:cstar-host-validator-null-path-compatibility-20260805-r1
+check: adversarial_lineage_compatibility_boundary
+verdict: pass
+
+new_default_host_compatibility_accepts_only:
+- payload agent_path absent and spawn agent_path null
+- payload agent_path null and spawn agent_path null
+
+separate_legacy_behavior_preserved:
+- exact matching explicit payload and spawn paths remain a compatibility duplicate
+
+verified_rejections:
+- both payload and spawn agent_path absent
+- one-sided null or one-sided absence
+- explicit path mismatch
+- malformed explicit path
+- wrong session root
+- wrong parent thread
+- wrong fork origin
+- wrong spawn parent
+- wrong depth
+- wrong thread source
+- missing spawn lineage
+- stale validator completion
+- non-latest completion or later validator activity
+- final response missing the exact manifest digest
+- task-complete message mismatch
+- wrong bead or validation scope
+- failed or missing checks
+- duplicate evidence and cross-scope replay
+
+evidence_source: tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts
+suite_result: 17 of 17 passed

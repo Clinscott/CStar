@@ -1,0 +1,5 @@
+Validation: validation:cstar-host-validation-task-complete-normalization-20260804-r2
+Command: /home/morderith/.nvm/versions/node/v25.8.1/bin/npm run typecheck
+Runtime: Node v25.8.1; npm 11.11.0
+Command output: corvusstar@1.0.1 typecheck; tsc --noEmit -p tsconfig.json
+Result: exit 0; no TypeScript diagnostics.

@@ -1,4 +1,4 @@
-import { describe, it } from 'node:test';
+import { after, describe, it } from 'node:test';
 import {
     assert,
     fs,
@@ -44,6 +44,19 @@ import {
 } from './shared_test_setup.js';
 import { registry } from '../../../src/tools/pennyone/pathRegistry.js';
 import { formatAugurySteeringBlock } from '../../../src/core/host_session_augury.js';
+import { buildHallRepositoryId } from '../../../src/types/hall.js';
+
+const syntheticRepository = (rootPath: string) => ({
+    repo_id: buildHallRepositoryId(rootPath),
+    root_path: rootPath,
+});
+(database.getHallRepository as any).mock.mockImplementation((rootPath = registry.getRoot()) =>
+    syntheticRepository(rootPath));
+mock.method(database, 'listHallRepositories', (rootPath: string) => [syntheticRepository(rootPath)] as any);
+function seedExactValidationBead(beadId: string): void {
+    seedValidationBead(beadId);
+    beadStore.get(beadId).repo_id = syntheticRepository(registry.getRoot()).repo_id;
+}
 
 async function withUnavailableSyntheticPersona<T>(operation: () => Promise<T>): Promise<T> {
     const previousRoot = registry.getRoot();
@@ -77,6 +90,10 @@ async function withSyntheticPersona<T>(
 }
 
 describe("CStar MCP Augury, bead, telemetry, and result tools", () => {
+after(() => {
+    (database.getHallRepository as any).mock.mockImplementation(() => ({ repo_id: 'test-repo' }));
+});
+
 it('cstar_augury tool handler should return routing advice', async () => {
     // Prompt with the 'test' trigger word should resolve VERIFY via the
     // deterministic grammar resolver (no session active), not the legacy
@@ -424,7 +441,7 @@ it('summarizes usefulness data and flags low-outcome search patterns', () => {
 });
 
 it('cstar_record_result tool handler should record a result', async () => {
-    seedValidationBead('test-bead');
+    seedExactValidationBead('test-bead');
     const result = await handleRecordResult({ bead_id: 'test-bead', verdict: 'SUCCESS' });
     assert.ok(result.content);
     const parsed = JSON.parse(result.content[0].text);

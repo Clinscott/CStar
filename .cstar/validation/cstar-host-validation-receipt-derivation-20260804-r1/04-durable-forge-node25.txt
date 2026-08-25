@@ -1,0 +1,12 @@
+command: node scripts/run-tsx.mjs --test tests/unit/cstar-kernel-mcp/test_forge_durable_execution.test.ts
+runtime: node v25.8.1; npm 11.11.0
+exit_status: 1
+suite: CStar durable Forge public path
+tests: 5
+passed: 4
+failed: 1
+failure: records one authorized request, preserves ambiguous spend, and replays without another invocation
+failure_location: tests/unit/cstar-kernel-mcp/test_forge_durable_execution.test.ts:392
+failure_assertion: driftResult.isError expected true, actual undefined
+classification: unrelated existing dirty-work expectation; the durable test has no diff from HEAD, and the Forge execution sources on that path have no diff from HEAD or the three-file scoped change. The failure occurs before host-workflow receipt derivation is reached.
+scope: documented for review only; not represented as a passing manifest check

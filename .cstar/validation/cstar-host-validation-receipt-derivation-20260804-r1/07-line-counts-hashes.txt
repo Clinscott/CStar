@@ -1,0 +1,10 @@
+command: wc -l; sha256sum; stat -c %s
+runtime: node v25.8.1; npm 11.11.0
+production_source_lines: 492 src/tools/cstar-kernel-mcp/tools/host_workflow_validation.ts
+focused_test_lines: 438 tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts
+documentation_lines: 1476 docs/integrations/cstar-kernel-mcp.md
+line_limit_result: production and focused-test source files are <=500 lines; documentation count recorded as context
+artifact_1: src/tools/cstar-kernel-mcp/tools/host_workflow_validation.ts; sha256=d22a022f2406e3bf3057e00e377f89f193f801c31738dc72e557f4c5729edfab; bytes=22024
+artifact_2: tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts; sha256=c746f59784f9cb9e7abc7add473971112e50b561400d55318f64738687a2f522; bytes=19104
+artifact_3: docs/integrations/cstar-kernel-mcp.md; sha256=412de860488f533ffa88dcf91c52e11fc47eb8ddb749c28f1bf2dc31fb44cb91; bytes=78070
+scoped_diff_files: exactly the three expected files

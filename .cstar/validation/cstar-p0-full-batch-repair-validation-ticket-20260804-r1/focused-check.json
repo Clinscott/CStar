@@ -1,0 +1,30 @@
+{
+  "schema": "cstar.independent_validation_check.v1",
+  "validation_id": "validation:cstar-p0-full-batch-repair-validation-ticket-20260804-r1",
+  "bead_id": "bead:mcp:repair-aggregate-full-suite-spoke-root-and-valid-msfahzq7",
+  "check": "focused_repair_validation_ticket_and_spoke_root",
+  "status": "pass",
+  "runtime": {
+    "path_prefix": "/home/morderith/.nvm/versions/node/v25.8.1/bin:$PATH",
+    "node": "v25.8.1",
+    "command_launcher": "node scripts/run-tsx.mjs"
+  },
+  "command": "node scripts/run-tsx.mjs --test tests/unit/cstar-kernel-mcp/test_code_control_root_separation.test.ts tests/unit/cstar-kernel-mcp/test_forge_legacy_v2_public_path.test.ts tests/unit/cstar-kernel-mcp/test_terminal_forge_validation_linkage.test.ts tests/unit/cstar-kernel-mcp/test_validation_evidence_type_boundary.test.ts tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts tests/unit/cstar-kernel-mcp/test_validation_ticket_spoke_result.test.ts",
+  "counts": {
+    "tests": 38,
+    "suites": 6,
+    "passed": 38,
+    "failed": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "verified_contracts": [
+    "registered-spoke validation evidence resolves under the bead repository root while Hall state remains on the control root",
+    "legacy Forge v2 public continuity issues and consumes a one-use independent-validator ticket",
+    "ticket binding covers repository, bead, execution receipt, attempt, exact target scope, validator identity, expiry, and nonce",
+    "ticket replay, wrong-validator, wrong-scope, wrong-receipt, expiry, malformed-token, and rollback paths fail closed",
+    "Forge positive validation requires verified evidence and a validation ticket",
+    "owned tests retain the original replay, request-integrity, runtime-drift, and root-separation assertions"
+  ]
+}

@@ -1,0 +1,108 @@
+{
+  "schema": "cstar.researcher_callback_derived_validation_checks.v1",
+  "bead_id": "bead:mcp:repair-cstar-researcher-request-so-the-kernel-de-msg5pl64",
+  "validation_id": "validation:cstar-researcher-callback-derived-20260805-r1",
+  "requested_model": "gpt-5.6-luna",
+  "actual_model": "unreported",
+  "worktree": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803",
+  "source_review": {
+    "status": "pass",
+    "line_limit": 500,
+    "artifacts": [
+      {
+        "path": "src/tools/cstar-kernel-mcp/contracts/schemas.ts",
+        "sha256": "259728283efdb653f21f8ffdcc587bbe922d8563bf64bc830e66b6c2467f85a3",
+        "bytes": 8690,
+        "lines": 132
+      },
+      {
+        "path": "src/tools/cstar-kernel-mcp/tools/dispatch_request.ts",
+        "sha256": "09d2da4b3f6f5bb6ecc6b2fac5bc1b116c4d1fef9c7c538368613483e431a600",
+        "bytes": 14469,
+        "lines": 360
+      },
+      {
+        "path": "tests/unit/cstar-kernel-mcp/test_dispatch_requests.test.ts",
+        "sha256": "95179ce157a1bfe8338c7b593215c90aad53155bd8cc95276eef8f8aa1b1dd0d",
+        "bytes": 15714,
+        "lines": 327
+      }
+    ]
+  },
+  "checks": [
+    {
+      "name": "focused_callback_dispatch_authority_and_catalog_suite",
+      "status": "pass",
+      "command": "PATH=/home/morderith/.nvm/versions/node/v25.8.1/bin:$PATH node scripts/run-tsx.mjs --test --test-concurrency=2 tests/unit/cstar-kernel-mcp/test_dispatch_requests.test.ts tests/unit/cstar-kernel-mcp/test_dispatch_action_authority.test.ts tests/unit/cstar-kernel-mcp/test_tool_catalog.test.ts",
+      "exit_code": 0,
+      "counts": {
+        "tests": 29,
+        "suites": 3,
+        "passed": 29,
+        "failed": 0,
+        "skipped": 0,
+        "cancelled": 0
+      }
+    },
+    {
+      "name": "typecheck",
+      "status": "fail",
+      "command": "PATH=/home/morderith/.nvm/versions/node/v25.8.1/bin:$PATH npm run typecheck",
+      "exit_code": 2,
+      "error_count": 13,
+      "errors": [
+        "src/tools/cstar-kernel-mcp/tools/forge_adapter_invocation.ts:86:28 callback_contract possibly undefined",
+        "src/tools/cstar-kernel-mcp/tools/forge_adapters.ts:298:17 callback_contract possibly undefined",
+        "src/tools/cstar-kernel-mcp/tools/forge_adapters.ts:306:21 callback_contract possibly undefined",
+        "src/tools/cstar-kernel-mcp/tools/forge_adapters.ts:370:17 callback_contract possibly undefined",
+        "src/tools/cstar-kernel-mcp/tools/forge_adapters.ts:411:25 callback_contract possibly undefined",
+        "src/tools/cstar-kernel-mcp/tools/forge_request_contract.ts:257:30 callback_contract possibly undefined",
+        "src/tools/cstar-kernel-mcp/tools/forge_request_contract.ts:258:32 callback_contract possibly undefined",
+        "src/tools/cstar-kernel-mcp/tools/forge_request_contract.ts:259:33 callback_contract possibly undefined",
+        "src/tools/cstar-kernel-mcp/tools/reliability_loop.ts:328:31 value.lifecycle is unknown",
+        "src/tools/cstar-kernel-mcp/tools/reliability_loop.ts:375:22 parsed.limits is unknown",
+        "src/tools/cstar-kernel-mcp/tools/result.ts:360:15 sprt_verdict unknown is incompatible with string | undefined",
+        "src/tools/cstar-kernel-mcp/tools/result.ts:382:47 sprt_verdict unknown is incompatible with string | undefined",
+        "src/tools/cstar-kernel-mcp/tools/result.ts:408:47 sprt_verdict unknown is incompatible with string | undefined"
+      ]
+    },
+    {
+      "name": "git_diff_check",
+      "status": "pass",
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "name": "touched_source_and_test_line_budget",
+      "status": "pass",
+      "line_limit": 500,
+      "line_counts": {
+        "src/tools/cstar-kernel-mcp/contracts/schemas.ts": 132,
+        "src/tools/cstar-kernel-mcp/tools/dispatch_request.ts": 360,
+        "tests/unit/cstar-kernel-mcp/test_dispatch_requests.test.ts": 327
+      }
+    }
+  ],
+  "reviewed_contract": {
+    "researcher_callback_may_be_omitted": "pass",
+    "forge_request_and_execute_callbacks_remain_runtime_strict": "pass",
+    "derived_callback_is_single_decision_bound_and_source_thread_bound": "pass",
+    "explicit_legacy_callback_compatibility": "pass",
+    "missing_source_callback_thread_fails_closed": "pass",
+    "authority_spend_execution_source_retry_and_hidden_dispatch_unchanged": "pass"
+  },
+  "verdict": "REJECTED",
+  "defects": [
+    "Repository typecheck fails with 13 TypeScript errors. The callback-contract errors show adjacent Forge implementation still assumes the shared request type is always defined; reliability_loop and result also have unresolved unknown-type errors. The implementation cannot be accepted until typecheck is clean."
+  ],
+  "operations": {
+    "source_edited": false,
+    "cstar_invoked": false,
+    "forge_invoked": false,
+    "researcher_invoked": false,
+    "git_mutated": false,
+    "restart_performed": false,
+    "install_performed": false,
+    "provider_work_performed": false
+  }
+}

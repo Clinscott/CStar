@@ -1,0 +1,343 @@
+{
+  "schema": "cstar.validation.independent_luna_max_runtime_lineage_revalidation.v1",
+  "validation_id": "luna-max-independent-runtime-lineage-codex-host-batch1-20260803-r2",
+  "verdict": "ACCEPT",
+  "decision_id": "decision:cstar-state-only-luna-host-seam-batch1-20260803",
+  "bead_id": "bead:cstar:state-only-luna-host-seam-batch1-20260803:parent:02-runner-transport-contracts",
+  "worktree": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803",
+  "head": "afbbc1770ec6a7a2adc15b83f91c5586ac2525c0",
+  "validator": {
+    "persona": "Luna Max",
+    "role": "fresh distinct independent validator",
+    "requested_model": "gpt-5.6-luna",
+    "requested_reasoning": "max",
+    "selector_status": "enforced",
+    "actual_identity": null,
+    "actual_identity_status": "unreported",
+    "goal_thread_id": "019fca2e-9af2-7e40-9ba2-1594eea24a84",
+    "goal_owned_by_validator": true,
+    "host_goal_count": 1
+  },
+  "instructions_read": [
+    "/home/morderith/.codex/AGENTS.md",
+    "/home/morderith/Corvus/AGENTS.md",
+    "/home/morderith/Corvus/CStar/AGENTS.md",
+    "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/AGENTS.md",
+    "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.agents/AGENTS.feature",
+    "/home/morderith/Corvus/.agents/skills/sovereign-bead-workflow/SKILL.md",
+    "/home/morderith/.codex/plugins/cache/corvus-local/corvus-star/1.0.2/skills/corvus-star/SKILL.md"
+  ],
+  "receipt_binding": {
+    "r2_builder_receipt": {
+      "path": ".cstar/validation/runtime-lineage/contracts/runtime-lineage-contract-builder-20260803-r2.json",
+      "expected_sha256": "071075dd0e706581c098ef1f8f7df4b69f2033f793fb2c8e10d107b66e32829d",
+      "actual_sha256": "071075dd0e706581c098ef1f8f7df4b69f2033f793fb2c8e10d107b66e32829d",
+      "match": true,
+      "schema": "cstar.runtime_lineage_contract_builder_receipt_correction.v1",
+      "revision": 2,
+      "status": "READY_FOR_INDEPENDENT_REVALIDATION"
+    },
+    "prior_builder_receipt": {
+      "path": ".cstar/validation/runtime-lineage/contracts/runtime-lineage-contract-builder-20260803.json",
+      "expected_sha256": "5363a20a8a67b7e1fa04d95cc5d9b90dd81f91eefd15364d146bc082f5400a78",
+      "actual_sha256": "5363a20a8a67b7e1fa04d95cc5d9b90dd81f91eefd15364d146bc082f5400a78",
+      "match": true,
+      "preserved_unchanged": true
+    },
+    "prior_independent_reject": {
+      "path": ".cstar/validation/runtime-lineage/independent/luna-max-independent-runtime-lineage-codex-host-batch1-20260803.json",
+      "expected_sha256": "b45819e905d98761f1ca7b9f30323a478b048c9f79bec6d6459b1912ef63eee8",
+      "actual_sha256": "b45819e905d98761f1ca7b9f30323a478b048c9f79bec6d6459b1912ef63eee8",
+      "match": true,
+      "preserved_unchanged": true,
+      "finding": "prior REJECT was limited to the malformed 62-character expected postimage digest"
+    },
+    "dependency_receipt": {
+      "path": ".cstar/validation/runtime-lineage/dependencies/node-modules-materialization-20260803.json",
+      "expected_sha256": "6631b5a173bd70038f73b35ef2f3f20e4c190d3205a911f8dfd199ce8dc26689",
+      "actual_sha256": "6631b5a173bd70038f73b35ef2f3f20e4c190d3205a911f8dfd199ce8dc26689",
+      "match": true,
+      "status": "verified",
+      "preserved_unchanged": true
+    },
+    "outer_hashes_verified": true
+  },
+  "postimage_validation": {
+    "declared_count": 9,
+    "matching_count": 9,
+    "mismatching_count": 0,
+    "all_declared_digests_64_lowercase_hex": true,
+    "source_hash_passes": 2,
+    "source_hash_passes_equal": true,
+    "corrected_runtime_lineage_sha256": "a44c6669801048ff0ec326bfa776cd577f2b50940379b4f720665f620cb11113",
+    "postimages": [
+      {
+        "path": "src/tools/cstar-kernel-mcp/contracts/runtime_lineage.ts",
+        "sha256": "a44c6669801048ff0ec326bfa776cd577f2b50940379b4f720665f620cb11113",
+        "current_match": true
+      },
+      {
+        "path": "src/tools/cstar-kernel-mcp/contracts/runtime_lineage_forge.ts",
+        "sha256": "4cd69cc299d2a238d9c21c8df5cd01d1a2acd223d9bae514ca77ec7ce6cdfdf1",
+        "current_match": true
+      },
+      {
+        "path": "src/tools/cstar-kernel-mcp/contracts/worker_jobs.ts",
+        "sha256": "521e729590c875668ee42dfedbd2232721294764481b1d16369b2a3cbec2794e",
+        "current_match": true
+      },
+      {
+        "path": ".agents/skills/corvus-forge/runtime/host-manifest.json",
+        "sha256": "63ff3b31feb9991501c0cd3a4a300cc4bb1f259145e9781e9d6f03409c8d69ef",
+        "current_match": true
+      },
+      {
+        "path": ".agents/skills/corvus-forge/runtime/host-manifest.schema.json",
+        "sha256": "bdeeae11caaff13209ab45306a84d5354d7f170341b44e6563d57a2db7c3ab78",
+        "current_match": true
+      },
+      {
+        "path": ".agents/skills/corvus-forge/scripts/codex_host_runtime_lineage.mjs",
+        "sha256": "12aa42315ac98396fc7438cf14065b611bff3f152fbf763ce8277412943535c0",
+        "current_match": true
+      },
+      {
+        "path": "tests/features/cstar_autonomous_hermes_dispatch_policy.feature",
+        "sha256": "7aa983df0c74a3821d835279c41a684be3aef752d10ab4f79d5785cf48b80641",
+        "current_match": true
+      },
+      {
+        "path": "tests/unit/cstar-kernel-mcp/test_forge_runtime_readiness.test.ts",
+        "sha256": "42ce333447b07d19b0567b1c5df16380a15c01f162d4b1596847f3164095328b",
+        "current_match": true
+      },
+      {
+        "path": "tests/unit/cstar-kernel-mcp/test_runtime_lineage_codex_host.test.ts",
+        "sha256": "c53f91aff5b0e1cde71979c97f79c1a7d01297205be80a4fb56d576eecea054a",
+        "current_match": true
+      }
+    ]
+  },
+  "source_drift_validation": {
+    "prior_independent_behavioral_report": ".cstar/validation/runtime-lineage/independent/luna-max-independent-runtime-lineage-codex-host-batch1-20260803.json",
+    "prior_report_source_hashes_compared": 12,
+    "prior_report_source_hashes_matched": 12,
+    "prior_report_source_hashes_mismatched": 0,
+    "source_test_manifest_dependency_drift_since_prior_behavioral_validation": false,
+    "source_diff_fingerprint": {
+      "command": "git diff --binary -- src/tools/cstar-kernel-mcp/contracts/runtime_lineage.ts src/tools/cstar-kernel-mcp/contracts/worker_jobs.ts tests/unit/cstar-kernel-mcp/test_forge_runtime_readiness.test.ts | sha256sum",
+      "expected_sha256": "7db3100ba94a0c00de11bc5a0859ac1fffe403d4e7ba09697f22b3a21f1b72e3",
+      "actual_sha256": "7db3100ba94a0c00de11bc5a0859ac1fffe403d4e7ba09697f22b3a21f1b72e3",
+      "match": true,
+      "source_bytes_changed_by_correction": false
+    },
+    "source_hashes": [
+      {
+        "path": "src/tools/cstar-kernel-mcp/contracts/runtime_lineage.ts",
+        "sha256": "a44c6669801048ff0ec326bfa776cd577f2b50940379b4f720665f620cb11113",
+        "lines": 431
+      },
+      {
+        "path": "src/tools/cstar-kernel-mcp/contracts/runtime_lineage_forge.ts",
+        "sha256": "4cd69cc299d2a238d9c21c8df5cd01d1a2acd223d9bae514ca77ec7ce6cdfdf1",
+        "lines": 378
+      },
+      {
+        "path": "src/tools/cstar-kernel-mcp/contracts/worker_jobs.ts",
+        "sha256": "521e729590c875668ee42dfedbd2232721294764481b1d16369b2a3cbec2794e",
+        "lines": 218
+      },
+      {
+        "path": "src/tools/cstar-kernel-mcp/register_core_tools.ts",
+        "sha256": "8bc232ab4f850e16ac90f60cc5a678f180c0d3d557dbabfad6c4f54317f6a804",
+        "lines": 465
+      },
+      {
+        "path": "src/tools/cstar-kernel-mcp/tools/augury.ts",
+        "sha256": "730a14ef36ade50c1ede25cead3f28c0340c158fa61c51dbf28c15fe0100994b",
+        "lines": 417
+      },
+      {
+        "path": "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_signal.ts",
+        "sha256": "e0cf3af76e1669f3656b7ef6b39e7588f5e5450583e13c14d360ef3258154cf0",
+        "lines": 498
+      },
+      {
+        "path": "tests/features/cstar_autonomous_hermes_dispatch_policy.feature",
+        "sha256": "7aa983df0c74a3821d835279c41a684be3aef752d10ab4f79d5785cf48b80641",
+        "lines": 25
+      },
+      {
+        "path": "tests/unit/cstar-kernel-mcp/test_forge_runtime_readiness.test.ts",
+        "sha256": "42ce333447b07d19b0567b1c5df16380a15c01f162d4b1596847f3164095328b",
+        "lines": 472
+      },
+      {
+        "path": "tests/unit/cstar-kernel-mcp/test_runtime_lineage_codex_host.test.ts",
+        "sha256": "c53f91aff5b0e1cde71979c97f79c1a7d01297205be80a4fb56d576eecea054a",
+        "lines": 270
+      },
+      {
+        "path": ".agents/skills/corvus-forge/runtime/host-manifest.json",
+        "sha256": "63ff3b31feb9991501c0cd3a4a300cc4bb1f259145e9781e9d6f03409c8d69ef",
+        "lines": 28
+      },
+      {
+        "path": ".agents/skills/corvus-forge/runtime/host-manifest.schema.json",
+        "sha256": "bdeeae11caaff13209ab45306a84d5354d7f170341b44e6563d57a2db7c3ab78",
+        "lines": 59
+      },
+      {
+        "path": ".agents/skills/corvus-forge/scripts/codex_host_runtime_lineage.mjs",
+        "sha256": "12aa42315ac98396fc7438cf14065b611bff3f152fbf763ce8277412943535c0",
+        "lines": 102
+      }
+    ]
+  },
+  "dependency_drift_validation": {
+    "receipt_status": "verified",
+    "node_modules_realpath": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/node_modules",
+    "node_modules_symlinked": false,
+    "package_json_sha256": "fce32d009f4600c5f37475b1c329fa603205e33ccf20389365f9d106cb60f210",
+    "package_lock_sha256": "17444f155c3c718d9a9d4197b7c6b794314b2c13a653f48a98fdc6737dbbf270",
+    "installed_package_lock_sha256": "ac6407c2a376b9afab1dc1f8ffb043170cf6c6810d83c60d4d35fa25777c52f3",
+    "native_artifact": {
+      "path": "node_modules/better-sqlite3/build/Release/better_sqlite3.node",
+      "sha256": "2cbc7eb7f9da445e6221244aeae015716659780944ce165e428046c7b2bc78eb",
+      "bytes": 2139624,
+      "node25_runtime_smoke": "verified"
+    },
+    "dependency_lineage": "verified_lock_match",
+    "inventory": {
+      "expected_packages": 727,
+      "installed_packages": 642,
+      "omitted_incompatible_optional_packages": 85,
+      "mismatch_count": 0,
+      "mismatch_reasons": []
+    },
+    "drift": false
+  },
+  "behavioral_runtime_binding": {
+    "prior_report_verdict": "REJECT",
+    "prior_report_rejection_scope": "receipt-binding defect only; one malformed 62-character expected postimage digest",
+    "prior_focused_checks": "46 tests, 6 suites, 46 passed, 0 failed",
+    "prior_broader_checks": "61 tests, 9 suites, 61 passed, 0 failed",
+    "prior_typecheck_exit_code": 0,
+    "prior_git_diff_check_exit_code": 0,
+    "prior_stable_hash_passes": 2,
+    "prior_stable_hash_passes_equal": true,
+    "current_source_hashes_match_prior_report": true,
+    "behavioral_checks_bound_to_same_final_bytes": true,
+    "behavior_tests_rerun": false,
+    "behavior_tests_not_rerun_reason": "receipt-only correction; all relevant source/test/manifest/dependency bytes and the exact source diff fingerprint are unchanged"
+  },
+  "standalone_mcp_probe": {
+    "launcher": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/bin/cstar-kernel-mcp.js",
+    "node": "v25.8.1",
+    "abi": "141",
+    "initialize": {
+      "exit_error": null,
+      "protocol_version": "2025-06-18",
+      "server": "cstar-kernel",
+      "server_version": "3.1.0"
+    },
+    "tools_list": {
+      "count": 28,
+      "cstar_doctor_present": true,
+      "cstar_status_present": true,
+      "cstar_record_result_called": false
+    },
+    "cstar_doctor": {
+      "status": "healthy",
+      "checks": {
+        "database": true,
+        "registry": true,
+        "augury": true,
+        "root_binding": true,
+        "dependency_lineage": true,
+        "forge_runtime_manifest": true,
+        "forge_readiness": true
+      },
+      "readiness": {
+        "kernel_root_binding": true,
+        "forge": true,
+        "forge_failures": []
+      },
+      "runtime_lineage": {
+        "binding_mode": "live_launcher",
+        "code_root": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803",
+        "control_root": "/home/morderith/Corvus/CStar",
+        "dependency_lineage": "verified_lock_match",
+        "forge_runtime_actionable": true,
+        "manifest_version": "host_v2",
+        "runner_owner": "codex-host",
+        "requested_model": "gpt-5.6-luna",
+        "requested_reasoning": "max",
+        "selector_status": "enforced",
+        "actual_identity": null,
+        "transport": "codex-host",
+        "executable_launcher_present": false,
+        "launcher_sha256": null,
+        "mismatch_reasons": []
+      }
+    },
+    "cstar_status": {
+      "workspace": "/home/morderith/Corvus/CStar",
+      "readiness": {
+        "kernel_root_binding": true,
+        "dependency_lineage": true,
+        "forge_runtime_manifest": true,
+        "forge": true,
+        "forge_failures": []
+      },
+      "runtime_lineage": {
+        "binding_mode": "live_launcher",
+        "code_root": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803",
+        "control_root": "/home/morderith/Corvus/CStar",
+        "dependency_lineage": "verified_lock_match",
+        "forge_runtime_actionable": true,
+        "manifest_version": "host_v2",
+        "runner_owner": "codex-host",
+        "requested_model": "gpt-5.6-luna",
+        "requested_reasoning": "max",
+        "selector_status": "enforced",
+        "actual_identity": null,
+        "transport": "codex-host",
+        "executable_launcher_present": false,
+        "launcher_sha256": null,
+        "mismatch_reasons": []
+      }
+    },
+    "stderr": [
+      "[cstar-kernel] exiting: SIGTERM"
+    ],
+    "fatal_stderr": [],
+    "non_json_stdout_lines": 0,
+    "process_exit_code": 0,
+    "provider_or_network_invoked": false,
+    "matches_prior_report_runtime_contract": true
+  },
+  "activation_requirement": {
+    "required_node_path": "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+    "required_node_version": "v25.8.1",
+    "required_module_abi": "141",
+    "default_node_version": "v26.5.0",
+    "default_module_abi": "147",
+    "native_artifact_sha256": "2cbc7eb7f9da445e6221244aeae015716659780944ce165e428046c7b2bc78eb",
+    "exact_activation_command": "CSTAR_CONTROL_ROOT=/home/morderith/Corvus/CStar /home/morderith/.nvm/versions/node/v25.8.1/bin/node /home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/bin/cstar-kernel-mcp.js",
+    "forbidden_substitution": "Do not activate with generic node/npm resolving to v26.5.0 and ABI 147; do not rebuild or reinstall better-sqlite3.",
+    "launcher_changed_by_this_validation": false
+  },
+  "prohibitions_observed": [
+    "read-only evidence inspection only",
+    "no CStar MCP lifecycle mutation, Hall write, SQLite write, or cstar_record_result call",
+    "no source, test, manifest, dependency, config, launcher, or Git index/history mutation",
+    "no install, rebuild, symlink, cleanup, destructive action, reload, restart, deployment, provider, network, or secret action"
+  ],
+  "report_write": {
+    "path": ".cstar/validation/runtime-lineage/independent/luna-max-independent-runtime-lineage-codex-host-batch1-20260803-r2.json",
+    "only_validator_owned_write": true,
+    "report_sha256": "computed after final report serialization and returned with the validation result",
+    "cstar_record_result": "not called"
+  }
+}

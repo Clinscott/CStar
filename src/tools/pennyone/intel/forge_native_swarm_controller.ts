@@ -1,0 +1,155 @@
+import { randomUUID } from 'node:crypto';
+import type Database from 'better-sqlite3';
+import {
+    assertIdentitySeparation,
+    FORGE_NATIVE_CONNECTION_ID,
+    FORGE_NATIVE_CONTROL_RECEIPT_SCHEMA,
+    FORGE_NATIVE_GENERATION,
+    FORGE_NATIVE_REQUESTED_MODEL,
+    FORGE_NATIVE_REQUESTED_REASONING,
+    FORGE_NATIVE_REQUEST_SCHEMA,
+    FORGE_NATIVE_RUN_STATES,
+    ForgeNativeError,
+    hashNative,
+    intersectNativeAuthority,
+    isCanonicalAbsolutePath,
+    stableNativeJson,
+    validateNativeCapabilities,
+    validateNativePlan,
+    type ForgeNativeAuthorityScope,
+    type ForgeNativeControlReceipt,
+    type ForgeNativePlan,
+    type ForgeNativeRequest,
+    type ForgeNativeRunState,
+    type ForgeNativeWorkerPackage,
+    type ForgeNativeWorkerReceipt,
+    type NativeAuthorityIntersectionInput,
+    type NativeAuthorityIntersectionResult,
+    type NativePlanValidationResult,
+} from '../../../types/forge_native_swarm.js';
+import type { ForgeNativeAuthorization } from '../../../types/forge_native_swarm.js';
+import {
+    assertForgeNativeSchemaPresent,
+    NATIVE_CONNECTION_GENERATIONS_TABLE,
+    NATIVE_RUNS_TABLE,
+    NATIVE_WORKER_RECEIPTS_TABLE,
+} from './forge_native_swarm_schema.js';
+import { assertNativeGenerationActive } from './forge_native_swarm_authority.js';
+
+export { hashNative, intersectNativeAuthority, stableNativeJson, validateNativeCapabilities, validateNativePlan } from '../../../types/forge_native_swarm.js';
+export type { NativeAuthorityIntersectionInput, NativeAuthorityIntersectionResult, NativePlanValidationResult } from '../../../types/forge_native_swarm.js';
+const ID = /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,191}$/;
+const DIGEST = /^[a-f0-9]{64}$/;
+export type StoredNativeRun = {
+    run_id: string; request_id: string; request_sha256: string; connection_id: string; generation: number; set_batch_id: string;
+    authority_scope_json: string; source_identity_json: string; idempotency_key: string; lease_id: string; lease_expires_at: number;
+    state: ForgeNativeRunState; plan_sha256: string | null; worker_package_json: string; control_receipt_json: string;
+    aggregate_receipt_json: string | null; completion_fingerprint_sha256: string | null; unresolved_gaps_json: string; created_at: number; updated_at: number; completed_at: number | null;
+};
+export type ReserveNativeRunInput = {
+    request: ForgeNativeRequest;
+    authorization: ForgeNativeAuthorization;
+    now?: number;
+    run_id?: string;
+    evidence_root?: string;
+};
+export type ReserveNativeRunResult = { replayed: boolean; run: StoredNativeRun; worker_package: ForgeNativeWorkerPackage; control_receipt: ForgeNativeControlReceipt };
+function assertId(value: unknown, name: string): asserts value is string { if (typeof value !== 'string' || !ID.test(value)) throw new ForgeNativeError(`forge_native_${name}_invalid`); }
+function assertDigest(value: unknown, name: string): asserts value is string { if (typeof value !== 'string' || !DIGEST.test(value)) throw new ForgeNativeError(`forge_native_${name}_invalid`); }
+function readRun(db: Database.Database, runId: string): StoredNativeRun {
+    assertId(runId, 'run_id'); const row = db.prepare(`SELECT * FROM ${NATIVE_RUNS_TABLE} WHERE run_id = ?`).get(runId) as StoredNativeRun | undefined;
+    if (!row) throw new ForgeNativeError('forge_native_run_missing'); return row;
+}
+function validateRequest(request: ForgeNativeRequest, now: number): void {
+    if (request.schema !== FORGE_NATIVE_REQUEST_SCHEMA || request.authority.connection_id !== FORGE_NATIVE_CONNECTION_ID) throw new ForgeNativeError('forge_native_request_schema_invalid');
+    assertId(request.authority.request_id, 'request_id'); assertDigest(request.authority.request_sha256, 'request_sha256'); assertId(request.idempotency_key, 'idempotency_key');
+    if (request.requested_identity.model !== FORGE_NATIVE_REQUESTED_MODEL || request.requested_identity.reasoning !== FORGE_NATIVE_REQUESTED_REASONING) throw new ForgeNativeError('forge_native_requested_identity_policy_mismatch');
+    if (!Number.isSafeInteger(request.deadline_at) || request.deadline_at <= now) throw new ForgeNativeError('forge_native_deadline_invalid');
+    if (!isCanonicalAbsolutePath(request.evidence_root ?? '')) throw new ForgeNativeError('forge_native_evidence_root_missing');
+    validateNativeCapabilities(request.capabilities);
+}
+function verifyAuthorization(request: ForgeNativeRequest, authorization: ForgeNativeAuthorization): NativeAuthorityIntersectionResult {
+    if (authorization.schema !== 'cstar.forge_native_swarm_authorization.v1' || authorization.request_id !== request.authority.request_id || authorization.request_sha256 !== request.authority.request_sha256) throw new ForgeNativeError('forge_native_authorization_binding_invalid');
+    if (authorization.actual_identity !== 'unreported' || authorization.actual_identity_attested) throw new ForgeNativeError('forge_native_actual_identity_invalid');
+    const intersection = intersectNativeAuthority({ durable_set: request.authority, immutable_request: authorization.authority, connection_policy: request.authority, run_lease: authorization.authority });
+    if (intersection.scope_sha256 !== authorization.scope_sha256) throw new ForgeNativeError('forge_native_scope_digest_mismatch');
+    return intersection;
+}
+function workerPackage(request: ForgeNativeRequest, runId: string, scope: ForgeNativeAuthorityScope): ForgeNativeWorkerPackage {
+    return {
+        schema: 'cstar.forge_native_worker_package.v1', run_id: runId,
+        work_package_id: `native-package-${hashNative({ runId, request: scope }).slice(0, 32)}`,
+        goal: request.goal, acceptance: request.acceptance, execution_root: scope.execution_root,
+        source_identity: { repository: scope.source_repository, head: scope.source_head }, read_allowlist: scope.read_allowlist,
+        write_allowlist: scope.write_allowlist, test_allowlist: scope.test_allowlist, protected_effect_exclusions: scope.effect_exclusions,
+        topology_ceiling: { parent: 1, leaves: 3, descendants: 0 }, requested_identity: { model: FORGE_NATIVE_REQUESTED_MODEL, reasoning: FORGE_NATIVE_REQUESTED_REASONING },
+        evidence_root: request.evidence_root!, deadline_at: request.deadline_at,
+    };
+}
+function controlReceipt(request: ForgeNativeRequest, runId: string, leaseId: string, expires: number): ForgeNativeControlReceipt {
+    return { schema: FORGE_NATIVE_CONTROL_RECEIPT_SCHEMA, run_id: runId, request_id: request.authority.request_id, lease_id: leaseId, lease_expires_at: expires, cancellation_secret_sha256: hashNative({ runId, leaseId, request_sha256: request.authority.request_sha256 }) };
+}
+function replay(db: Database.Database, existing: StoredNativeRun, request: ForgeNativeRequest): ReserveNativeRunResult {
+    const pkg = JSON.parse(existing.worker_package_json) as ForgeNativeWorkerPackage;
+    if (existing.request_sha256 !== request.authority.request_sha256 || existing.connection_id !== request.authority.connection_id || existing.idempotency_key !== request.idempotency_key || pkg.evidence_root !== request.evidence_root) throw new ForgeNativeError('forge_native_conflicting_replay');
+    return { replayed: true, run: existing, worker_package: pkg, control_receipt: JSON.parse(existing.control_receipt_json) as ForgeNativeControlReceipt };
+}
+export function reserveForgeNativeRun(db: Database.Database, input: ReserveNativeRunInput): ReserveNativeRunResult {
+    assertForgeNativeSchemaPresent(db);
+    if (input.evidence_root !== undefined) throw new ForgeNativeError('forge_native_evidence_root_caller_forbidden');
+    const now = input.now ?? Date.now(); if (!Number.isSafeInteger(now)) throw new ForgeNativeError('forge_native_time_invalid');
+    validateRequest(input.request, now); const request = input.request; const authScope = verifyAuthorization(request, input.authorization);
+    assertNativeGenerationActive(db, request.authority.connection_id, request.authority.generation ?? FORGE_NATIVE_GENERATION);
+    const row = db.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'hall_forge_requests'").get();
+    if (!row || !db.prepare('SELECT 1 FROM hall_forge_requests WHERE request_id = ? AND request_sha256 = ?').get(request.authority.request_id, request.authority.request_sha256)) throw new ForgeNativeError('forge_native_request_missing');
+    const existing = db.prepare(`SELECT * FROM ${NATIVE_RUNS_TABLE} WHERE request_id = ? OR idempotency_key = ?`).get(request.authority.request_id, request.idempotency_key) as StoredNativeRun | undefined;
+    if (existing) return replay(db, existing, request);
+    const runId = input.run_id ?? `native-run-${hashNative({ request_id: request.authority.request_id, request_sha256: request.authority.request_sha256 }).slice(0, 32)}`;
+    if (runId !== `native-run-${hashNative({ request_id: request.authority.request_id, request_sha256: request.authority.request_sha256 }).slice(0, 32)}`) throw new ForgeNativeError('forge_native_run_id_caller_forbidden');
+    const leaseId = `native-lease-${randomUUID()}`; const expiry = Math.min(request.deadline_at, now + 900_000); const pkg = workerPackage(request, runId, authScope.effective_scope); const receipt = controlReceipt(request, runId, leaseId, expiry);
+    const record: StoredNativeRun = { run_id: runId, request_id: request.authority.request_id, request_sha256: request.authority.request_sha256, connection_id: request.authority.connection_id, generation: request.authority.generation ?? FORGE_NATIVE_GENERATION, set_batch_id: authScope.effective_scope.set_batch_id, authority_scope_json: stableNativeJson(authScope.effective_scope), source_identity_json: stableNativeJson(request.source_identity), idempotency_key: request.idempotency_key, lease_id: leaseId, lease_expires_at: expiry, state: 'RESERVED', plan_sha256: null, worker_package_json: stableNativeJson(pkg), control_receipt_json: stableNativeJson(receipt), aggregate_receipt_json: null, completion_fingerprint_sha256: null, unresolved_gaps_json: '[]', created_at: now, updated_at: now, completed_at: null };
+    try {
+        db.prepare(`INSERT INTO ${NATIVE_RUNS_TABLE} (run_id, request_id, request_sha256, connection_id, generation, set_batch_id, authority_scope_json, source_identity_json, idempotency_key, lease_id, lease_expires_at, state, plan_sha256, worker_package_json, control_receipt_json, aggregate_receipt_json, completion_fingerprint_sha256, unresolved_gaps_json, created_at, updated_at, completed_at) VALUES (@run_id, @request_id, @request_sha256, @connection_id, @generation, @set_batch_id, @authority_scope_json, @source_identity_json, @idempotency_key, @lease_id, @lease_expires_at, @state, @plan_sha256, @worker_package_json, @control_receipt_json, @aggregate_receipt_json, @completion_fingerprint_sha256, @unresolved_gaps_json, @created_at, @updated_at, @completed_at)`).run(record);
+    } catch (error) {
+        const raced = db.prepare(`SELECT * FROM ${NATIVE_RUNS_TABLE} WHERE request_id = ? OR idempotency_key = ?`).get(request.authority.request_id, request.idempotency_key) as StoredNativeRun | undefined;
+        if (raced) return replay(db, raced, request); throw error;
+    }
+    return { replayed: false, run: record, worker_package: pkg, control_receipt: receipt };
+}
+export function getForgeNativeRun(db: Database.Database, runId: string): StoredNativeRun { assertForgeNativeSchemaPresent(db); return readRun(db, runId); }
+export function nativeRunScope(db: Database.Database, runId: string): ForgeNativeAuthorityScope { return JSON.parse(readRun(db, runId).authority_scope_json) as ForgeNativeAuthorityScope; }
+export function nativeRunPackage(db: Database.Database, runId: string): ForgeNativeWorkerPackage { return JSON.parse(readRun(db, runId).worker_package_json) as ForgeNativeWorkerPackage; }
+export function nativeRunControlReceipt(db: Database.Database, runId: string): ForgeNativeControlReceipt { return JSON.parse(readRun(db, runId).control_receipt_json) as ForgeNativeControlReceipt; }
+export function updateForgeNativeRunState(db: Database.Database, runId: string, state: ForgeNativeRunState, gaps: string[] = []): StoredNativeRun {
+    assertForgeNativeSchemaPresent(db); if (!(FORGE_NATIVE_RUN_STATES as readonly string[]).includes(state)) throw new ForgeNativeError('forge_native_run_state_invalid');
+    const run = readRun(db, runId); if (run.state === 'UNKNOWN' && state !== 'UNKNOWN') throw new ForgeNativeError('forge_native_unknown_frozen'); if (run.state === 'DELIVERED_UNVERIFIED' && state !== 'DELIVERED_UNVERIFIED') throw new ForgeNativeError('forge_native_run_terminal'); if (run.state === 'CANCELLED' && state !== 'CANCELLED') throw new ForgeNativeError('forge_native_run_terminal');
+    const completed = ['CANCELLED', 'UNKNOWN', 'DELIVERED_UNVERIFIED'].includes(state) ? Date.now() : null;
+    db.prepare(`UPDATE ${NATIVE_RUNS_TABLE} SET state = ?, unresolved_gaps_json = ?, updated_at = ?, completed_at = ? WHERE run_id = ?`).run(state, stableNativeJson([...new Set(gaps)].sort()), Date.now(), completed, runId);
+    return readRun(db, runId);
+}
+export function markForgeNativeRunUnknown(db: Database.Database, runId: string, reason: string): StoredNativeRun { if (!reason.trim()) throw new ForgeNativeError('forge_native_unknown_reason_missing'); return updateForgeNativeRunState(db, runId, 'UNKNOWN', [reason.trim()]); }
+export function cancelForgeNativeRun(db: Database.Database, runId: string, control: ForgeNativeControlReceipt): StoredNativeRun {
+    const run = readRun(db, runId); if (control.schema !== FORGE_NATIVE_CONTROL_RECEIPT_SCHEMA || control.run_id !== run.run_id || control.request_id !== run.request_id || control.lease_id !== run.lease_id || control.cancellation_secret_sha256 !== JSON.parse(run.control_receipt_json).cancellation_secret_sha256) throw new ForgeNativeError('forge_native_control_receipt_invalid');
+    if (run.state === 'UNKNOWN') throw new ForgeNativeError('forge_native_unknown_frozen'); if (run.state === 'DELIVERED_UNVERIFIED' || run.state === 'CANCELLED') return run;
+    return updateForgeNativeRunState(db, runId, 'CANCEL_REQUESTED');
+}
+export type RecordNativeWorkerReceiptInput = { run_id: string; plan: ForgeNativePlan; receipt: ForgeNativeWorkerReceipt; host_actual_identity?: string; host_actual_identity_attested?: boolean };
+export function recordForgeNativeWorkerReceipt(db: Database.Database, input: RecordNativeWorkerReceiptInput): { replayed: boolean; receipt: ForgeNativeWorkerReceipt } {
+    assertForgeNativeSchemaPresent(db); const run = readRun(db, input.run_id); if (run.state === 'UNKNOWN' || run.state === 'CANCELLED' || run.state === 'DELIVERED_UNVERIFIED') throw new ForgeNativeError('forge_native_run_terminal');
+    if (input.receipt.run_id !== input.run_id || input.receipt.schema !== 'cstar.forge_native_worker_receipt.v1' || input.receipt.descendants.length) throw new ForgeNativeError('forge_native_worker_receipt_binding_invalid');
+    const expected = input.receipt.role === 'parent' ? input.plan.parent_task_id === input.receipt.task_id : input.plan.work_items.some((item) => item.work_item_id === input.receipt.work_item_id);
+    if (!expected) throw new ForgeNativeError('forge_native_worker_receipt_work_item_unknown');
+    const identity = assertIdentitySeparation(input.receipt.requested_identity, input.host_actual_identity ?? input.receipt.actual_identity, input.host_actual_identity_attested ?? input.receipt.actual_identity_attested);
+    if (identity.actual_identity !== input.receipt.actual_identity) throw new ForgeNativeError('forge_native_actual_identity_drift');
+    const receiptHash = hashNative({ ...input.receipt, evidence_sha256: '' }); if (receiptHash !== input.receipt.evidence_sha256) throw new ForgeNativeError('forge_native_worker_receipt_digest_mismatch');
+    const existing = db.prepare(`SELECT receipt_json, receipt_sha256 FROM ${NATIVE_WORKER_RECEIPTS_TABLE} WHERE run_id = ? AND (work_item_id = ? OR idempotency_key = ? OR task_id = ?)`).get(input.run_id, input.receipt.work_item_id, input.receipt.work_item_id, input.receipt.task_id) as { receipt_json?: string; receipt_sha256?: string } | undefined;
+    if (existing) { if (existing.receipt_sha256 !== receiptHash || existing.receipt_json !== stableNativeJson(input.receipt)) throw new ForgeNativeError('forge_native_worker_receipt_replay_conflict'); return { replayed: true, receipt: JSON.parse(existing.receipt_json!) as ForgeNativeWorkerReceipt }; }
+    db.prepare(`INSERT INTO ${NATIVE_WORKER_RECEIPTS_TABLE} (receipt_id, run_id, work_item_id, idempotency_key, task_id, parent_task_id, role, state, receipt_sha256, receipt_json, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(`native-receipt-${randomUUID()}`, input.run_id, input.receipt.work_item_id, input.receipt.work_item_id, input.receipt.task_id, input.receipt.parent_task_id, input.receipt.role, input.receipt.status, receiptHash, stableNativeJson(input.receipt), Date.now());
+    db.prepare(`UPDATE ${NATIVE_RUNS_TABLE} SET state = 'RUNNING', updated_at = ? WHERE run_id = ? AND state IN ('RESERVED', 'PLANNED')`).run(Date.now(), input.run_id);
+    return { replayed: false, receipt: input.receipt };
+}
+export function listForgeNativeWorkerReceipts(db: Database.Database, runId: string): ForgeNativeWorkerReceipt[] { assertForgeNativeSchemaPresent(db); return (db.prepare(`SELECT receipt_json FROM ${NATIVE_WORKER_RECEIPTS_TABLE} WHERE run_id = ? ORDER BY created_at, receipt_id`).all(runId) as Array<{ receipt_json: string }>).map((row) => JSON.parse(row.receipt_json) as ForgeNativeWorkerReceipt); }
+export function recordForgeNativePlan(db: Database.Database, runId: string, plan: ForgeNativePlan, scope: ForgeNativeAuthorityScope): NativePlanValidationResult {
+    assertForgeNativeSchemaPresent(db); const run = readRun(db, runId); if (run.state === 'UNKNOWN' || run.state === 'CANCELLED' || run.state === 'DELIVERED_UNVERIFIED') throw new ForgeNativeError('forge_native_run_terminal'); if (plan.run_id !== runId) throw new ForgeNativeError('forge_native_plan_run_mismatch'); const validated = validateNativePlan(plan, scope);
+    if (run.plan_sha256 && run.plan_sha256 !== validated.plan_sha256) throw new ForgeNativeError('forge_native_plan_replay_conflict'); if (!run.plan_sha256) db.prepare(`UPDATE ${NATIVE_RUNS_TABLE} SET plan_sha256 = ?, state = 'PLANNED', updated_at = ? WHERE run_id = ? AND plan_sha256 IS NULL`).run(validated.plan_sha256, Date.now(), runId); return validated;
+}
