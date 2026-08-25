@@ -1,0 +1,31 @@
+{
+  "validation_id": "validation:cstar-auto-p0-outcome-deadline-telemetry-20260804-r2",
+  "status": "pass",
+  "commands": [
+    {
+      "command": "node scripts/run-tsx.mjs --test tests/unit/cstar-kernel-mcp/test_instrumentation_mutation_identity.test.ts tests/unit/cstar-kernel-mcp/test_validation_evidence_type_boundary.test.ts tests/unit/cstar-kernel-mcp/test_telemetry_storage_boundary.test.ts tests/unit/cstar-kernel-mcp/test_response_contracts.test.ts tests/unit/cstar-kernel-mcp/test_kernel_surfaces_core.test.ts tests/unit/cstar-kernel-mcp/test_kernel_surfaces_spoke_telemetry.test.ts tests/unit/cstar-kernel-mcp/test_tool_catalog.test.ts",
+      "exit_code": 0,
+      "tests": 60,
+      "suites": 7,
+      "passed": 60,
+      "failed": 0
+    },
+    {
+      "command": "npm run typecheck",
+      "exit_code": 0,
+      "status": "pass"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "status": "pass"
+    }
+  ],
+  "compatibility": {
+    "instrumentation_authorization_boundary": "pass",
+    "validation_evidence_boundary": "pass",
+    "telemetry_storage_boundary": "pass",
+    "response_contract": "pass",
+    "kernel_surface_and_catalog": "pass"
+  }
+}

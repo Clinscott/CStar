@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "cstar.forge_host_runtime_manifest.v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "runtime_owner",
+    "runner_owner",
+    "workflow_surfaces",
+    "requested_model",
+    "requested_reasoning",
+    "selector_status",
+    "actual_identity",
+    "transport",
+    "host_launch_required",
+    "provider_attempted",
+    "network_policy",
+    "cognition_launch",
+    "cstar_launch",
+    "manifest_schema_path",
+    "generator_path",
+    "proof_files",
+    "receipt_schema",
+    "hash_algorithm"
+  ],
+  "properties": {
+    "schema": { "const": "cstar.forge_host_runtime_manifest.v2" },
+    "runtime_owner": { "const": "cstar-state-only" },
+    "runner_owner": { "const": "codex-host" },
+    "workflow_surfaces": {
+      "type": "array",
+      "items": { "enum": ["forge", "researcher"] },
+      "const": ["forge", "researcher"]
+    },
+    "requested_model": { "const": "gpt-5.6-luna" },
+    "requested_reasoning": { "const": "max" },
+    "selector_status": { "const": "enforced" },
+    "actual_identity": { "type": ["string", "null"] },
+    "transport": { "const": "codex-host" },
+    "host_launch_required": { "const": true },
+    "provider_attempted": { "const": false },
+    "network_policy": { "const": "codex_host_no_cstar_network" },
+    "cognition_launch": { "const": false },
+    "cstar_launch": { "const": false },
+    "manifest_schema_path": { "const": "host-manifest.schema.json" },
+    "generator_path": { "const": "scripts/codex_host_runtime_lineage.mjs" },
+    "proof_files": {
+      "type": "array",
+      "const": [
+        "runtime/host-manifest.json",
+        "runtime/host-manifest.schema.json",
+        "scripts/codex_host_runtime_lineage.mjs"
+      ]
+    },
+    "receipt_schema": { "const": "cstar.forge_host_runtime_receipt.v2" },
+    "hash_algorithm": { "const": "sha256" }
+  }
+}

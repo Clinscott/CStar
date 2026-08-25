@@ -18,6 +18,13 @@ import {
 } from './codex_session_locator.js';
 import { parseCodexTurnMetadata } from './operator_authorization.js';
 import { isForgeAuthorityRevocation } from './forge_revocation.js';
+import {
+    classifyCurrentTurnContinuation,
+    classifyReservedCurrentTurnRecord,
+    selectCurrentTurnRequesterPrefix,
+} from './forge_current_turn_continuation.js';
+
+export { classifyCurrentTurnContinuation } from './forge_current_turn_continuation.js';
 
 const AUTHORIZATION_AGE_MS = 24 * 60 * 60 * 1_000;
 const UNSAFE_TEXT = /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f\u061c\u200b-\u200f\u2028-\u202e\u2060-\u206f\ufeff]/u;
@@ -34,7 +41,12 @@ export interface VerifiedForgeOperatorIntent {
     session_record_sha256: string;
     session_record_set_sha256: string;
     session_record_count: number;
-    binding_mode: 'ordinary_language' | 'exact_request_receipt' | 'exact_mission_record';
+    selected_record_set_sha256?: string;
+    binding_mode:
+        | 'ordinary_language'
+        | 'exact_request_receipt'
+        | 'exact_mission_record'
+        | 'current_turn_continuation';
     bound_request_id?: string;
     bound_request_sha256?: string;
     bound_decision_id?: string;
@@ -47,6 +59,7 @@ export interface StableForgeInstructionBinding {
     request_sha256: string;
     bead_id: string;
     decision_id: string;
+    requester_record_set_sha256?: string;
 }
 
 interface IntentRecord {
@@ -143,6 +156,18 @@ function isBoundForgeRevocation(text: string): boolean {
     return BOUND_SCOPED_NEGATION.test(text)
         || BOUND_FIRST_PERSON_NEGATION.test(text)
         || isForgeAuthorityRevocation(text);
+}
+
+function isCurrentTurnContinuationRecord(
+    text: string,
+    binding: StableForgeInstructionBinding,
+): boolean {
+    try {
+        classifyCurrentTurnContinuation(text, binding);
+        return true;
+    } catch {
+        return false;
+    }
 }
 
 export function classifyBoundForgeIntent(
@@ -287,29 +312,46 @@ export async function verifyCurrentForgeOperatorIntent(
     let matchingRecords: IntentRecord[];
     if (turn.recordCount === 1) {
         currentRecord = intentRecords[0]!;
-        classified = classifyForgeIntent(currentRecord.text);
-        bindingMode = 'ordinary_language';
         matchingRecords = [currentRecord];
+        try {
+            classified = classifyForgeIntent(currentRecord.text);
+            bindingMode = 'ordinary_language';
+        } catch (error) {
+            if (!stableBinding) throw error;
+            classified = classifyCurrentTurnContinuation(currentRecord.text, stableBinding);
+            bindingMode = 'current_turn_continuation';
+        }
     } else {
         if (!stableBinding) {
             throw new Error('forge_operator_intent_exact_request_binding_required');
         }
-        if (intentRecords.some((record) => isBoundForgeRevocation(record.text))) {
+        const reservedKinds = new Map(intentRecords.map((record) => [
+            record.recordSha256,
+            classifyReservedCurrentTurnRecord(record.text),
+        ]));
+        if ([...reservedKinds.values()].includes('malformed_wrapper')) {
+            throw new Error('forge_operator_intent_subagent_notification_malformed');
+        }
+        const authorityRecords = intentRecords.filter((record) =>
+            !reservedKinds.get(record.recordSha256)?.startsWith('reserved_'));
+        if (authorityRecords.some((record) => isBoundForgeRevocation(record.text))) {
             throw new Error('forge_operator_intent_negated');
         }
         const missionDecisionId = stableBinding.decision_id.replace(
             /-i[1-9][0-9]*-[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$/,
             '',
         );
-        const receiptRecords = intentRecords.filter((record) =>
+        const receiptRecords = authorityRecords.filter((record) =>
             includesExactIdentifier(record.text, stableBinding.request_id)
             && includesExactIdentifier(record.text, stableBinding.request_sha256)
             && includesExactIdentifier(record.text, stableBinding.bead_id));
-        const missionRecords = intentRecords.filter((record) =>
+        const missionRecords = authorityRecords.filter((record) =>
             includesExactIdentifier(record.text, missionDecisionId)
             && includesExactIdentifier(record.text, stableBinding.bead_id));
+        const continuationRecords = authorityRecords.filter((record) =>
+            isCurrentTurnContinuationRecord(record.text, stableBinding));
         matchingRecords = [...new Map(
-            [...receiptRecords, ...missionRecords]
+            [...receiptRecords, ...missionRecords, ...continuationRecords]
                 .map((record) => [record.recordSha256, record]),
         ).values()];
         if (matchingRecords.length === 0) {
@@ -319,11 +361,21 @@ export async function verifyCurrentForgeOperatorIntent(
             throw new Error('forge_operator_intent_exact_request_binding_ambiguous');
         }
         currentRecord = matchingRecords[0]!;
-        bindingMode = receiptRecords.some(
+        if (continuationRecords.some(
             (record) => record.recordSha256 === currentRecord.recordSha256,
-        )
-            ? 'exact_request_receipt' : 'exact_mission_record';
-        classified = classifyBoundForgeIntent(currentRecord.text, stableBinding, bindingMode);
+        )) {
+            if (authorityRecords.length !== 1) {
+                throw new Error('forge_operator_intent_current_turn_continuation_extra_record');
+            }
+            bindingMode = 'current_turn_continuation';
+            classified = classifyCurrentTurnContinuation(currentRecord.text, stableBinding);
+        } else {
+            bindingMode = receiptRecords.some(
+                (record) => record.recordSha256 === currentRecord.recordSha256,
+            )
+                ? 'exact_request_receipt' : 'exact_mission_record';
+            classified = classifyBoundForgeIntent(currentRecord.text, stableBinding, bindingMode);
+        }
     }
     const turnTimestamp = Date.parse(turn.timestamp);
     const expiresAt = turnTimestamp + AUTHORIZATION_AGE_MS;
@@ -372,6 +424,18 @@ export async function verifyCurrentForgeOperatorIntent(
         session_record_sha256: turn.recordSha256,
         session_record_set_sha256: turn.recordSetSha256,
         session_record_count: turn.recordCount,
+        selected_record_set_sha256: bindingMode === 'current_turn_continuation'
+            ? selectCurrentTurnRequesterPrefix({
+                thread_id: metadata.thread_id,
+                turn_id: metadata.turn_id,
+                requester_record_set_sha256: stableBinding!.requester_record_set_sha256,
+                operative_record_sha256: currentRecord.recordSha256,
+                records: intentRecords.map((record) => ({
+                    timestamp: record.timestamp,
+                    record_sha256: record.recordSha256,
+                })),
+            })
+            : undefined,
         binding_mode: bindingMode,
         bound_request_id: bindingMode !== 'ordinary_language'
             ? stableBinding!.request_id : undefined,

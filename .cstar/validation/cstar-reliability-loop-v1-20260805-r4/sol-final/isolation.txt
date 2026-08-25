@@ -1,0 +1,79 @@
+schema: cstar.independent_validation_isolation.v1
+validation_id: validation:cstar-reliability-loop-v1-20260805-r4-sol-final
+verdict: ACCEPTED
+
+runtime:
+  node_path: /home/morderith/.nvm/versions/node/v25.8.1/bin/node
+  node_version: v25.8.1
+  python_version: 3.12.3
+
+focused_node_command: /home/morderith/.nvm/versions/node/v25.8.1/bin/node scripts/run-tsx.mjs --test --test-concurrency=2 tests/unit/cstar-kernel-mcp/test_augury_bead_result.test.ts tests/unit/cstar-kernel-mcp/test_code_control_root_separation.test.ts tests/unit/cstar-kernel-mcp/test_dispatch_requests.test.ts tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts tests/unit/cstar-kernel-mcp/test_reliability_loop.test.ts tests/unit/cstar-kernel-mcp/test_reliability_loop_result.test.ts tests/unit/cstar-kernel-mcp/test_sterling_repository_root_binding.test.ts tests/unit/cstar-kernel-mcp/test_validation_evidence_root.test.ts tests/unit/cstar-kernel-mcp/test_validation_ticket_spoke_result.test.ts
+focused_node_exit_code: 0
+focused_node_test_files: 9
+focused_node_suites: 10
+focused_node_tests: 87
+focused_node_passed: 87
+focused_node_failed: 0
+focused_node_cancelled: 0
+focused_node_skipped: 0
+focused_node_todo: 0
+suite_counts:
+  augury_bead_telemetry_result: 19
+  code_control_root_separation: 7
+  dispatch_request_and_callback_gates: 18
+  host_workflow_independent_validation: 16
+  reliability_loop_pure_contract: 4
+  reliability_loop_continuation_states: 5
+  record_result_reliability_integration: 4
+  sterling_repository_root_binding: 1
+  validation_evidence_root: 6
+  one_use_validation_tickets: 7
+
+typecheck_command: PATH=/home/morderith/.nvm/versions/node/v25.8.1/bin:$PATH npm run typecheck
+typecheck_underlying_command: tsc --noEmit -p tsconfig.json
+typecheck_exit_code: 0
+
+python_command: TMPDIR=/tmp PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/unit/test_cstar_reliability_loop_skill.py
+python_exit_code: 0
+python_tests: 5
+python_passed: 5
+python_failed: 0
+python_duration_seconds: 0.06
+
+combined_fresh_tests: 92
+combined_fresh_passed: 92
+combined_fresh_failed: 0
+
+git_diff_check_command: git diff --check
+git_diff_check_exit_code: 0
+
+line_audit:
+  audited_files: 24
+  files_over_500_lines: 0
+  maximum_line_count: 500
+  src/node/core/sterling_mandate.ts: 286
+  src/tools/cstar-kernel-mcp/contracts/record_result_input.ts: 49
+  src/tools/cstar-kernel-mcp/contracts/schemas.ts: 132
+  src/tools/cstar-kernel-mcp/contracts/validation_evidence_root.ts: 27
+  src/tools/cstar-kernel-mcp/register_core_tools.ts: 444
+  src/tools/cstar-kernel-mcp/tools/bead.ts: 303
+  src/tools/cstar-kernel-mcp/tools/dispatch_request.ts: 365
+  src/tools/cstar-kernel-mcp/tools/reliability_loop.ts: 500
+  src/tools/cstar-kernel-mcp/tools/result.ts: 500
+  tests/unit/cstar-kernel-mcp/test_augury_bead_result.test.ts: 492
+  tests/unit/cstar-kernel-mcp/test_code_control_root_separation.test.ts: 297
+  tests/unit/cstar-kernel-mcp/test_dispatch_requests.test.ts: 352
+  tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts: 230
+  tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts: 461
+  tests/unit/cstar-kernel-mcp/test_reliability_loop.test.ts: 384
+  tests/unit/cstar-kernel-mcp/test_reliability_loop_result.test.ts: 154
+  tests/unit/cstar-kernel-mcp/test_sterling_repository_root_binding.test.ts: 213
+  tests/unit/cstar-kernel-mcp/test_terminal_forge_validation_linkage.test.ts: 230
+  tests/unit/cstar-kernel-mcp/test_validation_evidence_root.test.ts: 95
+  tests/unit/cstar-kernel-mcp/test_validation_ticket_spoke_result.test.ts: 461
+  tests/unit/cstar-kernel-mcp/test_worker_job_lifecycle_binding.test.ts: 367
+  tests/unit/test_cstar_reliability_loop_skill.py: 103
+  tests/unit/test_cstar_sprt_autoresearcher.py: 381
+  tests/unit/test_cstar_sprt_autoresearcher_gungnir.py: 200
+
+isolation_conclusion: all prescribed execution, root-binding, callback, legacy, controller, and size gates pass on frozen r4 bytes

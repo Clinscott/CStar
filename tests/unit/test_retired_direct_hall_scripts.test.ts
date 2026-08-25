@@ -7,6 +7,10 @@ import { describe, it } from 'node:test';
 import { execa } from 'execa';
 
 import { resolveTsxLaunch } from '../../scripts/runtime-env.mjs';
+import { getCstarKernelToolCatalogEntry }
+    from '../../src/tools/cstar-kernel-mcp/contracts/tool_catalog.js';
+import { retiredForgeHostCompletionResponse }
+    from '../../src/tools/cstar-kernel-mcp/contracts/responses.js';
 
 
 const PROJECT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -71,5 +75,37 @@ describe('retired direct Hall TypeScript scripts', () => {
         ]) {
             assert.doesNotMatch(source, new RegExp(forbidden.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
         }
+    });
+
+    it('keeps retired Forge generations as non-mutating tombstones, never active fallback', () => {
+        assert.equal(getCstarKernelToolCatalogEntry('cstar_forge_host_complete').toolClass, 'LEGACY');
+        const response = JSON.parse(retiredForgeHostCompletionResponse().content[0].text) as {
+            status?: string;
+            state_changed?: boolean;
+            fallback_allowed?: boolean;
+            replacement_connection_id?: string;
+        };
+        assert.deepEqual(response, {
+            ...response,
+            status: 'retired',
+            state_changed: false,
+            fallback_allowed: false,
+            replacement_connection_id: 'forge-native-codex-swarm-v1',
+        });
+
+        const activeContracts = [
+            '.agents/skills/corvus-forge/SKILL.md',
+            '.agents/AGENTS.feature',
+            'docs/integrations/cstar-kernel-mcp.md',
+            'docs/operations/corvus-forge-pipeline-playbook.md',
+            'docs/operations/corvus-forge-skill-spec.md',
+        ].map((relative) => fs.readFileSync(path.join(PROJECT_ROOT, relative), 'utf8')).join('\n');
+        assert.match(activeContracts, /forge-native-codex-swarm-v1/u);
+        for (const tool of ['plan', 'status', 'update', 'complete', 'cancel']) {
+            assert.match(activeContracts, new RegExp(`cstar_forge_swarm_${tool}`, 'u'));
+        }
+        assert.doesNotMatch(activeContracts,
+            /current[^\n]{0,100}(?:Codex-host|state-only handoff|Hermes|MiniMax)/iu);
+        assert.doesNotMatch(activeContracts, /gpt-5\.6-luna|DELIVERED_PENDING_VALIDATION/u);
     });
 });

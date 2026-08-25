@@ -1,0 +1,7 @@
+validation_id=validation:cstar-forge-authorization-child-fk-migration-20260804-r2
+validator_thread_id=019fcda2-a479-7dc2-a8a3-38b7ed6a35d7
+latest_turn_id=019fcda2-adbd-7753-9523-db2a8ada89d7
+requested_model=gpt-5.6-luna; requested_effort=max
+actual_model=gpt-5.6-luna; actual_effort=max
+identity_source=current_codex_session_turn_context
+

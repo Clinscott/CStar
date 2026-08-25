@@ -83,9 +83,14 @@ does not own CStar implementation, Forge delivery, or production rollout.
 ### Corvus Forge
 
 Corvus Forge builds implementation through the durable
-`cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute -> private Hermes cstar-hub ->
-minimax/MiniMax-M3` path. Its delivery remains unverified until independent
-validation is recorded through CStar. Forge does not approve its own rollout.
+`cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute -> Codex-host
+state-only handoff -> independent cstar_record_result` path. Current v3 records
+`runner_owner: "codex-host"`, requested `gpt-5.6-luna`/`max`, and separate
+host-attested actual identity; absent attestation is `unreported`/`null`. CStar
+does not launch provider, cognition, or CStar work at handoff. Private Hermes
+`cstar-hub`/MiniMax-M3 is retained only as explicit legacy v2 compatibility.
+Its delivery remains pending independent validation recorded through CStar. Forge
+does not approve its own rollout.
 
 ### CorvusEye
 
@@ -95,8 +100,9 @@ it does not perform the originating work it judges.
 
 ### MM
 
-MM is legacy and has no active estate-routing, synthesis, ownership, or relay
-role. Current work routes from CoS through CStar to the appropriate spoke.
+MM is inactive and has no active routing, synthesis, ownership, relay, review,
+or execution role. Current work routes from CoS through CStar to the appropriate
+spoke.
 
 ## Goal Lifecycle
 

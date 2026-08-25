@@ -1,0 +1,9 @@
+command: PATH=/home/morderith/.nvm/versions/node/v25.8.1/bin:$PATH npm run typecheck
+exit_status: 0
+output_begin
+
+> corvusstar@1.0.1 typecheck
+> tsc --noEmit -p tsconfig.json
+
+
+output_end

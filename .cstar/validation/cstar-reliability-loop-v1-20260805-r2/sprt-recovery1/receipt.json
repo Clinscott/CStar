@@ -1,0 +1,1217 @@
+{
+  "actual_model": null,
+  "actual_reasoning": null,
+  "autoresearcher": {
+    "failed_stage_fingerprints": [],
+    "mode": "proposal_only",
+    "next_action": "none"
+  },
+  "candidate_source_digest": "ae06b244fa1e142699e4b4d20d67cbdc544688f70d17e1b8b5c827cd25cb9b76",
+  "candidate_source_paths": [
+    ".agents/skills/cstar-reliability-loop/SKILL.md",
+    ".agents/skills/cstar-reliability-loop/references/reliability-continuation.schema.json",
+    "src/node/core/sterling_mandate.ts",
+    "src/tools/cstar-kernel-mcp/contracts/record_result_input.ts",
+    "src/tools/cstar-kernel-mcp/contracts/schemas.ts",
+    "src/tools/cstar-kernel-mcp/contracts/validation_evidence_root.ts",
+    "src/tools/cstar-kernel-mcp/register_core_tools.ts",
+    "src/tools/cstar-kernel-mcp/tools/bead.ts",
+    "src/tools/cstar-kernel-mcp/tools/dispatch_request.ts",
+    "src/tools/cstar-kernel-mcp/tools/reliability_loop.ts",
+    "src/tools/cstar-kernel-mcp/tools/result.ts",
+    "tests/features/cstar_reliability_loop.feature",
+    "tests/features/cstar_validation_evidence_root.feature"
+  ],
+  "checker_root": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803",
+  "command_argv": {
+    "full_lifecycle": [
+      "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+      "scripts/run-tsx.mjs",
+      "--test",
+      "--test-reporter=tap",
+      "tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_worker_job_lifecycle_binding.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_terminal_forge_validation_linkage.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts"
+    ],
+    "stage_pass": [
+      "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+      "scripts/run-tsx.mjs",
+      "--test",
+      "--test-reporter=tap",
+      "tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_worker_job_lifecycle_binding.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_terminal_forge_validation_linkage.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts"
+    ]
+  },
+  "command_argv_sha256": {
+    "full_lifecycle": "2abd1b9ddb4f4b7d213fa3081a2fce623e2fbe3722ef87032f1ce6c7962d8424",
+    "stage_pass": "2abd1b9ddb4f4b7d213fa3081a2fce623e2fbe3722ef87032f1ce6c7962d8424"
+  },
+  "cstar_acceptance": "UNVERIFIED",
+  "duration_ms": 46566.55974703608,
+  "external_effects": {
+    "deployment": false,
+    "direct_hall_sqlite_writes": false,
+    "git_mutation": false,
+    "install_activation_restart": false,
+    "live_mcp": false,
+    "live_provider": false,
+    "live_source": false,
+    "network": false,
+    "production": false,
+    "receipt_write": true,
+    "secrets_or_config": false
+  },
+  "failed": 0,
+  "failed_stage_fingerprints": [],
+  "gungnir": {
+    "aggregate_evidence_sha256": "ebbb57bf505d78c580bd1ffd1bef4a3abf31b698ae4ff288b9fbaea270368f9e",
+    "authority": "heuristic_evidence_only",
+    "candidate_count": 13,
+    "candidate_source_paths": [
+      ".agents/skills/cstar-reliability-loop/SKILL.md",
+      ".agents/skills/cstar-reliability-loop/references/reliability-continuation.schema.json",
+      "src/node/core/sterling_mandate.ts",
+      "src/tools/cstar-kernel-mcp/contracts/record_result_input.ts",
+      "src/tools/cstar-kernel-mcp/contracts/schemas.ts",
+      "src/tools/cstar-kernel-mcp/contracts/validation_evidence_root.ts",
+      "src/tools/cstar-kernel-mcp/register_core_tools.ts",
+      "src/tools/cstar-kernel-mcp/tools/bead.ts",
+      "src/tools/cstar-kernel-mcp/tools/dispatch_request.ts",
+      "src/tools/cstar-kernel-mcp/tools/reliability_loop.ts",
+      "src/tools/cstar-kernel-mcp/tools/result.ts",
+      "tests/features/cstar_reliability_loop.feature",
+      "tests/features/cstar_validation_evidence_root.feature"
+    ],
+    "canonical_sources": {
+      "engine": {
+        "path": "src/core/engine/gungnir/calculus.ts",
+        "sha256": "0a4a8157096ba66f053056640bdda6085b213fbc19f07de58aced2034b323d87"
+      },
+      "matrix_schema": {
+        "path": "src/types/gungnir.ts",
+        "sha256": "c7f886a9c07da7b8a78129af9415d1bee7e0d32783d4c46c900f870f869dbd28"
+      }
+    },
+    "excluded_count": 2,
+    "exclusions": [
+      {
+        "path": "tests/features/cstar_reliability_loop.feature",
+        "reason": "unsupported_extension",
+        "source_sha256": "ec7719d36f330e7b4512cd2047b6507507485946573baef4b12b81e438e92fab"
+      },
+      {
+        "path": "tests/features/cstar_validation_evidence_root.feature",
+        "reason": "unsupported_extension",
+        "source_sha256": "69b039a4ca9af6c74df87c536b3115dc9a5fd91f1e18a747a5760e54e8c1d217"
+      }
+    ],
+    "formula": "arithmetic_mean(records[*].matrix.overall) over scored_count",
+    "overall_score": 9.502863636363637,
+    "process": {
+      "duration_ms": 243.772974994499,
+      "exit_code": 0,
+      "spawn_error": null,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "fc166157fd78022235c1a41034305a5e15a230fd3177df1056d9c5ddbed80aed",
+      "timed_out": false
+    },
+    "process_evidence": {
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "fc166157fd78022235c1a41034305a5e15a230fd3177df1056d9c5ddbed80aed"
+    },
+    "records": [
+      {
+        "breaches": [],
+        "coverage": "heuristic",
+        "evidence_sha256": "5ab043a421901daa90f8a43850a0385201e146ff3f384467ce1b5d2aa8b23b5e",
+        "extension": ".md",
+        "matrix": {
+          "aesthetic": 10,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 10,
+          "gravity": 0,
+          "intel": 10,
+          "logic": 10,
+          "overall": 10,
+          "sovereignty": 10,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": ".agents/skills/cstar-reliability-loop/SKILL.md",
+        "source_sha256": "54ea0de97b0e5ada81bf8d5d697cb962d354029e09da3aa6a94322cabacf8e2f"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.data.nesting",
+            "message": "GUNGNIR_DATA_BREACH: Excessive data nesting (Depth: 7). Refactor for readability.",
+            "severity": "HIGH"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "2645a091a9b342342383509fe0b43e20819aca67c480d1866dc16cd16634c0ed",
+        "extension": ".json",
+        "matrix": {
+          "aesthetic": 9.1667,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.375,
+          "gravity": 0,
+          "intel": 7.5,
+          "logic": 10,
+          "overall": 9.349,
+          "sovereignty": 9.2188,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": ".agents/skills/cstar-reliability-loop/references/reliability-continuation.schema.json",
+        "source_sha256": "ae462ae308ada26cde61d5b516e74c5e9537ef9a6065e909029e3859fd4c00eb"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "ca5483d18cb30351d0b3bfb0a626437c6008504df7717f94d1fb07928cb6a67e",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/node/core/sterling_mandate.ts",
+        "source_sha256": "2cb1c515b25cd997890bf304609e61d43dfb185569e8c1a9d27a068b3195561e"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "8eeaea11814b5d04f162682b1e0978f092b22d87a84741f2a9cc70689566f89d",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/cstar-kernel-mcp/contracts/record_result_input.ts",
+        "source_sha256": "573b019c9e79533d603969a3fd3606b07ed23113db1e16c8d98ec4f9c58968bb"
+      },
+      {
+        "breaches": [
+          {
+            "code": "logic.script.complexity",
+            "message": "GUNGNIR_LOGIC_BREACH: High average branch complexity (16.0).",
+            "severity": "HIGH"
+          },
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "style.script.line-length",
+            "message": "GUNGNIR_STYLE_BREACH: Source contains a line longer than 180 characters.",
+            "severity": "LOW"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "32abe7306ce00554f851e27e5f2445ad0233a055eccabc4446af6af58bd42bc9",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 8.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 8.875,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 7.5,
+          "overall": 8.8281,
+          "sovereignty": 8.5938,
+          "stability": 7.5,
+          "style": 9.5,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/cstar-kernel-mcp/contracts/schemas.ts",
+        "source_sha256": "259728283efdb653f21f8ffdcc587bbe922d8563bf64bc830e66b6c2467f85a3"
+      },
+      {
+        "breaches": [],
+        "coverage": "heuristic",
+        "evidence_sha256": "a1e68d5690628b6ed0de303923373ce99bd9bef35ab42ca9226c9f490dea46d2",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 10,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 10,
+          "gravity": 0,
+          "intel": 10,
+          "logic": 10,
+          "overall": 10,
+          "sovereignty": 10,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/cstar-kernel-mcp/contracts/validation_evidence_root.ts",
+        "source_sha256": "1731998ce42232317b681f1b4efb142997f1fa9834b917441ab644c298f23a20"
+      },
+      {
+        "breaches": [
+          {
+            "code": "logic.script.coupling",
+            "message": "GUNGNIR_COUPLING_BREACH: Over-entangled (30 imports).",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "style.script.line-length",
+            "message": "GUNGNIR_STYLE_BREACH: Source contains a line longer than 180 characters.",
+            "severity": "LOW"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "08a9154dec9bcd8d0b25b28571ce7cd82099f026c9a6889710fd0b90abc4f75a",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 8.8333,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.125,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 8.5,
+          "overall": 9.0886,
+          "sovereignty": 8.9063,
+          "stability": 8.5,
+          "style": 9.5,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/cstar-kernel-mcp/register_core_tools.ts",
+        "source_sha256": "07fae8a93cd41cf9064bffe80122986bc8efbd819d659a4ff20e6b2ffb005eaa"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.01).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "62613f4861962dc9f1cad79e7f40542050c492f36919d67ddb0848904d68a535",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/cstar-kernel-mcp/tools/bead.ts",
+        "source_sha256": "85a3f5b09f9ead714ebc8e10bcd95aba4c87b5773e04c42659453d2b8d30dd9b"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "88e2d71dab6ec4688248b4b084f08079bdb9c59490b6239eb4f6d6287cb344fd",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/cstar-kernel-mcp/tools/dispatch_request.ts",
+        "source_sha256": "960fe4af7342f3c08300a65c7733f16fe6fe3d2bbde1a9c4d49d9c2b6debfc69"
+      },
+      {
+        "breaches": [
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "924539f1f534c3856129215e4fdc1d869604b7a08a1cbf2c46c869f349d53d5a",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9.5,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.625,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 10,
+          "overall": 9.6094,
+          "sovereignty": 9.5313,
+          "stability": 10,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/cstar-kernel-mcp/tools/reliability_loop.ts",
+        "source_sha256": "ff91bc417a8c5e3e7ed5c0cf201fc3e8b17bc3dddbf428a7d1bd2d1d293d3c1f"
+      },
+      {
+        "breaches": [
+          {
+            "code": "logic.script.coupling",
+            "message": "GUNGNIR_COUPLING_BREACH: Over-entangled (14 imports).",
+            "severity": "MEDIUM"
+          },
+          {
+            "code": "intel.script.documentation",
+            "message": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00).",
+            "severity": "MEDIUM"
+          }
+        ],
+        "coverage": "heuristic",
+        "evidence_sha256": "691d63da3764a23f3ffd514f5efb25f601e944383fa9237c55839f550b7b9975",
+        "extension": ".ts",
+        "matrix": {
+          "aesthetic": 9,
+          "anomaly": 0,
+          "coupling": 0,
+          "evolution": 9.25,
+          "gravity": 0,
+          "intel": 8.5,
+          "logic": 8.5,
+          "overall": 9.2188,
+          "sovereignty": 9.0625,
+          "stability": 8.5,
+          "style": 10,
+          "version": "1.0",
+          "vigil": 10
+        },
+        "path": "src/tools/cstar-kernel-mcp/tools/result.ts",
+        "source_sha256": "7c3a4874f3cdb3e18c4fc6ffd0cffba117c3d784cbd5f3d6327e86ce2b495147"
+      }
+    ],
+    "schema": "cstar.gungnir_evidence.v1",
+    "score_scale": {
+      "max": 10,
+      "min": 0
+    },
+    "scored_count": 11,
+    "scorer_command": {
+      "argv_sha256": "1dacb6a9e29eaf9d542a540d858793ce01f786ce54ba3aea1dba7d72fcc0af66",
+      "fixed_scorer_command_sha256": "d58561b54f173a940d4231e4684556322d5e84a52067b88176fbbc4cceadf0dd",
+      "node_path": "/home/morderith/.nvm/versions/node/v25.8.1/bin/node"
+    },
+    "valid": true,
+    "version": "1.0"
+  },
+  "lifecycle": {
+    "authorization": true,
+    "closeout_terminal": true,
+    "cstar_acceptance_authority": "independent_cstar_record_result_required",
+    "cstar_record_result_called": false,
+    "delivered_unverified": true,
+    "independent_validation_record_result": true,
+    "request": true,
+    "synthetic_execute": true
+  },
+  "lifecycle_source_digest": "14fc4103d6cfd38bbd8a66109c59155f9d60c4a94cebf5f08bb05c274eda417e",
+  "lifecycle_source_paths": [
+    "scripts/run-tsx.mjs",
+    "tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_terminal_forge_validation_linkage.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_worker_job_lifecycle_binding.test.ts"
+  ],
+  "limits": {
+    "effective": {
+      "max_trials": 12,
+      "per_process_timeout_seconds": 120.0,
+      "total_wall_seconds": 900.0
+    },
+    "hard": {
+      "max_trials": 12,
+      "per_process_timeout_seconds": 120.0,
+      "total_wall_seconds": 900.0
+    }
+  },
+  "model_identity": {
+    "actual": null,
+    "requested": {
+      "model": "gpt-5.6-luna",
+      "reasoning": "max"
+    }
+  },
+  "node_runtime": {
+    "candidate_limit": 16,
+    "candidates": [
+      {
+        "path": "/home/morderith/.nvm/versions/node/v26.5.0/bin/node",
+        "source": "current_path"
+      },
+      {
+        "path": "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+        "source": "standard_nvm"
+      }
+    ],
+    "compatibility_smoke": "in_memory_select_1_no_write",
+    "discovered_count": 2,
+    "native_dependency": "better-sqlite3",
+    "policy": "path_then_standard_nvm_semver_desc_first_compatible_v1",
+    "probes": [
+      {
+        "argv": [
+          "/home/morderith/.nvm/versions/node/v26.5.0/bin/node",
+          "-e",
+          "const path = require('node:path');\nconst dependency = path.join(process.cwd(), 'node_modules', 'better-sqlite3');\nconst evidence = {\n  node_version: process.version,\n  modules_abi: process.versions.modules,\n  exec_path: process.execPath,\n  compatible: false\n};\ntry {\n  evidence.better_sqlite3_version = require(path.join(dependency, 'package.json')).version;\n  const Database = require(dependency);\n  const db = new Database(':memory:');\n  const row = db.prepare('SELECT 1 AS value').get();\n  db.close();\n  evidence.compatible = row.value === 1;\n  evidence.smoke = 'in_memory_select_1_no_write';\n} catch (error) {\n  evidence.error_code = error && (error.code || error.name) || 'native_dependency_error';\n}\nprocess.stdout.write(JSON.stringify(evidence));\nprocess.exitCode = evidence.compatible ? 0 : 1;\n"
+        ],
+        "argv_sha256": "bacd51a604712958aef76efdee77aaf3e3451311b58aa9d9fd6d04d5869f389e",
+        "better_sqlite3_version": "12.6.2",
+        "compatible": false,
+        "deadline_exhausted": false,
+        "duration_ms": 30.057073978242,
+        "error_code": "ERR_DLOPEN_FAILED",
+        "exit_code": 1,
+        "modules_abi": "147",
+        "node_version": "v26.5.0",
+        "path": "/home/morderith/.nvm/versions/node/v26.5.0/bin/node",
+        "selected": false,
+        "source": "current_path",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "a61e43540fe95a5523d7d8c84c634c19f48e186bacbff57f9a4f0064992c6acc",
+        "timed_out": false
+      },
+      {
+        "argv": [
+          "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+          "-e",
+          "const path = require('node:path');\nconst dependency = path.join(process.cwd(), 'node_modules', 'better-sqlite3');\nconst evidence = {\n  node_version: process.version,\n  modules_abi: process.versions.modules,\n  exec_path: process.execPath,\n  compatible: false\n};\ntry {\n  evidence.better_sqlite3_version = require(path.join(dependency, 'package.json')).version;\n  const Database = require(dependency);\n  const db = new Database(':memory:');\n  const row = db.prepare('SELECT 1 AS value').get();\n  db.close();\n  evidence.compatible = row.value === 1;\n  evidence.smoke = 'in_memory_select_1_no_write';\n} catch (error) {\n  evidence.error_code = error && (error.code || error.name) || 'native_dependency_error';\n}\nprocess.stdout.write(JSON.stringify(evidence));\nprocess.exitCode = evidence.compatible ? 0 : 1;\n"
+        ],
+        "argv_sha256": "8c2de6a7b6652fb6efbcf861c7a0cbcfa3e6027f324dee7b1a6b4bfde621bdf3",
+        "better_sqlite3_version": "12.6.2",
+        "compatible": true,
+        "deadline_exhausted": false,
+        "duration_ms": 28.825727000367,
+        "error_code": null,
+        "exit_code": 0,
+        "modules_abi": "141",
+        "node_version": "v25.8.1",
+        "path": "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+        "selected": true,
+        "source": "standard_nvm",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "796f476d1f4350e4fe692e91810c645c1a61ae9c1f53f571407e7b725a5856da",
+        "timed_out": false
+      }
+    ],
+    "selected": {
+      "argv_sha256": "8c2de6a7b6652fb6efbcf861c7a0cbcfa3e6027f324dee7b1a6b4bfde621bdf3",
+      "better_sqlite3_version": "12.6.2",
+      "modules_abi": "141",
+      "node_version": "v25.8.1",
+      "path": "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+      "source": "standard_nvm"
+    },
+    "selection_evidence_sha256": "e1939288330226b7276e6055f502bcf66b61a26b2766e382d50cf45906078163",
+    "smoke_is_no_write": true,
+    "smoke_source_sha256": "f3082e3c1375bb01f6f851f6ac9499df58a6aba43af617f9e09b6a339394d8e8",
+    "truncated": false
+  },
+  "passed": 11,
+  "requested_model": "gpt-5.6-luna",
+  "requested_reasoning": "max",
+  "runner_mode": "host_only_deterministic",
+  "schema": "cstar.workflow_sprt_autoresearcher.v1",
+  "sprt": {
+    "alpha": 0.05,
+    "beta": 0.1,
+    "failed": 0,
+    "llr": -2.344025370068,
+    "lower_boundary": -2.251291798606,
+    "p0": 0.01,
+    "p1": 0.2,
+    "passed": 11,
+    "raw_status": "ACCEPT",
+    "total": 11,
+    "upper_boundary": 2.890371757896
+  },
+  "sprt_verdict": "ACCEPTED",
+  "stage_coverage": {
+    "covered": [
+      "request",
+      "authorization",
+      "synthetic_execute",
+      "delivered_unverified",
+      "independent_validation_record_result",
+      "closeout_terminal"
+    ],
+    "full_lifecycle_trials": [
+      {
+        "covered": [
+          "request",
+          "authorization",
+          "synthetic_execute",
+          "delivered_unverified",
+          "independent_validation_record_result",
+          "closeout_terminal"
+        ],
+        "missing": [],
+        "trial": 1
+      },
+      {
+        "covered": [
+          "request",
+          "authorization",
+          "synthetic_execute",
+          "delivered_unverified",
+          "independent_validation_record_result",
+          "closeout_terminal"
+        ],
+        "missing": [],
+        "trial": 2
+      },
+      {
+        "covered": [
+          "request",
+          "authorization",
+          "synthetic_execute",
+          "delivered_unverified",
+          "independent_validation_record_result",
+          "closeout_terminal"
+        ],
+        "missing": [],
+        "trial": 3
+      },
+      {
+        "covered": [
+          "request",
+          "authorization",
+          "synthetic_execute",
+          "delivered_unverified",
+          "independent_validation_record_result",
+          "closeout_terminal"
+        ],
+        "missing": [],
+        "trial": 4
+      },
+      {
+        "covered": [
+          "request",
+          "authorization",
+          "synthetic_execute",
+          "delivered_unverified",
+          "independent_validation_record_result",
+          "closeout_terminal"
+        ],
+        "missing": [],
+        "trial": 5
+      },
+      {
+        "covered": [
+          "request",
+          "authorization",
+          "synthetic_execute",
+          "delivered_unverified",
+          "independent_validation_record_result",
+          "closeout_terminal"
+        ],
+        "missing": [],
+        "trial": 6
+      },
+      {
+        "covered": [
+          "request",
+          "authorization",
+          "synthetic_execute",
+          "delivered_unverified",
+          "independent_validation_record_result",
+          "closeout_terminal"
+        ],
+        "missing": [],
+        "trial": 7
+      },
+      {
+        "covered": [
+          "request",
+          "authorization",
+          "synthetic_execute",
+          "delivered_unverified",
+          "independent_validation_record_result",
+          "closeout_terminal"
+        ],
+        "missing": [],
+        "trial": 8
+      },
+      {
+        "covered": [
+          "request",
+          "authorization",
+          "synthetic_execute",
+          "delivered_unverified",
+          "independent_validation_record_result",
+          "closeout_terminal"
+        ],
+        "missing": [],
+        "trial": 9
+      },
+      {
+        "covered": [
+          "request",
+          "authorization",
+          "synthetic_execute",
+          "delivered_unverified",
+          "independent_validation_record_result",
+          "closeout_terminal"
+        ],
+        "missing": [],
+        "trial": 10
+      },
+      {
+        "covered": [
+          "request",
+          "authorization",
+          "synthetic_execute",
+          "delivered_unverified",
+          "independent_validation_record_result",
+          "closeout_terminal"
+        ],
+        "missing": [],
+        "trial": 11
+      }
+    ],
+    "missing": [],
+    "required": [
+      "request",
+      "authorization",
+      "synthetic_execute",
+      "delivered_unverified",
+      "independent_validation_record_result",
+      "closeout_terminal"
+    ],
+    "stage_pass": [
+      "request",
+      "authorization",
+      "synthetic_execute",
+      "delivered_unverified",
+      "independent_validation_record_result",
+      "closeout_terminal"
+    ]
+  },
+  "stage_pass": {
+    "argv": [
+      "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+      "scripts/run-tsx.mjs",
+      "--test",
+      "--test-reporter=tap",
+      "tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_worker_job_lifecycle_binding.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_terminal_forge_validation_linkage.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts"
+    ],
+    "cancelled_tests": 0,
+    "coverage": [
+      "request",
+      "authorization",
+      "synthetic_execute",
+      "delivered_unverified",
+      "independent_validation_record_result",
+      "closeout_terminal"
+    ],
+    "duration_ms": 3915.747769002337,
+    "evidence_hash": "6e027d68ad0647335517c66143d280479f0d867e2f9f36192e8cee9d6cce1962",
+    "exit_code": 0,
+    "failed_tests": 0,
+    "failure_reason": null,
+    "missing_stages": [],
+    "output_sha256": "342312944f76d4b135d12946f27696f5751c38c6063688cf5097e5a9d07f1a45",
+    "passed_tests": 29,
+    "skipped_tests": 0,
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "success": true,
+    "timed_out": false,
+    "todo_tests": 0,
+    "total_tests": 29
+  },
+  "stop_reason": "wald_stable",
+  "timeout_seconds": 120.0,
+  "total": 11,
+  "total_wall_seconds": 900.0,
+  "trial_hashes": [
+    "eadbc880f969116a9e1dcce6dca53703665bffec16e6485a78a2f9bff2ff6579",
+    "338f954f3fa953ece82f84aae6d0eeb0bbbe14d56790eb7deac0c45262175627",
+    "6c81af137078cafab42c7754b0c0d0f6e4dfdb8c9de180d7a6be6271b026bb49",
+    "49db0eab5484b9f4e052bd7b97adb6f7fd268b139f5ad267dd372c87c627d5fe",
+    "b2aa5c27484808518004b55ca5b0b673d7942e0e874ffe5d8a74f202a0040b5d",
+    "5ed73856027d7ae230eb8566a2fc683674d242e34647e43cd497f2020fdcef55",
+    "050a18f59dace9672969143fe8c7cd1afbb291731a453e6637ef2136373d3e9d",
+    "f971978a02c65b340ec2dfa85d5e4aee3e261945336025c99b3c2162ca2fe1cf",
+    "30b2a949ef1ec6eef237f493a8e530dbf0e3db73ce473501577c2a5958020092",
+    "8f8af0788f34be8dc0326cb21353d540978df948076e9474cabf2ebeccecba48",
+    "dd86c686ff1d3b49186b20f1f3353317b54338d23ff1687acc298982e637ce69"
+  ],
+  "trials": [
+    {
+      "argv": [
+        "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+        "scripts/run-tsx.mjs",
+        "--test",
+        "--test-reporter=tap",
+        "tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_worker_job_lifecycle_binding.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_terminal_forge_validation_linkage.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts"
+      ],
+      "cancelled_tests": 0,
+      "coverage": [
+        "request",
+        "authorization",
+        "synthetic_execute",
+        "delivered_unverified",
+        "independent_validation_record_result",
+        "closeout_terminal"
+      ],
+      "duration_ms": 3901.854829979129,
+      "exit_code": 0,
+      "failed_tests": 0,
+      "failure_reason": null,
+      "missing_stages": [],
+      "output_sha256": "0a19b899a7a74c090eafe203974c76b9ab883061d7e4ffa99b2e848398a0da68",
+      "passed_tests": 29,
+      "skipped_tests": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "success": true,
+      "timed_out": false,
+      "todo_tests": 0,
+      "total_tests": 29,
+      "trial": 1,
+      "trial_hash": "eadbc880f969116a9e1dcce6dca53703665bffec16e6485a78a2f9bff2ff6579"
+    },
+    {
+      "argv": [
+        "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+        "scripts/run-tsx.mjs",
+        "--test",
+        "--test-reporter=tap",
+        "tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_worker_job_lifecycle_binding.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_terminal_forge_validation_linkage.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts"
+      ],
+      "cancelled_tests": 0,
+      "coverage": [
+        "request",
+        "authorization",
+        "synthetic_execute",
+        "delivered_unverified",
+        "independent_validation_record_result",
+        "closeout_terminal"
+      ],
+      "duration_ms": 3828.574599989224,
+      "exit_code": 0,
+      "failed_tests": 0,
+      "failure_reason": null,
+      "missing_stages": [],
+      "output_sha256": "9ff7478b2a7ab52eabdcb3131c227e392aeda1ab25437c460f76ea3d8ae8b67c",
+      "passed_tests": 29,
+      "skipped_tests": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "success": true,
+      "timed_out": false,
+      "todo_tests": 0,
+      "total_tests": 29,
+      "trial": 2,
+      "trial_hash": "338f954f3fa953ece82f84aae6d0eeb0bbbe14d56790eb7deac0c45262175627"
+    },
+    {
+      "argv": [
+        "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+        "scripts/run-tsx.mjs",
+        "--test",
+        "--test-reporter=tap",
+        "tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_worker_job_lifecycle_binding.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_terminal_forge_validation_linkage.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts"
+      ],
+      "cancelled_tests": 0,
+      "coverage": [
+        "request",
+        "authorization",
+        "synthetic_execute",
+        "delivered_unverified",
+        "independent_validation_record_result",
+        "closeout_terminal"
+      ],
+      "duration_ms": 3797.249401977751,
+      "exit_code": 0,
+      "failed_tests": 0,
+      "failure_reason": null,
+      "missing_stages": [],
+      "output_sha256": "308b7f1e21b27245201dbf9b0529e2ecfae9cd30b3ea90a0f94bae1959201318",
+      "passed_tests": 29,
+      "skipped_tests": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "success": true,
+      "timed_out": false,
+      "todo_tests": 0,
+      "total_tests": 29,
+      "trial": 3,
+      "trial_hash": "6c81af137078cafab42c7754b0c0d0f6e4dfdb8c9de180d7a6be6271b026bb49"
+    },
+    {
+      "argv": [
+        "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+        "scripts/run-tsx.mjs",
+        "--test",
+        "--test-reporter=tap",
+        "tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_worker_job_lifecycle_binding.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_terminal_forge_validation_linkage.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts"
+      ],
+      "cancelled_tests": 0,
+      "coverage": [
+        "request",
+        "authorization",
+        "synthetic_execute",
+        "delivered_unverified",
+        "independent_validation_record_result",
+        "closeout_terminal"
+      ],
+      "duration_ms": 3789.34338799445,
+      "exit_code": 0,
+      "failed_tests": 0,
+      "failure_reason": null,
+      "missing_stages": [],
+      "output_sha256": "c866ad9de148bea32c371482adb116fb22d23bd7c1dd719f7426e9c57b2153fe",
+      "passed_tests": 29,
+      "skipped_tests": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "success": true,
+      "timed_out": false,
+      "todo_tests": 0,
+      "total_tests": 29,
+      "trial": 4,
+      "trial_hash": "49db0eab5484b9f4e052bd7b97adb6f7fd268b139f5ad267dd372c87c627d5fe"
+    },
+    {
+      "argv": [
+        "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+        "scripts/run-tsx.mjs",
+        "--test",
+        "--test-reporter=tap",
+        "tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_worker_job_lifecycle_binding.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_terminal_forge_validation_linkage.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts"
+      ],
+      "cancelled_tests": 0,
+      "coverage": [
+        "request",
+        "authorization",
+        "synthetic_execute",
+        "delivered_unverified",
+        "independent_validation_record_result",
+        "closeout_terminal"
+      ],
+      "duration_ms": 3849.824681004975,
+      "exit_code": 0,
+      "failed_tests": 0,
+      "failure_reason": null,
+      "missing_stages": [],
+      "output_sha256": "0e8dff9a6b9b744945247f96bbe19d7ff2b245d927ddf3f68f5b2694db953e1f",
+      "passed_tests": 29,
+      "skipped_tests": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "success": true,
+      "timed_out": false,
+      "todo_tests": 0,
+      "total_tests": 29,
+      "trial": 5,
+      "trial_hash": "b2aa5c27484808518004b55ca5b0b673d7942e0e874ffe5d8a74f202a0040b5d"
+    },
+    {
+      "argv": [
+        "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+        "scripts/run-tsx.mjs",
+        "--test",
+        "--test-reporter=tap",
+        "tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_worker_job_lifecycle_binding.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_terminal_forge_validation_linkage.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts"
+      ],
+      "cancelled_tests": 0,
+      "coverage": [
+        "request",
+        "authorization",
+        "synthetic_execute",
+        "delivered_unverified",
+        "independent_validation_record_result",
+        "closeout_terminal"
+      ],
+      "duration_ms": 3774.631851993036,
+      "exit_code": 0,
+      "failed_tests": 0,
+      "failure_reason": null,
+      "missing_stages": [],
+      "output_sha256": "543ccdfeb8167ae81b5df0e33069773453ecc6b6d4659e71ff3aab321c03d723",
+      "passed_tests": 29,
+      "skipped_tests": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "success": true,
+      "timed_out": false,
+      "todo_tests": 0,
+      "total_tests": 29,
+      "trial": 6,
+      "trial_hash": "5ed73856027d7ae230eb8566a2fc683674d242e34647e43cd497f2020fdcef55"
+    },
+    {
+      "argv": [
+        "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+        "scripts/run-tsx.mjs",
+        "--test",
+        "--test-reporter=tap",
+        "tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_worker_job_lifecycle_binding.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_terminal_forge_validation_linkage.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts"
+      ],
+      "cancelled_tests": 0,
+      "coverage": [
+        "request",
+        "authorization",
+        "synthetic_execute",
+        "delivered_unverified",
+        "independent_validation_record_result",
+        "closeout_terminal"
+      ],
+      "duration_ms": 3919.394367025234,
+      "exit_code": 0,
+      "failed_tests": 0,
+      "failure_reason": null,
+      "missing_stages": [],
+      "output_sha256": "c6bd2e7d4ff9e4903b871acc951fe29a03daf4ff4299ab91457aba31cfd1e852",
+      "passed_tests": 29,
+      "skipped_tests": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "success": true,
+      "timed_out": false,
+      "todo_tests": 0,
+      "total_tests": 29,
+      "trial": 7,
+      "trial_hash": "050a18f59dace9672969143fe8c7cd1afbb291731a453e6637ef2136373d3e9d"
+    },
+    {
+      "argv": [
+        "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+        "scripts/run-tsx.mjs",
+        "--test",
+        "--test-reporter=tap",
+        "tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_worker_job_lifecycle_binding.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_terminal_forge_validation_linkage.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts"
+      ],
+      "cancelled_tests": 0,
+      "coverage": [
+        "request",
+        "authorization",
+        "synthetic_execute",
+        "delivered_unverified",
+        "independent_validation_record_result",
+        "closeout_terminal"
+      ],
+      "duration_ms": 3817.411850031931,
+      "exit_code": 0,
+      "failed_tests": 0,
+      "failure_reason": null,
+      "missing_stages": [],
+      "output_sha256": "feed16c6668ddc7f5715418a63c567a3dc0a964e3bc9a51e6dec985f5f606935",
+      "passed_tests": 29,
+      "skipped_tests": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "success": true,
+      "timed_out": false,
+      "todo_tests": 0,
+      "total_tests": 29,
+      "trial": 8,
+      "trial_hash": "f971978a02c65b340ec2dfa85d5e4aee3e261945336025c99b3c2162ca2fe1cf"
+    },
+    {
+      "argv": [
+        "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+        "scripts/run-tsx.mjs",
+        "--test",
+        "--test-reporter=tap",
+        "tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_worker_job_lifecycle_binding.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_terminal_forge_validation_linkage.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts"
+      ],
+      "cancelled_tests": 0,
+      "coverage": [
+        "request",
+        "authorization",
+        "synthetic_execute",
+        "delivered_unverified",
+        "independent_validation_record_result",
+        "closeout_terminal"
+      ],
+      "duration_ms": 3808.275489020161,
+      "exit_code": 0,
+      "failed_tests": 0,
+      "failure_reason": null,
+      "missing_stages": [],
+      "output_sha256": "3dff244af6000a3c82f19a450defa2aa3e596d8449721f31bf74826004965eb6",
+      "passed_tests": 29,
+      "skipped_tests": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "success": true,
+      "timed_out": false,
+      "todo_tests": 0,
+      "total_tests": 29,
+      "trial": 9,
+      "trial_hash": "30b2a949ef1ec6eef237f493a8e530dbf0e3db73ce473501577c2a5958020092"
+    },
+    {
+      "argv": [
+        "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+        "scripts/run-tsx.mjs",
+        "--test",
+        "--test-reporter=tap",
+        "tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_worker_job_lifecycle_binding.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_terminal_forge_validation_linkage.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts"
+      ],
+      "cancelled_tests": 0,
+      "coverage": [
+        "request",
+        "authorization",
+        "synthetic_execute",
+        "delivered_unverified",
+        "independent_validation_record_result",
+        "closeout_terminal"
+      ],
+      "duration_ms": 3850.701754039619,
+      "exit_code": 0,
+      "failed_tests": 0,
+      "failure_reason": null,
+      "missing_stages": [],
+      "output_sha256": "bccac1b4a24d5f99978c472ec475446fcd7408988e03474d8a9e3234556e6e6c",
+      "passed_tests": 29,
+      "skipped_tests": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "success": true,
+      "timed_out": false,
+      "todo_tests": 0,
+      "total_tests": 29,
+      "trial": 10,
+      "trial_hash": "8f8af0788f34be8dc0326cb21353d540978df948076e9474cabf2ebeccecba48"
+    },
+    {
+      "argv": [
+        "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+        "scripts/run-tsx.mjs",
+        "--test",
+        "--test-reporter=tap",
+        "tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_worker_job_lifecycle_binding.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_terminal_forge_validation_linkage.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts"
+      ],
+      "cancelled_tests": 0,
+      "coverage": [
+        "request",
+        "authorization",
+        "synthetic_execute",
+        "delivered_unverified",
+        "independent_validation_record_result",
+        "closeout_terminal"
+      ],
+      "duration_ms": 3900.952641968615,
+      "exit_code": 0,
+      "failed_tests": 0,
+      "failure_reason": null,
+      "missing_stages": [],
+      "output_sha256": "ed1597f960751a36a10daae5ea6da76ce22476067b2e10415a340e7abf09bca4",
+      "passed_tests": 29,
+      "skipped_tests": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "success": true,
+      "timed_out": false,
+      "todo_tests": 0,
+      "total_tests": 29,
+      "trial": 11,
+      "trial_hash": "dd86c686ff1d3b49186b20f1f3353317b54338d23ff1687acc298982e637ce69"
+    }
+  ],
+  "workflow_score": 100.0
+}

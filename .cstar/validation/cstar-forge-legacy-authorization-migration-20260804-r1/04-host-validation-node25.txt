@@ -1,0 +1,7 @@
+command: node scripts/run-tsx.mjs --test tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts
+runtime: node v25.8.1
+suite: host-workflow independent validation
+tests: 14
+passed: 14
+failed: 0
+status: pass

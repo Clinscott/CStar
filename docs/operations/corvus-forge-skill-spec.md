@@ -11,15 +11,57 @@ direct model call, or raw shell mutation for the canonical Forge path.
 
 The live route is:
 
-`cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute -> private Hermes cstar-hub /
-minimax MiniMax-M3 bounded-six-role-manifest-v1 -> delivered_unverified ->
-independent cstar_record_result`
+`cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute ->
+cstar_forge_swarm_plan -> direct host-native workers ->
+cstar_forge_swarm_update -> separate read-only aggregator ->
+cstar_forge_swarm_complete -> DELIVERED_UNVERIFIED -> independent
+cstar_record_result`
+
+The active connection is `forge-native-codex-swarm-v1`. Execute reserves or
+replays the native run and returns a worker package and a distinct control
+receipt. CoS derives one canonical host packet and records one exact plan for
+one to three useful direct workers. Their write ownership is disjoint; they
+have no nested parent, descendants, peer authority transfer, retries, replays,
+replacements, or selector fallback.
+
+Requested model and reasoning are immutable packet inputs. The validators do
+not select a model and do not compare against a hard-coded target. Actual
+identity is separate measured evidence. It remains `unreported` without
+distinct host attestation; a worker's own claim cannot attest it.
+
+Validate the packet before dispatch:
+
+```text
+node .agents/skills/corvus-forge/scripts/validate_native_swarm_packet.mjs \
+  <packet.json>
+```
+
+The packet schema closes authority-bearing fields, canonicalizes declared sets,
+preserves explicit ordinals, proves disjoint ownership, and binds exact source,
+output, test, lease, attempt, selector, and protected-effect inputs.
+
+After all workers are terminal, one separate read-only aggregator consumes the
+packet, receipts, candidate identities, and bounded evidence. It performs zero
+source writes and no implementation, repair, testing, authority, cancellation,
+or lifecycle action. Validate its terminal receipt with:
+
+```text
+node .agents/skills/corvus-forge/scripts/validate_native_swarm_receipt.mjs \
+  <packet.json> <receipt.json>
+```
+
+The receipt validator recomputes worker, candidate, aggregate, and terminal
+hashes; reopens local file evidence; proves direct ancestry; and binds the
+separate aggregator. A valid receipt still means only
+`DELIVERED_UNVERIFIED`.
 
 `cstar_forge_request` and `cstar_forge_authorize` are always no-spend. The
 normal authorize transition binds one unambiguous current root-user build
 instruction to the immutable request; an exact byte challenge is legacy v2
 compatibility evidence only and is not operator-facing workflow.
-`cstar_forge_execute` is the only model-spend and implementation surface.
+Current `cstar_forge_execute` is the native reservation boundary. It grants no
+nested dispatch or lifecycle acceptance. Historical provider attempts exist
+only inside an explicitly selected legacy compatibility contract.
 
 ## Required Inputs
 
@@ -36,8 +78,9 @@ The canonical request must contain:
 - expected artifacts and callback packet shape;
 - spend, live-source, attempt, and retry policy;
 - exact package locks where current inputs must not drift;
-- dispatch surface, execution adapter identity, role-plan identity, and
-  request-bound Hermes runtime expectation; and
+  - dispatch surface, execution adapter identity, role-plan identity, and, for
+  an explicitly selected legacy adapter, its request-bound runtime expectation;
+  and
 - dirty-root and operator-gate constraints relevant to the task.
 
 Live-intent requests are no-spend `PENDING_AUTH` records. The response returns a
@@ -66,18 +109,18 @@ bare continue/proceed, restart acknowledgements, status questions, and reserved
 goal packets fail closed. A goal-only turn returns
 `forge_operator_signal_required`, with no Hall mutation or provider call.
 
-Before a live request can become `PENDING_AUTH`, the kernel must report a
-supported live launcher, distinct code/control roots, a synchronized package
-manifest/lock root, a regular non-symlink dependency tree whose hidden lock and
-installed versions match, and a complete manifest-bound private runtime. The
-same predicate runs after operator-intent verification and before its Hall
-mutation. No-spend requests remain available when live readiness is red.
+Before a current native request can become `PENDING_AUTH`, the kernel must
+report the active native connection generation, distinct code/control roots,
+and bounded worker/control package contract. Historical private-runtime
+readiness is relevant only to an explicitly selected legacy adapter. The same
+predicate runs after operator-intent verification and before its Hall mutation.
+No-spend requests remain available when native readiness is red.
 
 For a preserved, unspent `cstar.forge_request.v2` receipt, the current typed
 request must reproduce every non-runtime semantic field. CStar keeps the v2
 JSON, id, and hash immutable and emits a separate
 `cstar.forge_legacy_v2_execution_grant.v1` manifest. The manifest binds the
-original action/lock/output digests, current sealed adapter/Hermes runtime, one
+original action/lock/output digests, then-validated sealed legacy adapter/Hermes runtime, one
 attempt, zero retries, no live source, and a newly challenged `synthetic_only`
 overlay. Its exact challenge is `CSTAR_FORGE_AUTHORIZE v2-compat-v1 ...
 compatibility_manifest_sha256=<sha256>`. It is not reissued as v3 and does not
@@ -101,9 +144,14 @@ field. It grants no new scope or spend authority.
 
 For a new attempt, execution captures the readiness binding after authority,
 rechecks the same digest before reservation, and rechecks it after preparation
-before marking the attempt started or invoking Hermes. A changed-but-still-
+before marking a legacy adapter attempt started or invoking its adapter. A changed-but-still-
 valid runtime is drift, not equivalent readiness. No-op and durable replay do
 not require current live readiness and cannot create spend.
+
+The detailed output, producer, adapter, attempt, and validation material below
+describes the explicitly selected historical legacy-v2 compatibility lane. It
+is never a current/default/target/recovery/fallback path. The current native
+flat-dispatch contract is summarized above and in the kernel API reference.
 
 ## Outputs
 
@@ -122,8 +170,7 @@ The skill produces durable, machine-readable records for:
 9. terminal attempt and request state.
 
 Information-repository update packets and policy-required GitHub
-issues/branches/PRs are conditional outputs. PMTs do not review or approve, and
-MM is legacy.
+issues/branches/PRs are conditional outputs. PMTs do not review or approve.
 
 ## Authority Rules
 
@@ -133,12 +180,13 @@ MM is legacy.
 - PMTs are information repositories only; they receive bounded update packets
   and provide no authority or parallel implementation path. Query only the PMT
   mapped to the active project folder; its absence is not an execution gate.
-- MM is legacy. CoS owns estate sequencing, conflicts, and synthesis.
+- MM is inactive and has no active routing, synthesis, ownership, relay, review,
+  or execution role. CoS owns estate sequencing, conflicts, and synthesis.
 - CStar records state but cannot elevate a request, registry entry, adapter, or
   callback into authority.
 - Codex subagents may analyze or review. They never replace Forge implementation.
 
-## Bounded Producer Topology
+## Historical legacy-v2 bounded producer topology
 
 The fixed producer chain is `specifier -> coder -> cleaner -> architect ->
 hardener -> QA` under plan `bounded-six-role-manifest-v1`. The specifier emits

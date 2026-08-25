@@ -1,0 +1,33 @@
+{
+  "schema": "cstar.independent_validation_check.v1",
+  "reported_verdict": "REJECTED",
+  "line_audit": {
+    "changed_source_test_files": 72,
+    "maximum_lines": 500,
+    "maximum_path": "src/tools/cstar-kernel-mcp/tools/augury_mission_binding.ts",
+    "all_at_most_500": true
+  },
+  "scope": {
+    "worktree": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803",
+    "validator_source_or_test_edits": false,
+    "writes_outside_receipt_dir": false,
+    "provider_or_network_activity": false,
+    "restart_or_reload": false,
+    "git_mutation": false,
+    "install_or_rebuild": false,
+    "runtime_activation": false
+  },
+  "receipt_constraints": {
+    "receipt_dir": ".cstar/validation/cstar-p0-simplification-persona-full-batch-20260804-r1/",
+    "requested_output_files": [
+      "report.md",
+      "full-unit-check.json",
+      "contracts-distribution-check.json",
+      "structural-check.json",
+      "manifest.json"
+    ],
+    "manifest_max_artifacts": 50,
+    "manifest_self_reference": false,
+    "artifact_paths_unique": true
+  }
+}

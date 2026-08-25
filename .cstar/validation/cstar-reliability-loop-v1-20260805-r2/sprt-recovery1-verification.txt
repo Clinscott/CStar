@@ -1,0 +1,36 @@
+SPRT/Gungnir recovery receipt independent verification
+validation_id: validation:cstar-reliability-loop-v1-20260805-r2
+receipt_path: .cstar/validation/cstar-reliability-loop-v1-20260805-r2/sprt-recovery1/receipt.json
+checksum_path: .cstar/validation/cstar-reliability-loop-v1-20260805-r2/sprt-recovery1/receipt.sha256
+checksum_command: (cd .cstar/validation/cstar-reliability-loop-v1-20260805-r2/sprt-recovery1 && sha256sum -c receipt.sha256)
+checksum_output: receipt.json: OK
+checksum_verified: true
+receipt_sha256: cc894aebd4bf9f61cfab46ede5ee8a0df612d752d871db28d2fbadf270c36c1d
+receipt_bytes: 43375
+checksum_file_bytes: 79
+schema: cstar.workflow_sprt_autoresearcher.v1
+runner_mode: host_only_deterministic
+sprt_verdict: ACCEPTED
+workflow_score: 100
+passed: 11
+failed: 0
+total: 11
+sprt_raw_status: ACCEPT
+sprt_alpha: 0.05
+sprt_beta: 0.1
+sprt_p0: 0.01
+sprt_p1: 0.2
+sprt_llr: -2.344025370068
+sprt_lower_boundary: -2.251291798606
+sprt_upper_boundary: 2.890371757896
+gungnir_schema: cstar.gungnir_evidence.v1
+gungnir_version: 1.0
+gungnir_overall_score: 9.502863636363637
+gungnir_scored_count: 11
+gungnir_candidate_count: 13
+gungnir_excluded_count: 2
+gungnir_authority: heuristic_evidence_only
+gungnir_aggregate_evidence_sha256: ebbb57bf505d78c580bd1ffd1bef4a3abf31b698ae4ff288b9fbaea270368f9e
+cstar_acceptance: UNVERIFIED
+cstar_record_result_called: false
+runner_rerun_in_this_task: false

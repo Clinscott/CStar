@@ -144,6 +144,29 @@ function isInside(candidate: string, parent: string): boolean {
     );
 }
 
+/** Existing Forge target and output files must have one directory entry. */
+export function assertForgePathIdentity(
+    targetPaths: string[],
+    outputPaths: string[],
+): void {
+    for (const target of targetPaths) {
+        const stat = fs.lstatSync(target, { throwIfNoEntry: false });
+        if (!stat) continue;
+        if (stat.isSymbolicLink()) throw new Error('forge_target_path_symlink_forbidden');
+        if (stat.isFile() && stat.nlink !== 1) {
+            throw new Error('forge_target_path_hardlink_forbidden');
+        }
+    }
+    for (const output of outputPaths) {
+        const stat = fs.lstatSync(output, { throwIfNoEntry: false });
+        if (!stat) continue;
+        if (stat.isSymbolicLink()) throw new Error('forge_required_output_symlink_forbidden');
+        if (stat.isFile() && stat.nlink !== 1) {
+            throw new Error('forge_required_output_path_hardlink_forbidden');
+        }
+    }
+}
+
 /**
  * Prove that every declared worker output is covered by an explicit target.
  * Existing directories authorize descendants. Existing files and prospective
@@ -158,6 +181,7 @@ export function assertForgeRequiredOutputsContained(
     const targets = normalizedTargets(root, targetPaths);
     const outputs = canonicalizeForgeRequiredOutputPaths(root, requiredOutputPaths);
     if (outputs.length === 0) throw new Error('forge_required_output_paths_empty');
+    assertForgePathIdentity(targets, outputs);
 
     const targetScopes = targets.map((target) => {
         let stat: import('node:fs').Stats | null = null;

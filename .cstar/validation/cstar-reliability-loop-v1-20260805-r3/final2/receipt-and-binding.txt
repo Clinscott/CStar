@@ -1,0 +1,21 @@
+check: receipt, candidate digest, and repository-root binding
+receipt_checksum_context: .cstar/validation/cstar-reliability-loop-v1-20260805-r3/sprt
+receipt_checksum_command: sha256sum -c receipt.sha256
+receipt_checksum_result: receipt.json: OK
+receipt_json_sha256: 802814c0ebf3846405513a15cfdbf1043c215ae5ba4895502d794f78081a463d
+receipt_sha256_file_sha256: 98788f7756169ce40db0d345f2fbc80a453db32636932b0dce3ae4d56008b56d
+recorded_candidate_source_digest: 734bcede97508530fc2325ffbf97f31eccf5e6e92d1aa9a415887d598e23b2b70
+recomputed_candidate_source_digest: 734bcede97508530fc2325ffbf97f31eccf5e6e92d1aa9a415887d598e23b2b70
+candidate_source_digest_match: true
+candidate_source_entries: 13
+candidate_entry_hash_mismatches: 0
+sprt_verdict: ACCEPTED
+sprt_raw_status: ACCEPT
+workflow_score: 100.0
+gungnir_valid: true
+gungnir_score: 9.502863636363637
+gungnir_authority: heuristic_evidence_only
+result_source: src/tools/cstar-kernel-mcp/tools/result.ts
+result_source_binding: beadRepositoryRoot is resolved at line 283 and passed to verifyReliabilityReceipt at line 306
+result_source_binding_verified: true
+
