@@ -14,6 +14,7 @@ import {
     type HostValidationSubject,
 } from '../../../src/tools/cstar-kernel-mcp/tools/host_workflow_validation.js';
 import type { VerifiedCodexRequestIdentity } from '../../../src/tools/cstar-kernel-mcp/tools/operator_authorization.js';
+import type { ValidationEvidencePayload } from '../../../src/tools/cstar-kernel-mcp/tools/validation_evidence.js';
 import { saveValidationRunToDb } from '../../../src/tools/cstar-kernel-mcp/tools/validation_run_store.js';
 
 const RECORDER_THREAD = '019f0000-0000-7000-8000-000000000101';
@@ -23,6 +24,16 @@ const VALIDATOR_TURN = '019f0000-0000-7000-8000-000000000202';
 const BEAD_ID = 'bead:repair:test-host-validation';
 const VALIDATION_ID = 'val-test-host-validation-v1';
 const NOW = Date.parse('2026-07-18T14:00:10.000Z');
+const VALID_MEMORY_CITATION = [
+    '<oai-mem-citation>',
+    '<citation_entries>',
+    'MEMORY.md:1-2|note=[focused host-validation proof]',
+    '</citation_entries>',
+    '<rollout_ids>',
+    '019f0000-0000-7000-8000-000000000202',
+    '</rollout_ids>',
+    '</oai-mem-citation>',
+].join('\n');
 const secureTmp = process.platform === 'linux' ? '/tmp' : os.tmpdir();
 const roots: string[] = [];
 const originalEnv = {
@@ -57,6 +68,11 @@ interface FixtureOptions {
     manifestValidationId?: string;
     checkStatus?: 'pass' | 'fail';
     omitChecks?: boolean;
+    receiptOnly?: boolean;
+    manifestModifier?: (manifest: Record<string, unknown>) => Record<string, unknown>;
+    legacyPayloadModifier?: (payload: ValidationEvidencePayload) => ValidationEvidencePayload;
+    citationSuffix?: string;
+    taskCompleteMessage?: string;
 }
 
 function recorder(): VerifiedCodexRequestIdentity {
@@ -97,7 +113,7 @@ function fixture(options: FixtureOptions = {}) {
     const checkPath = path.join(project, 'evidence', 'check.txt');
     fs.writeFileSync(artifactPath, 'artifact\n', { mode: 0o600 });
     fs.writeFileSync(checkPath, 'PASS\n', { mode: 0o600 });
-    const payload = {
+    const payload: ValidationEvidencePayload = {
         artifacts: [{ path: 'artifact.txt', sha256: sha256('artifact\n') }],
         checks: options.omitChecks ? [] : [{
             name: 'focused check',
@@ -106,7 +122,7 @@ function fixture(options: FixtureOptions = {}) {
             sha256: sha256('PASS\n'),
         }],
     };
-    const manifest = {
+    const baseManifest: Record<string, unknown> = {
         schema: 'cstar.independent_validation_input.v1',
         bead_id: options.manifestBeadId ?? BEAD_ID,
         validation_id: options.manifestValidationId ?? VALIDATION_ID,
@@ -114,15 +130,17 @@ function fixture(options: FixtureOptions = {}) {
         artifacts: payload.artifacts.map((entry) => ({ ...entry, bytes: 9 })),
         checks: payload.checks,
     };
+    const manifest = options.manifestModifier?.(baseManifest) ?? baseManifest;
     const manifestContent = `${JSON.stringify(manifest)}\n`;
     const manifestPath = path.join(project, 'evidence', 'manifest.json');
     fs.writeFileSync(manifestPath, manifestContent, { mode: 0o600 });
     const manifestSha256 = sha256(manifestContent);
-    const finalText = options.finalText ?? [
+    const baseFinalText = options.finalText ?? [
         'Independent validation complete.',
         `Manifest ${manifestSha256}`,
         `Validation ${VALIDATION_ID}`,
     ].join('\n');
+    const finalText = `${baseFinalText}${options.citationSuffix ?? ''}`;
     const completedAt = options.completedAt ?? NOW - 1_000;
     const finalTimestamp = new Date(completedAt + 500).toISOString();
     const completedTimestamp = new Date(completedAt + 600).toISOString();
@@ -168,7 +186,8 @@ function fixture(options: FixtureOptions = {}) {
         type: 'event_msg',
         payload: {
             type: 'task_complete', turn_id: VALIDATOR_TURN,
-            last_agent_message: finalText, completed_at: completedAt / 1_000,
+            last_agent_message: options.taskCompleteMessage
+                ?? (options.citationSuffix ? baseFinalText : finalText), completed_at: completedAt / 1_000,
         },
     }];
     if (options.laterCompletion) rows.push({
@@ -200,7 +219,7 @@ function fixture(options: FixtureOptions = {}) {
     process.env.CSTAR_FORGE_TEST_MODE = '1';
     return {
         root: project,
-        payload,
+        payload: options.legacyPayloadModifier?.(payload) ?? payload,
         receipt: {
             validator_thread_id: VALIDATOR_THREAD,
             validator_turn_id: VALIDATOR_TURN,
@@ -213,7 +232,8 @@ function fixture(options: FixtureOptions = {}) {
 function verify(options: FixtureOptions = {}) {
     const value = fixture(options);
     return verifyHostWorkflowValidationEvidence(
-        value.root, value.payload, value.receipt, subject(), recorder(), NOW,
+        value.root, options.receiptOnly ? undefined : value.payload,
+        value.receipt, subject(), recorder(), NOW,
     );
 }
 
@@ -243,7 +263,7 @@ afterEach(() => {
 });
 
 describe('host-workflow independent validation', () => {
-    it('retains explicit matching /root/<role> path compatibility', () => {
+    it('accepts the matching legacy payload as a compatibility duplicate', () => {
         const verified = verify();
         assert.equal(verified?.manifest.schema, 'cstar.validation-evidence.v3');
         assert.equal(verified?.validator_identity_source, 'test_fixture');
@@ -262,6 +282,70 @@ describe('host-workflow independent validation', () => {
         if (verified?.manifest.schema === 'cstar.validation-evidence.v3') {
             assert.equal(verified.manifest.independence.validator_agent_path, '/root/validator');
         }
+    });
+
+    it('accepts the exact default-host null/null path shape with a fixed informational path', () => {
+        const verified = verify({ payloadAgentPath: null, spawnAgentPath: null });
+        assert.equal(isValidationEvidenceManifestV3StructurallyValid(verified?.manifest), true);
+        if (verified?.manifest.schema === 'cstar.validation-evidence.v3') {
+            assert.equal(verified.manifest.independence.validator_agent_path, '/root/validator');
+        }
+    });
+
+    it('accepts one trailing memory citation omitted from task completion', () => {
+        const verified = verify({ citationSuffix: `\n${VALID_MEMORY_CITATION}` });
+        assert.equal(isValidationEvidenceManifestV3StructurallyValid(verified?.manifest), true);
+    });
+
+    it('rejects a non-citation task-complete message mismatch', () => {
+        expectFailure({ taskCompleteMessage: 'ordinary mismatch' }, 'host_validation_task_complete_message_mismatch');
+    });
+
+    it('accepts a receipt-only manifest and derives verified v3 evidence', () => {
+        const verified = verify({ receiptOnly: true });
+        assert.equal(verified?.manifest.schema, 'cstar.validation-evidence.v3');
+        assert.equal(verified?.manifest.artifacts.length, 1);
+        assert.equal(verified?.manifest.checks.length, 1);
+        assert.equal(verified?.check_count, 1);
+        assert.equal(isValidationEvidenceManifestV3StructurallyValid(verified?.manifest), true);
+    });
+
+    it('rejects path/pass aliases instead of classifying them as duplicates', () => {
+        expectFailure({
+            receiptOnly: true,
+            manifestModifier: (manifest) => ({
+                ...manifest,
+                checks: [{
+                    name: 'focused check',
+                    path: 'evidence/check.txt',
+                    sha256: sha256('PASS\n'),
+                    pass: true,
+                }],
+            }),
+        }, 'host_validation_manifest_shape_invalid');
+    });
+
+    it('rejects duplicate artifact paths, check names, and check evidence paths', () => {
+        const duplicateArtifact = (manifest: Record<string, unknown>) => ({
+            ...manifest,
+            artifacts: [...manifest.artifacts as unknown[], ...(manifest.artifacts as unknown[])],
+        });
+        const duplicateCheck = (name: string, secondName = name) => (manifest: Record<string, unknown>) => {
+            const check = (manifest.checks as unknown[])[0] as Record<string, unknown>;
+            return { ...manifest, checks: [{ ...check, name }, { ...check, name: secondName }] };
+        };
+        expectFailure({ receiptOnly: true, manifestModifier: duplicateArtifact }, 'host_validation_manifest_duplicate_evidence');
+        expectFailure({ receiptOnly: true, manifestModifier: duplicateCheck('focused check') }, 'host_validation_manifest_duplicate_evidence');
+        expectFailure({ receiptOnly: true, manifestModifier: duplicateCheck('first check', 'second check') }, 'host_validation_manifest_duplicate_evidence');
+    });
+
+    it('rejects a mismatching legacy payload while accepting the manifest alone', () => {
+        expectFailure({
+            legacyPayloadModifier: (payload) => ({
+                ...payload,
+                artifacts: [{ ...payload.artifacts[0], sha256: '0'.repeat(64) }],
+            }),
+        }, 'host_validation_manifest_evidence_mismatch');
     });
 
     it('requires every default-host authority-bearing lineage field to match the root', () => {
@@ -285,7 +369,8 @@ describe('host-workflow independent validation', () => {
             { omitPayloadAgentPath: true },
             { omitSpawnAgentPath: true },
             { spawnAgentPath: null },
-            { payloadAgentPath: null, spawnAgentPath: null },
+            { payloadAgentPath: null, omitSpawnAgentPath: true },
+            { payloadAgentPath: null, spawnAgentPath: '/root/validator' },
             { omitPayloadAgentPath: true, omitSpawnAgentPath: true },
             { payloadAgentPath: '/root/validator', spawnAgentPath: '/root/reviewer' },
         ];

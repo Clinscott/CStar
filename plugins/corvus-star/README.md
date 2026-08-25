@@ -16,12 +16,13 @@ This repository generates verified host source-staging artifacts from the declar
 - Source staging only: `npm run install:codex-local` verifies and stages the plugin under `~/plugins/corvus-star`; it does not run `codex plugin add`, refresh Codex cache, restart Desktop, or prove live activation.
 - Marketplace reconciliation, `codex plugin add`, restart or new-task pickup, and live proof remain separately operator-gated.
 - Never copy plugin caches or marketplace state by hand.
+- Current Forge v3 host handoffs require the active Codex host to run `npm run consume:forge-host-handoff` with the exact CStar-return binding before exposing the job; this is a read-only intrinsic boundary, not a plugin hook or lifecycle mutation.
 - Codex skill context presents Augury as an advisory route explanation, never authority or proof.
 - Public host fronts marked as no-fallback are expected to fail closed when the host session is unavailable.
 
 ## Export Summary
-- Gemini executable capabilities: 3
-- Codex executable capabilities: 3
+- Gemini executable capabilities: 4
+- Codex executable capabilities: 4
 
 ## Regeneration
 - `npm run build:distributions`

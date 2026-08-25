@@ -142,6 +142,174 @@ export interface WorkerJobDispatchReservation extends WorkerJobLeaseGrant {
     cstar_launch: false;
 }
 
+export const CODEX_HOST_WORKER_JOB_SCHEMA = 'cstar.codex_host_worker_job.v2' as const;
+export const CODEX_HOST_WORKER_HANDOFF_SCHEMA =
+    'cstar.forge_codex_host_worker_handoff.v1' as const;
+
+/** Native Researcher contracts share the CStar host-job ledger but use a
+ * Researcher-owned handoff/completion envelope.  The constants live here so
+ * Forge and Researcher cannot silently invent different host selectors. */
+export const RESEARCHER_REQUEST_SCHEMA = 'cstar.researcher_request.v2' as const;
+export const RESEARCHER_AUTHORITY_BINDING_SCHEMA =
+    'cstar.researcher_authority_binding.v1' as const;
+export const RESEARCHER_NATIVE_WORK_PACKAGE_SCHEMA =
+    'cstar.researcher_native_work_package.v1' as const;
+export const RESEARCHER_HOST_WORKER_HANDOFF_SCHEMA =
+    'cstar.researcher_native_host_worker_handoff.v1' as const;
+export const RESEARCHER_HOST_COMPLETION_SCHEMA =
+    'cstar.researcher_host_completion.v1' as const;
+export const RESEARCHER_TERMINAL_RECEIPT_SCHEMA =
+    'cstar.researcher_terminal_receipt.v1' as const;
+export const RESEARCHER_VALIDATION_SUBJECT_SCHEMA =
+    'cstar.researcher_validation_subject.v1' as const;
+export const RESEARCHER_VALIDATION_RECEIPT_SCHEMA =
+    'cstar.researcher_validation_receipt.v1' as const;
+
+interface CodexHostWorkerValidationTicketBindingFields {
+    repository_id: string;
+    bead_id: string;
+    execution_receipt_id: string;
+    attempt_id: string;
+    scope_sha256: string;
+    one_use: true;
+}
+
+export interface CodexHostWorkerValidationTicketBinding
+    extends CodexHostWorkerValidationTicketBindingFields {
+    schema: 'cstar.validation_ticket_binding.v1';
+}
+
+export interface CodexHostWorkerValidationTicketRequest
+    extends CodexHostWorkerValidationTicketBindingFields {
+    schema: 'cstar.validation_ticket_request.v1';
+    expires_at: number;
+    validator_thread_id?: string;
+    validator_turn_id?: string;
+}
+
+/**
+ * Lexical path identity bound into a current Codex-host handoff. Missing paths
+ * bind the existing parent and the still-missing suffix; existing files bind
+ * device/inode/nlink and existing directories bind device/inode.
+ */
+export interface CodexHostPathIdentity {
+    path: string;
+    state: 'missing' | 'file' | 'directory';
+    resolved_path: string | null;
+    device: string | null;
+    inode: string | null;
+    nlink: number | null;
+    parent_path: string;
+    parent_resolved_path: string;
+    parent_device: string;
+    parent_inode: string;
+    missing_suffix: string[];
+}
+
+export interface CodexHostWorkerJobContract {
+    schema: typeof CODEX_HOST_WORKER_JOB_SCHEMA;
+    worker_kind: 'forge' | 'researcher';
+    workflow_surface: 'forge' | 'researcher';
+    bead_id: string;
+    decision_id: string;
+    canonical_request_id: string;
+    canonical_request_sha256: string;
+    authorization_id: string;
+    authorization_expires_at: number;
+    runner_owner: 'codex-host';
+    requested_model: 'gpt-5.6-luna';
+    requested_reasoning: 'max';
+    selector_status: 'enforced';
+    actual_identity: string | null;
+    transport: 'codex-host';
+    cognition_launch: false;
+    cstar_launch: false;
+    provider_requests_started: 0;
+    spend_uncertain: false;
+    known_spend_observed: false;
+    network_accessed: false;
+    idempotency_key: string;
+    execution_deadline_at: number;
+    attempt_id: string;
+    objective: string;
+    expected_artifacts: WorkerJobArtifactExpectation[];
+    dispatch_receipt_sha256: string;
+    job_id?: string;
+    host_launch_required?: true;
+    project_root?: string;
+    target_paths?: string[];
+    output_paths?: string[];
+    required_output_paths?: string[];
+    target_paths_sha256?: string;
+    path_identity_bindings?: CodexHostPathIdentity[];
+    validation_ticket_binding?: CodexHostWorkerValidationTicketBinding;
+    validation_ticket_request?: CodexHostWorkerValidationTicketRequest;
+    validation_ticket?: string;
+    /** Researcher-only bindings. They are absent from Forge jobs. */
+    set_id?: string;
+    researcher_request_sha256?: string;
+    adapter_id?: string;
+    adapter_sha256?: string;
+    selected_source_manifest_sha256?: string;
+    callable_policy_sha256?: string;
+    source_grants_sha256?: string;
+    source_budget_sha256?: string;
+    output_boundary_sha256?: string;
+    max_host_attempts?: 1;
+    max_descendants?: 0;
+    max_peer_messages?: 0;
+    max_retries?: 0;
+    max_replays?: 0;
+    max_fallbacks?: 0;
+}
+
+export interface CodexHostWorkerHandoff {
+    schema: typeof CODEX_HOST_WORKER_HANDOFF_SCHEMA;
+    status: 'queued' | 'replayed';
+    job: CodexHostWorkerJobContract;
+    handoff_sha256: string;
+    handoff_path: string;
+    host_launch_required: true;
+    cstar_launch: false;
+    provider_attempted: false;
+}
+
+export interface ResearcherNativeHostWorkerHandoff {
+    schema: typeof RESEARCHER_HOST_WORKER_HANDOFF_SCHEMA;
+    status: 'queued' | 'replayed';
+    request_sha256: string;
+    work_package: Record<string, unknown>;
+    job: CodexHostWorkerJobContract;
+    handoff_sha256: string;
+    handoff_path: string;
+    host_launch_required: true;
+    cstar_launch: false;
+    provider_attempted: false;
+    /** Opaque local ledger lease; never included in public receipts. */
+    lease_token?: string;
+}
+
+export interface ResearcherValidationSubject {
+    schema: typeof RESEARCHER_VALIDATION_SUBJECT_SCHEMA;
+    subject_kind: 'researcher_execution';
+    request_id: string;
+    request_sha256: string;
+    job_id: string;
+    attempt_id: string;
+    handoff_sha256: string;
+    adapter_id: string;
+    adapter_sha256: string;
+    selected_source_manifest_sha256: string;
+    callable_policy_sha256: string;
+    source_grants_sha256: string;
+    source_budget_sha256: string;
+    output_manifest_sha256: string;
+    validator_identity: string;
+    validator_thread_id: string;
+    validator_turn_id: string;
+    one_use: true;
+}
+
 export interface WorkerJobValidationInput {
     validation_id: string;
     verdict: WorkerJobValidationVerdict;

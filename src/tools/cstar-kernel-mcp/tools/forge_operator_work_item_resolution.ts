@@ -7,6 +7,7 @@ import {
     type ForgeOperatorIntentProjection,
     type ForgeOperatorIntentSubjectKind,
 } from '../../pennyone/intel/forge_authorization_policy.js';
+import { isForgeRequesterLineageValid } from '../../pennyone/intel/forge_requester_lineage.js';
 import type { HallForgeRequestRecord } from '../../../types/forge.js';
 import type { VerifiedForgeOperatorIntent } from './forge_operator_intent_attestation.js';
 
@@ -192,7 +193,12 @@ function requesterLineageMatches(
     candidate: ForgeAuthorizationCandidate,
     attestation: VerifiedForgeOperatorIntent,
 ): boolean {
-    return candidate.requester_thread_id === attestation.thread_id
+    return isForgeRequesterLineageValid(
+        candidate.requester_thread_id,
+        candidate.requester_turn_id,
+        candidate.requester_record_set_sha256,
+    )
+        && candidate.requester_thread_id === attestation.thread_id
         && candidate.requester_turn_id === attestation.turn_id
         && candidate.requester_record_set_sha256 === attestation.session_record_set_sha256;
 }
@@ -229,7 +235,8 @@ export function resolveForgeOperatorWorkItem(
     attestation: VerifiedForgeOperatorIntent,
 ): ForgeOperatorIntentProjection {
     if (attestation.binding_mode === 'exact_request_receipt'
-        || attestation.binding_mode === 'exact_mission_record') {
+        || attestation.binding_mode === 'exact_mission_record'
+        || attestation.binding_mode === 'current_turn_continuation') {
         if (attestation.bound_request_id !== selected.request_id
             || attestation.bound_request_sha256 !== selected.request_sha256
             || attestation.bound_decision_id !== selected.decision_id
@@ -248,11 +255,47 @@ export function resolveForgeOperatorWorkItem(
                 throw new Error('forge_operator_intent_mission_candidate_ambiguous');
             }
         }
+        if (attestation.binding_mode === 'current_turn_continuation') {
+            if (selected.authorization_profile !== ROOT_USER_FORGE_INTENT_PROFILE
+                || selected.requester_turn_id !== attestation.turn_id
+                || !attestation.selected_record_set_sha256
+                || selected.requester_record_set_sha256
+                    !== attestation.selected_record_set_sha256) {
+                throw new Error('forge_operator_intent_current_turn_lineage_mismatch');
+            }
+            const eligible = loadCandidates(db).filter((candidate) =>
+                candidate.repo_id === selected.repo_id
+                && candidate.requester_thread_id === attestation.thread_id
+                && candidate.requester_turn_id === attestation.turn_id
+                && candidate.requester_record_set_sha256
+                    === attestation.selected_record_set_sha256);
+            if (eligible.length !== 1 || eligible[0]!.request_id !== selected.request_id) {
+                throw new Error('forge_operator_intent_current_turn_candidate_ambiguous');
+            }
+            const reused = db.prepare(`
+                SELECT 1
+                FROM hall_forge_requests r
+                JOIN hall_forge_authorizations z ON z.request_id = r.request_id
+                WHERE r.repo_id = ?
+                  AND r.request_id <> ?
+                  AND r.requester_thread_id = ?
+                  AND r.requester_turn_id = ?
+                  AND r.requester_record_set_sha256 = ?
+                LIMIT 1
+            `).get(
+                selected.repo_id,
+                selected.request_id,
+                attestation.thread_id,
+                attestation.turn_id,
+                attestation.selected_record_set_sha256,
+            );
+            if (reused) throw new Error('forge_operator_intent_current_turn_reused');
+        }
         return buildForgeOperatorIntentProjection({
             action: attestation.action,
-            requester_lineage_mode: attestation.binding_mode === 'exact_request_receipt'
-                ? 'explicit_request_receipt_binding'
-                : 'explicit_mission_record_binding',
+            requester_lineage_mode: attestation.binding_mode === 'exact_mission_record'
+                ? 'explicit_mission_record_binding'
+                : 'explicit_request_receipt_binding',
             kind: 'bead',
             value: selected.bead_id,
             repo_id: selected.repo_id,

@@ -66,7 +66,6 @@ function fixture() {
         retry_policy: { budget: 0, spent: 0 },
         callback_contract: { expected_packet: 'RUNTIME_GATE_TEST', callback_required: true },
         package_locks: [],
-        execution_adapter_ref: 'cstar-forge-hermes-minimax-adapter',
     };
     return { root, db, beadId, decisionId, requestSession, base };
 }
@@ -176,7 +175,8 @@ describe('Forge runtime lifecycle gate', () => {
             operator_authorization_ref: granted.authorization.operator_authorization_ref,
             idempotency_key: 'runtime-drift-before-reservation',
         }, context(granted.authorizationSession), bindingSequence('binding-a', 'binding-b')));
-        assert.match(result.error, /forge_runtime_binding_drift/);
+        assert.equal(result.status, 'blocked');
+        assert.equal(result.forge_execution.fail_closed_reason, 'forge_runtime_binding_drift');
         assert.equal(value.db.prepare('SELECT COUNT(*) AS count FROM hall_forge_attempts').get().count, 0);
         assert.equal(fs.existsSync(path.join(value.root, 'forge-adapter-invoked')), false);
     });
@@ -194,15 +194,36 @@ describe('Forge runtime lifecycle gate', () => {
             idempotency_key: 'runtime-drift-after-reservation',
         }, context(granted.authorizationSession), bindingSequence('binding-a', 'binding-a', 'binding-b')));
         assert.equal(result.status, 'failed_final');
-        assert.match(result.error, /forge_runtime_binding_drift/);
+        assert.match(result.forge_execution.fail_closed_reason, /forge_runtime_binding_drift/);
         assert.equal(result.forge_execution.attempted, false);
         assert.equal(result.forge_execution.adapter_invoked, false);
         assert.equal(result.forge_execution.live_spend, false);
         const attempt = value.db.prepare(
-            'SELECT status, error_code FROM hall_forge_attempts',
-        ).get() as { status: string; error_code: string };
+            `SELECT status, error_code, provider, requested_model,
+                provider_requests_started, provider_requests_completed,
+                provider_requests_ambiguous, live_spend, known_spend_observed
+             FROM hall_forge_attempts`,
+        ).get() as {
+            status: string; error_code: string; provider: string; requested_model: string;
+            provider_requests_started: number | null; provider_requests_completed: number | null;
+            provider_requests_ambiguous: number | null; live_spend: number | null;
+            known_spend_observed: number;
+        };
         assert.equal(attempt.status, 'FAILED_FINAL');
         assert.match(attempt.error_code, /forge_runtime_binding_drift/);
+        assert.equal(attempt.provider, 'codex-host');
+        assert.equal(attempt.requested_model, 'gpt-5.6-luna');
+        assert.equal(Number(attempt.provider_requests_started ?? 0), 0);
+        assert.equal(Number(attempt.provider_requests_completed ?? 0), 0);
+        assert.equal(Number(attempt.provider_requests_ambiguous ?? 0), 0);
+        assert.equal(attempt.live_spend, null);
+        assert.equal(attempt.known_spend_observed, 0);
+        assert.equal(value.db.prepare('SELECT COUNT(*) AS count FROM hall_forge_attempts').get().count, 1);
+        assert.equal(value.db.prepare('SELECT status FROM hall_forge_requests').pluck().get(), 'FAILED_FINAL');
         assert.equal(fs.existsSync(path.join(value.root, 'forge-adapter-invoked')), false);
+        assert.equal(
+            fs.existsSync(path.join(value.root, 'work', 'forge-executions', result.execution_receipt_id)),
+            false,
+        );
     });
 });

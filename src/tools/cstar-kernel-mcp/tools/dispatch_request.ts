@@ -2,13 +2,21 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { registry } from '../../pennyone/pathRegistry.js';
-import { errorResponse, mcpGuardrail, textResponse, type McpTextResponse } from '../contracts/responses.js';
+import {
+    errorResponse,
+    mcpGuardrail,
+    preAuthorizationResponse,
+    textResponse,
+    type McpTextResponse,
+} from '../contracts/responses.js';
 import {
     CODE_ROOT,
     readBoundedFileInside,
     resolveExistingPathInside,
 } from '../contracts/runtime.js';
 import { resolveDispatchActionAuthority } from './dispatch_action_authority.js';
+import { database } from '../../pennyone/intel/database.js';
+import { dispatchResearcherHostWorker } from '../../pennyone/intel/researcher_host_worker_dispatch.js';
 
 export type DispatchRequestKind = 'researcher' | 'forge';
 export type DispatchSpendMode = 'no_spend' | 'dry_run' | 'live_authorized';
@@ -64,10 +72,19 @@ export interface DispatchRequestArgs {
     };
     callback_contract: DispatchCallbackContract;
     package_locks?: DispatchPackageLock[];
+    idempotency_key?: string;
     dispatch_surface_ref?: string;
 }
 
-export function makeDispatchDecisionId(kind: DispatchRequestKind, args: DispatchRequestArgs): string {
+export type ResearcherRequestArgs = Omit<DispatchRequestArgs, 'callback_contract' | 'decision_id'> & {
+    decision_id?: string;
+    callback_contract?: DispatchCallbackContract;
+};
+
+export function makeDispatchDecisionId(
+    kind: DispatchRequestKind,
+    args: Pick<DispatchRequestArgs, 'bead_id' | 'decision_id' | 'objective'>,
+): string {
     if (args.decision_id?.trim()) {
         return args.decision_id.trim();
     }
@@ -228,7 +245,7 @@ export async function handleDispatchRequest(
         const validationError = findDispatchValidationError(args);
         const decisionId = makeDispatchDecisionId(kind, args);
         if (validationError) {
-            return textResponse({
+            return preAuthorizationResponse({
                 status: 'rejected',
                 dispatch_kind: kind,
                 decision_id: decisionId,
@@ -241,13 +258,13 @@ export async function handleDispatchRequest(
                     ['dispatch_contract'],
                     ['request_validation'],
                 ),
-            }, true);
+            }, 'dispatch_request_contract_invalid', validationError);
         }
 
         const root = registry.getRoot();
         const actionAuthority = resolveDispatchActionAuthority(args, root);
         if (kind === 'researcher' && actionAuthority.primary_action === 'project_files') {
-            return textResponse({
+            return preAuthorizationResponse({
                 status: 'rejected',
                 dispatch_kind: kind,
                 decision_id: decisionId,
@@ -260,7 +277,7 @@ export async function handleDispatchRequest(
                     ['dispatch_action_authority'],
                     ['route_to_forge'],
                 ),
-            }, true);
+            }, 'researcher_project_files_action_forbidden');
         }
         const surface = resolveDispatchSurface(kind, args);
         const liveAuthority = args.spend_policy.mode === 'live_authorized'
@@ -272,6 +289,12 @@ export async function handleDispatchRequest(
             : liveAuthority
                 ? null
                 : 'no_live_dispatch_authority';
+        const nativeDispatch = kind === 'researcher' && surface.found
+            ? dispatchResearcherHostWorker(args, {
+                db: database.getWritableDb(root), control_root: root,
+                host_owner_id: 'codex-host-researcher', decision_id: decisionId,
+            })
+            : null;
 
         return textResponse({
             status: failClosedReason ? 'dry_run_no_spend' : 'ready_for_authorized_dispatch',
@@ -307,8 +330,23 @@ export async function handleDispatchRequest(
             },
             package_locks: args.package_locks ?? [],
             authorized_dispatch_surface: surface,
+            ...(nativeDispatch ? {
+                native_worker_dispatch: {
+                    schema: 'cstar.researcher_native_host_worker_handoff.v1',
+                    request_id: nativeDispatch.request.request_id,
+                    request_sha256: nativeDispatch.request.request_sha256,
+                    job_id: nativeDispatch.job.job_id,
+                    attempt_id: nativeDispatch.job.attempt_id,
+                    handoff_sha256: nativeDispatch.handoff?.handoff_sha256 ?? null,
+                    handoff_path: nativeDispatch.handoff?.handoff_path ?? null,
+                    replayed: nativeDispatch.replayed,
+                    host_launch_required: true,
+                    cstar_launch: false,
+                },
+            } : {}),
             dispatch_execution: {
                 attempted: false,
+                native_handoff_created: nativeDispatch !== null,
                 live_spend: false,
                 live_source_collection: false,
                 codex_worker_fallback_allowed: false,
@@ -332,8 +370,18 @@ export async function handleDispatchRequest(
     }
 }
 
-export async function handleResearcherRequest(args: DispatchRequestArgs): Promise<McpTextResponse> {
-    return handleDispatchRequest('researcher', args);
+export async function handleResearcherRequest(args: ResearcherRequestArgs): Promise<McpTextResponse> {
+    const decisionId = makeDispatchDecisionId('researcher', args);
+    const normalizedArgs: DispatchRequestArgs = {
+        ...args,
+        decision_id: decisionId,
+        callback_contract: args.callback_contract ?? {
+            expected_packet: `CSTAR_RESEARCHER_RESULT:${decisionId}`,
+            callback_required: true,
+            callback_thread_id: args.source_callback_thread_id,
+        },
+    };
+    return handleDispatchRequest('researcher', normalizedArgs);
 }
 
 export async function handleForgeRequest(args: DispatchRequestArgs): Promise<McpTextResponse> {

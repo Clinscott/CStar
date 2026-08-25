@@ -104,7 +104,7 @@
     "corvus-forge": {
       "id": "corvus-forge",
       "title": "Corvus Forge",
-      "description": "Durable implementation routing through CStar request, execute, and independent validation.",
+      "description": "Durable implementation routing through CStar request -> authorize -> execute -> independent record_result.",
       "tier": "SKILL",
       "viability": "ACTIVE",
       "risk": "high",
@@ -137,12 +137,15 @@
       "owner_runtime": "host-agent",
       "host_support": {"codex": "native-session", "gemini": "native-session", "claude": "native-session"},
       "recursion_policy": "leaf",
-      "contracts": [".agents/skills/researcher/SKILL.md"],
+      "contracts": [".agents/skills/researcher/SKILL.md", ".agents/skills/researcher/schemas/researcher-native-contracts.v1.schema.json"],
       "tests": ["tests/unit/cstar-kernel-mcp/test_dispatch_requests.test.ts"],
       "intent_categories": ["RESEARCH", "VERIFY"],
       "execution": {
         "mode": "agent-native",
-        "ownership_model": "host-workflow"
+        "ownership_model": "host-workflow",
+        "native_completion_surface": "cstar_researcher_host_complete",
+        "acceptance_surface": "cstar_record_result",
+        "actual_identity": "unreported"
       }
     },
     "cstar-closeout": {
@@ -162,6 +165,36 @@
       "contracts": [".agents/skills/cstar-closeout/SKILL.md"],
       "tests": ["tests/unit/test_cstar_closeout_skill.py"],
       "intent_categories": ["DOCUMENT"],
+      "execution": {
+        "mode": "agent-native",
+        "ownership_model": "host-workflow"
+      }
+    },
+    "cstar-reliability-loop": {
+      "id": "cstar-reliability-loop",
+      "title": "CStar Reliability Loop v1",
+      "description": "Host-only bounded validation and automatic repair continuation; CStar records state, CoS orchestrates, and Luna Max implements and independently validates.",
+      "tier": "SKILL",
+      "viability": "ACTIVE",
+      "risk": "medium",
+      "entry_surface": "host-only",
+      "instruction_path": ".agents/skills/cstar-reliability-loop/SKILL.md",
+      "entrypoint_path": null,
+      "authority_path": ".agents/skills/cstar-reliability-loop",
+      "owner_runtime": "host-agent",
+      "host_support": {"codex": "native-session", "gemini": "native-session", "claude": "native-session"},
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/cstar-reliability-loop/SKILL.md",
+        ".agents/skills/cstar-reliability-loop/references/reliability-continuation.schema.json",
+        "tests/features/cstar_reliability_loop.feature"
+      ],
+      "tests": [
+        "tests/unit/cstar-kernel-mcp/test_reliability_loop.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_reliability_loop_result.test.ts",
+        "tests/unit/test_cstar_reliability_loop_skill.py"
+      ],
+      "intent_categories": ["VERIFY", "HARDEN"],
       "execution": {
         "mode": "agent-native",
         "ownership_model": "host-workflow"

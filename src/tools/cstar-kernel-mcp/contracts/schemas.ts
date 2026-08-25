@@ -1,5 +1,31 @@
 import { z } from 'zod';
 
+export {
+    researcherAdapterBindingSchema,
+    researcherArtifactManifestSchema,
+    researcherAuthorityBindingSchema,
+    researcherHostCompleteSchema,
+    researcherNativeWorkPackageSchema,
+    researcherRequestSchema,
+    researcherTerminalReceiptSchema,
+    researcherValidationBindingSchema,
+    researcherValidationReceiptSchema,
+    researcherValidationResultSchema,
+    researcherValidationSubjectSchema,
+} from './researcher_host_completion.js';
+
+export {
+    automaticMissionOutcomeSchema,
+    automaticMissionSchema,
+    automaticMissionCoordinatorSchema,
+    cstarMissionCoordinatorOutcomeSchema,
+    cstarMissionCoordinatorSchema,
+    cstarMissionCoordinatorToolSchema,
+    cstarMissionPublicSchema,
+    cstarMissionSchema,
+    type CstarMissionCoordinatorInput,
+} from './automatic_mission.js';
+
 export const dispatchMetricSchema = z.object({
     name: z.string().min(1).describe('Metric name, e.g. precision, pass_rate, artifact_integrity'),
     threshold: z.string().min(1).describe('Acceptance threshold, e.g. >= 0.95 or zero P1/P2 blockers'),
@@ -96,15 +122,17 @@ export const dispatchRequestSchema = {
     live_source_policy: z.string().optional().describe('Additional live-source/source-adapter policy text'),
     fixture_policy: z.literal('synthetic_only').optional().describe('Live Forge work is restricted to synthetic fixtures; required for live authorization'),
     retry_policy: dispatchRetrySchema.optional().describe('Decision retry budget/spent contract'),
-    callback_contract: dispatchCallbackSchema.describe('Callback packet contract'),
+    callback_contract: dispatchCallbackSchema.optional().describe('Optional callback packet contract; Researcher requests derive a deterministic callback when omitted'),
     package_locks: z.array(dispatchPackageLockSchema).optional().describe('Optional package/hash locks'),
+    idempotency_key: z.string().min(8).max(192).optional().describe('Caller-stable Researcher request key; duplicates never launch a second native task'),
     dispatch_surface_ref: z.string().optional().describe('Optional explicit authorized surface path; missing paths fail closed'),
 };
 
 export const forgeRequestSchema = {
     ...dispatchRequestSchema,
+    callback_contract: dispatchCallbackSchema.describe('Callback packet contract; required for Forge requests'),
     spend_policy: forgeRequestSpendPolicySchema,
-    execution_adapter_ref: z.string().optional().describe('Requested registered Forge/Hermes/MiniMax adapter; required for live authorization'),
+    execution_adapter_ref: z.string().optional().describe('Legacy-v2 compatibility adapter reference only; current v3 must omit this field and uses the codex-host state-only transport'),
 };
 
 export const forgeAuthorizeSchema = {
@@ -112,18 +140,19 @@ export const forgeAuthorizeSchema = {
         .describe('Immutable pending Forge request receipt returned by cstar_forge_request'),
     request_sha256: z.string().regex(/^[a-f0-9]{64}$/)
         .describe('Exact canonical request digest returned by cstar_forge_request'),
-    goal_resume_id: z.string().regex(/^goal-resume:[a-f0-9]{64}$/).optional()
+    goal_resume_id: z.string().regex(/^(?:goal-resume|goal-resume-v2):[a-f0-9]{64}$/).optional()
         .describe('Router-supplied immutable CStar goal-continuation receipt; never operator-authored request material'),
 };
 
 export const forgeExecuteSchema = {
     ...dispatchRequestSchema,
+    callback_contract: dispatchCallbackSchema.describe('Callback packet contract; required for Forge execution'),
     spend_policy: forgeRequestSpendPolicySchema.describe('Canonical request spend policy; execute authority comes only from the request-bound root-user authorization reference and durable receipt'),
     forge_request_receipt_id: z.string().min(1).describe('Receipt id returned by cstar_forge_request; must start with dispatch-forge-'),
     forge_request_decision_id: z.string().min(1).describe('Decision id from the cstar_forge_request receipt'),
     forge_request_bead_id: z.string().optional().describe('Bead id from the cstar_forge_request receipt; must match bead_id when both are supplied'),
     execution_mode: z.enum(['no_op', 'live_authorized']).describe('no_op validates without live spend; live_authorized requires a durable immutable request and request-bound one-shot operator attestation'),
-    execution_adapter_ref: z.string().optional().describe('Explicit approved Forge/Hermes/MiniMax adapter reference; unregistered adapters fail closed'),
+    execution_adapter_ref: z.string().optional().describe('Legacy-v2 compatibility adapter reference only; current v3 must omit this field and uses the codex-host state-only transport; unregistered or v3-supplied adapters fail closed'),
     operator_authorization_ref: z.string().optional().describe('Request-bound operator attestation reference; a nonempty string alone is not authority'),
     idempotency_key: z.string().min(1).describe('Caller-stable key for this exact execution attempt; replays never invoke the adapter twice'),
     retry_of_attempt_id: z.string().optional().describe('Kernel/router-populated parent for an exact independently validated FAILED_RETRYABLE pre-provider continuation; never operator-authored'),

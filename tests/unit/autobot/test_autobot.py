@@ -64,7 +64,7 @@ def test_durable_forge_is_the_only_registered_implementation_lane() -> None:
     assert "name: 'cstar_forge_request'" in catalog
     assert "name: 'cstar_forge_execute'" in catalog
     assert (
-        "cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute -> private Hermes cstar-hub"
+        "cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute -> Codex-host"
         in contract.replace("\n", " ")
     )
 
@@ -75,4 +75,5 @@ def test_retirement_contract_forbids_environment_reactivation() -> None:
 
     assert "`cstar_autobot` is decommissioned" in flat
     assert "No environment variable reactivates it." in flat
-    assert "Live implementation uses only `cstar_forge_request`" in flat
+    assert "Codex-host state-only Luna handoff is separate" in flat
+    assert "performs zero provider calls" in flat

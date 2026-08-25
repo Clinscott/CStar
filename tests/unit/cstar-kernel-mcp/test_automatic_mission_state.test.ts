@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict';
-import { describe, it } from 'node:test';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { afterEach, describe, it } from 'node:test';
 
 import {
     AutomaticMissionController,
@@ -11,6 +14,8 @@ import {
     buildAutomaticMissionInstructionText,
 } from '../../../src/tools/pennyone/intel/automatic_mission_authority.js';
 import type { AutomaticMissionDesign } from '../../../src/types/automatic_mission.js';
+import { closeDb } from '../../../src/tools/pennyone/intel/database.js';
+import { registry } from '../../../src/tools/pennyone/pathRegistry.js';
 
 const NOW = 2_000_000;
 const DESIGN: AutomaticMissionDesign = {
@@ -23,6 +28,21 @@ const DESIGN: AutomaticMissionDesign = {
     spend_ceiling: 0,
     expires_at: NOW + 30_000,
 };
+const originalRoot = registry.getRoot();
+const roots: string[] = [];
+
+afterEach(() => {
+    closeDb();
+    registry.setRoot(originalRoot);
+    while (roots.length > 0) fs.rmSync(roots.pop()!, { recursive: true, force: true });
+});
+
+function durableController(): AutomaticMissionController {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'cstar-automatic-mission-state-'));
+    roots.push(root);
+    registry.setRoot(root);
+    return new AutomaticMissionController({ code_root: root, control_root: root });
+}
 
 function fullInput() {
     const draft = createAutomaticMissionRecord({
@@ -105,7 +125,7 @@ describe('automatic mission deterministic state ingress', () => {
                 secondRecord.request_id, secondRecord.request_sha256, secondRecord.idempotency_key],
         );
 
-        const controller = new AutomaticMissionController();
+        const controller = durableController();
         const first = controller.ingest(fullInput(), { now: NOW, queue_dispatch: true });
         const replay = controller.ingest(fullInput(), { now: NOW + 10, queue_dispatch: true });
         assert.equal(first.outcome, 'ok');
@@ -116,7 +136,7 @@ describe('automatic mission deterministic state ingress', () => {
     });
 
     it('blocks reuse of one idempotency key for a different request', () => {
-        const controller = new AutomaticMissionController();
+        const controller = durableController();
         const firstInput = {
             ...fullInput(),
             idempotency_key: 'cstar-a1-one-shot',
@@ -127,11 +147,11 @@ describe('automatic mission deterministic state ingress', () => {
             idempotency_key: firstInput.idempotency_key,
         }, NOW);
         firstInput.root_user_record.text = buildAutomaticMissionInstructionText(firstDraft, 'mission');
-        const first = controller.ingest(firstInput, { now: NOW });
+        const first = controller.ingest(firstInput, { now: NOW, queue_dispatch: true });
         const conflict = controller.ingest({
             ...firstInput,
             objective: 'A different bounded mission must not inherit the first grant.',
-        }, { now: NOW + 1 });
+        }, { now: NOW + 1, queue_dispatch: true });
         assert.equal(first.outcome, 'ok');
         assert.equal(conflict.outcome, 'guardrail_block');
         assert.equal(conflict.error_code, 'automatic_mission_idempotency_conflict');

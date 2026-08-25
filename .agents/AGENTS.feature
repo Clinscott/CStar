@@ -14,13 +14,21 @@ Feature: CStar operator workflow router
         | kernel health is unknown       | cstar_doctor                                                       | docs/integrations/cstar-kernel-mcp.md                       |
         | a known mission resumes        | cstar_handoff                                                      | docs/operations/cstar-goal-driven-daily-bootstrap.md        |
         | route or scope is ambiguous    | cstar_augury then at most one bounded cstar_hall_search             | docs/integrations/cstar-kernel-mcp.md                       |
-        | implementation is requested    | cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute | docs/operations/corvus-forge-pipeline-playbook.md           |
+        | implementation is requested    | cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute -> independent cstar_record_result | docs/operations/corvus-forge-pipeline-playbook.md |
         | external evidence is requested | cstar_researcher_request                                           | .agents/skills/researcher/SKILL.md                          |
+        | native Researcher delivery arrives | cstar_researcher_host_complete -> independent cstar_record_result | .agents/skills/researcher/SKILL.md                          |
         | delivery needs validation      | independent cstar_record_result                                    | docs/operations/corvus-forge-pipeline-playbook.md           |
         | mapped project context is due  | one bounded PMT read and one compact state update                   | docs/architecture/cos-pmt-thread-architecture.md            |
         | daily freshness is due         | daily bootstrap                                                    | docs/operations/cstar-goal-driven-daily-bootstrap.md        |
         | persona posture changes        | cstar_persona_set at the next workflow boundary                     | docs/operations/cstar-iterative-development.md              |
         | CoS context rotates            | cstar-closeout and one bounded generated handoff                    | docs/operations/cos-context-refresh-new-thread-packet.md    |
+
+  Rule: Role and language boundaries remain explicit
+
+    Given CoS coordinates operator-facing work
+    Then Forge implements, Researcher gathers evidence, and an independent validator evaluates
+    And ordinary Forge and Researcher use remains coordinator-decided
+    And ordinary operator instructions are not rewritten into robot-language prompts
 
   Rule: Persona changes process posture, not authority
 
@@ -44,7 +52,7 @@ Feature: CStar operator workflow router
     Scenario: A mapped PMT is unavailable
       Then record a freshness gap
       And continue from current CStar evidence when otherwise authorized
-      And give MM no routing role
+      And MM is inactive and has no active routing, synthesis, ownership, relay, review, or execution role
 
   Rule: Live work is not polled or duplicated
 

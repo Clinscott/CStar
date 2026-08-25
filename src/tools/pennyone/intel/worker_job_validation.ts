@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import type {
+    CodexHostWorkerJobContract,
     ExecutableWorkerJobContract,
     WorkerJobRecord,
     WorkerJobProviderEvidence,
@@ -11,7 +12,10 @@ import {
     WORKER_JOB_PROVIDER_REQUEST_CEILING,
     WORKER_JOB_VALIDATION_VERDICTS,
 } from '../../../types/worker_job.js';
-import { executableWorkerJobContractSchema } from '../../cstar-kernel-mcp/contracts/worker_jobs.js';
+import {
+    codexHostWorkerJobContractSchema,
+    executableWorkerJobContractSchema,
+} from '../../cstar-kernel-mcp/contracts/worker_jobs.js';
 import { WorkerJobLedgerError } from './worker_job_errors.js';
 
 const SHA256 = /^[a-f0-9]{64}$/;
@@ -59,6 +63,35 @@ export function workerJobContractSha256(
     contract: ExecutableWorkerJobContract,
 ): string {
     return sha256(JSON.stringify(contract));
+}
+
+export function normalizeCodexHostWorkerJobContract(
+    input: CodexHostWorkerJobContract,
+): CodexHostWorkerJobContract {
+    const parsed = codexHostWorkerJobContractSchema.safeParse(input);
+    if (!parsed.success) {
+        throw new WorkerJobLedgerError(
+            'WORKER_JOB_CONTRACT_INVALID',
+            parsed.error.issues.map((issue) => issue.message).join(' '),
+        );
+    }
+    return parsed.data as CodexHostWorkerJobContract;
+}
+
+export function normalizeResearcherHostWorkerJobContract(
+    input: CodexHostWorkerJobContract,
+): CodexHostWorkerJobContract {
+    const contract = normalizeCodexHostWorkerJobContract(input);
+    if (contract.workflow_surface !== 'researcher' || contract.worker_kind !== 'researcher'
+        || contract.requested_model !== 'gpt-5.6-luna' || contract.requested_reasoning !== 'max'
+        || contract.selector_status !== 'enforced' || contract.host_launch_required !== true
+        || contract.cognition_launch || contract.cstar_launch || contract.network_accessed
+        || contract.provider_requests_started !== 0 || contract.max_host_attempts !== 1
+        || contract.max_descendants !== 0 || contract.max_peer_messages !== 0
+        || contract.max_retries !== 0 || contract.max_replays !== 0 || contract.max_fallbacks !== 0) {
+        throw new WorkerJobLedgerError('WORKER_JOB_RESEARCHER_CONTRACT_INVALID', 'Researcher host contract is not a one-shot native handoff.');
+    }
+    return contract;
 }
 
 export function requireExecutableAt(

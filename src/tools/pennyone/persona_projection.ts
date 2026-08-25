@@ -2,14 +2,15 @@ import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { getHallRepositoryRecord } from './intel/database.js';
 import { registry } from './pathRegistry.js';
 import { parseCanonicalPersona, type CanonicalPersona } from '../../core/persona_contract.js';
 import {
+    buildPersonaProjectionMetadata,
     isPersonaProjectionSelfConsistent,
     personaProjectionConsistencyStatus,
     type PersonaProjectionConsistencyStatus,
 } from './persona_provenance.js';
+import { readCanonicalPersonaState } from './intel/persona_state.js';
 
 export {
     buildPersonaProjectionMetadata,
@@ -25,6 +26,8 @@ export interface HallPersonaProjectionState {
 export interface ActivePersonaProjectionState {
     active_persona: CanonicalPersona | null;
     projection_status: PersonaProjectionConsistencyStatus
+        | 'canonical_state_invalid'
+        | 'canonical_state_unavailable'
         | 'bounded_config_projection'
         | 'bounded_config_invalid'
         | 'bounded_config_reader_unavailable';
@@ -88,11 +91,26 @@ export function readBoundedConfiguredPersona(controlRoot: string): CanonicalPers
     return readBoundedConfiguredPersonaState(controlRoot).active_persona;
 }
 
-/** Config is the active source; a marked Hall row remains a compatibility fallback. */
+/** Dedicated Hall persona state is canonical; config is a one-time migration fallback. */
 export function readActivePersonaProjectionState(
     repositoryRoot: string,
     hallRoot: string = registry.getRoot(),
 ): ActivePersonaProjectionState {
+    void repositoryRoot;
+    const canonical = readCanonicalPersonaState(hallRoot);
+    if (canonical.status === 'projected') return {
+        active_persona: canonical.active_persona,
+        projection_status: 'self_consistent_unverified',
+    };
+    if (canonical.status === 'invalid') return {
+        active_persona: null,
+        projection_status: 'canonical_state_invalid',
+    };
+    if (canonical.status === 'unavailable') return {
+        active_persona: null,
+        projection_status: 'canonical_state_unavailable',
+    };
+
     const configured = readBoundedConfiguredPersonaState(hallRoot);
     if (configured.status === 'projected') return {
         active_persona: configured.active_persona,
@@ -106,18 +124,7 @@ export function readActivePersonaProjectionState(
         active_persona: null,
         projection_status: 'bounded_config_reader_unavailable',
     };
-    return readHallPersonaProjectionState(repositoryRoot, hallRoot);
-}
-
-function readRepositoryIfPresent(repositoryRoot: string, hallRoot: string) {
-    try {
-        return getHallRepositoryRecord(repositoryRoot, hallRoot);
-    } catch (error) {
-        if (error instanceof Error && error.message === 'hall_store_missing') {
-            return null;
-        }
-        throw error;
-    }
+    return { active_persona: null, projection_status: 'unavailable' };
 }
 
 /**
@@ -135,22 +142,16 @@ export function resolveHallPersonaProjectionForWrite(
     targetRoot: string,
     controlRoot: string = registry.getRoot(),
 ): { active_persona: CanonicalPersona; metadata: Record<string, unknown>; projection_status: Exclude<PersonaProjectionConsistencyStatus, 'unavailable'> } {
-    for (const repositoryRoot of [targetRoot, controlRoot]) {
-        const record = readRepositoryIfPresent(repositoryRoot, controlRoot);
-        const metadata = record?.metadata as Record<string, unknown> | undefined;
-        const persona = parseCanonicalPersona(record?.active_persona);
-        const projectionStatus = personaProjectionConsistencyStatus(metadata, persona);
-        if (persona && projectionStatus !== 'unavailable') {
-            return {
-                active_persona: persona,
-                metadata: { persona_projection: metadata?.persona_projection },
-                projection_status: projectionStatus,
-            };
-        }
+    void targetRoot;
+    const state = readCanonicalPersonaState(controlRoot);
+    if (state.status === 'projected' && state.active_persona) {
+        return {
+            active_persona: state.active_persona,
+            metadata: buildPersonaProjectionMetadata(state.active_persona),
+            projection_status: 'self_consistent_unverified',
+        };
     }
-    {
-        throw new Error('active_persona_projection_unavailable');
-    }
+    throw new Error('active_persona_projection_unavailable');
 }
 
 /** Read only an existing, non-bootstrap Hall persona projection. */
@@ -165,12 +166,13 @@ export function readHallPersonaProjectionState(
     repositoryRoot: string,
     hallRoot: string = registry.getRoot(),
 ): HallPersonaProjectionState {
-    const record = readRepositoryIfPresent(repositoryRoot, hallRoot);
-    if (!record) return { active_persona: null, projection_status: 'unavailable' };
-    const metadata = record.metadata as Record<string, unknown> | undefined;
-    const persona = parseCanonicalPersona(record.active_persona);
-    const projectionStatus = personaProjectionConsistencyStatus(metadata, persona);
-    return projectionStatus === 'unavailable' || !persona
-        ? { active_persona: null, projection_status: 'unavailable' }
-        : { active_persona: persona, projection_status: projectionStatus };
+    void repositoryRoot;
+    const state = readCanonicalPersonaState(hallRoot);
+    if (state.status !== 'projected' || !state.active_persona) {
+        return { active_persona: null, projection_status: 'unavailable' };
+    }
+    return {
+        active_persona: state.active_persona,
+        projection_status: 'self_consistent_unverified',
+    };
 }

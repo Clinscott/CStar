@@ -142,6 +142,11 @@ export const CSTAR_KERNEL_TOOL_CATALOG = [
         description: 'Create a CStar-native no-spend Researcher request receipt.',
     },
     {
+        name: 'cstar_researcher_host_complete',
+        toolClass: 'MUTATION',
+        description: 'Record a native Researcher host completion as delivery pending independent validation; it cannot accept the work.',
+    },
+    {
         name: 'cstar_forge_request',
         toolClass: 'REQUEST',
         description: 'Persist an immutable no-spend Forge request; machine challenge material stays hidden from the normal operator workflow.',
@@ -154,7 +159,17 @@ export const CSTAR_KERNEL_TOOL_CATALOG = [
     {
         name: 'cstar_forge_execute',
         toolClass: 'EXECUTION',
-        description: 'Atomically run one provider attempt through the private Hermes/MiniMax adapter, with durable replay, independently validated pre-provider continuity, and delivered-pending-validation semantics.',
+        description: 'Atomically persist or replay the current Codex-host state-only Forge handoff with zero CStar provider/cognition launch; explicitly selected legacy Hermes/MiniMax attempts retain durable replay, independently validated continuity, and delivered-pending-validation semantics.',
+    },
+    {
+        name: 'cstar_mission',
+        toolClass: 'REQUEST',
+        description: 'Compatibility-first ordinary bounded mission coordinator; derives immutable identifiers and hashes, persists host-owned queue intent when authorized, and never launches workers, providers, or Forge authority.',
+    },
+    {
+        name: 'cstar_forge_host_complete',
+        toolClass: 'MUTATION',
+        description: 'Record a host-reported Forge completion boundary without treating delivery as independent validation or lifecycle success.',
     },
 ] as const satisfies readonly CstarKernelToolCatalogShape[];
 

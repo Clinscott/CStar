@@ -1,4 +1,4 @@
-import { describe, it } from 'node:test';
+import { afterEach, beforeEach, describe, it } from 'node:test';
 import {
     assert,
     fs,
@@ -10,6 +10,16 @@ import {
 import { assertForgeRequiredOutputsContained } from '../../../src/tools/cstar-kernel-mcp/tools/forge_request_contract.js';
 
 const linuxIt = process.platform === 'linux' ? it : it.skip;
+const originalNodeTestContext = process.env.NODE_TEST_CONTEXT;
+
+beforeEach(() => {
+    process.env.NODE_TEST_CONTEXT = 'cstar-synthetic';
+});
+
+afterEach(() => {
+    if (originalNodeTestContext === undefined) delete process.env.NODE_TEST_CONTEXT;
+    else process.env.NODE_TEST_CONTEXT = originalNodeTestContext;
+});
 
 describe('CStar MCP Forge adapter project-root inference', () => {
     linuxIt('uses the common project root for mixed tools/tests targets without nesting tools twice', async () => {

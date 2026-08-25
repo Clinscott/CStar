@@ -84,7 +84,23 @@ export const automaticMissionSchema = z.object({
     queue_dispatch: z.boolean().optional(),
 }).strict();
 
-export const cstarMissionSchema = automaticMissionSchema;
+/**
+ * Public ordinary-language ingress. Defaults are kernel-owned projections;
+ * callers cannot supply any derived identifier or digest fields.
+ */
+export const cstarMissionCoordinatorSchema = automaticMissionSchema.extend({
+    compatibility_profile: z.enum(['cstar_mission_v1', 'legacy_singleton_v1'])
+        .default('cstar_mission_v1'),
+    action: z.enum(['draft', 'bind', 'materialize', 'queue_dispatch'])
+        .default('materialize'),
+    queue_dispatch: z.boolean().default(false),
+});
+
+export const cstarMissionCoordinatorToolSchema = cstarMissionCoordinatorSchema.shape;
+export const cstarMissionPublicSchema = cstarMissionCoordinatorSchema;
+export const automaticMissionCoordinatorSchema = cstarMissionCoordinatorSchema;
+export const cstarMissionSchema = cstarMissionCoordinatorSchema;
+export const legacyCstarMissionSchema = automaticMissionSchema;
 export const automaticMissionContractSchema = automaticMissionSchema;
 export const automaticMissionRequestSchema = automaticMissionSchema;
 
@@ -151,5 +167,10 @@ export const automaticMissionOutcomeSchema = z.object({
     state: z.enum(['DRAFT', 'NEEDS_DESIGN', 'SET_BOUND', 'MATERIALIZED', 'DISPATCH_QUEUED']),
 }).passthrough();
 
+export const cstarMissionCoordinatorOutcomeSchema = automaticMissionOutcomeSchema.extend({
+    next_action: boundedText,
+});
+
 export type AutomaticMissionContractInput = z.infer<typeof automaticMissionSchema>;
+export type CstarMissionCoordinatorInput = z.infer<typeof cstarMissionCoordinatorSchema>;
 export type AutomaticMissionSetGrantInput = z.infer<typeof automaticMissionSetGrantSchema>;
