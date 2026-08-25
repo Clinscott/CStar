@@ -2,7 +2,28 @@ import ast
 import re
 from typing import Any
 
-from src.core.engine.gungnir.schema import GungnirMatrix, build_gungnir_matrix, matrix_to_dict
+from src.core.engine.gungnir.schema import (
+    GUNGNIR_SCORE_MAX,
+    GUNGNIR_SCORE_MIN,
+    build_gungnir_matrix,
+    matrix_to_dict,
+)
+
+
+SUPPORTED_EXTENSIONS = frozenset({
+    ".css",
+    ".js",
+    ".json",
+    ".jsx",
+    ".md",
+    ".py",
+    ".qmd",
+    ".scss",
+    ".ts",
+    ".tsx",
+    ".yaml",
+    ".yml",
+})
 
 
 class UniversalGungnir:
@@ -20,7 +41,7 @@ class UniversalGungnir:
     def audit_logic(self, code: str, ext: str) -> list[dict[str, Any]]:
         """Structured audit for logic files (PY/TS/JS)."""
         breaches = []
-        ext = ext.lower()
+        ext = self._normalize_extension(ext)
 
         if ext in ('.py', '.ts', '.js', '.tsx', '.jsx'):
             breaches.extend(self._audit_logic_rules(code, ext))
@@ -35,11 +56,11 @@ class UniversalGungnir:
 
     def score_matrix(self, code: str, ext: str) -> dict[str, Any]:
         breaches = self.audit_logic(code, ext)
-        logic = 10.0
-        style = 10.0
-        intel = 10.0
-        evolution = 10.0
-        anomaly = 0.0
+        logic = GUNGNIR_SCORE_MAX
+        style = GUNGNIR_SCORE_MAX
+        intel = GUNGNIR_SCORE_MAX
+        evolution = GUNGNIR_SCORE_MAX
+        anomaly = GUNGNIR_SCORE_MIN
 
         severity_penalty = {
             "LOW": 0.5,
@@ -52,28 +73,42 @@ class UniversalGungnir:
             penalty = severity_penalty.get(str(breach.get("severity", "")).upper(), 1.0)
             action = str(breach.get("action", "")).upper()
             if "LOGIC" in action or "COUPLING" in action or "PARSE" in action:
-                logic = max(0.0, logic - penalty)
+                logic = max(GUNGNIR_SCORE_MIN, logic - penalty)
             if "STYLE" in action or "UI" in action:
-                style = max(0.0, style - penalty)
+                style = max(GUNGNIR_SCORE_MIN, style - penalty)
             if "INTEL" in action or "DOCS" in action or "DATA" in action:
-                intel = max(0.0, intel - penalty)
-            evolution = max(0.0, evolution - (penalty * 0.25))
+                intel = max(GUNGNIR_SCORE_MIN, intel - penalty)
+            evolution = max(GUNGNIR_SCORE_MIN, evolution - (penalty * 0.25))
             if str(breach.get("severity", "")).upper() == "CRITICAL":
                 anomaly += 1.0
 
-        matrix = build_gungnir_matrix(
-            GungnirMatrix(
-                logic=logic,
-                style=style,
-                intel=intel,
-                gravity=0.0,
-                vigil=10.0,
-                evolution=evolution,
-                anomaly=anomaly,
-                sovereignty=max(0.0, min(10.0, (logic + style + intel + evolution) / 4)),
-            )
-        )
+        matrix = build_gungnir_matrix({
+            "logic": logic,
+            "style": style,
+            "intel": intel,
+            "gravity": GUNGNIR_SCORE_MIN,
+            "vigil": GUNGNIR_SCORE_MAX,
+            "evolution": evolution,
+            "anomaly": anomaly,
+            "sovereignty": max(
+                GUNGNIR_SCORE_MIN,
+                min(
+                    GUNGNIR_SCORE_MAX,
+                    (logic + style + intel + evolution) / 4,
+                ),
+            ),
+        })
         return matrix_to_dict(matrix)
+
+    @staticmethod
+    def _normalize_extension(ext: str) -> str:
+        normalized_ext = ext.lower()
+        if normalized_ext not in SUPPORTED_EXTENSIONS:
+            supported = ", ".join(sorted(SUPPORTED_EXTENSIONS))
+            raise ValueError(
+                f"Unsupported Gungnir file extension {ext!r}. Supported extensions: {supported}"
+            )
+        return normalized_ext
 
     def _audit_logic_rules(self, code: str, ext: str) -> list[dict[str, Any]]:
         breaches = []
@@ -83,8 +118,12 @@ class UniversalGungnir:
                 tree = ast.parse(code)
                 
                 # 1. Logic [L] & Stability [T]: Complexity analysis
-                import radon.complexity as cc
-                results = cc.cc_visit(code)
+                try:
+                    import radon.complexity as cc
+                except ImportError:
+                    results = []
+                else:
+                    results = cc.cc_visit(code)
                 avg_cc = sum(r.complexity for r in results) / len(results) if results else 1
                 if avg_cc > 15:
                     breaches.append({"severity": "HIGH", "action": f"GUNGNIR_LOGIC_BREACH: High Complexity ({avg_cc:.1f}). Refactor God Methods."})
@@ -123,7 +162,7 @@ class UniversalGungnir:
                     else:
                         consecutive = 0
 
-            except Exception as e:
+            except SyntaxError as e:
                 breaches.append({"severity": "CRITICAL", "action": f"GUNGNIR_PARSE_ERROR: {e}"})
 
         elif ext in ('.tsx', '.jsx', '.ts', '.js'):

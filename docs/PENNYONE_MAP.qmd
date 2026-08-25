@@ -1,44 +1,39 @@
 ---
-title: "PennyOne and Hall Navigation"
-subtitle: "Bounded read-only discovery"
+title: "PennyOne Navigational Map"
+subtitle: "The Primary Cortex for Agent Reconnaissance"
 format: html
 ---
 
-# PennyOne and Hall Navigation
+# ◤ THE COMPASS OF ASGARD ◢
 
-## Current Boundary
+> [!IMPORTANT]
+> **MANDATE**: All agents MUST consult this map before performing deep file reads or wide searches in the source code.
 
-PennyOne projects bounded operator-visible state from Hall. Hall bead,
-proposal, request, attempt, and validation records are lifecycle evidence;
-PennyOne reports, dashboards, matrices, generated `.stats/` documents, and
-scores are projections. They do not grant authority or prove current readiness.
+## ◈ Purpose
+The PennyOne system converts raw code into high-fidelity intelligence. Instead of reading thousands of lines of raw code, agents should query the `.stats/` directory first to identify targets by **Intent**, **Complexity**, and **Gravity**.
 
-Use `cstar-kernel` MCP first:
+## ◈ The Hall of Records (`.stats/`)
+Every file in the repository has a corresponding `.qmd` report in the `.stats/` directory. These reports are named using a flattened path:
+- Source: `src/core/sv_engine.py`
+- Report: `.stats/src-core-sv_engine-py.qmd`
 
-- `cstar_handoff` only when resuming prior state;
-- `cstar_hall_search` for bounded lifecycle/document discovery;
-- `cstar_status` for current bounded status; and
-- `cstar_doctor` when health is unknown or degraded.
+## ◈ Searching the Matrix
+Agents should use the following tools to find their path:
 
-Use at most one broad Hall query before narrowing by bead id, target path, or
-exact error. A stale or missing PennyOne projection is a freshness issue, not
-permission to bypass CStar or scan the entire repository.
+### 1. Unified Search (Cross-Platform)
+Run `cstar p1 --search <query>` to perform a platform-aware search through the intent summaries and metadata. This replaces raw `grep` and ensures consistent results on Windows, Linux, and Unix.
 
-## CLI Compatibility
+### 2. Identifying Hotspots
+Consult `cstar p1 --stats` to find "High Gravity" files where agents frequently interact or get stuck in logic loops.
 
-The `cstar pennyone`/`cstar p1` CLI may expose explicit read-only status, search,
-or scan operations for terminal-required diagnosis. It is not a startup ritual
-and must not automatically run a model, learn, harvest, mutate memory, launch a
-daemon, or route execution.
+### 3. API Discovery
+Look for files tagged with `## API Endpoints` in their reports. These are the gateways of the system.
 
-## Score Boundary
+## ◈ Metadata Definitions
+- **Logic [L]**: Structural branching density. Lower is more linear; higher is more complex.
+- **Style [S]**: Aesthetic symmetry and naming purity.
+- **Intel [I]**: Documentation density and transparency.
+- **Gravity [G]**: Real-time agent interaction frequency. High gravity indicates a "Sector of Interest."
 
-Historical Logic, Style, Intel, Gravity, Gungnir, or intent-integrity values are
-navigation hints only. A numeric claim has evidentiary standing only when the
-actual scorer ran with a nonzero denominator, formula, exclusion accounting,
-class coverage, row evidence, and an independent probe. Such evidence still
-does not replace operator policy or CStar lifecycle state.
-
-Persona may change professional tone and domain emphasis only. PMTs are
-project-scoped information repositories, MM is legacy, and retired One Mind,
-Ravens, AutoBot, or model-memory paths cannot be reactivated through PennyOne.
+---
+[ALFRED]: "Follow the map, sir. It is much safer than wandering the void."

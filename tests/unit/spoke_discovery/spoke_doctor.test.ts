@@ -2,192 +2,78 @@ import test from 'node:test';
 import assert from 'node:assert';
 
 import {
-    SPOKE_HEALTH_FRESHNESS_MS,
-    SPOKE_SCAN_FRESHNESS_MS,
-    healthCheckSpoke,
     surveySpokesForRecords,
     type SpokeSurveyReport,
     type SpokeBucket,
 } from '../../../src/node/core/spokes/spoke_doctor.ts';
 import type { HallMountedSpokeRecord } from '../../../src/types/hall.js';
-import { database } from '../../../src/tools/pennyone/intel/database.js';
 
-const HUB = 'repo:/home/me/Corvus/CStar';
+const HUB = 'repo:/synthetic/hub';
 
-function row(overrides: Partial<HallMountedSpokeRecord> & { slug: string; root_path: string }): HallMountedSpokeRecord {
+function row(overrides: Partial<HallMountedSpokeRecord> & { slug: string }): HallMountedSpokeRecord {
     return {
         spoke_id: `spoke:${overrides.slug}`,
         repo_id: overrides.repo_id ?? HUB,
         slug: overrides.slug,
         kind: overrides.kind ?? 'local',
-        root_path: overrides.root_path,
+        root_path: overrides.root_path ?? `/synthetic/${overrides.slug}`,
+        remote_url: overrides.remote_url,
         mount_status: overrides.mount_status ?? 'active',
         trust_level: overrides.trust_level ?? 'trusted',
         write_policy: overrides.write_policy ?? 'read_write',
         projection_status: overrides.projection_status ?? 'missing',
-        last_scan_at: overrides.last_scan_at ?? Date.now(),
-        last_health_at: overrides.last_health_at ?? Date.now(),
-        last_health_attempt_at: overrides.last_health_attempt_at,
         metadata: overrides.metadata,
-        created_at: overrides.created_at ?? 0,
-        updated_at: overrides.updated_at ?? 0,
+        created_at: 0,
+        updated_at: 0,
     } as HallMountedSpokeRecord;
 }
 
 function bucketsBySlug(report: SpokeSurveyReport): Record<string, SpokeBucket[]> {
-    const out: Record<string, SpokeBucket[]> = {};
-    for (const e of report.spokes) {
-        (out[e.slug] ??= []).push(e.bucket);
-    }
-    return out;
+    const result: Record<string, SpokeBucket[]> = {};
+    for (const entry of report.spokes) (result[entry.slug] ??= []).push(entry.bucket);
+    return result;
 }
 
-test('LIVE bucket — current projection on existing hub-owned path', () => {
-    const rows: HallMountedSpokeRecord[] = [
+test('survey is Hall-only and redacts roots, repository ids, remotes, and tokens', () => {
+    const secret = 'synthetic-mount-token';
+    const rootPath = '/home/synthetic/.hermes/private-profile';
+    const report = surveySpokesForRecords([
         row({
-            slug: 'real',
-            root_path: process.cwd(),
+            slug: 'safe-view',
+            root_path: rootPath,
+            remote_url: 'https://user:password@example.invalid/repo.git',
             projection_status: 'current',
-            metadata: { authority: { mount_token: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' } },
+            metadata: { authority: { mount_token: secret } },
         }),
-    ];
-    const r = surveySpokesForRecords(rows, HUB);
-    assert.strictEqual(r.counts.live, 1);
-    assert.strictEqual(r.counts.phantom, 0);
-    assert.strictEqual(r.spokes[0].bucket, 'live');
-    assert.strictEqual(r.spokes[0].mount_token, 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee');
+    ], HUB);
+    assert.strictEqual(report.counts.live, 1);
+    assert.strictEqual(report.spokes[0].filesystem_observed, false);
+    assert.match(report.spokes[0].root_sha256, /^[a-f0-9]{64}$/);
+    assert.match(report.hub_repo_id_sha256, /^[a-f0-9]{64}$/);
+    const serialized = JSON.stringify(report);
+    assert.doesNotMatch(serialized, /private-profile|password|synthetic-mount-token|repo:\/synthetic/);
 });
 
-test('PHANTOM bucket — /tmp test residue is classified regardless of disk presence', () => {
-    const rows: HallMountedSpokeRecord[] = [
-        row({ slug: 'astrologer', repo_id: 'repo:/tmp/corvus-ravens-foo', root_path: '/tmp/corvus-ravens-astrologer-zzzz' }),
-        row({ slug: 'corvus-p1-source-x', repo_id: 'repo:/tmp/corvus-p1-y', root_path: '/tmp/corvus-p1-topology-zzz/.estate/gallery/x' }),
-    ];
-    const r = surveySpokesForRecords(rows, HUB);
-    assert.strictEqual(r.counts.phantom, 2);
-    assert.strictEqual(r.counts.live, 0);
-    for (const e of r.spokes) {
-        assert.strictEqual(e.bucket, 'phantom');
-        assert.match(e.reason, /\/tmp/);
-        assert.strictEqual(e.is_tmp_fixture, true);
-    }
+test('survey classifies lifecycle state without probing filesystem paths', () => {
+    const report = surveySpokesForRecords([
+        row({ slug: 'live', projection_status: 'current' }),
+        row({ slug: 'stale', projection_status: 'missing' }),
+        row({ slug: 'offline', mount_status: 'disconnected' }),
+        row({ slug: 'duplicate', projection_status: 'current' }),
+        row({ slug: 'duplicate', repo_id: 'repo:foreign' }),
+    ], HUB);
+    assert.deepStrictEqual(bucketsBySlug(report).duplicate.sort(), ['duplicate', 'live']);
+    assert.strictEqual(report.spokes.find((entry) => entry.slug === 'stale')?.reason, 'projection_not_current');
+    assert.strictEqual(report.spokes.find((entry) => entry.slug === 'offline')?.reason, 'mount_not_active');
+    assert.strictEqual(report.counts.phantom, 0);
 });
 
-test('PHANTOM bucket — Windows path on Linux', { skip: process.platform === 'win32' }, () => {
-    const rows = [row({ slug: 'keepos', repo_id: 'repo:other', root_path: 'C:/Estate/KeepOS' })];
-    const r = surveySpokesForRecords(rows, HUB);
-    assert.strictEqual(r.spokes[0].bucket, 'phantom');
-    assert.strictEqual(r.spokes[0].is_platform_mismatch, true);
-    assert.match(r.spokes[0].reason, /Windows path/);
-});
-
-test('DUPLICATE bucket — same slug under non-hub repo when path exists', () => {
-    const rows: HallMountedSpokeRecord[] = [
-        row({
-            slug: 'dup',
-            root_path: process.cwd(),
-            projection_status: 'current',
-            metadata: { authority: { mount_token: 't' } },
-        }),
-        row({
-            slug: 'dup',
-            repo_id: 'repo:/some/other/hub',
-            root_path: process.cwd(),
-        }),
-    ];
-    const r = surveySpokesForRecords(rows, HUB);
-    const byBucket = bucketsBySlug(r);
-    assert.deepStrictEqual(byBucket.dup.sort(), ['duplicate', 'live']);
-});
-
-test('STALE bucket — exists on disk but no current projection', () => {
-    const rows = [
-        row({ slug: 'on-hub-no-proj', root_path: process.cwd(), projection_status: 'missing' }),
-    ];
-    const r = surveySpokesForRecords(rows, HUB);
-    assert.strictEqual(r.spokes[0].bucket, 'stale');
-    assert.match(r.spokes[0].reason, /no current projection/);
-});
-
-test('STALE bucket — recorded current cannot outrank expired health and scan proof', () => {
-    const now = new Date('2026-07-12T12:00:00.000Z');
-    const rows = [row({
-        slug: 'expired-current',
-        root_path: process.cwd(),
-        projection_status: 'current',
-        last_scan_at: now.getTime() - SPOKE_SCAN_FRESHNESS_MS - 1,
-        last_health_at: now.getTime() - SPOKE_HEALTH_FRESHNESS_MS - 1,
-        metadata: { authority: { mount_token: 't' } },
-    })];
-    const report = surveySpokesForRecords(rows, HUB, now);
-    const entry = report.spokes[0];
-
-    assert.strictEqual(entry.bucket, 'stale');
-    assert.strictEqual(entry.effective_projection_status, 'stale');
-    assert.strictEqual(entry.scan_fresh, false);
-    assert.strictEqual(entry.health_fresh, false);
-    assert.match(entry.reason, /freshness expired/);
-});
-
-test('STALE bucket — foreign repo_id but path exists, no duplicate', () => {
-    const rows = [row({ slug: 'foreign-only', repo_id: 'repo:/foreign', root_path: process.cwd() })];
-    const r = surveySpokesForRecords(rows, HUB);
-    assert.strictEqual(r.spokes[0].bucket, 'stale');
-    assert.match(r.spokes[0].reason, /foreign repo_id/);
-});
-
-test('Survey aggregates counts and by_repo_id correctly', () => {
-    const rows: HallMountedSpokeRecord[] = [
-        row({ slug: 'a', root_path: process.cwd(), projection_status: 'current', metadata: { authority: { mount_token: 't' } } }),
-        row({ slug: 'b', repo_id: 'repo:/tmp/corvus-x', root_path: '/tmp/corvus-x/spoke' }),
-        row({ slug: 'c', repo_id: 'repo:/tmp/corvus-x', root_path: '/tmp/corvus-x/other' }),
-    ];
-    const r = surveySpokesForRecords(rows, HUB);
-    assert.strictEqual(r.counts.live, 1);
-    assert.strictEqual(r.counts.phantom, 2);
-    assert.strictEqual(r.by_repo_id[HUB], 1);
-    assert.strictEqual(r.by_repo_id['repo:/tmp/corvus-x'], 2);
-});
-
-// verifySpoke is integration-tested live (it reads the real Hall via database singleton).
-// The pure-function test surface is the surveyor; verifySpoke depends on the live DB.
-// See the live verification run after wiring for end-to-end coverage.
-
-test('Mount token surfaces from metadata.authority.mount_token only', () => {
-    const rows = [
-        row({ slug: 'with-token', root_path: process.cwd(), projection_status: 'current', metadata: { authority: { mount_token: 'live-token' } } }),
-        row({ slug: 'no-auth-meta', root_path: process.cwd(), projection_status: 'current', metadata: { other_key: 'value' } }),
-    ];
-    const r = surveySpokesForRecords(rows, HUB);
-    const byPath = new Map(r.spokes.map((s) => [s.slug, s]));
-    assert.strictEqual(byPath.get('with-token')?.mount_token, 'live-token');
-    assert.strictEqual(byPath.get('no-auth-meta')?.mount_token, null);
-    // no-auth-meta has projection_status=current but no token => stale, not live.
-    assert.strictEqual(byPath.get('no-auth-meta')?.bucket, 'stale');
-});
-
-test('failed health attempts do not advance last successful health proof', (t) => {
-    const previousHealthyAt = 1_700_000_000_000;
-    const fixture = row({
-        slug: 'unhealthy',
-        root_path: '/tmp/cstar-definitely-missing-spoke-health',
-        last_health_at: previousHealthyAt,
-    });
-    let recordedHealthy: boolean | undefined;
-    t.mock.method(database, 'getHallMountedSpoke', () => fixture);
-    t.mock.method(database, 'touchSpokeHeartbeat', (
-        _slug: string,
-        _repoId: string,
-        _timestamp: number,
-        healthy: boolean,
-    ) => {
-        recordedHealthy = healthy;
-        return true;
-    });
-
-    const result = healthCheckSpoke('unhealthy');
-    assert.strictEqual(result.verdict, 'unhealthy');
-    assert.strictEqual(recordedHealthy, false);
-    assert.strictEqual(result.last_health_at, previousHealthyAt);
-    assert.ok(result.last_health_attempt_at > previousHealthyAt);
+test('survey aggregates by hashed repository binding only', () => {
+    const report = surveySpokesForRecords([
+        row({ slug: 'a', projection_status: 'current' }),
+        row({ slug: 'b', repo_id: 'repo:foreign' }),
+        row({ slug: 'c', repo_id: 'repo:foreign' }),
+    ], HUB);
+    assert.deepStrictEqual(Object.values(report.by_repo_id).sort(), [1, 2]);
+    for (const key of Object.keys(report.by_repo_id)) assert.match(key, /^[a-f0-9]{64}$/);
 });

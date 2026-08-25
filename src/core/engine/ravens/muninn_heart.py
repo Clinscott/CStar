@@ -1,39 +1,73 @@
-"""Fail-closed compatibility facade for the retired Muninn heart."""
+"""Retired autonomous Ravens cycle coordinator with pure target parsing only."""
 
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Any
+from typing import Any, NoReturn
 
-from src.core.engine.ravens.retired import reject_ravens_operation, rejected_cycle_result
-from src.core.engine.ravens_stage import RavensCycleResult
+from src.core.engine.ravens_stage import RavensTargetIdentity
+
+
+LEGACY_PYTHON_RAVENS_ENGINE_ERROR = (
+    "legacy_python_ravens_engine_retired_use_cstar_kernel"
+)
+
+
+def _retired() -> NoReturn:
+    raise RuntimeError(LEGACY_PYTHON_RAVENS_ENGINE_ERROR)
 
 
 class MuninnHeart:
-    """Preserve construction without creating spokes or touching repository state."""
+    """Fail before Git, Hall, provider, filesystem, or lifecycle effects."""
 
-    def __init__(self, root: Path | str, uplink: Any = None) -> None:
-        self.root = root
-        self.uplink = uplink
+    def __init__(self, *_args: object, **_kwargs: object) -> None:
+        _retired()
 
     @property
     def agent_id(self) -> str:
-        return "MUNINN_RETIRED"
+        return "MUNINN"
 
-    async def _run_behavioral_pulse(self) -> bool:
-        reject_ravens_operation("MuninnHeart._run_behavioral_pulse")
+    @staticmethod
+    def _target_from_mission(mission: dict[str, Any]) -> RavensTargetIdentity:
+        """Parse detached mission data into the canonical target schema."""
+        return RavensTargetIdentity(
+            target_kind=mission.get("target_kind", "FILE"),
+            target_ref=mission.get("target_ref"),
+            target_path=mission.get("file") or mission.get("target_path"),
+            bead_id=mission.get("bead_id"),
+            rationale=mission.get("action"),
+            acceptance_criteria=mission.get("acceptance_criteria"),
+            baseline_scores=dict(mission.get("metrics") or {}),
+            compatibility_source=mission.get(
+                "compatibility_source", "legacy:mission-coordinator"
+            ),
+        )
 
-    async def execute_cycle_contract(self) -> RavensCycleResult:
-        return rejected_cycle_result(self.root)
+    async def _run_behavioral_pulse(
+        self, *_args: object, **_kwargs: object
+    ) -> NoReturn:
+        _retired()
 
-    async def execute_cycle(self) -> bool:
-        reject_ravens_operation("MuninnHeart.execute_cycle")
+    def _repo_id(self, *_args: object, **_kwargs: object) -> NoReturn:
+        _retired()
 
-    def _wait_for_silence(self) -> None:
-        reject_ravens_operation("MuninnHeart._wait_for_silence")
+    def _memory_stage(self, *_args: object, **_kwargs: object) -> NoReturn:
+        _retired()
 
-    def _repository_activity_snapshot(self) -> str:
-        reject_ravens_operation("MuninnHeart._repository_activity_snapshot")
+    def _hunt_stage(self, *_args: object, **_kwargs: object) -> NoReturn:
+        _retired()
 
+    async def execute_cycle_contract(
+        self, *_args: object, **_kwargs: object
+    ) -> NoReturn:
+        _retired()
 
-__all__ = ["MuninnHeart"]
+    async def execute_cycle(self, *_args: object, **_kwargs: object) -> NoReturn:
+        _retired()
+
+    def _wait_for_silence(self, *_args: object, **_kwargs: object) -> NoReturn:
+        _retired()
+
+    def _repository_activity_snapshot(
+        self, *_args: object, **_kwargs: object
+    ) -> NoReturn:
+        _retired()

@@ -1,57 +1,54 @@
-import { getHallOneMindBroker } from '../../../tools/pennyone/intel/database.js';
-import { type HallOneMindBrokerRecord } from '../../../types/hall.js';
-import { ONE_MIND_RETIRED_REASON } from './fulfillment.js';
+/** Stable retirement code for the legacy One Mind broker compatibility API. */
+export const RETIRED_ONE_MIND_COMPATIBILITY_FAILURE =
+    'legacy_one_mind_compatibility_retired_use_cstar_kernel';
 
 export interface OneMindBrokerStatus {
-    running: false;
-    responsive: false;
-    fulfillmentReady: false;
-    fulfillmentReason: string;
-    fulfillmentMode: 'read_only';
-    executionSurface: 'unavailable';
+    running: boolean;
+    responsive: boolean;
+    fulfillmentReady: boolean;
+    fulfillmentReason: string | null;
+    fulfillmentMode: string | null;
+    executionSurface: string | null;
     provider: string | null;
     sessionId: string | null;
-    pid: null;
-    port: null;
-    bindingState: 'OFFLINE';
+    pid: number | null;
+    port: number | null;
+    bindingState: 'UNBOUND' | 'BOUND' | 'OFFLINE';
 }
 
-function mapRecordToStatus(record: HallOneMindBrokerRecord | null): OneMindBrokerStatus {
+function retiredStatus(): OneMindBrokerStatus {
     return {
         running: false,
         responsive: false,
         fulfillmentReady: false,
-        fulfillmentReason: ONE_MIND_RETIRED_REASON,
-        fulfillmentMode: 'read_only',
-        executionSurface: 'unavailable',
-        provider: record?.provider ?? null,
-        sessionId: record?.session_id ?? null,
+        fulfillmentReason: RETIRED_ONE_MIND_COMPATIBILITY_FAILURE,
+        fulfillmentMode: 'retired',
+        executionSurface: null,
+        provider: null,
+        sessionId: null,
         pid: null,
         port: null,
         bindingState: 'OFFLINE',
     };
 }
 
-/** Read-only projection over any historical broker record. */
-export async function getOneMindBrokerStatus(rootPath: string): Promise<OneMindBrokerStatus> {
-    return mapRecordToStatus(getHallOneMindBroker(rootPath));
+/** Read compatibility returns a synthetic offline status without consulting Hall. */
+export async function getOneMindBrokerStatus(_rootPath: string): Promise<OneMindBrokerStatus> {
+    return retiredStatus();
 }
 
-/**
- * Compatibility entry point. One Mind cannot be started and this function
- * never creates or updates a Hall record.
- */
+/** Start compatibility is a no-effect tombstone. */
 export async function ensureOneMindBroker(
-    rootPath: string,
-    _env: NodeJS.ProcessEnv = process.env,
+    _rootPath: string,
+    _env: NodeJS.ProcessEnv = {},
 ): Promise<OneMindBrokerStatus> {
-    return getOneMindBrokerStatus(rootPath);
+    return retiredStatus();
 }
 
-/** Compatibility entry point. One Mind is already retired; Hall is untouched. */
+/** Stop compatibility cannot mutate a broker that no longer exists. */
 export async function stopOneMindBroker(
     _rootPath: string,
-    _env: NodeJS.ProcessEnv = process.env,
+    _env: NodeJS.ProcessEnv = {},
 ): Promise<boolean> {
     return false;
 }

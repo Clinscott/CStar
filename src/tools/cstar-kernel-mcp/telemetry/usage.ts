@@ -1,14 +1,27 @@
-import fs from 'node:fs';
 import path from 'node:path';
 import { buildHallRepositoryId, normalizeHallPath } from '../../../types/hall.js';
 import { registry } from '../../pennyone/pathRegistry.js';
 import { database } from '../../pennyone/intel/database.js';
-import type { McpTextResponse } from '../contracts/responses.js';
+import {
+    isNonRecordablePreAuthorization,
+    type McpTextResponse,
+} from '../contracts/responses.js';
 import type { McpRequestContext } from '../contracts/request_context.js';
 import { PROJECT_ROOT } from '../contracts/runtime.js';
+import {
+    appendBoundedTelemetryLine,
+    MCP_TELEMETRY_MAX_BYTES,
+    MCP_USAGE_STATE_RELATIVE_PATH,
+    MCP_USEFULNESS_STATE_RELATIVE_PATH,
+    readBoundedTelemetryFile,
+} from './storage.js';
 
-const MCP_USAGE_STATE_RELATIVE_PATH = path.join('.agents', 'state', 'cstar-kernel-mcp-usage.jsonl');
-const MCP_USEFULNESS_STATE_RELATIVE_PATH = path.join('.agents', 'state', 'cstar-kernel-mcp-usefulness.jsonl');
+export {
+    appendBoundedTelemetryLine,
+    MCP_TELEMETRY_MAX_BYTES,
+    MCP_TELEMETRY_MAX_LINE_BYTES,
+} from './storage.js';
+
 const MCP_USAGE_LOOKBACK_MS = 24 * 60 * 60 * 1000;
 
 export interface McpUsageEvent {
@@ -74,10 +87,11 @@ function resolveTelemetryRoot(): string {
 
 function appendMcpUsageEvent(event: McpUsageEvent): void {
     try {
-        const root = event.root || resolveTelemetryRoot();
-        const usagePath = path.join(root, MCP_USAGE_STATE_RELATIVE_PATH);
-        fs.mkdirSync(path.dirname(usagePath), { recursive: true });
-        fs.appendFileSync(usagePath, `${JSON.stringify(event)}\n`, 'utf-8');
+        appendBoundedTelemetryLine(
+            resolveTelemetryRoot(),
+            path.basename(MCP_USAGE_STATE_RELATIVE_PATH),
+            JSON.stringify(event),
+        );
     } catch {
         // Telemetry must never break the control-plane surface.
     }
@@ -85,10 +99,11 @@ function appendMcpUsageEvent(event: McpUsageEvent): void {
 
 function appendMcpUsefulnessEvent(event: McpUsefulnessEvent): void {
     try {
-        const root = event.root || resolveTelemetryRoot();
-        const usefulnessPath = path.join(root, MCP_USEFULNESS_STATE_RELATIVE_PATH);
-        fs.mkdirSync(path.dirname(usefulnessPath), { recursive: true });
-        fs.appendFileSync(usefulnessPath, `${JSON.stringify(event)}\n`, 'utf-8');
+        appendBoundedTelemetryLine(
+            resolveTelemetryRoot(),
+            path.basename(MCP_USEFULNESS_STATE_RELATIVE_PATH),
+            JSON.stringify(event),
+        );
     } catch {
         // Usefulness telemetry must never break MCP calls.
     }
@@ -97,12 +112,10 @@ function appendMcpUsefulnessEvent(event: McpUsefulnessEvent): void {
 function readRecentJsonl<T>(relativePath: string, lookbackMs: number): T[] {
     try {
         const root = resolveTelemetryRoot();
-        const filePath = path.join(root, relativePath);
-        if (!fs.existsSync(filePath)) {
-            return [];
-        }
+        const content = readBoundedTelemetryFile(root, relativePath);
+        if (!content) return [];
         const now = Date.now();
-        return fs.readFileSync(filePath, 'utf-8')
+        return content
             .split('\n')
             .filter((line) => line.trim().length > 0)
             .flatMap((line) => {
@@ -127,39 +140,24 @@ export function summarizeRecentMcpUsage(): {
     last_call_at: string | null;
     tool_counts_24h: Record<string, number>;
 } {
-    try {
-        const root = resolveTelemetryRoot();
-        const usagePath = path.join(root, MCP_USAGE_STATE_RELATIVE_PATH);
-        if (!fs.existsSync(usagePath)) {
-            return { total_calls_24h: 0, failures_24h: 0, last_call_at: null, tool_counts_24h: {} };
-        }
-        const now = Date.now();
-        const toolCounts: Record<string, number> = {};
-        let total = 0;
-        let failures = 0;
-        let lastCallAt: string | null = null;
-        const lines = fs.readFileSync(usagePath, 'utf-8')
-            .split('\n')
-            .filter((line) => line.trim().length > 0);
-        for (const line of lines) {
-            try {
-                const event = JSON.parse(line) as Partial<McpUsageEvent>;
-                if (typeof event.ts !== 'string' || typeof event.tool !== 'string') continue;
-                const ts = Date.parse(event.ts);
-                if (!Number.isFinite(ts)) continue;
-                if (!lastCallAt || ts > Date.parse(lastCallAt)) lastCallAt = event.ts;
-                if (now - ts > MCP_USAGE_LOOKBACK_MS) continue;
-                total += 1;
-                toolCounts[event.tool] = (toolCounts[event.tool] ?? 0) + 1;
-                if (event.ok === false) failures += 1;
-            } catch {
-                // Ignore malformed rows.
-            }
-        }
-        return { total_calls_24h: total, failures_24h: failures, last_call_at: lastCallAt, tool_counts_24h: toolCounts };
-    } catch {
-        return { total_calls_24h: 0, failures_24h: 0, last_call_at: null, tool_counts_24h: {} };
+    const events = readRecentJsonl<McpUsageEvent>(
+        MCP_USAGE_STATE_RELATIVE_PATH,
+        MCP_USAGE_LOOKBACK_MS,
+    );
+    const toolCounts: Record<string, number> = {};
+    let failures = 0;
+    let lastCallAt: string | null = null;
+    for (const event of events) {
+        if (!lastCallAt || Date.parse(event.ts) > Date.parse(lastCallAt)) lastCallAt = event.ts;
+        toolCounts[event.tool] = (toolCounts[event.tool] ?? 0) + 1;
+        if (!event.ok) failures += 1;
     }
+    return {
+        total_calls_24h: events.length,
+        failures_24h: failures,
+        last_call_at: lastCallAt,
+        tool_counts_24h: toolCounts,
+    };
 }
 
 function incrementCount(counts: Record<string, number>, key: string | undefined): void {
@@ -269,6 +267,14 @@ function parseTextResponsePayload(result: McpTextResponse): any {
     }
 }
 
+/**
+ * Rejected callers have not crossed the mutation boundary, so they must not
+ * be able to create telemetry state as a side effect of probing that gate.
+ */
+export function isPreAuthorizationRejection(value: unknown): boolean {
+    return isNonRecordablePreAuthorization(value);
+}
+
 function resolveUsefulnessRepoId(root: string): string | undefined {
     try {
         return database.getHallRepository(root)?.repo_id || buildHallRepositoryId(normalizeHallPath(root));
@@ -334,8 +340,6 @@ export function deriveMcpUsefulnessEvent(
         event.verdict = typeof payload?.verdict === 'string' ? payload.verdict : undefined;
         event.validation_recorded = payload?.validation_persisted === true
             || ['recorded', 'recorded_verified', 'recorded_unverified'].includes(String(payload?.status ?? ''));
-        event.token_path_observation_recorded = typeof payload?.token_path_observation_id === 'string';
-        event.token_path_episode_id = typeof payload?.token_path_episode_id === 'string' ? payload.token_path_episode_id : undefined;
     } else if (base.tool === 'cstar_researcher_request' || base.tool === 'cstar_forge_request') {
         event.outcome_kind = payload?.error ? 'dispatch_request_error' : `dispatch_${payload?.status ?? 'unknown'}`;
         event.bead_id = typeof payload?.bead_id === 'string' ? payload.bead_id : event.bead_id;
@@ -353,6 +357,7 @@ export function instrumentTool<TArgs>(
         const root = resolveTelemetryRoot();
         try {
             const result = await handler(args, context);
+            if (isPreAuthorizationRejection(result)) return result;
             const usageEvent = { ts: new Date(startedAt).toISOString(), tool: toolName, ok: result.isError !== true, duration_ms: Date.now() - startedAt, root };
             appendMcpUsageEvent(usageEvent);
             appendMcpUsefulnessEvent({
@@ -361,6 +366,7 @@ export function instrumentTool<TArgs>(
             });
             return result;
         } catch (error) {
+            if (isPreAuthorizationRejection(error)) throw error;
             const usageEvent = { ts: new Date(startedAt).toISOString(), tool: toolName, ok: false, duration_ms: Date.now() - startedAt, root };
             appendMcpUsageEvent(usageEvent);
             appendMcpUsefulnessEvent({

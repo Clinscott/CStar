@@ -1,7 +1,6 @@
 # CStar Agent SDK Reference Architecture
 
-Status: accepted historical reference; current authority and routing come from
-`AGENTS.md` and the canonical MCP/Forge runbooks.
+Status: accepted reference plan
 
 ## Decision
 
@@ -16,7 +15,7 @@ Codex remains the model host. CStar remains subscription-only from the operator 
 | Agent | Host-native skill, weave, or council lens | Runs in Codex or another active host harness |
 | Runner | Codex session plus Augury/Hall workflow | Host-owned cognition, kernel-recorded state |
 | Tools | `cstar-kernel` MCP tools and approved host skills | Deterministic kernel tools only |
-| Handoffs | Council expert routing and bounded critique passes | CoS/operator retain decisions; Council is advisory |
+| Handoffs | Council expert routing and bounded critique passes | One Mind remains final decision maker |
 | Guardrails | Sterling Mandate, host-only enforcement, no shell fallback | Fail closed on host-only violations |
 | Sessions | Hall planning sessions, beads, and handoff packets | Kernel catalogs state; host reasons over it |
 | Memory | Hall records and Engrams | Retrieved on demand, never bulk-preloaded |
@@ -25,7 +24,7 @@ Codex remains the model host. CStar remains subscription-only from the operator 
 
 ## Target Shape
 
-1. A host uses Augury only when a new route or material scope is ambiguous.
+1. A host mission begins with Augury routing.
 2. The host reads only the bounded Mimir targets and Hall hits.
 3. The host proposes or executes work according to the active gate.
 4. Kernel MCP tools provide health, handoff, Hall search, routing, verification hints, and result recording.
@@ -65,7 +64,7 @@ warnings[] are useful for humans
 host agents need a typed proceed / caution / block signal
 ```
 
-CStar should keep the existing diagnostic checks, but doctor and explain output may expose a compact route-quality `guardrail` object:
+CStar should keep the existing diagnostic checks, but doctor and explain output should also expose a compact `guardrail` object:
 
 ```json
 {
@@ -77,9 +76,7 @@ CStar should keep the existing diagnostic checks, but doctor and explain output 
 }
 ```
 
-This lets host-native workflows interpret route quality without scraping prose.
-The object is advisory status, not an execution, spend, mutation, or acceptance
-gate; operator/repository/CStar lifecycle authority remains external.
+This lets host-native Codex workflows use Augury as an explicit control gate without scraping prose warnings. It mirrors the Agents SDK guardrail concept while staying fully local and deterministic.
 
 ## Guardrail Acceptance Checks
 

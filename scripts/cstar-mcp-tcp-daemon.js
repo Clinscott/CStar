@@ -1,14 +1,17 @@
 #!/usr/bin/env node
 
-/**
- * Retired CStar MCP TCP daemon entrypoint.
- *
- * Mutation-capable CStar tools require a host-bound caller identity. Loopback
- * TCP supplies no trustworthy peer/thread binding, so this compatibility
- * entrypoint fails closed until an authenticated transport is designed.
- */
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-process.stderr.write(
-    '[cstar-kernel-daemon] unauthenticated_tcp_transport_disabled; use bin/cstar-kernel-mcp-bridge.js in direct mode\n',
-);
-process.exitCode = 2;
+export const RETIRED_TCP_TRANSPORT_ERROR =
+    'legacy_cstar_mcp_tcp_transport_retired_use_direct_stdio';
+
+export function main(stderr = process.stderr) {
+    stderr.write(`${RETIRED_TCP_TRANSPORT_ERROR}\n`);
+    return 1;
+}
+
+const invokedPath = process.argv[1] ? path.resolve(process.argv[1]) : '';
+if (invokedPath === fileURLToPath(import.meta.url)) {
+    process.exitCode = main();
+}

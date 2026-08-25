@@ -1,72 +1,61 @@
 # Corvus Star Augury Operator Handoff
 
+Status: ACTIVE
+
+Next session runway: `NEXT_SESSION_AUGURY.md`
+
 ## Purpose
 
-Augury is a deterministic, typed, non-actionable route explanation. It helps a
-host distinguish current mission intent, scope, targets, and one canonical
-Council critique lens from stale session context. It never grants permission.
+Corvus Star Augury [Ω] is the routing contract for an agentic turn. It tells an agent what path to take, why that path was selected, which Council expert lens applies, and where bounded evidence lives in Mimir's Well.
 
-## When to Use It
+It is not a telemetry trace, execution trace, session log, Hall search result, or display-only artifact.
 
-- at a new mission boundary when route or scope is genuinely ambiguous;
-- after a material target/scope change;
-- when a stale active session may conflict with explicit current targets; or
-- when an operator asks for the route explanation.
+## Required Agent Order
 
-Do not run Augury on every prompt or edit. Reuse fresh route state that matches
-the mission.
+Run from the CStar root unless an explicit spoke command says otherwise:
 
-Use `cstar_doctor` separately only when kernel health is unknown or degraded,
-`cstar_handoff` only when resuming prior work, and bounded Hall discovery only
-when the active bead or evidence location is unknown.
+1. `cstar_doctor` through `cstar-kernel` MCP
+2. `cstar_augury` with the bounded intent and target context
+3. `cstar_handoff` when resuming prior work
+4. One bounded `cstar_hall_search` for an intent, bead id, target path, or
+   exact failure text when discovery is still needed
+5. Inspect only the handoff targets, Mimir targets, and directly adjacent files needed for the task.
 
-## Fields
+If `doctor.status` is `fail`, repair or recover the Augury contract before editing or dispatching work. If it is `warn`, resolve the warning when it affects scope, route, expert choice, or Mimir target quality.
 
-- `scope`: authorized CStar or trusted mounted-spoke scope.
-- `intent_category` / `default_path`: deterministic grammar result, not
-  authority.
-- `current_mission_route`: route derived for the current explicit call.
-- `active_session_suggestion`: historical/contextual state. It is background
-  unless explicitly marked authoritative and target-compatible.
-- `routing_provenance`: why current and session routes agree or diverge.
-- `mimirs_well`: bounded evidence targets, not permission to scan broadly.
-- `expert`: one canonical immutable Council critique lens.
-- `persona_advice`: professional tone/domain emphasis only.
-- `guardrail`: route-quality status, not an operator grant.
-- `actionable`: always false for Augury advice.
-- `token_path`: quarantine status only (`shadow-disabled`, non-actionable).
+## Field Meaning
 
-No numeric confidence is emitted unless a separate independent scorer actually
-ran with a nonzero denominator and full evidence contract.
+- `scope`: `brain:CStar` means foundational engine work. `spoke:<name>` means a specific spoke is the target. Do not treat foundational CStar Augury work as spoke work.
+- `route`: selected path in `<Intent Category> -> <SKILL|WEAVE|SPELL>: <selection>` form.
+- `expert`: Council lens assigned to the task. Examples: `CARMACK` for game/performance work, `KARPATHY` for AI/model work, `SHANNON` for signal/observability/noise work.
+- `mimir`: bounded discovery targets. Prefer concrete files, directories, or Hall handles. More than three targets are prompt-noisy and should be narrowed.
+- `confidence`: legacy input only. Current Augury omits numeric confidence until
+  an independently validated scorer supplies a real denominator, formula, row
+  evidence, and provenance through a sanctioned kernel surface.
+- `warnings`: routing risks. They are operational leads, not prose decorations.
 
-## Safety Boundaries
+## Prompt Budget Contract
 
-Augury validates scope and target containment against CStar and trusted mounted
-spokes. Traversal, outside absolute paths, symlink escape, unavailable spokes,
-and untrusted/read-only mutation assumptions fail closed.
+The host prompt uses the full Augury once per session or planning key, then lite Augury on later calls. Full mode gives the route, scope, intent, Mimir targets, expert lens, guardrails, Corvus standard, work standard, trajectory, and verdict. Lite mode keeps only the minimum routing fields.
 
-Stored session text, expert objects, confidence, Gungnir fields, persona prose,
-or route claims cannot override deterministic current inputs. A stale unrelated
-session is demoted to background when the current route is safe; explicit
-continuity requests fail loud on material divergence.
+Agents should use Augury as routing context, not as text to echo back to the user.
 
-## Council and TokenPath
+## Learning Evidence
 
-Council data is defensive-copied canonical critique guidance. It cannot vote,
-hold, set risk, assign ownership, change execution mode, or prove correctness.
+The former host-session JSONL writer is retired. Host formatting may compute
+pure Augury metadata, but it does not append `.agents/state/augury-learning.jsonl`
+or discover a writable CStar root. Measured observations enter only through a
+named kernel-backed validation/telemetry surface such as `cstar_record_result`;
+TokenPath observations remain quarantined until independently promoted.
 
-TokenPath is quarantined. Augury emits no advice episode, causal score, or
-confidence, and `cstar_record_result` accepts no TokenPath observation write.
-Historical ledgers are untrusted compatibility telemetry.
+Do not set up GEPA/DSPy during normal Augury operation. Historical ledger rows
+are evidence only and grant no routing or promotion authority.
 
-## Persistence
+## Next Session Lead
 
-Route receipts may persist bounded deterministic provenance and canonical
-expert ids. High-volume prompts, transcripts, raw model prose, candidate
-rankings, and invented scores do not belong in the bead ledger.
+The next high-value upgrade is a read-only usefulness evaluator over sanctioned,
+provenance-bound observations and kernel lifecycle outcomes.
 
-## Operator Interpretation
+Acceptance contract: `docs/augury-usefulness-evaluator-contract.md`
 
-Treat an Augury result as one input to CoS routing. Execution still requires the
-applicable operator grant, repository policy, CStar bead/decision state, and the
-proper Forge or Researcher gate. Validation remains independent.
+Keep that evaluator read-only until the learning metric is proven stable.

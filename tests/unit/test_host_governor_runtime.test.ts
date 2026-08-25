@@ -1,110 +1,67 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
-import path from 'node:path';
 
-import type {
-    HostGovernorWeavePayload,
-    RuntimeContext,
-    RuntimeDispatchPort,
-    WeaveInvocation,
-    WeaveResult,
-} from '../../src/node/core/runtime/contracts.ts';
 import { HostGovernorWeave } from '../../src/node/core/runtime/weaves/host_governor.js';
+import {
+    evaluateCandidates,
+    governReplannedSession,
+    triggerBlockedBeadReplan,
+} from '../../src/node/core/runtime/weaves/host_governor_governance.js';
 
-class CaptureDispatchPort implements RuntimeDispatchPort {
-    public calls = 0;
+const context = {
+    mission_id: 'mission:retired-governor',
+    bead_id: 'bead:retired-governor',
+    trace_id: 'trace:retired-governor',
+    persona: '',
+    workspace_root: '/synthetic/project',
+    operator_mode: 'subkernel',
+    target_domain: 'brain',
+    interactive: false,
+    env: { CODEX_SHELL: '1' },
+    timestamp: 123,
+} as const;
 
-    public async dispatch<T>(_invocation: WeaveInvocation<T>): Promise<WeaveResult> {
-        this.calls += 1;
-        throw new Error('retired Host Governor must not dispatch');
-    }
-}
-
-function createContext(): RuntimeContext {
-    return {
-        mission_id: 'MISSION-HOST-GOVERNOR-RETIRED',
-        bead_id: 'bead:host-governor-retired',
-        trace_id: 'TRACE-HOST-GOVERNOR-RETIRED',
-        persona: 'ALFRED',
-        workspace_root: '/tmp/cstar-host-governor-retired',
-        operator_mode: 'cli',
-        target_domain: 'brain',
-        interactive: true,
-        env: { CODEX_SHELL: '1' },
-        timestamp: 1,
-    };
-}
-
-describe('retired Host Governor compatibility adapter', () => {
-    it('fails closed without dispatching or invoking the legacy cognition port', async () => {
-        const dispatchPort = new CaptureDispatchPort();
-        let cognitionCalls = 0;
-        const weave = new HostGovernorWeave(dispatchPort, async () => {
-            cognitionCalls += 1;
-            return 'should not run';
-        });
-
-        const result = await weave.execute(
+describe('Retired HostGovernor compatibility boundary', () => {
+    it('fails before provider, dispatch, or Hall activity', async () => {
+        let dispatchCalls = 0;
+        let providerCalls = 0;
+        const weave = new HostGovernorWeave(
             {
-                weave_id: 'weave:host-governor',
-                payload: {
-                    task: 'Promote and execute every available bead.',
-                    auto_execute: true,
-                    auto_replan_blocked: true,
-                    project_root: '/tmp/cstar-host-governor-retired',
-                } satisfies HostGovernorWeavePayload,
+                dispatch: async () => {
+                    dispatchCalls += 1;
+                    throw new Error('dispatch must not run');
+                },
             },
-            createContext(),
+            async () => {
+                providerCalls += 1;
+                return '{}';
+            },
         );
 
-        assert.equal(dispatchPort.calls, 0);
-        assert.equal(cognitionCalls, 0);
-        assert.equal(result.weave_id, 'weave:host-governor');
+        const result = await weave.execute({
+            weave_id: 'weave:host-governor',
+            payload: {
+                task: 'Resume autonomous work.',
+                auto_execute: true,
+                auto_replan_blocked: true,
+                project_root: '/synthetic/project',
+                cwd: '/synthetic/project',
+            },
+        }, context as any);
+
         assert.equal(result.status, 'FAILURE');
-        assert.equal(result.output, '');
-        assert.match(result.error ?? '', /Host Governor is decommissioned/);
-        assert.match(result.error ?? '', /explicit cstar-kernel lifecycle transitions/);
-        assert.match(result.error ?? '', /cstar_forge_request -> cstar_forge_execute/);
-        assert.match(result.error ?? '', /Researcher/);
-        assert.deepEqual(result.metadata, {
-            capability_status: 'decommissioned',
-            execution_attempted: false,
-            lifecycle_mutation_attempted: false,
-            required_routes: {
-                lifecycle: 'cstar-kernel',
-                implementation: 'cstar_forge_request -> cstar_forge_execute',
-                research: 'authorized Researcher request',
-            },
-        });
+        assert.equal(result.error, 'legacy_host_governor_retired_use_cstar_kernel');
+        assert.equal(dispatchCalls, 0);
+        assert.equal(providerCalls, 0);
+        assert.equal(result.metadata?.execution_dispatched, false);
+        assert.equal(result.metadata?.hall_mutation_started, false);
+        assert.equal(result.metadata?.automatic_replan_started, false);
+        assert.equal(result.metadata?.automatic_promotion_started, false);
     });
 
-    it('returns the same non-actuating result regardless of legacy authority flags', async () => {
-        const weave = new HostGovernorWeave();
-        const context = createContext();
-
-        const enabled = await weave.execute({
-            weave_id: 'weave:host-governor',
-            payload: { auto_execute: true, auto_replan_blocked: true, dry_run: false },
-        }, context);
-        const disabled = await weave.execute({
-            weave_id: 'weave:host-governor',
-            payload: { auto_execute: false, auto_replan_blocked: false, dry_run: true },
-        }, context);
-
-        assert.deepEqual(enabled, disabled);
-    });
-
-    it('keeps only the fail-closed compatibility boundary in source', () => {
-        const source = fs.readFileSync(
-            path.join(import.meta.dirname, '..', '..', 'src', 'node', 'core', 'runtime', 'weaves', 'host_governor.ts'),
-            'utf-8',
-        );
-
-        assert.doesNotMatch(source, /host_bridge|pennyone|database|host_governor_policy/);
-        assert.doesNotMatch(source, /node:(?:fs|child_process)|\.dispatch\s*\(|saveHall|getDb|writeFile|appendFile/);
-        assert.doesNotMatch(source, /weave:chant|weave:orchestrate|observation/i);
-        assert.match(source, /execution_attempted:\s*false/);
-        assert.match(source, /lifecycle_mutation_attempted:\s*false/);
+    it('keeps former governance helpers as deterministic tombstones', async () => {
+        await assert.rejects(evaluateCandidates(), /retired_use_cstar_kernel/);
+        await assert.rejects(triggerBlockedBeadReplan(), /retired_use_cstar_kernel/);
+        await assert.rejects(governReplannedSession(), /retired_use_cstar_kernel/);
     });
 });

@@ -1,12 +1,18 @@
 ---
-name: skill-scout-retired
-description: Historical marker for retired autonomous skill acquisition.
-status: decommissioned
+name: Skill Scout (Retired)
+description: Fail-closed compatibility pointer for a decommissioned acquisition workflow.
 ---
 
-# Skill Scout (decommissioned)
+# Skill Scout — Retired
 
-Do not search the web, install tools, create skill folders, or index generated
-instructions from this legacy surface. Research belongs to authorized
-Researcher lanes. Reusable behavior is designed and tested skill-first, then
-registered through the current CStar contract with the required operator gates.
+This legacy skill is not registered and has no activation or execution surface.
+It must fail closed. This file grants no research, network, file-write, package,
+installation, or execution authority.
+
+For a new evidence need, create a bounded `cstar_researcher_request` under the
+operator-authorized source lanes. For a reusable implementation, represent the
+work in a CStar bead and use the durable `cstar_forge_request` →
+`cstar_forge_execute` → independent-validation lifecycle.
+
+Do not use this compatibility pointer to dispatch tools, acquire software,
+create or register skills, or infer approval from a low-confidence route.

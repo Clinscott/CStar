@@ -5,6 +5,10 @@ import { TextDecoder } from 'node:util';
 const SCAN_CHUNK_BYTES = 64 * 1024;
 const MAX_JSONL_RECORD_BYTES = 64 * 1024 * 1024;
 const MAX_JSONL_RECORDS = 1_000_000;
+const MAX_PLATFORM_CONTEXT_ENVELOPE_BYTES = 1024 * 1024;
+const MAX_PLATFORM_CONTEXT_ENVELOPE_SPAN_MS = 1_000;
+const MAX_USER_EVENT_MIRROR_SPAN_MS = 1_000;
+const MAX_GOAL_CONTEXT_BYTES = 256 * 1024;
 
 export interface FixedCodexSessionRecord {
     index: number;
@@ -18,8 +22,299 @@ export interface FixedCodexSessionScan {
     sha256: string;
 }
 
+export interface CodexPlatformContextProjection {
+    consume(record: FixedCodexSessionRecord): void;
+    finish(): void;
+}
+
+interface PlatformContextCandidate {
+    turnId: string;
+    currentDate: string;
+    timezone: string;
+    workspaceRoots: string[];
+    permissionProfile: string;
+    fileSystem: string;
+    subagents?: string;
+}
+
+interface CanonicalUserMirrorCandidate {
+    index: number;
+    timestamp: string;
+    message: string;
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
     return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function optionalLineageFieldIsEmpty(value: unknown): boolean {
+    return value === undefined || value === null || value === '';
+}
+
+export function codexUserRecordHasRootLineage(row: Record<string, unknown>): boolean {
+    const payload = isRecord(row.payload) ? row.payload : undefined;
+    const metadata = payload && isRecord(payload.internal_chat_message_metadata_passthrough)
+        ? payload.internal_chat_message_metadata_passthrough : undefined;
+    return Boolean(payload && metadata)
+        && (payload!.thread_source === undefined || payload!.thread_source === 'user')
+        && optionalLineageFieldIsEmpty(payload!.parent_thread_id)
+        && optionalLineageFieldIsEmpty(payload!.agent_path)
+        && optionalLineageFieldIsEmpty(payload!.forked_from_id)
+        && (metadata!.thread_source === undefined || metadata!.thread_source === 'user')
+        && optionalLineageFieldIsEmpty(metadata!.parent_thread_id)
+        && optionalLineageFieldIsEmpty(metadata!.forked_from_thread_id)
+        && optionalLineageFieldIsEmpty(metadata!.forked_from_id)
+        && optionalLineageFieldIsEmpty(metadata!.agent_path)
+        && optionalLineageFieldIsEmpty(metadata!.subagent_kind);
+}
+
+function canonicalUserTurnId(record: FixedCodexSessionRecord): string | null {
+    const payload = isRecord(record.row.payload) ? record.row.payload : undefined;
+    const metadata = payload && isRecord(payload.internal_chat_message_metadata_passthrough)
+        ? payload.internal_chat_message_metadata_passthrough : undefined;
+    return record.row.type === 'response_item'
+        && payload?.type === 'message'
+        && payload.role === 'user'
+        && typeof metadata?.turn_id === 'string'
+        && codexUserRecordHasRootLineage(record.row)
+        ? metadata.turn_id : null;
+}
+
+function isReservedGoalContext(record: FixedCodexSessionRecord): boolean {
+    if (!canonicalUserTurnId(record)) return false;
+    const payload = isRecord(record.row.payload) ? record.row.payload : undefined;
+    const content = payload?.content;
+    if (!Array.isArray(content) || content.length !== 1) return false;
+    const item = content[0];
+    if (!isRecord(item) || item.type !== 'input_text' || typeof item.text !== 'string') return false;
+    if (Buffer.byteLength(item.text, 'utf-8') > MAX_GOAL_CONTEXT_BYTES) return false;
+    return /^<codex_internal_context source="goal">\r?\n[\s\S]*\r?\n<\/codex_internal_context>\r?\n?$/.test(item.text);
+}
+
+function canonicalUserMirrorCandidate(
+    record: FixedCodexSessionRecord,
+): CanonicalUserMirrorCandidate | null {
+    if (!canonicalUserTurnId(record) || typeof record.row.timestamp !== 'string') return null;
+    const payload = isRecord(record.row.payload) ? record.row.payload : undefined;
+    const content = payload?.content;
+    if (!Array.isArray(content) || content.length === 0) return null;
+    const text = content.map((item) => (
+        isRecord(item) && item.type === 'input_text' && typeof item.text === 'string'
+            ? item.text : null
+    ));
+    if (text.some((value) => value === null)) return null;
+    return { index: record.index, timestamp: record.row.timestamp, message: text.join('') };
+}
+
+function isExactUserEventMirror(
+    record: FixedCodexSessionRecord,
+    source: CanonicalUserMirrorCandidate,
+): boolean {
+    const payload = isRecord(record.row.payload) ? record.row.payload : undefined;
+    const sourceTimestamp = Date.parse(source.timestamp);
+    const mirrorTimestamp = typeof record.row.timestamp === 'string'
+        ? Date.parse(record.row.timestamp) : Number.NaN;
+    if (
+        record.index !== source.index + 1
+        || !Number.isFinite(sourceTimestamp) || !Number.isFinite(mirrorTimestamp)
+        || mirrorTimestamp < sourceTimestamp
+        || mirrorTimestamp - sourceTimestamp > MAX_USER_EVENT_MIRROR_SPAN_MS
+        || record.row.type !== 'event_msg'
+        || payload?.type !== 'user_message'
+        || payload.message !== source.message
+        || !Array.isArray(payload.images) || payload.images.length !== 0
+        || !Array.isArray(payload.local_images) || payload.local_images.length !== 0
+        || !Array.isArray(payload.text_elements) || payload.text_elements.length !== 0
+        || (payload.client_id !== undefined && typeof payload.client_id !== 'string')
+    ) {
+        return false;
+    }
+    const allowed = new Set([
+        'type', 'client_id', 'message', 'images', 'local_images', 'text_elements',
+    ]);
+    const allowedRowKeys = new Set(['timestamp', 'type', 'payload']);
+    return Object.keys(record.row).every((key) => allowedRowKeys.has(key))
+        && Object.keys(payload).every((key) => allowed.has(key));
+}
+
+function isPlatformContextCandidate(record: FixedCodexSessionRecord): PlatformContextCandidate | null {
+    const turnId = canonicalUserTurnId(record);
+    const payload = isRecord(record.row.payload) ? record.row.payload : undefined;
+    const content = payload?.content;
+    if (!turnId || !Array.isArray(content) || content.length !== 1) return null;
+    const item = content[0];
+    if (!isRecord(item) || item.type !== 'input_text' || typeof item.text !== 'string') return null;
+    const lines = item.text.split('\n');
+    if (lines[0] !== '<environment_context>' || lines.at(-1) !== '</environment_context>') return null;
+    const currentDate = /^  <current_date>([^<>\r]+)<\/current_date>$/.exec(lines[1] ?? '')?.[1];
+    const timezone = /^  <timezone>([^<>\r]+)<\/timezone>$/.exec(lines[2] ?? '')?.[1];
+    const filesystem = /^  <filesystem><workspace_roots>((?:<root>[^<>\r]+<\/root>)+)<\/workspace_roots><permission_profile type="([^"<>\r]+)"><file_system type="([^"<>\r]+)" \/><\/permission_profile><\/filesystem>$/.exec(lines[3] ?? '');
+    if (!currentDate || !timezone || !filesystem) return null;
+    const rootMarkup = filesystem[1]!;
+    const rootMatches = [...rootMarkup.matchAll(/<root>([^<>\r]+)<\/root>/g)];
+    if (rootMatches.length === 0 || rootMatches.map((match) => match[0]).join('') !== rootMarkup) return null;
+
+    let subagents: string | undefined;
+    if (lines.length !== 5) {
+        if (lines.length < 8 || lines[4] !== '  <subagents>' || lines.at(-2) !== '  </subagents>') return null;
+        const subagentLines = lines.slice(5, -2);
+        if (subagentLines.length === 0 || subagentLines.some((line) => !line.startsWith('    ') || !line.slice(4))) {
+            return null;
+        }
+        subagents = subagentLines.map((line) => line.slice(4)).join('\n');
+    }
+    return {
+        turnId,
+        currentDate,
+        timezone,
+        workspaceRoots: rootMatches.map((match) => match[1]!),
+        permissionProfile: filesystem[2]!,
+        fileSystem: filesystem[3]!,
+        ...(subagents === undefined ? {} : { subagents }),
+    };
+}
+
+function worldStateMatches(
+    record: FixedCodexSessionRecord,
+    candidate: PlatformContextCandidate,
+): boolean {
+    const payload = isRecord(record.row.payload) ? record.row.payload : undefined;
+    const state = payload && isRecord(payload.state) ? payload.state : undefined;
+    const environments = state && isRecord(state.environments) ? state.environments : undefined;
+    return record.row.type === 'world_state'
+        && payload?.full === false
+        && environments?.current_date === candidate.currentDate
+        && environments?.subagents === candidate.subagents;
+}
+
+function turnContextMatches(
+    record: FixedCodexSessionRecord,
+    candidate: PlatformContextCandidate,
+): boolean {
+    const payload = isRecord(record.row.payload) ? record.row.payload : undefined;
+    const permission = payload && isRecord(payload.permission_profile)
+        ? payload.permission_profile : undefined;
+    const sandbox = payload && isRecord(payload.sandbox_policy) ? payload.sandbox_policy : undefined;
+    const workspaceRoots = payload?.workspace_roots;
+    const expectedSandbox = candidate.fileSystem === 'unrestricted'
+        ? 'danger-full-access' : candidate.fileSystem;
+    return record.row.type === 'turn_context'
+        && payload?.turn_id === candidate.turnId
+        && payload.current_date === candidate.currentDate
+        && payload.timezone === candidate.timezone
+        && Array.isArray(workspaceRoots)
+        && workspaceRoots.length === candidate.workspaceRoots.length
+        && workspaceRoots.every((root, index) => root === candidate.workspaceRoots[index])
+        && permission?.type === candidate.permissionProfile
+        && sandbox?.type === expectedSandbox;
+}
+
+function recordTimestampMs(record: FixedCodexSessionRecord): number | null {
+    if (typeof record.row.timestamp !== 'string') return null;
+    const parsed = Date.parse(record.row.timestamp);
+    return Number.isFinite(parsed) ? parsed : null;
+}
+
+function isConsecutive(
+    records: FixedCodexSessionRecord[],
+    next: FixedCodexSessionRecord,
+): boolean {
+    const previous = records[records.length - 1];
+    return !previous || next.index === previous.index + 1;
+}
+
+function timestampsProveEnvelope(records: FixedCodexSessionRecord[]): boolean {
+    const timestamps = records.map(recordTimestampMs);
+    if (timestamps.some((value) => value === null)) return false;
+    const values = timestamps as number[];
+    return values.every((value, index) => index === 0 || value >= values[index - 1]!)
+        && values[values.length - 1]! - values[0]! <= MAX_PLATFORM_CONTEXT_ENVELOPE_SPAN_MS;
+}
+
+/** Remove only a complete host envelope, reserved goal packet, or exact adjacent
+ * user-event mirror. Every near miss is replayed and remains fail-closed. */
+export function createCodexPlatformContextProjection(
+    visitor: (record: FixedCodexSessionRecord) => void,
+): CodexPlatformContextProjection {
+    let pending: FixedCodexSessionRecord[] = [];
+    let pendingCandidate: PlatformContextCandidate | null = null;
+    let pendingBytes = 0;
+    let mirrorCandidate: CanonicalUserMirrorCandidate | null = null;
+
+    const visit = (record: FixedCodexSessionRecord): void => {
+        visitor(record);
+        mirrorCandidate = canonicalUserMirrorCandidate(record);
+    };
+
+    const emitPending = (): void => {
+        for (const record of pending) visit(record);
+        pending = [];
+        pendingCandidate = null;
+        pendingBytes = 0;
+    };
+    const buffer = (record: FixedCodexSessionRecord): boolean => {
+        pendingBytes += Buffer.byteLength(record.rawLine, 'utf-8');
+        pending.push(record);
+        return pendingBytes <= MAX_PLATFORM_CONTEXT_ENVELOPE_BYTES;
+    };
+    const consume = (record: FixedCodexSessionRecord): void => {
+        if (mirrorCandidate && isExactUserEventMirror(record, mirrorCandidate)) {
+            mirrorCandidate = null;
+            return;
+        }
+        mirrorCandidate = null;
+        if (pending.length === 0) {
+            // Goal continuation packets are reserved host context, never operator
+            // authority. Exact user-authored lookalikes are also ignored, which can
+            // only fail closed; text outside the complete envelope is retained.
+            if (isReservedGoalContext(record)) return;
+            const candidate = isPlatformContextCandidate(record);
+            if (!candidate) {
+                visit(record);
+                return;
+            }
+            pendingCandidate = candidate;
+            if (!buffer(record)) emitPending();
+            return;
+        }
+
+        const expectedWorldState = pending.length === 1
+            && isConsecutive(pending, record)
+            && pendingCandidate !== null
+            && worldStateMatches(record, pendingCandidate);
+        if (expectedWorldState) {
+            if (!buffer(record)) emitPending();
+            return;
+        }
+
+        const expectedTurnContext = pending.length === 2
+            && isConsecutive(pending, record)
+            && pendingCandidate !== null
+            && turnContextMatches(record, pendingCandidate);
+        if (expectedTurnContext) {
+            if (!buffer(record)) emitPending();
+            return;
+        }
+
+        const provesCompleteEnvelope = pending.length === 3
+            && isConsecutive(pending, record)
+            && canonicalUserTurnId(record) === pendingCandidate?.turnId
+            && timestampsProveEnvelope([...pending, record]);
+        if (provesCompleteEnvelope) {
+            const [, worldState, turnContext] = pending;
+            pending = [];
+            pendingCandidate = null;
+            pendingBytes = 0;
+            visit(worldState!);
+            visit(turnContext!);
+            visit(record);
+            return;
+        }
+
+        emitPending();
+        consume(record);
+    };
+    return { consume, finish: emitPending };
 }
 
 function sameOpenedFile(left: fs.Stats, right: fs.Stats): boolean {

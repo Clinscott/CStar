@@ -1,30 +1,27 @@
-import subprocess
-import sys
-from pathlib import Path
+import pytest
 
-import src.synapse.synapse_auth as synapse_auth
-
-
-ROOT = Path(__file__).resolve().parents[2]
-
-
-def test_retired_auth_surface_never_grants_persona_authority():
-    assert synapse_auth.authenticate_sync("ODIN") is False
-    assert synapse_auth.authenticate_sync("ALFRED") is False
-    assert synapse_auth.SynapseAuthenticator.authenticate_sync("ODIN") is False
+from src.synapse.synapse_auth import (
+    RETIRED_ERROR,
+    PersonaVerifier,
+    SynapseAuthenticator,
+)
 
 
-def test_secret_reading_persona_verifier_is_not_exported():
-    assert not hasattr(synapse_auth, "PersonaVerifier")
+def test_persona_verifier_never_reads_config_or_secret(tmp_path):
+    config_file = tmp_path / "config.json"
+    original = "secret-bearing-content-must-not-be-read"
+    config_file.write_text(original, encoding="utf-8")
+
+    verifier = PersonaVerifier(str(config_file))
+
+    assert verifier.secret is None
+    assert verifier.verify_response("challenge", "response", "ODIN") is False
+    with pytest.raises(RuntimeError, match=RETIRED_ERROR):
+        verifier.generate_challenge()
+    with pytest.raises(RuntimeError, match=RETIRED_ERROR):
+        verifier.solve_challenge("challenge", "ODIN")
+    assert config_file.read_text(encoding="utf-8") == original
 
 
-def test_retired_auth_cli_fails_closed():
-    result = subprocess.run(
-        [sys.executable, "src/synapse/synapse_auth.py"],
-        cwd=ROOT,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    assert result.returncode == 78
-    assert synapse_auth.RETIRED_REASON in result.stderr
+def test_persona_is_not_authority():
+    assert SynapseAuthenticator.authenticate_sync("ODIN") is False

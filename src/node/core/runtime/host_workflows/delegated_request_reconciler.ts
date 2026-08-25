@@ -1,22 +1,14 @@
 import type { HallOneMindRequestRecord } from '../../../../types/hall.js';
+import { RETIRED_ORCHESTRATOR_RUNTIME_ERROR } from '../reaper.js';
 
-export interface RetiredDelegatedReconciliationResult {
-    reconciled: false;
-    activationId?: string;
-    beadId?: string;
-    finalStatus?: string;
-}
 
-/**
- * Retained for source compatibility only. One Mind callbacks cannot reconcile,
- * advance, or otherwise mutate CStar lifecycle state.
- */
 export async function reconcileDelegatedWorkflowRequest(
-    _rootPath: string,
+    rootPath: string,
     request: HallOneMindRequestRecord,
-    _env: NodeJS.ProcessEnv = process.env,
-): Promise<RetiredDelegatedReconciliationResult> {
-    throw new Error(
-        `One Mind delegated reconciliation is retired for '${request.request_id}'; no lifecycle state was changed.`,
-    );
+    env: NodeJS.ProcessEnv = process.env,
+): Promise<never> {
+    void rootPath;
+    void request;
+    void env;
+    throw new Error(RETIRED_ORCHESTRATOR_RUNTIME_ERROR);
 }

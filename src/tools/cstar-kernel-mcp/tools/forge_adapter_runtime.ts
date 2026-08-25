@@ -69,7 +69,24 @@ function resolvePythonInterpreter(): string {
     return configured || '/usr/bin/python3';
 }
 
-export function sealForgeAdapterRuntime(selectedAdapter: Record<string, any>): ForgeAdapterRuntimeProof {
+const TRUSTED_BUBBLEWRAP_CANDIDATES = ['/usr/bin/bwrap', '/bin/bwrap'] as const;
+
+/**
+ * Resolve Bubblewrap without consulting ambient PATH state.
+ *
+ * @param exists - Existence probe used against trusted candidates.
+ * @returns The first available trusted absolute Bubblewrap path.
+ */
+export function resolveBubblewrapRuntimePath(
+    exists: (_candidate: string) => boolean = fs.existsSync,
+): string {
+    for (const candidate of TRUSTED_BUBBLEWRAP_CANDIDATES) {
+        if (exists(candidate)) return candidate;
+    }
+    throw new Error('forge_containment_runtime_missing');
+}
+
+export function sealForgeAdapterRuntime(selectedAdapter: Record<string, unknown>): ForgeAdapterRuntimeProof {
     if (process.platform !== 'linux') throw new Error('forge_containment_linux_required');
     const scriptPath = typeof selectedAdapter.registered_script === 'string'
         ? selectedAdapter.registered_script.trim()
@@ -82,7 +99,7 @@ export function sealForgeAdapterRuntime(selectedAdapter: Record<string, any>): F
         { allowRootOwner: true, allowSymlinkAlias: true, executable: true },
     );
     const processContainment = sealRuntimeFile(
-        '/usr/bin/bwrap',
+        resolveBubblewrapRuntimePath(),
         'bubblewrap',
         { allowRootOwner: true, executable: true },
     );
@@ -102,7 +119,10 @@ export function sealForgeAdapterRuntime(selectedAdapter: Record<string, any>): F
             : null;
         const dependencySpecs = [
             ['forge_worker_safety', path.join(adapterDir, 'forge_worker_safety.py')],
+            ['forge_worker_evidence', path.join(adapterDir, 'forge_worker_evidence.py')],
             ['hermes_minimax_delegate', delegateOverride || path.join(adapterDir, 'hermes_minimax_delegate.mjs')],
+            ['forge_delegate_evidence', path.join(adapterDir, 'forge_delegate_evidence.mjs')],
+            ['forge_delegate_preflight', path.join(adapterDir, 'forge_delegate_preflight.mjs')],
             ['hermes_runtime_lineage', path.join(adapterDir, 'hermes_runtime_lineage.mjs')],
             ['forge_role_plan', path.join(adapterDir, 'forge_role_plan.mjs')],
         ] as const;

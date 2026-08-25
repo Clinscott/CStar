@@ -6,13 +6,20 @@ import type { HallForgeWriteCapability } from '../../../types/forge.js';
 import { resolveStateUpdateThreadId, type DispatchRequestArgs } from './dispatch_request.js';
 import type { ForgeAdapterRuntimeProof } from './forge_adapters.js';
 import type { ForgeHermesRuntimeExpectation } from './forge_hermes_runtime_contract.js';
+import {
+    resolveDispatchActionAuthority,
+    type DispatchActionAuthority,
+    type DispatchActionId,
+    type DispatchActionModifier,
+    type DispatchPrimaryAction,
+} from './dispatch_action_authority.js';
 
 export interface ForgeRequestContractArgs extends DispatchRequestArgs {
     execution_adapter_ref?: string;
 }
 
 export interface CanonicalForgeRequest {
-    schema: 'cstar.forge_request.v2';
+    schema: 'cstar.forge_request.v3';
     bead_id: string;
     decision_id: string;
     state_update_thread_id: string | null;
@@ -31,14 +38,16 @@ export interface CanonicalForgeRequest {
         unit: string | null;
     }>;
     artifact_expectations: string[];
-    prohibited_actions: string[];
-    requested_actions: string[];
+    prohibited_actions: DispatchActionId[];
+    requested_actions: Array<DispatchPrimaryAction | DispatchActionModifier>;
+    action_authority: DispatchActionAuthority;
     spend_policy: {
         mode: 'no_spend' | 'dry_run' | 'live_authorized';
         max_retries: number;
         live_source_allowed: boolean;
     };
     live_source_policy: string;
+    fixture_policy: 'synthetic_only' | null;
     retry_budget: number;
     callback_contract: {
         expected_packet: string;
@@ -204,8 +213,14 @@ export function canonicalizeForgeRequest(
     hermesRuntime: ForgeHermesRuntimeExpectation | null = null,
 ): CanonicalForgeRequest {
     const retryBudget = args.retry_policy?.budget ?? args.spend_policy.max_retries ?? 0;
+    const resolvedActionAuthority = resolveDispatchActionAuthority(args, root);
+    const actionAuthority: DispatchActionAuthority = {
+        ...resolvedActionAuthority,
+        requested_alias_count: 0,
+        prohibited_alias_count: 0,
+    };
     return {
-        schema: 'cstar.forge_request.v2',
+        schema: 'cstar.forge_request.v3',
         bead_id: args.bead_id?.trim() ?? '',
         decision_id: decisionId.trim(),
         state_update_thread_id: resolveStateUpdateThreadId(args) || null,
@@ -226,8 +241,9 @@ export function canonicalizeForgeRequest(
             }))
             .sort((left, right) => stableJson(left).localeCompare(stableJson(right))),
         artifact_expectations: normalizedSet(args.artifact_expectations),
-        prohibited_actions: normalizedSet(args.prohibited_actions),
-        requested_actions: normalizedSet(args.requested_actions),
+        prohibited_actions: actionAuthority.prohibited_actions,
+        requested_actions: actionAuthority.requested_actions,
+        action_authority: actionAuthority,
         spend_policy: {
             mode: args.spend_policy.mode,
             max_retries: args.spend_policy.max_retries ?? 0,
@@ -235,6 +251,7 @@ export function canonicalizeForgeRequest(
         },
         live_source_policy: args.live_source_policy?.trim()
             || 'no live source collection unless separately authorized',
+        fixture_policy: args.fixture_policy ?? null,
         retry_budget: retryBudget,
         callback_contract: {
             expected_packet: args.callback_contract.expected_packet.trim(),
@@ -256,6 +273,79 @@ export function canonicalizeForgeRequest(
 
 export function hashCanonicalForgeRequest(request: CanonicalForgeRequest): string {
     return sha256(stableJson(request));
+}
+
+export function hashForgeRuntimeBinding(request: CanonicalForgeRequest): string {
+    return sha256(stableJson({
+        adapter_ref: request.adapter_ref,
+        adapter_runtime: request.adapter_runtime,
+        hermes_runtime: request.hermes_runtime,
+    }));
+}
+
+/** Hash every operator-authorized field while excluding repairable runtime bytes. */
+export function hashForgeContinuationAuthority(request: CanonicalForgeRequest): string {
+    return sha256(stableJson({
+        ...request,
+        adapter_runtime: null,
+        hermes_runtime: null,
+    }));
+}
+
+export function assertForgeContinuationScope(
+    recorded: CanonicalForgeRequest,
+    current: CanonicalForgeRequest,
+): void {
+    if (hashForgeContinuationAuthority(recorded) !== hashForgeContinuationAuthority(current)) {
+        throw new Error('forge_continuation_authority_drift');
+    }
+    if (stableJson(recorded.target_paths) !== stableJson(current.target_paths)) {
+        throw new Error('forge_continuation_target_paths_drift');
+    }
+    if (stableJson(recorded.required_output_paths) !== stableJson(current.required_output_paths)) {
+        throw new Error('forge_continuation_required_outputs_drift');
+    }
+}
+
+/** Rebuild model-visible request fields from the durable canonical envelope. */
+export function projectCanonicalForgeInvocationArgs<T extends ForgeRequestContractArgs>(
+    args: T,
+    canonical: CanonicalForgeRequest,
+): T {
+    return {
+        ...args,
+        state_update_thread_id: canonical.state_update_thread_id ?? undefined,
+        owner_pmt_thread_id: undefined,
+        source_callback_thread_id: canonical.source_callback_thread_id,
+        objective: canonical.objective,
+        prompt: canonical.prompt ?? undefined,
+        target_paths: canonical.target_paths,
+        required_output_paths: canonical.required_output_paths,
+        system_under_test: canonical.system_under_test ?? undefined,
+        scope: canonical.scope,
+        authority_lane: canonical.authority_lane,
+        required_metrics: canonical.required_metrics.map((metric) => ({
+            name: metric.name,
+            threshold: metric.threshold,
+            acceptance_rule: metric.acceptance_rule ?? undefined,
+            unit: metric.unit ?? undefined,
+        })),
+        artifact_expectations: canonical.artifact_expectations,
+        prohibited_actions: canonical.prohibited_actions,
+        requested_actions: canonical.requested_actions,
+        spend_policy: {
+            ...args.spend_policy,
+            mode: canonical.spend_policy.mode,
+            max_retries: canonical.spend_policy.max_retries,
+            live_source_allowed: canonical.spend_policy.live_source_allowed,
+        },
+        live_source_policy: canonical.live_source_policy,
+        fixture_policy: canonical.fixture_policy ?? undefined,
+        retry_policy: { budget: canonical.retry_budget, spent: args.retry_policy?.spent ?? 0 },
+        callback_contract: canonical.callback_contract,
+        package_locks: canonical.package_locks,
+        dispatch_surface_ref: canonical.dispatch_surface_ref ?? undefined,
+    } as T;
 }
 
 export function hashForgeTargetPaths(request: CanonicalForgeRequest): string {

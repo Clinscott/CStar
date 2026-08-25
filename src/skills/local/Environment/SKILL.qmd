@@ -1,16 +1,13 @@
----
-name: environment-diagnostics-reference
-description: Explicit read-only environment inspection reference.
-status: reference-only
----
+# Skill: Environment (EnvDoctor)
 
-# Environment diagnostics (reference only)
+Activation Words: port, dev-server, dependencies, npm, install, health, check port
 
-Use only when the operator explicitly asks for environment diagnosis. Bounded
-read-only checks may inspect port listeners, process metadata, lockfiles, and
-installed dependency versions.
+## Instructions
+When the user mentions "port 3000", "broken server", or "installing", trigger the EnvDoctor skill.
+1. **Audit**: Check if ports are occupied.
+2. **Clean**: Offer to clear ports if a process is frozen.
+3. **Install**: Run `npm install` if new packages are detected.
+4. **Report**: Summarize the system health.
 
-This reference grants no authority to kill a process, install or upgrade a
-package, restart a service, mutate configuration, or repair the environment.
-Present evidence and request the applicable operator gate before any such
-action. It is not activated implicitly by words such as `port` or `install`.
+## Tracing logic
+Match this skill if query refers to infrastructure or dependency issues.

@@ -1,97 +1,20 @@
-import json
 import pytest
-from unittest.mock import MagicMock, patch, mock_open
-from pathlib import Path
-from src.core.engine.orchestrator import SovereignOrchestrator
-from src.core.payload import IntentPayload
 
-@pytest.fixture
-def orchestrator(tmp_path):
-    project_root = tmp_path / "project"
-    base_path = tmp_path / "base"
-    project_root.mkdir()
-    base_path.mkdir()
-    thresholds = {"REC": 1.5}
-    config = {"version": "1.0.0"}
-    return SovereignOrchestrator(project_root, base_path, thresholds, config)
+from src.core.engine.orchestrator import (
+    LEGACY_PYTHON_SOVEREIGN_COMPONENT_ERROR,
+    SovereignOrchestrator,
+)
 
-class TestSovereignOrchestrator:
-    @patch("src.core.engine.orchestrator.SovereignHUD")
-    def test_execute_search_no_query(self, mock_hud, orchestrator):
-        context = MagicMock()
-        context.persona_style_context = {
-            "persona": "ODIN",
-            "tone": "direct and precise",
-        }
-        
-        orchestrator.execute_search("", None, None, None, None, context)
-        
-        mock_hud.persona_log.assert_called_once_with(
-            "INFO",
-            "Persona style active: ODIN (direct and precise); authority unchanged.",
-        )
-        context.strategy.enforce_policy.assert_not_called()
 
-    @patch("src.core.engine.orchestrator.SovereignHUD")
-    def test_execute_search_local_hit(self, mock_hud, orchestrator):
-        engine = MagicMock()
-        engine.search.return_value = [{"score": 2.0, "trigger": "LOCAL_SKILL"}]
-        engine.normalize.return_value = "normalized_query"
-        
-        injector = MagicMock()
-        executor = MagicMock()
-        reporter = MagicMock()
-        context = MagicMock()
-
-        orchestrator.execute_search("my query", engine, injector, executor, reporter, context)
-        
-        reporter.render_hud.assert_called()
-        args, _ = reporter.render_hud.call_args
-        payload = args[0]
-        assert isinstance(payload, IntentPayload)
-        assert payload.target_workflow == "LOCAL_SKILL"
-        assert payload.system_meta["confidence"] == 2.0
-
-    @patch("src.core.engine.orchestrator.SovereignHUD")
-    def test_execute_search_fails_closed_without_local_match(self, mock_hud, orchestrator):
-        engine = MagicMock()
-        engine.search.return_value = [] # No local hit
-        engine.normalize.return_value = "normalized_query"
-        
-        injector = MagicMock()
-        injector.proactive_discovery.return_value = None
-
-        executor = MagicMock()
-        reporter = MagicMock()
-        context = MagicMock()
-
-        orchestrator.execute_search("missing skill", engine, injector, executor, reporter, context)
-
-        mock_hud.persona_log.assert_any_call(
-            "WARN",
-            "SovereignEngine: No matching local skills found. External research requires the authorized Researcher lane.",
-        )
-        args, _ = reporter.render_hud.call_args
-        assert args[0] is None
-        injector.proactive_lexicon_lift.assert_not_called()
-        executor.handle_proactive.assert_not_called()
-        executor.suggest_forge.assert_called_once_with("missing skill")
-
-    def test_create_payload_with_terminal_state(self, orchestrator):
-        engine = MagicMock()
-        engine.normalize.return_value = "normalized"
-        top = {"score": 0.9, "trigger": "test_trigger"}
-        
-        state_dir = orchestrator.base_path / "state"
-        state_dir.mkdir()
-        state_file = state_dir / "terminal.json"
-        state_data = {"last_cmd": "exit"}
-        state_file.write_text(json.dumps(state_data))
-        
-        payload = orchestrator.create_payload("raw", top, engine)
-        
-        assert payload.terminal_state["last_cmd"] == "exit"
-        assert payload.system_meta["version"] == "1.0.0"
-
-    def test_web_fallback_is_a_non_networking_tombstone(self, orchestrator):
-        assert orchestrator.web_fallback("query") is None
+@pytest.mark.parametrize(
+    "invoke",
+    [
+        lambda: SovereignOrchestrator(None, None, {}, {}),
+        lambda: SovereignOrchestrator.execute_search(object.__new__(SovereignOrchestrator)),
+        lambda: SovereignOrchestrator.web_fallback(object.__new__(SovereignOrchestrator)),
+        lambda: SovereignOrchestrator.create_payload(object.__new__(SovereignOrchestrator)),
+    ],
+)
+def test_retired_orchestrator_fails_closed(invoke):
+    with pytest.raises(RuntimeError, match=f"^{LEGACY_PYTHON_SOVEREIGN_COMPONENT_ERROR}$"):
+        invoke()

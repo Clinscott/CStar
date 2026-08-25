@@ -1,45 +1,53 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import { Command } from 'commander';
 
 import {
+    BIFROST_COMMAND_RETIRED_ERROR,
+    buildStaticGuide,
+    parseBifrostGuide,
+    registerBifrostCommand,
     renderBifrostGuide,
     resolveBifrostGuide,
 } from '../../src/node/core/commands/bifrost.js';
 
-describe('Bifrost bridge guidance', () => {
-    it('uses host-supervised bridge guidance when a host session is active', async () => {
-        const result = await resolveBifrostGuide(
-            { CODEX_SHELL: '1' } as NodeJS.ProcessEnv,
-            {
-                hostTextInvoker: async () => ({
-                    provider: 'codex',
-                    response: {} as any,
-                    text: JSON.stringify({
-                        summary: 'Bridge guidance from host.',
-                        primary_servers: ['pennyone', 'corvus-control'],
-                        recommended_path: 'Prefer MCP over manual CLI replication.',
-                    }),
-                }),
-                projectRoot: () => '/tmp/corvus',
-            },
-        );
-
-        assert.equal(result.delegated, true);
-        assert.equal(result.provider, 'codex');
-        assert.equal(result.guide.summary, 'Bridge guidance from host.');
-        assert.match(renderBifrostGuide(result.guide), /Prefer MCP over manual CLI replication/);
+describe('retired Bifrost command', () => {
+    it('keeps static guide parsing and rendering pure', () => {
+        const guide = buildStaticGuide();
+        const parsed = parseBifrostGuide(JSON.stringify(guide));
+        assert.deepEqual(parsed, guide);
+        assert.match(renderBifrostGuide(parsed), /typed cstar-kernel MCP inventory/);
     });
 
-    it('falls back to static guidance when no host provider is active', async () => {
-        const result = await resolveBifrostGuide(
-            { CORVUS_HOST_SESSION_ACTIVE: 'false' } as NodeJS.ProcessEnv,
-            {
-                projectRoot: () => '/tmp/corvus',
+    it('fails the compatibility resolver before provider or root callbacks', async () => {
+        let providerCalls = 0;
+        let rootCalls = 0;
+        await assert.rejects(resolveBifrostGuide({}, {
+            projectRoot: () => {
+                rootCalls += 1;
+                return '/synthetic';
             },
-        );
+            hostTextInvoker: (() => {
+                providerCalls += 1;
+                throw new Error('provider forbidden');
+            }) as never,
+        }, true), new RegExp(BIFROST_COMMAND_RETIRED_ERROR));
+        assert.deepEqual({ providerCalls, rootCalls }, { providerCalls: 0, rootCalls: 0 });
+    });
 
-        assert.equal(result.delegated, false);
-        assert.equal(result.provider, null);
-        assert.match(result.guide.summary, /PennyOne and corvus-control/);
+    it('fails direct registration before provider callbacks', async () => {
+        let providerCalls = 0;
+        const program = new Command().exitOverride();
+        registerBifrostCommand(program, {
+            hostTextInvoker: (() => {
+                providerCalls += 1;
+                throw new Error('provider forbidden');
+            }) as never,
+        });
+        await assert.rejects(
+            program.parseAsync(['node', 'test', 'bifrost', '--host-guide']),
+            new RegExp(BIFROST_COMMAND_RETIRED_ERROR),
+        );
+        assert.equal(providerCalls, 0);
     });
 });

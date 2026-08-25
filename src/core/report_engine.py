@@ -8,28 +8,20 @@ current_dir = Path(__file__).parent.absolute()
 if str(current_dir) not in sys.path:
     sys.path.append(str(current_dir))
 
-import utils
-
 from src.core.sovereign_hud import SovereignHUD
 
 
 class ReportEngine:
     """
-    Formats reports with the configured presentation style.
-
-    Persona selection affects tone and labels only; it grants no authority and
-    does not alter report evidence or verdict standing.
+    Applies an explicitly supplied, style-only presentation profile.
     """
 
-    def __init__(self, project_root: str | Path | None = None) -> None:
+    def __init__(self, project_root: str | Path | None = None, persona: str | None = None) -> None:
         self.root = Path(project_root) if project_root else Path.cwd()
-        # Load fresh config to ensure we catch dynamic switches
-        self.config = utils.load_config(self.root)
-        legacy = self.config.get("persona") or self.config.get("Persona") or "ALFRED"
-        self.persona = str(self.config.get("system", {}).get("persona", legacy)).upper()
+        self.persona = str(persona or "NEUTRAL").upper()
 
         # Ensure SovereignHUD is synced
-        SovereignHUD.PERSONA = self.persona
+        SovereignHUD.PERSONA = None if self.persona == "NEUTRAL" else self.persona
 
     def header(self, title: str) -> str:
         """Returns the stylized ASCII header for the report."""
@@ -63,11 +55,14 @@ class ReportEngine:
             return f"\n**Observation**: {icon} {status} — {detail}"
 
     def signature(self) -> str:
-        """Return a presentation-only closing label for the configured style."""
+        """
+        The anti-hallucination seal.
+        Returns the ONLY authorized signature for the active persona.
+        """
         if self.persona in ["O.D.I.N.", "ODIN", "GOD"]:
-            return "\n\n---\n**O.D.I.N. presentation style**"
+            return "\n\n---\n**SIGNED: O.D.I.N., THE ALL-FATHER**\n*The Runes Are Cast.*"
         else:
-            return "\n\n---\n**A.L.F.R.E.D. presentation style**"
+            return "\n\n---\n**Your Humble Servant,**\n*A.L.F.R.E.D. Pennyworth*"
 
     def generate_report(self, title: str, body: str, status: str = "INFO") -> str:
         """Combines all elements into a final markdown string."""

@@ -1,10 +1,12 @@
 # CStar Spoke + Kernel Hardening Roadmap
 
-> **Historical roadmap (created 2026-05-15).** Preserved for provenance, not
-> execution. Direct Hermes, legacy PMT review/routing, scalar score gates,
-> monolithic MCP assumptions, and its claimed live state are superseded by
-> current CStar/CoS/Forge/Researcher contracts. Re-register any still-useful
-> item as a current CStar bead before work.
+> **Historical snapshot — non-authoritative and non-executable.** This May 2026
+> roadmap preserves design history only. Its live-state claims, tool counts,
+> direct Hermes routes, provider versions, installation steps, cron actions,
+> and authority topology are stale. Do not resume work from this document.
+> Current authority begins in `/home/morderith/Corvus/AGENTS.md`, the nearest
+> repository `AGENTS.md`, `docs/integrations/cstar-kernel-mcp.md`, and the
+> current CStar bead/proposal lifecycle. Revalidate every historical claim.
 
 **Created**: 2026-05-15
 **Status**: Open backlog (6 items). Items #1, #2, #4, #7 already shipped (see "Already Landed" below).
@@ -440,7 +442,10 @@ These are quality-of-life improvements. Each is independently shippable; pick wh
 - Don't issue raw SQL `DELETE` from a feature handler unless there is no kernel primitive — extend `repository_manager.ts` instead.
 - Don't bypass `gateSterlingMandate` from any new resolve path.
 - Don't write to a spoke directory outside `<spoke>/.cstar/`.
-- Don't kill the Sterling Mandate gate via metadata gymnastics — the `force=true + force_reason` path exists for a reason; emergency override should be visible.
+- Don't weaken the Sterling Mandate through metadata, scalar scores, claimed
+  Warden output, force text, or exemptions. Emergency work remains open or
+  blocked until the exact independent Hall validation receipt exists; see
+  `docs/operations/sterling-validation-authority-boundary.md`.
 
 ---
 

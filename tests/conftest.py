@@ -1,4 +1,5 @@
 """Shared fixtures for sentinel tests."""
+import asyncio
 import contextlib
 import sys
 from pathlib import Path
@@ -6,6 +7,35 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
+
+
+class ExplicitEventLoopPolicy(asyncio.DefaultEventLoopPolicy):
+    """Require tests and runners to create event loops explicitly."""
+
+    def get_event_loop(self):
+        loop = getattr(self._local, "_loop", None)
+        if loop is None:
+            raise RuntimeError("no current event loop")
+        return loop
+
+
+@pytest.fixture(scope="session")
+def event_loop_policy():
+    """Keep pytest-asyncio from leaking its implicitly created old loop."""
+    original = asyncio.get_event_loop_policy()
+    policy = ExplicitEventLoopPolicy()
+    asyncio.set_event_loop_policy(policy)
+    try:
+        yield policy
+    finally:
+        try:
+            loop = policy.get_event_loop()
+        except RuntimeError:
+            pass
+        else:
+            if not loop.is_closed():
+                loop.close()
+        asyncio.set_event_loop_policy(original)
 
 # ---------------------------------------------------------------------------
 # Centralised sys.path setup — ensures every bare import used by tests
@@ -232,4 +262,3 @@ def reset_hud_singleton():
     _full_reset()
     yield
     _full_reset()
-

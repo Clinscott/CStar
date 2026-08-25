@@ -1,16 +1,125 @@
 import path from 'node:path';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { resolveKernelMcpLaunchRoots } from '../../../../bin/cstar-kernel-mcp-env.js';
+import {
+    buildKernelRuntimeLineageForRoots,
+    evaluateKernelForgeReadiness,
+    type KernelRuntimeLineage,
+} from './runtime_lineage.js';
+import {
+    formatBootstrapErrorRecord as formatSharedBootstrapErrorRecord,
+    logBootstrapError as logSharedBootstrapError,
+} from '../../../../bin/cstar-kernel-mcp-bootstrap-log.js';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
-export const PROJECT_ROOT = path.resolve(__dirname, '../../../../');
+const DERIVED_CODE_ROOT = fs.realpathSync(path.resolve(__dirname, '../../../../'));
+
+function resolveRuntimeRoots(): {
+    codeRoot: string;
+    controlRoot: string;
+    bindingMode: 'live_launcher' | 'library_default';
+} {
+    if (process.env.CSTAR_KERNEL_MCP !== '1') {
+        return {
+            codeRoot: DERIVED_CODE_ROOT,
+            controlRoot: DERIVED_CODE_ROOT,
+            bindingMode: 'library_default',
+        };
+    }
+
+    const suppliedCodeRoot = process.env.CSTAR_CODE_ROOT?.trim();
+    if (!suppliedCodeRoot) throw new Error('kernel_code_root_missing');
+    if (!path.isAbsolute(suppliedCodeRoot)) throw new Error('kernel_code_root_not_absolute');
+    const suppliedCanonicalCodeRoot = fs.realpathSync(path.resolve(suppliedCodeRoot));
+    if (
+        suppliedCanonicalCodeRoot !== path.resolve(suppliedCodeRoot)
+        || suppliedCanonicalCodeRoot !== DERIVED_CODE_ROOT
+    ) {
+        throw new Error('kernel_code_root_lineage_mismatch');
+    }
+
+    const roots = resolveKernelMcpLaunchRoots({
+        codeRoot: suppliedCanonicalCodeRoot,
+        controlRoot: process.env.CSTAR_CONTROL_ROOT,
+    });
+    if (
+        process.env.CSTAR_PROJECT_ROOT !== roots.controlRoot
+        || process.env.CSTAR_WORKSPACE_ROOT !== roots.controlRoot
+    ) {
+        throw new Error('kernel_control_root_alias_mismatch');
+    }
+    return {
+        codeRoot: roots.codeRoot,
+        controlRoot: roots.controlRoot,
+        bindingMode: 'live_launcher',
+    };
+}
+
+const RUNTIME_ROOTS = resolveRuntimeRoots();
+
+export const CODE_ROOT = RUNTIME_ROOTS.codeRoot;
+export const CONTROL_ROOT = RUNTIME_ROOTS.controlRoot;
+/** Compatibility alias for state-owning callers. New source reads use CODE_ROOT. */
+export const PROJECT_ROOT = CONTROL_ROOT;
+export const KERNEL_ROOT_BINDING_MODE = RUNTIME_ROOTS.bindingMode;
 export const HUB_KERNEL_VERSION = '1.0.0';
 export const MCP_ERROR_MESSAGE_MAX = 512;
 export const MCP_PROPOSAL_MAX_BYTES = 512 * 1024;
 export const MCP_SAFE_PROPOSAL_ID = /^[a-zA-Z0-9._-]+$/;
 export const MCP_LOG_DIR = path.join(PROJECT_ROOT, 'logs', 'mcp');
 export const MCP_LOG_PATH = path.join(MCP_LOG_DIR, 'mcp_bootstrap_error.log');
+
+export function buildKernelRuntimeLineage(): KernelRuntimeLineage {
+    return buildKernelRuntimeLineageForRoots({
+        codeRoot: CODE_ROOT,
+        controlRoot: CONTROL_ROOT,
+        bindingMode: KERNEL_ROOT_BINDING_MODE,
+    });
+}
+
+export function assertLiveForgeRuntimeReady(): KernelRuntimeLineage {
+    const lineage = buildKernelRuntimeLineage();
+    const readiness = evaluateKernelForgeReadiness(lineage);
+    if (!readiness.ready) {
+        const testOnlyBypass = lineage.binding_mode === 'library_default'
+            && Boolean(process.env.NODE_TEST_CONTEXT)
+            && process.env.CSTAR_FORGE_RUNTIME_TEST_BYPASS === '1';
+        if (testOnlyBypass) return { ...lineage, test_only_bypass: true };
+        throw new Error(`forge_runtime_not_ready:${readiness.failures.join(',')}`);
+    }
+    return lineage;
+}
+
+export type ForgeRuntimeReadinessAssertion = () => { binding_sha256: string };
+
+export function createStableForgeRuntimeReadinessAssertion(
+    assertReady: ForgeRuntimeReadinessAssertion = assertLiveForgeRuntimeReady,
+): ForgeRuntimeReadinessAssertion {
+    let expectedBindingSha256: string | null = null;
+    return () => {
+        const lineage = assertReady();
+        if (expectedBindingSha256 && lineage.binding_sha256 !== expectedBindingSha256) {
+            throw new Error('forge_runtime_binding_drift');
+        }
+        expectedBindingSha256 = lineage.binding_sha256;
+        return lineage;
+    };
+}
+
+export function createForgeHandlerRuntimeReadinessAssertion(
+    testOverride?: ForgeRuntimeReadinessAssertion,
+): ForgeRuntimeReadinessAssertion {
+    if (testOverride && !(
+        KERNEL_ROOT_BINDING_MODE === 'library_default'
+        && Boolean(process.env.NODE_TEST_CONTEXT)
+        && process.env.CSTAR_FORGE_RUNTIME_TEST_BYPASS === '1'
+    )) throw new Error('forge_runtime_test_assertion_forbidden');
+    return createStableForgeRuntimeReadinessAssertion(testOverride);
+}
+
+export { evaluateKernelForgeReadiness, type KernelRuntimeLineage } from './runtime_lineage.js';
 
 export function isPathInside(child: string, parent: string): boolean {
     const resolvedChild = path.resolve(child);
@@ -151,12 +260,8 @@ export function readBoundedFileInside(
     }
 }
 
+export const formatBootstrapErrorRecord = formatSharedBootstrapErrorRecord;
+
 export function logBootstrapError(error: unknown): void {
-    try {
-        fs.mkdirSync(MCP_LOG_DIR, { recursive: true });
-        const stack = error instanceof Error ? error.stack ?? error.message : String(error);
-        fs.appendFileSync(MCP_LOG_PATH, `[${new Date().toISOString()}] ${stack}\n`, 'utf-8');
-    } catch {
-        // Diagnostics must never break the MCP surface.
-    }
+    logSharedBootstrapError(PROJECT_ROOT, error);
 }

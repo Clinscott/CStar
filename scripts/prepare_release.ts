@@ -11,7 +11,7 @@ const steps = [
 
 for (const [label, args] of steps) {
     console.log(`[corvus:release-prepare] ${label}`);
-    const result = spawnSync(process.execPath, ['scripts/run-tsx.mjs', ...args], {
+    const result = spawnSync('node', ['scripts/run-tsx.mjs', ...args], {
         cwd: projectRoot,
         stdio: 'inherit',
     });
@@ -21,4 +21,4 @@ for (const [label, args] of steps) {
     }
 }
 
-console.log('[corvus:release-prepare] Verified external-runtime host overlays are ready under dist/host-distributions and dist/releases.');
+console.log('[corvus:release-prepare] Release artifacts are ready under dist/host-distributions and dist/releases.');

@@ -72,6 +72,35 @@
     }
   },
   "entries": {
+    "calculus": {
+      "id": "calculus",
+      "title": "Gungnir Calculus",
+      "description": "Read-only deterministic source scoring available for explicit compatibility discovery; not registered in the default operator catalog.",
+      "tier": "PRIME",
+      "viability": "ACTIVE",
+      "risk": "safe",
+      "runtime_trigger": "calculus",
+      "entry_surface": "compatibility",
+      "instruction_path": ".agents/skills/calculus/SKILL.md",
+      "entrypoint_path": "src/node/core/runtime/adapters/calculus.ts",
+      "contract_path": ".agents/skills/calculus/calculus.feature",
+      "authority_path": ".agents/skills/calculus",
+      "owner_runtime": "compatibility-library",
+      "host_support": {"codex": "unsupported", "gemini": "unsupported", "claude": "unsupported"},
+      "recursion_policy": "leaf",
+      "contracts": [".agents/skills/calculus/calculus.feature"],
+      "tests": [
+        "tests/unit/test_gungnir_calculus.test.ts",
+        "tests/unit/test_gungnir_calculus_adapter.test.ts",
+        "tests/unit/test_gungnir_calculus_command.test.ts"
+      ],
+      "intent_categories": ["SCORE"],
+      "execution": {
+        "mode": "compatibility",
+        "adapter_id": "prime:calculus",
+        "ownership_model": "kernel-primitive"
+      }
+    },
     "corvus-forge": {
       "id": "corvus-forge",
       "title": "Corvus Forge",
@@ -142,7 +171,7 @@
   "authority_audit": [
     {
       "status": "PASS",
-      "claim": "All registered skills are agent-native guidance and fail closed under the universal runtime adapter."
+      "claim": "Default operator capabilities are host-native guidance; calculus is discoverable compatibility only and remains unregistered from the retired Node runtime."
     }
   ]
 }

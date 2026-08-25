@@ -1,4 +1,4 @@
-import { errorResponse, mcpGuardrail, textResponse } from '../contracts/responses.js';
+import { textResponse } from '../contracts/responses.js';
 
 type MongoMailboxAction = 'status' | 'mirror_counts' | 'enqueue_operator_intent';
 type MongoIntentAction = 'accept' | 'decline' | 'refine' | 'dispatch' | 'edit';
@@ -12,111 +12,26 @@ export interface MongoMailboxArgs {
     operator_authorization_ref?: string;
 }
 
-const DURABLE_OPERATOR_INTENT_BLOCKER = 'durable_operator_intent_authority_not_implemented';
-const DEFAULT_COLLECTIONS = {
-    proposal_mirror: 'proposal_mirror',
-    intent_queue: 'intent_queue',
-    researcher_run_state_mirror: 'researcher_run_state_mirror',
-    researcher_operator_intents: 'researcher_operator_intents',
-};
+export const RETIRED_MONGO_MAILBOX_ERROR =
+    'legacy_mongo_mailbox_retired_use_cstar_kernel_hall_surfaces';
 
-function envValue(name: string, fallback = ''): string {
-    return process.env[name] || fallback;
-}
-
-function collectionNames() {
-    return {
-        proposal_mirror: envValue('CSTAR_MONGO_MIRROR_COLLECTION', DEFAULT_COLLECTIONS.proposal_mirror),
-        intent_queue: envValue('CSTAR_MONGO_INTENT_COLLECTION', DEFAULT_COLLECTIONS.intent_queue),
-        researcher_run_state_mirror: envValue('CSTAR_MONGO_RESEARCHER_RUN_STATE_COLLECTION', DEFAULT_COLLECTIONS.researcher_run_state_mirror),
-        researcher_operator_intents: envValue('CSTAR_MONGO_RESEARCHER_OPERATOR_INTENT_COLLECTION', DEFAULT_COLLECTIONS.researcher_operator_intents),
-    };
-}
-
-async function getMongoDb() {
-    const uri = envValue('CSTAR_MONGO_URI');
-    if (!uri) {
-        throw new Error('CSTAR_MONGO_URI is not set; Mongo mailbox is disabled.');
-    }
-    let module: any;
-    try {
-        module = await import('mongodb');
-    } catch {
-        throw new Error('mongodb package is not installed in CStar; install it before enabling live Mongo mailbox calls.');
-    }
-    const client = new module.MongoClient(uri, { serverSelectionTimeoutMS: 8000 });
-    await client.connect();
-    return { client, db: client.db(envValue('CSTAR_MONGO_DB', 'cstar_console')) };
-}
-
+/**
+ * Fail-closed compatibility surface.
+ *
+ * Mongo was an unverified external mirror that read a secret URI from ambient
+ * process state. CStar lifecycle state and operator intent now stay on the
+ * kernel/Hall path; no compatibility action imports a driver or reaches a
+ * network.
+ */
 export async function handleMongoMailbox(args: MongoMailboxArgs = {}) {
-    const action = args.action ?? 'status';
-    const names = collectionNames();
-    const enabled = Boolean(envValue('CSTAR_MONGO_URI'));
-    const guardrail = mcpGuardrail(
-        enabled ? 'allow' : 'caution',
-        enabled ? 'continue' : 'verify',
-        enabled
-            ? 'Mongo mailbox is configured; calls remain limited to named mirror and intent collections.'
-            : 'Mongo mailbox is disabled because CSTAR_MONGO_URI is not set.',
-        [],
-        enabled ? [] : ['mongo_disabled'],
-    );
-
-    try {
-        if (action === 'status') {
-            return textResponse({
-                status: 'ok',
-                action,
-                enabled,
-                arbitrary_query_allowed: false,
-                direct_secret_output_allowed: false,
-                operator_intent_enqueue_enabled: false,
-                operator_intent_enqueue_blocker: DURABLE_OPERATOR_INTENT_BLOCKER,
-                db_name: envValue('CSTAR_MONGO_DB', 'cstar_console'),
-                collections: names,
-                guardrail,
-            });
-        }
-
-        if (action === 'mirror_counts') {
-            const { client, db } = await getMongoDb();
-            try {
-                const counts = Object.fromEntries(await Promise.all(
-                    Object.entries(names).map(async ([key, collection]) => [key, await db.collection(collection).countDocuments({})]),
-                ));
-                return textResponse({ status: 'ok', action, counts, collections: names, guardrail });
-            } finally {
-                await client.close();
-            }
-        }
-
-        if (action === 'enqueue_operator_intent') {
-            // The console host worker actively drains this queue and can apply
-            // proposal/GitHub/CStar lifecycle mutations. A caller-supplied
-            // string is therefore evidence, not operator authority. Keep the
-            // public enqueue path closed until producer and consumer both
-            // verify the same durable, request-bound grant with replay guards.
-            return textResponse({
-                status: 'blocked',
-                action,
-                intent_action: args.intent_action ?? null,
-                proposal_id: args.proposal_id ?? null,
-                attempted: false,
-                error: DURABLE_OPERATOR_INTENT_BLOCKER,
-                guardrail: mcpGuardrail(
-                    'block',
-                    'refuse',
-                    'Mongo operator-intent enqueue is runtime fail-closed until durable request-bound authority is verified by both CStar and the queue consumer.',
-                    [DURABLE_OPERATOR_INTENT_BLOCKER],
-                    ['operator_intent_authority', 'operator_intent_consumer_verification'],
-                ),
-                next_action: 'Use read-only mailbox status/counts. Do not insert directly into Mongo or bypass the consumer authority repair.',
-            }, true);
-        }
-
-        return textResponse({ error: `Unsupported Mongo mailbox action: ${action}` }, true);
-    } catch (error) {
-        return errorResponse(error);
-    }
+    return textResponse({
+        error: RETIRED_MONGO_MAILBOX_ERROR,
+        status: 'retired',
+        requested_action: args.action ?? 'status',
+        decommissioned: true,
+        actuated: false,
+        network_accessed: false,
+        secret_source_read: false,
+        replacement: 'cstar_pennyone_context and bounded cstar-kernel lifecycle tools',
+    }, true);
 }

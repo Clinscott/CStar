@@ -1,14 +1,17 @@
-const ROLE_ORDER = ['specifier', 'coder', 'cleaner', 'architect', 'hardener', 'qa'] as const;
+export const FORGE_ROLE_ORDER = [
+    'specifier', 'coder', 'cleaner', 'architect', 'hardener', 'qa',
+] as const;
 const DIGEST = /^[a-f0-9]{64}$/;
 const ZERO_DIGEST = '0'.repeat(64);
-const ROLE_PLAN_SHA256 = '61e9b28d65ad80495bce567307dc8e577a5335d6897a46591efdd54b76b62d52';
+export const FORGE_ROLE_PLAN_SHA256 =
+    '61e9b28d65ad80495bce567307dc8e577a5335d6897a46591efdd54b76b62d52';
 const RECEIPT_KEYS = [
     'input_handoff_sha256', 'input_tokens', 'output_handoff_sha256', 'output_tokens',
     'phase', 'role', 'specification_handoff_sha256',
 ].sort();
 
 export interface ForgeRoleReceiptEvidence {
-    role: typeof ROLE_ORDER[number];
+    role: typeof FORGE_ROLE_ORDER[number];
     phase: string;
     input_handoff_sha256: string;
     specification_handoff_sha256: string;
@@ -34,7 +37,7 @@ function boundedInteger(value: unknown, maximum: number): number | null {
 }
 
 function projectReceipts(value: unknown): ForgeRoleReceiptEvidence[] | null {
-    if (!Array.isArray(value) || value.length > ROLE_ORDER.length) return null;
+    if (!Array.isArray(value) || value.length > FORGE_ROLE_ORDER.length) return null;
     const projected: ForgeRoleReceiptEvidence[] = [];
     let previousOutput = ZERO_DIGEST;
     let specification = ZERO_DIGEST;
@@ -46,7 +49,8 @@ function projectReceipts(value: unknown): ForgeRoleReceiptEvidence[] | null {
         const inputTokens = boundedInteger(receipt.input_tokens, 1_000_000_000);
         const outputTokens = boundedInteger(receipt.output_tokens, 1_000_000_000);
         const output = receipt.output_handoff_sha256;
-        if (receipt.role !== ROLE_ORDER[index] || receipt.phase !== `${index + 1}/${ROLE_ORDER.length}`
+        if (receipt.role !== FORGE_ROLE_ORDER[index]
+            || receipt.phase !== `${index + 1}/${FORGE_ROLE_ORDER.length}`
             || receipt.input_handoff_sha256 !== previousOutput
             || typeof output !== 'string' || !DIGEST.test(output)
             || inputTokens === null || outputTokens === null) return null;
@@ -54,7 +58,7 @@ function projectReceipts(value: unknown): ForgeRoleReceiptEvidence[] | null {
         const expectedSpecification = index === 0 ? ZERO_DIGEST : specification;
         if (receipt.specification_handoff_sha256 !== expectedSpecification) return null;
         projected.push({
-            role: ROLE_ORDER[index], phase: receipt.phase as string,
+            role: FORGE_ROLE_ORDER[index], phase: receipt.phase as string,
             input_handoff_sha256: receipt.input_handoff_sha256 as string,
             specification_handoff_sha256: expectedSpecification,
             output_handoff_sha256: output, input_tokens: inputTokens, output_tokens: outputTokens,
@@ -69,10 +73,11 @@ export function projectForgeRoleEvidence(
 ): ForgeRoleEvidenceProjection {
     const topology = envelope?.forge_topology === 'bounded-six-role-manifest-v1'
         ? envelope.forge_topology : null;
-    const plan = envelope?.role_plan_sha256 === ROLE_PLAN_SHA256 ? ROLE_PLAN_SHA256 : null;
+    const plan = envelope?.role_plan_sha256 === FORGE_ROLE_PLAN_SHA256
+        ? FORGE_ROLE_PLAN_SHA256 : null;
     const receipts = projectReceipts(envelope?.role_receipts);
-    const started = boundedInteger(envelope?.provider_requests_started, ROLE_ORDER.length);
-    const completed = boundedInteger(envelope?.provider_requests_completed, ROLE_ORDER.length);
+    const started = boundedInteger(envelope?.provider_requests_started, FORGE_ROLE_ORDER.length);
+    const completed = boundedInteger(envelope?.provider_requests_completed, FORGE_ROLE_ORDER.length);
     const inputTokens = boundedInteger(envelope?.input_tokens, 6_000_000_000);
     const outputTokens = boundedInteger(envelope?.output_tokens, 6_000_000_000);
     const receiptInput = receipts?.reduce((total, item) => total + item.input_tokens, 0) ?? -1;

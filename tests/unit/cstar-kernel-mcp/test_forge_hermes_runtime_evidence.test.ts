@@ -18,6 +18,7 @@ import {
     forgeHermesRuntimeExpectationEquals,
     sealForgeHermesRuntimeExpectation,
 } from '../../../src/tools/cstar-kernel-mcp/tools/forge_hermes_runtime_contract.js';
+import { createForgeOAuthHorizon } from '../../../src/tools/cstar-kernel-mcp/tools/forge_hermes_oauth_contract.js';
 
 const roots: string[] = [];
 const originalHermes = process.env.HERMES_BIN;
@@ -44,54 +45,73 @@ function writePreflightOnlyHermes(root: string) {
         'const fs = await import("node:fs");',
         `const audit = ${JSON.stringify(audit)};`,
         'const args = process.argv.slice(2);',
-        'fs.appendFileSync(audit, JSON.stringify(args) + "\\n");',
+        'fs.appendFileSync(audit, JSON.stringify({args,horizon:{started:process.env.CSTAR_FORGE_OAUTH_HORIZON_STARTED_UNIX_MS,until:process.env.CSTAR_FORGE_OAUTH_REQUIRED_UNTIL_UNIX_MS,binding:process.env.CSTAR_FORGE_OAUTH_HORIZON_BINDING_SHA256}}) + "\\n");',
         'if (args.length === 1 && args[0] === "--version") process.stdout.write("Hermes synthetic 1.0\\n");',
         'else if (args.length === 1 && args[0] === "--help") process.stdout.write("--profile --provider --model\\n");',
         'else if (args.length === 2 && args[0] === "chat" && args[1] === "--help") process.stdout.write("--forge-query-stdin --quiet --toolsets --safe-mode --max-turns --source --provider --model\\n");',
-        'else if (args.length === 1 && args[0] === "--oauth-status") process.stdout.write(JSON.stringify({schema:"hermes.forge_minimax_oauth_status.v1",status:"ready",provider:"minimax-oauth",auth_mode:"oauth",profile:"cstar-hub",refresh_required:false,min_ttl_seconds:2100}));',
+        'else if (args.length === 1 && args[0] === "--oauth-status") process.stdout.write(JSON.stringify({schema:"hermes.forge_minimax_oauth_status.v2",status:"ready",provider:"minimax-oauth",auth_mode:"oauth",profile:"cstar-hub",refresh_required:false,horizon_seconds:2100,horizon_started_unix_ms:Number(process.env.CSTAR_FORGE_OAUTH_HORIZON_STARTED_UNIX_MS),required_until_unix_ms:Number(process.env.CSTAR_FORGE_OAUTH_REQUIRED_UNTIL_UNIX_MS),horizon_binding_sha256:process.env.CSTAR_FORGE_OAUTH_HORIZON_BINDING_SHA256}));',
         'else process.exit(91);',
     ].join('\n'));
     fs.chmodSync(executable, 0o700);
     return { executable, audit };
 }
 
-function writeSixRoleHermes(root: string, callbackPacket: string, failRole = '') {
+function writeSixRoleHermes(
+    root: string,
+    callbackPacket: string,
+    failRole = '',
+    outputPath = 'generated.ts',
+    requiredSentinel = '',
+) {
     const executable = path.join(root, 'six-role-hermes.mjs');
     fs.writeFileSync(executable, [
         `#!${process.execPath}`,
         `const failRole=${JSON.stringify(failRole)};`,
         `const callback=${JSON.stringify(callbackPacket)};`,
+        `const outputPath=${JSON.stringify(outputPath)};`,
+        `const requiredSentinel=${JSON.stringify(requiredSentinel)};`,
         'const args=process.argv.slice(2); const role=process.env.CSTAR_FORGE_ROLE;',
-        'if(!role){if(args.length===1&&args[0]==="--version")process.stdout.write("Hermes synthetic 1.0\\n");else if(args.length===1&&args[0]==="--help")process.stdout.write("--profile --provider --model\\n");else if(args.length===2&&args[0]==="chat"&&args[1]==="--help")process.stdout.write("--forge-query-stdin --quiet --toolsets --safe-mode --max-turns --source --provider --model\\n");else if(args.length===1&&args[0]==="--oauth-status")process.stdout.write(JSON.stringify({schema:"hermes.forge_minimax_oauth_status.v1",status:"ready",provider:"minimax-oauth",auth_mode:"oauth",profile:"cstar-hub",refresh_required:false,min_ttl_seconds:2100}));else process.exit(91);process.exit();}',
+        'if(!role){if(args.length===1&&args[0]==="--version")process.stdout.write("Hermes synthetic 1.0\\n");else if(args.length===1&&args[0]==="--help")process.stdout.write("--profile --provider --model\\n");else if(args.length===2&&args[0]==="chat"&&args[1]==="--help")process.stdout.write("--forge-query-stdin --quiet --toolsets --safe-mode --max-turns --source --provider --model\\n");else if(args.length===1&&args[0]==="--oauth-status")process.stdout.write(JSON.stringify({schema:"hermes.forge_minimax_oauth_status.v2",status:"ready",provider:"minimax-oauth",auth_mode:"oauth",profile:"cstar-hub",refresh_required:false,horizon_seconds:2100,horizon_started_unix_ms:Number(process.env.CSTAR_FORGE_OAUTH_HORIZON_STARTED_UNIX_MS),required_until_unix_ms:Number(process.env.CSTAR_FORGE_OAUTH_REQUIRED_UNTIL_UNIX_MS),horizon_binding_sha256:process.env.CSTAR_FORGE_OAUTH_HORIZON_BINDING_SHA256}));else process.exit(91);process.exit();}',
         'if(role===failRole)process.exit(23);',
-        'const payload=role==="specifier"?{specification:"Change only generated.ts and retain focused synthetic proof."}:{manifest:{status:"success",summary:"six-role CStar evidence",files:[{path:"generated.ts",content:"export const generated = true;\\n"}],artifacts:{},validation:{focused:"pass"},metrics:{},boundaries:{git_mutation:false},callback_packet:callback}};',
+        'if(role==="specifier"&&requiredSentinel){const fs=await import("node:fs");const query=fs.readFileSync(0,"utf8");if(!query.includes(requiredSentinel)||Buffer.byteLength(query,"utf8")<=72363)process.exit(92);}',
+        'const payload=role==="specifier"?{specification:`Change only ${outputPath} and retain focused synthetic proof.`}:{manifest:{status:"success",summary:"six-role CStar evidence",files:[{path:outputPath,content:"export const generated = true;\\n"}],artifacts:{},validation:{focused:"pass"},metrics:{},boundaries:{git_mutation:false},callback_packet:callback}};',
         'const handoff={schema:"cstar.forge_role_handoff.v1",plan_id:process.env.CSTAR_FORGE_ROLE_PLAN_ID,plan_sha256:process.env.CSTAR_FORGE_ROLE_PLAN_SHA256,role,status:"pass",previous_handoff_sha256:role==="specifier"?null:process.env.CSTAR_FORGE_INPUT_HANDOFF_SHA256,summary:`${role} complete`,payload};',
         'const execution_identity={forge_request_receipt_id:process.env.CSTAR_FORGE_REQUEST_RECEIPT_ID,forge_execute_receipt_id:process.env.CSTAR_FORGE_EXECUTE_RECEIPT_ID,decision_id:process.env.CSTAR_FORGE_EXECUTE_DECISION_ID,adapter_ref:process.env.CSTAR_FORGE_EXECUTE_ADAPTER_REF};',
-        'const packet={schema:"hermes.cstar_forge_provider_response.v1",execution_identity,runtime_content_sha256:process.env.CSTAR_FORGE_RUNTIME_CONTENT_SHA256,forge_role:role,forge_phase:process.env.CSTAR_FORGE_PHASE,role_plan_id:process.env.CSTAR_FORGE_ROLE_PLAN_ID,role_plan_sha256:process.env.CSTAR_FORGE_ROLE_PLAN_SHA256,input_handoff_sha256:process.env.CSTAR_FORGE_INPUT_HANDOFF_SHA256,specification_handoff_sha256:process.env.CSTAR_FORGE_SPECIFICATION_HANDOFF_SHA256,auth_provider:"minimax-oauth",auth_mode:"oauth",provider_model:"MiniMax-M3",usage:{input_tokens:10,output_tokens:20},text:JSON.stringify(handoff)};process.stdout.write(JSON.stringify(packet));',
+        'const packet={schema:"hermes.cstar_forge_provider_response.v1",execution_identity,runtime_content_sha256:process.env.CSTAR_FORGE_RUNTIME_CONTENT_SHA256,forge_role:role,forge_phase:process.env.CSTAR_FORGE_PHASE,role_plan_id:process.env.CSTAR_FORGE_ROLE_PLAN_ID,role_plan_sha256:process.env.CSTAR_FORGE_ROLE_PLAN_SHA256,input_handoff_sha256:process.env.CSTAR_FORGE_INPUT_HANDOFF_SHA256,specification_handoff_sha256:process.env.CSTAR_FORGE_SPECIFICATION_HANDOFF_SHA256,oauth_horizon_binding_sha256:process.env.CSTAR_FORGE_OAUTH_HORIZON_BINDING_SHA256,auth_provider:"minimax-oauth",auth_mode:"oauth",provider_model:"MiniMax-M3",usage:{input_tokens:10,output_tokens:20},text:JSON.stringify(handoff)};process.stdout.write(JSON.stringify(packet));',
     ].join('\n'));
     fs.chmodSync(executable, 0o700);
     return executable;
 }
 
-function auditedProbes(audit: string): string[][] {
+function auditedProbes(audit: string): any[] {
     return fs.readFileSync(audit, 'utf-8').trim().split('\n').map(JSON.parse);
 }
 
-function assertExpectedPreflightProbes(audit: string): void {
-    assert.deepEqual(auditedProbes(audit), [
+function assertExpectedPreflightProbes(audit: string, copies = 1): void {
+    const probes = auditedProbes(audit);
+    const onePass = [
         ['--version'],
         ['--help'],
         ['chat', '--help'],
         ['--oauth-status'],
-    ]);
+    ];
+    assert.deepEqual(probes.map((entry) => entry.args),
+        Array.from({ length: copies }, () => onePass).flat());
+    const oauth = probes.filter((entry) => entry.args[0] === '--oauth-status');
+    assert.equal(oauth.length, copies);
+    assert.equal(new Set(oauth.map((entry) => JSON.stringify(entry.horizon))).size, 1);
+    assert.match(oauth[0].horizon.binding, /^[a-f0-9]{64}$/);
+    assert.equal(Number(oauth[0].horizon.until) - Number(oauth[0].horizon.started), 2_100_000);
 }
 
 const PREFLIGHT_KEYS = [
     'auth_mode', 'auth_provider', 'bootstrap_mode', 'checks', 'dependency_mode', 'executable_sha256',
-    'live_source_collection', 'live_spend', 'live_spend_unknown', 'locator_path',
-    'oauth_min_ttl_seconds', 'oauth_profile', 'oauth_refresh_required', 'oauth_status',
-    'python_sha256', 'runtime_content_sha256', 'runtime_instance_sha256',
-    'runtime_root', 'schema', 'source_bytes', 'source_file_count', 'status',
+    'credential_profile_owner', 'live_source_collection', 'live_spend', 'live_spend_unknown',
+    'locator_path', 'oauth_horizon_binding_sha256', 'oauth_horizon_seconds',
+    'oauth_horizon_started_unix_ms', 'oauth_profile', 'oauth_refresh_required',
+    'oauth_required_until_unix_ms', 'oauth_status', 'python_sha256',
+    'runtime_content_sha256', 'runtime_instance_sha256', 'runtime_manifest_sha256',
+    'runtime_owner', 'runtime_root', 'runtime_schema', 'schema', 'source_bytes', 'source_file_count', 'status',
     'system_python_path', 'version_sha256',
 ].sort();
 
@@ -118,7 +138,7 @@ function assertTerminalRuntimeEvidence(parsed: any, expectedTraceStatus: string)
     assert.deepEqual(trace.hermes_preflight, preflight);
     assert.deepEqual(result.envelope.hermes_preflight, preflight);
     assert.deepEqual(Object.keys(preflight).sort(), PREFLIGHT_KEYS);
-    assert.equal(preflight.schema, 'cstar.forge_hermes_preflight.v1');
+    assert.equal(preflight.schema, 'cstar.forge_hermes_preflight.v2');
     assert.equal(preflight.status, 'ok');
     assert.equal(preflight.live_spend, false);
     assert.equal(preflight.live_spend_unknown, false);
@@ -128,7 +148,13 @@ function assertTerminalRuntimeEvidence(parsed: any, expectedTraceStatus: string)
     assert.equal(preflight.oauth_profile, 'cstar-hub');
     assert.equal(preflight.oauth_status, 'ready');
     assert.equal(preflight.oauth_refresh_required, false);
-    assert.equal(preflight.oauth_min_ttl_seconds, 2100);
+    assert.equal(preflight.oauth_horizon_seconds, 2100);
+    assert.equal(preflight.oauth_required_until_unix_ms
+        - preflight.oauth_horizon_started_unix_ms, 2_100_000);
+    assert.match(preflight.oauth_horizon_binding_sha256, /^[a-f0-9]{64}$/);
+    assert.equal(preflight.runtime_schema, 'synthetic_test_executable_v1');
+    assert.equal(preflight.runtime_owner, 'synthetic_test');
+    assert.equal(preflight.credential_profile_owner, 'synthetic_test');
     assert.deepEqual(preflight.checks, {
         version: 'pass', help: 'pass', chat_help: 'pass', required_flags: 'pass',
     });
@@ -136,7 +162,7 @@ function assertTerminalRuntimeEvidence(parsed: any, expectedTraceStatus: string)
     assert.equal(result.hermes_runtime_content_sha256,
         preflight.runtime_content_sha256);
     assert.doesNotMatch(JSON.stringify(preflight),
-        /credential|api[_-]?key|environment|stdout|stderr/i);
+        /access_token|api[_-]?key|auth_path|environment|stdout|stderr/i);
 }
 
 async function invokeSyntheticTerminal(manifest: Record<string, unknown>) {
@@ -186,6 +212,34 @@ async function invokeSixRoleTerminal(failRole = '') {
     return { result, parsed: JSON.parse(result.content[0].text), requiredOutput };
 }
 
+async function invokeLargeMaterialTerminal() {
+    const root = makeRoot('forge-runtime-large-material-');
+    const project = path.join(root, 'project');
+    const home = path.join(project, 'home');
+    fs.mkdirSync(path.join(home, '.hermes/profiles/cstar-hub'), { recursive: true, mode: 0o700 });
+    const requiredOutput = path.join(project, 'large-target.ts');
+    const sentinel = 'CSTAR_72363_BYTE_EXISTING_TARGET';
+    const prefix = `${sentinel}\n`;
+    fs.writeFileSync(requiredOutput, prefix + 'x'.repeat(72_363 - Buffer.byteLength(prefix)));
+    assert.equal(fs.statSync(requiredOutput).size, 72_363);
+    process.env.HOME = home;
+    process.env.HERMES_BIN = writeSixRoleHermes(
+        project, 'LARGE_MATERIAL_PACKET', '', path.basename(requiredOutput), sentinel,
+    );
+    process.env.CSTAR_FORGE_EXECUTION_ARTIFACT_ROOT = makeRoot('forge-runtime-large-artifacts-');
+    delete process.env.CSTAR_FORGE_RUNTIME_TEST_BYPASS;
+    delete process.env.CSTAR_FORGE_WORKER_MODEL_RESPONSE;
+    const result = await invokeForgeAdapterForTest(validForgeExecuteRequest({
+        objective: 'Build one bounded large-material worker fixture',
+        target_paths: [requiredOutput], required_output_paths: [requiredOutput],
+        requested_actions: ['project_files'],
+        artifact_expectations: ['existing 72,363-byte target accepted by the worker'],
+        execution_adapter_ref: 'cstar-forge-hermes-minimax-worker-adapter',
+        callback_contract: { expected_packet: 'LARGE_MATERIAL_PACKET', callback_required: true },
+    }));
+    return { result, parsed: JSON.parse(result.content[0].text), requiredOutput };
+}
+
 afterEach(() => {
     restoreEnv('HERMES_BIN', originalHermes);
     restoreEnv('HOME', originalHome);
@@ -197,12 +251,15 @@ afterEach(() => {
 describe('CStar Forge Hermes runtime evidence', () => {
     it('compares a persisted runtime expectation independent of object key order', () => {
         const expectation = {
-            schema: 'cstar.forge_hermes_runtime_expectation.v1' as const,
+            schema: 'cstar.forge_hermes_runtime_expectation.v2' as const,
             locator_path: '/tmp/hermes', executable_sha256: '1'.repeat(64),
-            runtime_content_sha256: '2'.repeat(64), python_sha256: '3'.repeat(64),
+            runtime_content_sha256: '2'.repeat(64), runtime_manifest_sha256: '4'.repeat(64),
+            runtime_schema: 'cstar.forge_private_runtime_manifest.v2' as const,
+            runtime_owner: 'cstar' as const, credential_profile_owner: 'hermes' as const,
+            python_sha256: '3'.repeat(64),
             source_file_count: 7, source_bytes: 4096,
-            bootstrap_mode: 'python_system_stdlib_snapshot_v1' as const,
-            dependency_mode: 'stdlib_only_no_site_packages_v1' as const,
+            bootstrap_mode: 'cstar_owned_python_system_stdlib_snapshot_v2' as const,
+            dependency_mode: 'stdlib_only_no_site_packages_v2' as const,
             system_python_path: '/usr/bin/python3', runtime_root: '/tmp/runtime',
         };
         const persisted = JSON.parse(JSON.stringify(expectation, Object.keys(expectation).sort()));
@@ -233,14 +290,20 @@ describe('CStar Forge Hermes runtime evidence', () => {
             assert.ok(adapter);
             const runtime = sealForgeAdapterRuntime(adapter);
             const expected = await sealForgeHermesRuntimeExpectation(runtime);
+            const args = validForgeExecuteRequest({
+                objective: 'Prove a bounded synthetic preflight without spend',
+                target_paths: [target], required_output_paths: [target],
+                requested_actions: ['project_files'],
+                execution_adapter_ref: 'cstar-forge-hermes-minimax-worker-adapter',
+            });
+            const oauthHorizon = createForgeOAuthHorizon(
+                args, 'decision-synthetic-preflight', 'forge-execute-synthetic-preflight',
+                adapter, expected,
+            );
             prepared = await prepareForgeHermesMinimaxAdapterInvocation(
-                validForgeExecuteRequest({
-                    objective: 'Prove a bounded synthetic preflight without spend',
-                    target_paths: [target], required_output_paths: [target],
-                    execution_adapter_ref: 'cstar-forge-hermes-minimax-worker-adapter',
-                }),
+                args,
                 'decision-synthetic-preflight', 'forge-execute-synthetic-preflight',
-                root, adapter, runtime, expected,
+                root, adapter, runtime, expected, null, oauthHorizon,
             );
             assert.equal(prepared.hermesPreflight?.locator_path, expected.locator_path);
             assert.equal(prepared.hermesPreflight?.runtime_content_sha256,
@@ -271,6 +334,15 @@ describe('CStar Forge Hermes runtime evidence', () => {
         assert.ok(adapter);
         const runtime = sealForgeAdapterRuntime(adapter);
         const expected = await sealForgeHermesRuntimeExpectation(runtime);
+        const args = validForgeExecuteRequest({
+            objective: 'Build one bounded drift fixture',
+            target_paths: [target], required_output_paths: [target],
+            requested_actions: ['project_files'],
+            execution_adapter_ref: 'cstar-forge-hermes-minimax-worker-adapter',
+        });
+        const oauthHorizon = createForgeOAuthHorizon(
+            args, 'decision-runtime-drift', 'forge-execute-runtime-drift', adapter, expected,
+        );
         fs.appendFileSync(fake.executable, '\n// request-to-execute drift\n');
 
         let prepared: Awaited<ReturnType<
@@ -279,15 +351,11 @@ describe('CStar Forge Hermes runtime evidence', () => {
         try {
             await assert.rejects(async () => {
                 prepared = await prepareForgeHermesMinimaxAdapterInvocation(
-                    validForgeExecuteRequest({
-                        objective: 'Build one bounded drift fixture',
-                        target_paths: [target], required_output_paths: [target],
-                        execution_adapter_ref: 'cstar-forge-hermes-minimax-worker-adapter',
-                    }),
+                    args,
                     'decision-runtime-drift', 'forge-execute-runtime-drift',
-                    path.resolve('.'), adapter, runtime, expected,
+                    path.resolve('.'), adapter, runtime, expected, null, oauthHorizon,
                 );
-            }, /forge_hermes_request_runtime_drift:executable_sha256/);
+            }, /forge_hermes_preflight_invalid/);
             assertExpectedPreflightProbes(fake.audit);
             assert.equal(fs.readFileSync(target, 'utf-8'), 'export const before = true;\n');
         } finally {
@@ -307,7 +375,7 @@ describe('CStar Forge Hermes runtime evidence', () => {
         assert.equal(fs.readFileSync(run.requiredOutput, 'utf-8'),
             'export const generated = true;\n');
         assertTerminalRuntimeEvidence(run.parsed, 'ok');
-        assertExpectedPreflightProbes(run.fake.audit);
+        assertExpectedPreflightProbes(run.fake.audit, 2);
     });
 
     it('retains complete redacted Hermes preflight in the failure terminal trace', async () => {
@@ -321,7 +389,7 @@ describe('CStar Forge Hermes runtime evidence', () => {
         assert.equal(run.parsed.status, 'adapter_degraded');
         assert.equal(fs.existsSync(run.requiredOutput), false);
         assertTerminalRuntimeEvidence(run.parsed, 'degraded');
-        assertExpectedPreflightProbes(run.fake.audit);
+        assertExpectedPreflightProbes(run.fake.audit, 2);
     });
 
     it('retains exact ordered role receipts and aggregate usage through CStar delivery', async () => {
@@ -341,6 +409,20 @@ describe('CStar Forge Hermes runtime evidence', () => {
         const tracePath = envelope.execution_trace_artifact.path;
         const trace = JSON.parse(fs.readFileSync(tracePath, 'utf-8'));
         assert.deepEqual(trace.envelope.role_receipts, envelope.role_receipts);
+        assert.equal(fs.readFileSync(run.requiredOutput, 'utf-8'),
+            'export const generated = true;\n');
+    });
+
+    it('accepts an existing 72,363-byte target through the real worker and synthetic Hermes', async () => {
+        const run = await invokeLargeMaterialTerminal();
+        assert.equal(process.env.CSTAR_FORGE_RUNTIME_TEST_BYPASS, undefined);
+        assert.equal(process.env.CSTAR_FORGE_WORKER_MODEL_RESPONSE, undefined);
+        assert.equal(run.result.isError, undefined, JSON.stringify(run.parsed));
+        assert.equal(run.parsed.status, 'executed');
+        const envelope = run.parsed.forge_execution.adapter_result.envelope;
+        assert.equal(envelope.role_evidence_valid, true);
+        assert.equal(envelope.provider_requests_started, 6);
+        assert.equal(envelope.provider_requests_completed, 6);
         assert.equal(fs.readFileSync(run.requiredOutput, 'utf-8'),
             'export const generated = true;\n');
     });

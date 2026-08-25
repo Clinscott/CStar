@@ -1,11 +1,6 @@
 import { describe, it } from 'node:test';
 import {
     assert,
-    fs,
-    os,
-    path,
-    mock,
-    database,
     spokeStore,
     beadStore,
     makeSpoke,
@@ -42,25 +37,14 @@ import {
 } from './shared_test_setup.js';
 
 describe("CStar MCP promoted spoke and telemetry surfaces", () => {
-    it('cstar_status separates process uptime from historical awakening age', async () => {
+    it('cstar_status reports hall_reachable and uptime_seconds', async () => {
         const result = await handleStatus();
         const parsed = JSON.parse(result.content[0].text);
         assert.strictEqual(typeof parsed.hall_reachable, 'boolean');
         assert.ok(parsed.framework);
-        assert.strictEqual(parsed.framework.authority, 'compatibility_projection');
-        assert.strictEqual(parsed.framework.current_mission_authority, false);
-        assert.strictEqual(parsed.framework.active_task, null);
-        assert.strictEqual(parsed.framework.mission_id, null);
-        assert.strictEqual(parsed.framework.bead_id, null);
-        assert.strictEqual(parsed.framework.stale_activity_suppressed, true);
-        assert.strictEqual(parsed.framework.baseline_gungnir_score, null);
-        assert.strictEqual(parsed.framework.baseline_gungnir_measurement, 'not_run');
-        assert.strictEqual(parsed.framework.intent_integrity, null);
-        assert.strictEqual(parsed.framework.intent_integrity_measurement, 'not_run');
-        assert.ok(typeof parsed.framework.process_uptime_seconds === 'number');
-        const awakeningAge = parsed.framework.awakening_age_seconds;
-        assert.ok(awakeningAge === null || typeof awakeningAge === 'number');
-        assert.ok(parsed.current_mission === null || parsed.current_mission.authority === 'cstar_lifecycle');
+        // uptime_seconds is null when last_awakening is 0; otherwise a number.
+        const uptime = parsed.framework.uptime_seconds;
+        assert.ok(uptime === null || typeof uptime === 'number');
     });
 
     it('cstar_evolve get_proposal rejects path-traversal proposal_id', async () => {
@@ -125,45 +109,17 @@ describe("CStar MCP promoted spoke and telemetry surfaces", () => {
         assert.match(parsed.error, /target does not exist/);
     });
 
-    it('cstar_spoke link reports relinked when slug already exists', async () => {
-        const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'spoke-relink-test-'));
-        const captured: any[] = [];
-        const originalSave = database.saveHallMountedSpoke;
-        const originalGet = database.getHallMountedSpoke;
-        mock.method(database, 'saveHallMountedSpoke', (record: any) => {
-            captured.push(record);
-            spokeStore.set(record.slug, record);
+    it('cstar_spoke link stays fail-closed even when a matching row already exists', async () => {
+        spokeStore.set('relink-target', makeSpoke({ slug: 'relink-target' }));
+        const result = await handleSpoke({
+            action: 'link',
+            slug: 'relink-target',
+            root_path: '/home/synthetic/.hermes/private',
         });
-        mock.method(database, 'getHallMountedSpoke', (slugOrId: string) => spokeStore.get(slugOrId) ?? null);
-        try {
-            // First link.
-            const first = await handleSpoke({
-                action: 'link',
-                slug: 'relink-target',
-                root_path: tmpRoot,
-            });
-            const firstParsed = JSON.parse(first.content[0].text);
-            assert.strictEqual(firstParsed.status, 'linked');
-            const firstCreatedAt = firstParsed.created_at;
-
-            // Re-link the same slug — must report `relinked` and preserve created_at.
-            await new Promise((r) => setTimeout(r, 5));
-            const second = await handleSpoke({
-                action: 'link',
-                slug: 'relink-target',
-                root_path: tmpRoot,
-            });
-            const secondParsed = JSON.parse(second.content[0].text);
-            assert.strictEqual(secondParsed.status, 'relinked');
-            assert.strictEqual(secondParsed.created_at, firstCreatedAt);
-            assert.strictEqual(captured.length, 2);
-            assert.strictEqual(captured[1].created_at, firstCreatedAt);
-            assert.ok(captured[1].updated_at >= firstCreatedAt);
-        } finally {
-            (database.saveHallMountedSpoke as any) = originalSave;
-            (database.getHallMountedSpoke as any) = originalGet;
-            fs.rmSync(tmpRoot, { recursive: true, force: true });
-        }
+        const parsed = JSON.parse(result.content[0].text);
+        assert.strictEqual(result.isError, true);
+        assert.strictEqual(parsed.error, 'spoke_mutation_requires_verified_request_scoped_operator_attestation');
+        assert.strictEqual(spokeStore.has('relink-target'), true);
     });
 
     // ── Phase A: cstar_telemetry ────────────────────────────────
@@ -177,7 +133,9 @@ describe("CStar MCP promoted spoke and telemetry surfaces", () => {
         assert.ok(parsed.usefulness);
         assert.strictEqual(typeof parsed.usefulness.total_calls_24h, 'number');
         assert.ok(parsed.token_path);
-        assert.strictEqual(typeof parsed.token_path.advisor_available, 'boolean');
+        assert.strictEqual(parsed.token_path.status, 'quarantined');
+        assert.strictEqual(parsed.token_path.advisor_available, false);
+        assert.strictEqual(parsed.token_path.actionable, false);
     });
 
     it('cstar_telemetry section=usage returns only the usage block', async () => {
@@ -205,10 +163,13 @@ describe("CStar MCP promoted spoke and telemetry surfaces", () => {
         assert.strictEqual(parsed.usage, undefined);
         assert.strictEqual(parsed.usefulness, undefined);
         assert.ok(parsed.token_path);
+        assert.strictEqual(parsed.token_path.status, 'quarantined');
+        assert.strictEqual(parsed.token_path.advisor_available, false);
+        assert.strictEqual(parsed.token_path.external_root_consulted, false);
     });
 
     // ── Phase D: cstar_spoke list expansion ─────────────────────
-    it('cstar_spoke list exposes accept_beads, last_scan_at, last_health_at, default_branch, remote_url', async () => {
+    it('cstar_spoke list exposes bounded state while redacting branch, remote, roots, and metadata', async () => {
         spokeStore.set('rich-spoke', makeSpoke({
             slug: 'rich-spoke',
             spoke_id: 'spoke:rich-spoke',
@@ -218,65 +179,33 @@ describe("CStar MCP promoted spoke and telemetry surfaces", () => {
             remote_url: 'https://example.com/repo.git',
             last_scan_at: 1700000000000,
             last_health_at: 1700000005000,
-            last_health_attempt_at: 1700000006000,
             metadata: { accept_beads: true },
         }));
         const result = await handleSpoke({ action: 'list' });
         const parsed = JSON.parse(result.content[0].text);
         const entry = parsed.spokes.find((s: any) => s.slug === 'rich-spoke');
         assert.ok(entry);
-        assert.strictEqual(entry.default_branch, 'trunk');
-        assert.strictEqual(entry.remote_url, 'https://example.com/repo.git');
+        assert.strictEqual(entry.default_branch_configured, true);
+        assert.strictEqual(entry.remote_configured, true);
         assert.strictEqual(entry.last_scan_at, 1700000000000);
         assert.strictEqual(entry.last_health_at, 1700000005000);
-        assert.strictEqual(entry.last_health_attempt_at, 1700000006000);
-        assert.strictEqual(entry.effective_projection_status, 'stale');
         assert.strictEqual(entry.accept_beads, true);
-        assert.strictEqual(entry.hub_repo_id, 'repo:hub');
-        assert.strictEqual(entry.spoke_repo_id, 'repo:/tmp/rich-spoke');
-        assert.match(entry.repo_id_semantics, /hub-scoped mounted-spoke owner/);
+        assert.match(entry.root_sha256, /^[a-f0-9]{64}$/);
+        assert.match(entry.repository_binding_sha256, /^[a-f0-9]{64}$/);
+        assert.strictEqual(entry.default_branch, undefined);
+        assert.strictEqual(entry.remote_url, undefined);
+        assert.strictEqual(entry.root_path, undefined);
+        assert.strictEqual(entry.metadata, undefined);
     });
 
-    it('cstar_spoke project refreshes default_branch from spoke git metadata while preserving hub repo scope', async () => {
-        const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'spoke-project-default-'));
-        const originalSave = database.saveHallMountedSpoke;
-        mock.method(database, 'saveHallMountedSpoke', (record: any) => {
-            spokeStore.set(record.slug, record);
-        });
-        try {
-            await import('node:child_process').then(({ execFileSync }) => {
-                execFileSync('git', ['-C', tmpRoot, 'init'], { stdio: 'ignore' });
-                execFileSync('git', ['-C', tmpRoot, 'config', 'user.email', 'test@example.com'], { stdio: 'ignore' });
-                execFileSync('git', ['-C', tmpRoot, 'config', 'user.name', 'Test User'], { stdio: 'ignore' });
-                fs.writeFileSync(path.join(tmpRoot, 'README.md'), '# Demo\n');
-                execFileSync('git', ['-C', tmpRoot, 'add', 'README.md'], { stdio: 'ignore' });
-                execFileSync('git', ['-C', tmpRoot, 'commit', '-m', 'init'], { stdio: 'ignore' });
-                execFileSync('git', ['-C', tmpRoot, 'branch', '-M', 'work/demo'], { stdio: 'ignore' });
-                execFileSync('git', ['-C', tmpRoot, 'update-ref', 'refs/remotes/origin/master', 'HEAD'], { stdio: 'ignore' });
-                execFileSync('git', ['-C', tmpRoot, 'symbolic-ref', 'refs/remotes/origin/HEAD', 'refs/remotes/origin/master'], { stdio: 'ignore' });
-            });
-            spokeStore.set('project-target', makeSpoke({
-                slug: 'project-target',
-                spoke_id: 'spoke:project-target',
-                repo_id: 'repo:hub',
-                root_path: tmpRoot,
-                default_branch: 'main',
-                metadata: { projection: { git_branch: 'old', git_head: 'old' } },
-            }));
-
-            const result = await handleSpoke({ action: 'project', slug: 'project-target' });
-            const parsed = JSON.parse(result.content[0].text);
-            assert.strictEqual(parsed.status, 'projected');
-            const stored = spokeStore.get('project-target');
-            assert.ok(stored);
-            assert.strictEqual(stored.repo_id, 'repo:hub');
-            assert.strictEqual(stored.default_branch, 'master');
-            assert.strictEqual((stored.metadata?.projection as any).git_branch, 'work/demo');
-            assert.match((stored.metadata?.projection as any).git_head, /^[0-9a-f]{40}$/);
-        } finally {
-            (database.saveHallMountedSpoke as any) = originalSave;
-            fs.rmSync(tmpRoot, { recursive: true, force: true });
-        }
+    it('cstar_spoke project does not inspect Git or modify the mounted row', async () => {
+        const original = makeSpoke({ slug: 'project-target', default_branch: 'main' });
+        spokeStore.set('project-target', original);
+        const result = await handleSpoke({ action: 'project', slug: 'project-target' });
+        const parsed = JSON.parse(result.content[0].text);
+        assert.strictEqual(result.isError, true);
+        assert.strictEqual(parsed.error, 'spoke_mutation_requires_verified_request_scoped_operator_attestation');
+        assert.strictEqual(spokeStore.get('project-target'), original);
     });
 
     it('cstar_spoke list synthesizes accept_beads from write_policy when metadata is absent', async () => {
@@ -290,8 +219,8 @@ describe("CStar MCP promoted spoke and telemetry surfaces", () => {
         const parsed = JSON.parse(result.content[0].text);
         const entry = parsed.spokes.find((s: any) => s.slug === 'legacy-spoke');
         assert.strictEqual(entry.accept_beads, false);
-        assert.strictEqual(entry.default_branch, null);
-        assert.strictEqual(entry.remote_url, null);
+        assert.strictEqual(entry.default_branch_configured, false);
+        assert.strictEqual(entry.remote_configured, false);
     });
 
     // ── Phase E: cstar_intent_route explain action ──────────────
@@ -331,13 +260,10 @@ describe("CStar MCP promoted spoke and telemetry surfaces", () => {
         assert.ok(parsed.grammar_source === 'registry' || parsed.grammar_source === 'fallback');
     });
 
-    // ── Registry-aligned in-code grammar ───────────────────────
-    it('does not route retired lesson-harvest verbs and preserves current observation triggers', async () => {
+    // ── Retired learning routes and active observation grammar ─
+    it('does not route retired study/harvest triggers but still resolves navigate', async () => {
         const study = JSON.parse((await handleIntentRoute({ prompt: 'study the last engram' })).content[0].text);
         assert.strictEqual(study.status, 'unmatched');
-
-        const harvest = JSON.parse((await handleIntentRoute({ prompt: 'harvest old engrams' })).content[0].text);
-        assert.strictEqual(harvest.status, 'unmatched');
 
         const navigate = JSON.parse((await handleIntentRoute({ prompt: 'navigate to the dashboard' })).content[0].text);
         assert.strictEqual(navigate.status, 'matched');

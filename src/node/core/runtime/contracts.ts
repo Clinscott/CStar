@@ -7,7 +7,7 @@
 import type { ForgeCandidateResult, ForgeValidationRequest } from  '../../../types/forge-candidate.js';
 import type { GungnirMatrix } from  '../../../types/gungnir.js';
 import type { RavensCycleResult, RavensStageResult, RavensTargetIdentity } from  '../../../types/ravens-stage.js';
-import type { CouncilExpertProtocol } from '../../../core/council_experts.js';
+import type { CouncilExpertCandidate, CouncilExpertProtocol } from '../../../core/council_experts.js';
 
 export type WeaveStatus = 'SUCCESS' | 'FAILURE' | 'TRANSITIONAL';
 export type OperatorMode = 'cli' | 'tui' | 'automation' | 'subkernel';
@@ -15,6 +15,13 @@ export type TargetDomain = 'brain' | 'spoke' | 'estate' | 'external';
 export type CapabilityTier = 'PRIME' | 'SKILL' | 'WEAVE' | 'SPELL';
 export type SpellClassification = 'runtime-backed' | 'policy-only' | 'deprecated';
 export type OperationalContextPolicy = 'project' | 'silent';
+export type {
+    HostGovernorPolicy,
+    HostGovernorWeavePayload,
+    RavensAction,
+    RavensWeavePayload,
+    StartWeavePayload,
+} from './control_payloads.js';
 export type RuntimeAuguryDesignationSource =
     | 'explicit_augury_block'
     | 'dispatcher_synthesized'
@@ -48,6 +55,7 @@ export interface RuntimeAuguryContract {
     body?: string;
     canonical_intent?: string;
     council_expert?: CouncilExpertProtocol;
+    council_candidates?: CouncilExpertCandidate[];
 }
 
 /** @deprecated Use RuntimeAuguryContract. */
@@ -80,6 +88,7 @@ export interface RuntimeContext {
     /** @deprecated Use augury_designation_source. */
     trace_designation_source?: RuntimeAuguryDesignationSource | 'explicit_trace_block' | 'payload_trace_contract';
     council_expert?: CouncilExpertProtocol;
+    root_persona_directive?: string;
     env: Record<string, string | undefined>;
     timestamp: number;
 }
@@ -114,46 +123,6 @@ export interface RuntimeDispatchPort {
     dispatch<T>(invocation: WeaveInvocation<T> | import('../skills/types.js').SkillBead<T>): Promise<WeaveResult>;
 }
 
-export interface StartWeavePayload {
-    target?: string;
-    task: string;
-    ledger: string;
-    loki?: boolean;
-    debug?: boolean;
-    verbose?: boolean;
-}
-
-export interface HostGovernorWeavePayload {
-    task?: string;
-    ledger?: string;
-    auto_execute?: boolean;
-    auto_replan_blocked?: boolean;
-    max_parallel?: number;
-    max_promotions?: number;
-    dry_run?: boolean;
-    project_root?: string;
-    cwd?: string;
-    source?: 'cli' | 'runtime';
-    policy?: Partial<HostGovernorPolicy>;
-}
-
-export interface HostGovernorPolicy {
-    max_total_targets: number;
-    max_implementation_targets: number;
-    max_acceptance_items: number;
-    max_acceptance_item_length: number;
-    max_implementation_lines: number;
-    max_total_target_lines: number;
-}
-
-export type RavensAction = 'start' | 'stop' | 'status' | 'cycle' | 'sweep';
-
-export interface RavensWeavePayload {
-    action: RavensAction;
-    shadow_forge?: boolean;
-    spoke?: string;
-}
-
 export type PennyOneAction = 'scan' | 'view' | 'clean' | 'stats' | 'search' | 'import' | 'topology' | 'refresh_intents' | 'normalize' | 'report' | 'artifacts' | 'status';
 export type PennyOneArtifactKind = 'normalize' | 'report' | 'maintenance';
 
@@ -171,6 +140,11 @@ export interface PennyOneWeavePayload {
     port?: number;
     total_reset?: boolean;
     ghosts?: boolean;
+}
+
+export interface CalculusWeavePayload {
+    action: 'score' | 'audit';
+    file: string;
 }
 
 export interface DynamicCommandPayload {
@@ -447,6 +421,7 @@ export interface RestorationWeavePayload {
     max_beads?: number;
     project_root: string;
     cwd: string;
+    host_supervision?: boolean;
 }
 
 export interface EstateExpansionWeavePayload {
@@ -454,6 +429,7 @@ export interface EstateExpansionWeavePayload {
     slug?: string;
     project_root: string;
     cwd: string;
+    host_supervision?: boolean;
 }
 
 export interface VigilanceWeavePayload {
@@ -461,6 +437,7 @@ export interface VigilanceWeavePayload {
     aggressive?: boolean;
     project_root: string;
     cwd: string;
+    host_supervision?: boolean;
 }
 
 export interface EngraveWeavePayload {
@@ -498,6 +475,7 @@ export interface WardenWeavePayload {
     spoke?: string;
     scan_id?: string;
     source?: 'cli' | 'python_adapter' | 'runtime';
+    host_supervision?: boolean;
 }
 
 /**

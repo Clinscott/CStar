@@ -14,13 +14,15 @@ Intent Category: ...
 Intent: ...
 Selection: ...
 Mimir's Well: ...
-Advisory: true
-Actionable: false
+Gungnir Verdict: ...
 ```
 
-This is the only surface that may be called **Corvus Star Augury [Ω]**. Emit it
-only when route/material scope is ambiguous or the operator asks; it is not a
-per-turn ritual and grants no authority.
+Legacy input may contain a `Confidence:` line, but current emitters omit it.
+Numeric confidence becomes eligible only after an independently validated
+scorer records its formula, denominator, row evidence, and provenance through
+a sanctioned kernel surface.
+
+This is the only surface that may be called **Corvus Star Augury [Ω]**.
 
 Legacy compatibility: older inputs may still contain `// Corvus Star Trace [Ω]`. The parser may accept that header while the Estate migrates, but new content must emit `// Corvus Star Augury [Ω]`.
 

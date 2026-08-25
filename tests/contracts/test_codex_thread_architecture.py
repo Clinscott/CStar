@@ -10,66 +10,76 @@ def _text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def test_information_repository_doctrine_exists():
-    doctrine = _text(DOCTRINE)
-    feature = _text(FEATURE)
-
-    assert "CoS and Project Information-Repository Architecture" in doctrine
-    assert "Feature: CoS and project information-repository architecture" in feature
+def _normalized(path: Path) -> str:
+    return " ".join(_text(path).split())
 
 
-def test_cos_is_the_active_estate_coordinator():
-    doctrine = _text(DOCTRINE)
+def test_thread_architecture_doctrine_exists():
+    doctrine = _normalized(DOCTRINE)
+    feature = _normalized(FEATURE)
 
-    required = [
-        "CoS owns estate sequencing",
-        "routing builds to Forge and research to Researcher",
-        "returning red gates, spend/scope expansion, and authority conflicts to the",
-        "compact state-update packets to project information repositories",
-    ]
+    assert "Thread topology is part of the system architecture" in doctrine
+    assert "Feature: CoS and project-context thread architecture" in feature
 
-    for phrase in required:
-        assert phrase in doctrine
 
-def test_pmts_are_passive_information_repositories():
-    doctrine = _text(DOCTRINE)
+def test_cstar_researcher_forge_and_corvuseye_have_separate_roles():
+    doctrine = _normalized(DOCTRINE)
 
     required = [
-        "PMTs are passive project information repositories.",
-        "own execution, review, approval, routing, monitoring, or operator contact",
-        "The repository stores the packet. It does not answer with an authoritative",
-        "replace CStar lifecycle state",
+        "CStar is the axle rather than a PMT or worker spoke.",
+        "Researcher gathers evidence through authorized source lanes.",
+        "Corvus Forge builds implementation through the durable",
+        "CorvusEye is the independent evaluation and red-team spoke.",
     ]
 
     for phrase in required:
         assert phrase in doctrine
 
 
-def test_mm_is_explicitly_legacy():
-    doctrine = _text(DOCTRINE)
-
-    assert "MM is retired from active estate routing." in doctrine
-    assert "Historical MM threads and records are archival leads only." in doctrine
-    assert "CoS directly handles" in doctrine
-
-
-def test_forge_thread_fields_do_not_encode_pmt_authority():
-    doctrine = _text(DOCTRINE)
-
-    assert "state_update_thread_id" in doctrine
-    assert "owner_pmt_thread_id" in doctrine
-    assert "grants no ownership or review authority" in doctrine
-
-
-def test_lifecycle_and_operator_gates_remain_cstar_backed():
-    doctrine = _text(DOCTRINE)
+def test_cos_user_pmt_and_mm_authority_boundaries_are_explicit():
+    doctrine = _normalized(DOCTRINE)
 
     required = [
-        "CoS records or resumes the bounded CStar bead/decision.",
-        "Delivery artifacts remain evidence until independent validation is recorded.",
-        "Explicit operator authorization remains required for:",
-        "spend beyond the recorded request or any retry not already authorized",
-        "gives a PMT or legacy MM any authority",
+        "The User authorizes high-order direction and red-gated instructions.",
+        "CoS is the estate overseer and operator-facing decision surface.",
+        "PMTs are project-scoped information repositories only.",
+        "A PMT grants no ownership, execution, review, approval, routing, or monitoring",
+        "A missing or stale mapped PMT is a freshness gap, not an execution gate",
+        "When an in-scope project has a mapped PMT, CoS must read one bounded context packet.",
+        "Luna for routine retrieval, Terra for conflicting-context synthesis, and Sol for high-stakes",
+        "requested and actual identity separately; absent a reported identity, actual is `unreported`.",
+        "MM is legacy and has no active estate-routing, synthesis, ownership, or relay",
+    ]
+
+    for phrase in required:
+        assert phrase in doctrine
+
+
+def test_goal_lifecycle_and_red_gates_are_contractual():
+    doctrine = _normalized(DOCTRINE)
+
+    required = [
+        "CoS receives User intent and records the goal as a bounded CStar-tracked decision, proposal, or bead.",
+        "When waiting on a live worker or external state, CoS pauses rather than",
+        "A PMT read is never the live worker and never blocks execution.",
+        "PMT `STATE_UPDATE` after meaningful project work",
+        "Red gates require explicit CoS/User authorization before execution:",
+        "locked-holdout evaluation, hidden-label access, or tuning against sealed evaluation data;",
+        "authority-model or execution-boundary changes;",
+    ]
+
+    for phrase in required:
+        assert phrase in doctrine
+
+
+def test_stale_pmt_ownership_and_mm_routing_are_declared_violations():
+    doctrine = _normalized(DOCTRINE)
+
+    required = [
+        "grant a PMT ownership, execution, review, approval, routing, or monitoring",
+        "make mapped PMT availability an execution or completion gate;",
+        "restore MM as an active coordination or relay lane;",
+        "let a producer perform an independent review required for its own gate.",
     ]
 
     for phrase in required:

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo '{"code":"CSTAR_PUBLIC_HERMES_DAEMON_DECOMMISSIONED","ok":false,"message":"Public Hermes spoke daemons are decommissioned; use canonical CStar Forge or Researcher lanes."}' >&2
-exit 2
+printf '%s\n' 'legacy_hermes_daemon_retired_use_cstar_forge_or_researcher' >&2
+exit 1

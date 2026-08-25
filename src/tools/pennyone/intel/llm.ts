@@ -1,52 +1,49 @@
 import path from 'node:path';
 
+import type { IntelligenceRequest, IntelligenceResponse } from '../../../types/intelligence-contract.js';
 import type { FileData } from '../types.js';
+import { RETIRED_HOST_PROVIDER_DELEGATION_FAILURE } from '../../../core/host_delegation_transport.js';
 
-/**
- * PennyOne semantic intent is a deterministic local projection of analyzer
- * metadata. It never routes through Mimir, OneMind, a host session, a model,
- * or a per-file requester fallback.
- */
 export interface IntelProvider {
-    getIntent(data: FileData): Promise<{ intent: string; interaction: string }>;
-    getBatchIntent(items: FileData[]): Promise<Array<{ intent: string; interaction: string }>>;
+    getIntent(code: string, data: FileData): Promise<{ intent: string; interaction: string }>;
+    getBatchIntent(items: { code: string; data: FileData }[]): Promise<{ intent: string; interaction: string }[]>;
 }
 
 export const OFFLINE_INTENT_PLACEHOLDER = 'Intelligence generation offline. See sector lore for details.';
 
-function uniqueBounded(values: string[], limit: number): string[] {
-    return Array.from(new Set(values.map((value) => value.trim()).filter(Boolean)))
-        .sort((left, right) => left.localeCompare(right))
-        .slice(0, limit);
-}
+type IntelligenceRequester = (request: IntelligenceRequest) => Promise<IntelligenceResponse>;
 
-export class LocalIntentProvider implements IntelProvider {
-    public async getIntent(data: FileData): Promise<{ intent: string; interaction: string }> {
-        const fileName = path.basename(data.path);
-        const isDocumentation = data.path.endsWith('.md') || data.path.endsWith('.qmd');
-        const exports = uniqueBounded(data.exports, 8);
-        const imports = uniqueBounded(data.imports.map((entry) => entry.source), 5);
-        const role = isDocumentation ? 'documentation and operating guidance' : 'runtime or tooling logic';
-        const exportSummary = exports.length > 0
-            ? ` It exposes ${exports.join(', ')}.`
-            : ' It exposes no analyzer-detected public symbols.';
-        const dependencySummary = imports.length > 0
-            ? ` Its analyzer-detected dependencies include ${imports.join(', ')}.`
-            : ' It has no analyzer-detected import dependencies.';
+/**
+ * Deterministic compatibility provider. The former model callback is ignored and
+ * no provider, source file, process, Hall row, or StateRegistry entry is touched.
+ */
+export class SamplingProvider implements IntelProvider {
+    public constructor(
+        _requestIntelligence?: IntelligenceRequester,
+        _env: NodeJS.ProcessEnv = {},
+    ) {}
 
-        return {
-            intent: `${fileName} contains ${role} at ${data.path}.${exportSummary}${dependencySummary}`,
-            interaction: exports.length > 0
-                ? `Use the analyzer-detected exports from ${data.path}; inspect the file and its recorded dependencies before changing behavior.`
-                : `Treat ${data.path} as an internal implementation surface; inspect callers and recorded dependencies before changing behavior.`,
-        };
+    public async getIntent(
+        code: string,
+        data: FileData,
+    ): Promise<{ intent: string; interaction: string }> {
+        return (await this.getBatchIntent([{ code, data }]))[0];
     }
 
     public async getBatchIntent(
-        items: FileData[],
-    ): Promise<Array<{ intent: string; interaction: string }>> {
-        return Promise.all(items.map((item) => this.getIntent(item)));
+        items: { code: string; data: FileData }[],
+    ): Promise<{ intent: string; interaction: string }[]> {
+        return items.map(({ data }) => {
+            const fileName = path.basename(data.path);
+            const exports = data.exports.length > 0
+                ? ` Key exports: ${data.exports.join(', ')}.`
+                : '';
+            return {
+                intent: `The ${fileName} sector is indexed locally at ${data.path}.${exports}`,
+                interaction: RETIRED_HOST_PROVIDER_DELEGATION_FAILURE,
+            };
+        });
     }
 }
 
-export const defaultProvider: IntelProvider = new LocalIntentProvider();
+export const defaultProvider: IntelProvider = new SamplingProvider();

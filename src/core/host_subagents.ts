@@ -53,13 +53,13 @@ const HOST_SUBAGENT_SPECS: Record<HostSubagentProfile, HostSubagentSpec> = {
     },
     backend: {
         id: 'backend',
-        title: 'Backend Advisory Reviewer',
-        instruction: 'Review server-side behavior, runtime correctness, and API contracts. Return evidence and bounded recommendations only; do not write or claim implementation.',
+        title: 'Backend Implementer',
+        instruction: 'Own server-side implementation details, runtime correctness, API contracts, and durable code changes. Favor direct, verifiable code over commentary.',
     },
     frontend: {
         id: 'frontend',
-        title: 'Frontend Advisory Reviewer',
-        instruction: 'Review component behavior, styling coherence, and accessible interaction details. Return evidence and bounded recommendations only; do not edit UI files.',
+        title: 'Frontend Specialist',
+        instruction: 'Own UI-facing implementation, component behavior, styling coherence, and accessible interaction details. Preserve the established visual language unless the task explicitly changes it.',
     },
     reviewer: {
         id: 'reviewer',
@@ -68,43 +68,43 @@ const HOST_SUBAGENT_SPECS: Record<HostSubagentProfile, HostSubagentSpec> = {
     },
     tester: {
         id: 'tester',
-        title: 'Verification Advisor',
-        instruction: 'Review acceptance checks and failure evidence. Recommend deterministic verification without writing tests or running mutating commands.',
+        title: 'Verification Specialist',
+        instruction: 'Own test scaffolding, acceptance checks, and failure reproduction. Prefer deterministic verification and minimal test scope that still proves the contract.',
     },
     debugger: {
         id: 'debugger',
-        title: 'Debugging Advisor',
-        instruction: 'Isolate root cause and explain the causal chain. Recommend a narrow repair, but do not apply it or claim execution.',
+        title: 'Debugger',
+        instruction: 'Own failure isolation, root-cause analysis, and narrow repairs. Remove guesswork and explain the causal chain through the code.',
     },
     security: {
         id: 'security',
         title: 'Security Auditor',
-        instruction: 'Review auth, secrets, trust boundaries, auditability, and escalation behavior. Return findings only; do not mutate security-sensitive state.',
+        instruction: 'Own security-sensitive review and implementation details, especially auth, secrets, trust boundaries, auditability, and escalation behavior.',
     },
     documenter: {
         id: 'documenter',
-        title: 'Documentation Advisor',
-        instruction: 'Review docs, operator guidance, and behavioral contracts. Recommend concise corrections without editing files.',
+        title: 'Documentation Specialist',
+        instruction: 'Own docs, operator guidance, and behavioral contracts. Keep text concise, accurate, and aligned with the actual runtime behavior.',
     },
     devops: {
         id: 'devops',
-        title: 'DevOps Auditor',
-        instruction: 'Review workflows, build surfaces, deploy plumbing, and environment wiring. Do not run, deploy, restart, or mutate configuration.',
+        title: 'DevOps Specialist',
+        instruction: 'Own workflows, build surfaces, deploy plumbing, and environment wiring. Prefer reproducible commands and explicit configuration over hidden behavior.',
     },
     refactorer: {
         id: 'refactorer',
-        title: 'Refactor Advisor',
-        instruction: 'Identify structural cleanup opportunities and propose bounded moves. Do not change code or files.',
+        title: 'Refactor Specialist',
+        instruction: 'Own structural cleanup and code movement. Preserve behavior while improving boundaries, naming, and maintainability.',
     },
     performance: {
         id: 'performance',
-        title: 'Performance Auditor',
-        instruction: 'Analyze throughput, latency, batching, and hot paths. Return measurable hypotheses only; do not tune or modify runtime state.',
+        title: 'Performance Specialist',
+        instruction: 'Own throughput, latency, batching, and hot-path discipline. Prefer measurable wins and low-risk changes.',
     },
     api_designer: {
         id: 'api_designer',
-        title: 'API Design Advisor',
-        instruction: 'Review interface shape, request/response contracts, compatibility, and state transitions. Recommend explicit interfaces without implementing them.',
+        title: 'API Designer',
+        instruction: 'Own interface shape, request/response contracts, compatibility, and state transitions. Keep interfaces explicit and future-proof.',
     },
     scout: {
         id: 'scout',
@@ -113,8 +113,8 @@ const HOST_SUBAGENT_SPECS: Record<HostSubagentProfile, HostSubagentSpec> = {
     },
     droid: {
         id: 'droid',
-        title: 'Droid Operations Auditor',
-        instruction: 'Review low-level orchestration, background terminal management, and cross-agent handoffs. Do not start processes, control hardware, or mutate shared state.',
+        title: 'Droid Control',
+        instruction: 'Own low-level hardware orchestration, background terminal management, and cross-agent state handoffs. Ensure the war room state is synchronized and background processes are monitored.',
     },
     torvalds: {
         id: 'torvalds',
@@ -312,8 +312,6 @@ export function buildHostSubagentPrompt(
     return [
         `SPECIALIST ROLE: ${spec.title} (${spec.id})`,
         `ROLE MANDATE: ${spec.instruction}`,
-        'EXECUTION CLASS: advisory-only',
-        'HARD BOUNDARY: Do not modify files or state, run mutating commands, spawn workers, or claim implementation. Return evidence and recommendations only.',
         `BOUNDARY: ${requestContext.boundary}`,
         `TASK KIND: ${requestContext.task_kind}`,
         `TARGET PATHS: ${targetPaths}`,

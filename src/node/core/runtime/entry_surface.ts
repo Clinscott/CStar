@@ -1,7 +1,7 @@
-import fs from 'node:fs';
-import path from 'node:path';
+import { readBoundedJsonObject } from '../../../core/safe_local_file.js';
+import { getSkillRegistryEntries } from '../../../core/skill_registry.js';
 
-import { isPlainRecord, resolveSkillRegistryEntries } from '../../../core/skill_registry_contract.js';
+const CAPABILITY_REGISTRY_MAX_BYTES = 1024 * 1024;
 
 export type EntrySurface = 'cli' | 'host-only' | 'compatibility';
 
@@ -16,44 +16,25 @@ export interface SurfaceRegistryEntry {
     host_support?: Record<string, string>;
     execution?: {
         mode?: string;
+        adapter_id?: string;
+        ownership_model?: string;
         requires_terminal?: boolean;
         terminal_contract?: string;
     };
 }
 
+interface SurfaceRegistryManifest {
+    entries?: Record<string, SurfaceRegistryEntry>;
+    skills?: Record<string, SurfaceRegistryEntry>;
+}
+
 export function loadRegistryEntries(projectRoot: string): Record<string, SurfaceRegistryEntry> {
-    const candidates = [
-        path.join(projectRoot, '.agents', 'skill_registry.json'),
-        process.env.CSTAR_CONTROL_ROOT
-            ? path.join(process.env.CSTAR_CONTROL_ROOT, '.agents', 'skill_registry.json')
-            : null,
-    ].filter((candidate): candidate is string => Boolean(candidate));
-
-    for (const manifestPath of candidates) {
-        if (!fs.existsSync(manifestPath)) {
-            continue;
-        }
-
-        let manifest: unknown;
-        try {
-            manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) as unknown;
-        } catch {
-            continue;
-        }
-
-        const entries = resolveSkillRegistryEntries<SurfaceRegistryEntry>(manifest);
-        if (
-            isPlainRecord(manifest)
-            && (
-                Object.prototype.hasOwnProperty.call(manifest, 'entries')
-                || Object.prototype.hasOwnProperty.call(manifest, 'skills')
-            )
-        ) {
-            return entries;
-        }
-    }
-
-    return {};
+    const manifest = readBoundedJsonObject<SurfaceRegistryManifest>(
+        projectRoot,
+        '.agents/skill_registry.json',
+        CAPABILITY_REGISTRY_MAX_BYTES,
+    );
+    return getSkillRegistryEntries<SurfaceRegistryEntry>(manifest);
 }
 
 export function resolveEntrySurface(entry: SurfaceRegistryEntry, capabilityId: string): EntrySurface {
@@ -86,7 +67,9 @@ export function resolveEntrySurface(entry: SurfaceRegistryEntry, capabilityId: s
         return 'host-only';
     }
 
-    return 'cli';
+    // Underspecified legacy entries never inherit terminal authority. A CLI
+    // surface must be declared explicitly; compatibility remains fail-closed.
+    return 'compatibility';
 }
 
 export function requiresTerminalExecution(entry: SurfaceRegistryEntry): boolean {
@@ -112,13 +95,34 @@ export function resolveRegistryEntryForCommand(
         return { skillId: normalized, entry: entries[normalized] };
     }
 
+    const withoutWeavePrefix = normalized.startsWith('weave:')
+        ? normalized.slice('weave:'.length)
+        : normalized;
+    if (entries[withoutWeavePrefix]) {
+        return { skillId: withoutWeavePrefix, entry: entries[withoutWeavePrefix] };
+    }
+
     for (const [skillId, entry] of Object.entries(entries)) {
-        if (String(entry.runtime_trigger ?? '').trim().toLowerCase() === normalized) {
+        const runtimeTrigger = String(entry.runtime_trigger ?? '').trim().toLowerCase();
+        const adapterId = String(entry.execution?.adapter_id ?? '').trim().toLowerCase();
+        if (
+            runtimeTrigger === normalized
+            || runtimeTrigger === withoutWeavePrefix
+            || adapterId === normalized
+        ) {
             return { skillId, entry };
         }
     }
 
     return null;
+}
+
+export function resolveCapabilityEntrySurface(
+    projectRoot: string,
+    capabilityId: string,
+): EntrySurface | null {
+    const resolved = resolveRegistryEntryForCommand(loadRegistryEntries(projectRoot), capabilityId);
+    return resolved ? resolveEntrySurface(resolved.entry, resolved.skillId) : null;
 }
 
 export function summarizeCommandSurfaces(projectRoot: string): {

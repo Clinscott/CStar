@@ -71,13 +71,11 @@ function getImportMetaDirname(): string | undefined {
 
 function hasProjectMarker(currentDir: string): boolean {
     const packageJsonPath = path.join(currentDir, 'package.json');
-    const agentConfigPath = path.join(currentDir, '.agents', 'config.json');
-    const estateAgentConfigPath = path.join(currentDir, 'CStar', '.agents', 'config.json');
     const estateEntrypointPath = path.join(currentDir, 'CStar', 'cstar');
+    const estatePackagePath = path.join(currentDir, 'CStar', 'package.json');
     return fs.existsSync(packageJsonPath)
-        || fs.existsSync(agentConfigPath)
-        || fs.existsSync(estateAgentConfigPath)
-        || fs.existsSync(estateEntrypointPath);
+        || fs.existsSync(estateEntrypointPath)
+        || fs.existsSync(estatePackagePath);
 }
 
 function relativeBetween(from: string, to: string): string {
@@ -98,7 +96,27 @@ export class PathRegistry {
     private root: string;
 
     private constructor() {
-        this.root = this.findProjectRoot(process.env.CSTAR_PROJECT_ROOT || process.env.CSTAR_WORKSPACE_ROOT || process.env.CSTAR_LAUNCH_CWD);
+        this.root = process.env.CSTAR_KERNEL_MCP === '1'
+            ? this.resolveLiveControlRoot()
+            : this.findProjectRoot(
+                process.env.CSTAR_PROJECT_ROOT
+                || process.env.CSTAR_WORKSPACE_ROOT
+                || process.env.CSTAR_LAUNCH_CWD,
+            );
+    }
+
+    private resolveLiveControlRoot(): string {
+        const candidate = process.env.CSTAR_CONTROL_ROOT?.trim();
+        if (!candidate) throw new Error('kernel_control_root_missing');
+        if (!isAbsolutePath(candidate)) throw new Error('kernel_control_root_not_absolute');
+        const lexical = path.resolve(candidate);
+        const stat = fs.lstatSync(lexical, { throwIfNoEntry: false });
+        if (!stat) throw new Error('kernel_control_root_missing');
+        if (stat.isSymbolicLink()) throw new Error('kernel_control_root_symlink_forbidden');
+        if (!stat.isDirectory()) throw new Error('kernel_control_root_not_directory');
+        const canonical = fs.realpathSync(lexical);
+        if (canonical !== lexical) throw new Error('kernel_control_root_not_canonical');
+        return canonical.replace(/\\/g, '/');
     }
 
     /**
@@ -172,6 +190,9 @@ export class PathRegistry {
      * @param {string} newRoot - The new root path
      */
     public setRoot(newRoot: string): void {
+        if (process.env.CSTAR_KERNEL_MCP === '1') {
+            throw new Error('kernel_control_root_immutable');
+        }
         const translated = translatePath(newRoot);
         const resolvedRoot = isAbsolutePath(translated)
             ? normalizeSeparators(translated)

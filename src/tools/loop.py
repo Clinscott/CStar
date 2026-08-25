@@ -1,55 +1,30 @@
-#!/usr/bin/env python3
-"""Fail-closed tombstone for the retired direct autonomous edit loop.
+"""Fail-closed compatibility boundary for the retired sovereign loop."""
 
-The former command invoked Antigravity, rewrote targets, ran broad tests, and
-committed changes outside the durable CStar/Forge lifecycle.  It remains only
-as an import-compatible rejection surface with no side effects.
-"""
-
-from __future__ import annotations
-
-import sys
-from pathlib import Path
-from typing import Any
+RETIREMENT_ERROR = "legacy_wrap_it_up_retired_use_cstar_closeout"
 
 
-DECOMMISSION_MESSAGE = (
-    "The direct autonomous edit loop is decommissioned. Implementation must use "
-    "the durable CStar Forge request, execute, and independent validation path."
-)
-
-
-class LegacyExecutionLaneDecommissioned(RuntimeError):
-    """Raised whenever a stale caller reaches the retired loop."""
+def _retired(*_args: object, **_kwargs: object) -> None:
+    raise RuntimeError(RETIREMENT_ERROR)
 
 
 class SovereignForge:
-    """Compatibility facade that cannot generate, edit, verify, or commit code."""
+    """Retired autonomous Forge entrypoint."""
 
-    def __init__(self, root: Path) -> None:
-        self.root = root
+    def __init__(self, *_args: object, **_kwargs: object) -> None:
+        _retired()
 
-    def forge_task(self, task: dict[str, Any]) -> bool:
-        del task
-        raise LegacyExecutionLaneDecommissioned(DECOMMISSION_MESSAGE)
+    forge_task = _retired
 
 
 class SovereignLifecycle:
-    """Compatibility facade that permanently rejects the retired loop."""
+    """Retired autonomous lifecycle entrypoint."""
 
-    @staticmethod
-    def execute() -> None:
-        raise LegacyExecutionLaneDecommissioned(DECOMMISSION_MESSAGE)
+    execute = staticmethod(_retired)
 
 
-def main() -> int:
-    try:
-        SovereignLifecycle.execute()
-    except LegacyExecutionLaneDecommissioned as error:
-        print(str(error), file=sys.stderr)
-        return 2
-    return 0
+def main() -> None:
+    _retired()
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    main()

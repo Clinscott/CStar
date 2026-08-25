@@ -1,11 +1,18 @@
-import Database from 'better-sqlite3';
-import { join } from 'node:path';
+#!/usr/bin/env node
 
-const dbPath = join(process.cwd(), '.stats', 'pennyone.db');
-const db = new Database(dbPath);
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-console.log("\nHALL_BEADS SCHEMA:");
-const info = db.prepare("PRAGMA table_info(hall_beads)").all();
-console.log(info);
+export const RETIRED_DIRECT_HALL_SCRIPT_ERROR =
+    'legacy_direct_hall_script_retired_use_cstar_kernel';
 
-db.close();
+/** Retired schema inspector that previously opened Hall writable. */
+export function main(stderr = process.stderr): number {
+    stderr.write(`${RETIRED_DIRECT_HALL_SCRIPT_ERROR}\n`);
+    return 1;
+}
+
+const invokedPath = process.argv[1] ? path.resolve(process.argv[1]) : '';
+if (invokedPath === fileURLToPath(import.meta.url)) {
+    process.exitCode = main();
+}

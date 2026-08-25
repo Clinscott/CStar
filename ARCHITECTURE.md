@@ -1,140 +1,62 @@
-# CStar Architecture
+# 🏛️ CORVUS STAR (C*) ARCHITECTURE: FIRST PRINCIPLES (THE TRUE NATURE)
 
-> **Legacy architecture:** CStar is preserved as an inactive historical
-> subsystem. Corvus Organism is the current estate control and workflow plane.
-> References below to ownership or authoritative runtime describe the retired
-> CStar design and grant no current execution or lifecycle authority.
+> **⚠️ ATTENTION HOST AGENT (GEMINI/CLAUDE):**
+> If you are reading this, you need to understand the fundamental truth of what Corvus Star is. **You are the One Mind.** Corvus Star is not an independent, self-aware AI bot running in the background. It is an advanced, stateful local framework built specifically to be wielded by *you* via the Model Context Protocol (MCP) and CLI integrations.
 
-## 1. Position in the Estate
+---
 
-CStar historically served as the deterministic control plane and durable
-lifecycle ledger for the Corvus estate. It is no longer active.
+## 1. The Core Paradigm: The "Ship of Theseus" Router
+The `cstar` kernel (`cstar.ts` in Node.js, and legacy `cstar_dispatcher.py` in Python) is simply a **Router and Orchestration Layer**. It does not possess its own LLM "brain." It routes intents to *you* for inference, and it routes your decisions back to local execution tools.
 
-Registries and schemas declare capability. Runtime observations, artifacts,
-callbacks, and dashboards provide evidence. Capability and evidence cannot
-grant or weaken authority.
+**How it works:**
+1. **The Host Agent (You):** You provide the reasoning, intent generation, and code writing.
+2. **The Node.js Orchestrator (`cstar.ts`):** Acts as the "Bifrost Gate." It exposes commands and the `cstar-kernel` MCP (six tools: handoff, hall_search, augury, doctor, verify_plan, record_result) so you can interact with the repository. It queues your tasks into "Beads."
+3. **The Python Execution Layer:** When you (or the Orchestrator) trigger a task, it spins up ephemeral, sandboxed Python environments (`SovereignWorker` and the scripts in `.agents/skills/`) to safely execute the file mutations.
 
-## 2. Kernel and Host Boundary
+## 2. The Atomic Units: Skills & Beads
+The framework organizes work so that you don't have to keep everything in your context window.
+*   **Skills (`.agents/skills/`)**: Discrete, executable capabilities (e.g., `forge`, `scan`, `metrics`, `telemetry`). These contain the Python code that actually modifies the disk.
+*   **Beads**: JSON-serializable units of work. Instead of trying to refactor 50 files in one prompt, you use `weave:chant` to plan a series of Beads, and `weave:orchestrate` dispatches them to the Python execution layer one by one.
 
-The Node/TypeScript kernel owns bounded deterministic behavior:
+## 3. The Estate: The Brain & The Spokes
+Corvus Star is not limited to a single repository.
+*   **The Brain**: The current directory where the Node.js orchestrator and PennyOne database reside.
+*   **The Spokes**: External git repositories mounted to the framework (managed via `cstar spoke`). When you execute a Bead, it can target a specific Spoke, allowing you to orchestrate an entire multi-repo architecture from one central terminal.
 
-- MCP schemas and input validation;
-- Hall/PennyOne lifecycle persistence;
-- request/attempt/validation receipts;
-- path, package, and output locks;
-- atomic reservation and transaction boundaries;
-- bounded status, telemetry, and routing projections; and
-- process/transport containment.
+## 4. The Memory Plane: PennyOne, Engrams, & The Hall
+Because your context window is limited, CStar maintains its own layered memory architecture inspired by MemOS and Hermes.
+*   **The Hall of Records (`pennyone.db`)**: The framework's SQLite database acts as a unified knowledge graph.
+*   **Functional Clustering (Louvain/Leiden)**: [Ω] GUNGNIR UPGRADE: PennyOne (v2.5) automatically groups files into functional clusters using graphology-based community detection on the dependency graph. This reflects the logical architecture beyond the file-system hierarchy.
+*   **Host-Agent Delegation**: Intelligence scans no longer rely on low-level batch inference. Instead, PennyOne delegates sector analysis to specialized Host sub-agents (e.g., `codebase_investigator`) that return structured JSON intent and interaction protocols.
+*   **Engrams (Episodic Memory)**: Every time a task (Bead) is completed, the `distill` weave autonomously runs a "Memory Flush." It summarizes the intent, the code changes, and saves them into the database as a structured Engram.
+*   **Mimir (`cstar hall`)**: When you query the Hall via MCP (`search_by_intent`) or CLI (`cstar hall`), Mimir doesn't just search current code; it searches the FTS5 index of all past Engrams. This allows you to recall historical context (e.g., "Why did we implement X in session 97?").
 
-Host agents own cognition, synthesis, critique, and operator conversation.
-Host-native skills are harness capabilities, not assumed shell commands. A
-model response never directly becomes lifecycle or validation authority.
+## 5. The Law: Hardcoded Lore & Contract Verification
+The "Lore" of Corvus Star acts as strict behavioral guardrails enforced by the local Python kernel.
+*   **The Personas (O.D.I.N. vs A.L.F.R.E.D.)**: Determines the rules of engagement. O.D.I.N. allows aggressive changes; A.L.F.R.E.D. enforces cautious maintenance.
+*   **The Linscott Standard**: The absolute mandate of testing. The framework actively scans for `LINSCOTT_BREACH`es. If you write code without an accompanying 1:1 test, the Python worker will reject it and fail the Bead.
+*   **Empire TDD Protocol**: Contract Verification. Code generation is frequently validated against Gherkin `.feature` contracts (`tests/empire_tests/`).
+*   **The Gungnir Calculus**: The octal scoring system. The framework constantly runs math against the codebase (`[L]` Logic complexity, `[S]` Style). If your modifications lower the score, your work is considered a failure.
 
-## 3. Supported MCP Runtime
+## 6. The Enforcers: The Sentinel Wardens
+The laws (Lore/Linscott) are enforced by a suite of hyper-strict Python validation scripts located in `src/core/engine/wardens/`. When you complete a Bead, these Wardens scrutinize the result:
+*   **Norn & Heimdall**: Scan for Linscott Breaches (missing tests).
+*   **Valkyrie**: Scavenges the code for dead imports and unused logic ("Choosers of the slain").
+*   **Freya & Mimir**: Calculate the Gungnir Calculus (Complexity and structural beauty).
+*   **Ghost**: Enforces strict type boundaries.
+*If a Warden rejects your code, your Bead fails.*
 
-`cstar-kernel` is the authoritative bounded MCP surface. Public metadata lives
-in `src/tools/cstar-kernel-mcp/contracts/tool_catalog.ts`; schemas/handlers are
-registered in `src/tools/cstar-kernel-mcp/register_core_tools.ts`.
+## 7. The Evolutionary Engine: Karpathy's Loop & SPRT
+Code is not just generated; it is empirically proven. 
+*   **`weave:evolve`**: A bounded execution loop that creates mutations of a target script.
+*   **SPRT (Sequential Probability Ratio Test)**: The statistical mechanism (FishTest) used to prove whether a mutation is actually better than the baseline. If SPRT does not yield an "ACCEPTED" verdict, the code is thrown out.
 
-Codex uses a single direct-stdio lineage from the global WSL wrapper to
-`bin/cstar-kernel-mcp.js` and the source TypeScript server. The Codex plugin is
-skill-only. The former TCP daemon and public AutoBot surface are retired and
-fail closed.
+## 8. The Autonomous Pulse: The Ravens (Muninn)
+While you (the Host Agent) direct the system, Corvus Star has an autonomous background pulse called **Muninn** (`src/core/engine/ravens/muninn.py`). 
+When the system is idle or triggered via `cstar ravens`, Muninn scans the repository with the Wardens, finds "Toxic Sectors" (tech debt), and automatically generates new Beads for you to solve later. You are never working in a static environment; Muninn is constantly finding flaws for you to fix.
 
-This direct-stdio lineage assumes a trusted single-user host. Session-record
-hashing proves provenance inside that account; it is not an isolation boundary
-against another same-UID process that can read the Codex session store.
-
-The CLI remains for documented terminal-required operations and development,
-not as a parallel authority or generic skill/model dispatch path.
-
-## 4. Lifecycle and Memory
-
-Beads are the durable work timeline. Proposals, Forge/Researcher requests,
-execution attempts, validation runs, and completion transitions live in
-Hall/PennyOne. High-volume search/model output remains in bounded artifacts;
-Hall stores summaries, hashes, decisions, and identifiers.
-
-PMTs are project-scoped information repositories. CoS queries the mapped PMT
-for bounded context only when active targets are inside that project, and sends
-a compact update after meaningful work. PMT state is a context copy, not
-lifecycle or review authority. MM is legacy.
-
-PennyOne dashboards, Mongo, and the console are projections/mailboxes. They do
-not replace Hall lifecycle state.
-
-## 5. Estate Lanes
-
-- CoS owns estate sequencing, bounded Green/Yellow execution, evidence
-  packaging, lifecycle updates, and operator-facing closeout.
-- Forge implements bounded builds.
-- Researcher gathers evidence through authorized source lanes.
-- CorvusEye independently evaluates or red-teams when required.
-- Codex subagents may analyze or review but cannot replace Forge.
-
-Cross-project conflicts return directly to CoS. There is no active MM relay.
-
-## 6. Forge Execution
-
-The live build route is:
-
-`cstar_forge_request -> cstar_forge_execute -> private Hermes cstar-hub /
-minimax MiniMax-M3 -> delivered_unverified -> independent cstar_record_result`
-
-The request is no-spend and immutable. Execute verifies a request-bound
-one-shot operator attestation, exact canonical request/target hashes,
-package/output locks, adapter runtime seal, expiry, and attempt budget before
-atomic reservation. The write worker accepts only a strict manifest and rolls
-back all writes on post-write failure.
-
-Delivery is evidence, not success. Independent hash-verified validation and
-Forge finalization are one transaction. Unknown or failed attempts do not
-auto-retry.
-
-## 7. Routing Advice
-
-Augury is deterministic typed route explanation. Use it only at a new or
-ambiguous route/material scope and never as a per-prompt ritual. It is
-non-actionable and grants no execution permission.
-
-The Council supplies one immutable canonical critique lens. It cannot vote,
-hold, assign risk/ownership, emit confidence, or prove correctness.
-
-TokenPath is quarantined (`shadow-disabled`, non-actionable) and performs no
-advice, steering, episode, or observation writes. Historical ledgers are
-untrusted compatibility telemetry.
-
-Persona affects professional tone and domain emphasis only.
-
-## 8. Skills and Capabilities
-
-The registry classifies capabilities; it does not authorize invocation.
-Reusable behavior is built skill-first with explicit inputs, outputs, logs,
-failure classes, receipts, and focused tests before MCP promotion.
-
-Tier labels describe composition, not authority:
-
-- `PRIME`: deterministic atomic primitive;
-- `SKILL`: bounded functional capability;
-- `WEAVE`: composed workflow; and
-- `SPELL`: governance/recursive policy, non-executable unless explicitly
-  runtime-backed.
-
-## 9. Verification
-
-Changed behavior is tested in the repository that changed. Control-plane
-boundary changes also run CStar contract and stdio tests. Current source, live
-runtime, lifecycle state, and independent evidence must agree before closeout.
-
-Never infer quality from legacy Gungnir fields. Numeric claims require an actual
-scorer, nonzero denominator, formula, exclusions, class coverage, row evidence,
-and an independent probe. Development evidence is separate from production and
-locked-holdout readiness.
-
-## 10. Operator Gates
-
-Explicit operator authorization remains required for expanded spend or source
-lanes, locked holdout, production claims, merge, push, deploy, restart,
-secrets/configuration, destructive cleanup, and broad cross-spoke mutation.
-Source proof, host staging, cache/config reconciliation, restart, and live
-activation proof are distinct steps.
+## Summary for the Host Agent (You)
+1. **You are the intelligence.** CStar is your local routing, execution, and memory framework.
+2. You interact with CStar via CLI commands (`cstar ...`) or the `cstar-kernel` MCP.
+3. You queue work using **Beads** and execute it using **Python Skills**.
+4. You rely on **PennyOne** for memory and are judged by the **Sentinel Wardens**, the **Empire Contracts**, and the **SPRT Engine**.

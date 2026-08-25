@@ -1,22 +1,24 @@
-"""Fail-closed compatibility facade for the retired Ravens repository spoke."""
+"""Retired autonomous repository spoke."""
 
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Any, Callable
+from typing import NoReturn
 
-from src.core.engine.ravens.retired import reject_ravens_operation
+
+LEGACY_PYTHON_RAVENS_ENGINE_ERROR = (
+    "legacy_python_ravens_engine_retired_use_cstar_kernel"
+)
+
+
+def _retired() -> NoReturn:
+    raise RuntimeError(LEGACY_PYTHON_RAVENS_ENGINE_ERROR)
 
 
 class RepoSpoke:
-    def __init__(self, repo_path: Path | str, persona: str, use_docker: bool = False) -> None:
-        self.repo_path = repo_path
-        self.persona = persona
-        self.use_docker = bool(use_docker)
+    """Fail before callbacks, Git, provider, filesystem, or lifecycle effects."""
 
-    async def process(self, bootstrap_fn: Callable[..., Any]) -> bool:
-        del bootstrap_fn
-        reject_ravens_operation("RepoSpoke.process")
+    def __init__(self, *_args: object, **_kwargs: object) -> None:
+        _retired()
 
-
-__all__ = ["RepoSpoke"]
+    async def process(self, *_args: object, **_kwargs: object) -> NoReturn:
+        _retired()

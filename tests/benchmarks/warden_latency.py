@@ -1,69 +1,23 @@
-import sys
-import time
-from pathlib import Path
+"""Retired direct Python anomaly-warden benchmark."""
 
-import numpy as np
+from __future__ import annotations
 
-# Add project root to path
-PROJECT_ROOT = Path(__file__).resolve().parent
-sys.path.append(str(PROJECT_ROOT))
+from typing import NoReturn
 
-try:
-    from src.core.engine.atomic_gpt import AnomalyWarden
-except ImportError:
-    print("FAIL: Could not import AnomalyWarden. Ensure PYTHONPATH is set correctly.")
-    sys.exit(1)
 
-def run_benchmark():
-    print("┌──────────────────────────────────────────────────────────────────────────────┐")
-    print("│  🔱 ANOMALY WARDEN INFERENCE BENCHMARK                                        │")
-    print("└──────────────────────────────────────────────────────────────────────────────┘")
+LEGACY_PYTHON_SOVEREIGN_COMPONENT_ERROR = (
+    "legacy_python_sovereign_component_retired_use_cstar_kernel"
+)
 
-    warden = AnomalyWarden()
 
-    # Warm up running stats
-    for _ in range(50):
-        mock_features = [
-            np.random.normal(500, 100), # latency
-            np.random.randint(10, 100), # tokens
-            1.0,                       # loops
-            0.0                        # error
-        ]
-        warden._update_stats(np.array(mock_features))
+def run_benchmark(*_args: object, **_kwargs: object) -> NoReturn:
+    """Fail before scorer construction, random work, timing, or output."""
+    raise RuntimeError(LEGACY_PYTHON_SOVEREIGN_COMPONENT_ERROR)
 
-    iterations = 1000
-    times = []
 
-    for _ in range(iterations):
-        test_features = [
-            np.random.normal(500, 100),
-            np.random.randint(10, 100),
-            1.0,
-            0.0
-        ]
+def main(*_args: object, **_kwargs: object) -> NoReturn:
+    run_benchmark()
 
-        start = time.perf_counter()
-        warden.forward(test_features)
-        end = time.perf_counter()
-
-        times.append((end - start) * 1000) # ms
-
-    avg_latency = np.mean(times)
-    p95_latency = np.percentile(times, 95)
-    max_latency = np.max(times)
-
-    print("| Metric | Value |")
-    print("| :--- | :--- |")
-    print(f"| **Iterations** | {iterations} |")
-    print(f"| **Average Latency** | {avg_latency:.4f}ms |")
-    print(f"| **P95 Latency** | {p95_latency:.4f}ms |")
-    print(f"| **Max Latency** | {max_latency:.4f}ms |")
-    print("└──────────────────────────────────────────────────────────────────────────────┘")
-
-    if avg_latency < 1.0:
-        print("✅ PASS: Inference latency is < 1ms.")
-    else:
-        print("❌ FAIL: Inference latency exceeds 1ms.")
 
 if __name__ == "__main__":
-    run_benchmark()
+    main()

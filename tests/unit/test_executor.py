@@ -1,16 +1,16 @@
-from types import SimpleNamespace
-from unittest.mock import patch
+import pytest
 
-from src.core.engine.executor import SovereignExecutor
+from src.core.engine.executor import (
+    LEGACY_PYTHON_SOVEREIGN_COMPONENT_ERROR,
+    SovereignExecutor,
+)
 
 
-@patch("src.core.engine.executor.SovereignHUD.persona_log")
-def test_legacy_executor_never_installs_or_writes_forge_state(mock_log, tmp_path):
-    executor = SovereignExecutor(tmp_path, tmp_path)
-    executor.handle_proactive(SimpleNamespace(target_workflow="LOCAL_SKILL_CANDIDATE"))
-    executor.suggest_forge("build a better scan planner")
-
-    assert list(tmp_path.iterdir()) == []
-    messages = [str(call.args[1]) for call in mock_log.call_args_list]
-    assert any("Automatic skill installation is retired" in message for message in messages)
-    assert any("Forge bypass retired" in message for message in messages)
+@pytest.mark.parametrize(
+    "method",
+    ["handle_proactive", "suggest_forge", "handle_cortex_query"],
+)
+def test_retired_executor_rejects_every_action(method):
+    executor = object.__new__(SovereignExecutor)
+    with pytest.raises(RuntimeError, match=f"^{LEGACY_PYTHON_SOVEREIGN_COMPONENT_ERROR}$"):
+        getattr(executor, method)(object())

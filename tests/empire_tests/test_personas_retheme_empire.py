@@ -1,23 +1,13 @@
-import pytest
-
-from src.core.personas import OdinStrategy, PersonaAuthorityBoundaryError
+from src.core.personas import OdinStrategy
 
 
-def test_odin_retheme_docs_fails_closed_without_mutating_authority(tmp_path):
-    root = tmp_path
-    sterile = root / "sterileAgent"
-    sterile.mkdir()
-    template = sterile / "AGENTS_ODIN.qmd"
-    template.write_text("ODIN TEMPLATE", encoding="utf-8")
+def test_odin_retheme_docs_creates_dir(tmp_path):
+    strategy = OdinStrategy(str(tmp_path))
 
-    strategy = OdinStrategy(str(root))
+    results = strategy.retheme_docs()
 
-    with pytest.raises(PersonaAuthorityBoundaryError, match="retheme_docs"):
-        strategy.retheme_docs()
-
-    assert not (root / "AGENTS.qmd").exists()
-    assert not (root / ".corvus_quarantine").exists()
-    assert template.read_text(encoding="utf-8") == "ODIN TEMPLATE"
+    assert results == []
+    assert list(tmp_path.iterdir()) == []
 
 if __name__ == "__main__":
     # Simple manual check or running via pytest

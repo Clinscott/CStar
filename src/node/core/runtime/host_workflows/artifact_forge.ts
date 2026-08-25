@@ -5,21 +5,25 @@ import type {
     WeaveInvocation,
     WeaveResult,
 } from '../contracts.js';
-import { retiredWorkflowResult } from '../retired_workflow.js';
+import { buildRetiredRuntimeResult } from '../retired_adapter.js';
 
+/** Retired local artifact-forge process adapter. Use the durable Forge MCP lane. */
 export class ArtifactForgeHostWorkflow implements RuntimeAdapter<ArtifactForgeWeavePayload> {
     public readonly id = 'weave:artifact-forge';
-    public constructor(...args: unknown[]) { void args; }
+
+    public constructor(..._retiredDependencies: unknown[]) {
+        void _retiredDependencies;
+    }
 
     public async execute(
-        invocation: WeaveInvocation<ArtifactForgeWeavePayload>,
-        context: RuntimeContext,
+        _invocation: WeaveInvocation<ArtifactForgeWeavePayload>,
+        _context: RuntimeContext,
     ): Promise<WeaveResult> {
-        void invocation; void context;
-        return retiredWorkflowResult(
-            this.id,
-            'Use cstar_forge_request, cstar_forge_execute, and cstar_record_result.',
-        );
+        return buildRetiredRuntimeResult({
+            weaveId: this.id,
+            boundary: 'retired-artifact-forge-workflow',
+            recommendedTool: 'cstar_forge_request',
+        });
     }
 }
 

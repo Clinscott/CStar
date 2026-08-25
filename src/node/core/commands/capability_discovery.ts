@@ -1,119 +1,46 @@
 import chalk from 'chalk';
-import fs from 'node:fs';
 import path from 'node:path';
 
 import {
+    readBoundedJsonObject,
+    readBoundedUtf8RelativeFile,
+    resolveSafeRelativeFileInside,
+} from '../../../core/safe_local_file.js';
+import { getSkillRegistryEntries } from '../../../core/skill_registry.js';
+
+import {
     findCommandCatalogEntry,
-    type CommandArgumentDescriptor,
     type CommandCatalogEntry,
-    type CommandOptionDescriptor,
 } from './command_catalog.js';
 import { resolveEntrySurface, type EntrySurface } from '../runtime/entry_surface.js';
-import { resolveSkillRegistryEntries } from '../../../core/skill_registry_contract.js';
+import type {
+    CapabilityDocumentation,
+    CapabilityInfoPayload,
+    CapabilityInvokeMetadata,
+    CapabilityInvokeSubcommand,
+    CapabilityManifestPayload,
+    CapabilityRegistryEntry,
+    CapabilityRegistryManifest,
+    CapabilitySummary,
+} from './capability_discovery_types.js';
+
+export type {
+    CapabilityDocumentation,
+    CapabilityInfoPayload,
+    CapabilityInvokeMetadata,
+    CapabilityInvokeSubcommand,
+    CapabilityManifestPayload,
+    CapabilityRegistryEntry,
+    CapabilityRegistryManifest,
+    CapabilitySummary,
+} from './capability_discovery_types.js';
 
 const TEXT_DOC_EXTENSIONS = new Set(['.md', '.qmd', '.feature', '.txt']);
-
-export interface CapabilityRegistryEntry {
-    tier?: string;
-    description?: string;
-    viability?: string;
-    risk?: string;
-    runtime_trigger?: string;
-    instruction_path?: string;
-    authority_path?: string;
-    entrypoint_path?: string | null;
-    contract_path?: string | null;
-    contracts?: string[];
-    tests?: string[];
-    owner_runtime?: string;
-    recursion_policy?: string;
-    entry_surface?: string;
-    host_support?: Record<string, string>;
-    execution?: {
-        mode?: string;
-        cli?: string;
-        adapter_id?: string;
-        ownership_model?: string;
-    };
-}
-
-export interface CapabilityRegistryManifest {
-    generated_at?: number;
-    entries?: Record<string, CapabilityRegistryEntry>;
-    skills?: Record<string, CapabilityRegistryEntry>;
-}
-
-export interface CapabilitySummary {
-    id: string;
-    tier: string;
-    description: string;
-    viability: string;
-    risk: string;
-    runtime_trigger: string;
-    entry_surface: EntrySurface;
-    shell_command: string | null;
-    runtime_adapter_id: string;
-    runtime_aliases: string[];
-    active_in_runtime: boolean;
-    invoke: CapabilityInvokeMetadata;
-    execution_mode: string;
-    ownership_model: string | null;
-    owner_runtime: string | null;
-    recursion_policy: string | null;
-    authority_path: string | null;
-    instruction_path: string | null;
-    entrypoint_path: string | null;
-    contract_path: string | null;
-    contracts: string[];
-    tests: string[];
-    host_support: Record<string, string>;
-}
-
-export interface CapabilityDocumentation {
-    kind: 'markdown' | 'gherkin' | 'source' | 'none';
-    path: string | null;
-    readable: boolean;
-    content: string | null;
-}
-
-export interface CapabilityInvokeSubcommand {
-    name: string;
-    aliases: string[];
-    description: string;
-    usage: string;
-    command_path: string[];
-    arguments: CommandArgumentDescriptor[];
-    options: CommandOptionDescriptor[];
-    supports_json: boolean;
-    examples: string[];
-}
-
-export interface CapabilityInvokeMetadata {
-    source: 'commander' | 'inferred' | 'unavailable';
-    shell_command: string | null;
-    command_path: string[];
-    aliases: string[];
-    description: string | null;
-    usage: string | null;
-    arguments: CommandArgumentDescriptor[];
-    options: CommandOptionDescriptor[];
-    supports_json: boolean;
-    subcommands: CapabilityInvokeSubcommand[];
-    examples: string[];
-}
-
-export interface CapabilityManifestPayload {
-    generated_at: number | null;
-    capabilities: CapabilitySummary[];
-}
-
-export interface CapabilityInfoPayload {
-    capability: CapabilitySummary;
-    documentation: CapabilityDocumentation;
-}
+const CAPABILITY_REGISTRY_MAX_BYTES = 1024 * 1024;
+const CAPABILITY_DOCUMENT_MAX_BYTES = 512 * 1024;
 
 function getRegistryEntries(manifest: CapabilityRegistryManifest): Record<string, CapabilityRegistryEntry> {
-    return resolveSkillRegistryEntries<CapabilityRegistryEntry>(manifest);
+    return getSkillRegistryEntries<CapabilityRegistryEntry>(manifest);
 }
 
 function toStringValue(value: unknown): string | null {
@@ -147,15 +74,11 @@ function uniq(values: Array<string | null | undefined>): string[] {
     return ordered;
 }
 
-function resolveProjectPath(projectRoot: string, targetPath: string): string {
-    return path.isAbsolute(targetPath) ? targetPath : path.join(projectRoot, targetPath);
-}
-
 function existsInProject(projectRoot: string, targetPath: string | null): boolean {
     if (!targetPath) {
         return false;
     }
-    return fs.existsSync(resolveProjectPath(projectRoot, targetPath));
+    return resolveSafeRelativeFileInside(projectRoot, targetPath) !== null;
 }
 
 function isTextDocumentation(targetPath: string): boolean {
@@ -335,15 +258,21 @@ function resolveCapabilityDocumentation(projectRoot: string, summary: Capability
     ]);
 
     for (const candidate of textCandidates) {
-        if (!existsInProject(projectRoot, candidate) || !isTextDocumentation(candidate)) {
+        if (!isTextDocumentation(candidate)) {
             continue;
         }
+        const document = readBoundedUtf8RelativeFile(
+            projectRoot,
+            candidate,
+            CAPABILITY_DOCUMENT_MAX_BYTES,
+        );
+        if (!document) continue;
         const kind = path.extname(candidate).toLowerCase() === '.feature' ? 'gherkin' : 'markdown';
         return {
             kind,
             path: candidate,
             readable: true,
-            content: fs.readFileSync(resolveProjectPath(projectRoot, candidate), 'utf-8'),
+            content: document.content,
         };
     }
 
@@ -374,13 +303,15 @@ function resolveCapabilityDocumentation(projectRoot: string, summary: Capability
 }
 
 export function loadCapabilityRegistryManifest(projectRoot: string): CapabilityRegistryManifest {
-    const manifestPath = path.join(projectRoot, '.agents', 'skill_registry.json');
-    if (!fs.existsSync(manifestPath)) {
-        throw new Error(`Capability registry not found at ${manifestPath}.`);
+    const manifest = readBoundedJsonObject<CapabilityRegistryManifest>(
+        projectRoot,
+        '.agents/skill_registry.json',
+        CAPABILITY_REGISTRY_MAX_BYTES,
+    );
+    if (!manifest) {
+        throw new Error('capability_registry_not_found');
     }
-    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) as unknown;
-    resolveSkillRegistryEntries<CapabilityRegistryEntry>(manifest);
-    return manifest as CapabilityRegistryManifest;
+    return manifest;
 }
 
 export function buildCapabilityManifestPayload(

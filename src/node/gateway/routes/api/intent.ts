@@ -1,47 +1,6 @@
-import { FastifyInstance } from 'fastify';
-import { Type, Static } from '@sinclair/typebox';
+import { failRetiredGateway } from '../../../retired_gateway.js';
 
-/**
- * [AMENDMENT B] Zero-Trust Input Validation
- * Strict TypeBox schema to validate IntentPayload at the edge.
- */
-const IntentSchema = Type.Object({
-    system_meta: Type.Record(Type.String(), Type.Any()),
-    intent_raw: Type.String(),
-    intent_normalized: Type.String(),
-    target_workflow: Type.String(),
-    extracted_entities: Type.Optional(Type.Record(Type.String(), Type.Any()))
-});
-
-type IntentType = Static<typeof IntentSchema>;
-
-/**
- *
- * @param fastify
- */
-export default async function (fastify: FastifyInstance) {
-    fastify.post<{ Body: IntentType }>(
-        '/intent',
-        {
-            schema: {
-                body: IntentSchema,
-                response: {
-                    202: Type.Object({ status: Type.String(), message: Type.String() }),
-                    503: Type.Object({ error: Type.String() })
-                }
-            }
-        },
-        async (request, reply) => {
-            const { corvus } = fastify;
-
-            if (!corvus.getStatus()) {
-                return reply.code(503).send({ error: 'Kernel bridge offline' });
-            }
-
-            void request;
-            return reply.code(503).send({
-                error: 'Legacy CognitiveRouter intent execution is decommissioned; use cstar_intent_route and an authorized CStar lifecycle.',
-            });
-        }
-    );
+/** Retired HTTP intent route. */
+export default function retiredIntentRoute(_fastify?: unknown): never {
+    return failRetiredGateway();
 }

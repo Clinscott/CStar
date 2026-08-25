@@ -1,739 +1,106 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { Command } from 'commander';
-
-import { registerStartCommand } from  '../../src/node/core/commands/start.js';
-import { registerRavenCommand } from  '../../src/node/core/commands/ravens.js';
-import { registerPennyOneCommand } from  '../../src/node/core/commands/pennyone.js';
-import {
-    buildRegistrySkillBeadInvocation,
-    buildDynamicCommandInvocation,
-    parseChantSessionDirective,
-    registerDispatcher,
-    resolveRegistryCommandActivation,
-    shouldAutoResumeChantSession,
-} from '../../src/node/core/commands/dispatcher.ts';
-import { PennyOneWeavePayload, RuntimeDispatchPort, WeaveInvocation, WeaveResult } from  '../../src/node/core/runtime/contracts.js';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import type { SkillBead } from '../../src/node/core/skills/types.js';
+import { buildStartInvocation } from '../../src/node/core/commands/start.js';
+import { buildRavensInvocation } from '../../src/node/core/commands/ravens.js';
+import {
+    buildRegistrySkillBeadInvocation,
+    parseChantSessionDirective,
+    resolveRegistryCommandActivation,
+    shouldAutoResumeChantSession,
+} from '../../src/node/core/commands/dispatcher.ts';
 
-class CaptureDispatchPort implements RuntimeDispatchPort {
-    public invocation: WeaveInvocation<unknown> | SkillBead<unknown> | null = null;
+const ROOT = 'C:\\Users\\Craig\\Corvus\\CorvusStar';
 
-    public async dispatch<T>(invocation: WeaveInvocation<T> | SkillBead<T>): Promise<WeaveResult> {
-        this.invocation = invocation as WeaveInvocation<unknown> | SkillBead<unknown>;
-        return {
-            weave_id: 'weave_id' in invocation ? invocation.weave_id : invocation.skill_id,
-            status: 'SUCCESS',
-            output: 'captured',
-        };
-    }
+function expectedInvocation(weaveId: string, payload: Record<string, unknown>) {
+    return {
+        weave_id: weaveId,
+        payload,
+        target: { domain: 'brain', workspace_root: ROOT, requested_path: ROOT },
+        session: { mode: 'cli', interactive: true },
+    };
 }
 
-class ResultDispatchPort implements RuntimeDispatchPort {
-    public async dispatch<T>(_invocation: WeaveInvocation<T> | SkillBead<T>): Promise<WeaveResult> {
-        return {
-            weave_id: 'weave:pennyone',
-            status: 'TRANSITIONAL',
-            output: 'PennyOne maintenance artifacts (1 root(s), 1 artifact(s)).',
-            metadata: {
-                adapter: 'runtime:pennyone-artifacts',
-                artifact_count: 1,
-            },
-        };
-    }
-}
-
-class ReportResultDispatchPort implements RuntimeDispatchPort {
-    public async dispatch<T>(_invocation: WeaveInvocation<T> | SkillBead<T>): Promise<WeaveResult> {
-        return {
-            weave_id: 'weave:pennyone',
-            status: 'TRANSITIONAL',
-            output: 'PennyOne Hall hygiene report (1 root(s), 1 root(s) with normalize receipts, 0 stale receipt(s), 3 open bead(s), 2 validation run(s)).',
-            metadata: {
-                adapter: 'runtime:pennyone-report',
-                receipt_count: 1,
-                total_open_beads: 3,
-            },
-        };
-    }
-}
-
-class NormalizeResultDispatchPort implements RuntimeDispatchPort {
-    public async dispatch<T>(_invocation: WeaveInvocation<T> | SkillBead<T>): Promise<WeaveResult> {
-        return {
-            weave_id: 'weave:pennyone',
-            status: 'TRANSITIONAL',
-            output: 'PennyOne normalized Hall authority metadata (1 root(s), 1 repository alias(es), 2 bead(s), 3 planning session(s), 4 proposal(s), 5 document(s)).',
-            metadata: {
-                adapter: 'runtime:pennyone-normalize',
-                repository_updates: 1,
-                bead_updates: 2,
-                planning_updates: 3,
-                proposal_updates: 4,
-                document_updates: 5,
-            },
-        };
-    }
-}
-
-class StatusResultDispatchPort implements RuntimeDispatchPort {
-    public async dispatch<T>(_invocation: WeaveInvocation<T> | SkillBead<T>): Promise<WeaveResult> {
-        return {
-            weave_id: 'weave:pennyone',
-            status: 'SUCCESS',
-            output: 'PennyOne Hall maintenance status (1 root(s), 1 normalize receipt(s), 1 hygiene report(s), 0 stale receipt(s), 2 maintenance artifact(s), 3 open bead(s), 2 validation run(s)).',
-            metadata: {
-                adapter: 'runtime:pennyone-status',
-                receipt_count: 1,
-                report_count: 1,
-                artifact_count: 2,
-            },
-        };
-    }
-}
-
-describe('Command shells convert CLI args into runtime invocations (CS-P1-01)', () => {
-    it('start command dispatches a structured start weave', async () => {
-        const capture = new CaptureDispatchPort();
-        const program = new Command();
-        registerStartCommand(program, 'C:\\Users\\Craig\\Corvus\\CorvusStar', capture);
-
-        await program.parseAsync([
-            'node',
-            'test',
-            'start',
-            'src/index.ts',
-            '--task',
-            'Refactor entrypoint',
-            '--ledger',
-            'C:\\temp\\ledger',
-            '--loki',
-        ]);
-
-        assert.deepStrictEqual(capture.invocation, {
-            weave_id: 'weave:start',
-            payload: {
-                target: 'src/index.ts',
-                task: 'Refactor entrypoint',
-                ledger: 'C:\\temp\\ledger',
-                loki: true,
-                debug: undefined,
-                verbose: undefined,
-            },
-            target: {
-                domain: 'brain',
-                workspace_root: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
-                requested_path: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
-            },
-            session: {
-                mode: 'cli',
-                interactive: true,
-            },
-        });
+describe('bounded command invocation builders', () => {
+    it('builds structured start metadata without dispatching', () => {
+        assert.deepStrictEqual(buildStartInvocation('src/index.ts', {
+            task: 'Refactor entrypoint',
+            ledger: 'C:\\temp\\ledger',
+            loki: true,
+        }, ROOT), expectedInvocation('weave:start', {
+            target: 'src/index.ts',
+            task: 'Refactor entrypoint',
+            ledger: 'C:\\temp\\ledger',
+            loki: true,
+            debug: undefined,
+            verbose: undefined,
+        }));
     });
 
-    it('ravens command dispatches through the shared ravens weave', async () => {
-        const capture = new CaptureDispatchPort();
-        const program = new Command();
-        registerRavenCommand(program, 'C:\\Users\\Craig\\Corvus\\CorvusStar', capture);
-
-        await program.parseAsync([
-            'node',
-            'test',
-            'ravens',
-            'start',
-            '--shadow-forge',
-        ]);
-
-        assert.deepStrictEqual(capture.invocation, {
-            weave_id: 'weave:ravens',
-            payload: {
-                action: 'start',
-                shadow_forge: true,
-            },
-            target: {
-                domain: 'brain',
-                workspace_root: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
-                requested_path: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
-            },
-            session: {
-                mode: 'cli',
-                interactive: true,
-            },
-        });
+    it('builds Ravens start metadata without dispatching', () => {
+        assert.deepStrictEqual(buildRavensInvocation('start', {
+            shadowForge: true,
+        }, ROOT), expectedInvocation('weave:ravens', {
+            action: 'start',
+            shadow_forge: true,
+        }));
     });
 
-    it('ravens cycle command dispatches through the shared ravens weave', async () => {
-        const capture = new CaptureDispatchPort();
-        const program = new Command();
-        registerRavenCommand(program, 'C:\\Users\\Craig\\Corvus\\CorvusStar', capture);
-
-        await program.parseAsync([
-            'node',
-            'test',
-            'ravens',
-            'cycle',
-        ]);
-
-        assert.deepStrictEqual(capture.invocation, {
-            weave_id: 'weave:ravens',
-            payload: {
-                action: 'cycle',
-                shadow_forge: undefined,
-            },
-            target: {
-                domain: 'brain',
-                workspace_root: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
-                requested_path: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
-            },
-            session: {
-                mode: 'cli',
-                interactive: true,
-            },
-        });
+    it('builds Ravens cycle metadata through the shared identifier', () => {
+        assert.deepStrictEqual(buildRavensInvocation('cycle', {}, ROOT), expectedInvocation('weave:ravens', {
+            action: 'cycle',
+            shadow_forge: undefined,
+        }));
     });
 
-    it('pennyone command defaults to read-only status and never implies a scan', async () => {
-        const capture = new CaptureDispatchPort();
-        const program = new Command();
-        registerPennyOneCommand(program, 'C:\\Users\\Craig\\Corvus\\CorvusStar', capture);
-
-        await program.parseAsync([
-            'node',
-            'test',
-            'pennyone',
-        ]);
-
-        assert.deepStrictEqual(capture.invocation, {
-            weave_id: 'weave:pennyone',
-            payload: {
-                action: 'status',
-                path: '.',
-                estate: false,
-                artifact_kind: undefined,
-                limit: undefined,
-                since: undefined,
-            },
-            target: {
-                domain: 'brain',
-                workspace_root: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
-                requested_path: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
-            },
-            session: {
-                mode: 'cli',
-                interactive: true,
-            },
-        });
+    it('includes Ravens host supervision only when explicitly requested', () => {
+        assert.equal(buildRavensInvocation('cycle', {
+            hostSupervision: true,
+        }, ROOT).payload.host_supervision, true);
     });
 
-    it('pennyone command scans only when --scan is explicit', async () => {
-        const capture = new CaptureDispatchPort();
-        const program = new Command();
-        registerPennyOneCommand(program, 'C:\\Users\\Craig\\Corvus\\CorvusStar', capture);
-
-        await program.parseAsync([
-            'node',
-            'test',
-            'pennyone',
-            '--scan',
-            'src',
-        ]);
-
-        assert.deepStrictEqual((capture.invocation as WeaveInvocation<PennyOneWeavePayload>).payload, {
-            action: 'scan',
-            path: 'src',
-        });
-    });
-
-    it('pennyone command dispatches search through the shared pennyone weave', async () => {
-        const capture = new CaptureDispatchPort();
-        const program = new Command();
-        registerPennyOneCommand(program, 'C:\\Users\\Craig\\Corvus\\CorvusStar', capture);
-
-        await program.parseAsync([
-            'node',
-            'test',
-            'pennyone',
-            '--search',
-            'mimir well',
-        ]);
-
-        assert.deepStrictEqual(capture.invocation, {
-            weave_id: 'weave:pennyone',
-            payload: {
-                action: 'search',
-                query: 'mimir well',
-                path: '.',
-            },
-            target: {
-                domain: 'brain',
-                workspace_root: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
-                requested_path: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
-            },
-            session: {
-                mode: 'cli',
-                interactive: true,
-            },
-        });
-    });
-
-    it('pennyone command dispatches semantic-intent refresh through the shared pennyone weave', async () => {
-        const capture = new CaptureDispatchPort();
-        const program = new Command();
-        registerPennyOneCommand(program, 'C:\\Users\\Craig\\Corvus\\CorvusStar', capture);
-
-        await program.parseAsync([
-            'node',
-            'test',
-            'pennyone',
-            '--refresh-intents',
-            'src',
-        ]);
-
-        assert.deepStrictEqual(capture.invocation, {
-            weave_id: 'weave:pennyone',
-            payload: {
-                action: 'refresh_intents',
-                path: 'src',
-            },
-            target: {
-                domain: 'brain',
-                workspace_root: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
-                requested_path: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
-            },
-            session: {
-                mode: 'cli',
-                interactive: true,
-            },
-        });
-    });
-
-    it('pennyone command dispatches Hall metadata normalization through the shared pennyone weave', async () => {
-        const capture = new CaptureDispatchPort();
-        const program = new Command();
-        registerPennyOneCommand(program, 'C:\\Users\\Craig\\Corvus\\CorvusStar', capture);
-
-        await program.parseAsync([
-            'node',
-            'test',
-            'pennyone',
-            '--normalize',
-            'src',
-        ]);
-
-        assert.deepStrictEqual(capture.invocation, {
-            weave_id: 'weave:pennyone',
-            payload: {
-                action: 'normalize',
-                path: 'src',
-                estate: false,
-            },
-            target: {
-                domain: 'brain',
-                workspace_root: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
-                requested_path: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
-            },
-            session: {
-                mode: 'cli',
-                interactive: true,
-            },
-        });
-    });
-
-    it('pennyone command dispatches estate-wide Hall normalization explicitly through the shared pennyone weave', async () => {
-        const capture = new CaptureDispatchPort();
-        const program = new Command();
-        registerPennyOneCommand(program, 'C:\\Users\\Craig\\Corvus\\CorvusStar', capture);
-
-        await program.parseAsync([
-            'node',
-            'test',
-            'pennyone',
-            '--normalize',
-            '.',
-            '--estate',
-        ]);
-
-        assert.deepStrictEqual(capture.invocation, {
-            weave_id: 'weave:pennyone',
-            payload: {
-                action: 'normalize',
-                path: '.',
-                estate: true,
-            },
-            target: {
-                domain: 'brain',
-                workspace_root: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
-                requested_path: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
-            },
-            session: {
-                mode: 'cli',
-                interactive: true,
-            },
-        });
-    });
-
-    it('pennyone command dispatches Hall hygiene reporting through the shared pennyone weave', async () => {
-        const capture = new CaptureDispatchPort();
-        const program = new Command();
-        registerPennyOneCommand(program, 'C:\\Users\\Craig\\Corvus\\CorvusStar', capture);
-
-        await program.parseAsync([
-            'node',
-            'test',
-            'pennyone',
-            '--report',
-            '.',
-            '--estate',
-        ]);
-
-        assert.deepStrictEqual(capture.invocation, {
-            weave_id: 'weave:pennyone',
-            payload: {
-                action: 'report',
-                path: '.',
-                estate: true,
-            },
-            target: {
-                domain: 'brain',
-                workspace_root: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
-                requested_path: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
-            },
-            session: {
-                mode: 'cli',
-                interactive: true,
-            },
-        });
-    });
-
-    it('pennyone command dispatches maintenance artifact listing through the shared pennyone weave', async () => {
-        const capture = new CaptureDispatchPort();
-        const program = new Command();
-        registerPennyOneCommand(program, 'C:\\Users\\Craig\\Corvus\\CorvusStar', capture);
-
-        await program.parseAsync([
-            'node',
-            'test',
-            'pennyone',
-            '--artifacts',
-            '.',
-            '--kind',
-            'report',
-            '--limit',
-            '2',
-            '--since',
-            '7d',
-            '--estate',
-        ]);
-
-        assert.deepStrictEqual(capture.invocation, {
-            weave_id: 'weave:pennyone',
-            payload: {
-                action: 'artifacts',
-                path: '.',
-                estate: true,
-                artifact_kind: 'report',
-                limit: 2,
-                since: '7d',
-            },
-            target: {
-                domain: 'brain',
-                workspace_root: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
-                requested_path: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
-            },
-            session: {
-                mode: 'cli',
-                interactive: true,
-            },
-        });
-    });
-
-    it('pennyone command emits machine-readable JSON when requested', async () => {
-        const program = new Command();
-        registerPennyOneCommand(program, 'C:\\Users\\Craig\\Corvus\\CorvusStar', new ResultDispatchPort());
-
-        let stdout = '';
-        const originalWrite = process.stdout.write.bind(process.stdout);
-        process.stdout.write = ((chunk: string | Uint8Array) => {
-            stdout += chunk.toString();
-            return true;
-        }) as typeof process.stdout.write;
-
+    it('blocks host-only chant terminal activation', () => {
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-chant-surface-'));
         try {
-            await program.parseAsync([
-                'node',
-                'test',
-                'pennyone',
-                '--artifacts',
-                '.',
-                '--json',
-            ]);
-        } finally {
-            process.stdout.write = originalWrite;
-        }
-
-        const payload = JSON.parse(stdout);
-        assert.deepStrictEqual(payload, {
-            weave_id: 'weave:pennyone',
-            status: 'TRANSITIONAL',
-            output: 'PennyOne maintenance artifacts (1 root(s), 1 artifact(s)).',
-            metadata: {
-                adapter: 'runtime:pennyone-artifacts',
-                artifact_count: 1,
-            },
-        });
-    });
-
-    it('pennyone command dispatches maintenance status through the shared pennyone weave', async () => {
-        const capture = new CaptureDispatchPort();
-        const program = new Command();
-        registerPennyOneCommand(program, 'C:\\Users\\Craig\\Corvus\\CorvusStar', capture);
-
-        await program.parseAsync([
-            'node',
-            'test',
-            'pennyone',
-            '--status',
-            '.',
-            '--kind',
-            'maintenance',
-            '--since',
-            '30d',
-            '--estate',
-        ]);
-
-        assert.deepStrictEqual(capture.invocation, {
-            weave_id: 'weave:pennyone',
-            payload: {
-                action: 'status',
-                path: '.',
-                estate: true,
-                artifact_kind: 'maintenance',
-                limit: undefined,
-                since: '30d',
-            },
-            target: {
-                domain: 'brain',
-                workspace_root: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
-                requested_path: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
-            },
-            session: {
-                mode: 'cli',
-                interactive: true,
-            },
-        });
-    });
-
-    it('pennyone command forwards absolute since dates for maintenance artifact listing', async () => {
-        const capture = new CaptureDispatchPort();
-        const program = new Command();
-        registerPennyOneCommand(program, 'C:\\Users\\Craig\\Corvus\\CorvusStar', capture);
-
-        await program.parseAsync([
-            'node',
-            'test',
-            'pennyone',
-            '--artifacts',
-            '.',
-            '--kind',
-            'maintenance',
-            '--since-date',
-            '2026-03-01',
-            '--estate',
-        ]);
-
-        assert.deepStrictEqual(capture.invocation, {
-            weave_id: 'weave:pennyone',
-            payload: {
-                action: 'artifacts',
-                path: '.',
-                estate: true,
-                artifact_kind: 'maintenance',
-                limit: undefined,
-                since: undefined,
-                since_date: '2026-03-01',
-            },
-            target: {
-                domain: 'brain',
-                workspace_root: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
-                requested_path: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
-            },
-            session: {
-                mode: 'cli',
-                interactive: true,
-            },
-        });
-    });
-
-    it('pennyone report command emits machine-readable JSON when requested', async () => {
-        const program = new Command();
-        registerPennyOneCommand(program, 'C:\\Users\\Craig\\Corvus\\CorvusStar', new ReportResultDispatchPort());
-
-        let stdout = '';
-        const originalWrite = process.stdout.write.bind(process.stdout);
-        process.stdout.write = ((chunk: string | Uint8Array) => {
-            stdout += chunk.toString();
-            return true;
-        }) as typeof process.stdout.write;
-
-        try {
-            await program.parseAsync([
-                'node',
-                'test',
-                'pennyone',
-                '--report',
-                '.',
-                '--estate',
-                '--json',
-            ]);
-        } finally {
-            process.stdout.write = originalWrite;
-        }
-
-        const payload = JSON.parse(stdout);
-        assert.deepStrictEqual(payload, {
-            weave_id: 'weave:pennyone',
-            status: 'TRANSITIONAL',
-            output: 'PennyOne Hall hygiene report (1 root(s), 1 root(s) with normalize receipts, 0 stale receipt(s), 3 open bead(s), 2 validation run(s)).',
-            metadata: {
-                adapter: 'runtime:pennyone-report',
-                receipt_count: 1,
-                total_open_beads: 3,
-            },
-        });
-    });
-
-    it('pennyone normalize command emits machine-readable JSON when requested', async () => {
-        const program = new Command();
-        registerPennyOneCommand(program, 'C:\\Users\\Craig\\Corvus\\CorvusStar', new NormalizeResultDispatchPort());
-
-        let stdout = '';
-        const originalWrite = process.stdout.write.bind(process.stdout);
-        process.stdout.write = ((chunk: string | Uint8Array) => {
-            stdout += chunk.toString();
-            return true;
-        }) as typeof process.stdout.write;
-
-        try {
-            await program.parseAsync([
-                'node',
-                'test',
-                'pennyone',
-                '--normalize',
-                '.',
-                '--estate',
-                '--json',
-            ]);
-        } finally {
-            process.stdout.write = originalWrite;
-        }
-
-        const payload = JSON.parse(stdout);
-        assert.deepStrictEqual(payload, {
-            weave_id: 'weave:pennyone',
-            status: 'TRANSITIONAL',
-            output: 'PennyOne normalized Hall authority metadata (1 root(s), 1 repository alias(es), 2 bead(s), 3 planning session(s), 4 proposal(s), 5 document(s)).',
-            metadata: {
-                adapter: 'runtime:pennyone-normalize',
-                repository_updates: 1,
-                bead_updates: 2,
-                planning_updates: 3,
-                proposal_updates: 4,
-                document_updates: 5,
-            },
-        });
-    });
-
-    it('pennyone status command emits machine-readable JSON when requested', async () => {
-        const program = new Command();
-        registerPennyOneCommand(program, 'C:\\Users\\Craig\\Corvus\\CorvusStar', new StatusResultDispatchPort());
-
-        let stdout = '';
-        const originalWrite = process.stdout.write.bind(process.stdout);
-        process.stdout.write = ((chunk: string | Uint8Array) => {
-            stdout += chunk.toString();
-            return true;
-        }) as typeof process.stdout.write;
-
-        try {
-            await program.parseAsync([
-                'node',
-                'test',
-                'pennyone',
-                '--status',
-                '.',
-                '--json',
-            ]);
-        } finally {
-            process.stdout.write = originalWrite;
-        }
-
-        const payload = JSON.parse(stdout);
-        assert.deepStrictEqual(payload, {
-            weave_id: 'weave:pennyone',
-            status: 'SUCCESS',
-            output: 'PennyOne Hall maintenance status (1 root(s), 1 normalize receipt(s), 1 hygiene report(s), 0 stale receipt(s), 2 maintenance artifact(s), 3 open bead(s), 2 validation run(s)).',
-            metadata: {
-                adapter: 'runtime:pennyone-status',
-                receipt_count: 1,
-                report_count: 1,
-                artifact_count: 2,
-            },
-        });
-    });
-
-    it('blocks chant from terminal dispatch when entry_surface is host-only', () => {
-        const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-chant-surface-'));
-        try {
-            fs.mkdirSync(path.join(tmpRoot, '.agents'), { recursive: true });
-            fs.writeFileSync(
-                path.join(tmpRoot, '.agents', 'skill_registry.json'),
-                JSON.stringify({
-                    entries: {
-                        chant: {
-                            entry_surface: 'host-only',
-                            execution: { mode: 'agent-native' },
-                            runtime_trigger: 'chant',
-                        },
+            fs.mkdirSync(path.join(root, '.agents'), { recursive: true });
+            fs.writeFileSync(path.join(root, '.agents', 'skill_registry.json'), JSON.stringify({
+                entries: {
+                    chant: {
+                        entry_surface: 'host-only',
+                        execution: { mode: 'agent-native' },
+                        runtime_trigger: 'chant',
                     },
-                }),
-                'utf-8',
-            );
+                },
+            }));
 
-            const activation = resolveRegistryCommandActivation(
-                'chant',
-                ['scan the hall'],
-                tmpRoot,
-                tmpRoot,
-            );
+            const activation = resolveRegistryCommandActivation('chant', ['scan'], root, root);
 
             assert.equal(activation.kind, 'blocked');
             if (activation.kind === 'blocked') {
                 assert.equal(activation.skillId, 'chant');
                 assert.equal(activation.surface, 'host-only');
-                assert.match(activation.error, /Terminal dispatch is forbidden/i);
+                assert.match(activation.error, /host-only.*active host conversation/i);
             }
         } finally {
-            fs.rmSync(tmpRoot, { recursive: true, force: true });
+            fs.rmSync(root, { recursive: true, force: true });
         }
     });
 
     it('does not auto-resume chant for a fresh detailed planning request', () => {
-        assert.equal(shouldAutoResumeChantSession(['plan', 'a', 'fresh', 'runtime', 'improvement']), false);
+        assert.equal(shouldAutoResumeChantSession(['plan', 'a', 'fresh', 'request']), false);
         assert.deepStrictEqual(
-            parseChantSessionDirective(['--new-session', 'plan', 'a', 'fresh', 'runtime', 'improvement']),
+            parseChantSessionDirective(['--new-session', 'plan', 'a', 'fresh', 'request']),
             {
-                queryArgs: ['plan', 'a', 'fresh', 'runtime', 'improvement'],
+                queryArgs: ['plan', 'a', 'fresh', 'request'],
                 sessionId: undefined,
                 shouldResume: false,
             },
         );
     });
 
-    it('allows explicit chant resume directives and strips them from the query payload', () => {
+    it('parses explicit chant resume directives without executing them', () => {
         assert.equal(shouldAutoResumeChantSession(['proceed']), true);
         assert.deepStrictEqual(
             parseChantSessionDirective(['--session', 'chant-session:abc123', 'proceed']),
@@ -745,47 +112,32 @@ describe('Command shells convert CLI args into runtime invocations (CS-P1-01)', 
         );
     });
 
-    it('registry-backed command activation blocks terminal skill execution', () => {
-        const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-command-registry-'));
+    it('classifies an underspecified registry command as retired compatibility', () => {
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-command-registry-'));
         try {
-            fs.mkdirSync(path.join(tmpRoot, '.agents'), { recursive: true });
-            fs.writeFileSync(
-                path.join(tmpRoot, '.agents', 'skill_registry.json'),
-                JSON.stringify({
-                    entries: {
-                        orchestrate: {
-                            execution: { mode: 'agent-native' },
-                            runtime_trigger: 'orchestrate',
-                        },
+            fs.mkdirSync(path.join(root, '.agents'), { recursive: true });
+            fs.writeFileSync(path.join(root, '.agents', 'skill_registry.json'), JSON.stringify({
+                entries: {
+                    orchestrate: {
+                        execution: { mode: 'agent-native' },
+                        runtime_trigger: 'orchestrate',
                     },
-                }),
-                'utf-8',
+                },
+            }));
+
+            assert.equal(
+                buildRegistrySkillBeadInvocation('orchestrate', [], root, root),
+                null,
             );
-
-            const invocation = buildRegistrySkillBeadInvocation(
-                'orchestrate',
-                ['--max-parallel', '1'],
-                tmpRoot,
-                tmpRoot,
-            );
-
-            assert.equal(invocation, null);
-
-            const activation = resolveRegistryCommandActivation(
-                'orchestrate',
-                ['--max-parallel', '1'],
-                tmpRoot,
-                tmpRoot,
-            );
-
+            const activation = resolveRegistryCommandActivation('orchestrate', [], root, root);
             assert.equal(activation.kind, 'blocked');
             if (activation.kind === 'blocked') {
                 assert.equal(activation.skillId, 'orchestrate');
-                assert.equal(activation.surface, 'cli');
-                assert.match(activation.error, /Terminal dispatch is forbidden for skills/i);
+                assert.equal(activation.surface, 'compatibility');
+                assert.match(activation.error, /retired compatibility surface.*cstar-kernel/i);
             }
         } finally {
-            fs.rmSync(tmpRoot, { recursive: true, force: true });
+            fs.rmSync(root, { recursive: true, force: true });
         }
     });
 });

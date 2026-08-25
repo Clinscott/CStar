@@ -10,71 +10,20 @@ import { database } from './database.js';
 import { SovereignBead, materializeSovereignBead } from  '../../../types/bead.js';
 import { registry } from '../pathRegistry.js';
 import { buildHallRepositoryId, normalizeHallPath } from '../../../types/hall.js';
-import { StateRegistry } from '../../../node/core/state.js';
+import { parseJson, stringifyJson } from './schema.js';
+import { normalizeBeadMetadata } from './bead_metadata.js';
+import type { VerifiedValidationEvidence } from '../../cstar-kernel-mcp/tools/validation_evidence.js';
+import {
+    assertValidationRecordAuthority,
+    isImmutableValidationAuthority,
+} from './validation_record_authority.js';
 
 function shouldEmitPennyOneDebugLogs(): boolean {
     return process.env.CSTAR_DEBUG_LOGS === '1';
 }
 
-function stringifyJson(value: unknown): string {
-    return JSON.stringify(value ?? {});
-}
-
-function parseJson<T>(value: string | null | undefined, fallback: T): T {
-    if (!value) return fallback;
-    try {
-        return JSON.parse(value) as T;
-    } catch {
-        return fallback;
-    }
-}
-
-function inferBeadAuthorityTier(record: Pick<HallBeadRecord, 'target_path' | 'status'>): HallContextMetadata['authority_tier'] {
-    const normalizedPath = (record.target_path ?? '').replace(/\\/g, '/').toLowerCase();
-    if (record.status === 'ARCHIVED' || record.status === 'SUPERSEDED') {
-        return 'archive';
-    }
-    if (normalizedPath.includes('/docs/legacy_archive/') || normalizedPath.startsWith('docs/legacy_archive/')) {
-        return 'archive';
-    }
-    if (normalizedPath.includes('/src/node/core/runtime/host_workflows/')
-        || normalizedPath.includes('/src/node/core/runtime/compat/')
-        || normalizedPath.endsWith('/.agents/skill_registry.json')
-        || normalizedPath.endsWith('/agents.qmd')) {
-        return 'live_authority';
-    }
-    return 'reference';
-}
-
-function normalizeBeadMetadata(record: HallBeadRecord): HallContextMetadata {
-    const metadata: HallContextMetadata = { ...(record.metadata ?? {}) };
-    const authorityTier = metadata.authority_tier ?? inferBeadAuthorityTier(record);
-    const archived = typeof metadata.archived === 'boolean'
-        ? metadata.archived
-        : authorityTier === 'archive';
-    return {
-        ...metadata,
-        authority_tier: authorityTier,
-        archived,
-    };
-}
-
-function emitBeadStatusEvent(record: HallBeadRecord): void {
-    const status = record.status;
-    if (status === 'RESOLVED' || status === 'NEEDS_TRIAGE' || status === 'BLOCKED') {
-        const agent = record.assigned_agent ?? 'system';
-        const target = record.target_ref ?? record.target_path ?? record.bead_id;
-
-        StateRegistry.postToBlackboard({
-            from: agent,
-            message: `Bead ${status}: ${target} :: ${record.rationale}`,
-            type: status === 'RESOLVED' ? 'INFO' : 'ALERT'
-        });
-    }
-}
-
 export function upsertHallBead(record: HallBeadRecord): void {
-    const db = database.getDb();
+    const db = database.getWritableDb();
     if (shouldEmitPennyOneDebugLogs()) {
         console.log(`[DEBUG] upsertHallBead: id=${record.bead_id}, status=${record.status}`);
     }
@@ -136,9 +85,6 @@ export function upsertHallBead(record: HallBeadRecord): void {
             record.created_at,
             record.updated_at
         );
-
-        emitBeadStatusEvent(record);
-
         if (shouldEmitPennyOneDebugLogs()) {
             console.log(`[DEBUG] upsertHallBead: SUCCESS for ${record.bead_id}`);
         }
@@ -150,11 +96,7 @@ export function upsertHallBead(record: HallBeadRecord): void {
     }
 }
 
-export function getHallBead(beadId: string): SovereignBead | null {
-    const db = database.getDb();
-    const row = db.prepare('SELECT * FROM hall_beads WHERE bead_id = ?').get(beadId) as any;
-    if (!row) return null;
-
+function materializeHallBeadRow(row: any): SovereignBead {
     return materializeSovereignBead({
         ...row,
         contract_refs: parseJson(row.contract_refs_json, []),
@@ -164,15 +106,23 @@ export function getHallBead(beadId: string): SovereignBead | null {
     });
 }
 
+export function getHallBead(beadId: string): SovereignBead | null {
+    const db = database.getReadDb();
+    const row = db.prepare('SELECT * FROM hall_beads WHERE bead_id = ?').get(beadId) as any;
+    if (!row) return null;
+
+    return materializeHallBeadRow(row);
+}
+
 export function getBeadCount(rootPath: string): number {
-    const db = database.getDb(rootPath);
+    const db = database.getReadDb(rootPath);
     const row = db.prepare('SELECT COUNT(*) as count FROM hall_beads').get() as { count: number };
     return row?.count ?? 0;
 }
 
 // ... existing HallBead getter stubs or implementations ...
 export function getHallBeads(rootOrRepoId: string, statuses?: HallBeadStatus[]): SovereignBead[] {
-    const db = database.getDb();
+    const db = database.getReadDb();
     const repoId = rootOrRepoId.startsWith('repo:')
         ? rootOrRepoId
         : buildHallRepositoryId(normalizeHallPath(rootOrRepoId));
@@ -183,53 +133,29 @@ export function getHallBeads(rootOrRepoId: string, statuses?: HallBeadStatus[]):
     } else {
         rows = db.prepare('SELECT * FROM hall_beads WHERE repo_id = ? ORDER BY created_at ASC, bead_id ASC').all(repoId) as any[];
     }
-    return rows.map(row => materializeSovereignBead({
-        ...row,
-        contract_refs: parseJson(row.contract_refs_json, []),
-        baseline_scores: parseJson(row.baseline_scores_json, {}),
-        critique_payload: parseJson(row.critique_payload_json, {}),
-        metadata: parseJson(row.metadata_json, {})
-    }));
+    return rows.map(materializeHallBeadRow);
 }
 
 export function getHallBeadsByStatus(repoId: string, status: HallBeadStatus): SovereignBead[] {
-    const db = database.getDb();
+    const db = database.getReadDb();
     const rows = db.prepare('SELECT * FROM hall_beads WHERE repo_id = ? AND status = ? ORDER BY created_at ASC, bead_id ASC').all(repoId, status) as any[];
-    return rows.map(row => materializeSovereignBead({
-        ...row,
-        contract_refs: parseJson(row.contract_refs_json, []),
-        baseline_scores: parseJson(row.baseline_scores_json, {}),
-        critique_payload: parseJson(row.critique_payload_json, {}),
-        metadata: parseJson(row.metadata_json, {})
-    }));
+    return rows.map(materializeHallBeadRow);
 }
 
 export function getHallBeadsBySource(repoId: string, sourceKind: string): SovereignBead[] {
-    const db = database.getDb();
+    const db = database.getReadDb();
     const rows = db.prepare('SELECT * FROM hall_beads WHERE repo_id = ? AND source_kind = ? ORDER BY created_at ASC, bead_id ASC').all(repoId, sourceKind) as any[];
-    return rows.map(row => materializeSovereignBead({
-        ...row,
-        contract_refs: parseJson(row.contract_refs_json, []),
-        baseline_scores: parseJson(row.baseline_scores_json, {}),
-        critique_payload: parseJson(row.critique_payload_json, {}),
-        metadata: parseJson(row.metadata_json, {})
-    }));
+    return rows.map(materializeHallBeadRow);
 }
 
 export function getHallBeadsByEpic(repoId: string, epicId: string): SovereignBead[] {
-    const db = database.getDb();
+    const db = database.getReadDb();
     const rows = db.prepare('SELECT * FROM hall_beads WHERE repo_id = ? AND target_ref = ? ORDER BY created_at ASC, bead_id ASC').all(repoId, epicId) as any[];
-    return rows.map(row => materializeSovereignBead({
-        ...row,
-        contract_refs: parseJson(row.contract_refs_json, []),
-        baseline_scores: parseJson(row.baseline_scores_json, {}),
-        critique_payload: parseJson(row.critique_payload_json, {}),
-        metadata: parseJson(row.metadata_json, {})
-    }));
+    return rows.map(materializeHallBeadRow);
 }
 
 export function backfillHallBeadMetadata(rootPath: string = registry.getRoot()): number {
-    const db = database.getDb();
+    const db = database.getWritableDb();
     const repoId = buildHallRepositoryId(normalizeHallPath(rootPath));
     const rows = db.prepare(`
         SELECT bead_id, repo_id, target_path, status, metadata_json
@@ -264,12 +190,12 @@ export function backfillHallBeadMetadata(rootPath: string = registry.getRoot()):
 }
 
 export function deleteHallBead(beadId: string): void {
-    const db = database.getDb();
+    const db = database.getWritableDb();
     db.prepare('DELETE FROM hall_beads WHERE bead_id = ?').run(beadId);
 }
 
 export function upsertBeadCritique(record: HallBeadCritiqueRecord): void {
-    const db = database.getDb();
+    const db = database.getWritableDb();
     const sql = `
         INSERT INTO hall_bead_critiques (
             critique_id, bead_id, repo_id, agent_id, agent_expertise,
@@ -297,7 +223,7 @@ export function upsertBeadCritique(record: HallBeadCritiqueRecord): void {
 }
 
 export function getBeadCritiques(beadId: string): HallBeadCritiqueRecord[] {
-    const db = database.getDb();
+    const db = database.getReadDb();
     const rows = db.prepare('SELECT * FROM hall_bead_critiques WHERE bead_id = ?').all(beadId) as any[];
     return rows.map(row => ({
         ...row,
@@ -307,7 +233,7 @@ export function getBeadCritiques(beadId: string): HallBeadCritiqueRecord[] {
 }
 
 export function getEpisodicMemory(beadId: string): HallEpisodicMemoryRecord[] {
-    const db = database.getDb();
+    const db = database.getReadDb();
     const rows = db.prepare('SELECT * FROM hall_episodic_memory WHERE bead_id = ?').all(beadId) as any[];
     return rows.map(row => ({
         ...row,
@@ -318,7 +244,7 @@ export function getEpisodicMemory(beadId: string): HallEpisodicMemoryRecord[] {
 }
 
 export function getEpisodicMemoryById(memoryId: string): HallEpisodicMemoryRecord | null {
-    const db = database.getDb();
+    const db = database.getReadDb();
     const row = db.prepare('SELECT * FROM hall_episodic_memory WHERE memory_id = ?').get(memoryId) as any;
     if (!row) return null;
     return {
@@ -330,7 +256,7 @@ export function getEpisodicMemoryById(memoryId: string): HallEpisodicMemoryRecor
 }
 
 export function saveEpisodicMemory(record: HallEpisodicMemoryRecord): void {
-    const db = database.getDb();
+    const db = database.getWritableDb();
     const sql = `
         INSERT INTO hall_episodic_memory (
             memory_id, bead_id, repo_id, tactical_summary, files_touched_json,
@@ -363,7 +289,7 @@ export function saveEpisodicMemory(record: HallEpisodicMemoryRecord): void {
  * @returns the row mapped to a HallValidationRun, or null if not found
  */
 export function getValidationRunById(validationId: string): HallValidationRun | null {
-    const db = database.getDb();
+    const db = database.getReadDb();
     const row = db.prepare('SELECT * FROM hall_validation_runs WHERE validation_id = ?').get(validationId) as any;
     if (!row) return null;
     const preScores = parseJson(row.pre_scores_json, {} as Record<string, number>);
@@ -373,11 +299,12 @@ export function getValidationRunById(validationId: string): HallValidationRun | 
         pre_scores: preScores,
         post_scores: postScores,
         benchmark: parseJson(row.benchmark_json, {}),
+        evidence_manifest: parseJson(row.evidence_manifest_json, undefined),
     } as HallValidationRun;
 }
 
 export function getValidationRuns(beadId: string): HallValidationRun[] {
-    const db = database.getDb();
+    const db = database.getReadDb();
     const rows = db.prepare('SELECT * FROM hall_validation_runs WHERE bead_id = ?').all(beadId) as any[];
     return rows.map(row => {
         const preScores = parseJson(row.pre_scores_json, {} as Record<string, number>);
@@ -387,6 +314,7 @@ export function getValidationRuns(beadId: string): HallValidationRun[] {
             pre_scores: preScores,
             post_scores: postScores,
             benchmark: parseJson(row.benchmark_json, {}),
+            evidence_manifest: parseJson(row.evidence_manifest_json, undefined),
             // Legacy aliases
             mission_id: row.validation_id,
             file_path: row.target_path,
@@ -400,7 +328,7 @@ export function getValidationRuns(beadId: string): HallValidationRun[] {
 }
 
 export function getTracesForFile(filePath: string): HallValidationRun[] {
-    const db = database.getDb();
+    const db = database.getReadDb();
     const normalizedPath = normalizeHallPath(filePath);
     const rows = db.prepare('SELECT * FROM hall_validation_runs WHERE target_path LIKE ?').all(`%${normalizedPath}%`) as any[];
     return rows.map(row => {
@@ -411,6 +339,7 @@ export function getTracesForFile(filePath: string): HallValidationRun[] {
             pre_scores: preScores,
             post_scores: postScores,
             benchmark: parseJson(row.benchmark_json, {}),
+            evidence_manifest: parseJson(row.evidence_manifest_json, undefined),
             // Legacy aliases
             mission_id: row.validation_id,
             file_path: row.target_path,
@@ -423,42 +352,50 @@ export function getTracesForFile(filePath: string): HallValidationRun[] {
     });
 }
 
-export function saveValidationRun(record: HallValidationRun): void {
-    const db = database.getDb();
+export function saveValidationRun(
+    record: HallValidationRun,
+    kernelEvidence?: VerifiedValidationEvidence,
+): void {
+    const db = database.getWritableDb();
+    assertValidationRecordAuthority(record, kernelEvidence);
     const existing = db.prepare(`
-        SELECT repo_id, bead_id, target_path, verdict, notes, authority_class,
-               evidence_sha256, validator_identity
-        FROM hall_validation_runs WHERE validation_id = ?
-    `).get(record.validation_id) as {
-        repo_id?: string;
-        bead_id?: string | null;
-        target_path?: string | null;
-        verdict?: string;
-        notes?: string | null;
-        authority_class?: string | null;
-        evidence_sha256?: string | null;
-        validator_identity?: string | null;
-    } | undefined;
-    const authorityClass = record.authority_class ?? 'internal';
-    if (existing && (
-        existing.repo_id !== record.repo_id
-        || (existing.bead_id ?? undefined) !== record.bead_id
-        || (existing.target_path ?? undefined) !== record.target_path
-        || existing.verdict !== record.verdict
-        || (existing.notes ?? undefined) !== record.notes
-        || (existing.authority_class ?? 'internal') !== authorityClass
-        || (existing.evidence_sha256 ?? undefined) !== record.evidence_sha256
-        || (existing.validator_identity ?? undefined) !== record.validator_identity
-    )) {
-        throw new Error(`validation_id_identity_conflict:${record.validation_id}`);
+        SELECT repo_id, bead_id, verdict, authority_class, evidence_sha256,
+               validator_identity, validator_identity_source, evidence_manifest_json
+        FROM hall_validation_runs
+        WHERE validation_id = ?
+    `).get(record.validation_id) as Record<string, unknown> | undefined;
+    if (existing) {
+        if (existing.repo_id !== record.repo_id || (existing.bead_id ?? null) !== (record.bead_id ?? null)) {
+            throw new Error('validation_id_scope_conflict');
+        }
+        if (isImmutableValidationAuthority(existing.authority_class)) {
+            const sameVerifiedReceipt = record.authority_class === existing.authority_class
+                && existing.verdict === record.verdict
+                && existing.evidence_sha256 === record.evidence_sha256
+                && existing.validator_identity === record.validator_identity
+                && existing.validator_identity_source === record.validator_identity_source
+                && String(existing.evidence_manifest_json ?? '') === stringifyJson(record.evidence_manifest);
+            if (!sameVerifiedReceipt) throw new Error('verified_validation_receipt_immutable');
+            return;
+        }
     }
     const sql = `
         INSERT INTO hall_validation_runs (
             validation_id, repo_id, scan_id, bead_id, target_path, verdict,
             sprt_verdict, pre_scores_json, post_scores_json, benchmark_json, notes,
-            authority_class, evidence_sha256, validator_identity, created_at, legacy_trace_id
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ON CONFLICT(validation_id) DO NOTHING
+            authority_class, evidence_sha256, validator_identity, validator_identity_source,
+            evidence_manifest_json, created_at, legacy_trace_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(validation_id) DO UPDATE SET
+            verdict = excluded.verdict,
+            sprt_verdict = excluded.sprt_verdict,
+            notes = excluded.notes,
+            post_scores_json = excluded.post_scores_json,
+            authority_class = excluded.authority_class,
+            evidence_sha256 = excluded.evidence_sha256,
+            validator_identity = excluded.validator_identity,
+            validator_identity_source = excluded.validator_identity_source,
+            evidence_manifest_json = excluded.evidence_manifest_json
     `;
     db.prepare(sql).run(
         record.validation_id,
@@ -472,9 +409,11 @@ export function saveValidationRun(record: HallValidationRun): void {
         stringifyJson(record.post_scores),
         stringifyJson(record.benchmark),
         record.notes ?? null,
-        authorityClass,
+        record.authority_class ?? 'legacy_unverified',
         record.evidence_sha256 ?? null,
         record.validator_identity ?? null,
+        record.validator_identity_source ?? null,
+        record.evidence_manifest ? stringifyJson(record.evidence_manifest) : null,
         record.created_at,
         record.legacy_trace_id ?? null
     );
@@ -501,7 +440,7 @@ export function saveTrace(legacyRecord: any): void {
 }
 
 export function listUnstudiedEngrams(sessionsOnly = true): HallEpisodicMemoryRecord[] {
-    const db = database.getDb();
+    const db = database.getReadDb();
     const filterClause = sessionsOnly ? "WHERE memory_id LIKE 'engram_session_%'" : "";
     const joinClause = sessionsOnly ? "AND" : "WHERE";
     const sql = `

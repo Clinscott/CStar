@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 
 const ROOT = path.resolve(import.meta.dirname, '..', '..', '..');
 const DELEGATE = path.join(ROOT, '.agents/skills/corvus-forge/scripts/hermes_minimax_delegate.mjs');
-const CANONICAL_HERMES = path.join(ROOT, '..', 'AutoBot', 'hermes-agent', '.venv', 'bin', 'hermes');
+const CANONICAL_HERMES = path.join(ROOT, '.agents/skills/corvus-forge/runtime/bin/hermes');
 const roots: string[] = [];
 const identity = {
     forge_request_receipt_id: 'forge-request-bound-test',
@@ -21,6 +21,11 @@ const identityEnv = {
     CSTAR_FORGE_EXECUTE_DECISION_ID: identity.decision_id,
     CSTAR_FORGE_EXECUTE_ADAPTER_REF: identity.adapter_ref,
 };
+const materialPolicy = {
+    schema: 'cstar.forge_material_policy.v1',
+    file_max_bytes: 512 * 1024, total_max_bytes: 512 * 1024,
+    prompt_max_bytes: 1024 * 1024,
+};
 
 function fixture(preflight?: Record<string, unknown>) {
     const root = fs.mkdtempSync(path.join('/tmp', 'forge-bound-preflight-'));
@@ -32,7 +37,8 @@ function fixture(preflight?: Record<string, unknown>) {
     fs.mkdirSync(home); fs.writeFileSync(target, 'export const bounded = true;\n');
     fs.writeFileSync(intentPath, JSON.stringify({
         intent: 'Return a bounded synthetic manifest.', execution_identity: identity,
-        project_root: root, target_paths: [target], hermes_preflight: preflight,
+        material_policy: materialPolicy, project_root: root,
+        target_paths: [target], hermes_preflight: preflight,
         payload: { hermes_profile: 'cstar-hub', model: 'MiniMax-M3', expected_output: 'json',
             write_to: response, timeout_seconds: 60 },
     }));
@@ -47,7 +53,7 @@ function writeSyntheticHermes(root: string): string {
         'if (args.length === 1 && args[0] === "--version") process.stdout.write("Hermes synthetic 1.0\\n");',
         'else if (args.length === 1 && args[0] === "--help") process.stdout.write("--profile --provider --model\\n");',
         'else if (args.length === 2 && args[0] === "chat" && args[1] === "--help") process.stdout.write("--forge-query-stdin --quiet --toolsets --safe-mode --max-turns --source --provider --model\\n");',
-        'else if (args.length === 1 && args[0] === "--oauth-status") process.stdout.write(JSON.stringify({schema:"hermes.forge_minimax_oauth_status.v1",status:"ready",provider:"minimax-oauth",auth_mode:"oauth",profile:"cstar-hub",refresh_required:false,min_ttl_seconds:2100}));',
+        'else if (args.length === 1 && args[0] === "--oauth-status") process.stdout.write(JSON.stringify({schema:"hermes.forge_minimax_oauth_status.v2",status:"ready",provider:"minimax-oauth",auth_mode:"oauth",profile:"cstar-hub",refresh_required:false,horizon_seconds:2100,horizon_started_unix_ms:Number(process.env.CSTAR_FORGE_OAUTH_HORIZON_STARTED_UNIX_MS),required_until_unix_ms:Number(process.env.CSTAR_FORGE_OAUTH_REQUIRED_UNTIL_UNIX_MS),horizon_binding_sha256:process.env.CSTAR_FORGE_OAUTH_HORIZON_BINDING_SHA256}));',
         'else process.stdout.write(JSON.stringify({status:"pass",summary:"synthetic bound proof",files:[],artifacts:{},validation:{},metrics:{},boundaries:{},callback_packet:"packet"}));',
     ].join('\n'));
     fs.chmodSync(executable, 0o700);
@@ -57,7 +63,7 @@ function writeSyntheticHermes(root: string): string {
 function preflight(hermes: string) {
     const result = spawnSync(process.execPath, [DELEGATE, '--preflight'], {
         cwd: ROOT, env: { HOME: os.homedir(), LANG: 'C.UTF-8', HERMES_BIN: hermes,
-            NODE_TEST_CONTEXT: 'cstar-synthetic', CSTAR_FORGE_TEST_MODE: '1' },
+            NODE_TEST_CONTEXT: 'cstar-synthetic', CSTAR_FORGE_TEST_MODE: '1', ...identityEnv },
         encoding: 'utf-8', timeout: 15_000,
     });
     assert.equal(result.status, 0, result.stderr || result.stdout);

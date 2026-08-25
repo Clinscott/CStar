@@ -13,10 +13,10 @@ import { registerCoreTools } from '../../../src/tools/cstar-kernel-mcp/register_
 const PROJECT_ROOT = path.resolve(import.meta.dirname, '..', '..', '..');
 
 describe('CStar MCP canonical tool catalog', () => {
-    it('contains exactly 25 unique public tools and excludes AutoBot', () => {
+    it('contains exactly 28 unique public tools and excludes AutoBot', () => {
         const toolNameSet = new Set<string>(CSTAR_KERNEL_TOOL_NAMES);
 
-        assert.equal(CSTAR_KERNEL_TOOL_CATALOG.length, 25);
+        assert.equal(CSTAR_KERNEL_TOOL_CATALOG.length, 28);
         assert.deepEqual(
             CSTAR_KERNEL_TOOL_NAMES,
             CSTAR_KERNEL_TOOL_CATALOG.map(({ name }) => name),
@@ -40,6 +40,14 @@ describe('CStar MCP canonical tool catalog', () => {
         assert.throws(
             () => getCstarKernelToolCatalogEntry('not-a-cstar-tool'),
             /Unknown CStar kernel MCP tool: not-a-cstar-tool/,
+        );
+        assert.match(
+            getCstarKernelToolCatalogEntry('cstar_forge_request').description,
+            /machine challenge material stays hidden/i,
+        );
+        assert.match(
+            getCstarKernelToolCatalogEntry('cstar_forge_authorize').description,
+            /explicit root-user build instruction or immutable CStar goal-continuation receipt/i,
         );
     });
 
@@ -68,6 +76,12 @@ describe('CStar MCP canonical tool catalog', () => {
         );
         assert.deepEqual(instrumentedNames, CSTAR_KERNEL_TOOL_NAMES);
         assert.ok(registrations.every(([, , schema, handler]) => schema && typeof handler === 'function'));
+
+        const mongoRegistration = registrations.find(([name]) => name === 'cstar_mongo_mailbox');
+        assert.ok(mongoRegistration);
+        const mongoSchema = mongoRegistration[2] as Record<string, any>;
+        assert.match(mongoSchema.action.description, /retired compatibility.*fails closed/i);
+        assert.match(mongoSchema.operator_authorization_ref.description, /grants no authority.*cannot enable writes/i);
     });
 
     it('rejects scalar Gungnir mandate claims and accepts only receipt-backed audit shapes', () => {
@@ -97,10 +111,40 @@ describe('CStar MCP canonical tool catalog', () => {
         assert.equal(parsed.audit.validation_id, 'validation:verified:1');
     });
 
+    it('keeps host-goal continuity separate from bead lifecycle', () => {
+        const registrations: any[][] = [];
+        registerCoreTools(
+            { tool: (...args: any[]) => registrations.push(args) },
+            (_name, handler) => handler,
+        );
+
+        const beadRegistration = registrations.find(([name]) => name === 'cstar_bead');
+        const goalRegistration = registrations.find(([name]) => name === 'cstar_goal_resume');
+        assert.ok(beadRegistration);
+        assert.ok(goalRegistration);
+
+        const beadSchema = beadRegistration[2] as Record<string, any>;
+        const goalSchema = goalRegistration[2] as Record<string, any>;
+        assert.equal(Object.hasOwn(beadSchema, 'host_goal_objective_sha256'), false);
+        assert.deepEqual(Object.keys(goalSchema).sort(), [
+            'continued_bead_id',
+            'decision_id',
+            'host_goal_objective_sha256',
+            'host_goal_snapshot_sha256',
+            'host_resume_capability',
+            'observed_host_status',
+            'repair_bead_id',
+        ]);
+    });
+
     it('keeps the reader-facing API table complete against the catalog', () => {
         const apiReference = fs.readFileSync(
             path.join(PROJECT_ROOT, 'docs', 'integrations', 'cstar-kernel-mcp.md'),
             'utf-8',
+        );
+        assert.match(
+            apiReference,
+            new RegExp(`^## Tool Inventory \\(${CSTAR_KERNEL_TOOL_NAMES.length}\\)$`, 'm'),
         );
         const documentedNames = [...apiReference.matchAll(/^\|\s*\d+\s*\|\s*`([^`]+)`\s*\|/gm)]
             .map((match) => match[1]);

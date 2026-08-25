@@ -1,50 +1,25 @@
-import type { GungnirMatrix } from  './gungnir.js';
+import type { GungnirMatrix } from './gungnir.js';
+import type { HallValidationEvidenceManifest } from './validation_evidence.js';
+
+export type {
+    HallValidationEvidenceManifest,
+    HallValidationEvidenceManifestV1,
+    HallValidationEvidenceManifestV2,
+    HallValidationEvidenceManifestV3,
+} from './validation_evidence.js';
 
 export type HallRepositoryStatus = 'DORMANT' | 'AWAKE' | 'AGENT_LOOP';
 export type HallScanStatus = 'PENDING' | 'COMPLETED' | 'FAILED';
-export type HallBeadStatus =
-    | 'OPEN'
-    | 'SET-PENDING'
-    | 'SET'
-    | 'IN_PROGRESS'
-    | 'READY_FOR_REVIEW'
-    | 'NEEDS_TRIAGE'
-    | 'BLOCKED'
-    | 'RESOLVED'
-    | 'ARCHIVED'
-    | 'SUPERSEDED';
+export type HallBeadStatus = 'OPEN' | 'SET-PENDING' | 'SET' | 'IN_PROGRESS' | 'READY_FOR_REVIEW'
+    | 'NEEDS_TRIAGE' | 'BLOCKED' | 'RESOLVED' | 'ARCHIVED' | 'SUPERSEDED';
 export type HallBeadTargetKind = 'FILE' | 'SECTOR' | 'REPOSITORY' | 'CONTRACT' | 'SPOKE' | 'WORKFLOW' | 'SKILL' | 'WEAVE' | 'VALIDATION' | 'OTHER';
-export type HallValidationVerdict =
-    | 'ACCEPTED'
-    | 'REJECTED'
-    | 'INCONCLUSIVE'
-    | 'SUCCESS'
-    | 'FAILURE';
-export type HallSkillProposalStatus =
-    | 'PROPOSED'
-    | 'VALIDATED'
-    | 'PROMOTED'
-    | 'REJECTED'
-    | 'SUPERSEDED';
-export type HallSkillActivationStatus =
-    | 'PENDING'
-    | 'ACTIVE'
-    | 'COMPLETED'
-    | 'FAILED'
-    | 'CANCELLED';
-export type HallPlanningSessionStatus =
-    | 'INTENT_RECEIVED'
-    | 'RESEARCH_PHASE'
-    | 'PROPOSAL_REVIEW'
-    | 'BEAD_CRITIQUE_LOOP'
-    | 'BEAD_USER_REVIEW'
-    | 'PLAN_CONCRETE'
-    | 'FORGE_EXECUTION'
-    | 'NEEDS_INPUT'
-    | 'PLAN_READY'
-    | 'ROUTED'
-    | 'COMPLETED'
-    | 'FAILED';
+export type HallValidationVerdict = 'ACCEPTED' | 'REJECTED' | 'INCONCLUSIVE' | 'SUCCESS' | 'FAILURE';
+
+export type HallSkillProposalStatus = 'PROPOSED' | 'VALIDATED' | 'PROMOTED' | 'REJECTED' | 'SUPERSEDED';
+export type HallSkillActivationStatus = 'PENDING' | 'ACTIVE' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+export type HallPlanningSessionStatus = 'INTENT_RECEIVED' | 'RESEARCH_PHASE' | 'PROPOSAL_REVIEW'
+    | 'BEAD_CRITIQUE_LOOP' | 'BEAD_USER_REVIEW' | 'PLAN_CONCRETE' | 'FORGE_EXECUTION'
+    | 'NEEDS_INPUT' | 'PLAN_READY' | 'ROUTED' | 'COMPLETED' | 'FAILED';
 export type HallMountedSpokeKind = 'local' | 'git' | 'mirror' | 'archive';
 export type HallMountedSpokeStatus = 'active' | 'disconnected' | 'pending';
 export type HallMountedSpokeTrust = 'trusted' | 'observe' | 'quarantined';
@@ -57,16 +32,8 @@ export type HallOneMindRequestStatus = 'PENDING' | 'CLAIMED' | 'COMPLETED' | 'FA
 export type HallOneMindBranchStatus = 'COMPLETED' | 'FAILED';
 export type HallAgentPresenceStatus = 'SLEEPING' | 'THINKING' | 'WORKING' | 'WAITING_FOR_HANDOFF' | 'OFFLINE';
 export type HallCoordinationScopeKind = 'REPOSITORY' | 'SESSION' | 'TRACE' | 'BEAD' | 'TARGET';
-export type HallCoordinationEventKind =
-    | 'CLAIM'
-    | 'HANDOFF'
-    | 'BROADCAST'
-    | 'INFO'
-    | 'ALERT'
-    | 'PROGRESS'
-    | 'BLOCKER'
-    | 'DECISION'
-    | 'SUMMARY';
+export type HallCoordinationEventKind = 'CLAIM' | 'HANDOFF' | 'BROADCAST' | 'INFO' | 'ALERT'
+    | 'PROGRESS' | 'BLOCKER' | 'DECISION' | 'SUMMARY';
 
 export interface HallRepositoryRecord {
     repo_id: string;
@@ -178,9 +145,11 @@ export interface HallValidationRun {
     post_scores?: Record<string, unknown>;
     benchmark?: Record<string, unknown>;
     notes?: string;
-    authority_class?: 'reported' | 'verified' | 'internal' | 'legacy_unverified';
+    authority_class?: 'reported' | 'verified' | 'verified_v2' | 'verified_v3' | 'internal' | 'legacy_unverified';
     evidence_sha256?: string;
     validator_identity?: string;
+    validator_identity_source?: HallValidationEvidenceManifest['validator_identity_source'];
+    evidence_manifest?: HallValidationEvidenceManifest;
     created_at: number;
     legacy_trace_id?: number;
 }
@@ -427,7 +396,6 @@ export interface HallDocumentRecord {
 }
 
 export interface HallDocumentMetadata extends HallContextMetadata {}
-
 export interface HallDocumentVersionRecord {
     version_id: string;
     document_id: string;
@@ -440,7 +408,6 @@ export interface HallDocumentVersionRecord {
     metadata?: Record<string, unknown>;
     created_at: number;
 }
-
 export interface HallGitDiffRecord {
     id?: number;
     commit_hash: string;
@@ -452,7 +419,6 @@ export interface HallGitDiffRecord {
     deletions: number;
     patch_text?: string;
 }
-
 export interface HallRepositorySummary {
     repo_id: string;
     root_path: string;
@@ -469,35 +435,8 @@ export interface HallRepositorySummary {
     last_validation_at?: number;
 }
 
-export function normalizeHallPath(inputPath: string): string {
-    return inputPath.replace(/\\/g, '/').replace(/\/+$/, '');
-}
-
-export function buildHallCoordinationThreadId(scope: {
-    repoId?: string;
-    beadId?: string;
-    sessionId?: string;
-    traceId?: string;
-    targetPath?: string;
-}): string {
-    if (scope.beadId?.trim()) {
-        return `bead:${scope.beadId.trim()}`;
-    }
-    if (scope.sessionId?.trim()) {
-        return `session:${scope.sessionId.trim()}`;
-    }
-    if (scope.traceId?.trim()) {
-        return `trace:${scope.traceId.trim()}`;
-    }
-    if (scope.targetPath?.trim()) {
-        return `target:${normalizeHallPath(scope.targetPath.trim())}`;
-    }
-    if (scope.repoId?.trim()) {
-        return `repo:${scope.repoId.trim()}:coordination`;
-    }
-    return 'repo:unknown:coordination';
-}
-
-export function buildHallRepositoryId(rootPath: string): string {
-    return `repo:${normalizeHallPath(rootPath)}`;
-}
+export {
+    buildHallCoordinationThreadId,
+    buildHallRepositoryId,
+    normalizeHallPath,
+} from './hall_identity.js';

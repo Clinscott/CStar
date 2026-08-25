@@ -1,76 +1,41 @@
-import { describe, it, beforeEach, afterEach } from 'node:test';
-import assert from 'node:assert';
-import Fastify from 'fastify';
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
+
+import { RETIRED_GATEWAY_ERROR } from '../../src/node/retired_gateway.js';
 import corvusPlugin from '../../src/node/gateway/plugins/corvus.js';
 import intentRoute from '../../src/node/gateway/routes/api/intent.js';
-import telemetryRoute from '../../src/node/gateway/routes/streams/telemetry.js';
+import mimirRoute from '../../src/node/gateway/routes/api/mimir.js';
+import apiTelemetryRoute from '../../src/node/gateway/routes/api/telemetry.js';
+import streamTelemetryRoute from '../../src/node/gateway/routes/streams/telemetry.js';
+import webSocketEventsRoute from '../../src/node/gateway/routes/ws/events.js';
 
-/**
- * [Ω] Test Gateway Empire
- * Validates Zero-Trust boundaries and SSE flow.
- */
-describe('Gateway: Empire Boundary Validation', async () => {
-    let fastify: any;
+const retiredRoutes = [
+    corvusPlugin,
+    intentRoute,
+    mimirRoute,
+    apiTelemetryRoute,
+    streamTelemetryRoute,
+    webSocketEventsRoute,
+];
 
-    beforeEach(async () => {
-        fastify = Fastify();
-        await fastify.register(corvusPlugin);
-        await fastify.register(intentRoute, { prefix: '/api' });
-        await fastify.register(telemetryRoute, { prefix: '/streams' });
-        await fastify.ready();
-    });
+describe('retired gateway family', () => {
+    it('fails every registration before reading the host object', () => {
+        let reads = 0;
+        const poisonHost = new Proxy({}, {
+            get() {
+                reads += 1;
+                throw new Error('gateway_touched_host');
+            },
+        });
 
-    afterEach(async () => {
-        if (fastify) {
-            await fastify.close();
+        for (const route of retiredRoutes) {
+            assert.throws(() => route(poisonHost), new RegExp(RETIRED_GATEWAY_ERROR));
         }
+        assert.equal(reads, 0);
     });
 
-    it('should reject malformed Intent payloads (Zero-Trust Amendment B)', async () => {
-        const response = await fastify.inject({
-            method: 'POST',
-            url: '/api/intent',
-            payload: {
-                invalid_field: 'malicious'
-            }
-        });
-
-        assert.strictEqual(response.statusCode, 400);
-    });
-
-    it('should reject valid payloads on the retired intent-execution route', async () => {
-        const payload = {
-            system_meta: {},
-            intent_raw: 'test',
-            intent_normalized: 'TEST_INTENT',
-            target_workflow: 'ping'
-        };
-
-        const response = await fastify.inject({
-            method: 'POST',
-            url: '/api/intent',
-            payload
-        });
-
-        assert.strictEqual(response.statusCode, 503);
-        assert.match(JSON.parse(response.body).error, /decommissioned/);
-    });
-
-    it('should return 503 if daemon is offline', async () => {
-        // Force daemon offline
-        fastify.corvus.isRunning = false;
-
-        const response = await fastify.inject({
-            method: 'POST',
-            url: '/api/intent',
-            payload: {
-                system_meta: {},
-                intent_raw: 'test',
-                intent_normalized: 'TEST_INTENT',
-                target_workflow: 'ping'
-            }
-        });
-
-        assert.strictEqual(response.statusCode, 503);
+    it('fails direct server import instead of loading configuration or listening', async () => {
+        const specifier = `../../src/node/gateway/server.js?retired=${Date.now()}`;
+        await assert.rejects(() => import(specifier), new RegExp(RETIRED_GATEWAY_ERROR));
     });
 });

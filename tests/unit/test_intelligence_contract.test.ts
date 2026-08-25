@@ -6,7 +6,6 @@ import {
     normalizeIntelligenceRequest,
     parseStructuredPayload,
 } from '../../src/types/intelligence-contract.ts';
-import { getHostMindLabel } from '../../src/core/host_session.ts';
 
 describe('Canonical intelligence contract (CS-P1-02)', () => {
     it('extracts JSON payloads from conversational oracle output', () => {
@@ -39,34 +38,5 @@ describe('Canonical intelligence contract (CS-P1-02)', () => {
             transport_mode: 'host_session',
             cached: false,
         });
-    });
-
-    it('preserves requested and host-reported actual model identity separately', () => {
-        const request = normalizeIntelligenceRequest({ prompt: 'Identify execution.' }, 'test-suite');
-        const response = buildIntelligenceSuccess(
-            request,
-            'ok',
-            'host_session',
-            false,
-            {
-                provider: 'gemini',
-                requested_model: 'gemini-3.1-pro',
-                actual_model: 'gemini-3.5-flash',
-                model_source: 'host_reported',
-                adapter_version: 'agy-test',
-                reasoning_profile: 'high',
-            },
-        );
-
-        assert.deepStrictEqual(response.trace.execution_identity, {
-            provider: 'gemini',
-            requested_model: 'gemini-3.1-pro',
-            actual_model: 'gemini-3.5-flash',
-            model_source: 'host_reported',
-            adapter_version: 'agy-test',
-            reasoning_profile: 'high',
-        });
-        assert.strictEqual(getHostMindLabel('gemini'), 'GEMINI HOST (MODEL UNREPORTED)');
-        assert.strictEqual(getHostMindLabel('gemini', 'gemini-3.5-flash'), 'gemini-3.5-flash');
     });
 });

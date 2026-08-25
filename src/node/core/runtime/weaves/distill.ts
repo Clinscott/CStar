@@ -5,20 +5,24 @@ import type {
     WeaveInvocation,
     WeaveResult,
 } from '../contracts.js';
-import { retiredWorkflowResult } from '../retired_workflow.js';
+import { buildRetiredRuntimeResult } from '../retired_adapter.js';
 
+/** Retired provider/Hall episodic-memory adapter. */
 export class DistillWeave implements RuntimeAdapter<CompressWeavePayload> {
     public readonly id = 'weave:distill';
-    public constructor(...args: unknown[]) { void args; }
+
+    public constructor(..._retiredDependencies: unknown[]) {
+        void _retiredDependencies;
+    }
 
     public async execute(
-        invocation: WeaveInvocation<CompressWeavePayload>,
-        context: RuntimeContext,
+        _invocation: WeaveInvocation<CompressWeavePayload>,
+        _context: RuntimeContext,
     ): Promise<WeaveResult> {
-        void invocation; void context;
-        return retiredWorkflowResult(
-            this.id,
-            'Prepare a bounded cstar-closeout packet; do not let a model write canonical memory.',
-        );
+        return buildRetiredRuntimeResult({
+            weaveId: this.id,
+            boundary: 'retired-distill-weave',
+            recommendedTool: 'cstar_engram_record',
+        });
     }
 }

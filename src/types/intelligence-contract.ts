@@ -2,6 +2,25 @@ import { randomUUID } from 'node:crypto';
 
 export type IntelligenceTransportMode = 'auto' | 'host_session' | 'synapse_db';
 export type IntelligenceStatus = 'success' | 'error';
+export type IntelligenceExecutionSurface =
+    | 'host_session_invoker'
+    | 'configured_host_bridge'
+    | 'codex_exec_cli'
+    | 'agy_cli'
+    | 'claude_cli';
+
+const INTELLIGENCE_EXECUTION_SURFACES = new Set<IntelligenceExecutionSurface>([
+    'host_session_invoker',
+    'configured_host_bridge',
+    'codex_exec_cli',
+    'agy_cli',
+    'claude_cli',
+]);
+
+export function isIntelligenceExecutionSurface(value: unknown): value is IntelligenceExecutionSurface {
+    return typeof value === 'string'
+        && INTELLIGENCE_EXECUTION_SURFACES.has(value as IntelligenceExecutionSurface);
+}
 
 export interface IntelligenceCaller {
     source: string;
@@ -14,6 +33,7 @@ export interface IntelligenceRequest {
     prompt: string;
     system_prompt?: string;
     transport_mode?: IntelligenceTransportMode;
+    execution_surface?: IntelligenceExecutionSurface;
     correlation_id?: string;
     caller?: IntelligenceCaller;
     metadata?: Record<string, unknown>;
@@ -23,6 +43,7 @@ export interface NormalizedIntelligenceRequest {
     prompt: string;
     system_prompt?: string;
     transport_mode: IntelligenceTransportMode;
+    execution_surface?: IntelligenceExecutionSurface;
     correlation_id: string;
     caller: IntelligenceCaller;
     metadata: Record<string, unknown>;
@@ -32,16 +53,6 @@ export interface IntelligenceTrace {
     correlation_id: string;
     transport_mode: Exclude<IntelligenceTransportMode, 'auto'>;
     cached?: boolean;
-    execution_identity?: IntelligenceExecutionIdentity;
-}
-
-export interface IntelligenceExecutionIdentity {
-    provider: string | null;
-    requested_model: string | null;
-    actual_model: string | null;
-    model_source: 'host_reported' | 'unreported';
-    adapter_version: string | null;
-    reasoning_profile: string | null;
 }
 
 export interface IntelligenceResponse {
@@ -60,6 +71,7 @@ export function normalizeIntelligenceRequest(
         prompt: request.prompt,
         system_prompt: request.system_prompt,
         transport_mode: request.transport_mode ?? 'auto',
+        execution_surface: request.execution_surface,
         correlation_id: request.correlation_id ?? randomUUID(),
         caller: request.caller ?? { source: defaultSource },
         metadata: request.metadata ?? {},
@@ -114,7 +126,6 @@ export function buildIntelligenceSuccess(
     rawText: string,
     transportMode: Exclude<IntelligenceTransportMode, 'auto'>,
     cached = false,
-    executionIdentity?: IntelligenceExecutionIdentity,
 ): IntelligenceResponse {
     return {
         status: 'success',
@@ -124,7 +135,6 @@ export function buildIntelligenceSuccess(
             correlation_id: request.correlation_id,
             transport_mode: transportMode,
             cached,
-            ...(executionIdentity ? { execution_identity: executionIdentity } : {}),
         },
     };
 }
@@ -133,7 +143,6 @@ export function buildIntelligenceError(
     request: NormalizedIntelligenceRequest,
     error: string,
     transportMode: Exclude<IntelligenceTransportMode, 'auto'>,
-    executionIdentity?: IntelligenceExecutionIdentity,
 ): IntelligenceResponse {
     return {
         status: 'error',
@@ -141,7 +150,6 @@ export function buildIntelligenceError(
         trace: {
             correlation_id: request.correlation_id,
             transport_mode: transportMode,
-            ...(executionIdentity ? { execution_identity: executionIdentity } : {}),
         },
     };
 }

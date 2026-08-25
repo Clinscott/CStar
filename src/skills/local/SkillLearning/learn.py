@@ -1,43 +1,27 @@
 #!/usr/bin/env python3
-"""Fail-closed tombstone for the retired interactive skill-learning lane.
-
-The former implementation accepted arbitrary repository URLs and delegated to
-an untracked clone/promote path.  Importing or executing this module now has no
-network, model, subprocess, bootstrap, prompt, or filesystem side effects.
-"""
+"""Fail-closed tombstone for the unregistered legacy SkillLearning CLI."""
 
 from __future__ import annotations
 
 import sys
 
 
-DECOMMISSION_MESSAGE = (
-    "Interactive direct skill acquisition is decommissioned. Use the current "
-    "host skill-first workflow and CStar lifecycle for proposals and promotion."
-)
-
-
-class SkillLearningDecommissioned(RuntimeError):
-    """Raised when a stale caller invokes the retired learning lane."""
+RETIRED_ERROR = "legacy_skill_learning_retired_use_cstar_forge"
 
 
 class SkillLearner:
-    """Compatibility API that permanently rejects direct skill acquisition."""
+    """Compatibility surface that cannot reactivate legacy skill acquisition."""
 
     @staticmethod
     def execute() -> None:
-        """Fail closed without reading input or changing state."""
-        raise SkillLearningDecommissioned(DECOMMISSION_MESSAGE)
+        """Reject programmatic calls with the stable retirement code."""
+        raise RuntimeError(RETIRED_ERROR)
 
 
 def main() -> int:
-    """Return a deterministic nonzero status for stale CLI callers."""
-    try:
-        SkillLearner.execute()
-    except SkillLearningDecommissioned as error:
-        print(str(error), file=sys.stderr)
-        return 2
-    return 0
+    """Reject CLI calls without imports, prompts, source access, or writes."""
+    print(RETIRED_ERROR, file=sys.stderr)
+    return 1
 
 
 if __name__ == "__main__":

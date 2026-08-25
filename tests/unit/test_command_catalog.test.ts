@@ -1,50 +1,81 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 
 import { findCommandCatalogEntry, getCommandCatalog } from '../../src/node/core/commands/command_catalog.js';
 
 describe('Command catalog', () => {
-    it('discovers commander-backed command families for machine-readable API use', () => {
-        const catalog = getCommandCatalog();
+    it('is pure metadata for the explicit cstar.ts command surface', () => {
+        assert.deepEqual(
+            getCommandCatalog().map((entry) => entry.name),
+            [
+                'status',
+                'manifest',
+                'skill-info',
+                'trace',
+                'augury',
+                'run-skill',
+                'orchestrate',
+                'evolve',
+                'evolve-temporal',
+                'forge',
+            ],
+        );
 
-        assert.ok(catalog.some((entry) => entry.name === 'manifest'));
-        assert.ok(catalog.some((entry) => entry.name === 'skill-info'));
-        assert.ok(catalog.some((entry) => entry.name === 'one-mind'));
-        assert.ok(catalog.some((entry) => entry.name === 'augury'));
+        const source = fs.readFileSync(
+            new URL('../../src/node/core/commands/command_catalog.ts', import.meta.url),
+            'utf-8',
+        );
+        assert.doesNotMatch(source, /from ['"]commander['"]/);
+        assert.doesNotMatch(source, /register[A-Z][A-Za-z]+Command/);
+        assert.doesNotMatch(source, /new Command\s*\(/);
     });
 
-    it('captures canonical Augury handoff json support', () => {
+    it('does not advertise inactive action-bearing registrars', () => {
+        const names = new Set(getCommandCatalog().map((entry) => entry.name));
+        for (const retired of [
+            'dominion', 'odin', 'dormancy', 'skill', 'lore', 'recreate',
+            'vitals', 'one-mind', 'hall-doc', 'spoke', 'os', 'oracle', 'tui',
+            'pennyone', 'ravens', 'start', 'bifrost', 'bead', 'profile', 'calculus',
+        ]) {
+            assert.equal(names.has(retired), false, retired);
+        }
+    });
+
+    it('keeps calculus out of the default catalog despite compatibility discovery', () => {
+        assert.equal(findCommandCatalogEntry('calculus'), null);
+        const launcher = fs.readFileSync(
+            new URL('../../cstar.ts', import.meta.url),
+            'utf-8',
+        );
+        assert.doesNotMatch(launcher, /registerCalculusCommand/);
+    });
+
+    it('preserves status, manifest, skill-info, trace, and Augury metadata', () => {
+        assert.equal(findCommandCatalogEntry('status')?.supports_json, true);
+        assert.equal(findCommandCatalogEntry('manifest')?.supports_json, true);
+        assert.equal(findCommandCatalogEntry('skill-info')?.arguments[0]?.placeholder, '<name>');
+
+        const trace = findCommandCatalogEntry('trace');
+        assert.deepEqual(trace?.subcommands.map((entry) => entry.name), ['status', 'handoff', 'failures']);
+        assert.equal(trace?.subcommands.every((entry) => entry.supports_json), true);
+
         const augury = findCommandCatalogEntry('augury');
-
-        assert.ok(augury);
-        assert.equal(augury?.command_path.join(' '), 'augury');
-        assert.equal(augury?.subcommands.some((entry) => entry.name === 'handoff' && entry.supports_json), true);
-        assert.equal(augury?.subcommands.some((entry) => entry.name === 'status' && entry.supports_json), true);
-        assert.equal(augury?.subcommands.some((entry) => entry.name === 'failures' && entry.supports_json), true);
-        assert.equal(augury?.subcommands.some((entry) => entry.name === 'doctor' && entry.supports_json), true);
-        assert.equal(augury?.subcommands.some((entry) => entry.name === 'explain' && entry.supports_json), true);
+        assert.deepEqual(
+            augury?.subcommands.map((entry) => entry.name),
+            ['status', 'handoff', 'failures', 'doctor', 'explain'],
+        );
+        assert.equal(augury?.subcommands.every((entry) => entry.supports_json), true);
     });
 
-    it('captures aliases, json support, and subcommands for one-mind', () => {
-        const oneMind = findCommandCatalogEntry('one-mind');
+    it('returns defensive copies instead of shared mutable catalog state', () => {
+        const first = getCommandCatalog();
+        first[0].name = 'mutated';
+        first[0].options.length = 0;
 
-        assert.ok(oneMind);
-        assert.equal(oneMind?.command_path.join(' '), 'one-mind');
-        assert.equal(oneMind?.subcommands.some((entry) => entry.name === 'status' && entry.supports_json), true);
-        assert.equal(oneMind?.subcommands.some((entry) => entry.name === 'events' && entry.supports_json), true);
-        assert.equal(oneMind?.subcommands.some((entry) => entry.name === 'agents' && entry.supports_json), true);
-    });
-
-    it('captures top-level aliases and json options for pennyone and skill-info', () => {
-        const pennyone = findCommandCatalogEntry('pennyone');
-        const skillInfo = findCommandCatalogEntry('skill-info');
-
-        assert.ok(pennyone);
-        assert.deepEqual(pennyone?.aliases, ['p1']);
-        assert.equal(pennyone?.supports_json, true);
-
-        assert.ok(skillInfo);
-        assert.equal(skillInfo?.supports_json, true);
-        assert.equal(skillInfo?.arguments[0]?.placeholder, '<name>');
+        const second = getCommandCatalog();
+        assert.equal(second[0].name, 'status');
+        assert.equal(second[0].supports_json, true);
+        assert.equal(second[0].options.length, 1);
     });
 });

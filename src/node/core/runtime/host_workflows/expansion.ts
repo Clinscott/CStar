@@ -5,21 +5,25 @@ import type {
     WeaveInvocation,
     WeaveResult,
 } from '../contracts.js';
-import { retiredWorkflowResult } from '../retired_workflow.js';
+import { buildRetiredRuntimeResult } from '../retired_adapter.js';
 
+/** Retired direct spoke-clone/link workflow. */
 export class EstateExpansionHostWorkflow implements RuntimeAdapter<EstateExpansionWeavePayload> {
     public readonly id = 'weave:expansion';
-    public constructor(...args: unknown[]) { void args; }
+
+    public constructor(..._retiredDependencies: unknown[]) {
+        void _retiredDependencies;
+    }
 
     public async execute(
-        invocation: WeaveInvocation<EstateExpansionWeavePayload>,
-        context: RuntimeContext,
+        _invocation: WeaveInvocation<EstateExpansionWeavePayload>,
+        _context: RuntimeContext,
     ): Promise<WeaveResult> {
-        void invocation; void context;
-        return retiredWorkflowResult(
-            this.id,
-            'Use an explicitly authorized cstar_spoke link/project lifecycle; no model may onboard a spoke.',
-        );
+        return buildRetiredRuntimeResult({
+            weaveId: this.id,
+            boundary: 'retired-expansion-host-workflow',
+            recommendedTool: 'cstar_spoke',
+        });
     }
 }
 

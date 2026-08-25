@@ -1,19 +1,23 @@
-const { execSync } = require('child_process');
-const path = require('path');
-const PROJECT_ROOT = path.resolve(__dirname, '../../');
+/**
+ * Retired CommonJS-era Mimir bridge.
+ *
+ * This duplicate must remain import-safe for stale consumers, but it must not
+ * shell into Python, forward environment state, or invoke a host model. The
+ * canonical TypeScript compatibility surface is independently fail-closed.
+ */
 
-exports.mimir = {
-    think: async (query) => {
-        try {
-            const cmd = `python "${path.join(PROJECT_ROOT, 'src/core/mimir_client.py')}" "${query.replace(/"/g, '\\"')}"`;
-            const result = execSync(cmd, { encoding: 'utf-8', env: { ...process.env, GEMINI_CLI_ACTIVE: 'true' } });
-            return result.trim();
-        } catch (e) {
-            return 'Link Offline';
-        }
+export const RETIRED_MIMIR_JS_ERROR = 'legacy_mimir_js_bridge_retired_use_host_native_researcher';
+
+export const mimir = Object.freeze({
+    async think() {
+        return RETIRED_MIMIR_JS_ERROR;
     },
-    get_file_intent: async (filepath) => {
-        return await exports.mimir.think(`What is the intent of sector: ${filepath}?`);
+    async get_file_intent() {
+        return RETIRED_MIMIR_JS_ERROR;
     },
-    close: async () => {}
-};
+    async close() {
+        return undefined;
+    },
+});
+
+export default mimir;

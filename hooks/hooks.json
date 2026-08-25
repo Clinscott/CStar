@@ -1,5 +1,5 @@
 {
-  "description": "Corvus Star SessionStart hook — injects a compact profile digest (<=400 chars) so Claude has user context without bloat.",
+  "description": "Retired Corvus Star SessionStart compatibility hook. It performs no context or identity projection.",
   "hooks": {
     "SessionStart": [
       {

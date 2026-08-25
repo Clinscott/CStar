@@ -115,10 +115,23 @@ function expectedRecordSetHash(
 }
 
 afterEach(() => {
-    while (roots.length > 0) fs.rmSync(roots.pop()!, { recursive: true, force: true });
+    while (roots.length > 0) fs.rmSync(roots.pop() as string, { recursive: true, force: true });
 });
 
 describe('canonical Codex root-user turn scanner', () => {
+    it('accepts omitted root thread_source but rejects an explicit subagent source', async () => {
+        const omitted = await scan([
+            sessionMeta({ thread_source: undefined }),
+            userRecord('root request without host thread_source'),
+        ]);
+
+        assert.equal(omitted.recordCount, 1);
+        await expectFailure([
+            sessionMeta({ thread_source: 'subagent' }),
+            userRecord('nested request'),
+        ], 'codex_request_identity_session_is_not_canonical_root_user');
+    });
+
     it('preserves the exact singleton raw-line hash and binds the indexed domain-separated set', async () => {
         const user = userRecord('authorized singleton request');
         const rawUser = serialize(user);
@@ -419,12 +432,12 @@ describe('canonical Codex root-user turn scanner', () => {
         const timestamp = new Date().toISOString();
         const content = [{
             type: 'input_text',
-            text: 'Corvus CStar 5.6. I authorize you to complete the audit in full through Hermes M3.',
+            text: `Corvus CStar 5.6. I authorize you to complete the audit in full through Hermes M3 for bead:repair:single-scan and decision:single-scan, with zero retries, synthetic fixtures only, no live source collection, targeting exactly ${path.resolve('AGENTS.md')}.`,
         }];
         const sessionFile = path.join(sessions, `rollout-single-${threadId}.jsonl`);
         fs.writeFileSync(sessionFile, `${[
             sessionMeta({ id: threadId }),
-            userRecord(content[0]!.text, timestamp, turnId),
+            userRecord(content[0]?.text ?? '', timestamp, turnId),
         ].map(serialize).join('\n')}\n`, { mode: 0o600 });
         const reference = `codex-thread:${threadId}:turn:${turnId}:sha256:${sha256(JSON.stringify(content))}`;
         const priorCodexHome = process.env.CODEX_HOME;
@@ -439,8 +452,13 @@ describe('canonical Codex root-user turn scanner', () => {
             const verified = await verifyOperatorAuthorization(reference, {
                 caller_thread_id: threadId,
                 caller_transport: 'direct-stdio',
-                target_paths: ['/home/morderith/Corvus/CStar/AGENTS.md'],
+                target_paths: [path.resolve('AGENTS.md')],
                 requires_forge_hermes_m3: true,
+                bead_id: 'bead:repair:single-scan',
+                decision_id: 'decision:single-scan',
+                requires_zero_retries: true,
+                requires_synthetic_fixtures_only: true,
+                requires_no_live_source: true,
                 request_context: { _meta: {
                     threadId,
                     'x-codex-turn-metadata': {

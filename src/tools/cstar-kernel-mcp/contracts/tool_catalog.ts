@@ -49,7 +49,12 @@ export const CSTAR_KERNEL_TOOL_CATALOG = [
     {
         name: 'cstar_bead',
         toolClass: 'MUTATION',
-        description: 'Create, inspect, claim, block, resolve, and list bounded Hall beads. RESOLVED transitions are gated by the Sterling Mandate unless force/exemption evidence is supplied.',
+        description: 'Create, inspect, claim, block, resolve, and list bounded Hall beads. RESOLVED requires fresh contained Lore/Isolation artifacts bound to an exact independent Hall validation receipt; no scalar, cached, force, or exemption bypass exists.',
+    },
+    {
+        name: 'cstar_goal_resume',
+        toolClass: 'MUTATION',
+        description: 'Append immutable continuity evidence for an explicitly resumed blocked host goal. It does not change host state or grant spend, source, Git, restart, deployment, or production authority.',
     },
     {
         name: 'cstar_spoke_bead_import',
@@ -59,7 +64,7 @@ export const CSTAR_KERNEL_TOOL_CATALOG = [
     {
         name: 'cstar_record_result',
         toolClass: 'MUTATION',
-        description: 'Record independent validation for a Hall bead and optionally finalize a delivered Forge receipt; TokenPath observation input remains quarantined.',
+        description: 'Record independent validation for a Hall bead and optionally finalize a delivered Forge receipt.',
     },
     {
         name: 'cstar_engram_record',
@@ -93,13 +98,18 @@ export const CSTAR_KERNEL_TOOL_CATALOG = [
     },
     {
         name: 'cstar_mongo_mailbox',
-        toolClass: 'MUTATION',
-        description: 'Mongo mailbox status/counts. Durable operator-intent enqueue authority is unavailable and fails closed; no arbitrary Mongo query is accepted.',
+        toolClass: 'LEGACY',
+        description: 'Decommissioned Mongo mirror/intent compatibility surface; always fails closed without secret, network, or write activity.',
     },
     {
         name: 'cstar_status',
         toolClass: 'READ',
-        description: 'Deterministic kernel state snapshot.',
+        description: 'Deterministic kernel state snapshot with optional exact Forge execution lifecycle status.',
+    },
+    {
+        name: 'cstar_persona_set',
+        toolClass: 'MUTATION',
+        description: 'Explicitly select O.D.I.N. or A.L.F.R.E.D. for the next workflow boundary; style-only and never expands authority or bypasses gates.',
     },
     {
         name: 'cstar_evolve',
@@ -108,8 +118,8 @@ export const CSTAR_KERNEL_TOOL_CATALOG = [
     },
     {
         name: 'cstar_spoke',
-        toolClass: 'MUTATION',
-        description: 'Mounted-spoke lifecycle: list / link / unlink / inspect / project / doctor / prune / verify / health.',
+        toolClass: 'READ',
+        description: 'Redacted mounted-spoke inspection and exact-match prune preview; link, unlink, project, and destructive prune fail closed until a request-scoped operator-attestation contract exists.',
     },
     {
         name: 'cstar_intent_route',
@@ -118,8 +128,8 @@ export const CSTAR_KERNEL_TOOL_CATALOG = [
     },
     {
         name: 'cstar_warden',
-        toolClass: 'READ',
-        description: 'On-demand Sentinel Warden invocation. Deterministic scanners only; no LLM inference.',
+        toolClass: 'EXECUTION',
+        description: 'On-demand local Sentinel Warden execution. list and bounties are read-only; scan starts a constrained project-venv process and performs no LLM inference.',
     },
     {
         name: 'cstar_telemetry',
@@ -134,12 +144,17 @@ export const CSTAR_KERNEL_TOOL_CATALOG = [
     {
         name: 'cstar_forge_request',
         toolClass: 'REQUEST',
-        description: 'Persist an immutable no-spend Forge request; live authorization binds a one-shot operator attestation and exact output contract.',
+        description: 'Persist an immutable no-spend Forge request; machine challenge material stays hidden from the normal operator workflow.',
+    },
+    {
+        name: 'cstar_forge_authorize',
+        toolClass: 'MUTATION',
+        description: 'Bind one explicit root-user build instruction or immutable CStar goal-continuation receipt to one unchanged pending Forge request; performs no provider call.',
     },
     {
         name: 'cstar_forge_execute',
         toolClass: 'EXECUTION',
-        description: 'Atomically reserve and invoke the private Hermes/MiniMax adapter once, with durable replay and delivered-pending-validation semantics.',
+        description: 'Atomically run one provider attempt through the private Hermes/MiniMax adapter, with durable replay, independently validated pre-provider continuity, and delivered-pending-validation semantics.',
     },
 ] as const satisfies readonly CstarKernelToolCatalogShape[];
 

@@ -1,4 +1,4 @@
-# CoS New Thread Bootstrap Pointer
+# CoS New Thread Packet
 
 Paste this into the new CoS thread:
 
@@ -7,31 +7,26 @@ Read this local handoff packet before acting:
 /home/morderith/Corvus/CStar/docs/operations/cos-context-refresh-new-thread-packet.md
 
 Treat it as the bootstrap context for the fresh CoS thread. After reading it,
-run only the CStar checks needed for the current state before making claims.
+select only the CStar check required by the current situation before claiming
+current state.
 ```
 
-## Pointer Status
+## Packet Status
 
-- Document role: static bootstrap baseline and durable-state locator.
-- Schema-instance status: **not** a `cos.context_refresh.v1` packet and not
-  current estate state.
-- Original design target: GPT-5.6 Sol CoS; verify the active model at runtime.
-- Historical baseline date: 2026-07-09.
+- Schema: `cos.context_refresh.v1`
+- Mode: `bootstrap`
+- Generated for: GPT-5.6 Sol CoS
+- Generated at: 2026-07-09
 - Source thread purpose: prepare a fresh CoS slate without replaying the old
   conversation.
 - Canonical primer:
   `/home/morderith/Corvus/CStar/docs/operations/cos-context-refresh-primer-gpt-5-6-sol.md`
 - Schema file:
   `/home/morderith/Corvus/CStar/docs/operations/cos-context-refresh-schema.v1.json`
-- Source refresh bead:
-  `bead:exec:cos-refresh-primer-schema-2026-07-09` (`RESOLVED`)
-- Original resolution validation: `val-1783599069890-c0mz3`.
-- Final cutover validation: `val-1783599907369-4l8qi`.
-
-This pointer deliberately omits `refresh_id`, live timestamps, state checksum,
-active work, information-repository/lane state, and artifact index. Those fields belong in a
-freshly generated schema instance. Refresh every health, handoff, bead, and
-validation claim before using it for a decision.
+- Active refresh bead:
+  `bead:exec:cos-refresh-primer-schema-2026-07-09`
+- Refresh bead validation:
+  `val-1783599069890-c0mz3`
 
 ## What the New CoS Must Know
 
@@ -39,38 +34,53 @@ CStar is the axle. Spokes connect to it; CStar is not a spoke.
 
 Authority order:
 
-1. Platform/operator safety and current explicit operator grants.
-2. Global Corvus invariants and nearest repository policy/runbooks.
-3. Current CStar lifecycle state within those gates.
-4. Registries declare capability; runtime, artifacts, mirrors, PMT packets, and
-   conversation history provide evidence or location, never authority.
+1. Platform safety and the current operator grant.
+2. Global Corvus invariants and the nearest repository policy.
+3. CStar kernel MCP and bead lifecycle state within those boundaries.
+4. Registry declarations and observed runtime evidence; neither can create or
+   weaken authority.
+
+PennyOne/dashboard is an operator-visibility mirror. Artifact packages,
+reports, manifests, scorecards, and hashes are evidence. A mapped PMT is a
+project-scoped context repository only. Conversation history is a locator, not
+proof.
 
 The new CoS should not ask for the old chat unless durable state is missing.
-It should reconstruct current state from CStar, PennyOne/dashboard, PMT packets,
-and artifact references.
+It should reconstruct current state from CStar, PennyOne/dashboard, artifact
+references, and one bounded mapped-PMT context packet when the in-scope project
+has a mapping.
 
 ## First Actions
 
-1. Run `cstar_doctor` only when health is unknown or degraded.
-2. Run `cstar_handoff` only when resuming prior work.
-3. Run `cstar_augury` only when route or material scope is ambiguous.
-4. Run one bounded `cstar_hall_search` only if the active bead or next gate is
-   unclear, then narrow by bead id, path, or exact error.
-5. Inspect only the active bead, relevant information-repository packet, and
-   artifact refs needed for the next decision.
+1. Run `cstar_doctor` only when kernel health is unknown.
+2. Run `cstar_handoff` when resuming a known mission, with the current user
+   request, scope, and target paths.
+3. Run `cstar_augury` only when route or scope is ambiguous.
+4. Run one bounded `cstar_hall_search` only if the active bead or next gate
+   remains unclear after the selected check.
+5. Inspect only the active bead and artifact refs needed for the next decision.
+   If the in-scope project has a mapped PMT, read it once for bounded context;
+   if unavailable, record a freshness gap and continue.
 
 Do not preload Hall history, raw transcripts, full logs, full manifests, full
 SHA lists, or raw model responses.
 
-## Historical Baseline — 2026-07-09
+## Current Durable State
 
-The source bead records the durable handoff work as complete:
+The durable handoff work is complete:
 
-- Three independent designs and an external review informed the primer. Treat
-  those historical review claims as source-bead evidence, not current state.
+- This section records the historical 2026-07-09 refresh validation; it is
+  evidence of that snapshot, not current authority or runtime proof.
+- Three independent subagents produced CoS refresh designs.
+- Gemini 3.1 Pro High reviewed all three through `agy -p`.
+- Scores:
+  - Bead-backed design: Gemini `88/100`, CoS `88/100`
+  - Snapshot/dashboard design: Gemini `88/100`, CoS `90/100`
+  - Sentinel/zero-trust design: Gemini `92/100`, CoS `93/100`
 - The final primer adopted:
   - bead lifecycle authority
-  - PMT-information/Forge/Researcher/CorvusEye/PennyOne boundaries
+  - CoS, mapped-PMT context, Forge, Researcher, CorvusEye, and PennyOne
+    boundaries
   - snapshot and live-run delta packets
   - staleness timestamps
   - degraded boot fallback
@@ -79,22 +89,29 @@ The source bead records the durable handoff work as complete:
   - perfect-score structural audits
   - compact token policy
 
-Historical validation chain:
+Validation passed:
 
-- Original bead resolution: `val-1783599069890-c0mz3`.
-- Final cutover: `val-1783599907369-4l8qi`; it recorded the then-current
-  focused suite as `5/5 PASS`, schema parse `PASS`, CStar MCP checker
-  `128/128 PASS`, diff hygiene `PASS`, and the source bead as resolved under
-  the Sterling Mandate.
-- Test counts are not durable state. Rerun the focused checker instead of
-  copying these historical counts into a current claim.
+- Focused primer test: `4/4 PASS`
+- Schema JSON parse: `PASS`
+- CStar MCP checker: `128/128 PASS`
+- Diff hygiene: `PASS`
+- CStar result: `val-1783599069890-c0mz3`
+- Bead resolved under Sterling Mandate.
 
 ## Operating Rules
 
 - CoS coordinates, verifies, records, and closes out.
-- PMTs are information repositories only; CoS sends compact `STATE_UPDATE`
-  packets, and PMTs grant no execution, review, approval, or routing authority.
-- MM is legacy and has no active routing role; CoS owns estate sequencing.
+- PMTs are project-scoped information repositories only. They grant no
+  ownership, execution, review, approval, routing, or monitoring authority.
+- CoS reads one mapped PMT for bounded context when the in-scope project has a
+  mapping and sends a compact `STATE_UPDATE` after meaningful work. PMT
+  unavailability is a freshness gap, not an execution gate.
+- For the mapped-PMT read, request Luna for routine retrieval, Terra for
+  conflicting-context synthesis, and Sol for high-stakes architecture,
+  security, or incident forensics only when the host exposes an enforceable
+  selector. Record requested and actual identity separately; use `unreported`
+  when the host reports none.
+- MM is legacy and has no active routing or relay role.
 - Corvus Forge builds implementation when a Forge route exists.
 - Researcher researches; live external collection is lane-gated.
 - CorvusEye evaluates/red-teams; it cannot self-certify Researcher.
@@ -163,7 +180,7 @@ Forbidden inline sources:
 
 ## Degraded Startup
 
-If CStar or PennyOne state fails:
+If required CStar or PennyOne state fails:
 
 1. Retry at most twice.
 2. On the third failure, emit `degraded_boot`.
@@ -173,9 +190,8 @@ If CStar or PennyOne state fails:
    holdout, merge, deploy, secrets/config, or production readiness, stop for
    operator authorization.
 
-A missing PMT packet is an information-freshness warning, not an authority or
-execution blocker. Record the gap and refresh the repository after CStar state
-is recovered.
+Mapped PMT failure does not trigger `degraded_boot`: record a PMT freshness gap
+and continue from CStar and repository evidence.
 
 ## Response Shape
 

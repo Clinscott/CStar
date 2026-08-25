@@ -1,54 +1,67 @@
-"""Fail-closed tombstone for the retired Python dynamic command dispatcher.
+"""Retired compatibility surface for the former Python CStar dispatcher.
 
-The canonical CLI is the Node/TypeScript `cstar` entrypoint. Filesystem
-discovery of arbitrary Python scripts and Quarto workflows bypassed registry,
-CStar, operator, and Forge gates, so it is intentionally unavailable.
+The canonical CStar command and lifecycle surfaces are implemented by the Node
+kernel.  This module remains importable only so stale imports fail with one
+stable, side-effect-free error instead of reviving filesystem discovery or
+subprocess dispatch.
 """
 
 from __future__ import annotations
 
-import json
-import sys
-from pathlib import Path
+from typing import NoReturn
 
 
-DECOMMISSIONED_ERROR = (
-    "python_dynamic_dispatcher_permanently_decommissioned: use the canonical "
-    "cstar CLI, a registered host skill, or a bounded cstar-kernel tool"
+LEGACY_PYTHON_CSTAR_DISPATCHER_ERROR = (
+    "legacy_python_cstar_dispatcher_retired_use_node_kernel"
 )
 
 
+def _retired() -> NoReturn:
+    raise RuntimeError(LEGACY_PYTHON_CSTAR_DISPATCHER_ERROR)
+
+
 class CorvusDispatcher:
-    """Compatibility object that exposes no executable command discovery."""
+    """Compatibility tombstone for the retired Python dispatcher."""
 
-    def __init__(self, root: Path | None = None) -> None:
-        self.project_root = root or Path(__file__).resolve().parents[2]
+    __slots__ = ()
 
-    def _discover_all(self) -> dict[str, str]:
-        """Return no commands; filesystem-discovered execution is retired."""
-        return {}
+    def __init__(self, *args: object, **kwargs: object) -> None:
+        del args, kwargs
+        _retired()
 
-    def show_help(self) -> None:
-        """Print the bounded migration instruction without scanning files."""
-        print(DECOMMISSIONED_ERROR)
+    def _discover_all(self) -> NoReturn:
+        _retired()
 
-    def run(self, _args: list[str]) -> None:
-        """Refuse every stale invocation without spawning or writing."""
-        raise RuntimeError(DECOMMISSIONED_ERROR)
+    def _load_registry_manifest(self) -> NoReturn:
+        _retired()
 
-    def _execute_skill(self, _skill_name: str, _args: list[str]) -> None:
-        """Refuse the former internal recursion path."""
-        raise RuntimeError(DECOMMISSIONED_ERROR)
+    def show_help(self) -> NoReturn:
+        _retired()
+
+    def run(self, args: list[str]) -> NoReturn:
+        del args
+        _retired()
+
+    def _execute_skill(self, skill_name: str, args: list[str]) -> NoReturn:
+        del skill_name, args
+        _retired()
+
+    def _record_agentic_heartbeat(
+        self,
+        cmd: str,
+        latency: float,
+        tokens: int,
+        error: float,
+    ) -> NoReturn:
+        del cmd, latency, tokens, error
+        _retired()
 
 
-def main() -> int:
-    print(json.dumps({
-        "status": "blocked",
-        "error": DECOMMISSIONED_ERROR,
-        "execution_attempted": False,
-    }, sort_keys=True))
-    return 2
+def main() -> NoReturn:
+    """Fail closed for stale console or direct-module invocations."""
+
+    _retired()
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    main()

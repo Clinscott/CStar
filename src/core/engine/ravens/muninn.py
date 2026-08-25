@@ -1,36 +1,37 @@
-"""Fail-closed compatibility facade for the retired Muninn worker."""
+"""Retired autonomous Muninn facade."""
 
 from __future__ import annotations
 
-import asyncio
-import json
-from typing import Any
+from typing import NoReturn
 
-from src.core.engine.ravens.retired import reject_ravens_operation, rejected_cycle_result
+
+LEGACY_PYTHON_RAVENS_ENGINE_ERROR = (
+    "legacy_python_ravens_engine_retired_use_cstar_kernel"
+)
+
+
+def _retired() -> NoReturn:
+    raise RuntimeError(LEGACY_PYTHON_RAVENS_ENGINE_ERROR)
 
 
 class Muninn:
-    """Import-compatible shell with no worker, model, repository, or Hall access."""
+    """Fail before secrets, provider setup, or autonomous cycle construction."""
 
-    def __init__(self, target_path: str | None = None, use_docker: bool = False, **_: Any) -> None:
-        self.target_path = target_path or "."
-        self.use_docker = bool(use_docker)
+    def __init__(self, *_args: object, **_kwargs: object) -> None:
+        _retired()
 
-    async def run_cycle(self) -> bool:
-        reject_ravens_operation("Muninn.run_cycle")
+    async def run_cycle(self, *_args: object, **_kwargs: object) -> NoReturn:
+        _retired()
 
-    async def run_cycle_contract(self):
-        return rejected_cycle_result(self.target_path)
+    async def run_cycle_contract(
+        self, *_args: object, **_kwargs: object
+    ) -> NoReturn:
+        _retired()
 
 
-async def _main() -> None:
-    result = await Muninn().run_cycle_contract()
-    print(json.dumps(result.to_dict(), indent=2))
-    raise SystemExit(2)
+def main(*_args: object, **_kwargs: object) -> NoReturn:
+    _retired()
 
 
 if __name__ == "__main__":
-    asyncio.run(_main())
-
-
-__all__ = ["Muninn"]
+    main()

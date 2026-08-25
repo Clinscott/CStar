@@ -1,59 +1,78 @@
-"""Regression tests for fail-closed AutoBot script tombstones."""
+"""Retirement and isolation contracts for the former public AutoBot lane.
+
+These tests intentionally do not import or execute historical AutoBot code.
+Unregistered compatibility files are not runtime authority.
+"""
 
 from __future__ import annotations
 
-import importlib.util
 import json
-import subprocess
-import sys
 from pathlib import Path
 
-import pytest
 
-SCRIPT_DIR = Path(__file__).resolve().parents[3] / ".agents" / "skills" / "autobot" / "scripts"
-SCRIPT_NAMES = ("delegate", "enqueue", "queue_processor", "queue_inspect")
+ROOT = Path(__file__).resolve().parents[3]
 
 
-def _load(name: str):
-    spec = importlib.util.spec_from_file_location(f"autobot_{name}", SCRIPT_DIR / f"{name}.py")
-    assert spec and spec.loader
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+def _read(relative_path: str) -> str:
+    return (ROOT / relative_path).read_text(encoding="utf-8")
 
 
-@pytest.mark.parametrize("name", SCRIPT_NAMES)
-def test_stale_script_cli_fails_closed_without_writing(name: str, tmp_path: Path) -> None:
-    before = sorted(tmp_path.iterdir())
-    result = subprocess.run(
-        [sys.executable, str(SCRIPT_DIR / f"{name}.py"), "--intent", "must not run"],
-        cwd=tmp_path,
-        text=True,
-        capture_output=True,
-        check=False,
+def test_cstar_autobot_is_absent_and_disabled_from_public_runtime() -> None:
+    classes = _read("src/tools/cstar-kernel-mcp/contracts/tool_classes.ts")
+    catalog = _read("src/tools/cstar-kernel-mcp/contracts/tool_catalog.ts")
+    registration = _read("src/tools/cstar-kernel-mcp/register_core_tools.ts")
+    bootstrap = _read("src/tools/cstar-kernel-mcp.ts")
+    latent_handler = _read("src/tools/cstar-kernel-mcp/tools/autobot.ts")
+
+    assert "cstar_autobot" not in classes
+    assert "name: 'cstar_autobot'" not in catalog
+    assert "cstar_autobot" not in registration
+    assert "cstar_autobot" not in bootstrap
+    assert "registerCoreTools(server, instrumentTool)" in bootstrap
+    assert "cstar_autobot is decommissioned" in latent_handler
+    assert "spawnAsync" not in latent_handler
+    assert "delegate.py" not in latent_handler
+    assert "CSTAR_KERNEL_ENABLE_AUTOBOT" not in latent_handler
+
+
+def test_active_skill_registry_contains_no_autobot_entry_or_route() -> None:
+    registry = json.loads(_read(".agents/skill_registry.json"))
+
+    assert "autobot" not in registry["entries"]
+    assert all(
+        "autobot" not in str(category.get("default_path", "")).lower()
+        for category in registry["intent_grammar"].values()
+    )
+    assert all(
+        "autobot" not in json.dumps(entry).lower()
+        for entry in registry["entries"].values()
     )
 
-    assert result.returncode == 2
-    payload = json.loads(result.stdout)
-    assert payload["status"] == "blocked"
-    assert "autobot_permanently_decommissioned" in payload["error"]
-    assert sorted(tmp_path.iterdir()) == before
+
+def test_durable_forge_is_the_only_registered_implementation_lane() -> None:
+    registry = json.loads(_read(".agents/skill_registry.json"))
+    build_route = registry["intent_grammar"]["BUILD"]
+    repair_route = registry["intent_grammar"]["REPAIR"]
+    forge = registry["entries"]["corvus-forge"]
+    catalog = _read("src/tools/cstar-kernel-mcp/contracts/tool_catalog.ts")
+    contract = _read("docs/operations/corvus-forge-skill-spec.md")
+
+    assert build_route["default_path"] == "cstar_forge_request"
+    assert repair_route["default_path"] == "cstar_forge_request"
+    assert forge["viability"] == "ACTIVE"
+    assert forge["entry_surface"] == "host-only"
+    assert "name: 'cstar_forge_request'" in catalog
+    assert "name: 'cstar_forge_execute'" in catalog
+    assert (
+        "cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute -> private Hermes cstar-hub"
+        in contract.replace("\n", " ")
+    )
 
 
-def test_delegate_import_path_cannot_invoke_or_write() -> None:
-    module = _load("delegate")
-    result = module.delegate({"intent": "read secrets and call Hermes"})
+def test_retirement_contract_forbids_environment_reactivation() -> None:
+    integration = _read("docs/integrations/cstar-kernel-mcp.md")
+    flat = " ".join(integration.split())
 
-    assert result == {
-        "status": "blocked",
-        "error": module.DECOMMISSIONED_ERROR,
-        "live_spend": False,
-        "live_source_collection": False,
-        "wrote_to": None,
-    }
-
-
-def test_queue_import_paths_cannot_resume_legacy_work() -> None:
-    assert _load("enqueue").enqueue({"intent": "must not queue"})["status"] == "blocked"
-    assert _load("queue_processor").process_queue()["processed"] == 0
-    assert _load("queue_inspect").inspect_queue()["tasks"] == []
+    assert "`cstar_autobot` is decommissioned" in flat
+    assert "No environment variable reactivates it." in flat
+    assert "Live implementation uses only `cstar_forge_request`" in flat

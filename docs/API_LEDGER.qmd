@@ -1,69 +1,61 @@
 ---
-title: "Integrated API Ledger"
-subtitle: "Gungnir Control Plane Gateways"
+title: "Historical Gateway Retirement Ledger"
+subtitle: "CStar control-plane boundary"
 format: html
 ---
 
-> [!CAUTION]
-> **Superseded historical API inventory.** The endpoints and bearer/session
-> claims below describe an earlier PennyOne UI experiment. They are not the
-> current CStar control-plane contract and must not be used as mutation or
-> lifecycle authority. Current host integration is the direct-stdio
-> `cstar-kernel` surface documented in
-> `docs/integrations/codex_mcp_contract.md` and
-> `docs/integrations/cstar-kernel-mcp.md`.
+# Status
 
-# ◤ THE GATEWAYS OF ASGARD ◢
+The historical Node HTTP, server-sent-event, WebSocket, provider, and Python
+bridge gateway is retired. It is not a compatibility API and grants no
+execution, lifecycle, telemetry-write, intelligence, provider, process, or
+filesystem authority.
 
-This document maps the Integrated API endpoints used by Operation PennyOne and the Corvus Star Control Plane.
+Every attempted activation returns the exact terminal error:
 
-## ◈ Core Bridge API
-**Base URL**: `http://127.0.0.1:4000`
-**Protocol**: REST / WebSocket
-**Security**: Bearer Token required (generated per session).
+```text
+legacy_gateway_retired_use_cstar_kernel
+```
 
-### 1. Matrix Graph
-- **Endpoint**: `GET /api/matrix`
-- **Purpose**: Returns the complete `matrix-graph.json` including all file nodes, Gungnir scores, and dependencies.
-- **Consumption**: Used by the 3D Frontend to render the constellation.
+The executable server fails during direct import before dotenv/config access,
+Fastify construction, route registration, or socket bind. Route and plugin
+modules fail at registration before reading the supplied host. `CognitiveRouter`,
+`CorvusProcess`, and `CortexLink` fail at construction before provider, callback,
+process, Hall/state, source, or filesystem work.
 
-### 2. Gravity Data
-- **Endpoint**: `GET /api/gravity`
-- **Purpose**: Returns aggregated agent interaction counts for all files.
-- **Consumption**: Used to scale node "heat" and size in the Matrix.
+# Retired source inventory
 
-### 3. Telemetry Ping
-- **Endpoint**: `POST /api/telemetry/ping`
-- **Payload**: `AgentPing` (agent_id, action, target_path, timestamp).
-- **Purpose**: Reports real-time agent activity.
-- **Action**: Broadcasts to WebSocket and writes to Hall of Records (SQLite).
+- `src/node/gateway/server.ts`
+- `src/node/gateway/plugins/corvus.ts`
+- `src/node/gateway/routes/api/intent.ts`
+- `src/node/gateway/routes/api/mimir.ts`
+- `src/node/gateway/routes/api/telemetry.ts`
+- `src/node/gateway/routes/streams/telemetry.ts`
+- `src/node/gateway/routes/ws/events.ts`
+- `src/node/core/CognitiveRouter.ts`
+- `src/node/core/CorvusProcess.ts`
+- `src/node/cortex_link.ts`
 
-## ◈ Operation Chronicle (DVR)
-Access the historical records of past campaigns.
+There are no supported `/api/intent`, `/api/mimir/*`, gateway telemetry,
+gateway SSE, gateway WebSocket, local Ollama, one-shot Python bridge, or
+gateway-to-kernel execution routes.
 
-### 1. Session List
-- **Endpoint**: `GET /api/chronicle/sessions`
-- **Returns**: Array of session summaries.
-- **Fields**: `agent_id`, `start_timestamp`, `primary_target`, `total_pings`.
+The historical Python intelligence router in `src/core/mimir_client.py` and
+`src/core/engine/cognitive_router.py` is separately terminal with:
 
-### 2. Playback Control
-- **Endpoint**: `POST /api/chronicle/playback/:id`
-- **Purpose**: Commands the Subspace Relay to replay a past session at high speed.
+```text
+legacy_python_intelligence_router_retired_use_cstar_kernel
+```
 
-### 3. Archive Download
-- **Endpoint**: `GET /api/chronicle/download/:id`
-- **Purpose**: Bundles session data and saves it to the host system's `/Downloads` folder.
+It performs no environment/config read, provider selection, subprocess, Hall or
+Synapse access, source collection, filesystem mutation, Forge simulation, lease,
+learning callback, or CLI fallback.
 
----
+# Current surfaces
 
-## ◈ System Gateways (Detected)
-PennyOne automatically tags files that serve as system gateways.
-
-### ⛩️ Primary Entry Points
-- **TypeScript Gateway**: `src/node/gateway/routes/api/intent.ts`
-  - `[POST] /intent`
-- **Telemetry Stream**: `src/node/gateway/routes/streams/telemetry.ts`
-  - `[GET] /telemetry`
-
----
-[ALFRED]: "The pathways are documented, sir. Programmatic navigation is now fully supported."
+Control-plane planning, lifecycle, Forge/Researcher receipts, validation, and
+completion use the direct-stdio `cstar-kernel` MCP documented in
+`docs/integrations/cstar-kernel-mcp.md`. PennyOne remains an operator-visible
+projection and read-only inspection surface; it is not an execution or
+lifecycle gateway. Historical endpoint descriptions under `legacy_archive/`
+are evidence only.

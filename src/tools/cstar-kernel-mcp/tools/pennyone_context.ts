@@ -29,7 +29,7 @@ function boundedLimit(value: unknown, fallback = 10, max = 50): number {
 
 function tableCount(root: string, table: string): number | null {
     try {
-        const db = database.getDb(root);
+        const db = database.getReadDb(root);
         const row = db.prepare(`SELECT COUNT(*) AS count FROM ${table}`).get() as { count?: number } | undefined;
         return typeof row?.count === 'number' ? row.count : null;
     } catch {
@@ -75,22 +75,17 @@ export async function handlePennyOneContext(args: PennyOneContextArgs = {}) {
 
         if (action === 'bead_summary') {
             const limit = boundedLimit(args.limit);
-            const allBeads = database.getHallBeads(root, args.statuses as any)
-                .sort((left: any, right: any) => (right.updated_at ?? 0) - (left.updated_at ?? 0));
-            const beads = allBeads.slice(0, limit);
+            const beads = database.getHallBeads(root, args.statuses as any).slice(0, limit);
             return textResponse({
                 status: 'ok',
                 action,
                 count: beads.length,
-                total_matches: allBeads.length,
                 result_limit: limit,
                 beads: beads.map((bead: any) => ({
                     bead_id: bead.bead_id ?? bead.id,
                     status: bead.status,
                     target_kind: bead.target_kind,
                     target_ref: bead.target_ref,
-                    target_path: bead.target_path,
-                    checker_shell: bead.checker_shell,
                     assigned_agent: bead.assigned_agent,
                     resolved_validation_id: bead.resolved_validation_id,
                     rationale: bead.rationale,
@@ -120,21 +115,11 @@ export async function handlePennyOneContext(args: PennyOneContextArgs = {}) {
         }
 
         if (action === 'repository_summary') {
-            const limit = boundedLimit(args.limit);
-            const allRepos = database.listHallRepositories(root)
-                .sort((left: any, right: any) => (right.updated_at ?? 0) - (left.updated_at ?? 0));
-            const allSpokes = database.listHallMountedSpokes(root)
-                .sort((left: any, right: any) => (right.updated_at ?? 0) - (left.updated_at ?? 0));
-            const repos = allRepos.slice(0, limit);
-            const spokes = allSpokes.slice(0, limit);
+            const repos = database.listHallRepositories(root);
+            const spokes = database.listHallMountedSpokes(root);
             return textResponse({
                 status: 'ok',
                 action,
-                result_limit: limit,
-                repository_count: repos.length,
-                repository_total: allRepos.length,
-                mounted_spoke_count: spokes.length,
-                mounted_spoke_total: allSpokes.length,
                 repositories: repos.map((repo: any) => ({
                     repo_id: repo.repo_id,
                     root_path: repo.root_path,
@@ -148,7 +133,6 @@ export async function handlePennyOneContext(args: PennyOneContextArgs = {}) {
                     mount_status: spoke.mount_status,
                     trust_level: spoke.trust_level,
                     write_policy: spoke.write_policy,
-                    updated_at: spoke.updated_at,
                 })),
                 guardrail,
             });

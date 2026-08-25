@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import importlib.util
 import shutil
@@ -26,6 +27,29 @@ def _load_activation_module():
 
 def _git(root: Path, *args: str) -> None:
     subprocess.run(["git", "-C", str(root), *args], check=True, capture_output=True)
+
+
+def _write_fixture_lineage(plugin_root: Path) -> None:
+    manifest = json.loads((plugin_root / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8"))
+    files: dict[str, dict[str, object]] = {}
+    for candidate in sorted(plugin_root.rglob("*")):
+        if not candidate.is_file() or candidate.name == "lineage.json":
+            continue
+        raw = candidate.read_bytes()
+        files[candidate.relative_to(plugin_root).as_posix()] = {
+            "bytes": len(raw),
+            "sha256": hashlib.sha256(raw).hexdigest(),
+        }
+    lineage = {
+        "schema_version": 1,
+        "plugin": {"name": "corvus-star", "version": manifest["version"]},
+        "runtime_binding": {"integration_mode": "skill-only", "kernel_bundled": False},
+        "files": files,
+    }
+    (plugin_root / "lineage.json").write_text(
+        json.dumps(lineage, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
 
 
 def test_closeout_inspection_is_read_only_and_exact(tmp_path: Path) -> None:
@@ -106,11 +130,19 @@ def test_activation_inspector_is_read_only_and_detects_duplicate_marketplaces(tm
     home = tmp_path / "home"
     estate = root.parent
     source_plugin = ROOT / "plugins" / "corvus-star"
+    source_manifest = json.loads(
+        (source_plugin / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8")
+    )
+    plugin_version = source_manifest["version"]
     staged_plugin = home / "plugins" / "corvus-star"
-    cached_plugin = home / ".codex" / "plugins" / "cache" / "corvus-local" / "corvus-star" / "1.0.1"
+    cached_plugin = (
+        home / ".codex" / "plugins" / "cache" / "corvus-local" / "corvus-star" / plugin_version
+    )
     shutil.copytree(source_plugin, root / "plugins" / "corvus-star")
     shutil.copytree(source_plugin, staged_plugin)
     shutil.copytree(source_plugin, cached_plugin)
+    for plugin_root in (root / "plugins" / "corvus-star", staged_plugin, cached_plugin):
+        _write_fixture_lineage(plugin_root)
     wrapper = home / ".codex" / "bin" / "wsl" / "cstar-kernel-mcp-wrapper"
     wrapper.parent.mkdir(parents=True)
     wrapper.write_text(f"exec node {root / 'bin' / 'cstar-kernel-mcp.js'} \"$@\"\n", encoding="utf-8")
@@ -127,7 +159,7 @@ def test_activation_inspector_is_read_only_and_detects_duplicate_marketplaces(tm
             return {"installed": [{
                 "name": "corvus-star",
                 "marketplaceName": "corvus-local",
-                "version": "1.0.1",
+                "version": plugin_version,
             }]}
         if args[:2] == ("mcp", "list"):
             return [{
@@ -149,7 +181,15 @@ def test_activation_inspector_is_read_only_and_detects_duplicate_marketplaces(tm
 
 
 def test_retired_launcher_smoke_cannot_write_state() -> None:
-    assert not (ROOT / "scripts" / "codex_launcher_smoke.ts").exists()
-    tombstone = (ROOT / "scripts" / "codex_launcher_smoke.DECOMMISSIONED.md").read_text(encoding="utf-8")
-    assert "silently" in tombstone
-    assert "cstar-closeout" in tombstone
+    launcher = ROOT / "scripts" / "codex_launcher_smoke.ts"
+    tombstone = ROOT / "scripts" / "codex_launcher_smoke.DECOMMISSIONED.md"
+    if launcher.exists():
+        text = launcher.read_text(encoding="utf-8")
+        assert "legacy_codex_launcher_smoke_retired" in text
+        assert "process.exitCode = 1" in text
+        assert "writeFile" not in text
+        assert "cstar_goal_resume" not in text
+    else:
+        text = tombstone.read_text(encoding="utf-8")
+        assert "silently" in text
+        assert "cstar-closeout" in text

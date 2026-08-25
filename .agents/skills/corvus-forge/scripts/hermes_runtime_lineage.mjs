@@ -2,6 +2,9 @@ import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 
+const RUNTIME_SCHEMA = 'cstar.forge_private_runtime_manifest.v2';
+const BOOTSTRAP_MODE = 'cstar_owned_python_system_stdlib_snapshot_v2';
+const DEPENDENCY_MODE = 'stdlib_only_no_site_packages_v2';
 const BOOTSTRAP = [
     'import sys',
     'root=sys.argv.pop(1)',
@@ -16,9 +19,27 @@ const SOURCE_FILES = [
     'hermes_cli/__init__.py',
     'hermes_cli/forge_mode.py',
     'hermes_cli/forge_minimax_oauth.py',
+    'hermes_cli/forge_provider_journal.py',
     'hermes_cli/forge_entrypoint.py',
+    'hermes_cli/forge_entrypoint_support.py',
 ];
-const LOCK_FILES = ['pyproject.toml', 'uv.lock'];
+const MANIFEST_KEYS = [
+    'allow_arbitrary_source_root',
+    'bootstrap_mode',
+    'credential_profile',
+    'credential_profile_owner',
+    'dependency_mode',
+    'launcher',
+    'model',
+    'network_entrypoint',
+    'oauth_read_only',
+    'oauth_refresh_allowed',
+    'oauth_store_write_allowed',
+    'provider',
+    'runtime_owner',
+    'schema',
+    'source_files',
+].sort();
 
 function digest(value) { return createHash('sha256').update(value).digest('hex'); }
 
@@ -53,7 +74,10 @@ function safeFile(candidate, role, options = {}) {
 }
 
 function safeRootedFile(root, relative, role) {
-    const candidate = path.join(root, relative);
+    if (!relative || path.isAbsolute(relative) || relative.split('/').some((item) => item === '..' || item === '.')) {
+        throw new Error(`forge_hermes_runtime_path_unsafe_${role}`);
+    }
+    const candidate = path.join(root, ...relative.split('/'));
     if (fs.realpathSync(candidate) !== path.resolve(candidate)) {
         throw new Error(`forge_hermes_runtime_path_unsafe_${role}`);
     }
@@ -74,52 +98,86 @@ function syntheticRuntime(locator) {
         locator, command: locator, prefixArgs: [], executable_sha256: proof.sha256,
         runtime_content_sha256: proof.sha256,
         runtime_instance_sha256: digest(stableInstance(path.dirname(locator), proof)),
+        runtime_manifest_sha256: null,
+        runtime_schema: 'synthetic_test_executable_v1',
+        runtime_owner: 'synthetic_test',
+        credential_profile_owner: 'synthetic_test',
         python_sha256: null, source_file_count: 1, source_bytes: proof.size,
         bootstrap_mode: 'synthetic_test_executable_v1', runtime_root: path.dirname(locator),
         dependency_mode: 'synthetic_test_executable_v1', system_python_path: null,
     };
 }
 
+function validatedManifest(proof) {
+    let manifest;
+    try { manifest = JSON.parse(proof.bytes.toString('utf-8')); }
+    catch { throw new Error('forge_hermes_runtime_manifest_invalid'); }
+    if (!manifest || typeof manifest !== 'object' || Array.isArray(manifest)
+        || Object.keys(manifest).sort().join(',') !== MANIFEST_KEYS.join(',')
+        || manifest.schema !== RUNTIME_SCHEMA
+        || manifest.runtime_owner !== 'cstar'
+        || manifest.credential_profile_owner !== 'hermes'
+        || manifest.credential_profile !== 'cstar-hub'
+        || manifest.provider !== 'minimax-oauth'
+        || manifest.model !== 'MiniMax-M3'
+        || manifest.launcher !== 'bin/hermes'
+        || manifest.bootstrap_mode !== BOOTSTRAP_MODE
+        || manifest.dependency_mode !== DEPENDENCY_MODE
+        || manifest.network_entrypoint !== 'hermes_cli.forge_entrypoint'
+        || manifest.allow_arbitrary_source_root !== false
+        || manifest.oauth_read_only !== true
+        || manifest.oauth_refresh_allowed !== false
+        || manifest.oauth_store_write_allowed !== false
+        || !Array.isArray(manifest.source_files)
+        || JSON.stringify(manifest.source_files) !== JSON.stringify(SOURCE_FILES)) {
+        throw new Error('forge_hermes_runtime_manifest_invalid');
+    }
+    return manifest;
+}
+
 export function resolveHermesRuntime(locator, allowSynthetic = false) {
     const canonicalLocator = fs.realpathSync(locator);
     if (allowSynthetic) return syntheticRuntime(canonicalLocator);
     const binDirectory = path.dirname(canonicalLocator);
-    const venv = path.dirname(binDirectory);
-    const runtimeRoot = path.dirname(venv);
-    if (path.basename(canonicalLocator) !== 'hermes' || path.basename(binDirectory) !== 'bin'
-        || path.basename(venv) !== '.venv') throw new Error('forge_hermes_runtime_locator_invalid');
+    const runtimeRoot = path.dirname(binDirectory);
+    if (path.basename(canonicalLocator) !== 'hermes' || path.basename(binDirectory) !== 'bin') {
+        throw new Error('forge_hermes_runtime_locator_invalid');
+    }
+    const manifest = safeRootedFile(runtimeRoot, 'manifest.json', 'manifest');
+    validatedManifest(manifest);
     const launcher = safeFile(canonicalLocator, 'launcher');
-    const launcherText = launcher.bytes.toString('utf-8');
-    if (!launcherText.includes('from hermes_cli.main import main')) {
+    if (!launcher.bytes.toString('utf-8').includes('CSTAR_FORGE_RUNTIME_LAUNCHER_V2')) {
         throw new Error('forge_hermes_runtime_launcher_invalid');
     }
     const pythonPath = fs.realpathSync('/usr/bin/python3');
     const python = safeFile(pythonPath, 'system_python', { allowNamespaceRoot: true });
     if ((python.mode & 0o111) === 0) throw new Error('forge_hermes_runtime_python_unsafe');
     const sourceProofs = SOURCE_FILES.map((relative) => safeRootedFile(runtimeRoot, relative, 'forge_source'));
-    const lockProofs = LOCK_FILES.map((relative) => safeRootedFile(runtimeRoot, relative, 'lock'));
-    const proofs = [launcher, python, ...lockProofs, ...sourceProofs];
+    const proofs = [manifest, launcher, python, ...sourceProofs];
     const runtime = {
         locator: canonicalLocator, command: python.path, prefixArgs: [],
         executable_sha256: launcher.sha256,
         runtime_content_sha256: digest(proofs.map((item) => stableRecord(runtimeRoot, item)).sort().join('\n')),
         runtime_instance_sha256: digest(proofs.map((item) => stableInstance(runtimeRoot, item)).sort().join('\n')),
+        runtime_manifest_sha256: manifest.sha256,
+        runtime_schema: RUNTIME_SCHEMA,
+        runtime_owner: 'cstar',
+        credential_profile_owner: 'hermes',
         python_sha256: python.sha256, source_file_count: sourceProofs.length,
         source_bytes: sourceProofs.reduce((total, item) => total + item.size, 0),
-        bootstrap_mode: 'python_system_stdlib_snapshot_v1', runtime_root: runtimeRoot,
-        dependency_mode: 'stdlib_only_no_site_packages_v1', system_python_path: python.path,
+        bootstrap_mode: BOOTSTRAP_MODE, runtime_root: runtimeRoot,
+        dependency_mode: DEPENDENCY_MODE, system_python_path: python.path,
     };
     Object.defineProperty(runtime, '_sourceProofs', { value: sourceProofs });
     return runtime;
 }
 
 function writeSnapshotFile(root, runtimeRoot, proof) {
-    const relative = path.relative(runtimeRoot, proof.path);
-    if (!SOURCE_FILES.includes(relative.split(path.sep).join('/'))
-        || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
+    const relative = path.relative(runtimeRoot, proof.path).split(path.sep).join('/');
+    if (!SOURCE_FILES.includes(relative) || relative.startsWith('../') || path.isAbsolute(relative)) {
         throw new Error('forge_hermes_runtime_snapshot_path_invalid');
     }
-    const destination = path.join(root, relative);
+    const destination = path.join(root, ...relative.split('/'));
     fs.mkdirSync(path.dirname(destination), { recursive: true, mode: 0o700 });
     const fd = fs.openSync(destination, fs.constants.O_WRONLY | fs.constants.O_CREAT
         | fs.constants.O_EXCL | (fs.constants.O_NOFOLLOW ?? 0), 0o400);
@@ -143,7 +201,9 @@ export function materializeHermesRuntime(runtime, parent) {
 export function assertHermesRuntimeMatches(expected, actual) {
     for (const key of [
         'executable_sha256', 'runtime_content_sha256', 'runtime_instance_sha256',
-        'python_sha256', 'source_file_count', 'source_bytes', 'bootstrap_mode',
-        'runtime_root', 'dependency_mode', 'system_python_path',
+        'runtime_manifest_sha256', 'runtime_schema', 'runtime_owner',
+        'credential_profile_owner', 'python_sha256', 'source_file_count',
+        'source_bytes', 'bootstrap_mode', 'runtime_root', 'dependency_mode',
+        'system_python_path',
     ]) if (expected?.[key] !== actual[key]) throw new Error('forge_hermes_runtime_lineage_drift');
 }

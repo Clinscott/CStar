@@ -5,19 +5,20 @@ import type {
     WeaveInvocation,
     WeaveResult,
 } from '../contracts.js';
-import { retiredWorkflowResult } from '../retired_workflow.js';
+import { buildRetiredRuntimeResult } from '../retired_adapter.js';
 
+/** Retired filesystem-to-Hall engraving adapter. */
 export class EngraveWeave implements RuntimeAdapter<EngraveWeavePayload> {
     public readonly id = 'weave:engrave';
 
     public async execute(
-        invocation: WeaveInvocation<EngraveWeavePayload>,
-        context: RuntimeContext,
+        _invocation: WeaveInvocation<EngraveWeavePayload>,
+        _context: RuntimeContext,
     ): Promise<WeaveResult> {
-        void invocation; void context;
-        return retiredWorkflowResult(
-            this.id,
-            'Use evidence-backed cstar_record_result and the cstar-closeout handoff workflow.',
-        );
+        return buildRetiredRuntimeResult({
+            weaveId: this.id,
+            boundary: 'retired-engrave-weave',
+            recommendedTool: 'cstar_engram_record',
+        });
     }
 }

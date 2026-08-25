@@ -1,47 +1,36 @@
 #!/usr/bin/env python3
-"""Fail-closed tombstone for retired direct web/model research.
-
-Research must use the authorized Researcher lanes and durable receipts.  This
-module performs no Brave search, model call, bootstrap, or artifact write.
-"""
+"""Import-safe tombstone for the retired direct KnowledgeHunter workflow."""
 
 from __future__ import annotations
 
-import asyncio
 import sys
+from typing import NoReturn
 
 
-DECOMMISSION_MESSAGE = (
-    "Direct KnowledgeHunter research is decommissioned. Use the authorized "
-    "Researcher lane and preserve bounded source and artifact receipts in CStar."
+RETIRED_PYTHON_SOURCE_TOOL_ERROR = (
+    "legacy_python_source_tools_retired_use_authorized_researcher"
 )
 
 
-class KnowledgeHunterDecommissioned(RuntimeError):
-    """Raised when a stale caller reaches the retired research lane."""
+def _retired(*_args: object, **_kwargs: object) -> NoReturn:
+    raise RuntimeError(RETIRED_PYTHON_SOURCE_TOOL_ERROR)
 
 
 class KnowledgeHunter:
-    """Compatibility API that permanently rejects direct research execution."""
+    """Passive compatibility object with no source or provider capability."""
 
-    async def hunt(self, topic: str) -> None:
-        del topic
-        raise KnowledgeHunterDecommissioned(DECOMMISSION_MESSAGE)
+    def __init__(self, *_args: object, **_kwargs: object) -> None:
+        pass
 
-
-async def _run(topic: str) -> int:
-    try:
-        await KnowledgeHunter().hunt(topic)
-    except KnowledgeHunterDecommissioned as error:
-        print(str(error), file=sys.stderr)
-        return 2
-    return 0
+    async def hunt(self, *_args: object, **_kwargs: object) -> NoReturn:
+        _retired()
 
 
-def main(argv: list[str] | None = None) -> int:
-    args = list(sys.argv[1:] if argv is None else argv)
-    topic = " ".join(args)
-    return asyncio.run(_run(topic))
+def main() -> int:
+    """Reject the former direct research CLI before reading its arguments."""
+
+    sys.stderr.write(f"{RETIRED_PYTHON_SOURCE_TOOL_ERROR}\n")
+    return 1
 
 
 if __name__ == "__main__":

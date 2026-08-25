@@ -1,13 +1,13 @@
 Feature: Contextual Persona Dialogue Integration
   As a developer using Corvus Star
-  I want the active persona to shape presentation only
-  So that tone remains useful without becoming an authority source
+  I want my AI agents to react to the system state
+  So that failure and recovery feel immersive and technically accurate
 
-  Scenario: Odin provides a direct presentation style
-    Given ODIN is the selected persona
-    When OdinStrategy returns style context
-    Then the context should describe tone and domain emphasis
-    And the context must not contain a compliance or authority verdict
+  Scenario: Odin reacts to system defiance
+    Given the file ".agents/sovereign_state.json" contains "status": "DEFIANCE"
+    When OdinStrategy enforces policy
+    Then the dialogue context should contain "compliance_breach": true
+    And the returned phrase should contain either "shatters" or "Hel"
 
   Scenario: Alfred provides specific recovery guidance
     Given AlfredObserver analyzes a failure with "error_type": "SyntaxError"

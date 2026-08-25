@@ -1,10 +1,17 @@
-# Legacy CStar Compatibility Notice
+# CStar Authority Pointer
 
-This file is non-authoritative. Read `AGENTS.md` and the parent Corvus Organism
-projection. CStar is archived source and evidence, not the active control plane
-or workflow router. No CStar registry, Bead, SET, mission, packet, receipt,
-runtime, or callback can create authority.
+This file is a compatibility pointer only. Current repository instructions live
+in `AGENTS.md`, after platform/operator safety and global Corvus invariants.
 
-Do not use `.agents/AGENTS.feature` to route work. Installation or execution of
-legacy CStar surfaces requires a new, explicit, narrowly bounded operator grant
-and never restores CStar authority.
+- CStar kernel MCP owns durable lifecycle state and supported receipts.
+- CoS coordinates; Forge implements; Researcher researches; an independent lane
+  validates. PMTs are information-only and MM has no active routing role.
+- Forge uses request, authorize, execute, and independent validation.
+- Persona is explicit workflow state, selected with `cstar_persona_set` only at
+  a workflow boundary. It never changes scope, authority, or operator gates.
+- Capability declarations and runtime observations are evidence, not authority.
+- Installation, activation, restart, Git, deployment, live sources, holdout,
+  secrets/config, destructive cleanup, and production stay separately gated.
+
+Use the current `CODE_ROOT/.agents/AGENTS.feature` for situation routing and the
+runbook named by its selected row. Do not copy procedures back into this file.

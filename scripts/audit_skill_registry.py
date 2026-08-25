@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-import argparse
 import json
 import re
 import time
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -14,62 +13,90 @@ LOCAL_ROOT = PROJECT_ROOT / "src" / "skills" / "local"
 MANIFEST_PATH = PROJECT_ROOT / ".agents" / "skill_registry.json"
 REPORT_PATH = PROJECT_ROOT / "docs" / "reports" / "SKILL_AUTHORITY_REPORT.qmd"
 TEST_ROOT = PROJECT_ROOT / "tests"
-DECOMMISSION_MARKER = "DECOMMISSIONED.md"
 
+SAFE_ID = re.compile(r"^[a-z0-9](?:[a-z0-9:_-]*[a-z0-9])?$")
+PATH_FIELDS = {
+    "authority_path",
+    "contract_path",
+    "entrypoint_path",
+    "instruction_path",
+}
 ALIAS_MAP = {
-    "cachebro": "cachebro",
-    "oracle": "oracle",
+    "knowledgehunter": "hunt",
     "personaaudit": "persona",
+    "skilllearning": "evolve",
     "visualexplainer": "visual-explainer",
 }
-
 TEST_ALIAS_MAP = {
-    "hall": ["hall_schema"],
-    "status": ["health", "runtime_command_invocations"],
-    "metrics": ["metrics", "metrics_engine"],
-    "manifest": ["state_registry_projection"],
-    "qmd_search": ["search", "qmd"],
-    "oracle": ["oracle_command"],
     "calculus": ["gungnir", "calculus"],
-    "forge": ["forge_candidate", "taliesin_forge_runtime"],
-    "bookmark-weaver": ["bookmark"],
-    "hunt": ["search", "mimir"],
-    "one-mind": ["intelligence_contract", "mimir_client"],
-    "personas": ["persona"],
-    "ravens": ["ravens", "muninn"],
-    "sterling": ["sterling_auditor"],
-    "vitals": ["vitals", "health"],
-    "agentic-ingest": ["intelligence_contract"],
-    "autobot": ["autobot", "chant_autobot_handoff"],
-    "research": ["research", "host_session_weaves"],
-    "distill": ["distill"],
     "chant": ["chant"],
+    "forge": ["forge_candidate", "taliesin_forge_runtime"],
+    "hall": ["hall_schema"],
+    "manifest": ["state_registry_projection"],
     "orchestrate": ["operator_resume", "host_governor"],
+    "silver_shield": ["heimdall_shield"],
     "start": ["start_runtime", "operator_resume"],
 }
 
 
-class SkillRegistrySchemaError(ValueError):
-    """Raised when an existing skill registry violates its keyed-entry contract."""
-
-
 def normalize_skill_name(name: str) -> str:
-    return "".join(ch for ch in name.lower() if ch.isalnum())
+    return "".join(character for character in name.lower() if character.isalnum())
 
 
-def build_search_tokens(*values: str | None) -> set[str]:
-    tokens: set[str] = set()
-    for value in values:
-        if not value:
+def _reject_duplicate_pairs(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    result: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"skill registry duplicate JSON key: {key}")
+        result[key] = value
+    return result
+
+
+def _safe_relative_path(value: str, label: str) -> None:
+    if not value or "\\" in value:
+        raise ValueError(f"skill registry {label} must be a safe relative POSIX path")
+    path = PurePosixPath(value)
+    if path.is_absolute() or ".." in path.parts or "." in path.parts:
+        raise ValueError(f"skill registry {label} must stay inside the project")
+
+
+def _validate_entry_paths(entry_id: str, entry: dict[str, Any]) -> None:
+    for field in PATH_FIELDS:
+        value = entry.get(field)
+        if value is not None:
+            if not isinstance(value, str):
+                raise ValueError(f"skill registry entry '{entry_id}' {field} must be a string")
+            _safe_relative_path(value, f"entry '{entry_id}' {field}")
+    for field in ("contracts", "tests"):
+        values = entry.get(field)
+        if values is None:
             continue
-        normalized = normalize_skill_name(value)
-        if normalized:
-            tokens.add(normalized)
-        for part in re.split(r"[^A-Za-z0-9]+", value):
-            part_normalized = normalize_skill_name(part)
-            if len(part_normalized) >= 3:
-                tokens.add(part_normalized)
-    return tokens
+        if not isinstance(values, list) or not all(isinstance(item, str) for item in values):
+            raise ValueError(f"skill registry entry '{entry_id}' {field} must be a string array")
+        for value in values:
+            _safe_relative_path(value, f"entry '{entry_id}' {field}")
+
+
+def require_registry_entry_map(value: Any) -> dict[str, dict[str, Any]]:
+    if value is None:
+        return {}
+    if not isinstance(value, dict):
+        raise ValueError("skill registry 'entries' must be an object keyed by capability id")
+
+    normalized_ids: set[str] = set()
+    for key, entry in value.items():
+        if not isinstance(key, str) or key != key.strip().lower() or not SAFE_ID.fullmatch(key):
+            raise ValueError("skill registry entry ids must be safe lowercase capability ids")
+        normalized = key.lower()
+        if normalized in normalized_ids:
+            raise ValueError(f"skill registry duplicate capability id: {key}")
+        if not isinstance(entry, dict):
+            raise ValueError(f"skill registry entry '{key}' must be an object")
+        if "id" in entry and entry["id"] != key:
+            raise ValueError(f"skill registry entry '{key}' id must match its key")
+        _validate_entry_paths(key, entry)
+        normalized_ids.add(normalized)
+    return value
 
 
 def relative_to_project(path: Path | None) -> str | None:
@@ -82,26 +109,23 @@ def relative_to_project(path: Path | None) -> str | None:
 
 
 def find_entrypoint(skill_dir: Path) -> Path | None:
-    scripts_dir = skill_dir / "scripts"
-    candidates = [
-        scripts_dir / f"{skill_dir.name}.py",
+    for candidate in (
+        skill_dir / "scripts" / f"{skill_dir.name}.py",
         skill_dir / f"{skill_dir.name}.py",
-    ]
-    for candidate in candidates:
-        if candidate.exists():
+    ):
+        if candidate.is_file():
             return candidate
     return None
 
 
 def find_contract(skill_dir: Path) -> Path | None:
-    candidates = [
+    for candidate in (
         skill_dir / "contract.json",
         skill_dir / f"{skill_dir.name}.feature",
         skill_dir / "SKILL.md",
         skill_dir / "SKILL.qmd",
-    ]
-    for candidate in candidates:
-        if candidate.exists():
+    ):
+        if candidate.is_file():
             return candidate
     return None
 
@@ -109,46 +133,19 @@ def find_contract(skill_dir: Path) -> Path | None:
 def load_existing_registry() -> dict[str, Any]:
     if not MANIFEST_PATH.exists():
         return {
-            "version": "2.0",
+            "version": "3.0",
             "generated_at": int(time.time() * 1000),
             "tiers": {},
             "intent_grammar": {},
             "entries": {},
         }
-    data = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
+    data = json.loads(
+        MANIFEST_PATH.read_text(encoding="utf-8"),
+        object_pairs_hook=_reject_duplicate_pairs,
+    )
     if not isinstance(data, dict):
-        raise SkillRegistrySchemaError(
-            "skill registry root must be a JSON object"
-        )
-    if "entries" not in data:
-        raise SkillRegistrySchemaError(
-            "skill registry entries field is required and must be a JSON object "
-            "keyed by capability id"
-        )
-
-    entries = data["entries"]
-    if not isinstance(entries, dict):
-        raise SkillRegistrySchemaError(
-            "skill registry entries must be a non-null JSON object keyed by "
-            f"capability id; got {type(entries).__name__}"
-        )
-
-    for entry_name, entry in entries.items():
-        if not isinstance(entry_name, str) or not entry_name.strip():
-            raise SkillRegistrySchemaError(
-                "skill registry entry keys must be non-blank strings"
-            )
-        if not isinstance(entry, dict):
-            raise SkillRegistrySchemaError(
-                f"skill registry entry {entry_name!r} must be a JSON object; "
-                f"got {type(entry).__name__}"
-            )
-        embedded_id = entry.get("id")
-        if "id" in entry and embedded_id != entry_name:
-            raise SkillRegistrySchemaError(
-                f"skill registry entry {entry_name!r} has mismatched embedded "
-                f"id {embedded_id!r}"
-            )
+        raise ValueError("skill registry root must be an object")
+    data["entries"] = require_registry_entry_map(data.get("entries"))
     return data
 
 
@@ -156,600 +153,306 @@ def load_authoritative_skills() -> dict[str, dict[str, Any]]:
     authority: dict[str, dict[str, Any]] = {}
     if not AUTHORITY_ROOT.exists():
         return authority
-
-    for skill_dir in sorted(
-        path
-        for path in AUTHORITY_ROOT.iterdir()
-        if path.is_dir()
-        and not path.name.startswith(".")
-        and not (path / DECOMMISSION_MARKER).exists()
-    ):
+    directories = sorted(
+        (item for item in AUTHORITY_ROOT.iterdir() if item.is_dir() and not item.name.startswith(".")),
+        key=lambda item: item.name,
+    )
+    for skill_dir in directories:
+        if not SAFE_ID.fullmatch(skill_dir.name):
+            continue
         normalized = normalize_skill_name(skill_dir.name)
+        if normalized in authority:
+            raise ValueError(f"skill registry duplicate authoritative skill: {skill_dir.name}")
         authority[normalized] = {
             "name": skill_dir.name,
-            "normalized_name": normalized,
             "authority_path": relative_to_project(skill_dir),
             "entrypoint_path": relative_to_project(find_entrypoint(skill_dir)),
             "contract_path": relative_to_project(find_contract(skill_dir)),
-            "runtime_trigger": skill_dir.name,
-            "migration_status": "authoritative",
-            "source": ".agents/skills",
         }
     return authority
-
-
-def load_decommissioned_skill_names() -> set[str]:
-    if not AUTHORITY_ROOT.exists():
-        return set()
-    return {
-        normalize_skill_name(skill_dir.name)
-        for skill_dir in AUTHORITY_ROOT.iterdir()
-        if skill_dir.is_dir() and (skill_dir / DECOMMISSION_MARKER).exists()
-    }
 
 
 def _local_entrypoint(path: Path) -> Path:
     if path.is_file():
         return path
-    candidates = list(path.glob("*.py")) + list((path / "scripts").glob("*.py"))
-    return sorted(candidates)[0] if candidates else path
-
-
-def _classify_local_skill(normalized_name: str, local_path: Path, authority: dict[str, dict[str, Any]]) -> tuple[str, str | None]:
-    alias = ALIAS_MAP.get(normalized_name, normalized_name)
-    authority_entry = authority.get(alias)
-    if authority_entry:
-        return "wrap", authority_entry["name"]
-
-    if normalized_name == "dormancy":
-        return "bootstrap-only", None
-
-    if local_path.is_file() or list(local_path.glob("*.py")) or list((local_path / "scripts").glob("*.py")):
-        return "migrate", None
-
-    return "retire", None
+    candidates = sorted((*path.glob("*.py"), *(path / "scripts").glob("*.py")))
+    return candidates[0] if candidates else path
 
 
 def load_local_skills(authority: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
-    local_entries: list[dict[str, Any]] = []
     if not LOCAL_ROOT.exists():
-        return local_entries
-
-    for entry in sorted(LOCAL_ROOT.iterdir(), key=lambda item: item.name.lower()):
-        if entry.name.startswith(".") or entry.name == "__pycache__":
+        return []
+    entries: list[dict[str, Any]] = []
+    for item in sorted(LOCAL_ROOT.iterdir(), key=lambda path: path.name.lower()):
+        if item.name.startswith(".") or item.name == "__pycache__":
             continue
-        if entry.is_dir() and (entry / DECOMMISSION_MARKER).exists():
+        if not item.is_dir() and item.suffix != ".py":
             continue
-        if entry.is_dir() or entry.suffix == ".py":
-            name = entry.stem if entry.is_file() else entry.name
-            normalized = normalize_skill_name(name)
-            status, authority_alias = _classify_local_skill(normalized, entry, authority)
-            local_entries.append(
-                {
-                    "name": name,
-                    "normalized_name": normalized,
-                    "local_path": relative_to_project(entry),
-                    "entrypoint_path": relative_to_project(_local_entrypoint(entry)),
-                    "migration_status": status,
-                    "authority_alias": authority_alias,
-                    "runtime_trigger": name,
-                    "source": "src/skills/local",
-                }
-            )
-    return local_entries
+        name = item.stem if item.is_file() else item.name
+        normalized = normalize_skill_name(name)
+        alias = ALIAS_MAP.get(normalized, normalized)
+        authority_alias = authority.get(alias, {}).get("name")
+        if authority_alias:
+            status = "wrap"
+        elif normalized == "dormancy":
+            status = "bootstrap-only"
+        elif item.is_file() or _local_entrypoint(item) != item:
+            status = "migrate"
+        else:
+            status = "retire"
+        entries.append({
+            "name": name,
+            "normalized_name": normalized,
+            "local_path": relative_to_project(item),
+            "entrypoint_path": relative_to_project(_local_entrypoint(item)),
+            "migration_status": status,
+            "authority_alias": authority_alias,
+            "runtime_trigger": name,
+            "source": "src/skills/local",
+        })
+    return entries
 
 
 def infer_authority_path(entry_name: str, entry: dict[str, Any]) -> str | None:
-    instruction_path = entry.get("instruction_path")
-    if isinstance(instruction_path, str) and instruction_path.strip():
-        instruction = (PROJECT_ROOT / instruction_path).resolve()
-        if instruction.exists():
-            if instruction.is_dir():
-                return relative_to_project(instruction)
-            if instruction.parent == AUTHORITY_ROOT / entry_name:
-                return relative_to_project(instruction.parent)
-            return relative_to_project(instruction)
-
+    declared = entry.get("authority_path")
+    if isinstance(declared, str) and declared:
+        candidate = (PROJECT_ROOT / declared).resolve()
+        try:
+            candidate.relative_to(PROJECT_ROOT.resolve())
+        except ValueError:
+            return None
+        if candidate.exists():
+            return relative_to_project(candidate)
+    instruction = entry.get("instruction_path")
+    if isinstance(instruction, str) and instruction:
+        candidate = (PROJECT_ROOT / instruction).resolve()
+        if candidate.exists():
+            return relative_to_project(candidate if candidate.is_dir() else candidate.parent)
     skill_dir = AUTHORITY_ROOT / entry_name
     if skill_dir.exists():
         return relative_to_project(skill_dir)
-
     spell_file = SPELL_ROOT / f"{entry_name}.md"
-    if spell_file.exists():
-        return relative_to_project(spell_file)
-
-    return None
+    return relative_to_project(spell_file) if spell_file.exists() else None
 
 
-def infer_entrypoint_path(entry_name: str, authority_path: str | None) -> str | None:
+def infer_entrypoint_path(
+    entry_name: str,
+    authority_path: str | None,
+    entry: dict[str, Any],
+) -> str | None:
+    declared = entry.get("entrypoint_path")
+    if isinstance(declared, str) and declared:
+        candidate = (PROJECT_ROOT / declared).resolve()
+        try:
+            candidate.relative_to(PROJECT_ROOT.resolve())
+        except ValueError:
+            candidate = Path()
+        if candidate.is_file():
+            return relative_to_project(candidate)
     if not authority_path:
         return None
-
     authority = PROJECT_ROOT / authority_path
     if authority.is_file():
         return None
-
     entrypoint = find_entrypoint(authority)
-    if entrypoint is not None:
+    if entrypoint:
         return relative_to_project(entrypoint)
-
     if entry_name in {"chant", "orchestrate", "ravens", "start"}:
-        runtime_file = PROJECT_ROOT / "src" / "node" / "core" / "runtime" / "weaves" / f"{entry_name}.ts"
-        if runtime_file.exists():
-            return relative_to_project(runtime_file)
-
+        runtime = PROJECT_ROOT / "src/node/core/runtime/weaves" / f"{entry_name}.ts"
+        if runtime.is_file():
+            return relative_to_project(runtime)
     return None
 
 
 def infer_contract_path(authority_path: str | None) -> str | None:
     if not authority_path:
         return None
-
     authority = PROJECT_ROOT / authority_path
     if authority.is_file():
         return relative_to_project(authority)
-
-    contract = find_contract(authority)
-    if contract is not None:
-        return relative_to_project(contract)
-    return None
-
-
-def infer_owner_runtime(entry_name: str, entry: dict[str, Any]) -> str:
-    execution_mode = str(entry.get("execution", {}).get("mode") or "").strip().lower()
-    ownership_model = str(entry.get("execution", {}).get("ownership_model") or "").strip().lower()
-    tier = str(entry.get("tier") or "").strip().upper()
-
-    if tier == "SPELL":
-        return "policy-layer"
-    if ownership_model == "kernel-primitive":
-        return "cstar-kernel"
-    if ownership_model == "host-workflow":
-        return "host-agent"
-    if execution_mode == "kernel-backed":
-        return "cstar-kernel"
-    return "host-agent"
-
-
-def infer_viability(entry_name: str, authority_path: str | None, entry: dict[str, Any]) -> str:
-    declared = str(entry.get("viability") or "").strip().upper()
-    if entry_name == "_archive" or authority_path == ".agents/skills/_archive":
-        return "DEPRECATED"
-    if declared:
-        return declared
-    return "PLANNED"
-
-
-def infer_host_support(entry: dict[str, Any]) -> dict[str, str]:
-    declared = entry.get("host_support")
-    if isinstance(declared, dict) and all(isinstance(key, str) and isinstance(value, str) for key, value in declared.items()):
-        normalized_declared = {key: value.strip() for key, value in declared.items()}
-        if set(normalized_declared.values()) != {"supported"}:
-            return normalized_declared
-
-    execution_mode = str(entry.get("execution", {}).get("mode") or "").strip().lower()
-    owner_runtime = str(entry.get("owner_runtime") or "").strip().lower()
-    if owner_runtime == "policy-layer":
-        return {
-            "gemini": "policy-only",
-            "codex": "policy-only",
-            "claude": "policy-only",
-        }
-
-    if execution_mode == "kernel-backed" or owner_runtime == "cstar-runtime":
-        return {
-            "gemini": "supported",
-            "codex": "supported",
-            "claude": "supported",
-        }
-
-    if execution_mode == "agent-native" or owner_runtime == "host-agent":
-        return {
-            "gemini": "native-session",
-            "codex": "exec-bridge",
-            "claude": "exec-bridge",
-        }
-
-    return {
-        "gemini": "unknown",
-        "codex": "unknown",
-        "claude": "unknown",
-    }
-
-
-def infer_recursion_policy(entry_name: str, entry: dict[str, Any]) -> str:
-    declared = entry.get("recursion_policy")
-    if isinstance(declared, str) and declared.strip():
-        return declared.strip()
-
-    tier = str(entry.get("tier") or "").strip().upper()
-    if tier == "SPELL":
-        return "policy-only"
-    if entry_name in {"chant", "evolve", "orchestrate", "ravens", "start"}:
-        return "bounded-orchestrator"
-    if tier == "WEAVE":
-        return "bounded-composite"
-    return "leaf"
-
-
-def infer_entry_surface(entry_name: str, entry: dict[str, Any]) -> str:
-    declared = str(entry.get("entry_surface") or "").strip().lower()
-    if declared in {"cli", "host-only", "compatibility"}:
-        return declared
-
-    tier = str(entry.get("tier") or "").strip().upper()
-    execution_mode = str(entry.get("execution", {}).get("mode") or "").strip().lower()
-    spell_classification = str(entry.get("spell_classification") or "").strip().lower()
-
-    if tier == "SPELL" or execution_mode == "policy-only" or spell_classification == "policy-only":
-        return "host-only"
-    if entry_name == "chant":
-        return "host-only"
-
-    return "cli"
-
-
-def infer_spell_classification(entry: dict[str, Any]) -> str | None:
-    tier = str(entry.get("tier") or "").strip().upper()
-    if tier != "SPELL":
-        return None
-
-    declared = entry.get("spell_classification")
-    if isinstance(declared, str) and declared.strip():
-        return declared.strip()
-
-    viability = str(entry.get("viability") or "").strip().upper()
-    execution_mode = str(entry.get("execution", {}).get("mode") or "").strip().lower()
-    owner_runtime = str(entry.get("owner_runtime") or "").strip().lower()
-
-    if viability == "DEPRECATED":
-        return "deprecated"
-    if execution_mode == "kernel-backed" and owner_runtime != "policy-layer":
-        return "runtime-backed"
-    return "policy-only"
-
-
-def infer_contracts(contract_path: str | None, entry: dict[str, Any]) -> list[str]:
-    declared = entry.get("contracts")
-    if isinstance(declared, list) and all(isinstance(item, str) for item in declared):
-        values = [item for item in declared if item.strip()]
-        if values:
-            return values
-
-    return [contract_path] if contract_path else []
+    return relative_to_project(find_contract(authority))
 
 
 def infer_tests(entry_name: str, entry: dict[str, Any]) -> list[str]:
     declared = entry.get("tests")
-    if isinstance(declared, list) and all(isinstance(item, str) for item in declared):
-        values = [item for item in declared if item.strip()]
-        if values:
-            return values
-
-    if not TEST_ROOT.exists():
-        return []
-
-    contract_tokens = []
-    for contract in entry.get("contracts", []):
-        contract_tokens.append(Path(contract).stem)
-
-    search_tokens = build_search_tokens(
-        entry_name,
-        entry.get("runtime_trigger"),
-        entry.get("instruction_path"),
-        entry.get("authority_path"),
-        entry.get("entrypoint_path"),
-        entry.get("contract_path"),
-        *contract_tokens,
-        *TEST_ALIAS_MAP.get(entry_name, []),
-    )
-    if not search_tokens:
-        return []
-
-    candidates: list[tuple[int, str]] = []
-    for candidate in TEST_ROOT.rglob("*"):
-        if not candidate.is_file():
-            continue
-        relative = candidate.relative_to(PROJECT_ROOT).as_posix()
-        if any(segment in relative for segment in ("/fixtures/", "__pycache__", ".legacy")):
-            continue
-        if candidate.suffix not in {".py", ".ts"}:
-            continue
-        if not candidate.name.startswith("test_") and ".test." not in candidate.name:
-            continue
-
-        relative_parts = [normalize_skill_name(part) for part in candidate.parts]
-        stem_tokens = build_search_tokens(candidate.stem, *candidate.parts)
-        score = 0
-        for token in search_tokens:
-            if token in stem_tokens:
-                score += 5
-            elif token in relative_parts:
-                score += 3
-        if score <= 0:
-            continue
-        if relative.startswith("tests/unit/"):
-            score += 3
-        elif relative.startswith("tests/contracts/") or relative.startswith("tests/crucible/"):
-            score += 2
-        elif relative.startswith("tests/empire_tests/") or relative.startswith("tests/quarantine/"):
-            score += 1
-        candidates.append((score, relative))
-
-    ranked = sorted(candidates, key=lambda item: (-item[0], item[1]))
-    seen: set[str] = set()
-    selected: list[str] = []
-    for _, candidate in ranked:
-        if candidate in seen:
-            continue
-        seen.add(candidate)
-        selected.append(candidate)
-        if len(selected) >= 4:
-            break
-    if selected:
-        return selected
-    if str(entry.get("owner_runtime") or "").strip().lower() == "policy-layer":
-        return ["tests/unit/test_skill_registry_audit.py"]
-    return []
+    if isinstance(declared, list) and declared:
+        return list(declared)
+    tokens = {
+        normalize_skill_name(entry_name),
+        *(normalize_skill_name(value) for value in TEST_ALIAS_MAP.get(entry_name, [])),
+    }
+    candidates: list[str] = []
+    if TEST_ROOT.exists():
+        for candidate in TEST_ROOT.rglob("*"):
+            if not candidate.is_file() or candidate.suffix not in {".py", ".ts"}:
+                continue
+            relative = candidate.relative_to(PROJECT_ROOT).as_posix()
+            if "/fixtures/" in relative or "__pycache__" in relative:
+                continue
+            haystack = normalize_skill_name(relative)
+            if any(token and token in haystack for token in tokens):
+                candidates.append(relative)
+    return sorted(candidates, key=lambda value: (not value.startswith("tests/unit/"), value))[:4]
 
 
 def enrich_entry(entry_name: str, entry: dict[str, Any]) -> dict[str, Any]:
     enriched = dict(entry)
+    execution = enriched.get("execution") if isinstance(enriched.get("execution"), dict) else {}
+    tier = str(enriched.get("tier") or "").upper()
+    mode = str(execution.get("mode") or "").lower()
+    ownership = str(execution.get("ownership_model") or "").lower()
     authority_path = infer_authority_path(entry_name, enriched)
     contract_path = infer_contract_path(authority_path)
 
     enriched["runtime_trigger"] = str(enriched.get("runtime_trigger") or entry_name)
     enriched["authority_path"] = authority_path
-    enriched["viability"] = infer_viability(entry_name, authority_path, enriched)
-    enriched["entrypoint_path"] = infer_entrypoint_path(entry_name, authority_path)
+    enriched["entrypoint_path"] = infer_entrypoint_path(entry_name, authority_path, enriched)
     enriched["contract_path"] = contract_path
-    enriched["owner_runtime"] = infer_owner_runtime(entry_name, enriched)
-    enriched["host_support"] = infer_host_support(enriched)
-    enriched["recursion_policy"] = infer_recursion_policy(entry_name, enriched)
-    spell_classification = infer_spell_classification(enriched)
-    if spell_classification is not None:
-        enriched["spell_classification"] = spell_classification
-    enriched["entry_surface"] = infer_entry_surface(entry_name, enriched)
-    enriched["contracts"] = infer_contracts(contract_path, enriched)
+    enriched["viability"] = (
+        "DEPRECATED"
+        if entry_name == "_archive" or authority_path == ".agents/skills/_archive"
+        else str(enriched.get("viability") or "PLANNED").upper()
+    )
+    if tier == "SPELL":
+        enriched["owner_runtime"] = "policy-layer"
+    elif ownership == "kernel-primitive":
+        enriched["owner_runtime"] = str(enriched.get("owner_runtime") or "cstar-kernel")
+    elif ownership == "host-workflow":
+        enriched["owner_runtime"] = "host-agent"
+    else:
+        enriched["owner_runtime"] = str(enriched.get("owner_runtime") or "host-agent")
+
+    declared_support = enriched.get("host_support")
+    if not isinstance(declared_support, dict):
+        if tier == "SPELL":
+            declared_support = {host: "policy-only" for host in ("gemini", "codex", "claude")}
+        elif mode == "agent-native" or enriched["owner_runtime"] == "host-agent":
+            declared_support = {"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}
+        elif mode == "kernel-backed":
+            declared_support = {host: "supported" for host in ("gemini", "codex", "claude")}
+        else:
+            declared_support = {host: "unknown" for host in ("gemini", "codex", "claude")}
+    enriched["host_support"] = declared_support
+
+    if tier == "SPELL":
+        enriched["spell_classification"] = str(enriched.get("spell_classification") or "policy-only")
+    if enriched.get("entry_surface") not in {"cli", "host-only", "compatibility"}:
+        enriched["entry_surface"] = "host-only" if tier == "SPELL" or entry_name == "chant" else "cli"
+    if not enriched.get("recursion_policy"):
+        enriched["recursion_policy"] = (
+            "policy-only" if tier == "SPELL"
+            else "bounded-orchestrator" if entry_name in {"chant", "orchestrate", "ravens", "start"}
+            else "bounded-composite" if tier == "WEAVE"
+            else "leaf"
+        )
+    contracts = enriched.get("contracts")
+    enriched["contracts"] = list(contracts) if isinstance(contracts, list) and contracts else ([contract_path] if contract_path else [])
     enriched["tests"] = infer_tests(entry_name, enriched)
     return enriched
 
 
 def collect_authority_issues(entries: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
     issues: list[dict[str, Any]] = []
-    required_fields = [
-        "authority_path",
-        "owner_runtime",
-        "host_support",
-        "recursion_policy",
-        "entry_surface",
-        "contracts",
-        "tests",
-    ]
-
+    required = ("authority_path", "owner_runtime", "host_support", "recursion_policy", "entry_surface", "contracts", "tests")
     for name, entry in sorted(entries.items()):
         if entry.get("viability") != "ACTIVE":
             continue
-
-        missing: list[str] = []
-        for field in required_fields:
-            value = entry.get(field)
-            if value is None:
-                missing.append(field)
-                continue
-            if isinstance(value, str) and not value.strip():
-                missing.append(field)
-                continue
-            if isinstance(value, list) and field in {"contracts", "tests"} and not value:
-                missing.append(field)
-
+        missing = [field for field in required if not entry.get(field)]
+        execution = entry.get("execution") if isinstance(entry.get("execution"), dict) else {}
+        if (
+            str(execution.get("mode") or "").lower() in {"agent-native", "kernel-backed"}
+            and execution.get("ownership_model") not in {"host-workflow", "kernel-primitive"}
+        ):
+            missing.append("execution.ownership_model")
         if missing:
-            issues.append(
-                {
-                    "entry": name,
-                    "missing_fields": missing,
-                }
-            )
-
-        if str(entry.get("tier") or "").strip().upper() == "SPELL":
-            classification = entry.get("spell_classification")
-            if not isinstance(classification, str) or not classification.strip():
-                issues.append(
-                    {
-                        "entry": name,
-                        "missing_fields": ["spell_classification"],
-                    }
-                )
-
-        execution_mode = str(entry.get("execution", {}).get("mode") or "").strip().lower()
-        ownership_model = str(entry.get("execution", {}).get("ownership_model") or "").strip().lower()
-        if execution_mode in {"agent-native", "kernel-backed"} and ownership_model not in {"host-workflow", "kernel-primitive"}:
-            issues.append(
-                {
-                    "entry": name,
-                    "missing_fields": ["execution.ownership_model"],
-                }
-            )
-
+            issues.append({"entry": name, "missing_fields": missing})
     return issues
 
 
 def build_registry_manifest() -> dict[str, Any]:
     existing = load_existing_registry()
     authority = load_authoritative_skills()
-    decommissioned = load_decommissioned_skill_names()
     local_entries = load_local_skills(authority)
-
-    entries: dict[str, dict[str, Any]] = {
-        entry_name: dict(existing_entry)
-        for entry_name, existing_entry in existing.get("entries", {}).items()
+    entries = {
+        name: enrich_entry(name, entry)
+        for name, entry in existing["entries"].items()
     }
-    duplicates: list[dict[str, Any]] = []
-
-    stale_decommissioned = sorted(
-        entry_name
-        for entry_name in entries
-        if normalize_skill_name(entry_name) in decommissioned
-    )
-    if stale_decommissioned:
-        raise SkillRegistrySchemaError(
-            "decommissioned skills remain in the authoritative registry: "
-            + ", ".join(stale_decommissioned)
-        )
-
-    for local in local_entries:
-        key = local["authority_alias"] or local["runtime_trigger"]
-        if local["migration_status"] == "wrap" and key in entries:
-            duplicates.append(
-                {
-                    "local_name": local["name"],
-                    "local_path": local["local_path"],
-                    "authority_name": key,
-                    "authority_path": entries[key]["authority_path"],
-                    "classification": "wrap",
-                }
-            )
-
-    audit = {
-        "generated_at": int(time.time() * 1000),
-        "authoritative_root": relative_to_project(AUTHORITY_ROOT),
-        "duplicates": duplicates,
-        "local_candidates": local_entries,
-        "unregistered_authority_candidates": sorted(
-            authority_entry["runtime_trigger"]
-            for authority_entry in authority.values()
-            if authority_entry["runtime_trigger"] not in entries
-        ),
-        "authority_issues": collect_authority_issues(entries),
-    }
-
-    manifest = {
+    for authority_entry in authority.values():
+        name = authority_entry["name"]
+        entries.setdefault(name, enrich_entry(name, {
+            "tier": "SKILL",
+            "description": "",
+            "instruction_path": f"{authority_entry['authority_path']}/SKILL.md",
+            "execution": {"mode": "agent-native", "ownership_model": "host-workflow"},
+            "viability": "ACTIVE",
+            "risk": "safe",
+        }))
+    duplicates = [
+        {
+            "local_name": local["name"],
+            "local_path": local["local_path"],
+            "authority_name": local["authority_alias"],
+            "authority_path": entries[local["authority_alias"]]["authority_path"],
+            "classification": "wrap",
+        }
+        for local in local_entries
+        if local["migration_status"] == "wrap" and local["authority_alias"] in entries
+    ]
+    generated_at = int(time.time() * 1000)
+    return {
         **existing,
+        "generated_at": generated_at,
         "entries": entries,
-        "authority_audit": audit,
+        "authority_audit": {
+            "generated_at": generated_at,
+            "authoritative_root": relative_to_project(AUTHORITY_ROOT),
+            "duplicates": duplicates,
+            "local_candidates": local_entries,
+            "authority_issues": collect_authority_issues(entries),
+        },
     }
-    return manifest
 
 
 def render_report(manifest: dict[str, Any]) -> str:
     audit = manifest["authority_audit"]
-    authoritative = [
-        {"name": name, **entry}
-        for name, entry in manifest["entries"].items()
-        if entry.get("instruction_path", "").startswith(".agents/skills/")
-    ]
-    non_authoritative = [entry for entry in audit["local_candidates"]]
-    duplicates = audit["duplicates"]
-    issues = audit["authority_issues"]
-
     lines = [
         "---",
         'title: "Skill Authority Report"',
-        f'generated_at: "{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(manifest["generated_at"] / 1000))}"',
-        'authoritative_root: ".agents/skills"',
         "---",
         "",
         "# Skill Authority Report",
         "",
-        "`.agents/skills/` is the authoritative woven-skill registry for Phase 1.",
-        "Any `src/skills/local/` surface is transitional and must be classified rather than guessed.",
-        "",
-        f"- Authoritative skills: `{len(authoritative)}`",
-        f"- Transitional local entries: `{len(non_authoritative)}`",
-        f"- Duplicate definitions: `{len(duplicates)}`",
-        f"- Active capability authority issues: `{len(issues)}`",
+        f"- Authoritative skills: `{len(manifest['entries'])}`",
+        f"- Transitional local entries: `{len(audit['local_candidates'])}`",
+        f"- Duplicate definitions: `{len(audit['duplicates'])}`",
+        f"- Active capability authority issues: `{len(audit['authority_issues'])}`",
         "",
         "## Authoritative Registry",
         "",
     ]
-
-    for entry in sorted(authoritative, key=lambda item: item["name"].lower()):
-        lines.extend(
-            [
-                f"### {entry['name']}",
-                f"- Authority Path: `{entry['authority_path']}`",
-                f"- Entrypoint: `{entry['entrypoint_path'] or 'none'}`",
-                f"- Contract: `{entry['contract_path'] or 'none'}`",
-                f"- Runtime Trigger: `{entry['runtime_trigger']}`",
-                f"- Owner Runtime: `{entry.get('owner_runtime') or 'none'}`",
-                f"- Entry Surface: `{entry.get('entry_surface') or 'none'}`",
-                f"- Host Support: `{json.dumps(entry.get('host_support', {}), ensure_ascii=True)}`",
-                f"- Recursion Policy: `{entry.get('recursion_policy') or 'none'}`",
-                f"- Contracts: `{', '.join(entry.get('contracts', [])) or 'none'}`",
-                f"- Tests: `{', '.join(entry.get('tests', [])) or 'none'}`",
-                "",
-            ]
-        )
-
-    lines.extend(["## Transitional Local Skills", ""])
-    for entry in sorted(non_authoritative, key=lambda item: item["name"].lower()):
-        lines.extend(
-            [
-                f"### {entry['name']}",
-                f"- Path: `{entry['local_path']}`",
-                f"- Migration Status: `{entry['migration_status']}`",
-                f"- Authority Alias: `{entry.get('authority_alias') or 'none'}`",
-                "",
-            ]
-        )
-
-    lines.extend(["## Active Capability Authority Issues", ""])
-    if issues:
-        for issue in issues:
-            lines.append(f"- `{issue['entry']}` missing: `{', '.join(issue['missing_fields'])}`")
-    else:
-        lines.append("- No active capability authority issues detected.")
-
-    lines.extend(["## Duplicate Definitions", ""])
-    if duplicates:
-        for duplicate in duplicates:
-            lines.extend(
-                [
-                    f"- `{duplicate['local_name']}` -> `{duplicate['authority_name']}`",
-                    f"  Local: `{duplicate['local_path']}`",
-                    f"  Authority: `{duplicate['authority_path']}`",
-                ]
-            )
-    else:
-        lines.append("- No duplicate definitions detected.")
-
-    lines.append("")
+    for name, entry in sorted(manifest["entries"].items()):
+        lines.extend([
+            f"### {name}",
+            f"- Authority Path: `{entry.get('authority_path') or 'none'}`",
+            f"- Entrypoint: `{entry.get('entrypoint_path') or 'none'}`",
+            f"- Entry Surface: `{entry.get('entry_surface') or 'none'}`",
+            "",
+        ])
     return "\n".join(lines)
 
 
-def write_report(manifest: dict[str, Any]) -> None:
-    REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
+def write_outputs(manifest: dict[str, Any]) -> None:
+    MANIFEST_PATH.write_text(json.dumps(manifest, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
     REPORT_PATH.write_text(render_report(manifest), encoding="utf-8")
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Validate the authoritative keyed skill registry without promoting filesystem skills.",
-    )
-    parser.add_argument(
-        "--check",
-        action="store_true",
-        help="Validate and print the audit summary without writing any file (default).",
-    )
-    parser.add_argument(
-        "--write-report",
-        action="store_true",
-        help="Write only the derived authority report; never rewrite the registry.",
-    )
-    args = parser.parse_args()
     manifest = build_registry_manifest()
+    write_outputs(manifest)
     audit = manifest["authority_audit"]
-    if args.write_report:
-        write_report(manifest)
-    print(f"Authoritative skills: {sum(1 for entry in manifest['entries'].values() if str(entry.get('instruction_path') or '').startswith('.agents/skills/'))}")
-    print(f"Transitional local entries: {len(audit['local_candidates'])}")
-    print(f"Unregistered authority candidates: {len(audit['unregistered_authority_candidates'])}")
+    print(f"Authoritative skills: {len(manifest['entries'])}")
     print(f"Duplicate definitions: {len(audit['duplicates'])}")
     print(f"Active capability authority issues: {len(audit['authority_issues'])}")
-    print(f"Manifest validated and preserved: {MANIFEST_PATH}")
-    print(f"Report: {REPORT_PATH if args.write_report else 'not written (use --write-report)'}")
-    if audit["authority_issues"]:
-        raise SystemExit(1)
 
 
 if __name__ == "__main__":

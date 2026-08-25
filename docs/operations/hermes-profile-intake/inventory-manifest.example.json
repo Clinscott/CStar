@@ -1,0 +1,68 @@
+{
+  "schema_version": "hermes.profile.intake.manifest.v1",
+  "profile_kind": "researcher",
+  "source_root_alias": "HERMES_RESEARCHER_PROFILE_ROOT",
+  "phase": "metadata_only",
+  "candidates": [
+    {
+      "relative_path": "skills/example-contract/SKILL.md",
+      "size_bytes": 0,
+      "modified_epoch": 0,
+      "asset_kind": "skill_contract",
+      "review_status": "manual_review",
+      "sha256": null
+    }
+  ],
+  "excluded_summary": {
+    "categories_applied": [
+      "profile_contents",
+      "oauth_state",
+      "tokens",
+      "credentials",
+      "secrets",
+      "commands",
+      "endpoints",
+      "logs",
+      "transcripts_and_traces",
+      "sessions",
+      "cookies_and_browser_state",
+      "databases",
+      "caches",
+      "runtime_state",
+      "local_secret_paths",
+      "live_configuration",
+      "memories_and_personal_context",
+      "raw_vaults_and_private_data",
+      "generated_artifacts"
+    ],
+    "individual_excluded_paths_recorded": false
+  },
+  "authority": {
+    "worker_enrollment": false,
+    "source_authority": false,
+    "execution": false,
+    "spend": false,
+    "provider_selection": false,
+    "model_selection": false,
+    "profile_mutation": false,
+    "activation": false
+  },
+  "attestation": {
+    "profile_contents_included": false,
+    "oauth_state_included": false,
+    "tokens_included": false,
+    "credentials_included": false,
+    "commands_included": false,
+    "endpoints_included": false,
+    "logs_included": false,
+    "sessions_included": false,
+    "databases_included": false,
+    "runtime_state_included": false,
+    "absolute_paths_included": false,
+    "local_secret_paths_included": false,
+    "live_configuration_included": false,
+    "private_data_included": false,
+    "archive_created": false,
+    "operator_review_required": true
+  }
+}

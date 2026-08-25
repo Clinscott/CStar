@@ -1,21 +1,28 @@
 # Terminal Skill Migration
 
-Status: COMPLETE FOR THE CURRENT REGISTRY
+Status: OPEN
 
-The current registry contains only the host-native agent skills
-`corvus-forge`, `researcher`, and `cstar-closeout`. None has a public shell
-invocation. The runtime recognizes their declarations only to support discovery
-and enforce fail-closed terminal/runtime dispatch.
+## Policy
 
-Legacy scripts and weave entrypoints are compatibility artifacts. They are not
-part of the current registry and must remain read-only or fail closed before
-model, process, filesystem, Git, Hall, or memory mutation. Their continued
-source cleanup is a retirement task, not an active skill-migration path.
+Skills are harness skills, not shell commands.
 
-New reusable behavior starts as `SKILL.md` instructions for the active host.
-Individual focused test/build/inspection commands may be terminal-required
-inside that procedure, but no wrapper may make the whole skill executable from
-the terminal.
+Default classification:
+- `SKILL.md` / host workflow adapter only: `host-native`
+- `.agents/skills/*/scripts/*` entrypoint with no explicit terminal contract: `compatibility-only`
+- explicit `terminal_required: true`, `execution.requires_terminal: true`, or `execution.terminal_contract: "required"`: `terminal-required`
 
-See `docs/integrations/host_native_skill_contract.md` and
-`docs/architecture/SKILL_REGISTRY.md` for the current contract.
+`entry_surface: "cli"` is not terminal permission.
+
+## Migration Steps
+
+1. For each `.agents/skills/*/scripts/*` registry entry, move agent workflow instructions into `SKILL.md` and route activation through the host harness.
+2. Leave legacy scripts as `compatibility-only` only where external users still need them.
+3. Add explicit terminal-required contracts only when a terminal is intrinsic to the capability, such as installing packages, invoking an operating-system tool, or running a bounded test/build command.
+4. Block all other skill execution through terminal dispatch.
+5. Promote the terminal skill policy audit into the authoritative test suite once the registry has been classified.
+
+## Non-Goals
+
+- Do not delete compatibility scripts blindly.
+- Do not use broad terminal scans as migration verification.
+- Do not add new shell wrappers to make host-native skills callable from the terminal.

@@ -2,9 +2,9 @@ import { z } from 'zod';
 import type { HallBeadStatus, HallBeadTargetKind } from '../../types/hall.js';
 import {
     dispatchRequestSchema,
+    forgeAuthorizeSchema,
     forgeExecuteSchema,
     forgeRequestSchema,
-    tokenPathObservationSchema,
 } from './contracts/schemas.js';
 import {
     getCstarKernelToolCatalogEntry,
@@ -17,13 +17,16 @@ import { handleBead } from './tools/bead.js';
 import { handleManifest, handleSkillInfo, handleSpokeJournal } from './tools/capability.js';
 import { handleEvolve } from './tools/evolve.js';
 import { handleForgeExecute } from './tools/forge_execute.js';
+import { handleForgeAuthorize } from './tools/forge_authorize.js';
 import { handleResearcherRequest } from './tools/dispatch_request.js';
 import { handleForgeRequest } from './tools/forge_request.js';
+import { handleGoalResume } from './tools/goal_resume.js';
 import { handleDoctor, handleHallMaintenance, handleHallSearch, handleHandoff, handleVerifyPlan } from './tools/hall.js';
 import { handleEngramRecord, handleWarGameScore } from './tools/war_game.js';
 import { handleIntentRoute } from './tools/intent_route.js';
 import { handleMongoMailbox } from './tools/mongo_mailbox.js';
 import { handlePennyOneContext } from './tools/pennyone_context.js';
+import { handlePersonaSet } from './tools/persona_set.js';
 import { handleRecordResult } from './tools/result.js';
 import { HALL_BEAD_STATUSES, HALL_BEAD_TARGET_KINDS } from './tools/shared.js';
 import { handleSpoke } from './tools/spoke.js';
@@ -143,32 +146,33 @@ export function registerCoreTools(server: ServerWithTool, instrumentTool: Instru
             triage_reason: z.string().optional().describe('Reason for blocked/triage status'),
             metadata: z.record(z.string(), z.unknown()).optional().describe('Small metadata object'),
             mandate_evidence: z.object({
-                lore_paths: z.array(z.string()).optional().describe('.feature Gherkin paths; existence-checked'),
-                isolation_paths: z.array(z.string()).optional().describe('Unit-test paths; existence-checked'),
+                lore_paths: z.array(z.string()).optional().describe('Safe relative .feature paths; contained bytes must be bound to the validation receipt'),
+                isolation_paths: z.array(z.string()).optional().describe('Safe relative focused-test paths; contained bytes must be bound to the validation receipt'),
                 audit: z.object({
-                    warden_results: z.array(z.object({
-                        name: z.string().min(1).max(120),
-                        verdict: z.enum(['ACCEPTED', 'REJECTED', 'INCONCLUSIVE']),
-                        ran_at: z.number().int().positive(),
-                        validation_id: z.string().min(1).max(240),
-                        validator_identity: z.string().min(1).max(240),
-                        evidence_sha256: z.string().regex(/^[a-fA-F0-9]{64}$/),
-                        independent_of_execution: z.literal(true),
-                        notes: z.string().max(4096).optional(),
-                    }).strict()).min(1).max(25).optional()
-                        .describe('Independently verified warden results backed by matching Hall validation receipts'),
                     validation_id: z.string().min(1).max(240).optional()
                         .describe('Positive, verified Hall validation receipt bound to this bead'),
                 }).strict().optional()
-                    .describe('Verified audit proof. Caller-provided scalar scores are rejected as non-authoritative.'),
-                mandate_exempt: z.boolean().optional().describe('Skip the mandate. Requires exemption_reason.'),
-                exemption_reason: z.string().optional().describe('Justification for the exemption.'),
+                    .describe('Exact independent validation receipt; caller-provided scores and claimed Warden results are non-authoritative.'),
             }).strict().optional().describe('Sterling Mandate evidence for RESOLVED transitions.'),
-            force: z.boolean().optional().describe('Override a rejected Sterling Mandate verdict. Requires force_reason.'),
-            force_reason: z.string().optional().describe('Justification for the force override.'),
             spoke: z.string().optional().describe('Registered Hall spoke slug used to anchor created beads.'),
         },
         handleBead,
+    );
+
+    registerCatalogTool(
+        server,
+        instrumentTool,
+        'cstar_goal_resume',
+        {
+            repair_bead_id: z.string().min(1).max(240).describe('Active repair bead that owns the continuity record'),
+            continued_bead_id: z.string().min(1).max(240).optional().describe('Optional active mission bead being continued'),
+            decision_id: z.string().min(1).max(240).optional().describe('Optional CStar decision correlated with the resumed goal'),
+            host_goal_objective_sha256: z.string().regex(/^[a-fA-F0-9]{64}$/).describe('Hash of the unchanged host goal objective'),
+            host_goal_snapshot_sha256: z.string().regex(/^[a-fA-F0-9]{64}$/).describe('Hash of the bounded blocked host-goal snapshot'),
+            observed_host_status: z.literal('blocked').describe('Host status remains blocked; this action never mutates it'),
+            host_resume_capability: z.literal('unavailable').describe('Observed absence of a supported host blocked-to-active transition'),
+        },
+        handleGoalResume,
     );
 
     registerCatalogTool(
@@ -207,9 +211,13 @@ export function registerCoreTools(server: ServerWithTool, instrumentTool: Instru
             notes: z.string().optional().describe('Compact validation notes'),
             validation_id: z.string().optional().describe('Caller-stable validation id for idempotent recording'),
             forge_execution_receipt_id: z.string().optional().describe('Forge execution receipt to finalize only after this independent validation'),
+            host_validation_receipt: z.object({
+                validator_thread_id: z.string().regex(/^[0-9a-f-]{36}$/i),
+                validator_turn_id: z.string().regex(/^[0-9a-f-]{36}$/i),
+                manifest_path: z.string().min(1),
+                manifest_sha256: z.string().regex(/^[a-fA-F0-9]{64}$/),
+            }).strict().optional().describe('Depth-one validator receipt recorded by the canonical root CoS for host-workflow validation'),
             validation_evidence: z.object({
-                validator_identity: z.string().min(1).max(240),
-                independent_of_execution: z.literal(true),
                 artifacts: z.array(z.object({
                     path: z.string().min(1),
                     sha256: z.string().regex(/^[a-fA-F0-9]{64}$/),
@@ -220,9 +228,7 @@ export function registerCoreTools(server: ServerWithTool, instrumentTool: Instru
                     evidence_path: z.string().min(1),
                     sha256: z.string().regex(/^[a-fA-F0-9]{64}$/),
                 })).min(1).max(25),
-            }).optional().describe('Hash-verified local evidence required for authoritative positive validation'),
-            token_path_episode_id: z.string().optional().describe('Correlation only; never auto-linked and insufficient without an explicit measured observation'),
-            token_path_observation: tokenPathObservationSchema.optional(),
+            }).strict().optional().describe('Hash-verified local evidence; CStar derives validator identity and independence against the exact Forge receipt'),
         },
         handleRecordResult,
     );
@@ -321,12 +327,12 @@ export function registerCoreTools(server: ServerWithTool, instrumentTool: Instru
         instrumentTool,
         'cstar_mongo_mailbox',
         {
-            action: z.enum(['status', 'mirror_counts', 'enqueue_operator_intent']).optional().default('status').describe('Named Mongo mailbox operation'),
-            intent_action: z.enum(['accept', 'decline', 'refine', 'dispatch', 'edit']).optional().describe('Required for enqueue_operator_intent'),
-            proposal_id: z.string().optional().describe('Required for enqueue_operator_intent'),
-            payload: z.record(z.string(), z.unknown()).nullable().optional().describe('Optional bounded intent payload'),
-            actor: z.string().optional().describe('Operator or system actor label'),
-            operator_authorization_ref: z.string().optional().describe('Required for Mongo mailbox writes'),
+            action: z.enum(['status', 'mirror_counts', 'enqueue_operator_intent']).optional().default('status').describe('Ignored retired compatibility action; every value fails closed'),
+            intent_action: z.enum(['accept', 'decline', 'refine', 'dispatch', 'edit']).optional().describe('Ignored legacy compatibility input'),
+            proposal_id: z.string().optional().describe('Ignored legacy compatibility input'),
+            payload: z.record(z.string(), z.unknown()).nullable().optional().describe('Ignored legacy compatibility input'),
+            actor: z.string().optional().describe('Ignored legacy compatibility input'),
+            operator_authorization_ref: z.string().optional().describe('Ignored evidence string; grants no authority and cannot enable writes'),
         },
         handleMongoMailbox,
     );
@@ -335,8 +341,24 @@ export function registerCoreTools(server: ServerWithTool, instrumentTool: Instru
         server,
         instrumentTool,
         'cstar_status',
-        {},
+        {
+            forge_execution_receipt_id: z.string()
+                .regex(/^forge-execute-[a-f0-9]{32}$/)
+                .optional()
+                .describe('Optional exact Forge execution receipt for read-only lifecycle status'),
+        },
         handleStatus,
+    );
+
+    registerCatalogTool(
+        server,
+        instrumentTool,
+        'cstar_persona_set',
+        {
+            persona: z.enum(['O.D.I.N.', 'A.L.F.R.E.D.'])
+                .describe('Exact persona state applied only from the next workflow boundary'),
+        },
+        handlePersonaSet,
     );
 
     registerCatalogTool(
@@ -356,19 +378,19 @@ export function registerCoreTools(server: ServerWithTool, instrumentTool: Instru
         instrumentTool,
         'cstar_spoke',
         {
-            action: z.enum(['list', 'link', 'unlink', 'inspect', 'project', 'doctor', 'prune', 'verify', 'health']).describe('Lifecycle operation'),
-            slug: z.string().optional().describe('Required for link, unlink, inspect, project, verify, health'),
-            root_path: z.string().optional().describe('Required for link'),
-            kind: z.enum(['local', 'git', 'mirror', 'archive']).optional().describe('Spoke kind'),
-            remote_url: z.string().optional().describe('Optional remote URL'),
-            branch: z.string().optional().describe('Default branch'),
-            trust_level: z.enum(['trusted', 'observe', 'quarantined']).optional().describe('Trust policy'),
-            write_policy: z.enum(['read_write', 'read_only']).optional().describe('Whether spoke may submit beads'),
-            accept_beads: z.boolean().optional().describe('Forces trust=trusted and write_policy=read_write'),
-            skip_init: z.boolean().optional().describe('Skip deterministic projection on link'),
-            targets: z.array(z.object({ slug: z.string(), root_path: z.string() })).optional().describe('Prune targets'),
-            dry_run: z.boolean().optional().describe('Prune dry run flag'),
-            cleanup_artifacts: z.boolean().optional().describe('Prune cleanup flag'),
+            action: z.enum(['list', 'link', 'unlink', 'inspect', 'project', 'doctor', 'prune', 'verify', 'health']).describe('Read operation; legacy mutation actions fail closed'),
+            slug: z.string().optional().describe('Required for inspect, verify, and health; ignored by retired mutation actions'),
+            root_path: z.string().optional().describe('Ignored legacy link input; never read or returned'),
+            kind: z.enum(['local', 'git', 'mirror', 'archive']).optional().describe('Ignored legacy link input'),
+            remote_url: z.string().optional().describe('Ignored legacy link input; never read or returned'),
+            branch: z.string().optional().describe('Ignored legacy link input'),
+            trust_level: z.enum(['trusted', 'observe', 'quarantined']).optional().describe('Ignored legacy link input'),
+            write_policy: z.enum(['read_write', 'read_only']).optional().describe('Ignored legacy link input'),
+            accept_beads: z.boolean().optional().describe('Ignored legacy link input'),
+            skip_init: z.boolean().optional().describe('Ignored legacy link input'),
+            targets: z.array(z.object({ slug: z.string(), root_path: z.string() })).optional().describe('Exact Hall row/root pairs for read-only prune preview'),
+            dry_run: z.boolean().optional().describe('Must be explicitly true for prune preview'),
+            cleanup_artifacts: z.boolean().optional().describe('Must remain false; cleanup requires a future verified authority contract'),
         },
         handleSpoke,
     );
@@ -389,7 +411,7 @@ export function registerCoreTools(server: ServerWithTool, instrumentTool: Instru
         instrumentTool,
         'cstar_warden',
         {
-            action: z.enum(['list', 'bounties', 'scan']).describe('list / bounties / scan'),
+            action: z.enum(['list', 'bounties', 'scan']).describe('list / bounties are read-only; scan is local process execution'),
             warden: z.string().optional().describe('Required for scan'),
             target: z.string().optional().describe('Optional path inside the project root'),
         },
@@ -420,6 +442,14 @@ export function registerCoreTools(server: ServerWithTool, instrumentTool: Instru
         'cstar_forge_request',
         forgeRequestSchema,
         handleForgeRequest,
+    );
+
+    registerCatalogTool(
+        server,
+        instrumentTool,
+        'cstar_forge_authorize',
+        forgeAuthorizeSchema,
+        handleForgeAuthorize,
     );
 
     registerCatalogTool(

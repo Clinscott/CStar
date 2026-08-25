@@ -1,7 +1,5 @@
-import { createHash, randomUUID } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import fs from 'node:fs';
-import os from 'node:os';
-import path from 'node:path';
 import { afterEach, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
@@ -9,152 +7,37 @@ import {
     verifyCodexRequestIdentity,
     verifyOperatorAuthorization,
 } from '../../../src/tools/cstar-kernel-mcp/tools/operator_authorization.js';
-
-const roots: string[] = [];
-const originalCodexHome = process.env.CODEX_HOME;
-const CSTAR_TARGET = '/home/morderith/Corvus/CStar/AGENTS.md';
-
-interface SessionOptions {
-    threadId?: string;
-    turnId?: string;
-    timestamp?: string;
-    textParts?: string[];
-    sessionMeta?: Record<string, unknown>;
-    repeatCanonicalSessionMeta?: boolean;
-    duplicate?: boolean;
-    laterUserText?: string;
-    malformedOnly?: boolean;
-}
-
-function sha256(value: string): string {
-    return createHash('sha256').update(value, 'utf-8').digest('hex');
-}
-
-function createSession(options: SessionOptions = {}) {
-    const codexHome = fs.mkdtempSync(path.join(os.tmpdir(), 'cstar-operator-auth-'));
-    roots.push(codexHome);
-    const sessions = path.join(codexHome, 'sessions', '2026', '07', '12');
-    fs.mkdirSync(sessions, { recursive: true, mode: 0o700 });
-    const threadId = options.threadId ?? randomUUID();
-    const turnId = options.turnId ?? randomUUID();
-    const timestamp = options.timestamp ?? new Date().toISOString();
-    const textParts = options.textParts ?? [
-        'Corvus CStar 5.6. I authorize you to complete the audit in full. ',
-        'Use the CStar Forge path through Hermes and M3.',
-    ];
-    const content = textParts.map((text) => ({ type: 'input_text', text }));
-    const canonicalContent = JSON.stringify(content);
-    const messageSha256 = sha256(canonicalContent);
-    const meta = {
-        timestamp,
-        type: 'session_meta',
-        payload: {
-            id: threadId,
-            thread_source: 'user',
-            parent_thread_id: null,
-            agent_path: null,
-            forked_from_id: null,
-            ...options.sessionMeta,
-        },
-    };
-    const user = {
-        timestamp,
-        type: 'response_item',
-        payload: {
-            type: 'message',
-            role: 'user',
-            content,
-            internal_chat_message_metadata_passthrough: { turn_id: turnId },
-        },
-    };
-    const rows = options.malformedOnly
-        ? ['{"truncated":']
-        : [JSON.stringify(meta), JSON.stringify(user)];
-    if (options.repeatCanonicalSessionMeta && !options.malformedOnly) rows.push(JSON.stringify(meta));
-    if (options.duplicate && !options.malformedOnly) rows.push(JSON.stringify(user));
-    if (options.laterUserText && !options.malformedOnly) {
-        rows.push(JSON.stringify({
-            timestamp: new Date(Date.parse(timestamp) + 1_000).toISOString(),
-            type: 'response_item',
-            payload: {
-                type: 'message',
-                role: 'user',
-                content: [{ type: 'input_text', text: options.laterUserText }],
-                internal_chat_message_metadata_passthrough: { turn_id: randomUUID() },
-            },
-        }));
-    }
-    const sessionFile = path.join(sessions, `rollout-test-${threadId}.jsonl`);
-    fs.writeFileSync(sessionFile, `${rows.join('\n')}\n`, { mode: 0o600 });
-    process.env.CODEX_HOME = codexHome;
-    return {
-        codexHome,
-        sessionFile,
-        threadId,
-        turnId,
-        timestamp,
-        messageSha256,
-        reference: `codex-thread:${threadId}:turn:${turnId}:sha256:${messageSha256}`,
-    };
-}
-
-function appendUserMessage(
-    sessionFile: string,
-    turnId: string,
-    text: string,
-    timestamp: string,
-): void {
-    fs.appendFileSync(sessionFile, `${JSON.stringify({
-        timestamp,
-        type: 'response_item',
-        payload: {
-            type: 'message', role: 'user',
-            content: [{ type: 'input_text', text }],
-            internal_chat_message_metadata_passthrough: { turn_id: turnId },
-        },
-    })}\n`);
-}
-
-function validScope(threadId: string) {
-    return {
-        caller_thread_id: threadId,
-        caller_transport: 'direct-stdio',
-        target_paths: [CSTAR_TARGET],
-        requires_forge_hermes_m3: true,
-    } as const;
-}
-
-function restoreEnv(name: string, value: string | undefined): void {
-    if (value === undefined) delete process.env[name];
-    else process.env[name] = value;
-}
-
-function validRequestContext(threadId: string, turnId: string, overrides: Record<string, unknown> = {}) {
-    return {
-        _meta: {
-            threadId,
-            'x-codex-turn-metadata': {
-                session_id: threadId,
-                thread_id: threadId,
-                turn_id: turnId,
-                thread_source: 'user',
-                parent_thread_id: null,
-                forked_from_thread_id: null,
-                subagent_kind: null,
-                ...overrides,
-            },
-        },
-        requestId: 7,
-    };
-}
+import {
+    appendUserMessage,
+    cleanupOperatorAuthorizationFixtures,
+    createSession,
+    CSTAR_TARGET,
+    restoreEnv,
+    TEST_BEAD_ID,
+    TEST_DECISION_ID,
+    TEST_PACKAGE_LOCK_SHA256,
+    validRequestContext,
+    validScope,
+} from './operator_authorization_test_support.js';
 
 afterEach(() => {
-    if (originalCodexHome === undefined) delete process.env.CODEX_HOME;
-    else process.env.CODEX_HOME = originalCodexHome;
-    while (roots.length > 0) fs.rmSync(roots.pop()!, { recursive: true, force: true });
+    cleanupOperatorAuthorizationFixtures();
 });
 
 describe('connection-bound Codex operator authorization', () => {
+    it('accepts an omitted root thread_source while rejecting explicit nested lineage', async () => {
+        const fixture = createSession({ sessionMeta: { thread_source: undefined } });
+
+        const verified = await verifyCodexRequestIdentity(validRequestContext(
+            fixture.threadId,
+            fixture.turnId,
+            { thread_source: undefined },
+        ));
+
+        assert.equal(verified.thread_id, fixture.threadId);
+        assert.equal(verified.turn_id, fixture.turnId);
+    });
+
     it('accepts one canonical multipart root-user turn', async () => {
         const fixture = createSession();
         fs.appendFileSync(fixture.sessionFile, `${JSON.stringify({ timestamp: fixture.timestamp, type: 'response_item', payload: { type: 'message', role: 'assistant', content: [{ type: 'output_text', text: 'I revoke Forge.' }], internal_chat_message_metadata_passthrough: { turn_id: fixture.turnId } } })}\n`);
@@ -165,7 +48,12 @@ describe('connection-bound Codex operator authorization', () => {
         assert.equal(verified.thread_id, fixture.threadId);
         assert.equal(verified.turn_id, fixture.turnId);
         assert.equal(verified.message_sha256, fixture.messageSha256);
-        assert.equal(verified.authorization_profile, 'gpt56-cstar-audit-bootstrap-v1');
+        assert.equal(verified.authorization_profile, 'gpt56-cstar-exact-request-v3');
+        assert.equal(verified.authorized_bead_id, TEST_BEAD_ID);
+        assert.equal(verified.authorized_decision_id, TEST_DECISION_ID);
+        assert.deepEqual(verified.authorized_package_lock_sha256s, [TEST_PACKAGE_LOCK_SHA256]);
+        assert.equal(verified.synthetic_fixtures_only, true);
+        assert.deepEqual(verified.authorized_paths, [CSTAR_TARGET]);
         assert.equal(verified.max_attempts, 1);
         assert.equal(verified.live_source_allowed, false);
         assert.ok(verified.expires_at > verified.authorized_at);
@@ -203,6 +91,20 @@ describe('connection-bound Codex operator authorization', () => {
         await assert.rejects(
             verifyOperatorAuthorization(fixture.reference, validScope(fixture.threadId)),
             /operator_authorization_turn_is_not_from_canonical_user_thread/,
+        );
+    });
+
+    it('rejects nested record lineage for current and historical authorization turns', async () => {
+        const current = createSession({ userMetadata: { subagent_kind: 'reviewer' } });
+        await assert.rejects(
+            verifyCodexRequestIdentity(validRequestContext(current.threadId, current.turnId)),
+            /codex_request_identity_turn_record_lineage_invalid/,
+        );
+
+        const historical = createSession({ userMetadata: { parent_thread_id: randomUUID() } });
+        await assert.rejects(
+            verifyOperatorAuthorization(historical.reference, validScope(historical.threadId)),
+            /operator_authorization_later_user_record_uninspectable|codex_request_identity_turn_record_lineage_invalid/,
         );
     });
 
@@ -298,6 +200,27 @@ describe('connection-bound Codex operator authorization', () => {
         );
     });
 
+    it('rejects a pathless grant and any target not stated by the operator', async () => {
+        const pathless = createSession({
+            textParts: [
+                `Corvus CStar 5.6. I authorize you to complete the audit in full through Hermes M3 for ${TEST_BEAD_ID} and ${TEST_DECISION_ID}, with zero retries, synthetic fixtures only, no live source collection, package-lock SHA-256 ${TEST_PACKAGE_LOCK_SHA256}.`,
+            ],
+        });
+        await assert.rejects(
+            verifyOperatorAuthorization(pathless.reference, validScope(pathless.threadId)),
+            /operator_authorization_explicit_target_manifest_missing/,
+        );
+
+        const differentTarget = createSession();
+        await assert.rejects(
+            verifyOperatorAuthorization(differentTarget.reference, {
+                ...validScope(differentTarget.threadId),
+                target_paths: [CSTAR_TARGET.replace(/AGENTS\.md$/, 'package.json')],
+            }),
+            /operator_authorization_target_manifest_mismatch/,
+        );
+    });
+
     it('rejects symlink and hardlink session substitution', async () => {
         const symlink = createSession();
         const original = `${symlink.sessionFile}.original`;
@@ -370,10 +293,8 @@ describe('Codex MCP request identity', () => {
         delete process.env.CSTAR_MCP_CALLER_THREAD_ID;
         try {
             const verified = await verifyOperatorAuthorization(fixture.reference, {
-                caller_transport: 'direct-stdio',
+                ...validScope(fixture.threadId),
                 request_context: validRequestContext(fixture.threadId, fixture.turnId),
-                target_paths: [CSTAR_TARGET],
-                requires_forge_hermes_m3: true,
             });
             assert.equal(verified.thread_id, fixture.threadId);
         } finally {

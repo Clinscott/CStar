@@ -37,10 +37,51 @@ The kernel may catalog a host-only skill and fail closed if terminal or runtime
 dispatch is attempted. Recognition in `cstar manifest`, `active_in_runtime`, or
 an adapter map is discovery evidence only.
 
+A failed kernel adapter executes exactly once. CStar preserves the original
+failure and adds `operator_action_required: true` with
+`automatic_recovery_attempted: false`; it performs no provider consultation,
+retry, replan, recursive host-governor dispatch, or `auto_execute`. Any retry
+or replan is a fresh top-level invocation with its own operator authority.
+Likewise, once a capability is classified as agent-native or host-workflow,
+missing host state and activation failures are terminal for that invocation;
+a stale `allow_kernel_fallback` field cannot transfer ownership to the kernel.
+
+Ravens never consults a provider merely because one is present. The operator
+must request one supervisor decision explicitly with `--host-supervision` (or
+the equivalent typed payload). That decision may either confirm the exact
+operator-requested action and target or return observation-only. A missing
+provider, invalid response, supervisor failure, or
+attempted action/target substitution fails closed before repository discovery
+or any local cycle. The receipt distinguishes the dispatched supervisor request
+from the undispatched maintenance action with `supervisor_request_dispatched:
+true` and `execution_dispatched: false`; when a provider is missing, both are
+false. No local fallback or recovery runs.
+
 The host may call deterministic kernel primitives required by a skill. Those
 tool calls record CStar lifecycle state; they do not make the kernel the owner
 of host cognition or grant permission absent from the operator/repository
 policy.
+
+## Provider Attempt Identity
+
+Host-backed runtime work binds both provider and execution surface before an
+attempt. Availability of an invoker, bridge, provider CLI, shell, broker, or
+environment variable cannot select or replace that surface. The supported
+surface is carried as a typed request field and one failed surface never falls
+through to another.
+
+Every returned delegated handle or result must report all five attempt fields:
+`requested_provider`, `actual_provider`, `requested_surface`,
+`actual_surface`, and `execution_dispatched`. Missing result evidence fails
+closed; it is never reconstructed from the expected provider, top-level result,
+available dependency, or a successful-looking payload. Structured error
+evidence outranks legacy message text. A plain failure with no trustworthy
+attempt evidence records `execution_dispatched=unreported`, not `false`.
+
+Timeout ownership remains with the process runner. At the deadline the exact
+attempt receives an `AbortSignal`; CStar waits for that runner to settle before
+cleaning its scratch files or returning the timeout. The attempt is reported as
+dispatched, is never retried, and cannot switch provider or surface.
 
 ## Terminal Policy
 

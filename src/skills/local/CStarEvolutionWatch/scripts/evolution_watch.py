@@ -1,49 +1,105 @@
 #!/usr/bin/env python3
-"""Fail-closed tombstone for the retired Evolution Watch automation.
+"""Retired CStar Evolution Watch compatibility surface.
 
-The former cron workflow scanned Hall SQLite directly, called web/model
-providers, and wrote reports and wiki state outside the canonical Researcher
-and CStar lifecycle. Keeping the import path lets stale callers fail clearly
-without performing any work.
+The former daily pipeline scanned source, queried Git and SQLite directly,
+loaded provider credentials, called MiniMax, and wrote reports and timing state.
+Those responsibilities now belong to bounded Researcher, CStar kernel, and
+operator-authorized workflows.  Importing this module is deliberately inert.
 """
 
-from __future__ import annotations
-
-import json
-import sys
+from dataclasses import dataclass, field
 
 
-DECOMMISSIONED_CODE = "CSTAR_EVOLUTION_WATCH_DECOMMISSIONED"
-DECOMMISSIONED_MESSAGE = (
-    "CStar Evolution Watch is decommissioned. Use the authorized Researcher "
-    "lane for source gathering and record bounded proposals through CStar."
-)
+RETIRED_ERROR = "legacy_evolution_watch_retired_use_cstar_researcher_and_kernel_surfaces"
 
 
-class EvolutionWatchDecommissioned(RuntimeError):
-    """Raised when a stale caller reaches the retired automation."""
+@dataclass(frozen=True)
+class Candidate:
+    """Pure historical result schema retained for artifact readers."""
+
+    id: str
+    approach: str
+    rationale: str
+    code_sketch: str
+    scores: dict = field(default_factory=dict)
+    winner: bool = False
 
 
-def inspect_cstar() -> list[object]:
-    """Reject the former direct inspection/report pipeline."""
+@dataclass(frozen=True)
+class ProbeFinding:
+    """Pure historical finding schema retained for artifact readers."""
 
-    raise EvolutionWatchDecommissioned(DECOMMISSIONED_MESSAGE)
+    id: str
+    probe: str
+    directory: str
+    title: str
+    severity: str
+    component: str
+    description: str
+    file_path: str | None = None
 
 
-def main(argv: list[str] | None = None) -> int:
-    del argv
-    print(
-        json.dumps(
-            {
-                "ok": False,
-                "code": DECOMMISSIONED_CODE,
-                "message": DECOMMISSIONED_MESSAGE,
-                "successor": "Researcher -> CStar proposal lifecycle",
-            },
-            sort_keys=True,
-        ),
-        file=sys.stderr,
-    )
+@dataclass(frozen=True)
+class Finding:
+    """Pure historical source-finding schema retained for artifact readers."""
+
+    id: str
+    title: str
+    severity: str
+    component: str
+    description: str
+    impact: str
+    proposed_work: str
+    effort_hours: float | None = None
+    research_queries: list = field(default_factory=list)
+    research_results: list = field(default_factory=list)
+    karpathy_candidates: list = field(default_factory=list)
+    karpathy_winner: Candidate | None = None
+    directory: str = ""
+    requires_research: bool = False
+    severity_reason: str = ""
+
+
+def severity_badge(severity: str) -> str:
+    """Preserve the pure display classifier for archived reports."""
+    return {
+        "P1": "[CRITICAL]",
+        "P2": "[HIGH]",
+        "P3": "[MEDIUM]",
+        "P4": "[LOW]",
+    }.get(severity, severity)
+
+
+def inspect_cstar() -> list[Finding]:
+    """Return no findings; the historical scanner no longer inspects source."""
+    return []
+
+
+def _retired(*args: object, **kwargs: object) -> None:
+    raise RuntimeError(RETIRED_ERROR)
+
+
+_init_timing_db = _retired
+_log_skill_invocation = _retired
+_update_baseline = _retired
+_get_latency_report = _retired
+log = _retired
+_get_changed_files_since_last_run = _retired
+_get_all_files_in_inclusion_dirs = _retired
+probe_registry_drift = _retired
+probe_import_boundaries = _retired
+probe_cross_spoke_coupling = _retired
+probe_runtime_bypass = _retired
+probe_trace_compliance = _retired
+_collect_health_metrics = _retired
+run_proactive_probes = _retired
+run_research = _retired
+run_karpathy_loop = _retired
+generate_report = _retired
+
+
+def main() -> int:
+    """Fail closed without scanning, provider use, DB access, or writes."""
     return 2
 
 

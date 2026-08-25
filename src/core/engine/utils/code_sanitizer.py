@@ -7,7 +7,6 @@ No code passes through Bifrost without being worthy.
 """
 
 import ast
-import importlib
 import re
 import textwrap
 from pathlib import Path
@@ -17,6 +16,9 @@ class QuarantineFailure(Exception):
     """Raised when a code snippet fails security sanitization."""
     pass
 
+RETIRED_SOURCE_WRITE_ERROR = (
+    "legacy_code_sanitizer_source_write_retired_use_reviewed_patch_workflow"
+)
 
 # ==============================================================================
 # 📚 KNOWLEDGE BASE
@@ -63,16 +65,8 @@ class BifrostGate:
             return False, f"SyntaxError at line {e.lineno}: {e.msg}"
 
     def _get_project_modules(self, project_root: Path) -> set[str]:
-        """Build set of importable top-level modules from project."""
-        project_modules = {"src"}
-        src_dir = project_root / "src"
-        if src_dir.exists():
-            for p in src_dir.iterdir():
-                if p.is_dir() and (p / "__init__.py").exists():
-                    project_modules.add(p.name)
-                elif p.suffix == ".py":
-                    project_modules.add(p.stem)
-        return project_modules
+        """Return the canonical package root without scanning source."""
+        return {"src"}
 
     def _check_import_node(self, node: ast.AST, project_modules: set[str]) -> list[str]:
         """Helper to validate a single import node."""
@@ -114,12 +108,8 @@ class BifrostGate:
         return bad_imports
 
     def _can_import(self, module_name: str) -> bool:
-        """Check if a module can be imported without side effects."""
-        try:
-            spec = importlib.util.find_spec(module_name)
-            return spec is not None
-        except (ModuleNotFoundError, ValueError, AttributeError):
-            return False
+        """Classify against the static allowlist without importing anything."""
+        return module_name in _KNOWN_THIRD_PARTY or module_name in self.project_modules
 
     def repair_syntax(self, code: str) -> str:
         """
@@ -239,8 +229,7 @@ class BifrostGate:
         return self._can_import(top_module)
 
     def scan_and_enrich_imports(self, code: str) -> str:
-        """Retained compatibility surface; never performs live enrichment."""
-        del code
+        """Retain a no-effect compatibility result; live enrichment is retired."""
         return ""
 
     def perform_quarantine_scan(self, code: str, whitelist: list[str] | None = None) -> tuple[bool, str]:
@@ -282,23 +271,8 @@ class BifrostGate:
 
     @staticmethod
     def neuter_qmd_document(file_path: Path) -> None:
-        """Prevents ACE in Quarto files."""
-        if not file_path.exists():
-            return
-        content = file_path.read_text(encoding='utf-8')
-        if re.search(r'^execute:\s*', content, re.MULTILINE):
-            if not re.search(r'^execute:\s*false', content, re.MULTILINE):
-                content = re.sub(r'^execute:.*$', 'execute: false', content, flags=re.MULTILINE)
-                file_path.write_text(content, encoding='utf-8')
-            return
-        yaml_match = re.search(r'^---\s*\n(.*?)\n---\s*\n', content, re.DOTALL)
-        if yaml_match:
-            yaml_block = yaml_match.group(1)
-            new_yaml = yaml_block.rstrip() + "\nexecute: false\n"
-            content = content.replace(yaml_block, new_yaml)
-        else:
-            content = "---\nexecute: false\n---\n" + content
-        file_path.write_text(content, encoding='utf-8')
+        """Fail closed; source mutation requires an explicitly reviewed patch."""
+        raise RuntimeError(RETIRED_SOURCE_WRITE_ERROR)
 
     @staticmethod
     def heimdall_guard(text: str) -> str:

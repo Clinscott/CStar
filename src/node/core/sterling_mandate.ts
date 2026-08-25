@@ -1,368 +1,283 @@
-/**
- * Sterling Mandate enforcement.
- *
- * "No change is final until it satisfies all three legs:
- *   - Lore     — a `.feature` Gherkin contract describes the behavior.
- *   - Isolation — a unit test confirms the logic in a sandbox.
- *   - Audit    — an independently verified validation receipt proves the result."
- *
- * Every bead transition to `RESOLVED` flows through `verifySterlingMandate`.
- * The verdict is one of:
- *   - ACCEPTED — all three legs proven.
- *   - EXEMPT   — bead carries `mandate_exempt: true` + non-empty `exemption_reason`.
- *   - REJECTED — at least one leg unproven; reasons enumerate every gap.
- *
- * The verifier is pure-deterministic and read-only. The caller (`handleBead`)
- * decides whether to throw, stamp metadata, or surface a warning.
- */
-
-import fs from 'node:fs';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 
 import { database } from '../../tools/pennyone/intel/database.js';
-import type { HallBeadRecord, HallValidationRun, HallValidationVerdict } from '../../types/hall.js';
-
-export type WardenVerdict = 'ACCEPTED' | 'REJECTED' | 'INCONCLUSIVE';
-
-export interface MandateWardenResult {
-    name: string;
-    verdict: WardenVerdict;
-    ran_at: number;
-    /** Verified Hall validation receipt backing this independently produced result. */
-    validation_id: string;
-    /** Must match the validator identity stored on the verified receipt. */
-    validator_identity: string;
-    /** Must match the evidence digest stored on the verified receipt. */
-    evidence_sha256: string;
-    /** Explicit assertion required by the validation-evidence recording contract. */
-    independent_of_execution: true;
-    notes?: string;
-}
+import { assertForgeValidationManifestCurrent } from '../../tools/pennyone/intel/forge_validation_controller.js';
+import {
+    readBoundedUtf8FileInside,
+    resolveExistingRelativePathInside,
+} from '../../tools/cstar-kernel-mcp/contracts/runtime.js';
+import type {
+    HallBeadRecord,
+    HallValidationEvidenceManifest,
+    HallValidationRun,
+} from '../../types/hall.js';
+import {
+    hashValidationEvidenceManifest,
+    isValidationEvidenceManifestV2StructurallyValid,
+    isValidationEvidenceManifestV3StructurallyValid,
+    VALIDATION_EVIDENCE_SHA256,
+} from '../../types/validation_evidence.js';
 
 export interface MandateAuditProof {
-    /** Independently recorded wardens; every entry is checked against its verified Hall receipt. */
-    warden_results?: MandateWardenResult[];
-    /** hall_validation_runs.validation_id; receipt must be verified, positive, and bound to this bead. */
     validation_id?: string;
 }
 
 export interface MandateEvidence {
-    /** Gherkin `.feature` paths (Lore). Resolved against hubRoot; must exist. */
     lore_paths?: string[];
-    /** Unit-test paths (Isolation). Resolved against hubRoot; must exist. */
     isolation_paths?: string[];
-    /** Audit proof. A verified validation receipt or verified warden receipt satisfies the leg. */
     audit?: MandateAuditProof;
-    /** Skip the mandate entirely. Requires non-empty `exemption_reason`. */
-    mandate_exempt?: boolean;
-    /** Justification for the exemption (recorded to bead metadata + audit log). */
-    exemption_reason?: string;
 }
-
-export type MandateLegStatus = 'satisfied' | 'unsatisfied';
 
 export interface MandateLegReport {
     leg: 'lore' | 'isolation' | 'audit';
-    status: MandateLegStatus;
+    status: 'satisfied' | 'unsatisfied';
     reason: string;
     artifacts?: string[];
 }
 
-export type MandateVerdictKind = 'ACCEPTED' | 'REJECTED' | 'EXEMPT';
-
 export interface MandateVerdict {
-    verdict: MandateVerdictKind;
+    verdict: 'ACCEPTED' | 'REJECTED';
     bead_id: string;
     hub_root: string;
     legs: MandateLegReport[];
     reasons: string[];
-    exemption_reason?: string;
     evaluated_at: number;
 }
 
-const ACCEPT_VALIDATION_VERDICTS: ReadonlySet<HallValidationVerdict> = new Set<HallValidationVerdict>([
-    'ACCEPTED',
-    'SUCCESS',
-]);
+interface VerifiedMandateArtifact {
+    relative_path: string;
+    absolute_path: string;
+    sha256: string;
+    content: string;
+}
 
+const MAX_MANDATE_ARTIFACTS = 25;
+const MAX_MANDATE_ARTIFACT_BYTES = 1024 * 1024;
+const MAX_VALIDATION_AGE_MS = 24 * 60 * 60 * 1000;
 const GHERKIN_KEYWORD_RE = /^\s*(Feature|Scenario Outline|Scenario|Background|Rule)\s*:/m;
-const SHA256_RE = /^[a-f0-9]{64}$/;
 
-function checkArtifactsExist(paths: readonly string[], hubRoot: string): { ok: boolean; missing: string[] } {
-    const missing: string[] = [];
-    for (const p of paths) {
-        const abs = path.isAbsolute(p) ? p : path.resolve(hubRoot, p);
-        if (!fs.existsSync(abs)) missing.push(p);
-    }
-    return { ok: missing.length === 0, missing };
+function unsatisfied(leg: MandateLegReport['leg'], reason: string): MandateLegReport {
+    return { leg, status: 'unsatisfied', reason };
 }
 
-function checkLore(evidence: MandateEvidence, hubRoot: string): MandateLegReport {
-    const paths = evidence.lore_paths ?? [];
-    if (paths.length === 0) {
-        return { leg: 'lore', status: 'unsatisfied', reason: 'no lore_paths declared (need ≥1 .feature path)' };
-    }
-    const { ok, missing } = checkArtifactsExist(paths, hubRoot);
-    if (!ok) {
-        return {
-            leg: 'lore',
-            status: 'unsatisfied',
-            reason: `lore artifacts missing on disk: ${missing.join(', ')}`,
-            artifacts: paths,
-        };
-    }
-    // Gherkin sniff — existence alone is insufficient. A `.feature` file containing
-    // plain prose or JSON does not describe behavior.
-    const nonGherkin: string[] = [];
-    for (const p of paths) {
-        const abs = path.isAbsolute(p) ? p : path.resolve(hubRoot, p);
-        let content: string;
-        try {
-            content = fs.readFileSync(abs, 'utf-8');
-        } catch (err) {
-            nonGherkin.push(`${p} (read failed: ${(err as Error).message})`);
-            continue;
-        }
-        if (!GHERKIN_KEYWORD_RE.test(content)) {
-            nonGherkin.push(p);
-        }
-    }
-    if (nonGherkin.length > 0) {
-        return {
-            leg: 'lore',
-            status: 'unsatisfied',
-            reason: `lore artifacts lack Gherkin keywords (Feature/Scenario/Background/Rule): ${nonGherkin.join(', ')}`,
-            artifacts: paths,
-        };
-    }
-    return { leg: 'lore', status: 'satisfied', reason: `${paths.length} lore artifact(s) verified`, artifacts: paths };
+function normalizeDeclaredPaths(paths: string[] | undefined): string[] | null {
+    if (!Array.isArray(paths) || paths.length === 0 || paths.length > MAX_MANDATE_ARTIFACTS) return null;
+    const normalized = paths.map((candidate) => candidate.trim().replace(/\\/g, '/'));
+    if (new Set(normalized).size !== normalized.length) return null;
+    return normalized;
 }
 
-function checkIsolation(evidence: MandateEvidence, hubRoot: string): MandateLegReport {
-    const paths = evidence.isolation_paths ?? [];
-    if (paths.length === 0) {
-        return { leg: 'isolation', status: 'unsatisfied', reason: 'no isolation_paths declared (need ≥1 unit-test path)' };
-    }
-    const { ok, missing } = checkArtifactsExist(paths, hubRoot);
-    if (!ok) {
+function readDeclaredArtifact(
+    hubRoot: string,
+    declaredPath: string,
+    kind: 'lore' | 'isolation',
+): VerifiedMandateArtifact | null {
+    if (
+        !declaredPath
+        || path.isAbsolute(declaredPath)
+        || declaredPath.includes('\0')
+        || declaredPath.startsWith('../')
+    ) return null;
+    if (kind === 'lore' && !declaredPath.endsWith('.feature')) return null;
+    if (
+        kind === 'isolation'
+        && (!declaredPath.startsWith('tests/') || !/\.(?:test\.ts|py)$/.test(declaredPath))
+    ) return null;
+    try {
+        const absolutePath = resolveExistingRelativePathInside(hubRoot, declaredPath, 'file');
+        const file = readBoundedUtf8FileInside(hubRoot, absolutePath, MAX_MANDATE_ARTIFACT_BYTES);
         return {
-            leg: 'isolation',
-            status: 'unsatisfied',
-            reason: `isolation artifacts missing on disk: ${missing.join(', ')}`,
-            artifacts: paths,
+            relative_path: path.relative(path.resolve(hubRoot), absolutePath).replace(/\\/g, '/'),
+            absolute_path: absolutePath,
+            sha256: createHash('sha256').update(file.content, 'utf-8').digest('hex'),
+            content: file.content,
         };
+    } catch {
+        return null;
     }
-    return { leg: 'isolation', status: 'satisfied', reason: `${paths.length} isolation artifact(s) verified`, artifacts: paths };
 }
 
-function verifiedReceiptForBead(
-    bead: HallBeadRecord,
-    validationId: string,
-): { ok: true; run: HallValidationRun } | { ok: false; error: string } {
-    const normalizedId = validationId.trim();
-    if (!normalizedId) return { ok: false, error: 'validation_id must be non-empty' };
-
-    const run = database.getValidationRunById(normalizedId);
-    if (run === null) return { ok: false, error: `validation_id '${normalizedId}' not found in hall_validation_runs` };
-    if (run.bead_id !== bead.bead_id || run.repo_id !== bead.repo_id) {
-        return {
-            ok: false,
-            error: `validation_id '${normalizedId}' is bound to repo=${run.repo_id}, bead=${run.bead_id ?? 'none'}; expected repo=${bead.repo_id}, bead=${bead.bead_id}`,
-        };
-    }
-    if (run.authority_class !== 'verified') {
-        return {
-            ok: false,
-            error: `validation_id '${normalizedId}' has authority_class=${run.authority_class ?? 'legacy_unverified'} (need verified)`,
-        };
-    }
-    if (!run.validator_identity?.trim()) {
-        return { ok: false, error: `validation_id '${normalizedId}' is missing validator_identity` };
-    }
-    const digest = run.evidence_sha256?.trim().toLowerCase() ?? '';
-    if (!SHA256_RE.test(digest)) {
-        return { ok: false, error: `validation_id '${normalizedId}' is missing a valid evidence_sha256` };
-    }
-    return { ok: true, run };
-}
-
-function normalizeWardenVerdict(verdict: HallValidationVerdict): WardenVerdict {
-    if (verdict === 'ACCEPTED' || verdict === 'SUCCESS') return 'ACCEPTED';
-    if (verdict === 'REJECTED' || verdict === 'FAILURE') return 'REJECTED';
-    return 'INCONCLUSIVE';
-}
-
-function checkAudit(bead: HallBeadRecord, evidence: MandateEvidence): MandateLegReport {
-    const audit = evidence.audit;
-    if (!audit) {
-        return { leg: 'audit', status: 'unsatisfied', reason: 'no audit proof provided (need verified warden_results or validation_id)' };
-    }
-    const proofs: string[] = [];
-    const reasons: string[] = [];
-    const legacyAudit = audit as MandateAuditProof & { gungnir_score?: unknown };
-
-    if (Object.prototype.hasOwnProperty.call(legacyAudit, 'gungnir_score')) {
-        reasons.push('caller-provided gungnir_score is a historical metric and cannot satisfy the Sterling audit leg');
-    }
-
-    if (audit.warden_results && audit.warden_results.length > 0) {
-        const acceptedWardens: string[] = [];
-        for (const [index, warden] of audit.warden_results.entries()) {
-            const label = warden.name?.trim() || `entry-${index + 1}`;
-            if (!warden.name?.trim() || !Number.isFinite(warden.ran_at) || warden.ran_at <= 0) {
-                reasons.push(`warden '${label}' has invalid name or ran_at`);
-                continue;
-            }
-            if (warden.independent_of_execution !== true) {
-                reasons.push(`warden '${label}' must declare independent_of_execution=true`);
-                continue;
-            }
-            const receipt = verifiedReceiptForBead(bead, warden.validation_id ?? '');
-            if (!receipt.ok) {
-                reasons.push(`warden '${label}': ${receipt.error}`);
-                continue;
-            }
-            const storedIdentity = receipt.run.validator_identity!.trim();
-            const storedDigest = receipt.run.evidence_sha256!.trim().toLowerCase();
-            if (warden.validator_identity?.trim() !== storedIdentity) {
-                reasons.push(`warden '${label}' validator_identity does not match validation receipt`);
-                continue;
-            }
-            if (warden.evidence_sha256?.trim().toLowerCase() !== storedDigest) {
-                reasons.push(`warden '${label}' evidence_sha256 does not match validation receipt`);
-                continue;
-            }
-            if (warden.ran_at !== receipt.run.created_at) {
-                reasons.push(`warden '${label}' ran_at does not match validation receipt`);
-                continue;
-            }
-            const storedVerdict = normalizeWardenVerdict(receipt.run.verdict);
-            if (warden.verdict !== storedVerdict) {
-                reasons.push(`warden '${label}' verdict=${warden.verdict} does not match receipt verdict=${storedVerdict}`);
-            } else if (storedVerdict === 'REJECTED') {
-                reasons.push(`verified warden REJECTED: ${label}`);
-            } else if (storedVerdict === 'INCONCLUSIVE') {
-                reasons.push(`verified warden INCONCLUSIVE: ${label}`);
-            } else {
-                acceptedWardens.push(label);
-            }
-        }
-        if (acceptedWardens.length === 0 && reasons.length === 0) {
-            reasons.push('warden_results contains zero verified ACCEPTED verdicts');
-        } else if (acceptedWardens.length > 0) {
-            proofs.push(`verified wardens: ${acceptedWardens.join(', ')}`);
-        }
-    }
-
-    if (audit.validation_id) {
-        const receipt = verifiedReceiptForBead(bead, audit.validation_id);
-        if (!receipt.ok) {
-            reasons.push(receipt.error);
-        } else if (!ACCEPT_VALIDATION_VERDICTS.has(receipt.run.verdict)) {
-            reasons.push(`validation_id '${audit.validation_id}' has verdict=${receipt.run.verdict} (need ACCEPTED or SUCCESS)`);
-        } else {
-            proofs.push(`validation_id=${audit.validation_id} (verdict=${receipt.run.verdict}, authority=verified)`);
-        }
-    }
-
-    if (reasons.length > 0 || proofs.length === 0) {
-        return {
-            leg: 'audit',
-            status: 'unsatisfied',
-            reason: reasons.length > 0
-                ? reasons.join('; ')
-                : 'audit proof present but produced no verified receipt',
-        };
-    }
-    return { leg: 'audit', status: 'satisfied', reason: proofs.join('; ') };
-}
-
-/**
- * Evaluate the Sterling Mandate against a bead + evidence payload.
- *
- * Pure-deterministic. Reads disk for lore/isolation existence checks and
- * the Hall for validation_id resolution; never mutates either.
- *
- * @param bead the bead record being transitioned
- * @param evidence mandate evidence (typically merged from bead.metadata.mandate_evidence + per-call args)
- * @param hubRoot hub root used to resolve relative lore/isolation paths
- * @returns verdict + per-leg status + cumulative reasons array
- */
-export function verifySterlingMandate(
-    bead: HallBeadRecord,
+function checkDeclaredArtifacts(
     evidence: MandateEvidence,
     hubRoot: string,
-): MandateVerdict {
-    const evaluatedAt = Date.now();
-
-    if (evidence.mandate_exempt === true) {
-        const reason = (evidence.exemption_reason ?? '').trim();
-        if (reason.length === 0) {
-            return {
-                verdict: 'REJECTED',
-                bead_id: bead.bead_id,
-                hub_root: hubRoot,
-                legs: [],
-                reasons: ['mandate_exempt=true requires a non-empty exemption_reason'],
-                evaluated_at: evaluatedAt,
-            };
-        }
-        return {
-            verdict: 'EXEMPT',
-            bead_id: bead.bead_id,
-            hub_root: hubRoot,
-            legs: [],
-            reasons: [],
-            exemption_reason: reason,
-            evaluated_at: evaluatedAt,
-        };
+    kind: 'lore' | 'isolation',
+): { report: MandateLegReport; files: VerifiedMandateArtifact[] } {
+    const declared = normalizeDeclaredPaths(kind === 'lore' ? evidence.lore_paths : evidence.isolation_paths);
+    if (!declared) return { report: unsatisfied(kind, `${kind}_artifacts_required_or_invalid`), files: [] };
+    const files = declared.map((candidate) => readDeclaredArtifact(hubRoot, candidate, kind));
+    if (files.some((file) => file === null)) {
+        return { report: unsatisfied(kind, `${kind}_artifact_containment_or_integrity_failed`), files: [] };
     }
-
-    const legs = [
-        checkLore(evidence, hubRoot),
-        checkIsolation(evidence, hubRoot),
-        checkAudit(bead, evidence),
-    ];
-    const failed = legs.filter((l) => l.status === 'unsatisfied');
-    if (failed.length > 0) {
-        return {
-            verdict: 'REJECTED',
-            bead_id: bead.bead_id,
-            hub_root: hubRoot,
-            legs,
-            reasons: failed.map((l) => `[${l.leg}] ${l.reason}`),
-            evaluated_at: evaluatedAt,
-        };
+    const verified = files as VerifiedMandateArtifact[];
+    if (kind === 'lore' && verified.some((file) => !GHERKIN_KEYWORD_RE.test(file.content))) {
+        return { report: unsatisfied(kind, 'lore_artifact_is_not_gherkin'), files: [] };
     }
     return {
-        verdict: 'ACCEPTED',
-        bead_id: bead.bead_id,
-        hub_root: hubRoot,
-        legs,
-        reasons: [],
-        evaluated_at: evaluatedAt,
+        report: {
+            leg: kind,
+            status: 'satisfied',
+            reason: `${kind}_artifacts_verified`,
+            artifacts: verified.map((file) => file.relative_path),
+        },
+        files: verified,
     };
 }
 
-/**
- * Merge call-site mandate_evidence with anything already cached on
- * `bead.metadata.mandate_evidence`. Call-site fields win on conflict.
- *
- * @param bead the bead carrying potential cached evidence
- * @param fromArgs fresh evidence supplied with the resolve/update call
- * @returns merged evidence ready for verification
- */
-export function mergeMandateEvidence(
+function manifestIsAuthoritative(
+    run: HallValidationRun,
     bead: HallBeadRecord,
-    fromArgs: MandateEvidence | undefined,
-): MandateEvidence {
-    const cached = (bead.metadata?.mandate_evidence ?? {}) as MandateEvidence;
-    const fresh = fromArgs ?? {};
+    manifest: HallValidationEvidenceManifest,
+    hubRoot: string,
+    now: number,
+): boolean {
+    const forgeV2 = manifest.schema === 'cstar.validation-evidence.v2'
+        && isValidationEvidenceManifestV2StructurallyValid(manifest);
+    const hostV3 = manifest.schema === 'cstar.validation-evidence.v3'
+        && isValidationEvidenceManifestV3StructurallyValid(manifest);
+    if (!forgeV2 && !hostV3) return false;
+    const identitySourceAllowed = manifest.validator_identity_source === 'codex_request_meta'
+        || manifest.validator_identity_source === 'codex_subagent_receipt'
+        || (manifest.validator_identity_source === 'test_fixture' && Boolean(process.env.NODE_TEST_CONTEXT));
+    const authorityMatchesSchema = forgeV2
+        ? run.authority_class === 'verified_v2' : run.authority_class === 'verified_v3';
+    const independenceMatches = forgeV2
+        ? manifest.request_thread_id !== manifest.independence.requester_thread_id
+            && manifest.request_thread_id !== manifest.independence.executor_thread_id
+        : manifest.subject.target_path === (bead.target_path ?? null)
+            && manifest.subject.validation_id === run.validation_id
+            && manifest.independence.validator_parent_thread_id
+                === manifest.independence.recorder_thread_id
+            && manifest.independence.recorder_thread_id === manifest.request_thread_id
+            && manifest.independence.validator_thread_id
+                !== manifest.independence.recorder_thread_id;
+    const structurallyAuthoritative = run.repo_id === bead.repo_id
+        && run.bead_id === bead.bead_id
+        && (run.verdict === 'ACCEPTED' || run.verdict === 'SUCCESS')
+        && authorityMatchesSchema
+        && run.validator_identity === manifest.validator_identity
+        && run.validator_identity_source === manifest.validator_identity_source
+        && Boolean(run.validator_identity?.trim())
+        && identitySourceAllowed
+        && manifest.subject.repository_id === bead.repo_id
+        && manifest.subject.bead_id === bead.bead_id
+        && independenceMatches
+        && manifest.artifacts.length > 0
+        && manifest.artifacts.length <= 50
+        && manifest.checks.length > 0
+        && manifest.checks.length <= 25
+        && manifest.checks.every((check) => check.status === 'pass')
+        && VALIDATION_EVIDENCE_SHA256.test(run.evidence_sha256 ?? '')
+        && hashValidationEvidenceManifest(manifest) === run.evidence_sha256
+        && Number.isFinite(run.created_at)
+        && run.created_at >= bead.created_at
+        && run.created_at <= now + 60_000
+        && now - run.created_at <= MAX_VALIDATION_AGE_MS;
+    if (!structurallyAuthoritative) return false;
+    if (hostV3) return true;
+    try {
+        assertForgeValidationManifestCurrent(database.getReadDb(hubRoot), manifest);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+function manifestFilesRemainValid(
+    hubRoot: string,
+    manifest: HallValidationEvidenceManifest,
+): boolean {
+    const files = [
+        ...(manifest.schema === 'cstar.validation-evidence.v3' ? [{
+            path: manifest.subject.validation_manifest_path,
+            sha256: manifest.subject.validation_manifest_sha256,
+        }] : []),
+        ...manifest.artifacts.map((artifact) => ({ path: artifact.path, sha256: artifact.sha256 })),
+        ...manifest.checks.map((check) => ({ path: check.evidence_path, sha256: check.sha256 })),
+    ];
+    try {
+        return files.every((entry) => {
+            if (!VALIDATION_EVIDENCE_SHA256.test(entry.sha256)) return false;
+            const file = readBoundedUtf8FileInside(hubRoot, entry.path, MAX_MANDATE_ARTIFACT_BYTES);
+            return createHash('sha256').update(file.content, 'utf-8').digest('hex') === entry.sha256;
+        });
+    } catch {
+        return false;
+    }
+}
+
+function auditContainsDeclaredArtifacts(
+    manifest: HallValidationEvidenceManifest,
+    files: VerifiedMandateArtifact[],
+): boolean {
+    const artifactPairs = new Set(manifest.artifacts.map((entry) => `${path.resolve(entry.path)}\0${entry.sha256}`));
+    return files.every((file) => artifactPairs.has(`${path.resolve(file.absolute_path)}\0${file.sha256}`));
+}
+
+function checkAudit(
+    bead: HallBeadRecord,
+    evidence: MandateEvidence,
+    hubRoot: string,
+    evidenceRoot: string,
+    files: VerifiedMandateArtifact[],
+    now: number,
+): MandateLegReport {
+    const audit = evidence.audit;
+    if (
+        !audit
+        || Object.keys(audit).some((key) => key !== 'validation_id')
+    ) {
+        return unsatisfied('audit', 'unsupported_audit_proof_fields');
+    }
+    const validationId = audit.validation_id?.trim();
+    if (!validationId) return unsatisfied('audit', 'verified_validation_id_required');
+    const run = database.getValidationRunById(validationId);
+    const manifest = run?.evidence_manifest;
+    if (!run || !manifest || !manifestIsAuthoritative(run, bead, manifest, hubRoot, now)) {
+        return unsatisfied('audit', 'validation_receipt_not_authoritative_for_bead');
+    }
+    if (!manifestFilesRemainValid(evidenceRoot, manifest)) {
+        return unsatisfied('audit', 'validation_evidence_files_changed_or_unavailable');
+    }
+    if (!auditContainsDeclaredArtifacts(manifest, files)) {
+        return unsatisfied('audit', 'lore_or_isolation_not_bound_to_validation_receipt');
+    }
     return {
-        lore_paths: fresh.lore_paths ?? cached.lore_paths,
-        isolation_paths: fresh.isolation_paths ?? cached.isolation_paths,
-        audit: fresh.audit ?? cached.audit,
-        mandate_exempt: fresh.mandate_exempt ?? cached.mandate_exempt,
-        exemption_reason: fresh.exemption_reason ?? cached.exemption_reason,
+        leg: 'audit',
+        status: 'satisfied',
+        reason: 'independent_validation_receipt_verified',
+        artifacts: [validationId],
+    };
+}
+
+export function verifySterlingMandate(
+    bead: HallBeadRecord,
+    evidence: MandateEvidence | undefined,
+    hubRoot: string,
+    now = Date.now(),
+    evidenceRoot = hubRoot,
+): MandateVerdict {
+    const fresh = evidence ?? {};
+    const lore = checkDeclaredArtifacts(fresh, evidenceRoot, 'lore');
+    const isolation = checkDeclaredArtifacts(fresh, evidenceRoot, 'isolation');
+    const audit = checkAudit(
+        bead,
+        fresh,
+        hubRoot,
+        evidenceRoot,
+        [...lore.files, ...isolation.files],
+        now,
+    );
+    const legs = [lore.report, isolation.report, audit];
+    const reasons = legs
+        .filter((leg) => leg.status === 'unsatisfied')
+        .map((leg) => `[${leg.leg}] ${leg.reason}`);
+    return {
+        verdict: reasons.length === 0 ? 'ACCEPTED' : 'REJECTED',
+        bead_id: bead.bead_id,
+        hub_root: hubRoot,
+        legs,
+        reasons,
+        evaluated_at: now,
     };
 }

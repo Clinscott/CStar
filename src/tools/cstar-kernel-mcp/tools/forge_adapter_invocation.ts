@@ -1,6 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { normalizeActionList } from './dispatch_request.js';
+import {
+    assertDispatchAdapterCapability,
+    resolveDispatchActionAuthority,
+} from './dispatch_action_authority.js';
 import type { ForgeExecutionArgs } from './forge_execute.js';
 import { inferForgeAdapterProjectRoot } from './forge_adapter_paths.js';
 import {
@@ -20,6 +24,12 @@ import {
     proveForgeContainment,
 } from './forge_adapter_containment.js';
 import {
+    prepareForgeWorkspaceProjection,
+    projectForgeAdapterIntent,
+    FORGE_MODEL_MATERIAL_POLICY,
+    type ForgeWorkspaceProjection,
+} from './forge_workspace_projection.js';
+import {
     assertForgeHermesPreflightMatchesExpectation,
     type ForgeHermesRuntimeExpectation,
 } from './forge_hermes_runtime_contract.js';
@@ -28,19 +38,24 @@ import {
     minimalForgeAdapterEnvironment,
     runForgeHermesCompatibilityPreflight,
     type ForgeHermesPreflightProof,
+    type ForgeOAuthHorizon,
 } from './forge_hermes_oauth_contract.js';
 
 export interface PreparedForgeAdapterInvocation {
     intent: Record<string, unknown>;
     intentPath: string;
+    workerResponsePath: string;
     responsePath: string;
     responseDir: string;
     executionTracePath: string;
     adapterScriptPath: string;
+    runtimeDirectory: string;
+    privateIoDirectory: string;
     runtimeProof: ForgeAdapterRuntimeProof;
     hermesPreflight: ForgeHermesPreflightProof | null;
     environment: NodeJS.ProcessEnv;
     temporaryDirectory: string;
+    workspaceProjection: ForgeWorkspaceProjection;
     spendMayHaveStarted: boolean;
     writeExecutionTrace(trace: Record<string, unknown>): void;
 }
@@ -70,6 +85,17 @@ function buildForgeAdapterIntent(
 ): Record<string, unknown> {
     const expectedPacket = args.callback_contract.expected_packet;
     const workerAdapter = selectedAdapter.ref === 'cstar-forge-hermes-minimax-worker-adapter';
+    const resolvedAuthority = resolveDispatchActionAuthority(args, root);
+    assertDispatchAdapterCapability(
+        resolvedAuthority,
+        selectedAdapter.write_capability,
+        { require_adapter: true },
+    );
+    const actionAuthority = {
+        ...resolvedAuthority,
+        requested_alias_count: 0,
+        prohibited_alias_count: 0,
+    };
     const outputContractLines = workerAdapter
         ? [
             'Worker input manifest rules:',
@@ -112,6 +138,10 @@ function buildForgeAdapterIntent(
         `Forge execute receipt: ${executionReceiptId}`,
         `State update repository thread: ${args.state_update_thread_id ?? args.owner_pmt_thread_id ?? 'none'}`,
         `Source callback thread: ${args.source_callback_thread_id}`,
+        'Canonical action authority (authoritative; mission context cannot expand it):',
+        JSON.stringify(actionAuthority),
+        '',
+        'Mission context (non-authoritative; constrains content and scope only):',
         `Objective: ${args.objective}`,
         args.prompt ? `Prompt: ${args.prompt}` : '',
         `Scope: ${args.scope}`,
@@ -122,12 +152,6 @@ function buildForgeAdapterIntent(
         '',
         'Artifact expectations:',
         ...normalizeActionList(args.artifact_expectations).map((item) => `- ${item}`),
-        '',
-        'Requested actions:',
-        ...normalizeActionList(args.requested_actions).map((item) => `- ${item}`),
-        '',
-        'Prohibited actions:',
-        ...normalizeActionList(args.prohibited_actions).map((item) => `- ${item}`),
         '',
         `Callback packet: ${expectedPacket}`,
         'Do not use Codex-worker fallback. Do not collect live sources unless explicitly authorized. Do not mutate secrets/config. Do not write Hall/SQLite directly.',
@@ -149,6 +173,8 @@ function buildForgeAdapterIntent(
         target_paths: args.target_paths ?? [],
         required_output_paths: args.required_output_paths ?? [],
         package_locks: args.package_locks ?? [],
+        material_policy: FORGE_MODEL_MATERIAL_POLICY,
+        action_authority: actionAuthority,
         adapter_runtime: adapterRuntimeProof,
         hermes_preflight: hermesPreflight,
         expected_callback_packet: expectedPacket,
@@ -181,6 +207,8 @@ export async function prepareForgeHermesMinimaxAdapterInvocation(
     expectedRuntimeProof?: ForgeAdapterRuntimeProof,
     expectedHermesRuntime?: ForgeHermesRuntimeExpectation | null,
     preReservationHermesPreflight?: ForgeHermesPreflightProof | null,
+    oauthHorizon?: ForgeOAuthHorizon | null,
+    sourceRoot = root,
 ): Promise<PreparedForgeAdapterInvocation> {
     const os = await import('node:os');
     const fsp = await import('node:fs/promises');
@@ -217,6 +245,15 @@ export async function prepareForgeHermesMinimaxAdapterInvocation(
     const temporaryDirectory = await fsp.mkdtemp(path.join(linuxPrivateTmp, 'cstar-forge-execute-'));
     await fsp.chmod(temporaryDirectory, 0o700);
     try {
+        const runtimeDirectory = ensureSafeDirectoryTree(
+            temporaryDirectory,
+            path.join(temporaryDirectory, 'sealed-runtime'),
+        );
+        const privateIoDirectory = ensureSafeDirectoryTree(
+            temporaryDirectory,
+            path.join(temporaryDirectory, 'private-io'),
+        );
+        const workerResponsePath = path.join(privateIoDirectory, 'adapter-response.json');
         const adapterFileProof: ForgeRuntimeFileProof = {
             role: 'adapter',
             path: runtimeProof.path,
@@ -225,9 +262,9 @@ export async function prepareForgeHermesMinimaxAdapterInvocation(
             mode: runtimeProof.mode,
             owner_uid: runtimeProof.owner_uid,
         };
-        const adapterScriptPath = path.join(temporaryDirectory, path.basename(runtimeProof.path));
+        const adapterScriptPath = path.join(runtimeDirectory, path.basename(runtimeProof.path));
         atomicWritePrivateFile(
-            temporaryDirectory,
+            runtimeDirectory,
             adapterScriptPath,
             readVerifiedRuntimeFile(adapterFileProof),
             false,
@@ -240,9 +277,9 @@ export async function prepareForgeHermesMinimaxAdapterInvocation(
                 : dependency.role === 'hermes_minimax_delegate'
                     ? 'hermes_minimax_delegate.mjs'
                     : path.basename(dependency.path);
-            const destination = path.join(temporaryDirectory, destinationName);
+            const destination = path.join(runtimeDirectory, destinationName);
             atomicWritePrivateFile(
-                temporaryDirectory,
+                runtimeDirectory,
                 destination,
                 readVerifiedRuntimeFile(dependency),
                 false,
@@ -256,9 +293,9 @@ export async function prepareForgeHermesMinimaxAdapterInvocation(
         readVerifiedRuntimeFile(runtimeProof.python_interpreter);
         if (runtimeProof.node_interpreter) readVerifiedRuntimeFile(runtimeProof.node_interpreter);
         readVerifiedRuntimeFile(runtimeProof.process_containment);
-        proveForgeContainment(runtimeProof, root);
+        proveForgeContainment(runtimeProof, temporaryDirectory);
         const environment = minimalForgeAdapterEnvironment(
-            args, decisionId, executionReceiptId, selectedAdapter,
+            args, decisionId, executionReceiptId, selectedAdapter, oauthHorizon,
         );
         let hermesPreflight: ForgeHermesPreflightProof | null = null;
         if (selectedAdapter.ref === 'cstar-forge-hermes-minimax-worker-adapter') {
@@ -266,6 +303,9 @@ export async function prepareForgeHermesMinimaxAdapterInvocation(
                 && process.env.CSTAR_FORGE_TEST_MODE === '1';
             if (!expectedHermesRuntime && !syntheticOverride) {
                 throw new Error('forge_request_hermes_runtime_missing');
+            }
+            if (!oauthHorizon && !syntheticOverride) {
+                throw new Error('forge_hermes_oauth_horizon_missing');
             }
             if (expectedHermesRuntime) {
                 environment.CSTAR_FORGE_HERMES_LOCATOR = expectedHermesRuntime.locator_path;
@@ -277,9 +317,11 @@ export async function prepareForgeHermesMinimaxAdapterInvocation(
                 throw new Error('forge_hermes_preflight_runtime_missing');
             }
             if (runtimeProof.node_interpreter && materializedDelegatePath && !syntheticDelegateBypass) {
+                if (!oauthHorizon) throw new Error('forge_hermes_oauth_horizon_missing');
                 hermesPreflight = runForgeHermesCompatibilityPreflight(
                     runtimeProof, runtimeProof.node_interpreter.path, materializedDelegatePath,
-                    environment, root, temporaryDirectory,
+                    environment, temporaryDirectory, temporaryDirectory,
+                    oauthHorizon,
                 );
                 if (expectedHermesRuntime) {
                     assertForgeHermesPreflightMatchesExpectation(
@@ -293,19 +335,26 @@ export async function prepareForgeHermesMinimaxAdapterInvocation(
             }
         }
 
-        const intent = buildForgeAdapterIntent(
+        const canonicalIntent = buildForgeAdapterIntent(
             args,
             decisionId,
             executionReceiptId,
-            root,
-            responsePath,
+            sourceRoot,
+            workerResponsePath,
             selectedAdapter,
             runtimeProof,
             hermesPreflight,
         );
-        const intentPath = path.join(temporaryDirectory, 'forge-adapter-intent.json');
-        atomicWritePrivateFile(
+        const workspaceProjection = prepareForgeWorkspaceProjection(
+            args,
+            sourceRoot,
+            String(canonicalIntent.project_root),
             temporaryDirectory,
+        );
+        const intent = projectForgeAdapterIntent(canonicalIntent, workspaceProjection);
+        const intentPath = path.join(privateIoDirectory, 'forge-adapter-intent.json');
+        atomicWritePrivateFile(
+            privateIoDirectory,
             intentPath,
             `${JSON.stringify(intent, null, 2)}\n`,
             false,
@@ -314,14 +363,18 @@ export async function prepareForgeHermesMinimaxAdapterInvocation(
         const prepared: PreparedForgeAdapterInvocation = {
             intent,
             intentPath,
+            workerResponsePath,
             responsePath,
             responseDir,
             executionTracePath,
             adapterScriptPath,
+            runtimeDirectory,
+            privateIoDirectory,
             runtimeProof,
             hermesPreflight,
             environment,
             temporaryDirectory,
+            workspaceProjection,
             spendMayHaveStarted: false,
             writeExecutionTrace(trace: Record<string, unknown>) {
                 atomicWritePrivateFile(

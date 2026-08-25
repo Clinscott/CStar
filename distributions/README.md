@@ -1,26 +1,23 @@
 # Corvus Star Source and Release Surfaces
 
-This repository generates host source-staging and external-runtime release artifacts from the authoritative registry and runtime contracts.
+This repository generates verified host source-staging artifacts from the declared registry and kernel tool catalog.
 
 ## Gemini CLI
 - Install from the repository root so `gemini-extension.json` and `GEMINI.md` are available.
 - The extension exposes registry-filtered capabilities and MCP server wiring from the kernel root.
 - Gemini context is generated around the host-native supervisor model: host cognition, kernel primitives.
-- The Gemini context teaches bounded, on-demand Corvus Star Augury routing.
+- Gemini context presents Augury as an advisory route explanation, never authority or proof.
 - Public host fronts marked as no-fallback are expected to fail closed when the host session is unavailable.
-- Local source-link staging: `npm run install:gemini-local`; new-session pickup and live proof remain separate.
 
 ## Codex
-- The repo-local plugin lives under `plugins/corvus-star/`.
-- The marketplace entry lives under `.agents/plugins/marketplace.json`.
-- The plugin is skill-only and intentionally contains no hooks, `.mcp.json`, or bundled kernel.
-- Codex reaches CStar through the single host-global `cstar-kernel` registration defined by the current integration contract.
-- `plugins/corvus-star/lineage.json` binds the immutable plugin version to its tool catalog, exported capabilities, runtime mode, and per-file hashes.
-- Codex source-staging surfaces are generated from the same registry-backed host/kernel split as Gemini.
-- Codex skill context teaches bounded, on-demand Corvus Star Augury routing.
-- Public host fronts marked as no-fallback are expected to fail closed when the host session is unavailable.
+- The source plugin under `plugins/corvus-star/` is skill-only: manifest, README, skill, and generated lineage.
+- It contains no MCP server or hook. The host-global CStar kernel is managed independently.
+- `plugins/corvus-star/lineage.json` binds the immutable version to its tool catalog, exported capabilities, runtime mode, and per-file hashes.
 - Source staging only: `npm run install:codex-local` verifies and stages the plugin under `~/plugins/corvus-star`; it does not run `codex plugin add`, refresh Codex cache, restart Desktop, or prove live activation.
-- Marketplace reconciliation, `codex plugin add`, restart/new-task pickup, and live MCP proof are a separate operator-gated activation flow.
+- Marketplace reconciliation, `codex plugin add`, restart or new-task pickup, and live proof remain separately operator-gated.
+- Never copy plugin caches or marketplace state by hand.
+- Codex skill context presents Augury as an advisory route explanation, never authority or proof.
+- Public host fronts marked as no-fallback are expected to fail closed when the host session is unavailable.
 
 ## Export Summary
 - Gemini executable capabilities: 3
@@ -35,5 +32,5 @@ This repository generates host source-staging and external-runtime release artif
 
 ## CI
 - Pull requests and pushes should fail if generated host artifacts drift from the registry-backed source.
-- Tagged pushes and manual runs can publish external-runtime-dependent host overlays from `dist/host-distributions/`; the archives do not bundle CStar itself.
-- Stage source from generated artifacts, then use the separately operator-gated supported host activation flow instead of hand-editing host surfaces.
+- Tagged pushes and manual runs can publish host-ready bundle artifacts from `dist/host-distributions/`.
+- Stage verified source, then use the supported host activation surface; never hand-edit Codex plugin caches or marketplace state.

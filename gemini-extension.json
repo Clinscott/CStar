@@ -14,7 +14,7 @@
         "GEMINI_CLI_ACTIVE": "true",
         "CSTAR_KERNEL_DISABLE_WATCH": "1"
       },
-      "note": "CStar kernel MCP — 25-tool surface. See docs/integrations/cstar-kernel-mcp.md for the full API reference."
+      "note": "CStar kernel MCP — 28-tool surface. See docs/integrations/cstar-kernel-mcp.md for the full API reference."
     }
   }
 }

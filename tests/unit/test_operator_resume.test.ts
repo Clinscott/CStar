@@ -1,37 +1,36 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import path from 'node:path';
 
 import {
     buildHostGovernorResumeInvocation,
-    executeHostGovernorResume,
     formatPlanningDigestBadge,
     formatPlanningSessionSummary,
     resumeHostGovernorIfAvailable,
 } from '../../src/node/core/operator_resume.js';
-import type { RuntimeDispatchPort, WeaveInvocation, WeaveResult } from '../../src/node/core/runtime/contracts.js';
+import type {
+    RuntimeDispatchPort,
+    WeaveInvocation,
+    WeaveResult,
+} from '../../src/node/core/runtime/contracts.js';
 
-class CaptureDispatchPort implements RuntimeDispatchPort {
+class TrapDispatchPort implements RuntimeDispatchPort {
     public calls = 0;
 
     public async dispatch<T>(_invocation: WeaveInvocation<T>): Promise<WeaveResult> {
         this.calls += 1;
-        throw new Error('operator resume must not dispatch');
+        throw new Error('legacy resume must not dispatch');
     }
 }
 
-describe('retired operator Host Governor resume compatibility', () => {
-    it('builds only a dry-run, non-actuating legacy invocation', () => {
+describe('retired operator host-governor resume', () => {
+    it('builds only a non-executing compatibility invocation', () => {
         assert.deepEqual(
             buildHostGovernorResumeInvocation({
                 workspaceRoot: '/tmp/corvus',
                 cwd: '/tmp/corvus',
                 task: 'Resume the operator surface.',
                 source: 'cli',
-                autoExecute: true,
-                autoReplanBlocked: true,
-                dryRun: false,
             }),
             {
                 weave_id: 'weave:host-governor',
@@ -42,7 +41,7 @@ describe('retired operator Host Governor resume compatibility', () => {
                     auto_replan_blocked: false,
                     max_parallel: 1,
                     max_promotions: undefined,
-                    dry_run: true,
+                    dry_run: undefined,
                     project_root: '/tmp/corvus',
                     cwd: '/tmp/corvus',
                     source: 'cli',
@@ -53,30 +52,21 @@ describe('retired operator Host Governor resume compatibility', () => {
         );
     });
 
-    it('does not wake or dispatch through the direct compatibility function', async () => {
-        const dispatchPort = new CaptureDispatchPort();
-        let wakeCalls = 0;
+    it('does not propagate former execution or replanning flags', () => {
+        const invocation = buildHostGovernorResumeInvocation({
+            workspaceRoot: '/tmp/corvus',
+            cwd: '/tmp/corvus',
+            autoExecute: true,
+            autoReplanBlocked: true,
+        });
 
-        const result = await executeHostGovernorResume(
-            dispatchPort,
-            { workspaceRoot: '/tmp/corvus', cwd: '/tmp/corvus' },
-            'codex',
-            { wakeKernel: async () => { wakeCalls += 1; } },
-        );
-
-        assert.equal(dispatchPort.calls, 0);
-        assert.equal(wakeCalls, 0);
-        assert.equal(result.resumed, false);
-        assert.equal(result.provider, 'codex');
-        assert.equal(result.wokeKernel, false);
-        assert.equal(result.governorResult?.status, 'TRANSITIONAL');
-        assert.equal(result.governorResult?.metadata?.execution_attempted, false);
-        assert.equal(result.governorResult?.metadata?.kernel_wake_attempted, false);
+        assert.equal(invocation.payload.auto_execute, false);
+        assert.equal(invocation.payload.auto_replan_blocked, false);
     });
 
-    it('does not wake or dispatch when provider discovery sees an active host', async () => {
-        const dispatchPort = new CaptureDispatchPort();
-        let wakeCalls = 0;
+    it('does nothing without explicit resume intent', async () => {
+        const dispatchPort = new TrapDispatchPort();
+        let wakeCount = 0;
 
         const result = await resumeHostGovernorIfAvailable(
             dispatchPort,
@@ -85,17 +75,45 @@ describe('retired operator Host Governor resume compatibility', () => {
                 cwd: '/tmp/corvus',
                 env: { CODEX_SHELL: '1' },
             },
-            { wakeKernel: async () => { wakeCalls += 1; } },
+            { wakeKernel: async () => { wakeCount += 1; } },
         );
 
+        assert.deepEqual(result, { resumed: false, provider: null, wokeKernel: false });
+        assert.equal(wakeCount, 0);
         assert.equal(dispatchPort.calls, 0);
-        assert.equal(wakeCalls, 0);
-        assert.equal(result.resumed, false);
-        assert.equal(result.provider, 'codex');
-        assert.equal(result.wokeKernel, false);
     });
 
-    it('formats planning session summaries without resuming execution', () => {
+    it('explicit legacy resume fails without wake, dispatch, or planning summary', async () => {
+        const dispatchPort = new TrapDispatchPort();
+        let wakeCount = 0;
+
+        const result = await resumeHostGovernorIfAvailable(
+            dispatchPort,
+            {
+                workspaceRoot: '/tmp/corvus',
+                cwd: '/tmp/corvus',
+                explicitHostResume: true,
+                env: { CODEX_SHELL: '1' },
+                task: 'Resume the operator surface.',
+                source: 'cli',
+            },
+            { wakeKernel: async () => { wakeCount += 1; } },
+        );
+
+        assert.equal(result.resumed, false);
+        assert.equal(result.provider, null);
+        assert.equal(result.wokeKernel, false);
+        assert.equal(result.planningSummary, undefined);
+        assert.equal(result.governorResult?.status, 'FAILURE');
+        assert.equal(result.governorResult?.error, 'legacy_host_governor_resume_retired_use_cstar_handoff');
+        assert.equal(result.governorResult?.metadata?.execution_dispatched, false);
+        assert.equal(result.governorResult?.metadata?.kernel_wake_started, false);
+        assert.equal(result.governorResult?.metadata?.hall_mutation_started, false);
+        assert.equal(wakeCount, 0);
+        assert.equal(dispatchPort.calls, 0);
+    });
+
+    it('retains pure planning-summary formatting for historical display', () => {
         const session: any = {
             session_id: 'chant-session:TRACE-RESUME',
             status: 'PROPOSAL_REVIEW',
@@ -121,19 +139,24 @@ describe('retired operator Host Governor resume compatibility', () => {
         );
     });
 
-    it('proves operator resume and TUI status/entry contain no wake or resume dispatch', () => {
-        const sourceRoot = path.join(import.meta.dirname, '..', '..', 'src', 'node', 'core');
-        const resumeSource = fs.readFileSync(path.join(sourceRoot, 'operator_resume.ts'), 'utf-8');
-        const tuiSource = fs.readFileSync(path.join(sourceRoot, 'tui', 'operator_tui.ts'), 'utf-8');
+    it('contains no Hall-summary read in the explicit resume path', () => {
+        const source = fs.readFileSync(
+            new URL('../../src/node/core/operator_resume.ts', import.meta.url),
+            'utf8',
+        );
+        const resumePath = source.slice(
+            source.indexOf('export async function executeHostGovernorResume'),
+            source.indexOf('export async function resumeHostGovernorIfAvailable'),
+        );
 
-        assert.doesNotMatch(resumeSource, /ANS\.wake|\.dispatch\s*\(/);
-        assert.doesNotMatch(tuiSource, /resumeHostGovernorIfAvailable|appendResumeEvents/);
-        assert.doesNotMatch(tuiSource, /Resume host-governed operator/);
-        assert.doesNotMatch(tuiSource, /StateRegistry\.postToBlackboard|StateRegistry\.save/);
-        assert.match(tuiSource, /Local handoff is decommissioned/);
-        assert.match(tuiSource, /Local broadcast is decommissioned/);
-        assert.doesNotMatch(tuiSource, /state\.gungnir_score\.toFixed|state\.intent_integrity\.toFixed/);
-        assert.match(tuiSource, /HUD\.boxRow\('GUNGNIR', 'not measured'/);
-        assert.match(tuiSource, /HUD\.boxRow\('INTEGRITY', 'not measured'/);
+        for (const forbidden of [
+            'getHallPlanningSession(',
+            'listHallPlanningSessions(',
+            'resolveResumePlanningSession(',
+            'resolveResultPlanningSession(',
+            'buildResultPlanningSummary(',
+        ]) {
+            assert.equal(resumePath.includes(forbidden), false, `resume path retained ${forbidden}`);
+        }
     });
 });

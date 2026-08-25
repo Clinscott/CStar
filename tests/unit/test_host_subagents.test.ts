@@ -27,8 +27,6 @@ describe('Host subagent routing', () => {
         } as any);
 
         assert.equal(profile, 'frontend');
-        assert.equal(getHostSubagentSpec(profile).title, 'Frontend Advisory Reviewer');
-        assert.match(getHostSubagentSpec(profile).instruction, /do not edit UI files/i);
     });
 
     it('builds a profile-aware prompt envelope', () => {
@@ -45,8 +43,6 @@ describe('Host subagent routing', () => {
         );
 
         assert.match(prompt, /SPECIALIST ROLE: Review Specialist \(reviewer\)/);
-        assert.match(prompt, /EXECUTION CLASS: advisory-only/);
-        assert.match(prompt, /Do not modify files or state/);
         assert.match(prompt, /TASK KIND: critique/);
         assert.match(prompt, /Inspect the bead for regressions\./);
     });

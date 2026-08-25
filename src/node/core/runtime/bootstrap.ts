@@ -1,107 +1,15 @@
-import { RuntimeDispatcher } from  './dispatcher.js';
-import { 
-    PennyOneAdapter, 
-    RavensAdapter, 
-    StartAdapter,
-    RestorationHostWorkflow,
-    EstateExpansionHostWorkflow,
-    VigilanceHostWorkflow
-} from  './adapters.js';
-import { HostWorkerWeave } from  './weaves/host_worker.js';
-import { ChantHostWorkflow } from  './host_workflows/chant.js';
-import { EvolveWeave } from  './weaves/evolve.js';
-import { RavensCycleWeave, RavensStageContractAdapter } from  './weaves/ravens_cycle.js';
-import { ArtifactForgeHostWorkflow } from  './host_workflows/artifact_forge.js';
-import { TaliesinForgeHostWorkflow } from  './host_workflows/taliesin_forge.js';
-import { ResearchHostWorkflow } from  './host_workflows/research.js';
-import { CritiqueHostWorkflow } from  './host_workflows/critique.js';
-import { ArchitectCompatibilityAdapter } from  './compat/architect.js';
-import { DistillWeave } from  './weaves/distill.js';
-import { DistillLessonsWeave } from './weaves/distill_lessons.js';
-import { HarvestLessonsWeave } from './weaves/harvest_lessons.js';
-import { EngraveWeave } from  './weaves/engrave.js';
-import { OrchestrateWeave } from  './weaves/orchestrate.js';
-import { HostGovernorWeave } from  './weaves/host_governor.js';
-import { TemporalLearningWeave } from  './weaves/temporal_learning.js';
-import { EstateRitualWeave } from './weaves/estate_ritual.js';
-import { WardenWeave } from './weaves/warden.js';
-import { UniversalAdapter, type RegistryEntry as UniversalRegistryEntry } from './universal_adapter.js';
-import { registry } from '../../../tools/pennyone/pathRegistry.js';
-import fs from 'node:fs';
-import { join } from 'node:path';
-import { bootstrapEnv } from '../../../../scripts/env_bootstrap.js';
-import {
-    resolveSkillRegistryEntries,
-    SkillRegistryContractError,
-} from '../../../core/skill_registry_contract.js';
+import { RuntimeDispatcher } from './dispatcher.js';
 
 /**
- * [Ω] RUNTIME BOOTSTRAP
- * Purpose: Initialize the canonical kernel dispatcher with bounded adapters and registry-backed workflow records.
+ * Initialize the retired Node runtime with an exact-empty adapter inventory.
+ *
+ * CStar lifecycle mutations belong to the typed cstar-kernel MCP surface.
+ * Host-native cognition belongs to the active host conversation. The legacy
+ * Node adapter spine therefore has no production execution authority.
  */
-export function bootstrapRuntime(dispatcher: RuntimeDispatcher = RuntimeDispatcher.getInstance()): RuntimeDispatcher {
-    // Environmental Bootstrap
-    bootstrapEnv();
-
-    // These adapters are kernel-visible records and bounded primitives.
-    // Many expose host-native skills/weaves above the kernel rather than Node-owned cognition.
-    const adapters = [
-        new StartAdapter(),
-        new RavensAdapter(),
-        new RavensCycleWeave(),
-        new RavensStageContractAdapter('memory'),
-        new RavensStageContractAdapter('hunt'),
-        new RavensStageContractAdapter('validate'),
-        new RavensStageContractAdapter('promote'),
-        new PennyOneAdapter(),
-        new HostWorkerWeave(),
-        new ChantHostWorkflow(dispatcher),
-        new ResearchHostWorkflow(dispatcher),
-        new DistillWeave(),
-        new DistillLessonsWeave(),
-        new HarvestLessonsWeave(),
-        new EngraveWeave(),
-        new CritiqueHostWorkflow(dispatcher),
-        new ArchitectCompatibilityAdapter(dispatcher),
-        new EvolveWeave(dispatcher),
-        new ArtifactForgeHostWorkflow(),
-        new TaliesinForgeHostWorkflow(),
-        new OrchestrateWeave(dispatcher),
-        new HostGovernorWeave(dispatcher),
-        new TemporalLearningWeave(),
-        new EstateRitualWeave(dispatcher),
-        new RestorationHostWorkflow(dispatcher),
-        new EstateExpansionHostWorkflow(dispatcher),
-        new WardenWeave(dispatcher),
-        new VigilanceHostWorkflow(dispatcher),
-    ];
-
-    for (const adapter of adapters) {
-        if (!dispatcher.hasAdapter(adapter.id)) {
-            dispatcher.registerAdapter(adapter);
-        }
-    }
-
-    // Dynamic Discovery: registry-backed adapter records for host-native capabilities and bounded primitives.
-    try {
-        const root = process.env.CSTAR_PROJECT_ROOT || registry.getRoot();
-        const skillRegistryPath = join(root, '.agents', 'skill_registry.json');
-        if (fs.existsSync(skillRegistryPath)) {
-            const skillRegistry = JSON.parse(fs.readFileSync(skillRegistryPath, 'utf-8')) as unknown;
-            const entries = resolveSkillRegistryEntries<UniversalRegistryEntry>(skillRegistry);
-            for (const [key, entry] of Object.entries(entries)) {
-                const adapterId = entry.execution?.adapter_id || key;
-                if (!dispatcher.hasAdapter(adapterId)) {
-                    dispatcher.registerAdapter(new UniversalAdapter(adapterId, entry));
-                }
-            }
-        }
-    } catch (err) {
-        if (err instanceof SkillRegistryContractError) {
-            throw err;
-        }
-        // Silently continue if registry is unavailable during early bootstrap
-    }
-
+export function bootstrapRuntime(
+    dispatcher: RuntimeDispatcher = RuntimeDispatcher.getInstance(),
+): RuntimeDispatcher {
+    dispatcher.clearAdapters();
     return dispatcher;
 }

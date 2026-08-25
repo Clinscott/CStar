@@ -1,36 +1,52 @@
 #!/usr/bin/env python3
-"""Fail-closed compatibility surface for the retired direct Brave lane."""
+"""Import-safe tombstone for the retired direct Brave Search client.
 
-from src.core.sovereign_hud import SovereignHUD
+Research is requested through CStar's authorized Researcher lane.  This module
+retains its compatibility type without reading credentials, quota state, live
+sources, or repository files.
+"""
+
+from __future__ import annotations
+
+import sys
+from typing import NoReturn
 
 
-class ExternalResearchLaneDecommissioned(RuntimeError):
-    """Raised when a caller attempts to bypass the Researcher receipt lane."""
+RETIRED_PYTHON_SOURCE_TOOL_ERROR = (
+    "legacy_python_source_tools_retired_use_authorized_researcher"
+)
+
+
+def _retired(*_args: object, **_kwargs: object) -> NoReturn:
+    raise RuntimeError(RETIRED_PYTHON_SOURCE_TOOL_ERROR)
 
 
 class BraveSearch:
-    """Compatibility object that performs no network, quota, or filesystem work."""
+    """No-effect compatibility shell for the former direct source client."""
 
-    def is_quota_available(self) -> bool:
-        return False
+    MAX_QUOTA = 0
+    QUOTA_FILE = None
 
-    def search(self, query: str) -> list[dict[str, str]]:
-        del query
-        SovereignHUD.persona_log(
-            "WARN",
-            "Direct Brave search is decommissioned. Use an authorized Researcher request.",
-        )
-        return []
+    def __init__(self, *_args: object, **_kwargs: object) -> None:
+        # Construction is intentionally passive so legacy imports and object
+        # graphs do not gain source or credential access.
+        pass
 
-    def search_knowledge(self, intent: str) -> list[dict[str, str]]:
-        return self.search(intent)
+    _ensure_quota_ledger = staticmethod(_retired)
+    _read_ledger = staticmethod(_retired)
+    _save_ledger = staticmethod(_retired)
+    _increment_quota = staticmethod(_retired)
+    is_quota_available = staticmethod(_retired)
+    search = staticmethod(_retired)
+    search_knowledge = staticmethod(_retired)
 
 
-def main() -> None:
-    raise ExternalResearchLaneDecommissioned(
-        "Direct Brave search is decommissioned; route research through CStar."
-    )
+def main() -> int:
+    """Return the stable migration error without reading arguments or secrets."""
+
+    sys.stderr.write(f"{RETIRED_PYTHON_SOURCE_TOOL_ERROR}\n")
+    return 1
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

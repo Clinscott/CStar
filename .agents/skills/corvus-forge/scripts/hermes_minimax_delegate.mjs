@@ -1,33 +1,33 @@
 #!/usr/bin/env node
-/** Forge-private Hermes worker: sealed source in, validated JSON out.
- * Hermes owns OAuth resolution; CStar receives only redacted readiness. */
+/** CStar-owned Forge worker: sealed source in, validated JSON out.
+ * Hermes owns the OAuth profile; CStar receives only redacted readiness. */
 import { createHash } from 'node:crypto';
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
-import { spawnSync } from 'node:child_process';
-import { assertHermesRuntimeMatches, materializeHermesRuntime, resolveHermesRuntime } from './hermes_runtime_lineage.mjs';
+import { materializeHermesRuntime, resolveHermesRuntime } from './hermes_runtime_lineage.mjs';
 import { buildRolePrompt, extractFinalQaManifest, getForgeRolePlan, parseRoleHandoff } from './forge_role_plan.mjs';
+import { fixedOAuthHorizon, horizonEnvironment,
+    initializeProviderJournal, providerJournalBinding, readProviderJournal,
+    stableChildFailure } from './forge_delegate_evidence.mjs';
+import { assertBoundPreflight, runHermesPreflight,
+    spawnContained } from './forge_delegate_preflight.mjs';
 const EXPECTED_PROFILE = 'cstar-hub';
 const EXPECTED_PROVIDER = 'minimax-oauth';
 const EXPECTED_AUTH_MODE = 'oauth';
 const EXPECTED_MODEL = 'MiniMax-M3';
 const SAFE_MODE_CREDENTIAL_NAMES = JSON.stringify([]);
-const OAUTH_STATUS_SCHEMA = 'hermes.forge_minimax_oauth_status.v1'; const OAUTH_MIN_TTL_SECONDS = 2100;
 const NO_TOOLS_TOOLSET = 'context_engine';
 const FAILURE_SCHEMA = 'cstar.forge_delegate_failure.v1';
-const PREFLIGHT_SCHEMA = 'cstar.forge_hermes_preflight.v1';
-// --profile is consumed by Hermes' pre-parser and intentionally omitted from help.
-const CHAT_FLAGS = ['--forge-query-stdin', '--quiet', '--toolsets', '--safe-mode', '--max-turns',
-    '--source', '--provider', '--model'];
-const FILE_BYTE_CAP = 64 * 1024;
+const FILE_BYTE_CAP = 512 * 1024;
 const TOTAL_BYTE_CAP = 512 * 1024;
 const PROMPT_BYTE_CAP = 1024 * 1024;
 const HERMES_OVERRIDE = process.env.HERMES_BIN?.trim();
 const REQUEST_BOUND_HERMES = process.env.CSTAR_FORGE_HERMES_LOCATOR?.trim();
-let hermesInvocationMayHaveSpent = false;
 let providerRequestsStarted = 0;
 let providerRequestsCompleted = 0;
+let providerRequestsAmbiguous = 0;
+let providerSpendObserved = false;
+let providerRequestReceipts = [];
 let activeRolePlan = null; let roleReceipts = [];
 let aggregateInputTokens = 0; let aggregateOutputTokens = 0;
 function stableFailureReason(error) {
@@ -36,15 +36,20 @@ function stableFailureReason(error) {
         ? reason : 'forge_hermes_delegate_failed';
 }
 function fail(reason) {
+    const spendUnknown = providerRequestsAmbiguous > 0;
+    const knownSpendObserved = providerSpendObserved;
     process.stdout.write(`${JSON.stringify({
         schema: FAILURE_SCHEMA, status: 'degraded', degraded_reason: reason,
         provider: EXPECTED_PROVIDER, auth_provider: EXPECTED_PROVIDER,
         auth_mode: EXPECTED_AUTH_MODE, requested_model: EXPECTED_MODEL, actual_model: null,
         model_source: 'unreported', model: EXPECTED_MODEL, hermes_profile: EXPECTED_PROFILE,
-        live_spend: providerRequestsCompleted > 0 ? true : hermesInvocationMayHaveSpent ? null : false,
-        live_spend_unknown: providerRequestsStarted > providerRequestsCompleted,
+        live_spend: spendUnknown ? null : knownSpendObserved,
+        live_spend_unknown: spendUnknown,
+        known_spend_observed: knownSpendObserved,
         provider_requests_started: providerRequestsStarted,
         provider_requests_completed: providerRequestsCompleted,
+        provider_requests_ambiguous: providerRequestsAmbiguous,
+        provider_request_receipts: providerRequestReceipts,
         forge_topology: activeRolePlan?.plan_id ?? null,
         role_plan_sha256: activeRolePlan?.plan_sha256 ?? null,
         role_receipts: roleReceipts, input_tokens: aggregateInputTokens,
@@ -144,6 +149,15 @@ function readIntent(intentPath) {
         throw new Error('forge_hermes_intent_invalid');
     }
     if (typeof data.project_root !== 'string' || !path.isAbsolute(data.project_root)) throw new Error('forge_hermes_project_root_invalid');
+    const materialPolicy = data.material_policy;
+    if (!materialPolicy || typeof materialPolicy !== 'object' || Array.isArray(materialPolicy)
+        || Object.keys(materialPolicy).sort().join(',') !== 'file_max_bytes,prompt_max_bytes,schema,total_max_bytes'
+        || materialPolicy.schema !== 'cstar.forge_material_policy.v1'
+        || materialPolicy.file_max_bytes !== FILE_BYTE_CAP
+        || materialPolicy.total_max_bytes !== TOTAL_BYTE_CAP
+        || materialPolicy.prompt_max_bytes !== PROMPT_BYTE_CAP) {
+        throw new Error('forge_hermes_material_policy_invalid');
+    }
     const payload = data.payload ?? {};
     if (payload.hermes_profile !== EXPECTED_PROFILE || payload.model !== EXPECTED_MODEL) throw new Error('forge_hermes_profile_or_model_mismatch');
     if (payload.expected_output !== 'json') throw new Error('forge_hermes_json_output_required');
@@ -185,125 +199,7 @@ function minimalHermesEnvironment() {
     if (process.platform === 'linux') Object.assign(env, { TMPDIR: '/tmp', TMP: '/tmp', TEMP: '/tmp' });
     return env;
 }
-function makePrivateDirectory(root, name) {
-    const directory = path.join(root, name); fs.mkdirSync(directory, { mode: 0o700 }); return directory;
-}
-function sterilePreflightEnvironment(root) {
-    const home = makePrivateDirectory(root, 'home');
-    const tmp = makePrivateDirectory(root, 'tmp');
-    const env = {
-        HOME: home, HERMES_HOME: makePrivateDirectory(root, 'hermes'),
-        CSTAR_FORGE_HERMES_DELEGATED: '1', HERMES_SAFE_MODE: '1',
-        HERMES_FORGE_EPHEMERAL: '1', HERMES_FORGE_PREFLIGHT: '1',
-        HERMES_SAFE_MODE_PROVIDER: EXPECTED_PROVIDER,
-        HERMES_SAFE_MODE_CREDENTIAL_NAMES: SAFE_MODE_CREDENTIAL_NAMES,
-        HERMES_IGNORE_USER_CONFIG: '1', HERMES_IGNORE_RULES: '1',
-        XDG_CACHE_HOME: makePrivateDirectory(root, 'cache'),
-        XDG_CONFIG_HOME: makePrivateDirectory(root, 'config'),
-        XDG_DATA_HOME: makePrivateDirectory(root, 'data'),
-        TMPDIR: tmp, TMP: tmp, TEMP: tmp, NO_COLOR: '1',
-        PYTHONNOUSERSITE: '1', PYTHONDONTWRITEBYTECODE: '1',
-    };
-    for (const key of ['LANG', 'LC_ALL', 'TZ']) if (process.env[key]) env[key] = process.env[key];
-    return env;
-}
-function oauthPreflightEnvironment(root) {
-    const env = minimalHermesEnvironment();
-    Object.assign(env, { HERMES_FORGE_PREFLIGHT: '1', HERMES_FORGE_OAUTH_STATUS_ONLY: '1',
-        XDG_CACHE_HOME: makePrivateDirectory(root, 'oauth-cache'),
-        XDG_CONFIG_HOME: makePrivateDirectory(root, 'oauth-config'),
-        XDG_DATA_HOME: makePrivateDirectory(root, 'oauth-data') }); return env; }
-function spawnContained(command, args, options) {
-    const { markLiveSpend = false, ...spawnOptions } = options;
-    const processGroupSupported = process.platform !== 'win32';
-    const result = spawnSync(command, args, { ...spawnOptions, detached: processGroupSupported, killSignal: 'SIGKILL' });
-    if (markLiveSpend && Number.isInteger(result.pid)) hermesInvocationMayHaveSpent = true;
-    if (processGroupSupported && Number.isInteger(result.pid)) {
-        try {
-            process.kill(-result.pid, 'SIGKILL');
-        } catch (error) {
-            if (error?.code !== 'ESRCH') throw new Error('forge_hermes_process_group_cleanup_failed');
-        }
-    }
-    return result;
-}
-function runHelpProbe(runtime, args, env, cwd, failureReason) {
-    const result = spawnContained(runtime.command, [...runtime.prefixArgs, ...args], {
-        cwd, env, encoding: 'utf-8', timeout: 5000,
-        maxBuffer: 1024 * 1024, input: '',
-    });
-    if (result.error || result.status !== 0) throw new Error(failureReason);
-    return `${result.stdout ?? ''}\n${result.stderr ?? ''}`;
-}
-function assertHelpFlags(output, required) {
-    const missing = required.find((flag) => !output.includes(flag));
-    if (missing) throw new Error(`forge_hermes_preflight_missing_${missing.replace(/^-+/, '').replace(/-/g, '_')}`);
-}
-function runOAuthStatusProbe(runtime, env, cwd) {
-    const result = spawnContained(runtime.command, [...runtime.prefixArgs, '--oauth-status'], {
-        cwd, env, encoding: 'utf-8', timeout: 5000, maxBuffer: 64 * 1024, input: '' });
-    if (result.error || result.status !== 0 || String(result.stderr ?? '').trim()) throw new Error('forge_hermes_oauth_status_failed');
-    let packet;
-    try { packet = JSON.parse(String(result.stdout ?? '')); }
-    catch { throw new Error('forge_hermes_oauth_status_invalid'); }
-    const exactKeys = ['auth_mode', 'min_ttl_seconds', 'profile', 'provider', 'refresh_required', 'schema', 'status'].sort().join(',');
-    if (!packet || typeof packet !== 'object' || Array.isArray(packet)
-        || Object.keys(packet).sort().join(',') !== exactKeys
-        || packet.schema !== OAUTH_STATUS_SCHEMA || packet.status !== 'ready'
-        || packet.provider !== EXPECTED_PROVIDER || packet.auth_mode !== EXPECTED_AUTH_MODE
-        || packet.profile !== EXPECTED_PROFILE || packet.refresh_required !== false
-        || !Number.isInteger(packet.min_ttl_seconds) || packet.min_ttl_seconds < OAUTH_MIN_TTL_SECONDS) {
-        throw new Error('forge_hermes_oauth_status_invalid');
-    }
-    return packet; }
-function runHermesPreflight(hermes = resolveHermes()) {
-    const resolved = resolveHermesRuntime(hermes, syntheticRuntimeAllowed());
-    const secureTmp = process.platform === 'linux' ? '/tmp' : os.tmpdir();
-    const root = fs.mkdtempSync(path.join(secureTmp, 'cstar-forge-hermes-preflight-'));
-    fs.chmodSync(root, 0o700);
-    try {
-        const runtime = materializeHermesRuntime(resolved, root);
-        const env = sterilePreflightEnvironment(root);
-        const version = runHelpProbe(runtime, ['--version'], env, root, 'forge_hermes_preflight_version_failed');
-        const topHelp = runHelpProbe(runtime, ['--help'], env, root, 'forge_hermes_preflight_help_failed');
-        const chatHelp = runHelpProbe(runtime, ['chat', '--help'], env, root, 'forge_hermes_preflight_chat_help_failed');
-        assertHelpFlags(chatHelp, CHAT_FLAGS);
-        const oauth = runOAuthStatusProbe(runtime, oauthPreflightEnvironment(root), root);
-        return {
-            schema: PREFLIGHT_SCHEMA, status: 'ok',
-            locator_path: resolved.locator,
-            ...Object.fromEntries(['executable_sha256', 'runtime_content_sha256', 'runtime_instance_sha256',
-                'python_sha256', 'source_file_count', 'source_bytes', 'bootstrap_mode', 'runtime_root',
-                'dependency_mode', 'system_python_path'].map((key) => [key, resolved[key]])),
-            version_sha256: sha256(version),
-            checks: { version: 'pass', help: 'pass', chat_help: 'pass', required_flags: 'pass' },
-            auth_provider: oauth.provider, auth_mode: oauth.auth_mode, oauth_profile: oauth.profile,
-            oauth_status: oauth.status, oauth_refresh_required: oauth.refresh_required, oauth_min_ttl_seconds: oauth.min_ttl_seconds,
-            live_spend: false, live_spend_unknown: false, live_source_collection: false,
-        };
-    } finally { fs.rmSync(root, { recursive: true, force: true }); }
-}
-function assertBoundPreflight(proof, hermes) {
-    const runtime = resolveHermesRuntime(hermes, syntheticRuntimeAllowed());
-    if (!proof || proof.schema !== PREFLIGHT_SCHEMA || proof.status !== 'ok'
-        || proof.locator_path !== runtime.locator
-        || proof.executable_sha256 !== runtime.executable_sha256
-        || !/^[a-f0-9]{64}$/.test(proof.version_sha256 ?? '')
-        || proof.checks?.version !== 'pass' || proof.checks?.help !== 'pass'
-        || proof.checks?.chat_help !== 'pass' || proof.checks?.required_flags !== 'pass'
-        || proof.auth_provider !== EXPECTED_PROVIDER || proof.auth_mode !== EXPECTED_AUTH_MODE
-        || proof.oauth_profile !== EXPECTED_PROFILE || proof.oauth_status !== 'ready'
-        || proof.oauth_refresh_required !== false
-        || !Number.isInteger(proof.oauth_min_ttl_seconds)
-        || proof.oauth_min_ttl_seconds < OAUTH_MIN_TTL_SECONDS
-        || proof.live_spend !== false || proof.live_spend_unknown !== false
-        || proof.live_source_collection !== false) {
-        throw new Error('forge_hermes_preflight_binding_invalid');
-    }
-    assertHermesRuntimeMatches(proof, runtime);
-    return runtime;
-}
-function assertProviderEnvelope(raw, intent, runtime, role, phase, inputHandoffSha256, specificationSha256, plan) {
+function assertProviderEnvelope(raw, intent, runtime, horizon, role, phase, inputHandoffSha256, specificationSha256, plan) {
     let packet;
     try { packet = JSON.parse(raw); } catch { throw new Error('forge_hermes_provider_envelope_invalid'); }
     const identity = intent.execution_identity;
@@ -315,6 +211,7 @@ function assertProviderEnvelope(raw, intent, runtime, role, phase, inputHandoffS
         || packet.role_plan_id !== plan.plan_id || packet.role_plan_sha256 !== plan.plan_sha256
         || packet.input_handoff_sha256 !== inputHandoffSha256
         || packet.specification_handoff_sha256 !== specificationSha256
+        || packet.oauth_horizon_binding_sha256 !== horizon.horizon_binding_sha256
         || packet.auth_provider !== EXPECTED_PROVIDER || packet.auth_mode !== EXPECTED_AUTH_MODE
         || packet.provider_model !== EXPECTED_MODEL || typeof packet.text !== 'string'
         || !packet.text.trim() || Buffer.byteLength(packet.text, 'utf-8') > 8 * 1024 * 1024
@@ -324,14 +221,18 @@ function assertProviderEnvelope(raw, intent, runtime, role, phase, inputHandoffS
     }
     return packet;
 }
-function providerPacketFrom(raw, intent, runtime, role, phase, inputHandoffSha256, specificationSha256, plan) {
+function providerPacketFrom(raw, intent, runtime, horizon, role, phase, inputHandoffSha256, specificationSha256, plan) {
     if (!syntheticRuntimeAllowed()) {
-        return assertProviderEnvelope(raw, intent, runtime, role, phase, inputHandoffSha256, specificationSha256, plan);
+        return assertProviderEnvelope(raw, intent, runtime, horizon, role, phase, inputHandoffSha256, specificationSha256, plan);
     }
     let candidate;
     try { candidate = JSON.parse(raw); } catch { /* Legacy fixture. */ }
     if (candidate?.schema === 'hermes.cstar_forge_provider_response.v1') {
-        return assertProviderEnvelope(raw, intent, runtime, role, phase, inputHandoffSha256, specificationSha256, plan);
+        if (candidate.oauth_horizon_binding_sha256 === undefined) {
+            candidate.oauth_horizon_binding_sha256 = horizon.horizon_binding_sha256;
+        }
+        return assertProviderEnvelope(JSON.stringify(candidate), intent, runtime, horizon,
+            role, phase, inputHandoffSha256, specificationSha256, plan);
     }
     return { text: raw, provider_model: null, usage: { input_tokens: 0, output_tokens: 0 } };
 }
@@ -387,17 +288,25 @@ try {
     if (process.env.CSTAR_FORGE_HERMES_DELEGATED) throw new Error('forge_hermes_nested_delegation_forbidden');
     const invocation = parseArgs(process.argv.slice(2));
     if (invocation.mode === 'preflight') {
-        process.stdout.write(`${JSON.stringify(runHermesPreflight())}\n`);
+        process.stdout.write(`${JSON.stringify(runHermesPreflight(
+            resolveHermes(), syntheticRuntimeAllowed()))}\n`);
     } else {
         const intent = readIntent(invocation.intentPath);
         const materials = materializeTargets(intent);
         const plan = getForgeRolePlan();
         activeRolePlan = plan;
         const hermes = resolveHermes();
-        let resolved;
-        if (intent.hermes_preflight) resolved = assertBoundPreflight(intent.hermes_preflight, hermes);
-        else if (syntheticRuntimeAllowed()) resolved = resolveHermesRuntime(hermes, true);
-        else throw new Error('forge_hermes_bound_preflight_required');
+        let resolved; let horizon;
+        if (intent.hermes_preflight) ({ runtime: resolved, horizon } = assertBoundPreflight(
+            intent.hermes_preflight, hermes, syntheticRuntimeAllowed()));
+        else if (syntheticRuntimeAllowed()) {
+            resolved = resolveHermesRuntime(hermes, true);
+            const started = Date.now();
+            horizon = fixedOAuthHorizon(intent.execution_identity, resolved.runtime_content_sha256, {
+                CSTAR_FORGE_OAUTH_HORIZON_STARTED_UNIX_MS: String(started),
+                CSTAR_FORGE_OAUTH_REQUIRED_UNTIL_UNIX_MS: String(started + 2_100_000),
+            });
+        } else throw new Error('forge_hermes_bound_preflight_required');
         const runtimeRoot = fs.mkdtempSync(path.join('/tmp', 'cstar-forge-hermes-runtime-'));
         fs.chmodSync(runtimeRoot, 0o700);
         const totalTimeoutSeconds = Math.max(360, Math.min(1800, Number(intent.payload.timeout_seconds ?? 1800)));
@@ -421,10 +330,17 @@ try {
                 env.HERMES_FORGE_QUERY_BYTES = String(promptBytes.byteLength);
                 env.HERMES_FORGE_QUERY_SHA256 = sha256(prompt);
                 env.CSTAR_FORGE_RUNTIME_CONTENT_SHA256 = resolved.runtime_content_sha256;
+                Object.assign(env, horizonEnvironment(horizon));
+                const journalBinding = providerJournalBinding(intent.execution_identity,
+                    resolved.runtime_content_sha256, horizon.horizon_binding_sha256, role, phase);
+                const journalPath = initializeProviderJournal(
+                    path.dirname(invocation.intentPath), journalBinding, role, phase);
                 Object.assign(env, { CSTAR_FORGE_ROLE: role, CSTAR_FORGE_PHASE: phase,
                     CSTAR_FORGE_ROLE_PLAN_ID: plan.plan_id, CSTAR_FORGE_ROLE_PLAN_SHA256: plan.plan_sha256,
                     CSTAR_FORGE_INPUT_HANDOFF_SHA256: inputHandoffSha256,
-                    CSTAR_FORGE_SPECIFICATION_HANDOFF_SHA256: specificationSha256 });
+                    CSTAR_FORGE_SPECIFICATION_HANDOFF_SHA256: specificationSha256,
+                    CSTAR_FORGE_PROVIDER_JOURNAL_PATH: journalPath,
+                    CSTAR_FORGE_PROVIDER_JOURNAL_BINDING_SHA256: journalBinding });
                 const result = spawnContained(runtime.command, [...runtime.prefixArgs,
                     '--profile', EXPECTED_PROFILE,
                     'chat', '--provider', EXPECTED_PROVIDER, '--model', EXPECTED_MODEL,
@@ -432,16 +348,31 @@ try {
                     '--max-turns', '1', '--source', 'tool',
                 ], { cwd: intent.project_root, encoding: 'utf-8', timeout: roleTimeoutSeconds * 1000,
                     maxBuffer: 16 * 1024 * 1024, env, input: promptBytes,
-                    stdio: ['pipe', 'pipe', 'pipe'], markLiveSpend: true });
-                if (Number.isInteger(result.pid)) providerRequestsStarted += 1;
+                    stdio: ['pipe', 'pipe', 'pipe'] });
+                const evidence = readProviderJournal(journalPath, journalBinding, {
+                    synthetic: syntheticRuntimeAllowed(), status: result.status,
+                });
+                providerRequestsStarted += evidence.started;
+                providerRequestsCompleted += evidence.completed;
+                providerRequestsAmbiguous += evidence.ambiguous ? 1 : 0;
+                providerSpendObserved ||= evidence.spend_observed;
+                providerRequestReceipts.push({ role, phase, final_state: evidence.final_state,
+                    binding_sha256: evidence.binding_sha256,
+                    journal_sha256: evidence.journal_sha256,
+                    journal_valid: evidence.valid, synthetic: evidence.synthetic });
                 if (result.error) {
-                    if (!Number.isInteger(result.pid) && result.error.code === 'E2BIG') throw new Error('forge_hermes_spawn_e2big');
-                    throw new Error('forge_hermes_invocation_failed');
+                    if (evidence.final_state === 'not_reached' && result.error.code === 'E2BIG') {
+                        throw new Error('forge_hermes_spawn_e2big');
+                    }
+                    throw new Error(stableChildFailure('', null));
                 }
-                if (result.status !== 0) throw new Error(`forge_hermes_exit_${result.status}`);
-                providerRequestsCompleted += 1;
+                if (result.status !== 0) throw new Error(stableChildFailure(result.stderr, result.status));
+                if (!evidence.valid || evidence.completed !== 1 || evidence.ambiguous) {
+                    throw new Error('forge_hermes_provider_journal_incomplete');
+                }
                 const providerPacket = providerPacketFrom(
-                    result.stdout ?? '', intent, resolved, role, phase, inputHandoffSha256, specificationSha256, plan,
+                    result.stdout ?? '', intent, resolved, horizon, role, phase,
+                    inputHandoffSha256, specificationSha256, plan,
                 );
                 actualModel = providerPacket.provider_model ?? actualModel;
                 totalPromptChars += prompt.length;
@@ -489,6 +420,9 @@ try {
             role_plan_sha256: plan.plan_sha256, role_receipts: roleReceipts,
             provider_requests_started: providerRequestsStarted,
             provider_requests_completed: providerRequestsCompleted,
+            provider_requests_ambiguous: providerRequestsAmbiguous,
+            provider_request_receipts: providerRequestReceipts,
+            known_spend_observed: providerSpendObserved,
             wrote_to: intent.payload.write_to, ledger_entry: null, live_spend: true,
             live_spend_unknown: false,
             live_source_collection: false,

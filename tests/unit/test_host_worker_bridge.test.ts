@@ -1,42 +1,51 @@
-import { describe, it, mock } from 'node:test';
+import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { HostWorkerWeave } from '../../src/node/core/runtime/weaves/host_worker.js';
+import type { RuntimeContext } from '../../src/node/core/runtime/contracts.js';
 
-describe('Host worker compatibility tombstone', () => {
-    it('cannot delegate, infer, write, or run a checker', async () => {
-        const delegateExecution = mock.fn(async () => {
-            throw new Error('retired host worker delegated');
+function createContext(): RuntimeContext {
+    return {
+        mission_id: 'mission-host-worker-retired',
+        bead_id: 'bead-123',
+        trace_id: 'trace-host-worker-retired',
+        workspace_root: '/repo',
+        operator_mode: 'cli',
+        target_domain: 'brain',
+        interactive: true,
+        env: { CODEX_SHELL: '1', CODEX_THREAD_ID: 'thread-1' },
+        timestamp: Date.now(),
+    };
+}
+
+describe('retired HostWorker compatibility boundary', () => {
+    it('requires durable Forge without touching providers, files, or runners', async () => {
+        let sideEffects = 0;
+        const forbidden = () => {
+            sideEffects += 1;
+            throw new Error('retired HostWorker consumed a forbidden dependency');
+        };
+        const weave = new HostWorkerWeave({
+            getBeads: forbidden,
+            delegateExecution: forbidden,
+            createMimirClient: forbidden,
+            existsSync: forbidden,
+            readFileSync: forbidden,
+            mkdirSync: forbidden,
+            writeFileSync: forbidden,
+            runner: forbidden,
         });
-        const writeFileSync = mock.fn(() => {
-            throw new Error('retired host worker wrote');
-        });
-        const runner = mock.fn(async () => {
-            throw new Error('retired host worker ran checker');
-        });
-        const weave = new HostWorkerWeave({ delegateExecution, writeFileSync, runner });
 
         const result = await weave.execute({
             weave_id: 'weave:host-worker',
             payload: { bead_id: 'bead-123', project_root: '/repo', cwd: '/repo' },
-        }, {
-            workspace_root: '/repo',
-            env: {},
-        } as any);
+        }, createContext());
 
         assert.equal(result.status, 'FAILURE');
-        assert.match(result.error ?? '', /permanently decommissioned/i);
-        assert.match(result.error ?? '', /cstar_forge_request/);
-        assert.equal(delegateExecution.mock.callCount(), 0);
-        assert.equal(writeFileSync.mock.callCount(), 0);
-        assert.equal(runner.mock.callCount(), 0);
-        assert.deepEqual(result.metadata, {
-            adapter: 'compatibility:host-worker-rejected',
-            bead_id: 'bead-123',
-            delegated: false,
-            inference_attempted: false,
-            write_attempted: false,
-            checker_attempted: false,
-        });
+        assert.match(result.error ?? '', /^forge_request_required:/);
+        assert.equal(result.metadata?.execution_boundary, 'cstar_forge_request');
+        assert.equal(result.metadata?.execution_dispatched, false);
+        assert.equal(result.metadata?.provider, null);
+        assert.equal(sideEffects, 0);
     });
 });

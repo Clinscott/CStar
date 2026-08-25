@@ -1,6 +1,12 @@
 import unittest.mock as mock
 
-from src.tools.tune_weights import MetaLearner
+import pytest
+
+from src.tools.tune_weights import (
+    LEGACY_WEIGHT_TUNER_EFFECT_ERROR,
+    MetaLearner,
+    WeightTuner,
+)
 
 
 def test_meta_learner_logic():
@@ -43,3 +49,11 @@ def test_meta_learner_report():
     with mock.patch("src.tools.tune_weights.SovereignHUD.log") as mock_log:
         learner.report()
         mock_log.assert_called_with("PASS", "Optimization Matrix Balanced")
+
+
+def test_weight_tuner_file_actions_are_retired():
+    learner = MetaLearner(mock.MagicMock())
+    with pytest.raises(RuntimeError, match=f"^{LEGACY_WEIGHT_TUNER_EFFECT_ERROR}$"):
+        learner.apply_updates("/synthetic/thesaurus.qmd")
+    with pytest.raises(RuntimeError, match=f"^{LEGACY_WEIGHT_TUNER_EFFECT_ERROR}$"):
+        WeightTuner.execute("/synthetic/root")

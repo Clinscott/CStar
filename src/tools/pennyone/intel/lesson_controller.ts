@@ -16,7 +16,7 @@ export interface HallLessonRecord {
 }
 
 export function saveHallLesson(record: HallLessonRecord): void {
-    const db = database.getDb();
+    const db = database.getWritableDb();
     const sql = `
         INSERT INTO hall_lessons (
             lesson_id, parent_lesson_id, repo_id, memory_id,
@@ -45,7 +45,7 @@ export function saveHallLesson(record: HallLessonRecord): void {
 }
 
 export function getHallLesson(lessonId: string): HallLessonRecord | null {
-    const db = database.getDb();
+    const db = database.getReadDb();
     const row = db.prepare('SELECT * FROM hall_lessons WHERE lesson_id = ?').get(lessonId) as any;
     if (!row) return null;
     return {
@@ -55,7 +55,7 @@ export function getHallLesson(lessonId: string): HallLessonRecord | null {
 }
 
 export function listHallLessons(repoId?: string, level?: string): HallLessonRecord[] {
-    const db = database.getDb();
+    const db = database.getReadDb();
     let sql = 'SELECT * FROM hall_lessons';
     const params: any[] = [];
     
@@ -82,7 +82,7 @@ export function listHallLessons(repoId?: string, level?: string): HallLessonReco
 }
 
 export function getLessonTree(rootLessonId: string): HallLessonRecord[] {
-    const db = database.getDb();
+    const db = database.getReadDb();
     // Simple recursive-like fetch (SQLite doesn't support CTEs in all versions/drivers without complexity)
     // For now, we'll do a flat list and let the caller reconstruct if needed, or just return all descendants.
     const descendants: HallLessonRecord[] = [];

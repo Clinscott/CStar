@@ -1,99 +1,48 @@
-#!/usr/bin/env python3
-"""Read-only local skill lookup plus a fail-closed acquisition tombstone.
+"""Retired Wild Hunt compatibility surface.
 
-The former Wild Hunt cloned repositories and promoted their contents directly
-into ``.agents/skills``.  That execution lane is retired.  ``search`` remains
-available only as a bounded filesystem lookup; it performs no network access or
-write and treats decommissioned and symlinked directories as non-discoverable.
+The historical implementation cloned arbitrary repositories and installed
+their contents into active skills.  Discovery and installation now require
+separately authorized, supported host workflows.
 """
 
 from __future__ import annotations
 
-import argparse
-import sys
-from pathlib import Path
 
-
-DECOMMISSION_MARKER = "DECOMMISSIONED.md"
-DECOMMISSION_MESSAGE = (
-    "Wild Hunt ingestion is decommissioned. Use the current host skill-first "
-    "workflow and CStar lifecycle for any proposal, build, validation, or promotion."
-)
-
-
-class SkillIngestionDecommissioned(RuntimeError):
-    """Raised when a caller reaches the retired clone/promote API."""
+RETIRED_ERROR = "legacy_wild_hunt_retired_use_supported_skill_discovery_and_installation"
 
 
 class WildHunt:
-    """Compatibility facade with read-only local search and no ingestion path."""
+    """Keep only the pure trusted-namespace classifier for old importers."""
 
-    def __init__(self, root: Path | None = None) -> None:
-        self.root = root.resolve() if root is not None else Path(__file__).resolve().parents[4]
-        self.active_skills = self.root / ".agents" / "skills"
-        self.skills_db = self.root / "skills_db"
+    TRUSTED_SOURCES = (
+        "github.com/google/",
+        "github.com/google-gemini/",
+        "github.com/gemini-cli/",
+        "github.com/Clinscott/",
+    )
 
-    @staticmethod
-    def _visible_directories(root: Path) -> list[Path]:
-        if not root.is_dir() or root.is_symlink():
-            return []
-        return sorted(
-            (
-                entry
-                for entry in root.iterdir()
-                if not entry.name.startswith(".")
-                and not entry.is_symlink()
-                and entry.is_dir()
-                and not (entry / DECOMMISSION_MARKER).exists()
-            ),
-            key=lambda entry: entry.name.casefold(),
-        )
+    @classmethod
+    def is_trusted(cls, url: str) -> bool:
+        return any(source in (url or "") for source in cls.TRUSTED_SOURCES)
 
     def search(self, query: str) -> list[str]:
-        """Search existing local skill names without invoking a network or writing."""
-        needle = query.strip().casefold()
-        if not needle:
-            return []
-
-        results = [
-            f"[ACTIVE] {entry.name}"
-            for entry in self._visible_directories(self.active_skills)
-            if needle in entry.name.casefold()
-        ]
-        results.extend(
-            f"[REFERENCE] {entry.name}"
-            for entry in self._visible_directories(self.skills_db)
-            if needle in entry.name.casefold()
-        )
-        return results
+        raise RuntimeError(RETIRED_ERROR)
 
     def ingest(self, url: str, skill_name: str) -> None:
-        """Reject the retired clone/promote lane before inspecting its arguments."""
-        del url, skill_name
-        raise SkillIngestionDecommissioned(DECOMMISSION_MESSAGE)
+        raise RuntimeError(RETIRED_ERROR)
+
+    def _direct_ingest(self, *args: object, **kwargs: object) -> None:
+        raise RuntimeError(RETIRED_ERROR)
+
+    def _sandbox_ingest(self, *args: object, **kwargs: object) -> None:
+        raise RuntimeError(RETIRED_ERROR)
+
+    def _write_metadata(self, *args: object, **kwargs: object) -> None:
+        raise RuntimeError(RETIRED_ERROR)
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Read-only local skill lookup; remote ingestion is retired",
-    )
-    parser.add_argument("command", choices=["search", "ingest"])
-    parser.add_argument("target", help="Local search query or ignored legacy URL")
-    parser.add_argument("--name", help="Ignored legacy skill name")
-    args = parser.parse_args()
-
-    hunter = WildHunt()
-    if args.command == "search":
-        for match in hunter.search(args.target):
-            print(match)
-        return 0
-
-    try:
-        hunter.ingest(args.target, args.name or "")
-    except SkillIngestionDecommissioned as error:
-        print(str(error), file=sys.stderr)
-        return 2
-    return 0
+    return 2
 
 
 if __name__ == "__main__":

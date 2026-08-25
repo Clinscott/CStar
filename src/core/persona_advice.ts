@@ -1,108 +1,73 @@
-import { activePersona } from '../tools/pennyone/personaRegistry.js';
+import {
+    parseCanonicalPersona,
+    type CanonicalPersona,
+} from './persona_contract.js';
 
-export type PersonaName = 'ODIN' | 'ALFRED';
+export type PersonaName = CanonicalPersona;
+export type PersonaAdviceSource =
+    | 'bounded_active_persona_projection'
+    | 'hall_active_persona_projection';
 
 export interface PersonaAdvice {
     persona: PersonaName;
+    authority: 'non_authoritative_process_guidance';
+    source: PersonaAdviceSource;
     intent_category: string;
-    domain_emphasis: string;
-    /** @deprecated Compatibility alias for domain_emphasis. */
-    direction: string;
+    development_posture: 'build_run_repair' | 'secure_harden';
+    process_directive: string;
     tone_directive: string;
 }
 
-const ODIN_DIRECTION: Record<string, string> = {
-    REPAIR:      'Structural causes, ownership boundaries, and architectural coherence.',
-    BUILD:       'System decomposition, explicit interfaces, and coherent scaffolding.',
-    VERIFY:      'Adversarial invariants, boundary failures, and stale assumptions.',
-    SCORE:       'Empirical rigor, discriminating evidence, and structural signal.',
-    OBSERVE:     'Ownership ambiguity, state drift, and high-signal diagnostics.',
-    HARDEN:      'Contract precision, invariant strength, and failure containment.',
-    EXPAND:      'Identity boundaries, spoke authority, and systemic integration.',
-    EVOLVE:      'Structural leverage, incumbent comparison, and measurable signal.',
-    ORCHESTRATE: 'System topology, dependency order, and bounded coordination.',
-    GUARD:       'Breach surfaces, drift resistance, and closed safety boundaries.',
-    DOCUMENT:    'Architectural intent, tradeoffs, and concise structural truth.',
-};
-
-const ALFRED_DIRECTION: Record<string, string> = {
-    REPAIR:      'Bounded fault surfaces, reversibility, and recovery evidence.',
-    BUILD:       'Contract-preserving structure, traceability, and verification clarity.',
-    VERIFY:      'Current-state evidence, narrow reproduction, and precise citations.',
-    SCORE:       'Ledgered evidence, calibrated claims, and visible uncertainty.',
-    OBSERVE:     'Perimeter state, recent failure evidence, and narrow diagnostics.',
-    HARDEN:      'Focused contracts, preserved semantics, and incremental proof.',
-    EXPAND:      'Identity, mount authority, and least-privilege boundaries.',
-    EVOLVE:      'Bounded change surfaces, reversibility, and operator visibility.',
-    ORCHESTRATE: 'Explicit ownership, named dependencies, and review visibility.',
-    GUARD:       'Guardrail coverage, contract preservation, and ambiguity disclosure.',
-    DOCUMENT:    'Source fidelity, provenance, and precise explanatory context.',
-};
-
-const ODIN_TONE = 'Speak with structural conviction. Compress. Name the target. Trade hedges for decisions.';
-const ALFRED_TONE = 'Speak with measured precision. Cite evidence. Acknowledge what is bounded. State unknowns plainly.';
-
-const DEFAULT_DIRECTION: Record<PersonaName, string> = {
-    ODIN: 'Structural invariants, decisive system boundaries, and architectural coherence.',
-    ALFRED: 'Bounded scope, evidence provenance, and reversible system context.',
-};
+const ODIN_TONE = 'Use a concise, forceful voice without changing scope, authority, routing, risk, or execution gates.';
+const ALFRED_TONE = 'Use a measured, courteous voice without changing scope, authority, routing, risk, or execution gates.';
+const ODIN_PROCESS = 'Build the bounded implementation, run it, repair recoverable failures, and continue to validation; do not turn local mechanical failures into operator gates.';
+const ALFRED_PROCESS = 'Establish working behavior, then examine trust boundaries, abuse cases, failure containment, hardening, and validation before release.';
 
 /**
- * Coerce a free-form persona string into one of the two canonical names.
- * @param name Raw persona label from config or caller (e.g. 'A.L.F.R.E.D.').
- * @returns The canonical persona name; defaults to ALFRED when unrecognized.
- */
-function normalizePersonaName(name: string | undefined): PersonaName {
-    const upper = String(name ?? '').toUpperCase();
-    if (upper.includes('ODIN') || upper.includes('O.D.I.N')) {
-        return 'ODIN';
-    }
-    return 'ALFRED';
-}
-
-/**
- * Look up the direction line for an intent category under a given persona.
- * @param persona Canonical persona name.
- * @param intentCategory Intent category from the Augury (case-insensitive).
- * @returns The direction line, or the persona's default direction when unknown.
- */
-function lookupDirection(persona: PersonaName, intentCategory: string): string {
-    const table = persona === 'ODIN' ? ODIN_DIRECTION : ALFRED_DIRECTION;
-    const normalized = intentCategory.trim().toUpperCase();
-    return table[normalized] ?? DEFAULT_DIRECTION[persona];
-}
-
-/**
- * Build the persona advice payload that cstar_augury attaches to its response
- * and that the steering block injects into delegated host calls.
+ * Build non-authoritative tone and development-process guidance for Augury.
  * @param intentCategory Resolved intent category (coerced to ORCHESTRATE when blank).
- * @param personaName Active persona name; defaults to the registry's loaded persona.
- * @returns Style/domain emphasis plus tone for the (persona, intent) pair.
+ * @param personaName Bounded canonical persona scalar.
+ * @param source Provenance of the scalar used for this guidance.
+ * @returns Process guidance that never changes operational policy or authority.
  */
 export function buildPersonaAdvice(
     intentCategory: string | undefined,
-    personaName: string | undefined = activePersona?.name,
-): PersonaAdvice {
-    const persona = normalizePersonaName(personaName);
+    personaName?: string,
+    source: PersonaAdviceSource = 'bounded_active_persona_projection',
+): PersonaAdvice | null {
+    const persona = parseCanonicalPersona(personaName);
+    if (!persona) {
+        return null;
+    }
     const category = String(intentCategory ?? '').trim().toUpperCase() || 'ORCHESTRATE';
-    const domainEmphasis = lookupDirection(persona, category);
     return {
         persona,
+        authority: 'non_authoritative_process_guidance',
+        source,
         intent_category: category,
-        domain_emphasis: domainEmphasis,
-        direction: domainEmphasis,
-        tone_directive: persona === 'ODIN' ? ODIN_TONE : ALFRED_TONE,
+        development_posture: persona === 'O.D.I.N.' ? 'build_run_repair' : 'secure_harden',
+        process_directive: persona === 'O.D.I.N.' ? ODIN_PROCESS : ALFRED_PROCESS,
+        tone_directive: persona === 'O.D.I.N.' ? ODIN_TONE : ALFRED_TONE,
     };
 }
 
+/** Return no persona advice when no bounded projected persona is available. */
+export function buildProjectedPersonaAdvice(
+    intentCategory: string | undefined,
+    personaName: string | undefined,
+    source: PersonaAdviceSource = 'bounded_active_persona_projection',
+): PersonaAdvice | null {
+    return buildPersonaAdvice(intentCategory, personaName, source);
+}
+
 /**
- * Format the two persona lines used inside the steering block.
+ * Format optional non-authoritative persona guidance inside a steering block.
  * @param advice Built advice payload.
- * @returns Two prefix-tagged style lines: 'Persona Emphasis: ...' and 'Persona Tone: ...'.
+ * @returns One prefix-tagged persona tone line.
  */
 export function formatPersonaAdviceLines(advice: PersonaAdvice): string[] {
     return [
-        `Persona Emphasis: [${advice.persona}] ${advice.domain_emphasis}`,
         `Persona Tone: ${advice.tone_directive}`,
+        `Development Posture (${advice.development_posture}): ${advice.process_directive}`,
     ];
 }

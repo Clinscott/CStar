@@ -1,62 +1,37 @@
 #!/usr/bin/env python3
-"""
-[DEBUG] System Integrity Verifier
-Lore: "Ensuring the ravens are bound to the high seat."
-Purpose: Verifies that core Sentinel modules can be imported and initialized.
-"""
+"""Retired direct Python Ravens integrity verifier."""
 
-import os
-import sys
-from unittest.mock import MagicMock
-from pathlib import Path
+from __future__ import annotations
 
-# Add core project root to path for shared imports
-PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.append(str(PROJECT_ROOT))
+from typing import NoReturn
 
-def verify_system_integrity() -> bool:
-    return IntegrityVerifier.verify()
+
+LEGACY_PYTHON_RAVENS_ENGINE_ERROR = (
+    "legacy_python_ravens_engine_retired_use_cstar_kernel"
+)
+
+
+def _retired() -> NoReturn:
+    raise RuntimeError(LEGACY_PYTHON_RAVENS_ENGINE_ERROR)
+
+
+def verify_system_integrity(*_args: object, **_kwargs: object) -> NoReturn:
+    """Fail before imports, environment mutation, construction, or output."""
+    _retired()
+
 
 class IntegrityVerifier:
-    """[O.D.I.N.] Orchestration logic for system integrity verification."""
+    def __init__(self, *_args: object, **_kwargs: object) -> None:
+        _retired()
 
     @staticmethod
-    def verify() -> bool:
-        """
-        Verifies that Muninn and the main loop can be imported and initialized.
-        Mocks external dependencies (like Google GenAI) for safety.
+    def verify(*_args: object, **_kwargs: object) -> NoReturn:
+        _retired()
 
-        Returns:
-            True if the system is verified, False otherwise.
-        """
-        # 1. Mock external dependencies
-        mock_google = MagicMock()
-        sys.modules["google"] = mock_google
-        sys.modules["google.generativeai"] = mock_google.generativeai
 
-        print("--- VERIFYING SYSTEM INTEGRITY ---")
-        try:
-            from src.core.engine.ravens.muninn import Muninn
-            print("SUCCESS: Muninn imported.")
+def main(*_args: object, **_kwargs: object) -> NoReturn:
+    _retired()
 
-            # Mock environment for initialization
-            os.environ["GOOGLE_API_KEY"] = "TEST_KEY"
-
-            # Initialize Muninn with current project root
-            _ = Muninn(str(PROJECT_ROOT))
-            print("SUCCESS: Muninn initialized.")
-
-        except ImportError as e:
-            print(f"FAILURE: ImportError in Muninn: {e}")
-            return False
-        except Exception as e:
-            print(f"FAILURE: Exception during Muninn verification: {e}")
-            return False
-
-        print("\nSYSTEM VERIFIED.")
-        return True
 
 if __name__ == "__main__":
-    if not IntegrityVerifier.verify():
-        sys.exit(1)
+    main()

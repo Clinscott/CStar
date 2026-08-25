@@ -4,7 +4,7 @@ import pytest
 
 from src.core.engine.alfred_observer import AlfredOverwatch
 from src.core.engine.dialogue import DialogueEngine
-from src.core.personas import OdinStrategy
+from src.core.personas import AlfredStrategy, OdinStrategy
 
 # --- Mocks for Testing ---
 
@@ -34,15 +34,19 @@ def dialogue_engine():
 
 # --- Test Scenarios ---
 
-def test_odin_style_does_not_adjudicate_compliance(dialogue_engine):
-    """ODIN can select dialogue tone but cannot create a policy verdict."""
+def test_odin_reacts_to_defiance(dialogue_engine):
+    """Persona strategy is style-only; display context stays caller-owned."""
     odin = OdinStrategy(".")
-    context = odin.get_style_context()
 
-    assert "compliance_breach" not in context
+    authority = odin.enforce_policy(compliance_breach=True)
+    assert authority == {"authority": "style_only", "persona": "ODIN"}
 
-    phrase = dialogue_engine.get("ODIN", "TASK_FAILED", context={})
-    assert phrase in [p["phrase"] for p in dialogue_engine.phrase_data["ODIN"]["TASK_FAILED"]]
+    phrase = dialogue_engine.get(
+        "ODIN",
+        "TASK_FAILED",
+        context={"compliance_breach": True},
+    )
+    assert any(word in phrase.lower() for word in ["shatters", "hel"])
 
 def test_alfred_provides_syntax_guidance(dialogue_engine):
     """Scenario: Alfred detects a SyntaxError and provides targeted dialogue."""
@@ -52,6 +56,8 @@ def test_alfred_provides_syntax_guidance(dialogue_engine):
     with patch.object(observer, 'analyze_failure', return_value=("SyntaxError", "Missing colon on line 10")):
         error_type, _analysis = observer.analyze_failure("dummy_target", "dummy_traceback")
 
+        AlfredStrategy(".")
+        # Proposed change: alfred.enforce_policy(error_type=error_type)
         context = {"error_type": error_type}
 
         assert context.get("error_type") == "SyntaxError"

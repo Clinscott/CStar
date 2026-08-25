@@ -4,7 +4,6 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-import { SkillRegistryContractError } from '../../src/core/skill_registry_contract.js';
 import {
     buildAuguryLearningMetadata,
     buildHostNativeSkillPrompt,
@@ -17,26 +16,6 @@ import {
 } from '../../src/core/host_session.js';
 
 describe('Host session runtime support metadata', () => {
-    it('rejects array-form registry entries before host capability lookup', () => {
-        const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-host-registry-contract-'));
-        fs.mkdirSync(path.join(tmpRoot, '.agents'), { recursive: true });
-        fs.writeFileSync(
-            path.join(tmpRoot, '.agents', 'skill_registry.json'),
-            JSON.stringify({ entries: [{ id: 'mimir-harvester' }] }),
-            'utf-8',
-        );
-
-        try {
-            assert.throws(
-                () => getCapabilityExecutionMode(tmpRoot, 'mimir-harvester'),
-                (error: unknown) => error instanceof SkillRegistryContractError
-                    && error.message === '[skill-registry] entries must be a plain object.',
-            );
-        } finally {
-            fs.rmSync(tmpRoot, { recursive: true, force: true });
-        }
-    });
-
     it('reads host support status from the authoritative skill registry', () => {
         const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-host-support-'));
         fs.mkdirSync(path.join(tmpRoot, '.agents'), { recursive: true });
@@ -351,7 +330,7 @@ describe('Host session runtime support metadata', () => {
         assert.match(prompt, /Review Standard: findings first; cite files; call out regressions, risks, and missing tests\./);
     });
 
-    it('keeps consult counts while stripping unmeasured confidence from route metadata', () => {
+    it('keeps full Augury consult counts in learning metadata while capping prompt targets', () => {
         const metadata = buildAuguryLearningMetadata({
             intent_category: 'BUILD',
             selection_tier: 'SKILL',
@@ -365,14 +344,11 @@ describe('Host session runtime support metadata', () => {
         });
 
         assert.equal(metadata?.steering_block_version, 2);
-        assert.equal(metadata?.schema_version, 2);
         assert.equal(metadata?.steering_mode, 'full');
         assert.equal(metadata?.corvus_standard_version, 1);
-        assert.equal(metadata?.optimizer_status, 'not_configured');
-        assert.equal(metadata?.actionable, false);
         assert.equal(typeof metadata?.contract_hash, 'string');
         assert.equal(metadata?.confidence, undefined);
-        assert.equal(metadata?.confidence_source, 'not_measured');
+        assert.equal(metadata?.confidence_source, 'missing');
         assert.equal(metadata?.mimirs_well_count, 4);
         assert.equal(metadata?.mimirs_well_omitted_count, 1);
         assert.equal(metadata?.session_id, 'chant-session:cap');

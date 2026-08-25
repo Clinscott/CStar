@@ -1,15 +1,15 @@
 # Hall Schema Change — True Per-Spoke Tray
 
-**Status:** SUPERSEDED HISTORICAL PROPOSAL (no code authority)
-**Author:** Historical One Mind / kernel-mcp R3 follow-up
+**Status:** HISTORICAL SUPERSEDED PLAN (no current execution authority)
+**Author:** One Mind / kernel-mcp R3 follow-up
 **Anchor Bead:** unallocated — register before execution.
 **Related:** `bead:usb-sentry:001` (first spoke to exercise the existing spoke-anchored MCP surface).
 
-> Preserved for schema-design provenance only. Its One Mind ownership,
-> Gungnir/persona repository fields, production-migration language, and implied
-> execution plan are not current authority. Any renewed per-spoke tray work must
-> start from current CStar/CoS/PMT invariants, a current bead, and independently
-> verified kernel contracts.
+> This proposal predates the current CStar lifecycle and PMT topology. Do not
+> execute its direct migration, Hall-write, One Mind, persona, or terminal CLI
+> instructions. Any renewed design must start as a CStar bead, use kernel-backed
+> lifecycle transitions, preserve PMTs as information repositories only, and
+> obtain fresh independent validation and operator gates.
 
 ---
 

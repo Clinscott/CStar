@@ -39,6 +39,8 @@ ANNEXATION_PLAN.qmd
 
 # Node.js
 node_modules/
+/node_modules
+/.cstar/verification/receipts/
 dist/
 .stats/signet.url
 .npmrc
@@ -53,6 +55,9 @@ gha-creds-*.json
 .lore/
 
 # Runtime artifacts and local state
+/.agents/cachebro.json
+/.agents/daemon.key
+/.agents/daemon.pid
 .agents/.agents/
 .agents/chroma_db/
 .agents/exchange/
@@ -87,11 +92,3 @@ tmp_*/
 err
 out
 debug_*.mjs
-
-# Host-local ledgers, validation receipts, and one-run diagnostics
-.agents/brave_quota.json
-.agents/debug_ledger.jsonl
-.cstar/validation/set-intent-binding-live-proof-20260801-checks.json
-.cstar/validation/set-intent-binding-live-proof-20260801-independent.json
-flash-canary-output.txt
-node-event-reporter.synthetic.test.v1.mjs

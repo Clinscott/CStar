@@ -5,20 +5,24 @@ import type {
     WeaveInvocation,
     WeaveResult,
 } from '../contracts.js';
-import { retiredWorkflowResult } from '../retired_workflow.js';
+import { buildRetiredRuntimeResult } from '../retired_adapter.js';
 
+/** Retired subprocess/critique evolution adapter. */
 export class EvolveWeave implements RuntimeAdapter<EvolveWeavePayload> {
     public readonly id = 'weave:evolve';
-    public constructor(...args: unknown[]) { void args; }
+
+    public constructor(..._retiredDependencies: unknown[]) {
+        void _retiredDependencies;
+    }
 
     public async execute(
-        invocation: WeaveInvocation<EvolveWeavePayload>,
-        context: RuntimeContext,
+        _invocation: WeaveInvocation<EvolveWeavePayload>,
+        _context: RuntimeContext,
     ): Promise<WeaveResult> {
-        void invocation; void context;
-        return retiredWorkflowResult(
-            this.id,
-            'Submit the bounded change through cstar_forge_request and validate it independently.',
-        );
+        return buildRetiredRuntimeResult({
+            weaveId: this.id,
+            boundary: 'retired-evolve-weave',
+            recommendedTool: 'cstar_evolve',
+        });
     }
 }

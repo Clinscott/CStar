@@ -31,6 +31,13 @@ describe('CStar MCP file-size contract', () => {
     it('keeps MCP production, adapter, and focused test files under 500 lines', () => {
         const files = [
             path.join(ROOT, 'src/tools/cstar-kernel-mcp.ts'),
+            path.join(ROOT, 'src/types/hall.ts'),
+            path.join(ROOT, 'src/types/validation_evidence.ts'),
+            path.join(ROOT, 'src/tools/pennyone/intel/forge_validation_controller.ts'),
+            path.join(ROOT, 'src/tools/pennyone/intel/forge_hall_store.ts'),
+            path.join(ROOT, 'src/tools/pennyone/intel/goal_resume_controller.ts'),
+            path.join(ROOT, 'src/tools/pennyone/intel/agent_coordination_controller.ts'),
+            path.join(ROOT, 'src/tools/cstar-kernel-mcp/tools/validation_run_store.ts'),
             path.join(ROOT, '.agents/skills/corvus-forge/scripts/forge_worker_adapter.py'),
             path.join(ROOT, '.agents/skills/corvus-forge/scripts/forge_worker_safety.py'),
             path.join(ROOT, '.agents/skills/corvus-forge/scripts/hermes_minimax_delegate.mjs'),

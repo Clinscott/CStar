@@ -1,6 +1,8 @@
 import { createHash } from 'node:crypto';
 
 import {
+    codexUserRecordHasRootLineage,
+    createCodexPlatformContextProjection,
     scanFixedCodexSession,
     type FixedCodexSessionRecord,
 } from './codex_session_authority_projection.js';
@@ -31,6 +33,7 @@ export type CodexSessionRecordKind =
 export interface CodexSessionRecordClassification {
     kind: CodexSessionRecordKind;
     turnId: unknown;
+    rootLineage: boolean;
 }
 
 function sha256(value: string): string {
@@ -58,11 +61,16 @@ export function classifyCodexSessionRecord(
             ? 'canonical-root-user'
             : explicitlyUserLike ? 'noncanonical-user-like' : 'non-user',
         turnId: metadata?.turn_id,
+        rootLineage: canonicalRootUser && codexUserRecordHasRootLineage(row),
     };
 }
 
 function optionalLineageFieldIsEmpty(value: unknown): boolean {
     return value === undefined || value === null || value === '';
+}
+
+function threadSourceIsCanonicalRoot(value: unknown): boolean {
+    return value === undefined || value === 'user';
 }
 
 export interface CanonicalCodexUserTurnAccumulator {
@@ -86,12 +94,12 @@ export function createCanonicalCodexUserTurnAccumulator(
     const seenRecordHashes = new Set<string>();
     const records: TurnRecord[] = [];
 
-    const consume = ({ row, rawLine }: FixedCodexSessionRecord): void => {
+    const consumeProjected = ({ row, rawLine }: FixedCodexSessionRecord): void => {
         const payload = isRecord(row.payload) ? row.payload : undefined;
 
         if (row.type === 'session_meta') {
             const canonical = payload?.id === expectedThreadId
-                && payload.thread_source === 'user'
+                && threadSourceIsCanonicalRoot(payload.thread_source)
                 && optionalLineageFieldIsEmpty(payload.parent_thread_id)
                 && optionalLineageFieldIsEmpty(payload.agent_path)
                 && optionalLineageFieldIsEmpty(payload.forked_from_id);
@@ -126,12 +134,7 @@ export function createCanonicalCodexUserTurnAccumulator(
             }
             throw new Error('codex_request_identity_turn_precedes_canonical_session_meta');
         }
-        if (!payload || (
-            (payload.thread_source !== undefined && payload.thread_source !== 'user')
-            || !optionalLineageFieldIsEmpty(payload.parent_thread_id)
-            || !optionalLineageFieldIsEmpty(payload.agent_path)
-            || !optionalLineageFieldIsEmpty(payload.forked_from_id)
-        )) {
+        if (!payload || !classification.rootLineage) {
             throw new Error('codex_request_identity_turn_record_lineage_invalid');
         }
         if (!Array.isArray(payload.content) || payload.content.length === 0) {
@@ -171,7 +174,9 @@ export function createCanonicalCodexUserTurnAccumulator(
         matchingSegmentStarted = true;
         records.push({ timestamp: row.timestamp, timestampMs, recordSha256 });
     };
+    const projection = createCodexPlatformContextProjection(consumeProjected);
     const finish = (): CanonicalCodexUserTurn => {
+        projection.finish();
         if (canonicalSessionMetaCount === 0 || noncanonicalSessionMetaFound) {
             throw new Error('codex_request_identity_session_is_not_canonical_root_user');
         }
@@ -199,7 +204,7 @@ export function createCanonicalCodexUserTurnAccumulator(
             recordSha256s: records.map((record) => record.recordSha256),
         };
     };
-    return { consume, finish };
+    return { consume: projection.consume, finish };
 }
 
 /** Scan one fixed descriptor, then bind a complete ordered root-user turn. */

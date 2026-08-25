@@ -1,18 +1,31 @@
-import dotenv from 'dotenv';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { neutralizeKernelMcpProcessEnv } from '../../bin/cstar-kernel-mcp-env.js';
 import { registerCoreTools } from './cstar-kernel-mcp/register_core_tools.js';
-import { PROJECT_ROOT, logBootstrapError } from './cstar-kernel-mcp/contracts/runtime.js';
+import {
+    CODE_ROOT,
+    CONTROL_ROOT,
+    formatBootstrapErrorRecord,
+    logBootstrapError,
+} from './cstar-kernel-mcp/contracts/runtime.js';
+import { registry } from './pennyone/pathRegistry.js';
 import { instrumentTool } from './cstar-kernel-mcp/telemetry/usage.js';
 import { attachSourceWatcher } from './cstar-kernel-mcp/watch.js';
 
-const KERNEL_MCP_LAUNCH_INTENT = process.env.CSTAR_KERNEL_MCP === '1' || isDirectKernelMcpLaunch();
+const DIRECT_KERNEL_MCP_LAUNCH = isDirectKernelMcpLaunch();
+const KERNEL_MCP_LAUNCH_INTENT = process.env.CSTAR_KERNEL_MCP === '1';
 if (KERNEL_MCP_LAUNCH_INTENT) {
-    dotenv.config({ path: path.join(PROJECT_ROOT, '.env') });
-    neutralizeKernelMcpProcessEnv(process.env);
+    if (registry.getRoot() !== CONTROL_ROOT) {
+        throw new Error('kernel_control_root_registry_mismatch');
+    }
+    neutralizeKernelMcpProcessEnv(process.env, {
+        CSTAR_CODE_ROOT: CODE_ROOT,
+        CSTAR_CONTROL_ROOT: CONTROL_ROOT,
+        CSTAR_PROJECT_ROOT: CONTROL_ROOT,
+        CSTAR_WORKSPACE_ROOT: CONTROL_ROOT,
+    });
 }
 
 /**
@@ -52,6 +65,7 @@ export {
     decideAugurySessionRouting,
 } from './cstar-kernel-mcp/tools/augury_routing.js';
 export { handleBead, type BeadToolArgs } from './cstar-kernel-mcp/tools/bead.js';
+export { handleGoalResume, type GoalResumeArgs } from './cstar-kernel-mcp/tools/goal_resume.js';
 export {
     resolveSpokeAnchor,
     HALL_BEAD_STATUSES,
@@ -63,7 +77,8 @@ export { handleEngramRecord, handleWarGameScore } from './cstar-kernel-mcp/tools
 export { handleManifest, handleSkillInfo, handleSpokeJournal } from './cstar-kernel-mcp/tools/capability.js';
 export { handleMongoMailbox, type MongoMailboxArgs } from './cstar-kernel-mcp/tools/mongo_mailbox.js';
 export { handlePennyOneContext, type PennyOneContextArgs } from './cstar-kernel-mcp/tools/pennyone_context.js';
-export { handleStatus } from './cstar-kernel-mcp/tools/status.js';
+export { handleStatus, type StatusArgs } from './cstar-kernel-mcp/tools/status.js';
+export { handlePersonaSet, type PersonaSetArgs } from './cstar-kernel-mcp/tools/persona_set.js';
 export { handleEvolve } from './cstar-kernel-mcp/tools/evolve.js';
 export { handleSpoke } from './cstar-kernel-mcp/tools/spoke.js';
 export { handleIntentRoute } from './cstar-kernel-mcp/tools/intent_route.js';
@@ -75,6 +90,7 @@ export {
     type DispatchRequestArgs,
 } from './cstar-kernel-mcp/tools/dispatch_request.js';
 export { handleForgeRequest, type ForgeRequestArgs } from './cstar-kernel-mcp/tools/forge_request.js';
+export { handleForgeAuthorize, type ForgeAuthorizeArgs } from './cstar-kernel-mcp/tools/forge_authorize.js';
 export { handleForgeExecute, type ForgeExecutionArgs } from './cstar-kernel-mcp/tools/forge_execute.js';
 export {
     deriveMcpUsefulnessEvent,
@@ -82,6 +98,7 @@ export {
     summarizeRecentMcpUsage,
     summarizeRecentMcpUsefulness,
     instrumentTool,
+    isPreAuthorizationRejection,
     type McpUsageEvent,
     type McpUsefulnessEvent,
     type McpUsefulnessSummary,
@@ -89,7 +106,9 @@ export {
 export {
     summarizeRecentTokenPathIntegration,
     appendTokenPathObservation,
-    isMeasuredTokenPathObservation,
+    appendTokenPathAdvice,
+    buildObservationFromAdvice,
+    findRecentTokenPathAdvice,
     runTokenPathAdvisor,
     type TokenPathObservationPayload,
 } from './cstar-kernel-mcp/telemetry/token_path.js';
@@ -110,7 +129,7 @@ async function main(): Promise<void> {
         clearInterval(keepAlive);
         void detachWatcher().finally(() => process.exit(0));
     };
-    detachWatcher = await attachSourceWatcher(PROJECT_ROOT, (reason) => gracefulExit(reason));
+    detachWatcher = await attachSourceWatcher(CODE_ROOT, (reason) => gracefulExit(reason));
     process.stdin.once('end', () => gracefulExit('stdin end'));
     process.stdin.once('close', () => gracefulExit('stdin close'));
     process.once('SIGTERM', () => gracefulExit('SIGTERM'));
@@ -124,7 +143,10 @@ function isDirectKernelMcpLaunch(): boolean {
 if (KERNEL_MCP_LAUNCH_INTENT) {
     main().catch((error) => {
         logBootstrapError(error);
-        console.error('Fatal error in CStar Kernel MCP:', error);
+        console.error(`Fatal error in CStar Kernel MCP: ${formatBootstrapErrorRecord(error).trim()}`);
         process.exit(1);
     });
+} else if (DIRECT_KERNEL_MCP_LAUNCH) {
+    console.error('cstar_kernel_supported_launcher_required');
+    process.exit(1);
 }

@@ -1,9 +1,10 @@
-import { registry } from '../../pennyone/pathRegistry.js';
-import { analyzeCanonicalIntent } from '../../../core/intent_analysis.js';
+import { CODE_ROOT } from '../contracts/runtime.js';
 import { errorResponse, mcpGuardrail, textResponse, type McpTextResponse } from '../contracts/responses.js';
 import {
+    tokenize,
     loadRegistryManifest,
     getRegistryIntentCategories,
+    resolveIntentCategoryFromGrammar,
 } from '../../../node/core/runtime/host_workflows/chant_parser.js';
 
 // cstar_intent_route — expose the intent grammar dispatcher.
@@ -29,25 +30,31 @@ export async function handleIntentRoute({
                 true,
             );
         }
-        const root = registry.getRoot();
-        const manifest = loadRegistryManifest(root);
+        const manifest = loadRegistryManifest(CODE_ROOT);
         const grammarSource: 'registry' | 'fallback' = manifest?.intent_grammar ? 'registry' : 'fallback';
         const grammar = getRegistryIntentCategories(manifest);
-        const analysis = analyzeCanonicalIntent({ prompt, grammar });
-        const tokens = analysis.tokens;
+        const tokens = tokenize(prompt);
 
         if (action === 'explain') {
             // Enumerate every category whose triggers intersect the tokens.
-            const matches = analysis.matches.map((match) => ({
-                intent_category: match.category,
-                default_path: match.default_path,
-                tier: match.tier,
-                matched_triggers: match.matched_triggers,
-                effective_score: match.effective_score,
-                suppressed: match.suppressed,
-                suppression_reasons: match.suppression_reasons,
-                primary: analysis.primary?.category === match.category,
-            }));
+            const matches: Array<{
+                intent_category: string;
+                default_path: string;
+                tier: string;
+                matched_triggers: string[];
+            }> = [];
+            const tokenSet = new Set(tokens);
+            for (const [category, config] of Object.entries(grammar)) {
+                const hits = config.triggers.filter((trigger) => tokenSet.has(trigger));
+                if (hits.length > 0) {
+                    matches.push({
+                        intent_category: category,
+                        default_path: config.default_path,
+                        tier: config.tier,
+                        matched_triggers: hits,
+                    });
+                }
+            }
             return textResponse({
                 status: matches.length > 0 ? 'matched' : 'unmatched',
                 grammar_source: grammarSource,
@@ -69,7 +76,8 @@ export async function handleIntentRoute({
             });
         }
 
-        const match = analysis.primary;
+        // Default 'match' action — single-winner behavior (first registry hit).
+        const match = resolveIntentCategoryFromGrammar(tokens, grammar);
         if (!match) {
             return textResponse({
                 status: 'unmatched',

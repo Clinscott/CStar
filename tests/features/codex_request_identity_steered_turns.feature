@@ -19,6 +19,33 @@ Feature: Codex steered-turn request identity
     And it reports the exact matching record count
     And it never sorts, normalizes, or deduplicates the records
 
+  Scenario: A proven Codex host context companion carries no operator authority
+    Given one pure platform context user row is immediately followed by world state and same-turn context
+    And one canonical root-user input for that turn completes the bounded host envelope
+    When CStar recovers the selected latest turn identity
+    Then only the completing root-user input joins the authority cohort
+    And the fixed scan row count and full-file digest still include the host companion
+
+  Scenario: An ambiguous host context candidate fails closed
+    Given a platform-shaped user row has missing, reordered, interleaved, oversized, stale, or wrong-turn provenance
+    When CStar recovers the selected latest turn identity
+    Then that row remains canonical user authority
+    And a singleton exact Forge challenge cannot hide it
+    And a platform-shaped completing operator input remains authoritative regardless of its text
+
+  Scenario: Reserved goal context never supplies operator authority
+    Given Codex serializes a complete reserved goal-context packet in a root-user wrapper
+    When CStar recovers the selected turn identity
+    Then the complete reserved packet is excluded even when its body contains build text
+    And malformed extended oversized other-source or non-root lookalikes remain fail-closed evidence
+
+  Scenario: An exact adjacent user-event mirror is non-authoritative
+    Given one canonical user record is immediately followed by a byte-equivalent user event mirror
+    And the mirror has only empty attachment arrays and finite nondecreasing time within one second
+    When CStar recovers current request identity
+    Then the event mirror is excluded from authority and does not form a barrier
+    But changed text timing attachments fields or physical position remain noncanonical user-like evidence
+
   Scenario: Consent is one exact reference-hashed record in its cohort
     Given benign steering messages may precede or follow the consent in one authorization turn
     And exactly one user record matches the authorization reference message hash

@@ -1,78 +1,35 @@
-import * as fs from 'fs';
-import * as path from 'path';
-import { registry } from  './pathRegistry.js';
+import { parseCanonicalPersona } from '../../core/persona_contract.js';
 
 /**
- * Operation PennyOne: Configuration-Driven Persona Registry
- * Purpose: Centralize persona lore, prefixes, and identity to eliminate hardcoded strings.
+ * Explicit, style-only persona compatibility data.
+ *
+ * This module has no active/default persona. A caller must pass the bounded
+ * scalar returned by cstar_status; missing or unknown input resolves to null.
  */
-export interface ActivePersona {
-    name: string;
-    prefix: string;
-    loreFile: string;
+export interface PersonaStyle {
+    name: 'O.D.I.N.' | 'A.L.F.R.E.D.';
+    prefix: '[O.D.I.N.]' | '[A.L.F.R.E.D.]';
+    loreFile: 'odin.qmd' | 'alfred.qmd';
+    authority: 'style_only';
 }
 
-function hydratePersonaConfig(name: string): ActivePersona {
-    const upper = name.toUpperCase();
-    if (upper === 'O.D.I.N.' || upper === 'ODIN') {
+export function resolvePersonaStyle(name: string | undefined): PersonaStyle | null {
+    const canonical = parseCanonicalPersona(name);
+    if (canonical === 'O.D.I.N.') {
         return {
             name: 'O.D.I.N.',
             prefix: '[O.D.I.N.]',
             loreFile: 'odin.qmd',
+            authority: 'style_only',
         };
     }
-
-    return {
-        name: 'A.L.F.R.E.D.',
-        prefix: '[A.L.F.R.E.D.]',
-        loreFile: 'alfred.qmd',
-    };
+    if (canonical === 'A.L.F.R.E.D.') {
+        return {
+            name: 'A.L.F.R.E.D.',
+            prefix: '[A.L.F.R.E.D.]',
+            loreFile: 'alfred.qmd',
+            authority: 'style_only',
+        };
+    }
+    return null;
 }
-
-export class PersonaRegistry {
-    private static instance: PersonaRegistry;
-    private persona: ActivePersona;
-
-    private constructor() {
-        this.persona = this.loadConfig();
-    }
-
-    public static getInstance(): PersonaRegistry {
-        if (!PersonaRegistry.instance) {
-            PersonaRegistry.instance = new PersonaRegistry();
-        }
-        return PersonaRegistry.instance;
-    }
-
-    /**
-     * Loads the active persona from the system configuration.
-     * @returns The active persona configuration.
-     */
-    private loadConfig(): ActivePersona {
-        try {
-            const root = registry.getRoot();
-            const configPath = path.join(root, '.agents', 'config.json');
-            if (fs.existsSync(configPath)) {
-                const configData = fs.readFileSync(configPath, 'utf-8');
-                const data = JSON.parse(configData);
-                // Support legacy and active structures
-                const personaStr = data.system?.persona || data.persona || data.Persona || 'ALFRED';
-                return this.hydratePersona(personaStr);
-            }
-        } catch (error: unknown) {
-            const message = error instanceof Error ? error.message : String(error);
-            console.warn(`[WARNING] Failed to load persona config: ${message}`);
-        }
-        return this.hydratePersona('ALFRED');
-    }
-
-    private hydratePersona(name: string): ActivePersona {
-        return hydratePersonaConfig(name);
-    }
-
-    public getPersona(): ActivePersona {
-        return this.persona;
-    }
-}
-
-export const activePersona = PersonaRegistry.getInstance().getPersona();

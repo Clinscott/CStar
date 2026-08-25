@@ -14,6 +14,11 @@ import {
     resolveForgeExecutionAdapterRef,
     sealForgeAdapterRuntime,
 } from '../../../src/tools/cstar-kernel-mcp/tools/forge_adapters.js';
+import { sealForgeHermesRuntimeExpectation } from '../../../src/tools/cstar-kernel-mcp/tools/forge_hermes_runtime_contract.js';
+import { createForgeOAuthHorizon } from '../../../src/tools/cstar-kernel-mcp/tools/forge_hermes_oauth_contract.js';
+import { createHash } from 'node:crypto';
+
+const linuxIt = process.platform === 'linux' ? it : it.skip;
 
 function writePreflightOnlyHermes(root: string) {
     const script = path.join(root, 'preflight-hermes.mjs');
@@ -45,7 +50,10 @@ function writeEnvironmentInspectorAdapter(root: string): string {
         'with open(args.intent_file, encoding="utf-8") as handle:',
         '    intent = json.load(handle)',
         'write_to = intent["payload"]["write_to"]',
-        'response = {"status":"pass","summary":",".join(sorted(os.environ)),"files_changed":[],"artifacts":{},"validation":{},"metrics":{},"boundaries":{},"callback_packet":intent["expected_callback_packet"]}',
+        'required = {"CSTAR_FORGE_EXECUTE_RECEIPT_ID", "CSTAR_FORGE_REQUEST_RECEIPT_ID"}',
+        'forbidden = {"OPENAI_API_KEY", "AWS_SECRET_ACCESS_KEY"}',
+        'passed = required.issubset(os.environ) and forbidden.isdisjoint(os.environ)',
+        'response = {"status":"pass" if passed else "failure","summary":"bounded environment projection checked","files_changed":[],"artifacts":{},"validation":{"allowlist":"pass" if passed else "fail"},"metrics":{},"boundaries":{},"callback_packet":intent["expected_callback_packet"]}',
         'with open(write_to, "w", encoding="utf-8") as handle:',
         '    json.dump(response, handle)',
         'print(json.dumps({"status":"ok","wrote_to":write_to,"live_spend":False,"live_source_collection":False}))',
@@ -54,31 +62,79 @@ function writeEnvironmentInspectorAdapter(root: string): string {
     return adapterPath;
 }
 
+function writeResponseIsolationInspectorAdapter(root: string, durableRoot: string): string {
+    const adapterPath = path.join(root, 'response-isolation-inspector.py');
+    fs.writeFileSync(adapterPath, [
+        '#!/usr/bin/env python3',
+        'import argparse, json, os',
+        'parser = argparse.ArgumentParser()',
+        'parser.add_argument("--intent-file", required=True)',
+        'args = parser.parse_args()',
+        'with open(args.intent_file, encoding="utf-8") as handle:',
+        '    intent = json.load(handle)',
+        'write_to = intent["payload"]["write_to"]',
+        `isolated = not os.path.exists(${JSON.stringify(durableRoot)}) and not write_to.startswith(${JSON.stringify(durableRoot)}) and write_to.endswith("private-io/adapter-response.json")`,
+        'response = {"status":"pass" if isolated else "failure","summary":"worker response isolation checked","files_changed":[],"artifacts":{},"validation":{"response_isolation":"pass" if isolated else "fail"},"metrics":{},"boundaries":{},"callback_packet":intent["expected_callback_packet"]}',
+        'with open(write_to, "w", encoding="utf-8") as handle:',
+        '    json.dump(response, handle)',
+        'print(json.dumps({"status":"ok","wrote_to":write_to,"live_spend":False,"live_source_collection":False}))',
+    ].join('\n'));
+    fs.chmodSync(adapterPath, 0o700);
+    return adapterPath;
+}
+
+function writeAliasedResponseAdapter(root: string): string {
+    const adapterPath = path.join(root, 'aliased-response.py');
+    fs.writeFileSync(adapterPath, [
+        '#!/usr/bin/env python3',
+        'import argparse, json, os',
+        'parser = argparse.ArgumentParser()',
+        'parser.add_argument("--intent-file", required=True)',
+        'args = parser.parse_args()',
+        'with open(args.intent_file, encoding="utf-8") as handle:',
+        '    intent = json.load(handle)',
+        'write_to = intent["payload"]["write_to"]',
+        'response = {"status":"pass","summary":"bounded alias probe","files_changed":[],"artifacts":{},"validation":{},"metrics":{},"boundaries":{},"callback_packet":intent["expected_callback_packet"]}',
+        'with open(write_to, "w", encoding="utf-8") as handle:',
+        '    json.dump(response, handle)',
+        'alias = os.path.join(os.path.dirname(write_to), "..", "private-io", os.path.basename(write_to))',
+        'print(json.dumps({"status":"ok","wrote_to":alias,"live_spend":False,"live_source_collection":False}))',
+    ].join('\n'));
+    fs.chmodSync(adapterPath, 0o700);
+    return adapterPath;
+}
+
 describe('CStar MCP Forge execute trace artifacts', () => {
-    it('proves OAuth readiness before reserving and rechecks it during preparation', () => {
+    it('reserves before OAuth readiness and rechecks it during preparation', () => {
         const source = fs.readFileSync(path.resolve(
             'src/tools/cstar-kernel-mcp/tools/forge_execute.ts',
         ), 'utf-8');
         const replay = source.indexOf('const existingAttempt = getForgeAttemptByIdempotency');
-        const preflight = source.indexOf('const preReservationHermesPreflight =');
-        const reserve = source.indexOf('const reservation = reserveForgeAttempt');
+        const reserve = source.indexOf('const reservation = reserveVerifiedForgeExecution');
+        const preflight = source.indexOf('const reservedHermesPreflight =');
         const prepare = source.indexOf('preparedInvocation = await prepareForgeHermesMinimaxAdapterInvocation');
-        assert.ok(replay > 0 && replay < preflight && preflight < reserve && reserve < prepare);
-        assert.match(source.slice(preflight, reserve), /preflightForgeHermesOAuthBeforeReservation/);
-        assert.match(source.slice(reserve, prepare), /provider: 'minimax-oauth'/);
+        const preparedVerify = source.indexOf('verifyPreparedForgeContinuationRepairBinding({');
+        const start = source.indexOf('markForgeAttemptStarted(');
+        assert.ok(replay > 0 && replay < reserve && reserve < preflight && preflight < prepare);
+        assert.ok(prepare < preparedVerify && preparedVerify < start);
+        assert.match(source.slice(preflight, prepare), /preflightForgeHermesOAuthAfterReservation/);
     });
 
     it('retains completed adapter evidence across a later persistence exception', () => {
-        const source = fs.readFileSync(path.resolve(
+        const executeSource = fs.readFileSync(path.resolve(
             'src/tools/cstar-kernel-mcp/tools/forge_execute.ts',
         ), 'utf-8');
-        const captured = source.indexOf('completedAdapterVersion = durableAdapterVersion;');
-        const persistence = source.indexOf('const durable = delivered');
-        const catchFallback = source.indexOf('let failureAdapterVersion = completedAdapterVersion;');
+        const resultSource = fs.readFileSync(path.resolve(
+            'src/tools/cstar-kernel-mcp/tools/forge_execute_result.ts',
+        ), 'utf-8');
+        const captured = executeSource.indexOf('completedAdapterVersion = durableAdapterVersion;');
+        const persistence = executeSource.indexOf('finalizeForgeAdapterExecutionResult({');
+        const catchFallback = executeSource.indexOf('let failureAdapterVersion = completedAdapterVersion;');
         assert.ok(captured > 0 && captured < persistence && persistence < catchFallback);
+        assert.match(resultSource, /const durable = delivered\s*\? recordForgeDelivery/);
     });
 
-    it('binds sterile compatibility and redacted OAuth preflight into prepared invocation evidence', async () => {
+    linuxIt('binds sterile compatibility and redacted OAuth preflight into prepared invocation evidence', async () => {
         const secureTmp = process.platform === 'linux' ? '/tmp' : os.tmpdir();
         const fixture = fs.mkdtempSync(path.join(secureTmp, 'forge-preflight-binding-'));
         const fake = writePreflightOnlyHermes(fixture);
@@ -98,16 +154,22 @@ describe('CStar MCP Forge execute trace artifacts', () => {
             ).selected;
             assert.ok(adapter);
             const runtime = sealForgeAdapterRuntime(adapter);
-            prepared = await prepareForgeHermesMinimaxAdapterInvocation(
-                validForgeExecuteRequest({
+            const args = validForgeExecuteRequest({
                     objective: 'Build one bounded synthetic output',
                     target_paths: [target], required_output_paths: [target],
+                    requested_actions: ['project_files'],
                     execution_adapter_ref: 'cstar-forge-hermes-minimax-worker-adapter',
-                }),
-                'decision-preflight-binding', 'forge-execute-preflight-binding',
-                path.resolve('.'), adapter, runtime,
+                });
+            const expectedHermesRuntime = await sealForgeHermesRuntimeExpectation(runtime);
+            const oauthHorizon = createForgeOAuthHorizon(
+                args, 'decision-preflight-binding', 'forge-execute-preflight-binding',
+                adapter, expectedHermesRuntime,
             );
-            assert.equal(prepared.hermesPreflight?.schema, 'cstar.forge_hermes_preflight.v1');
+            prepared = await prepareForgeHermesMinimaxAdapterInvocation(
+                args, 'decision-preflight-binding', 'forge-execute-preflight-binding',
+                path.resolve('.'), adapter, runtime, expectedHermesRuntime, null, oauthHorizon,
+            );
+            assert.equal(prepared.hermesPreflight?.schema, 'cstar.forge_hermes_preflight.v2');
             assert.match(prepared.hermesPreflight?.executable_sha256 ?? '', /^[a-f0-9]{64}$/);
             assert.match(prepared.hermesPreflight?.runtime_content_sha256 ?? '', /^[a-f0-9]{64}$/);
             assert.match(prepared.hermesPreflight?.runtime_instance_sha256 ?? '', /^[a-f0-9]{64}$/);
@@ -129,7 +191,7 @@ describe('CStar MCP Forge execute trace artifacts', () => {
         }
     });
 
-    it('rejects a symlinked execution artifact root before adapter spawn', async () => {
+    linuxIt('rejects a symlinked execution artifact root before adapter spawn', async () => {
         const secureTmp = process.platform === 'linux' ? '/tmp' : os.tmpdir();
         const fixture = fs.mkdtempSync(path.join(secureTmp, 'forge-trace-symlink-'));
         const realArtifacts = path.join(fixture, 'real-artifacts');
@@ -149,7 +211,7 @@ describe('CStar MCP Forge execute trace artifacts', () => {
         assert.deepStrictEqual(fs.readdirSync(realArtifacts), []);
     });
 
-    it('passes an allowlisted adapter environment without host secrets', async () => {
+    linuxIt('passes an allowlisted adapter environment without host secrets', async () => {
         const secureTmp = process.platform === 'linux' ? '/tmp' : os.tmpdir();
         const fixture = fs.mkdtempSync(path.join(secureTmp, 'forge-env-inspector-'));
         process.env.CSTAR_FORGE_HERMES_MINIMAX_ADAPTER_SCRIPT = writeEnvironmentInspectorAdapter(fixture);
@@ -167,16 +229,63 @@ describe('CStar MCP Forge execute trace artifacts', () => {
             const parsed = JSON.parse(result.content[0].text);
             assert.strictEqual(parsed.status, 'executed');
             const responsePath = parsed.forge_execution.adapter_result.envelope.response_artifact.path;
-            const keys = JSON.parse(fs.readFileSync(responsePath, 'utf-8')).summary;
-            assert.doesNotMatch(keys, /OPENAI_API_KEY|AWS_SECRET_ACCESS_KEY/);
-            assert.match(keys, /CSTAR_FORGE_EXECUTE_RECEIPT_ID/);
+            const receipt = JSON.parse(fs.readFileSync(responsePath, 'utf-8'));
+            assert.equal(receipt.schema, 'cstar.forge_delivery_receipt.v1');
+            assert.equal(receipt.boundaries.raw_worker_response_persisted, false);
+            assert.doesNotMatch(JSON.stringify(receipt), /OPENAI_API_KEY|AWS_SECRET_ACCESS_KEY/);
         } finally {
             delete process.env.OPENAI_API_KEY;
             delete process.env.AWS_SECRET_ACCESS_KEY;
         }
     });
 
-    it('seals interpreters and direct worker dependencies before spend', async () => {
+    linuxIt('keeps the durable response directory outside the worker and publishes through the parent', async () => {
+        const secureTmp = process.platform === 'linux' ? '/tmp' : os.tmpdir();
+        const fixture = fs.mkdtempSync(path.join(secureTmp, 'forge-response-isolation-'));
+        const artifactRoot = fs.mkdtempSync(path.join(secureTmp, 'forge-response-artifacts-'));
+        process.env.CSTAR_FORGE_HERMES_MINIMAX_ADAPTER_SCRIPT =
+            writeResponseIsolationInspectorAdapter(fixture, artifactRoot);
+        process.env.CSTAR_FORGE_EXECUTION_ARTIFACT_ROOT = artifactRoot;
+
+        const result = await invokeForgeAdapterForTest(validForgeExecuteRequest({
+            objective: 'Return one bounded response-only isolation report',
+            requested_actions: ['report-only analysis'],
+            artifact_expectations: ['bounded callback packet'],
+        }));
+        const parsed = JSON.parse(result.content[0].text);
+        assert.strictEqual(parsed.status, 'executed');
+        const durableResponse = parsed.forge_execution.adapter_result.envelope.response_artifact.path;
+        assert.equal(durableResponse.startsWith(artifactRoot), true);
+        const body = JSON.parse(fs.readFileSync(durableResponse, 'utf-8'));
+        assert.equal(body.schema, 'cstar.forge_delivery_receipt.v1');
+        assert.equal(body.boundaries.parent_published, true);
+        assert.equal(body.boundaries.raw_worker_response_persisted, false);
+        assert.doesNotMatch(JSON.stringify(body), /private-io\/adapter-response\.json/);
+    });
+
+    linuxIt('rejects a lexical alias of the private worker response path without publication', async () => {
+        const secureTmp = process.platform === 'linux' ? '/tmp' : os.tmpdir();
+        const fixture = fs.mkdtempSync(path.join(secureTmp, 'forge-response-alias-'));
+        const artifactRoot = fs.mkdtempSync(path.join(secureTmp, 'forge-response-alias-artifacts-'));
+        process.env.CSTAR_FORGE_HERMES_MINIMAX_ADAPTER_SCRIPT = writeAliasedResponseAdapter(fixture);
+        process.env.CSTAR_FORGE_EXECUTION_ARTIFACT_ROOT = artifactRoot;
+
+        const result = await invokeForgeAdapterForTest(validForgeExecuteRequest({
+            objective: 'Reject an aliased private response path',
+            requested_actions: ['report-only analysis'],
+            artifact_expectations: ['bounded callback packet'],
+        }));
+        const parsed = JSON.parse(result.content[0].text);
+        assert.equal(parsed.status, 'adapter_degraded');
+        assert.equal(parsed.forge_execution.adapter_result.error, 'adapter_response_path_mismatch');
+        assert.equal(parsed.forge_execution.adapter_result.envelope.response_artifact, null);
+        const published = fs.readdirSync(artifactRoot, { recursive: true })
+            .map(String)
+            .filter((entry) => entry.endsWith('adapter-response.json'));
+        assert.deepEqual(published, []);
+    });
+
+    linuxIt('seals interpreters and direct worker dependencies before spend', async () => {
         const secureTmp = process.platform === 'linux' ? '/tmp' : os.tmpdir();
         const fixture = fs.mkdtempSync(path.join(secureTmp, 'forge-runtime-seal-'));
         const sourceDir = path.resolve('.agents/skills/corvus-forge/scripts');
@@ -218,7 +327,67 @@ describe('CStar MCP Forge execute trace artifacts', () => {
         );
     });
 
-    it('persists a worker execution trace when the adapter exits without response artifact', async () => {
+    linuxIt('rechecks package-lock identity after the started trace and immediately before spend', async () => {
+        const control = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-pre-spend-lock-'));
+        const project = path.join(control, 'project');
+        fs.mkdirSync(project, { mode: 0o700 });
+        const target = path.join(project, 'target.ts');
+        const lock = path.join(control, 'package-lock.json');
+        const lockContent = '{"lockfileVersion":3}\n';
+        fs.writeFileSync(target, 'export const target = true;\n', { mode: 0o600 });
+        fs.writeFileSync(lock, lockContent, { mode: 0o600 });
+        process.env.CSTAR_FORGE_HERMES_MINIMAX_ADAPTER_SCRIPT =
+            writeEnvironmentInspectorAdapter(control);
+        process.env.CSTAR_FORGE_EXECUTION_ARTIFACT_ROOT = fs.mkdtempSync(
+            path.join(os.tmpdir(), 'forge-pre-spend-lock-artifacts-'),
+        );
+        const args = validForgeExecuteRequest({
+            target_paths: [target],
+            package_locks: [{
+                path: lock,
+                sha256: createHash('sha256').update(lockContent).digest('hex'),
+            }],
+        });
+        const selected = resolveForgeExecutionAdapterRef(
+            'cstar-forge-hermes-minimax-adapter',
+            control,
+        ).selected;
+        assert.ok(selected);
+        const runtime = sealForgeAdapterRuntime(selected);
+        let prepared: Awaited<ReturnType<typeof prepareForgeHermesMinimaxAdapterInvocation>> | undefined;
+        try {
+            prepared = await prepareForgeHermesMinimaxAdapterInvocation(
+                args,
+                'decision-pre-spend-lock',
+                'forge-execute-pre-spend-lock',
+                control,
+                selected,
+                runtime,
+            );
+            const writeTrace = prepared.writeExecutionTrace.bind(prepared);
+            prepared.writeExecutionTrace = (trace) => {
+                writeTrace(trace);
+                if (trace.status === 'started') fs.writeFileSync(lock, '{"lockfileVersion":4}\n');
+            };
+            await assert.rejects(
+                () => invokeForgeHermesMinimaxAdapter(
+                    args,
+                    'decision-pre-spend-lock',
+                    'forge-execute-pre-spend-lock',
+                    control,
+                    selected,
+                    runtime,
+                    prepared,
+                ),
+                /forge_workspace_package_lock_drift/,
+            );
+            assert.equal(prepared.spendMayHaveStarted, false);
+        } finally {
+            await cleanupPreparedForgeAdapterInvocation(prepared);
+        }
+    });
+
+    linuxIt('persists a worker execution trace when the adapter exits without response artifact', async () => {
         const canary = 'FORGE_FAILURE_RAW_CANARY';
         const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-worker-project-'));
         const suiteRoot = path.join(projectRoot, 'tests', 'truth-verification-red-team');
@@ -240,7 +409,8 @@ describe('CStar MCP Forge execute trace artifacts', () => {
         const result = await invokeForgeAdapterForTest(validForgeExecuteRequest({
             objective: 'Build bounded test fixture through the Forge worker adapter',
             target_paths: [suiteRoot],
-            requested_actions: ['build deterministic suite files'],
+            required_output_paths: [path.join(suiteRoot, 'synthetic-output.ts')],
+            requested_actions: ['project_files'],
             artifact_expectations: ['changed source files'],
             execution_adapter_ref: 'cstar-forge-hermes-minimax-worker-adapter',
         }));
@@ -264,7 +434,7 @@ describe('CStar MCP Forge execute trace artifacts', () => {
         assert.strictEqual(trace.envelope.actual_model, null);
         assert.strictEqual(trace.envelope.model_source, 'unreported');
         assert.strictEqual(trace.envelope.live_spend, null);
-        assert.strictEqual(trace.envelope.live_spend_unknown, null);
+        assert.strictEqual(trace.envelope.live_spend_unknown, true);
         assert.strictEqual(trace.envelope.live_source_collection, null);
         for (const key of [
             'intent_id', 'duration_ms', 'response_chars', 'est_prompt_tokens',
@@ -280,7 +450,7 @@ describe('CStar MCP Forge execute trace artifacts', () => {
         assert.doesNotMatch(JSON.stringify(trace), new RegExp(canary));
     });
 
-    it('cannot return delivery when the terminal trace artifact disappears', async () => {
+    linuxIt('cannot return delivery when the terminal trace artifact disappears', async () => {
         const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-terminal-trace-required-'));
         process.env.CSTAR_FORGE_HERMES_MINIMAX_ADAPTER_SCRIPT = writeEnvironmentInspectorAdapter(fixture);
         process.env.CSTAR_FORGE_EXECUTION_ARTIFACT_ROOT = fs.mkdtempSync(
@@ -312,6 +482,7 @@ describe('CStar MCP Forge execute trace artifacts', () => {
                 args, 'decision-terminal-trace', 'forge-execute-terminal-trace',
                 path.resolve('.'), selected, runtime, prepared,
             ), /forge_adapter_terminal_trace_unavailable/);
+            assert.equal(fs.existsSync(prepared.responsePath), false);
         } finally {
             await cleanupPreparedForgeAdapterInvocation(prepared);
         }

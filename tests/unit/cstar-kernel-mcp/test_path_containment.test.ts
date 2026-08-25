@@ -13,6 +13,11 @@ import {
 import { resolveDispatchSurface } from '../../../src/tools/cstar-kernel-mcp/tools/dispatch_request.js';
 import { handleEvolve } from '../../../src/tools/cstar-kernel-mcp/tools/evolve.js';
 import { handleWarden } from '../../../src/tools/cstar-kernel-mcp/tools/warden.js';
+import {
+    cleanupOperatorAuthorizationFixtures,
+    createSession,
+    validRequestContext,
+} from './operator_authorization_test_support.js';
 
 const originalRoot = registry.getRoot();
 const roots: string[] = [];
@@ -25,6 +30,7 @@ function temporaryRoot(prefix: string): string {
 
 afterEach(() => {
     registry.setRoot(originalRoot);
+    cleanupOperatorAuthorizationFixtures();
     while (roots.length > 0) fs.rmSync(roots.pop()!, { recursive: true, force: true });
 });
 
@@ -123,8 +129,14 @@ describe('CStar canonical path containment', () => {
         fs.writeFileSync(path.join(root, 'scripts', 'run_warden.py'), '# fixture\n');
         fs.symlinkSync(outside, path.join(root, 'escaped'), 'dir');
         registry.setRoot(root);
+        const session = createSession({
+            textParts: ['Synthetic root-user request for a contained Warden scan.'],
+        });
 
-        const result = await handleWarden({ action: 'scan', warden: 'mimir', target: 'escaped' });
+        const result = await handleWarden(
+            { action: 'scan', warden: 'mimir', target: 'escaped' },
+            validRequestContext(session.threadId, session.turnId),
+        );
         const parsed = JSON.parse(result.content[0].text);
         assert.strictEqual(result.isError, true);
         assert.match(parsed.error, /inside the project root/);

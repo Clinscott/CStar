@@ -7,7 +7,8 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-CURRENT_SKILLS = {"corvus-forge", "researcher", "cstar-closeout"}
+DEFAULT_OPERATOR_SKILLS = {"corvus-forge", "researcher", "cstar-closeout"}
+COMPATIBILITY_SKILLS = {"calculus"}
 
 
 def _read(relative: str) -> str:
@@ -18,29 +19,35 @@ def _flat(text: str) -> str:
     return " ".join(text.split())
 
 
-def test_repository_instructions_keep_legacy_cstar_out_of_workflow_routing() -> None:
-    agents = _read("AGENTS.md")
-    pointer = _read("AGENTS.qmd")
-    router = _read(".agents/AGENTS.feature")
-
-    assert "not the active Corvus control plane" in _flat(agents)
-    assert "parent Corvus Organism projection governs" in _flat(agents)
-    assert "must not route work back into CStar" in _flat(agents)
-    assert "CStar is archived source and evidence" in _flat(pointer)
-    assert "CStar routes are not selected" in _flat(router)
-    assert "Corvus Organism remains the workflow authority" in _flat(router)
-
-
 def test_current_registry_and_docs_expose_only_three_agent_native_skills() -> None:
     registry = json.loads(_read(".agents/skill_registry.json"))
     entries = registry["entries"]
+    default_entries = {
+        name for name, entry in entries.items()
+        if entry["entry_surface"] == "host-only"
+    }
+    compatibility_entries = {
+        name for name, entry in entries.items()
+        if entry["entry_surface"] == "compatibility"
+    }
 
-    assert set(entries) == CURRENT_SKILLS
-    for entry in entries.values():
+    assert set(entries) == DEFAULT_OPERATOR_SKILLS | COMPATIBILITY_SKILLS
+    assert default_entries == DEFAULT_OPERATOR_SKILLS
+    assert compatibility_entries == COMPATIBILITY_SKILLS
+    for name in DEFAULT_OPERATOR_SKILLS:
+        entry = entries[name]
         assert entry["tier"] == "SKILL"
         assert entry["entry_surface"] == "host-only"
         assert entry["execution"]["mode"] == "agent-native"
         assert entry["owner_runtime"] == "host-agent"
+
+    calculus = entries["calculus"]
+    assert calculus["tier"] == "PRIME"
+    assert calculus["entry_surface"] == "compatibility"
+    assert calculus["execution"]["mode"] == "compatibility"
+    assert calculus["owner_runtime"] == "compatibility-library"
+    assert set(calculus["host_support"].values()) == {"unsupported"}
+    assert "not registered in the default operator catalog" in calculus["description"]
 
     for relative in (
         "docs/architecture/SKILL_REGISTRY.md",
@@ -49,8 +56,9 @@ def test_current_registry_and_docs_expose_only_three_agent_native_skills() -> No
         "docs/integrations/cstar_capability_discovery_api.md",
     ):
         text = _read(relative)
-        for skill in CURRENT_SKILLS:
+        for skill in DEFAULT_OPERATOR_SKILLS:
             assert f"`{skill}`" in text, (relative, skill)
+        assert "`calculus`" not in text, relative
 
 
 def test_current_architecture_docs_reject_legacy_execution_topology() -> None:
@@ -60,7 +68,8 @@ def test_current_architecture_docs_reject_legacy_execution_topology() -> None:
 
     assert "single source of truth for all capabilities" not in registry_doc
     assert "The Weaves (" not in registry_doc
-    assert "no active weave" in weave_doc
+    assert "autonomous Weave framework is retired" in weave_doc
+    assert "exposes no Orchestrate or HostGovernor adapter" in weave_doc
     assert "There is no reverse model bridge" not in host_doc  # wording lives in compatibility pointer
     assert "does not create a callback from CStar into the host" in host_doc
     assert "MimirClient.request" not in host_doc
@@ -147,6 +156,47 @@ def test_forge_docs_require_hermes_owned_oauth_without_credential_env() -> None:
         assert "forge_minimax_oauth.py" in text
 
 
+def test_forge_docs_require_natural_work_authorization_and_safe_replay() -> None:
+    docs = tuple(
+        _flat(_read(relative))
+        for relative in (
+            "docs/integrations/cstar-kernel-mcp.md",
+            "docs/operations/corvus-forge-pipeline-playbook.md",
+            "docs/operations/corvus-forge-skill-spec.md",
+        )
+    )
+
+    for text in docs:
+        assert "cstar_forge_authorize" in text
+        assert "authorization_manifest" in text
+        assert "PENDING_AUTH" in text
+        assert "build" in text and "implement" in text and "repair" in text
+        assert "bead" in text and "decision" in text and "target" in text
+        assert "no machine challenge" in text
+        assert "same root-user turn" in text
+        assert "later root-user turn" in text
+        assert "idempotency" in text
+        assert "after runtime/OAuth preflight" in text or "after runtime/ OAuth preflight" in text
+        assert "legacy freeform" in text
+        assert "CSTAR_FORGE_AUTHORIZE v1" not in text
+    kernel = docs[0]
+    assert "one user record" in kernel and "bounded canonical `input_text`" in kernel
+    assert "forge_operator_authorization_required" in kernel
+    assert "operator never pastes machine tokens" in kernel
+    assert "A later root-user turn can retrieve an already durable attempt" in kernel
+    assert "cstar.forge_pre_provider_continuation.v1" in kernel
+
+
+def test_forge_natural_authorization_feature_is_fail_closed() -> None:
+    feature = _read("tests/features/cstar_forge_natural_language_authorization.feature")
+
+    assert "normal operator language" in feature
+    assert "no machine challenge is exposed" in feature
+    assert "forge_operator_authorization_required" in feature
+    assert "zero or multiple eligible requests" in feature
+    assert "cstar_forge_request cannot perform that profile transition" in feature
+
+
 def test_forge_docs_match_bounded_six_role_runtime_contract() -> None:
     docs = tuple(
         _flat(_read(relative))
@@ -193,14 +243,237 @@ def test_forge_docs_match_bounded_six_role_runtime_contract() -> None:
         assert f"'{role}'" in role_plan
 
 
-def test_historical_root_docs_are_explicitly_non_authoritative() -> None:
-    for relative in (
-        "docs/handshake.md",
-        "docs/handshake_session_113.md",
-        "docs/walkthrough.qmd",
-        "docs/dev_journal.qmd",
-        "docs/API_LEDGER.qmd",
+def test_forge_docs_preserve_legacy_v2_receipts_through_exact_sidecars() -> None:
+    docs = tuple(
+        _flat(_read(relative))
+        for relative in (
+            "docs/integrations/cstar-kernel-mcp.md",
+            "docs/operations/corvus-forge-pipeline-playbook.md",
+            "docs/operations/corvus-forge-skill-spec.md",
+        )
+    )
+    for text in docs:
+        assert "cstar.forge_request.v2" in text
+        assert "cstar.forge_legacy_v2_execution_grant.v1" in text
+        assert "CSTAR_FORGE_AUTHORIZE v2-compat-v1" in text
+        assert "compatibility_manifest_sha256" in text
+        assert "synthetic_only" in text
+        assert "requester-lineage" in text
+        assert "third root thread" in text
+        assert "not" in text and "reissued" in text
+        assert "59803dadb38e0e09d5357d749452036e4a82ae60" in text
+        assert "no upstream source" in text.lower()
+
+    provenance = _flat(
+        _read(".agents/skills/corvus-forge/runtime/PROVENANCE.md")
+    )
+    assert "https://github.com/unclebob/swarm-forge" in provenance
+    assert "design inspiration" in provenance
+    assert "no vendoring" in provenance
+
+
+def test_agents_points_to_goal_driven_daily_bootstrap_without_stale_authority() -> None:
+    agents = _read("AGENTS.md")
+    bootstrap = _read("docs/operations/cstar-goal-driven-daily-bootstrap.md")
+    flat_bootstrap = _flat(bootstrap)
+
+    assert "docs/operations/cstar-goal-driven-daily-bootstrap.md" in agents
+    assert "Registries and observed runtime are evidence" in agents
+    assert "PMTs are project-scoped information repositories only" in agents
+    assert "Never invent a Gungnir" in agents
+    assert "PMTs are durable project knowledge and review authorities" not in agents
+    assert "Registry and runtime contracts outrank prose" not in agents
+
+    for required in (
+        "operator explicitly resumes it",
+        "host exposes no resume transition",
+        "hermes update --check",
+        "hermes update --backup --yes",
+        "auto-stash",
+        "actual_model: null",
+        "model_source: unreported",
+        "restart gate",
+        "drift is informational, not a red gate",
+        "Do not rerun Hermes or Codex update checks",
     ):
-        preamble = "\n".join(_read(relative).splitlines()[:20]).lower()
-        assert "historical" in preamble, relative
-        assert "authority" in preamble or "authoritative" in preamble, relative
+        assert required in flat_bootstrap
+
+
+def test_daily_bootstrap_preserves_git_and_runtime_dispatch_gates() -> None:
+    bootstrap = _read("docs/operations/cstar-goal-driven-daily-bootstrap.md")
+    feature = _read("tests/features/cstar_goal_driven_daily_bootstrap.feature")
+
+    for text in (bootstrap, feature):
+        assert "operator-gated" in text
+        assert "Routine Node" in text and "bootstrap" in text
+    assert "exact adapter inventory is empty" in bootstrap
+    assert "does not write an environment value or file" in bootstrap
+    assert "Durable lifecycle changes require" in bootstrap
+    assert "registers no legacy adapter" in feature
+    assert "dispatches no host-governor swarm" in feature
+
+
+def test_ci_checks_checked_in_distributions_before_release_generation() -> None:
+    workflow = _read(".github/workflows/ci.yml")
+    validation_step = workflow.split(
+        "- name: Validate Generated Distribution Artifacts", 1
+    )[1].split("- name:", 1)[0]
+
+    assert "node-version: 22" in workflow
+    assert "npm run validate:distributions" in validation_step
+    assert "npm run build:distributions" not in validation_step
+
+
+def test_kernel_docs_separate_code_control_and_forge_readiness() -> None:
+    kernel = _flat(_read("docs/integrations/cstar-kernel-mcp.md"))
+    boundary = _flat(
+        _read("docs/operations/cstar-kernel-code-control-root-boundary.md")
+    )
+    feature = _flat(_read("tests/features/cstar_kernel_code_control_root.feature"))
+
+    for text in (kernel, boundary, feature):
+        assert "CODE_ROOT" in text or "code root" in text
+        assert "CONTROL_ROOT" in text or "control root" in text
+        assert "Forge readiness" in text
+    for required in (
+        "creates no replacement Hall",
+        "PathRegistry",
+        "Direct TypeScript server launch",
+        "dependency tree matching the checked-in lock",
+        "separately authorized installation action",
+        "intent grammar comes from the code-root registry",
+    ):
+        assert required in boundary
+
+
+def test_host_goal_resume_is_append_only_and_continuity_only() -> None:
+    bootstrap = _read("docs/operations/cstar-goal-driven-daily-bootstrap.md")
+    flat_bootstrap = _flat(bootstrap)
+    feature = _read("tests/features/cstar_host_goal_resume.feature")
+
+    for required in (
+        "cstar_goal_resume",
+        "cstar.host_goal_resume.v1",
+        "continuity-only overlay",
+        "host status remains `blocked`",
+        "dedicated, fully anchored imperative or authorization statement",
+    ):
+        assert required in flat_bootstrap
+    assert "no raw operator message" in feature
+    assert "no second coordination event" in feature
+
+
+def test_persona_context_is_status_only_with_isolated_bounded_reader() -> None:
+    agents = _read("AGENTS.md")
+    kernel_doc = _read("docs/integrations/cstar-kernel-mcp.md")
+    boundary_doc = _read("docs/integrations/safe_persona_reader.md")
+    feature = _read("tests/features/safe_persona_reader.feature")
+
+    assert "cstar_status" in agents
+    assert "Never read or print `.agents/config.json`" in agents
+    for text in (kernel_doc, boundary_doc, feature):
+        assert "cstar_status" in text
+    assert "there is no active persona default" in _flat(kernel_doc).lower()
+    assert "system.persona" in boundary_doc
+    assert "scripts/read_active_persona.py" in boundary_doc
+    assert "bounded_config_projection" in kernel_doc
+    assert "build_run_repair" in feature
+    assert "secure_harden" in feature
+    flattened_kernel_doc = _flat(kernel_doc)
+    for source in ("Bootstrap rows", "legacy migrations", "document ingestion", "profile digests", "SessionStart hooks"):
+        assert source in flattened_kernel_doc
+    assert "omit persona context" in _flat(boundary_doc)
+    assert "raw configuration" in feature
+
+    claude_pointer = _read("docs/integrations/CLAUDE.qmd")
+    assert "cstar_status" in claude_pointer
+    assert "BEFORE ANY RESPONSE" not in claude_pointer
+    assert "READ THIS FIRST" not in claude_pointer
+    assert "Do not ask for permission" not in claude_pointer
+    assert "MUST execute" not in claude_pointer
+    assert "O.D.I.N. means build-run-repair" in claude_pointer
+    assert "A.L.F.R.E.D. means secure-harden" in claude_pointer
+
+
+def test_gemini_pointer_contains_no_persona_or_state_snapshot() -> None:
+    pointer = _read("docs/integrations/GEMINI.qmd")
+
+    assert "cstar_status" in pointer
+    assert "cstar_handoff" in pointer
+    assert "build-run-repair" in pointer
+    assert "secure-harden" in pointer
+    assert "grants no execution authority" in pointer
+    assert "has no default" in pointer
+    for stale in (
+        "Active Mind",
+        "O.D.I.N.",
+        "ALFRED",
+        "C:\\Users\\",
+        "auto-remediate",
+        "94.7%",
+        "Code Sentinel**: PASS",
+        "Operational Buffer**: STABLE",
+    ):
+        assert stale not in pointer
+
+
+def test_retired_skill_scout_grants_no_research_or_write_authority() -> None:
+    registry = json.loads(_read(".agents/skill_registry.json"))
+    pointer = _read("src/skills/local/skill-scout/SKILL.qmd")
+    feature = _read("tests/features/cstar_retired_skill_scout.feature")
+
+    assert "skill-scout" not in registry["entries"]
+    for required in (
+        "not registered",
+        "fail closed",
+        "`cstar_researcher_request`",
+        "`cstar_forge_request`",
+        "independent-validation",
+    ):
+        assert required in pointer
+    for forbidden in (
+        "search_web",
+        ".agents/skills/<tool-name>",
+        "sv_engine.py",
+        "Just search",
+        "Just create",
+        "confidence < 0.60",
+    ):
+        assert forbidden not in pointer
+    assert "no activation or execution surface" in feature
+    assert "authorized Researcher lane" in feature
+    assert "durable Forge lifecycle" in feature
+
+
+def test_runtime_failure_requires_a_fresh_operator_invocation() -> None:
+    contract = _read("docs/integrations/host_native_skill_contract.md")
+    feature = _read("tests/features/runtime_failure_authority.feature")
+
+    for required in (
+        "executes exactly once",
+        "operator_action_required: true",
+        "automatic_recovery_attempted: false",
+        "fresh top-level invocation",
+        "allow_kernel_fallback",
+    ):
+        assert required in contract
+    assert "no host provider or governor is invoked" in feature
+    assert "no kernel fallback executes" in feature
+
+
+def test_runtime_provider_attempts_require_exact_identity_and_timeout_ownership() -> None:
+    contract = _flat(_read("docs/integrations/host_native_skill_contract.md"))
+    feature = _flat(_read("tests/features/cstar_runtime_provider_attempt_identity.feature"))
+
+    for required in (
+        "binds both provider and execution surface",
+        "all five attempt fields",
+        "execution_dispatched=unreported",
+        "Structured error evidence outranks legacy message text",
+        "receives an `AbortSignal`",
+        "waits for that runner to settle",
+    ):
+        assert required in contract
+    assert "only that provider and surface may be dispatched" in feature
+    assert "missing provider, surface, or dispatch evidence is not invented" in feature
+    assert "no retry or alternate surface runs" in feature

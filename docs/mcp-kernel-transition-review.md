@@ -1,9 +1,5 @@
 # CStar MCP Kernel Transition Review
 
-> **Status: superseded design review.** The current contract is
-> `docs/integrations/cstar-kernel-mcp.md`. This file is historical rationale and
-> grants no authority, tool inventory, startup order, or TokenPath behavior.
-
 ## Verdict
 
 Proceed only if the MCP becomes a tiny kernel server. Scrap the transition if it becomes another host-control layer.
@@ -121,11 +117,11 @@ Output:
 - `expert`
 - `mimir_targets`, max 3
 - `next_action`
-- `actionable: false`
-- optional TokenPath quarantine status only (`shadow-disabled`, non-actionable)
+- `confidence`
+- optional `token_path` advice from the AuguryTokenPath sidecar
+- optional `token_path.episode_id` for later outcome correlation
 
-Current Augury returns compact typed advice without numeric confidence.
-TokenPath supplies no advice, steering, episode, or observation-write path.
+This may reuse Augury contract logic, but must return compact JSON only. Token Path is intentionally attached here as routing advice, not invoked from every MCP tool.
 
 ### `cstar_doctor`
 
@@ -201,25 +197,23 @@ Purpose: Append an explicit outcome.
 Source:
 
 - `saveValidationRun`
-- optional token-path observation append
 
 Inputs:
 
 - `bead_id`
 - `verdict`: `ACCEPTED`, `REJECTED`, `INCONCLUSIVE`, `SUCCESS`, or `FAILURE`
 - `notes`
-- optional `token_path_episode_id`
-- optional `token_path_observation`
 
 Output:
 
 - `validation_id`
 - `bead_id`
 - `verdict`
-- optional `token_path_episode_id`
-- optional `token_path_observation_id`
 
-This records evidence. Bead state transitions belong in `cstar_bead`. When a `token_path_episode_id` is provided, the tool can auto-link the recent `cstar_augury` advice into a sidecar observation; explicit `token_path_observation` remains supported for richer calibration data.
+This records validation evidence. Bead state transitions belong in
+`cstar_bead`. TokenPath observations are not part of this generic result
+surface; any future observed pipeline requires its own independently validated,
+causally identified promotion contract.
 
 ## Implementation Shape
 

@@ -1,61 +1,37 @@
-# Corvus Star Host Protocol for Claude
+# CStar Persona Compatibility Pointer
 
-## Authority
+This file is a compatibility pointer for clients that still discover
+`CLAUDE.qmd`. Current authority lives in the applicable `AGENTS.md`, repository
+runbooks, operator grants, and CStar lifecycle state.
 
-Follow platform/operator safety, current explicit operator grants, global
-Corvus invariants, nearest repository `AGENTS.md`, canonical runbooks, and then
-current CStar lifecycle state. Registries describe capability and runtime
-observations provide evidence; neither grants authority.
+## Persona context
 
-Use `cstar-kernel` MCP first for CStar health, handoff, routing, Hall discovery,
-lifecycle state, validation, and Forge/Researcher request receipts. Do not write
-Hall/SQLite directly when a kernel path exists.
+- Read persona context only from the bounded `cstar_status` persona field.
+- Never read, print, diff, or request `.agents/config.json` or any containing
+  object.
+- If `cstar_status` cannot return current persona state, omit persona context
+  and record a freshness gap. There is no local-file or default-persona
+  fallback.
+- Persona supplies non-authoritative development posture as well as style.
+  O.D.I.N. means build-run-repair; A.L.F.R.E.D. means secure-harden. It cannot
+  alter authority, routing, scope, approval, validation, or execution gates.
 
-## Bounded Context
+## Style guidance
 
-- Use `cstar_doctor` only when health is unknown or degraded.
-- Use `cstar_handoff` when resuming prior work.
-- Use `cstar_augury` only when route or material scope is ambiguous.
-- Use at most one broad Hall search, then narrow by bead id, target path, or
-  exact error.
+When `cstar_status` explicitly projects O.D.I.N., concise and decisive phrasing
+is acceptable. When it explicitly projects A.L.F.R.E.D., measured and courteous
+phrasing is acceptable. In both cases, keep the voice professional, preserve
+operator choice, ask for required authorization, and avoid theatrical commands
+that imply authority the system does not have.
 
-Do not turn these checks into a per-response ritual.
+Persona guidance may order already-authorized development work, but it cannot
+initiate logging, Git work, provider calls, deployment, restart, or any action
+outside the active mission. Those actions retain their ordinary gates.
 
-## Persona
+## Current pointers
 
-When persona context matters, use only the persona field returned by
-`cstar_status`. Never read, print, diff, or request the whole
-`/home/morderith/Corvus/CStar/.agents/config.json` file or its containing
-objects. If the kernel surface is unavailable, omit persona context and report a
-freshness gap rather than falling back to the file. Persona may shape
-professional tone and domain emphasis only. It never changes authority, risk,
-lifecycle state, operator gates, validation, or whether the host may act. Do
-not use theatrical decrees, mandatory prefixes, subconscious voices, or
-persona-specific permission rules.
-
-## Work Routing
-
-- CoS owns bounded Green/Yellow execution, evidence packaging, and closeout.
-- Implementation uses `cstar_forge_request -> cstar_forge_execute ->` private
-  Hermes `cstar-hub`/MiniMax-M3, then independent `cstar_record_result`.
-- Research uses the authorized Researcher lane.
-- PMTs are project-scoped information repositories only. Query the mapped PMT
-  for bounded context when active targets are inside its project, then send a
-  bounded update after meaningful work. Do not query unrelated PMTs; PMTs grant
-  no authority and unavailability is not an execution gate.
-- MM is legacy and has no active routing role; CoS handles estate sequencing.
-- Host subagents may analyze or review; they do not replace Forge.
-
-Public AutoBot and the CStar TCP daemon are retired. Augury and Council are
-advisory. TokenPath is quarantined.
-
-## Gates and Verification
-
-Do not perform unsolicited fixes. Work only inside the accepted mission and
-preserve explicit gates for spend/source expansion, locked holdout, production
-claims, merge, push, deploy, restart, secrets/configuration, destructive
-cleanup, and broad cross-spoke mutation.
-
-Verify changed behavior with focused tests and current lifecycle evidence. Do
-not infer completion or a quality score from model prose, callbacks, legacy
-Gungnir fields, or a successful transport handshake.
+- `cstar_status`: bounded lifecycle and style projection.
+- `AGENTS.md`: current authority and routing invariants.
+- `docs/operations/cstar-goal-driven-daily-bootstrap.md`: goal and daily startup
+  contract.
+- `docs/integrations/cstar-kernel-mcp.md`: kernel surface contract.

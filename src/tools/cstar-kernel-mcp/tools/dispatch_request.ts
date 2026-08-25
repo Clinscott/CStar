@@ -3,7 +3,12 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { registry } from '../../pennyone/pathRegistry.js';
 import { errorResponse, mcpGuardrail, textResponse, type McpTextResponse } from '../contracts/responses.js';
-import { readBoundedFileInside, resolveExistingPathInside } from '../contracts/runtime.js';
+import {
+    CODE_ROOT,
+    readBoundedFileInside,
+    resolveExistingPathInside,
+} from '../contracts/runtime.js';
+import { resolveDispatchActionAuthority } from './dispatch_action_authority.js';
 
 export type DispatchRequestKind = 'researcher' | 'forge';
 export type DispatchSpendMode = 'no_spend' | 'dry_run' | 'live_authorized';
@@ -52,6 +57,7 @@ export interface DispatchRequestArgs {
     requested_actions?: string[];
     spend_policy: DispatchSpendPolicy;
     live_source_policy?: string;
+    fixture_policy?: 'synthetic_only';
     retry_policy?: {
         budget: number;
         spent?: number;
@@ -60,27 +66,6 @@ export interface DispatchRequestArgs {
     package_locks?: DispatchPackageLock[];
     dispatch_surface_ref?: string;
 }
-
-const DISPATCH_RED_ACTION_PATTERNS = [
-    /\bmerge\b/i,
-    /\bpush\b/i,
-    /\bmain\b/i,
-    /\bmaster\b/i,
-    /\bdeploy\b/i,
-    /\brestart\b/i,
-    /\bsecret\b/i,
-    /\bconfig\b/i,
-    /\bdirect\s+hall\b/i,
-    /\bsqlite\b/i,
-    /\bdelete\b/i,
-    /\bdestructive\b/i,
-    /\bhook\b/i,
-    /\bcredential\b/i,
-    /\btoken\b/i,
-    /\bchmod\b/i,
-    /\bservice\b/i,
-    /\bkill\b/i,
-];
 
 export function makeDispatchDecisionId(kind: DispatchRequestKind, args: DispatchRequestArgs): string {
     if (args.decision_id?.trim()) {
@@ -104,7 +89,10 @@ export function resolveStateUpdateThreadId(args: DispatchRequestArgs): string {
     return args.state_update_thread_id?.trim() || args.owner_pmt_thread_id?.trim() || '';
 }
 
-export function findDispatchValidationError(args: DispatchRequestArgs): string | null {
+export function findDispatchValidationError(
+    args: DispatchRequestArgs,
+    options: { require_operator_authorization_ref?: boolean } = {},
+): string | null {
     if (!args.bead_id?.trim() && !args.decision_id?.trim()) {
         return 'bead_id or decision_id is required';
     }
@@ -139,38 +127,31 @@ export function findDispatchValidationError(args: DispatchRequestArgs): string |
     if (retryBudget !== undefined && (retryBudget < 0 || retrySpent < 0 || retrySpent > retryBudget)) {
         return 'retry_policy must have non-negative budget/spent and spent must not exceed budget';
     }
-    const requested = normalizeActionList(args.requested_actions).map((value) => value.toLowerCase());
-    const prohibited = normalizeActionList(args.prohibited_actions).map((value) => value.toLowerCase());
-    const conflictingAction = requested.find((action) =>
-        prohibited.some((blocked) => action.includes(blocked) || blocked.includes(action))
-            || DISPATCH_RED_ACTION_PATTERNS.some((pattern) => pattern.test(action)),
-    );
-    if (conflictingAction) {
-        return `requested action is prohibited or red-gated: ${conflictingAction}`;
-    }
-    const latentRedText = [
-        args.objective,
-        args.prompt ?? '',
-        args.system_under_test ?? '',
-        args.scope,
-        ...normalizeActionList(args.target_paths),
-        ...normalizeActionList(args.required_output_paths),
-        ...normalizeActionList(args.artifact_expectations),
-        ...requested,
-    ].join('\n');
-    const latentRedPattern = DISPATCH_RED_ACTION_PATTERNS.find((pattern) => pattern.test(latentRedText));
-    if (latentRedPattern) {
-        return 'dispatch objective, prompt, target, or artifact scope contains a red-gated action; use a separately authorized non-Forge gate';
+    try {
+        resolveDispatchActionAuthority(args);
+    } catch (error) {
+        return error instanceof Error ? error.message : 'dispatch_action_authority_invalid';
     }
     const liveRequested = args.spend_policy.mode === 'live_authorized'
         || args.spend_policy.live_source_allowed === true;
-    if (liveRequested && !args.spend_policy.operator_authorization_ref?.trim()) {
+    if (
+        liveRequested
+        && options.require_operator_authorization_ref !== false
+        && !args.spend_policy.operator_authorization_ref?.trim()
+    ) {
         return 'live spend/source policy requires operator_authorization_ref';
+    }
+    if (args.spend_policy.mode === 'live_authorized' && args.fixture_policy !== 'synthetic_only') {
+        return 'live Forge execution requires fixture_policy synthetic_only';
     }
     return null;
 }
 
-export function resolveDispatchSurface(kind: DispatchRequestKind, args: DispatchRequestArgs, root: string) {
+export function resolveDispatchSurface(
+    kind: DispatchRequestKind,
+    args: DispatchRequestArgs,
+    root: string = CODE_ROOT,
+) {
     const candidates = args.dispatch_surface_ref
         ? [args.dispatch_surface_ref]
         : kind === 'researcher'
@@ -264,7 +245,24 @@ export async function handleDispatchRequest(
         }
 
         const root = registry.getRoot();
-        const surface = resolveDispatchSurface(kind, args, root);
+        const actionAuthority = resolveDispatchActionAuthority(args, root);
+        if (kind === 'researcher' && actionAuthority.primary_action === 'project_files') {
+            return textResponse({
+                status: 'rejected',
+                dispatch_kind: kind,
+                decision_id: decisionId,
+                bead_id: args.bead_id ?? null,
+                error: 'researcher_project_files_action_forbidden',
+                guardrail: mcpGuardrail(
+                    'block',
+                    'refuse',
+                    'Researcher requests cannot carry implementation-write authority.',
+                    ['dispatch_action_authority'],
+                    ['route_to_forge'],
+                ),
+            }, true);
+        }
+        const surface = resolveDispatchSurface(kind, args);
         const liveAuthority = args.spend_policy.mode === 'live_authorized'
             && Boolean(args.spend_policy.operator_authorization_ref)
             && surface.found;
@@ -293,8 +291,9 @@ export async function handleDispatchRequest(
             authority_lane: args.authority_lane,
             required_metrics: args.required_metrics,
             artifact_expectations: args.artifact_expectations,
-            prohibited_actions: normalizeActionList(args.prohibited_actions),
-            requested_actions: normalizeActionList(args.requested_actions),
+            prohibited_actions: actionAuthority.prohibited_actions,
+            requested_actions: actionAuthority.requested_actions,
+            action_authority: actionAuthority,
             spend_policy: {
                 ...args.spend_policy,
                 live_source_allowed: args.spend_policy.live_source_allowed === true,

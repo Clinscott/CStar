@@ -5,20 +5,19 @@ import os from 'node:os';
 import path from 'node:path';
 
 import { RuntimeDispatcher } from '../../src/node/core/runtime/dispatcher.js';
-import { getHallBead } from '../../src/tools/pennyone/intel/database.js';
+import { inheritTraceSkillBead } from '../../src/node/core/runtime/trace_inheritance.js';
 import { registry } from '../../src/tools/pennyone/pathRegistry.js';
 
-function assertAuguryContractIncludesCoreFields(actual: unknown, expected: Record<string, unknown>): void {
+function assertContractFields(actual: unknown, expected: Record<string, unknown>): void {
     assert.ok(actual && typeof actual === 'object' && !Array.isArray(actual));
     assert.deepEqual(
         Object.fromEntries(Object.keys(expected).map((key) => [key, (actual as Record<string, unknown>)[key]])),
         expected,
     );
-    assert.equal(typeof (actual as Record<string, unknown>).council_expert, 'object');
 }
 
 describe('host-native Augury lineage', () => {
-    it('preserves planning lineage and designation source for inherited host-native skill dispatch', async () => {
+    it('preserves pure lineage metadata while the retired dispatcher performs zero host dispatch', async () => {
         const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-host-trace-lineage-'));
         fs.mkdirSync(path.join(tmpRoot, '.agents'), { recursive: true });
         fs.writeFileSync(
@@ -26,12 +25,12 @@ describe('host-native Augury lineage', () => {
             JSON.stringify({
                 entries: {
                     hall: {
+                        entry_surface: 'host-only',
                         execution: {
                             mode: 'agent-native',
+                            ownership_model: 'host-workflow',
                         },
-                        host_support: {
-                            codex: 'exec-bridge',
-                        },
+                        host_support: { codex: 'exec-bridge' },
                         runtime_trigger: 'hall',
                     },
                 },
@@ -40,86 +39,80 @@ describe('host-native Augury lineage', () => {
         );
         registry.setRoot(tmpRoot);
 
+        const previousCodexShell = process.env.CODEX_SHELL;
+        const previousThreadId = process.env.CODEX_THREAD_ID;
+        const previousProjectRoot = process.env.CSTAR_PROJECT_ROOT;
         process.env.CODEX_SHELL = '1';
         process.env.CODEX_THREAD_ID = 'thread-trace-lineage';
+        process.env.CSTAR_PROJECT_ROOT = tmpRoot;
 
         const hostTextInvoker = mock.fn(async () => ({
             provider: 'codex' as const,
-            text: 'Host fulfilled hall lineage request.',
+            text: 'This must never be returned.',
         }));
-        const dispatcher = RuntimeDispatcher.createIsolated({
-            // @ts-ignore
-            stateRegistry: { updateMission: mock.fn(), updateFramework: mock.fn() },
-            // @ts-ignore
-            hostTextInvoker,
-            activePersona: { name: 'ALFRED' },
-        });
-
+        const dispatcher = RuntimeDispatcher.createIsolated({ hostTextInvoker });
         const traceContract = {
             intent_category: 'ORCHESTRATE',
-            intent: 'Carry planning lineage through host-native hall execution.',
-            selection_tier: 'PRIME',
-            selection_name: 'cstar_handoff',
+            intent: 'Carry planning lineage without executing a retired adapter.',
+            selection_tier: 'WEAVE',
+            selection_name: 'orchestrate',
             trajectory_status: 'STABLE',
-            trajectory_reason: 'Inherited designation must survive nested dispatch.',
+            trajectory_reason: 'Lineage metadata is pure data, not dispatch authority.',
             mimirs_well: ['src/node/core/runtime/dispatcher.ts'],
-            confidence: 0.91,
-            canonical_intent: 'Carry planning lineage through host-native hall execution.',
+            confidence: 0.91, // Historical unscored input; inheritance must remove it.
+            canonical_intent: 'Carry planning lineage without executing a retired adapter.',
         };
-        const { confidence: _unverifiedConfidence, ...expectedTraceContract } = traceContract;
-        void _unverifiedConfidence;
+        const inheritedContract = {
+            intent_category: traceContract.intent_category,
+            intent: traceContract.intent,
+            selection_tier: traceContract.selection_tier,
+            selection_name: traceContract.selection_name,
+            trajectory_status: traceContract.trajectory_status,
+            trajectory_reason: traceContract.trajectory_reason,
+            mimirs_well: traceContract.mimirs_well,
+            canonical_intent: traceContract.canonical_intent,
+        };
+        const bead = inheritTraceSkillBead({
+            id: 'activation:hall:trace-lineage',
+            skill_id: 'hall',
+            target_path: 'src/core/host_session.ts',
+            intent: 'Inspect host trace lineage',
+            params: { query: 'host trace lineage' },
+            status: 'PENDING' as const,
+            priority: 1,
+        }, {
+            augury_contract: traceContract,
+            augury_designation_source: 'dispatcher_synthesized',
+            session_id: 'chant-session:TRACE-LINEAGE',
+        });
 
         try {
-            const result = await dispatcher.dispatch({
-                id: 'activation:hall:trace-lineage',
-                skill_id: 'hall',
-                target_path: 'src/core/host_session.ts',
-                intent: 'Inspect host trace lineage',
-                params: {
-                    query: 'host trace lineage',
-                    project_root: tmpRoot,
-                    cwd: tmpRoot,
-                    planning_session_id: 'chant-session:TRACE-LINEAGE',
-                    augury_contract: traceContract,
-                    augury_designation_source: 'dispatcher_synthesized',
-                },
-                status: 'PENDING',
-                priority: 1,
-            });
+            assert.equal(bead.params.planning_session_id, 'chant-session:TRACE-LINEAGE');
+            assert.equal(bead.params.augury_designation_source, 'dispatcher_synthesized');
+            assert.equal(bead.params.trace_designation_source, 'dispatcher_synthesized');
+            assertContractFields(bead.params.augury_contract, inheritedContract);
+            assertContractFields(bead.params.trace_contract, inheritedContract);
+            assert.equal(bead.params.augury_contract.confidence, undefined);
+            assert.equal(bead.params.trace_contract.confidence, undefined);
 
-            assert.strictEqual(result.status, 'SUCCESS');
-            assert.strictEqual(result.output, 'Host fulfilled hall lineage request.');
-            assert.strictEqual(result.metadata?.planning_session_id, 'chant-session:TRACE-LINEAGE');
-            assert.strictEqual(result.metadata?.augury_designation_source, 'dispatcher_synthesized');
-            assert.strictEqual(result.metadata?.trace_designation_source, 'dispatcher_synthesized');
-            assertAuguryContractIncludesCoreFields(result.metadata?.augury_contract, expectedTraceContract);
-            assertAuguryContractIncludesCoreFields(result.metadata?.trace_contract, expectedTraceContract);
-
-            const executionBead = getHallBead(String(result.metadata?.execution_bead_id));
-            assert.equal(executionBead?.metadata?.planning_session_id, 'chant-session:TRACE-LINEAGE');
-            assert.equal(executionBead?.metadata?.augury_designation_source, 'dispatcher_synthesized');
-            assert.equal(executionBead?.metadata?.trace_designation_source, 'dispatcher_synthesized');
-            assertAuguryContractIncludesCoreFields(executionBead?.metadata?.augury_contract, expectedTraceContract);
-            assertAuguryContractIncludesCoreFields(executionBead?.metadata?.trace_contract, expectedTraceContract);
-            assert.strictEqual(hostTextInvoker.mock.callCount(), 1);
-            const hostPrompt = String(hostTextInvoker.mock.calls[0]?.arguments[0]?.prompt ?? '');
-            // Augury now renders in block-tag format; verify key fields are present
-            assert.match(hostPrompt, /\[CORVUS_STAR_AUGURY\]/);
-            assert.match(hostPrompt, /Route:.*ORCHESTRATE.*PRIME: cstar_handoff/);
-            assert.match(hostPrompt, /Council Expert: DEAN/);
-            assert.match(hostPrompt, /Mimir's Well: src\/node\/core\/runtime\/dispatcher\.ts/);
-            assert.match(hostPrompt, /Directive: Route only/i);
-            assert.doesNotMatch(hostPrompt, /Corvus Standard:/);
-            assert.doesNotMatch(hostPrompt, /Confidence:/);
-            assertAuguryContractIncludesCoreFields(hostTextInvoker.mock.calls[0]?.arguments[0]?.metadata?.augury_contract, expectedTraceContract);
-            assert.equal(hostTextInvoker.mock.calls[0]?.arguments[0]?.metadata?.augury_designation_source, 'dispatcher_synthesized');
-            assert.equal(hostTextInvoker.mock.calls[0]?.arguments[0]?.metadata?.augury_learning_metadata?.confidence, undefined);
-            assert.equal(hostTextInvoker.mock.calls[0]?.arguments[0]?.metadata?.augury_learning_metadata?.confidence_source, 'not_measured');
-            assert.equal(hostTextInvoker.mock.calls[0]?.arguments[0]?.metadata?.augury_learning_metadata?.steering_mode, 'lite');
-            assert.equal(hostTextInvoker.mock.calls[0]?.arguments[0]?.metadata?.augury_learning_metadata?.session_id, 'chant-session:TRACE-LINEAGE');
+            const result = await dispatcher.dispatch(bead);
+            assert.equal(result.status, 'FAILURE');
+            assert.match(result.error ?? '', /host-only.*active host conversation/i);
+            assert.equal(result.metadata?.failure_code, 'runtime_host_only_requires_active_host');
+            assert.equal(result.metadata?.execution_dispatched, false);
+            assert.equal(result.metadata?.hall_mutation_started, false);
+            assert.equal(result.metadata?.provider_attempted, false);
+            assert.equal(result.metadata?.process_started, false);
+            assert.equal(result.metadata?.source_access_started, false);
+            assert.equal(hostTextInvoker.mock.callCount(), 0);
         } finally {
-            delete process.env.CODEX_SHELL;
-            delete process.env.CODEX_THREAD_ID;
+            if (previousCodexShell === undefined) delete process.env.CODEX_SHELL;
+            else process.env.CODEX_SHELL = previousCodexShell;
+            if (previousThreadId === undefined) delete process.env.CODEX_THREAD_ID;
+            else process.env.CODEX_THREAD_ID = previousThreadId;
+            if (previousProjectRoot === undefined) delete process.env.CSTAR_PROJECT_ROOT;
+            else process.env.CSTAR_PROJECT_ROOT = previousProjectRoot;
+            fs.rmSync(tmpRoot, { recursive: true, force: true });
         }
     });
 });

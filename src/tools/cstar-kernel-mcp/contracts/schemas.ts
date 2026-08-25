@@ -19,6 +19,13 @@ export const dispatchSpendPolicySchema = z.object({
     operator_authorization_ref: z.string().optional().describe('Explicit operator approval reference for live spend/source paths'),
 });
 
+export const forgeRequestSpendPolicySchema = z.object({
+    mode: z.enum(['no_spend', 'dry_run', 'live_authorized'])
+        .describe('live_authorized requests remain pending until cstar_forge_authorize binds one current explicit work-referenced root-user build or resume instruction'),
+    max_retries: z.number().int().min(0).optional().describe('Must be zero for a live Forge request'),
+    live_source_allowed: z.boolean().optional().describe('Must be false for the bounded Forge authorization profile'),
+}).strict().describe('Forge request spend intent. Legacy freeform operator_authorization_ref is forbidden here.');
+
 export const dispatchCallbackSchema = z.object({
     expected_packet: z.string().min(1).describe('Required final report packet name'),
     callback_required: z.boolean().optional().describe('Defaults true'),
@@ -30,25 +37,43 @@ export const dispatchRetrySchema = z.object({
     spent: z.number().int().min(0).optional().describe('Retries already spent'),
 });
 
-export const tokenPathObservationSchema = z.object({
-    token_path_episode_id: z.string().min(1).optional().describe('Explicit episode/provenance identifier; required for recording'),
-    scenario_class: z.string().min(1).optional().describe('Measured scenario class; required for recording'),
-    selected_policy: z.string().min(1).optional().describe('Policy under observation; required for recording'),
-    advised_mode: z.string().min(1).optional().describe('Advisor mode under observation; required for recording'),
-    observed_raw_tokens_episode: z.number().int().min(0).optional().describe('Measured raw token count; required for recording'),
-    observed_billable_tokens_episode: z.number().int().min(0).optional().describe('Measured billable token count; required for recording'),
-    rounds: z.number().int().positive().optional().describe('Measured execution rounds; required for recording'),
-    verification_result: z.enum(['pass', 'fail', 'not-run', 'unknown']).optional().describe('Explicit verification result; required for recording'),
-    terminal_outcome: z.enum([
-        'verified-success',
-        'completed-unverified',
-        'needs-followup',
-        'deferred',
-        'failed',
-        'unknown',
-    ]).optional().describe('Explicit terminal outcome; required for recording'),
-    notes: z.string().optional(),
-}).strict().describe('Explicit measured TokenPath observation. Sparse, contradictory, or caller-derived actual_* fields are skipped without failing the validation result.');
+export const dispatchRequestedActionSchema = z.enum([
+    'request_receipt',
+    'response_only',
+    'project_files',
+    'validation_artifacts',
+    'authorized_source_collection',
+]);
+
+export const dispatchProhibitedActionSchema = z.enum([
+    'request_receipt',
+    'response_only',
+    'project_files',
+    'validation_artifacts',
+    'authorized_source_collection',
+    'git_branch',
+    'git_commit',
+    'git_push',
+    'git_merge',
+    'git_pull_request',
+    'install',
+    'deploy',
+    'restart',
+    'activation',
+    'secret_config_mutation',
+    'credential_mutation',
+    'token_mutation',
+    'direct_state_write',
+    'destructive_cleanup',
+    'permission_change',
+    'process_control',
+    'service_control',
+    'steering',
+    'locked_holdout',
+    'expanded_spend',
+    'production_claim',
+    'out_of_scope_writes',
+]);
 
 export const dispatchRequestSchema = {
     bead_id: z.string().optional().describe('CStar bead id anchoring the request'),
@@ -65,10 +90,11 @@ export const dispatchRequestSchema = {
     authority_lane: z.enum(['green', 'yellow', 'red']).describe('Authority/risk lane'),
     required_metrics: z.array(dispatchMetricSchema).min(1).describe('Required metrics with thresholds'),
     artifact_expectations: z.array(z.string().min(1)).min(1).describe('Expected artifacts/reports/packages'),
-    prohibited_actions: z.array(z.string().min(1)).min(1).describe('Actions explicitly forbidden to the dispatched surface'),
-    requested_actions: z.array(z.string().min(1)).optional().describe('Actions the request asks the surface to perform; checked against prohibited_actions/red gates'),
+    prohibited_actions: z.array(dispatchProhibitedActionSchema).min(1).describe('Exact canonical action ids explicitly forbidden to the dispatched surface'),
+    requested_actions: z.array(dispatchRequestedActionSchema).min(1).describe('Exact canonical action ids that alone define requested authority; exactly one primary action is required'),
     spend_policy: dispatchSpendPolicySchema.describe('Spend/live-source policy and retry cap'),
     live_source_policy: z.string().optional().describe('Additional live-source/source-adapter policy text'),
+    fixture_policy: z.literal('synthetic_only').optional().describe('Live Forge work is restricted to synthetic fixtures; required for live authorization'),
     retry_policy: dispatchRetrySchema.optional().describe('Decision retry budget/spent contract'),
     callback_contract: dispatchCallbackSchema.describe('Callback packet contract'),
     package_locks: z.array(dispatchPackageLockSchema).optional().describe('Optional package/hash locks'),
@@ -77,17 +103,28 @@ export const dispatchRequestSchema = {
 
 export const forgeRequestSchema = {
     ...dispatchRequestSchema,
+    spend_policy: forgeRequestSpendPolicySchema,
     execution_adapter_ref: z.string().optional().describe('Requested registered Forge/Hermes/MiniMax adapter; required for live authorization'),
+};
+
+export const forgeAuthorizeSchema = {
+    forge_request_receipt_id: z.string().regex(/^dispatch-forge-[a-f0-9]{32}$/)
+        .describe('Immutable pending Forge request receipt returned by cstar_forge_request'),
+    request_sha256: z.string().regex(/^[a-f0-9]{64}$/)
+        .describe('Exact canonical request digest returned by cstar_forge_request'),
+    goal_resume_id: z.string().regex(/^goal-resume:[a-f0-9]{64}$/).optional()
+        .describe('Router-supplied immutable CStar goal-continuation receipt; never operator-authored request material'),
 };
 
 export const forgeExecuteSchema = {
     ...dispatchRequestSchema,
+    spend_policy: forgeRequestSpendPolicySchema.describe('Canonical request spend policy; execute authority comes only from the request-bound root-user authorization reference and durable receipt'),
     forge_request_receipt_id: z.string().min(1).describe('Receipt id returned by cstar_forge_request; must start with dispatch-forge-'),
     forge_request_decision_id: z.string().min(1).describe('Decision id from the cstar_forge_request receipt'),
     forge_request_bead_id: z.string().optional().describe('Bead id from the cstar_forge_request receipt; must match bead_id when both are supplied'),
-    execution_mode: z.enum(['no_op', 'live_authorized']).describe('no_op validates without live spend; live_authorized requires a durable exact request and request-bound one-shot operator attestation'),
+    execution_mode: z.enum(['no_op', 'live_authorized']).describe('no_op validates without live spend; live_authorized requires a durable immutable request and request-bound one-shot operator attestation'),
     execution_adapter_ref: z.string().optional().describe('Explicit approved Forge/Hermes/MiniMax adapter reference; unregistered adapters fail closed'),
     operator_authorization_ref: z.string().optional().describe('Request-bound operator attestation reference; a nonempty string alone is not authority'),
     idempotency_key: z.string().min(1).describe('Caller-stable key for this exact execution attempt; replays never invoke the adapter twice'),
-    retry_of_attempt_id: z.string().optional().describe('Required only for an authorized retry of a FAILED_RETRYABLE attempt'),
+    retry_of_attempt_id: z.string().optional().describe('Kernel/router-populated parent for an exact independently validated FAILED_RETRYABLE pre-provider continuation; never operator-authored'),
 };

@@ -1,7 +1,15 @@
 #!/usr/bin/env python3
-"""Fail-closed compatibility entrypoint for a retired Hermes one-shot."""
+"""Retired direct-Hermes one-shot research tombstone."""
 
-from retired import main
+import sys
+
+
+ERROR = "legacy_hermes_daemon_retired_use_cstar_forge_or_researcher"
+
+
+def main() -> int:
+    sys.stderr.write(f"{ERROR}\n")
+    return 1
 
 
 if __name__ == "__main__":

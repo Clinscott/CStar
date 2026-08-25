@@ -6,15 +6,19 @@ import os
 import sys
 from pathlib import Path
 from collections import defaultdict
-from typing import Any
+from typing import Any, NoReturn
 
 # Add core project root to path for shared imports
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.append(str(PROJECT_ROOT))
 
-from src.core.engine.vector import SovereignVector
 from src.core.sovereign_hud import SovereignHUD
+
+
+LEGACY_VECTOR_SCAN_CALLER_ERROR = (
+    "legacy_python_vector_scan_caller_retired_use_cstar_validation"
+)
 
 class TraceRenderer:
     """
@@ -22,11 +26,15 @@ class TraceRenderer:
     Ensures ODIN can view ALFRED'S traces in their native Cyan without persona leakage.
     """
     def __init__(self, target_persona: str) -> None:
-        self.target_persona = target_persona
+        self.target_persona = target_persona.upper()
         self.original_persona = SovereignHUD.PERSONA
-        SovereignHUD.PERSONA = target_persona
-        self.theme = SovereignHUD.get_theme()
-        SovereignHUD.PERSONA = self.original_persona # Restore
+        is_odin = self.target_persona in {"ODIN", "GOD"}
+        self.theme = {
+            "main": SovereignHUD.RED if is_odin else SovereignHUD.CYAN,
+            "dim": SovereignHUD.MAGENTA if is_odin else SovereignHUD.CYAN_DIM,
+            "war_title": "THE WAR ROOM" if is_odin else "TRACE ANALYSIS",
+            "trace_label": "Target" if is_odin else "Trace",
+        }
 
     def box_top(self, title: str) -> None:
         SovereignHUD.PERSONA = self.target_persona
@@ -136,33 +144,9 @@ class TraceVisualizer:
             return {}
 
     @staticmethod
-    def get_engine():
-        base_path = PROJECT_ROOT / ".agents"
-        config = TraceVisualizer.load_json(str(base_path / "config.json"))
-
-        def _res(fname):
-            qmd = PROJECT_ROOT / fname.replace('.md', '.qmd')
-            md = PROJECT_ROOT / fname
-            return str(qmd if qmd.exists() else md)
-
-        engine = SovereignVector(
-            thesaurus_path=_res("thesaurus.qmd"),
-            corrections_path=str(base_path / "corrections.json"),
-            stopwords_path=str(base_path / "scripts" / "stopwords.json")
-        )
-
-        if hasattr(engine, 'load_core_skills'):
-            engine.load_core_skills()
-        engine.load_skills_from_dir(str(base_path / "skills"))
-
-        framework_root = config.get("FrameworkRoot")
-        if framework_root:
-            global_path = Path(framework_root) / "skills_db"
-            if global_path.exists():
-                engine.load_skills_from_dir(str(global_path), prefix="GLOBAL:")
-
-        engine.build_index()
-        return engine
+    def get_engine() -> NoReturn:
+        """Fail before path discovery or legacy vector construction."""
+        raise RuntimeError(LEGACY_VECTOR_SCAN_CALLER_ERROR)
 
     @staticmethod
     def mode_live(query: str) -> None:

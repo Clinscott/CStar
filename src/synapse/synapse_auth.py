@@ -1,25 +1,47 @@
-#!/usr/bin/env python3
-"""Fail-closed tombstone for the retired local Synapse handshake."""
+"""Retired Synapse persona-authentication compatibility surface.
+
+Persona is style-only and may be read only through the bounded ``cstar_status``
+projection.  This module never opens a configuration file or derives a local
+secret-backed authority signal.
+"""
 
 from __future__ import annotations
 
-import sys
+
+RETIRED_ERROR = "legacy_synapse_persona_auth_retired_persona_is_not_authority"
 
 
-RETIRED_REASON = "legacy_synapse_auth_retired_no_remote_verifier"
+class PersonaVerifier:
+    """Fail-closed compatibility object with no secret or configuration access."""
 
+    def __init__(self, config_path: str) -> None:
+        self.config_path = config_path
+        self.secret = None
 
-def authenticate_sync(_persona: str) -> bool:
-    """No local challenge can authorize a remote knowledge mutation."""
-    return False
+    def _load_secret(self) -> None:
+        return None
+
+    def generate_challenge(self) -> str:
+        raise RuntimeError(RETIRED_ERROR)
+
+    def solve_challenge(self, challenge: str, persona: str) -> str:
+        raise RuntimeError(RETIRED_ERROR)
+
+    def verify_response(self, challenge: str, response: str, persona: str) -> bool:
+        return False
 
 
 class SynapseAuthenticator:
-    """Compatibility facade that always rejects the retired handshake."""
+    """Never treats a local persona handshake as authorization."""
 
-    authenticate_sync = staticmethod(authenticate_sync)
+    @staticmethod
+    def authenticate_sync(persona: str) -> bool:
+        return False
+
+
+def main() -> int:
+    return 2
 
 
 if __name__ == "__main__":
-    print(RETIRED_REASON, file=sys.stderr)
-    raise SystemExit(78)
+    raise SystemExit(main())

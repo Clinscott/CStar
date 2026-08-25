@@ -1,11 +1,24 @@
 ---
-name: persona-audit-retired
-description: Historical marker for retired persona-purity scoring.
-status: decommissioned
+name: Persona Audit
+description: Analyzes text to ensure semantic alignment with the active persona (O.D.I.N./ALFRED).
 ---
 
-# Persona Audit (decommissioned)
+# Persona Audit Skill
 
-Do not score vocabulary overlap or enforce theatrical persona fidelity.
-Persona configuration may identify the active style and domain emphasis only;
-it cannot change logic, authority, routing, gates, or evidence standards.
+Utilize this skill to verify that the agent's recent communication adheres to the mandated persona.
+
+## Activation Words:
+audit, identity, purity, check voice, persona alignment
+
+## Usage:
+1. **Audit String**: `python .agents/scripts/audit_dialogue.py "Your text here"`
+2. **Audit File**: `python .agents/scripts/audit_dialogue.py --file path/to/report.qmd`
+
+## Logic:
+The skill calculate the token overlap between the input and the persona's designated `dialogue_db` corpus.
+
+- **O.D.I.N.**: Expects powerful, archaic, and clinical terminology.
+- **ALFRED**: Expects polite, servile, and manor-context terminology.
+
+## Workflow Integration:
+Run this as the final step of any major report generation to ensure compliance with the Linscott Standard's Persona Fidelity mandate.

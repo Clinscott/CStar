@@ -21,7 +21,7 @@ jobs:
     runs-on: 'ubuntu-latest'
     timeout-minutes: 15
     permissions:
-      contents: 'write'
+      contents: 'read'
       id-token: 'write'
       issues: 'write'
       pull-requests: 'write'
@@ -34,26 +34,50 @@ jobs:
         with:
           app-id: '${{ vars.APP_ID }}'
           private-key: '${{ secrets.APP_PRIVATE_KEY }}'
-          permission-contents: 'write'
+          permission-contents: 'read'
           permission-issues: 'write'
           permission-pull-requests: 'write'
 
       - name: 'Checkout repository'
         uses: 'actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8' # ratchet:actions/checkout@v6
         with:
-          token: '${{ steps.mint_identity_token.outputs.token || secrets.GITHUB_TOKEN || github.token }}'
           fetch-depth: 0
+          persist-credentials: false
+
+      - name: 'Prepare bounded planning context'
+        env:
+          TITLE: '${{ github.event.pull_request.title || github.event.issue.title }}'
+          DESCRIPTION: '${{ github.event.pull_request.body || github.event.issue.body }}'
+          EVENT_NAME: '${{ github.event_name }}'
+          IS_PULL_REQUEST: '${{ !!github.event.pull_request }}'
+          ISSUE_NUMBER: '${{ github.event.pull_request.number || github.event.issue.number }}'
+          REPOSITORY: '${{ github.repository }}'
+          ADDITIONAL_CONTEXT: '${{ inputs.additional_context }}'
+        run: |-
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          fs.mkdirSync('.gemini', { recursive: true });
+          const contextData = {
+            title: process.env.TITLE || '',
+            description: process.env.DESCRIPTION || '',
+            event_name: process.env.EVENT_NAME || '',
+            is_pull_request: process.env.IS_PULL_REQUEST === 'true',
+            issue_number: Number(process.env.ISSUE_NUMBER || 0),
+            repository: process.env.REPOSITORY || '',
+            additional_context: process.env.ADDITIONAL_CONTEXT || '',
+          };
+          fs.writeFileSync('.gemini/context.json', JSON.stringify(contextData), {
+            encoding: 'utf8',
+            mode: 0o600,
+          });
+          NODE
 
       - name: 'Run Gemini plan and execute'
         uses: 'google-github-actions/run-gemini-cli@v0' # ratchet:exclude
         id: 'gemini_plan_execute'
         env:
+          GEMINI_CLI_TRUST_WORKSPACE: 'true'
           GITHUB_TOKEN: '${{ steps.mint_identity_token.outputs.token || secrets.GITHUB_TOKEN || github.token }}'
-          ISSUE_TITLE: '${{ github.event.pull_request.title || github.event.issue.title }}'
-          ISSUE_BODY: '${{ github.event.pull_request.body || github.event.issue.body }}'
-          PULL_REQUEST_NUMBER: '${{ github.event.pull_request.number || github.event.issue.number }}'
-          REPOSITORY: '${{ github.repository }}'
-          ADDITIONAL_CONTEXT: '${{ inputs.additional_context }}'
         with:
           gcp_location: '${{ vars.GOOGLE_CLOUD_LOCATION }}'
           gcp_project_id: '${{ vars.GOOGLE_CLOUD_PROJECT }}'
@@ -108,13 +132,7 @@ jobs:
                 }
               },
               "tools": {
-                "core": [
-                  "run_shell_command(cat)",
-                  "run_shell_command(echo)",
-                  "run_shell_command(grep)",
-                  "run_shell_command(head)",
-                  "run_shell_command(tail)"
-                ]
+                "core": []
               }
             }
           prompt: '/gemini-plan-execute'

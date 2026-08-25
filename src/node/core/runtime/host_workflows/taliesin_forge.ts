@@ -5,21 +5,25 @@ import type {
     WeaveInvocation,
     WeaveResult,
 } from '../contracts.js';
-import { retiredWorkflowResult } from '../retired_workflow.js';
+import { buildRetiredRuntimeResult } from '../retired_adapter.js';
 
+/** Retired local TALIESIN process adapter. Use the durable Forge MCP lane. */
 export class TaliesinForgeHostWorkflow implements RuntimeAdapter<TaliesinForgeWeavePayload> {
     public readonly id = 'weave:taliesin-forge';
-    public constructor(...args: unknown[]) { void args; }
+
+    public constructor(..._retiredDependencies: unknown[]) {
+        void _retiredDependencies;
+    }
 
     public async execute(
-        invocation: WeaveInvocation<TaliesinForgeWeavePayload>,
-        context: RuntimeContext,
+        _invocation: WeaveInvocation<TaliesinForgeWeavePayload>,
+        _context: RuntimeContext,
     ): Promise<WeaveResult> {
-        void invocation; void context;
-        return retiredWorkflowResult(
-            this.id,
-            'Use cstar_forge_request, cstar_forge_execute, and cstar_record_result.',
-        );
+        return buildRetiredRuntimeResult({
+            weaveId: this.id,
+            boundary: 'retired-taliesin-forge-workflow',
+            recommendedTool: 'cstar_forge_request',
+        });
     }
 }
 

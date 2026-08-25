@@ -1,36 +1,30 @@
-import asyncio
 from pathlib import Path
 
 import pytest
 
-from src.skills.local import dormancy
+from src.skills.local.dormancy import RETIREMENT_MESSAGE, main
 
 
-def test_dormancy_compatibility_surface_is_fail_closed(capsys):
-    assert dormancy.main() == 2
-    output = capsys.readouterr().out
-    assert dormancy.DECOMMISSIONED_CODE in output
-    assert "cstar-closeout" in output
-
-
-def test_dormancy_cycle_rejects_without_writing(tmp_path, monkeypatch):
+def test_retired_dormancy_fails_closed_without_writes(tmp_path, monkeypatch) -> None:
     monkeypatch.chdir(tmp_path)
-    before = set(Path(tmp_path).rglob("*"))
 
-    with pytest.raises(dormancy.DormancyAutomationDecommissioned):
-        asyncio.run(dormancy.consolidated_memory())
+    with pytest.raises(SystemExit, match="^Legacy dormancy automation is retired") as error:
+        main()
 
-    assert set(Path(tmp_path).rglob("*")) == before
+    assert str(error.value) == RETIREMENT_MESSAGE
+    assert list(tmp_path.rglob("*")) == []
 
 
-def test_dormancy_source_has_no_actuation_imports():
-    source = Path(dormancy.__file__).read_text(encoding="utf-8")
-    for forbidden in (
-        "subprocess",
-        "mimir",
+def test_retired_dormancy_has_no_legacy_autonomous_surfaces() -> None:
+    source = (
+        Path(__file__).resolve().parents[2] / "src" / "skills" / "local" / "dormancy.py"
+    ).read_text(encoding="utf-8")
+
+    for retired_surface in (
+        "consolidated_memory",
         "BeadLedger",
-        "write_text(",
-        "open(",
-        "requests",
+        "mimir",
+        "subprocess",
+        "write_text",
     ):
-        assert forbidden not in source
+        assert retired_surface not in source

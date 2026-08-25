@@ -1,6 +1,5 @@
 import pytest
-import re
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 from pathlib import Path
 from src.core.engine.wardens.taste import TasteWarden
 

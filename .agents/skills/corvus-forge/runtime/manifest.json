@@ -1,0 +1,24 @@
+{
+  "schema": "cstar.forge_private_runtime_manifest.v2",
+  "runtime_owner": "cstar",
+  "credential_profile_owner": "hermes",
+  "credential_profile": "cstar-hub",
+  "provider": "minimax-oauth",
+  "model": "MiniMax-M3",
+  "launcher": "bin/hermes",
+  "source_files": [
+    "hermes_cli/__init__.py",
+    "hermes_cli/forge_mode.py",
+    "hermes_cli/forge_minimax_oauth.py",
+    "hermes_cli/forge_provider_journal.py",
+    "hermes_cli/forge_entrypoint.py",
+    "hermes_cli/forge_entrypoint_support.py"
+  ],
+  "bootstrap_mode": "cstar_owned_python_system_stdlib_snapshot_v2",
+  "dependency_mode": "stdlib_only_no_site_packages_v2",
+  "network_entrypoint": "hermes_cli.forge_entrypoint",
+  "allow_arbitrary_source_root": false,
+  "oauth_read_only": true,
+  "oauth_refresh_allowed": false,
+  "oauth_store_write_allowed": false
+}

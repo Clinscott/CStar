@@ -5,21 +5,25 @@ import type {
     WeaveInvocation,
     WeaveResult,
 } from '../contracts.js';
-import { retiredWorkflowResult } from '../retired_workflow.js';
+import { buildRetiredRuntimeResult } from '../retired_adapter.js';
 
+/** Retired direct restoration/evolve/distill composition workflow. */
 export class RestorationHostWorkflow implements RuntimeAdapter<RestorationWeavePayload> {
     public readonly id = 'weave:restoration';
-    public constructor(...args: unknown[]) { void args; }
+
+    public constructor(..._retiredDependencies: unknown[]) {
+        void _retiredDependencies;
+    }
 
     public async execute(
-        invocation: WeaveInvocation<RestorationWeavePayload>,
-        context: RuntimeContext,
+        _invocation: WeaveInvocation<RestorationWeavePayload>,
+        _context: RuntimeContext,
     ): Promise<WeaveResult> {
-        void invocation; void context;
-        return retiredWorkflowResult(
-            this.id,
-            'Create a bounded repair lifecycle and route implementation through Corvus Forge.',
-        );
+        return buildRetiredRuntimeResult({
+            weaveId: this.id,
+            boundary: 'retired-restoration-host-workflow',
+            recommendedTool: 'cstar_handoff',
+        });
     }
 }
 

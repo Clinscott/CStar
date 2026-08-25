@@ -1,63 +1,51 @@
-"""Non-Ravens warden contracts retained after Python Ravens retirement."""
+"""Retirement contracts for the legacy Python Ravens execution family."""
 
-import json
-from pathlib import Path
+from contextlib import ExitStack
+from unittest.mock import patch
 
-from src.core.engine.hall_schema import HallFileRecord, HallOfRecords, HallScanRecord
+import pytest
+
+from src.core.engine.ravens.muninn import Muninn
+from src.core.engine.ravens.muninn_crucible import MuninnCrucible
+from src.core.engine.ravens.muninn_heart import MuninnHeart
 from src.core.engine.wardens.edda import EddaWarden
 from src.core.engine.wardens.norn import NornWarden
 
 
-class TestNornWarden:
-    @staticmethod
-    def _seed_beads(root: Path) -> None:
-        agents_dir = root / ".agents"
-        agents_dir.mkdir()
-        (agents_dir / "sovereign_state.json").write_text(json.dumps({}), encoding="utf-8")
+RAVENS_ERROR = "legacy_python_ravens_engine_retired_use_cstar_kernel"
+AUTONOMOUS_ERROR = (
+    "legacy_python_autonomous_effect_surface_retired_use_cstar_kernel"
+)
 
-        hall = HallOfRecords(root)
-        repo = hall.bootstrap_repository()
-        hall.record_scan(
-            HallScanRecord(
-                scan_id="scan-1",
-                repo_id=repo.repo_id,
-                scan_kind="contract",
-                status="COMPLETED",
-                baseline_gungnir_score=4.2,
-                started_at=1700000000000,
-                completed_at=1700000000100,
-                metadata={},
+
+@pytest.mark.parametrize(
+    ("invoke", "error"),
+    [
+        (lambda: Muninn("synthetic"), RAVENS_ERROR),
+        (lambda: MuninnCrucible("synthetic", object()), RAVENS_ERROR),
+        (lambda: MuninnHeart("synthetic", object()), RAVENS_ERROR),
+        (lambda: NornWarden("synthetic"), AUTONOMOUS_ERROR),
+        (lambda: EddaWarden("synthetic"), AUTONOMOUS_ERROR),
+    ],
+)
+def test_legacy_execution_contract_fails_before_effects(invoke, error):
+    with ExitStack() as stack:
+        probes = [
+            stack.enter_context(patch(target))
+            for target in (
+                "builtins.open",
+                "pathlib.Path.read_text",
+                "pathlib.Path.write_text",
+                "pathlib.Path.mkdir",
+                "pathlib.Path.rglob",
+                "subprocess.run",
+                "sqlite3.connect",
+                "socket.socket",
+                "os.putenv",
             )
-        )
-        hall.record_file(
-            HallFileRecord(
-                repo_id=repo.repo_id,
-                scan_id="scan-1",
-                path="src/fix_thing.py",
-                gungnir_score=2.0,
-                created_at=1700000000200,
-            )
-        )
+        ]
+        with pytest.raises(RuntimeError, match=f"^{error}$"):
+            invoke()
 
-        NornWarden(root).coordinator.ledger.upsert_bead(
-            target_path="src/fix_thing.py",
-            rationale="Fix the thing",
-            contract_refs=["contracts:fix-thing"],
-            acceptance_criteria="Raise the baseline above 5.0.",
-        )
-
-    def test_get_next_target_finds_first_actionable(self, tmp_path: Path) -> None:
-        self._seed_beads(tmp_path)
-        target = NornWarden(tmp_path).get_next_target()
-        assert target is not None
-        assert "Fix the thing" in target["action"]
-
-
-class TestEddaWarden:
-    def test_detects_missing_docstrings(self, tmp_path: Path) -> None:
-        src_dir = tmp_path / "src"
-        src_dir.mkdir()
-        no_doc = src_dir / "no_docs.py"
-        no_doc.write_text("def naked():\n    pass\n", encoding="utf-8")
-        targets = EddaWarden(tmp_path).scan()
-        assert any("no_docs.py" in target["file"] for target in targets)
+    for probe in probes:
+        probe.assert_not_called()

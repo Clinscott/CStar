@@ -14,7 +14,7 @@ export function saveHallOneMindBroker(
     record: HallOneMindBrokerRecord,
     rootPath: string = registry.getRoot(),
 ): void {
-    const db = database.getDb(rootPath);
+    const db = database.getWritableDb(rootPath);
     db.prepare(`
         INSERT INTO hall_one_mind_broker (
             repo_id, status, binding_state, fulfillment_ready, provider, session_id,
@@ -44,7 +44,7 @@ export function saveHallOneMindBroker(
 }
 
 export function getHallOneMindBroker(rootPath: string = registry.getRoot()): HallOneMindBrokerRecord | null {
-    const db = database.getDb(rootPath);
+    const db = database.getReadDb(rootPath);
     const repoId = buildHallRepositoryId(normalizeHallPath(rootPath));
     const row = db.prepare(`
         SELECT repo_id, status, binding_state, fulfillment_ready, provider, session_id,
@@ -76,7 +76,7 @@ export function getHallOneMindRequest(
     requestId: string,
     rootPath: string = registry.getRoot(),
 ): HallOneMindRequestRecord | null {
-    const db = database.getDb(rootPath);
+    const db = database.getReadDb(rootPath);
     const row = db.prepare(`
         SELECT request_id, repo_id, caller_source, boundary, request_status, transport_preference,
                prompt, system_prompt, response_text, error_text, lease_owner, claimed_at,
@@ -114,7 +114,7 @@ export function saveHallOneMindRequest(
     record: HallOneMindRequestRecord,
     rootPath: string = registry.getRoot(),
 ): void {
-    const db = database.getDb(rootPath);
+    const db = database.getWritableDb(rootPath);
     db.prepare(`
         INSERT INTO hall_one_mind_requests (
             request_id, repo_id, caller_source, boundary, request_status, transport_preference,
@@ -155,7 +155,7 @@ export function saveHallOneMindBranch(
     record: HallOneMindBranchRecord,
     rootPath: string = registry.getRoot(),
 ): void {
-    const db = database.getDb(rootPath);
+    const db = database.getWritableDb(rootPath);
     db.prepare(`
         INSERT INTO hall_one_mind_branches (
             branch_id, repo_id, source_weave, branch_group_id, branch_kind, branch_label, branch_index,
@@ -203,7 +203,7 @@ export function listHallOneMindBranches(
         traceId?: string;
     } = {},
 ): HallOneMindBranchRecord[] {
-    const db = database.getDb(rootPath);
+    const db = database.getReadDb(rootPath);
     const repoId = buildHallRepositoryId(normalizeHallPath(rootPath));
     const params: unknown[] = [repoId];
     let sql = `
@@ -348,7 +348,7 @@ export function claimNextHallOneMindRequest(
     statuses: HallOneMindRequestStatus[] = ['PENDING'],
     boundaries: HallOneMindRequestRecord['boundary'][] = ['primary', 'subagent'],
 ): HallOneMindRequestRecord | null {
-    const db = database.getDb(rootPath);
+    const db = database.getWritableDb(rootPath);
     const repoId = buildHallRepositoryId(normalizeHallPath(rootPath));
     const now = Date.now();
     const findSql = `
@@ -399,7 +399,7 @@ export function claimHallOneMindRequest(
     statuses: HallOneMindRequestStatus[] = ['PENDING'],
     boundaries: HallOneMindRequestRecord['boundary'][] = ['primary', 'subagent'],
 ): HallOneMindRequestRecord | null {
-    const db = database.getDb(rootPath);
+    const db = database.getWritableDb(rootPath);
     const now = Date.now();
     const result = db.prepare(`
         UPDATE hall_one_mind_requests
@@ -423,7 +423,7 @@ export function listHallOneMindRequests(
     rootPath: string = registry.getRoot(),
     statuses?: HallOneMindRequestStatus[],
 ): HallOneMindRequestRecord[] {
-    const db = database.getDb(rootPath);
+    const db = database.getReadDb(rootPath);
     const repoId = buildHallRepositoryId(normalizeHallPath(rootPath));
     const params: unknown[] = [repoId];
     let sql = `

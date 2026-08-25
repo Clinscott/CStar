@@ -1,34 +1,24 @@
-"""Fail-closed import compatibility for the retired Python Ravens runtime."""
+"""Retired autonomous Ravens runtime entrypoints."""
 
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Any
+from typing import NoReturn
 
-from src.core.engine.ravens.retired import rejected_cycle_result
-from src.core.engine.ravens_stage import RavensCycleResult
+
+LEGACY_PYTHON_RAVENS_ENGINE_ERROR = (
+    "legacy_python_ravens_engine_retired_use_cstar_kernel"
+)
+
+
+def _retired() -> NoReturn:
+    raise RuntimeError(LEGACY_PYTHON_RAVENS_ENGINE_ERROR)
 
 
 async def execute_ravens_cycle_contract(
-    project_root: Path | str,
-    *,
-    uplink: Any | None = None,
-) -> RavensCycleResult:
-    """Return a rejection receipt; ``uplink`` is ignored and never invoked."""
-
-    del uplink
-    return rejected_cycle_result(project_root)
+    *_args: object, **_kwargs: object
+) -> NoReturn:
+    _retired()
 
 
-async def execute_ravens_cycle(
-    project_root: Path | str,
-    *,
-    uplink: Any | None = None,
-) -> bool:
-    """Preserve the boolean facade while always rejecting legacy execution."""
-
-    result = await execute_ravens_cycle_contract(project_root, uplink=uplink)
-    return result.status == "SUCCESS"
-
-
-__all__ = ["execute_ravens_cycle", "execute_ravens_cycle_contract"]
+async def execute_ravens_cycle(*_args: object, **_kwargs: object) -> NoReturn:
+    _retired()

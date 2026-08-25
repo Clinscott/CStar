@@ -7,6 +7,8 @@ import {
     invokeForgeAdapterForTest,
     os,
     path,
+    database,
+    mock,
     validForgeExecuteRequest,
 } from './shared_test_setup.js';
 
@@ -58,12 +60,18 @@ describe('CStar MCP Forge live-authority containment', () => {
         process.env.CSTAR_FORGE_HERMES_MINIMAX_ADAPTER_SCRIPT = adapterPath;
         process.env.CSTAR_FORGE_EXECUTION_ARTIFACT_ROOT = artifactRoot;
 
+        const writable = mock.method(database, 'getWritableDb', () => {
+            throw new Error('pre_authorization_writable_hall_forbidden');
+        });
         const result = await handleForgeExecute(validForgeExecuteRequest());
 
         assert.strictEqual(result.isError, true);
         const parsed = JSON.parse(result.content[0].text);
-        assert.strictEqual(parsed.error, 'forge_request_receipt_not_found');
+        assert.strictEqual(parsed.error_code, 'forge_execution_authorization_required');
+        assert.strictEqual(parsed.error, 'Forge execution authorization was not established.');
+        assert.strictEqual(writable.mock.callCount(), 0);
         assert.strictEqual(fs.existsSync(invocationSentinel), false);
         assert.deepStrictEqual(fs.readdirSync(artifactRoot), []);
+        writable.mock.restore();
     });
 });

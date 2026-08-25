@@ -1,8 +1,8 @@
 import path from 'node:path';
-import type { HallBeadStatus, HallBeadTargetKind } from '../../../types/hall.js';
+import { normalizeHallPath, type HallBeadStatus, type HallBeadTargetKind } from '../../../types/hall.js';
 import { database } from '../../pennyone/intel/database.js';
+import type { McpRequestContext } from '../contracts/request_context.js';
 import { mcpMutation, textResponse } from '../contracts/responses.js';
-import { resolveProspectiveRelativePathInside } from '../contracts/runtime.js';
 import {
     compactBead,
     generateBeadId,
@@ -10,7 +10,7 @@ import {
     resolveSpokeAnchor,
     resolveSpokeRelativePath,
 } from './shared.js';
-import { boundedBeadText, safeBeadChecker, safeBeadMetadata } from './bead.js';
+import { verifyCodexRequestIdentity } from './operator_authorization.js';
 
 export interface SpokeBeadImportArgs {
     spoke: string;
@@ -32,17 +32,31 @@ export interface SpokeBeadImportArgs {
     metadata?: Record<string, unknown>;
 }
 
+function requireSafeRelativeTarget(value: string, fieldName: string): string {
+    const trimmed = value.trim();
+    const normalized = path.normalize(trimmed);
+    if (
+        !trimmed
+        || trimmed.includes('\0')
+        || path.isAbsolute(trimmed)
+        || normalized === '..'
+        || normalized.startsWith(`..${path.sep}`)
+    ) {
+        throw new Error(`spoke_relative_path_invalid:${fieldName}`);
+    }
+    return normalized.replace(/\\/g, '/');
+}
 
-export async function handleSpokeBeadImport(args: SpokeBeadImportArgs) {
+export async function handleSpokeBeadImport(
+    args: SpokeBeadImportArgs,
+    requestContext?: McpRequestContext,
+) {
     try {
+        const requestIdentity = await verifyCodexRequestIdentity(requestContext);
         const slug = requireString(args.spoke, 'spoke');
-        const intent = boundedBeadText(requireString(args.intent, 'intent'), 'intent')!;
-        const acceptance = boundedBeadText(
-            requireString(args.acceptance_criteria, 'acceptance_criteria'),
-            'acceptance_criteria',
-        )!;
-        const lorePath = boundedBeadText(requireString(args.lore_path, 'lore_path'), 'lore_path', 1024)!;
-        const callerMetadata = safeBeadMetadata(args.metadata);
+        const intent = requireString(args.intent, 'intent');
+        const acceptance = requireString(args.acceptance_criteria, 'acceptance_criteria');
+        const lorePath = requireString(args.lore_path, 'lore_path');
 
         const anchor = resolveSpokeAnchor(slug);
         if (!anchor.spoke) {
@@ -53,49 +67,43 @@ export async function handleSpokeBeadImport(args: SpokeBeadImportArgs) {
         const resolvedDesignDoc = args.design_doc_path
             ? resolveSpokeRelativePath(anchor.spoke, args.design_doc_path, 'design_doc_path')
             : undefined;
+        const relativeLorePath = normalizeHallPath(path.relative(anchor.spoke.root_path, resolvedLore));
+        const relativeDesignDocPath = resolvedDesignDoc
+            ? normalizeHallPath(path.relative(anchor.spoke.root_path, resolvedDesignDoc))
+            : undefined;
 
-        if ((args.target_paths?.length ?? 0) > 20) throw new Error('target_paths_too_many');
+        if (args.metadata && Object.keys(args.metadata).length > 0) {
+            throw new Error('spoke_import_unstructured_metadata_forbidden');
+        }
         const targetPaths = (args.target_paths || [])
-            .map((candidate) => boundedBeadText(candidate, 'target_path', 1024))
-            .filter((candidate): candidate is string => Boolean(candidate))
-            .map((candidate) => path.relative(
-                anchor.spoke!.root_path,
-                resolveProspectiveRelativePathInside(anchor.spoke!.root_path, candidate),
-            ));
+            .filter((candidate) => candidate.trim().length > 0)
+            .map((candidate, index) => requireSafeRelativeTarget(candidate, `target_paths[${index}]`));
         const primaryTargetPath = targetPaths[0];
         const extraTargetPaths = targetPaths.slice(1);
         const targetKind = args.target_kind || (primaryTargetPath ? 'FILE' : 'SPOKE');
         const beadId = args.bead_id?.trim() || generateBeadId(intent);
-        if (beadId.length > 240 || !/^[A-Za-z0-9._:-]+$/.test(beadId)) throw new Error('bead_id_invalid');
         const now = Date.now();
 
-        if ((args.contract_refs?.length ?? 0) > 50) throw new Error('contract_refs_too_many');
-        const contractRefs = [...new Set([
-            ...(args.contract_refs || []).map((entry) => boundedBeadText(entry, 'contract_ref', 1024)!),
-            `lore:${path.relative(anchor.spoke.root_path, resolvedLore)}`,
-        ])];
+        const contractRefs = [
+            ...(args.contract_refs || []),
+            `lore:${relativeLorePath}`,
+        ];
 
         const spokeMetadata: Record<string, unknown> = {
             ...(anchor.metadata || {}),
-            lore_path: path.relative(anchor.spoke.root_path, resolvedLore),
-            lore_absolute_path: resolvedLore,
+            lore_path: relativeLorePath,
         };
-        if (resolvedDesignDoc) {
-            spokeMetadata.design_doc_path = path.relative(anchor.spoke.root_path, resolvedDesignDoc);
-            spokeMetadata.design_doc_absolute_path = resolvedDesignDoc;
+        if (resolvedDesignDoc && relativeDesignDocPath) {
+            spokeMetadata.design_doc_path = relativeDesignDocPath;
         }
         if (args.wireframe_ref) {
-            spokeMetadata.wireframe_ref = boundedBeadText(args.wireframe_ref, 'wireframe_ref', 1024);
+            spokeMetadata.wireframe_ref = args.wireframe_ref;
         }
         if (args.threat_model_summary) {
-            spokeMetadata.threat_model_summary = boundedBeadText(
-                args.threat_model_summary,
-                'threat_model_summary',
-            );
+            spokeMetadata.threat_model_summary = args.threat_model_summary.slice(0, 4000);
         }
         if (args.augury_block) {
-            spokeMetadata.reported_augury_block = boundedBeadText(args.augury_block, 'augury_block');
-            spokeMetadata.reported_augury_block_authoritative = false;
+            spokeMetadata.augury_block = args.augury_block.slice(0, 4000);
         }
         if (extraTargetPaths.length > 0) {
             spokeMetadata.extra_target_paths = extraTargetPaths;
@@ -105,22 +113,25 @@ export async function handleSpokeBeadImport(args: SpokeBeadImportArgs) {
             bead_id: beadId,
             repo_id: anchor.repoId,
             target_kind: targetKind,
-            target_ref: boundedBeadText(args.target_ref, 'target_ref', 1024)
-                || primaryTargetPath
-                || `spoke://${anchor.spoke.slug}`,
+            target_ref: args.target_ref || primaryTargetPath || `spoke://${anchor.spoke.slug}`,
             target_path: primaryTargetPath,
             rationale: intent,
             contract_refs: contractRefs,
             baseline_scores: {},
             acceptance_criteria: acceptance,
-            checker_shell: safeBeadChecker(args.checker_shell),
+            checker_shell: args.checker_shell,
             status: args.status || 'OPEN',
-            assigned_agent: boundedBeadText(args.assigned_agent, 'assigned_agent', 120),
+            assigned_agent: args.assigned_agent,
             source_kind: 'MCP',
             metadata: {
-                ...callerMetadata,
-                ...spokeMetadata,
                 source: 'cstar-kernel-mcp:spoke_bead_import',
+                ...spokeMetadata,
+                mutation_request_identity: {
+                    source: requestIdentity.source,
+                    thread_id: requestIdentity.thread_id,
+                    turn_id: requestIdentity.turn_id,
+                    turn_record_set_sha256: requestIdentity.turn_record_set_sha256,
+                },
             },
             created_at: now,
             updated_at: now,

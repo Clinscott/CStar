@@ -1,5 +1,4 @@
 import { FileData, CompiledGraph } from  '../types.js';
-import fs from 'fs/promises';
 import path from 'path';
 import { registry } from  '../pathRegistry.js';
 import { getHallFiles, getHallSummary, listHallMountedSpokes } from  './database.js';
@@ -12,6 +11,9 @@ interface ProjectionMetadata {
     scan_id?: string;
     artifact_role: 'runtime_view' | 'compatibility_export';
 }
+
+const RETIRED_MATRIX_ARTIFACT_WRITE =
+    'legacy_matrix_artifact_write_retired_use_cstar_kernel';
 
 function buildCompiledGraph(
     results: FileData[],
@@ -126,14 +128,9 @@ export function compileMatrixPayload(results: FileData[], targetRepo: string): C
  * @returns {Promise<string>} Path to the generated graph
  */
 export async function compileMatrix(results: FileData[], targetRepo: string): Promise<string> {
-    const statsDir = path.join(registry.getRoot(), '.stats');
-    await fs.mkdir(statsDir, { recursive: true });
-
-    const graphPath = path.join(statsDir, 'matrix-graph.json');
-    const payload = compileMatrixPayload(results, targetRepo);
-
-    await fs.writeFile(graphPath, JSON.stringify(payload, null, 2), 'utf-8');
-    return graphPath;
+    void results;
+    void targetRepo;
+    throw new Error(RETIRED_MATRIX_ARTIFACT_WRITE);
 }
 
 export function compileMatrixFromHall(
@@ -177,16 +174,9 @@ export async function writeProjectedMatrixGraph(
     targetRepo: string,
     scanId?: string,
 ): Promise<string> {
-    const statsDir = path.join(registry.getRoot(), '.stats');
-    await fs.mkdir(statsDir, { recursive: true });
-
-    const graphPath = path.join(statsDir, 'matrix-graph.json');
-    const payload = compileMatrixFromHall(getHallFiles(targetRepo, scanId), targetRepo, {
-        scanId,
-        artifactRole: 'compatibility_export',
-    });
-    await fs.writeFile(graphPath, JSON.stringify(payload, null, 2), 'utf-8');
-    return graphPath;
+    void targetRepo;
+    void scanId;
+    throw new Error(RETIRED_MATRIX_ARTIFACT_WRITE);
 }
 
 export function buildEstateTopology(workspaceRoot: string = registry.getRoot()): EstateTopologyPayload {
@@ -240,5 +230,4 @@ export function buildEstateTopology(workspaceRoot: string = registry.getRoot()):
         edges,
     };
 }
-
 

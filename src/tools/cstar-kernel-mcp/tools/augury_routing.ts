@@ -1,5 +1,4 @@
 import path from 'node:path';
-import { analyzeCanonicalIntent } from '../../../core/intent_analysis.js';
 
 export type AuguryTargetDivergence = {
     diverged: boolean;
@@ -32,11 +31,12 @@ function normalizeAuguryComparablePath(candidate: string, root: string): string 
     return path.resolve(path.isAbsolute(trimmed) ? trimmed : path.join(root, trimmed));
 }
 
-function sessionTargetCoversRequested(sessionTarget: string, requestedTarget: string): boolean {
-    if (!sessionTarget || !requestedTarget) return false;
-    if (sessionTarget === requestedTarget) return true;
-    const sessionPrefix = sessionTarget.endsWith(path.sep) ? sessionTarget : `${sessionTarget}${path.sep}`;
-    return requestedTarget.startsWith(sessionPrefix);
+function auguryPathsOverlap(left: string, right: string): boolean {
+    if (!left || !right) return false;
+    if (left === right) return true;
+    const normalizedLeft = left.endsWith(path.sep) ? left : `${left}${path.sep}`;
+    const normalizedRight = right.endsWith(path.sep) ? right : `${right}${path.sep}`;
+    return normalizedLeft.startsWith(normalizedRight) || normalizedRight.startsWith(normalizedLeft);
 }
 
 export function detectAuguryTargetDivergence(
@@ -51,20 +51,12 @@ export function detectAuguryTargetDivergence(
         .map((targetPath) => normalizeAuguryComparablePath(targetPath, root))
         .filter(Boolean);
 
-    if (requested.length === 0) {
+    if (requested.length === 0 || session.length === 0) {
         return { diverged: false, requested_target_paths: requested, session_target_paths: session };
-    }
-    if (session.length === 0) {
-        return {
-            diverged: true,
-            requested_target_paths: requested,
-            session_target_paths: session,
-            reason: 'Caller supplied target_paths but the active Augury/handoff session has no bounded targets.',
-        };
     }
 
     const allRequestedTargetsCovered = requested.every((requestedPath) =>
-        session.some((sessionPath) => sessionTargetCoversRequested(sessionPath, requestedPath)),
+        session.some((sessionPath) => auguryPathsOverlap(requestedPath, sessionPath)),
     );
 
     return {
@@ -77,33 +69,46 @@ export function detectAuguryTargetDivergence(
     };
 }
 
+function normalizeAuguryIntentToken(token: string): string {
+    return token.toLowerCase().replace(/^[^a-z0-9]+|[^a-z0-9]+$/g, '');
+}
+
+function auguryTokenMatchesTrigger(token: string, trigger: string): boolean {
+    if (!token || !trigger) return false;
+    if (token === trigger) return true;
+    return trigger.length >= 4 && token.startsWith(trigger);
+}
+
 export function resolveAuguryCurrentIntentCategory(
     tokens: string[],
     grammar: Record<string, { triggers: string[]; default_path: string; tier: string }>,
 ): AuguryCurrentIntentCategoryMatch | null {
-    return resolveAuguryCanonicalIntent(tokens.join(' '), undefined, grammar);
-}
+    const normalizedTokens = tokens.map(normalizeAuguryIntentToken).filter(Boolean);
+    const matches: AuguryCurrentIntentCategoryMatch[] = [];
 
-export function resolveAuguryCanonicalIntent(
-    prompt: string,
-    inferredIntent: string | undefined,
-    grammar: Record<string, { triggers: string[]; default_path: string; tier: string }>,
-): AuguryCurrentIntentCategoryMatch | null {
-    const match = analyzeCanonicalIntent({
-        prompt,
-        inferred_intent: inferredIntent,
-        grammar,
-    }).primary;
-    return match
-        ? {
-            category: match.category,
-            default_path: match.default_path,
-            tier: match.tier,
-            matched_trigger: match.matched_trigger,
-            matched_triggers: match.matched_triggers,
-            match_count: match.match_count,
+    for (const [category, config] of Object.entries(grammar)) {
+        const matchedTriggers = config.triggers.filter((trigger) => {
+            const normalizedTrigger = normalizeAuguryIntentToken(trigger);
+            return normalizedTokens.some((token) => auguryTokenMatchesTrigger(token, normalizedTrigger));
+        });
+        if (matchedTriggers.length > 0) {
+            const matchCount = config.triggers.reduce((count, trigger) => {
+                const normalizedTrigger = normalizeAuguryIntentToken(trigger);
+                return count + normalizedTokens.filter((token) => auguryTokenMatchesTrigger(token, normalizedTrigger)).length;
+            }, 0);
+            matches.push({
+                category,
+                default_path: config.default_path,
+                tier: config.tier,
+                matched_trigger: matchedTriggers[0],
+                matched_triggers: matchedTriggers,
+                match_count: matchCount,
+            });
         }
-        : null;
+    }
+
+    matches.sort((left, right) => right.match_count - left.match_count);
+    return matches[0] ?? null;
 }
 
 export function callerRequestedActiveSessionContinuity(prompt: string, inferredIntent?: string): boolean {

@@ -1,9 +1,10 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
-import path from 'node:path';
 
-import { LocalIntentProvider } from '../../src/tools/pennyone/intel/llm.js';
+import {
+    SamplingProvider,
+} from '../../src/tools/pennyone/intel/llm.js';
+import { RETIRED_HOST_PROVIDER_DELEGATION_FAILURE } from '../../src/core/host_delegation.js';
 import { createGungnirMatrix } from '../../src/types/gungnir.js';
 
 const TEST_FILE_DATA = {
@@ -11,48 +12,29 @@ const TEST_FILE_DATA = {
     loc: 1,
     complexity: 1,
     matrix: createGungnirMatrix({ logic: 7, style: 7, intel: 7 }),
-    imports: [{ source: './math.js', local: 'sum', imported: 'sum' }],
+    imports: [],
     exports: ['answer'],
-    hash: 'test-hash',
+    hash: 'synthetic-hash',
 };
 
-describe('PennyOne deterministic local intent provider (CS-P1-02)', () => {
-    it('derives repeatable intent from bounded analyzer metadata only', async () => {
-        const provider = new LocalIntentProvider();
-        const first = await provider.getIntent(TEST_FILE_DATA);
-        const second = await provider.getIntent({ ...TEST_FILE_DATA });
-
-        assert.deepStrictEqual(first, second);
-        assert.match(first.intent, /answer\.ts contains runtime or tooling logic/i);
-        assert.match(first.intent, /It exposes answer\./);
-        assert.match(first.intent, /\.\/math\.js/);
-        assert.match(first.interaction, /analyzer-detected exports/i);
+describe('retired PennyOne sampling compatibility', () => {
+    it('uses a deterministic local projection without invoking the supplied model callback', async () => {
+        let callbackCalls = 0;
+        const provider = new SamplingProvider(async () => {
+            callbackCalls += 1;
+            throw new Error('must not run');
+        }, { SYNTHETIC_SECRET: 'must-not-be-read' });
+        const [result] = await provider.getBatchIntent([{
+            code: 'export const answer = 42;',
+            data: TEST_FILE_DATA,
+        }]);
+        assert.match(result.intent, /answer\.ts/);
+        assert.match(result.intent, /src\/answer\.ts/);
+        assert.equal(result.interaction, RETIRED_HOST_PROVIDER_DELEGATION_FAILURE);
+        assert.equal(callbackCalls, 0);
     });
 
-    it('does not contain a Mimir, OneMind, host, model, requester, or prompt path', () => {
-        const source = fs.readFileSync(
-            path.join(import.meta.dirname, '..', '..', 'src', 'tools', 'pennyone', 'intel', 'llm.ts'),
-            'utf8',
-        );
-
-        assert.doesNotMatch(source, /mimir_client|resolveOneMindDecision|requestHostText|requestIntelligence/);
-        assert.doesNotMatch(source, /system_prompt|buildBatchPrompt|buildSingleFilePrompt|transport_mode/);
-        assert.doesNotMatch(source, /requestPerFileIntents|single-file-fallback/i);
-    });
-
-    it('bounds metadata included in deterministic summaries', async () => {
-        const provider = new LocalIntentProvider();
-        const result = await provider.getIntent({
-            ...TEST_FILE_DATA,
-            imports: Array.from({ length: 50 }, (_, index) => ({
-                source: `dependency-${index}`,
-                local: `local-${index}`,
-                imported: `import-${index}`,
-            })),
-            exports: Array.from({ length: 50 }, (_, index) => `export${index}`),
-        });
-
-        assert.equal((result.intent.match(/dependency-/g) ?? []).length, 5);
-        assert.equal((result.intent.match(/export\d+/g) ?? []).length, 8);
+    it('returns an empty result for an empty batch', async () => {
+        assert.deepEqual(await new SamplingProvider().getBatchIntent([]), []);
     });
 });

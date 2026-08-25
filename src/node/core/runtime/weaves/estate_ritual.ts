@@ -1,46 +1,36 @@
 import type {
     RuntimeAdapter,
     RuntimeContext,
-    RuntimeDispatchPort,
     WeaveInvocation,
     WeaveResult,
-} from '../contracts.ts';
+} from '../contracts.js';
+import { buildRetiredRuntimeResult } from '../retired_adapter.js';
 
 export interface EstateRitualPayload {
     include_spokes?: boolean;
     auto_execute?: boolean;
+    auto_replan_blocked?: boolean;
 }
 
 /**
- * Fail-closed compatibility tombstone.
- *
- * The former ritual pulled CStar and every spoke, invoked ingestion, and
- * auto-resumed the host governor. Those actions require separate operator and
- * lifecycle gates and cannot be bundled behind a daily ritual.
+ * Retired autonomous daily ritual. In particular, direct construction cannot
+ * dispatch the historical bookmark-weaver or host-governor routes.
  */
 export class EstateRitualWeave implements RuntimeAdapter<EstateRitualPayload> {
     public readonly id = 'weave:estate-ritual';
 
-    public constructor(private readonly dispatchPort: RuntimeDispatchPort) {}
+    public constructor(..._retiredDependencies: unknown[]) {
+        void _retiredDependencies;
+    }
 
     public async execute(
-        invocation: WeaveInvocation<EstateRitualPayload>,
-        context: RuntimeContext,
+        _invocation: WeaveInvocation<EstateRitualPayload>,
+        _context: RuntimeContext,
     ): Promise<WeaveResult> {
-        void this.dispatchPort;
-        void invocation;
-        void context;
-        return {
-            weave_id: this.id,
-            status: 'FAILURE',
-            output: '',
-            error: 'Estate ritual is permanently decommissioned: git updates, ingestion, and execution must use separate authorized CStar lanes.',
-            metadata: {
-                adapter: 'compatibility:estate-ritual-rejected',
-                execution_attempted: false,
-                git_update_attempted: false,
-                ingestion_attempted: false,
-            },
-        };
+        return buildRetiredRuntimeResult({
+            weaveId: this.id,
+            boundary: 'retired-estate-ritual-weave',
+            recommendedTool: 'cstar_handoff',
+        });
     }
 }

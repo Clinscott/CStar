@@ -22,7 +22,7 @@ The active compositions are:
 
 | Intent | Agent-native skill | Kernel lifecycle |
 | --- | --- | --- |
-| Build, repair, improve | `corvus-forge` | `cstar_forge_request -> cstar_forge_execute -> cstar_record_result` |
+| Build, repair, improve | `corvus-forge` | `cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute -> cstar_record_result` |
 | Research, external evidence | `researcher` | `cstar_researcher_request -> authorized collection -> receipt/result` |
 | Handoff and session closeout | `cstar-closeout` | bounded evidence snapshot -> lifecycle update -> separately gated Git/activation actions |
 

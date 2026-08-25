@@ -12,6 +12,11 @@ const IDENTITY = {
     decision_id: 'decision-six-role-test',
     adapter_ref: 'cstar-forge-hermes-minimax-worker-adapter',
 };
+const MATERIAL_POLICY = {
+    schema: 'cstar.forge_material_policy.v1',
+    file_max_bytes: 512 * 1024, total_max_bytes: 512 * 1024,
+    prompt_max_bytes: 1024 * 1024,
+};
 const roots: string[] = [];
 
 function fixture(failRole = '') {
@@ -24,7 +29,8 @@ function fixture(failRole = '') {
     const intentPath = path.join(root, 'intent.json');
     fs.writeFileSync(intentPath, JSON.stringify({
         intent: 'Change only the synthetic target and return callback TEST.',
-        execution_identity: IDENTITY, project_root: root, target_paths: [target],
+        execution_identity: IDENTITY, material_policy: MATERIAL_POLICY,
+        project_root: root, target_paths: [target],
         payload: { hermes_profile: 'cstar-hub', model: 'MiniMax-M3',
             expected_output: 'json', write_to: response, timeout_seconds: 360 },
     }));
@@ -92,8 +98,9 @@ describe('CStar bounded six-role Hermes delegate', () => {
         assert.equal(envelope.degraded_reason, 'forge_hermes_exit_23');
         assert.equal(envelope.provider_requests_started, 4);
         assert.equal(envelope.provider_requests_completed, 3);
-        assert.equal(envelope.live_spend, true);
+        assert.equal(envelope.live_spend, null);
         assert.equal(envelope.live_spend_unknown, true);
+        assert.equal(envelope.known_spend_observed, true);
         assert.equal(fs.existsSync(item.response), false);
         assert.deepEqual(fs.readFileSync(item.audit, 'utf-8').trim().split('\n').map(JSON.parse)
             .map((entry: any) => entry.role), ['specifier', 'coder', 'cleaner', 'architect']);

@@ -8,15 +8,19 @@ import {
 } from './forge_adapter_runtime.js';
 
 export interface ForgeHermesRuntimeExpectation {
-    schema: 'cstar.forge_hermes_runtime_expectation.v1';
+    schema: 'cstar.forge_hermes_runtime_expectation.v2';
     locator_path: string;
     executable_sha256: string;
     runtime_content_sha256: string;
+    runtime_manifest_sha256: string | null;
+    runtime_schema: 'cstar.forge_private_runtime_manifest.v2' | 'synthetic_test_executable_v1';
+    runtime_owner: 'cstar' | 'synthetic_test';
+    credential_profile_owner: 'hermes' | 'synthetic_test';
     python_sha256: string | null;
     source_file_count: number;
     source_bytes: number;
-    bootstrap_mode: 'python_system_stdlib_snapshot_v1' | 'synthetic_test_executable_v1';
-    dependency_mode: 'stdlib_only_no_site_packages_v1' | 'synthetic_test_executable_v1';
+    bootstrap_mode: 'cstar_owned_python_system_stdlib_snapshot_v2' | 'synthetic_test_executable_v1';
+    dependency_mode: 'stdlib_only_no_site_packages_v2' | 'synthetic_test_executable_v1';
     system_python_path: string | null;
     runtime_root: string;
 }
@@ -39,8 +43,7 @@ export function canonicalForgeHermesLocator(lineagePath?: string): string {
         throw new Error('forge_hermes_lineage_path_required');
     }
     return path.resolve(
-        path.dirname(lineagePath), '..', '..', '..', '..', '..',
-        'AutoBot', 'hermes-agent', '.venv', 'bin', 'hermes',
+        path.dirname(lineagePath), '..', 'runtime', 'bin', 'hermes',
     );
 }
 
@@ -53,8 +56,8 @@ function requireDigest(value: unknown, field: string): string {
 
 function projectExpectation(runtime: Record<string, unknown>): ForgeHermesRuntimeExpectation {
     const synthetic = syntheticRuntimeAllowed();
-    const bootstrap = synthetic ? 'synthetic_test_executable_v1' : 'python_system_stdlib_snapshot_v1';
-    const dependency = synthetic ? 'synthetic_test_executable_v1' : 'stdlib_only_no_site_packages_v1';
+    const bootstrap = synthetic ? 'synthetic_test_executable_v1' : 'cstar_owned_python_system_stdlib_snapshot_v2';
+    const dependency = synthetic ? 'synthetic_test_executable_v1' : 'stdlib_only_no_site_packages_v2';
     if (runtime.bootstrap_mode !== bootstrap || runtime.dependency_mode !== dependency) {
         throw new Error('forge_hermes_runtime_expectation_mode_invalid');
     }
@@ -66,16 +69,33 @@ function projectExpectation(runtime: Record<string, unknown>): ForgeHermesRuntim
     }
     const pythonSha = runtime.python_sha256;
     const pythonPath = runtime.system_python_path;
+    const runtimeManifestSha = runtime.runtime_manifest_sha256;
+    const expectedRuntimeSchema = synthetic
+        ? 'synthetic_test_executable_v1'
+        : 'cstar.forge_private_runtime_manifest.v2';
+    const expectedRuntimeOwner = synthetic ? 'synthetic_test' : 'cstar';
+    const expectedCredentialOwner = synthetic ? 'synthetic_test' : 'hermes';
+    if (runtime.runtime_schema !== expectedRuntimeSchema
+        || runtime.runtime_owner !== expectedRuntimeOwner
+        || runtime.credential_profile_owner !== expectedCredentialOwner
+        || (synthetic ? runtimeManifestSha !== null : typeof runtimeManifestSha !== 'string')) {
+        throw new Error('forge_hermes_runtime_expectation_ownership_invalid');
+    }
     if (synthetic ? pythonSha !== null || pythonPath !== null
         : typeof pythonPath !== 'string' || !path.isAbsolute(pythonPath)
             || typeof pythonSha !== 'string') {
         throw new Error('forge_hermes_runtime_expectation_python_invalid');
     }
     return {
-        schema: 'cstar.forge_hermes_runtime_expectation.v1',
+        schema: 'cstar.forge_hermes_runtime_expectation.v2',
         locator_path: runtime.locator,
         executable_sha256: requireDigest(runtime.executable_sha256, 'executable'),
         runtime_content_sha256: requireDigest(runtime.runtime_content_sha256, 'content'),
+        runtime_manifest_sha256: runtimeManifestSha === null
+            ? null : requireDigest(runtimeManifestSha, 'manifest'),
+        runtime_schema: expectedRuntimeSchema,
+        runtime_owner: expectedRuntimeOwner,
+        credential_profile_owner: expectedCredentialOwner,
         python_sha256: pythonSha === null ? null : requireDigest(pythonSha, 'python'),
         source_file_count: Number(runtime.source_file_count),
         source_bytes: Number(runtime.source_bytes),
@@ -128,6 +148,10 @@ export function assertForgeHermesPreflightMatchesExpectation(
         ['locator_path', preflight.locator_path],
         ['executable_sha256', preflight.executable_sha256],
         ['runtime_content_sha256', preflight.runtime_content_sha256],
+        ['runtime_manifest_sha256', preflight.runtime_manifest_sha256],
+        ['runtime_schema', preflight.runtime_schema],
+        ['runtime_owner', preflight.runtime_owner],
+        ['credential_profile_owner', preflight.credential_profile_owner],
         ['python_sha256', preflight.python_sha256],
         ['source_file_count', preflight.source_file_count],
         ['source_bytes', preflight.source_bytes],

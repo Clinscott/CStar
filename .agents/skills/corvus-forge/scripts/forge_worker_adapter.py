@@ -3,22 +3,25 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import os
-import re
-import subprocess
-import sys, tempfile
+import os, re, subprocess, sys, tempfile
 from pathlib import Path
 from typing import Any, Callable
+import forge_worker_safety
 from forge_worker_safety import (
     apply_files, authorized_scopes, build_worker_manifest_contract, ensure_safe_write_target, ManifestPathContractError,
     minimal_subprocess_environment, RequiredOutputContractError, resolve_path, resolve_write_path,
     sealed_required_outputs, verify_package_locks, verify_runtime_file, write_response_json,
 )
-SUCCESS_STATUSES = {"accepted", "ok", "pass", "passed", "success", "succeeded"}; DELEGATE_FAILURE_SCHEMA = "cstar.forge_delegate_failure.v1"
-SAFE_DELEGATE_REASON = re.compile(r"^forge_[a-z0-9_]+(?:_[0-9]+)?$")
+from forge_worker_evidence import (
+    DELEGATE_FAILURE_SCHEMA, bounded_delegate_failure, bounded_process_failure, bounded_success_evidence,
+    role_evidence as project_role_evidence,
+)
+SUCCESS_STATUSES = {"accepted", "ok", "pass", "passed", "success", "succeeded"}
 EXPECTED_MANIFEST_FIELDS = set("status summary files artifacts validation metrics boundaries callback_packet".split())
-ROLE_EVIDENCE_FIELDS = "forge_topology role_plan_sha256 role_receipts provider_requests_started provider_requests_completed input_tokens output_tokens".split()
-def role_evidence(raw: dict[str, Any]) -> dict[str, Any]: return {key: raw.get(key) for key in ROLE_EVIDENCE_FIELDS}
+def newline_preserving_tempfile(*args: Any, _factory: Callable[..., Any] = tempfile.NamedTemporaryFile, **kwargs: Any) -> Any:
+    if kwargs.get("mode") == "w": kwargs.setdefault("newline", "")
+    return _factory(*args, **kwargs)
+def role_evidence(raw: dict[str, Any]) -> dict[str, Any]: return project_role_evidence(raw)[0]
 class ManifestContractError(ValueError):
     def __init__(self, code: str, details: dict[str, Any] | None = None):
         super().__init__(code)
@@ -26,29 +29,7 @@ class ManifestContractError(ValueError):
         self.details = details or {}
 class DelegateFailure(RuntimeError):
     def __init__(self, envelope: dict[str, Any]):
-        super().__init__(str(envelope["degraded_reason"]))
-        self.envelope = envelope
-def bounded_delegate_failure(raw: dict[str, Any], fallback: str) -> dict[str, Any]:
-    reason = raw.get("degraded_reason")
-    if not isinstance(reason, str) or len(reason) > 120 or not SAFE_DELEGATE_REASON.fullmatch(reason):
-        reason = fallback
-    model_source = raw.get("model_source")
-    model_source = model_source if model_source in {"unreported", "provider_reported"} else "unreported"
-    actual_model = raw.get("actual_model")
-    actual_reported = (model_source == "provider_reported" and isinstance(actual_model, str)
-                       and re.fullmatch(r"[A-Za-z0-9._:/-]{1,80}", actual_model))
-    if not actual_reported:
-        actual_model = None
-    spend = raw.get("live_spend") if isinstance(raw.get("live_spend"), bool) else None
-    return {
-        **role_evidence(raw),
-        "schema": DELEGATE_FAILURE_SCHEMA, "degraded_reason": reason,
-        "provider": "minimax-oauth", "auth_provider": "minimax-oauth", "auth_mode": "oauth", "requested_model": "MiniMax-M3",
-        "actual_model": actual_model, "model_source": model_source,
-        "hermes_profile": "cstar-hub", "live_spend": spend,
-        "live_spend_unknown": raw.get("live_spend_unknown") is True or spend is None,
-        "live_source_collection": raw.get("live_source_collection") is True,
-    }
+        super().__init__(str(envelope["degraded_reason"])); self.envelope = envelope
 def load_json(path: Path) -> dict[str, Any]:
     with path.open("r", encoding="utf-8") as handle:
         data = json.load(handle)
@@ -138,25 +119,23 @@ def verify_runtime_contract(intent: dict[str, Any]) -> tuple[Path, Path]:
     }
     if len(by_role) != len(dependencies):
         raise ValueError("sealed worker dependency roles must be unique")
-    safety_proof = by_role.get("forge_worker_safety")
-    delegate_proof = by_role.get("hermes_minimax_delegate")
-    lineage_proof = by_role.get("hermes_runtime_lineage")
-    role_plan_proof = by_role.get("forge_role_plan")
-    if set(by_role) != {
-        "forge_worker_safety", "hermes_minimax_delegate", "hermes_runtime_lineage", "forge_role_plan",
-    } or not all((safety_proof, delegate_proof, lineage_proof, role_plan_proof)):
+    expected = {
+        "forge_worker_safety": "forge_worker_safety.py",
+        "hermes_minimax_delegate": "hermes_minimax_delegate.mjs",
+        "hermes_runtime_lineage": "hermes_runtime_lineage.mjs",
+        "forge_role_plan": "forge_role_plan.mjs",
+        "forge_worker_evidence": "forge_worker_evidence.py",
+        "forge_delegate_evidence": "forge_delegate_evidence.mjs",
+        "forge_delegate_preflight": "forge_delegate_preflight.mjs",
+    }
+    if set(by_role) != set(expected):
         raise ValueError("sealed worker dependency set is incomplete")
-    safety_path = Path(__file__).resolve().parent / "forge_worker_safety.py"
-    delegate_path = Path(__file__).resolve().parent / "hermes_minimax_delegate.mjs"
-    lineage_path = Path(__file__).resolve().parent / "hermes_runtime_lineage.mjs"
-    role_plan_path = Path(__file__).resolve().parent / "forge_role_plan.mjs"
-    # Bind owner-only materialized copies to the original sealed hashes.
-    for proof in (safety_proof, delegate_proof, lineage_proof, role_plan_proof):
+    adapter_directory = Path(__file__).resolve().parent
+    for role, filename in expected.items():
+        proof = by_role[role]
         proof["owner_uid"] = os.getuid()
-    verify_runtime_file(safety_path, safety_proof, "forge_worker_safety")
-    verify_runtime_file(delegate_path, delegate_proof, "hermes_minimax_delegate")
-    verify_runtime_file(lineage_path, lineage_proof, "hermes_runtime_lineage")
-    verify_runtime_file(role_plan_path, role_plan_proof, "forge_role_plan")
+        verify_runtime_file(adapter_directory / filename, proof, role)
+    delegate_path = adapter_directory / expected["hermes_minimax_delegate"]
     python_proof = runtime.get("python_interpreter")
     node_proof = runtime.get("node_interpreter")
     if not isinstance(python_proof, dict) or not isinstance(node_proof, dict):
@@ -270,6 +249,7 @@ def model_manifest_from_delegate(
         delegate_intent = {
             "intent": base_intent + "\n\n" + worker_guard + "\n\n" + worker_manifest_contract,
             "execution_identity": execution_identity,
+            "material_policy": intent.get("material_policy"),
             "project_root": str(project_root),
             "target_paths": intent.get("target_paths", []),
             "hermes_preflight": intent.get("hermes_preflight"),
@@ -293,13 +273,16 @@ def model_manifest_from_delegate(
             "CSTAR_FORGE_EXECUTE_ADAPTER_REF": execution_identity["adapter_ref"],
         })
         before_delegate()
-        proc = subprocess.run(
-            [str(node_interpreter), str(delegate_script), "--intent-file", str(delegate_intent_path)],
-            cwd=str(project_root), env=env, text=True, stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            timeout=int(delegate_intent["payload"]["timeout_seconds"]) + 30,
-            check=False,
-        )
+        try:
+            proc = subprocess.run(
+                [str(node_interpreter), str(delegate_script), "--intent-file", str(delegate_intent_path)],
+                cwd=str(project_root), env=env, text=True, stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                timeout=int(delegate_intent["payload"]["timeout_seconds"]) + 30,
+                check=False,
+            )
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            raise DelegateFailure(bounded_process_failure(exc)) from exc
         try:
             envelope = extract_model_json(proc.stdout) if proc.stdout.strip() else {}
         except ValueError:
@@ -311,6 +294,13 @@ def model_manifest_from_delegate(
         if envelope.get("status") != "ok":
             raise DelegateFailure(bounded_delegate_failure(
                 envelope, "forge_hermes_delegate_status_not_ok",
+            ))
+        try:
+            envelope.update(bounded_success_evidence(envelope))
+        except ValueError:
+            envelope["degraded_reason"] = "forge_worker_delegate_evidence_invalid"
+            raise DelegateFailure(bounded_delegate_failure(
+                envelope, "forge_worker_delegate_evidence_invalid",
             ))
         if not model_response.is_file():
             raise ValueError("delegate did not write model response")
@@ -385,6 +375,8 @@ def main() -> int:
     model_invocation_started = False
     model_invocation_can_spend = False
     observed_live_spend: bool | None = None
+    observed_live_spend_unknown = False
+    known_spend_observed = False
     intent: dict[str, Any] | None = None
     manifest: dict[str, Any] | None = None
     delegate_envelope: dict[str, Any] = {}
@@ -425,16 +417,19 @@ def main() -> int:
             intent, project_root, node_interpreter, delegate_script,
             worker_manifest_contract, execution_identity, mark_model_invocation_started,
         )
-        if isinstance(delegate_envelope.get("live_spend"), bool):
-            observed_live_spend = delegate_envelope["live_spend"]
+        observed_live_spend = delegate_envelope.get("live_spend")
+        observed_live_spend_unknown = delegate_envelope.get("live_spend_unknown") is True
+        known_spend_observed = delegate_envelope.get("known_spend_observed") is True
         files = normalize_file_entries(manifest)
         expected_callback = str(intent.get("expected_callback_packet") or "").strip()
         validate_callback_packet(manifest, expected_callback)
         def persist_validated_response(changed_files: list[dict[str, Any]]) -> None:
             response = build_response(manifest, changed_files, delegate_envelope, intent, project_root)
             write_response_json(response_path, response)
-        changed = apply_files(project_root, scopes, files, required_output_paths,
-                              persist_validated_response)
+        original_tempfile = forge_worker_safety.tempfile.NamedTemporaryFile; forge_worker_safety.tempfile.NamedTemporaryFile = newline_preserving_tempfile
+        try:
+            changed = apply_files(project_root, scopes, files, required_output_paths, persist_validated_response)
+        finally: forge_worker_safety.tempfile.NamedTemporaryFile = original_tempfile
         print(json.dumps({
             **role_evidence(delegate_envelope),
             "status": "ok", "intent_id": os.environ.get("CSTAR_FORGE_EXECUTE_RECEIPT_ID"),
@@ -445,7 +440,10 @@ def main() -> int:
             "requested_model": delegate_envelope.get("requested_model", intent["payload"]["model"]),
             "actual_model": delegate_envelope.get("actual_model"), "model_source": delegate_envelope.get("model_source", "unreported"),
             "hermes_profile": intent["payload"]["hermes_profile"], "wrote_to": str(response_path),
-            "ledger_entry": delegate_envelope.get("ledger_entry"), "live_spend": delegate_envelope.get("live_spend", True),
+            "ledger_entry": delegate_envelope.get("ledger_entry"),
+            "live_spend": observed_live_spend,
+            "live_spend_unknown": observed_live_spend_unknown,
+            "known_spend_observed": known_spend_observed,
             "live_source_collection": False,
         }))
         return 0
@@ -453,13 +451,15 @@ def main() -> int:
         delegate_failure = isinstance(exc, DelegateFailure)
         if delegate_failure:
             delegate_envelope = exc.envelope
-            if isinstance(delegate_envelope.get("live_spend"), bool):
-                observed_live_spend = delegate_envelope["live_spend"]
+            observed_live_spend = delegate_envelope.get("live_spend")
+            observed_live_spend_unknown = delegate_envelope.get("live_spend_unknown") is True
+            known_spend_observed = delegate_envelope.get("known_spend_observed") is True
         pre_manifest_rejection = isinstance(exc, RequiredOutputContractError)
-        live_spend_unknown = (
+        live_spend_unknown = observed_live_spend_unknown or (
             not pre_manifest_rejection and model_invocation_started
-            and model_invocation_can_spend and observed_live_spend is None
-        )
+            and model_invocation_can_spend and observed_live_spend is None)
+        if live_spend_unknown:
+            observed_live_spend = None
         rejected_response_written = False
         failure_class = classify_manifest_failure(exc) if manifest is not None else None
         failure_details = getattr(exc, "details", {}) if manifest is not None else {}
@@ -492,6 +492,7 @@ def main() -> int:
             "hermes_profile": delegate_envelope.get("hermes_profile"),
             "live_spend": False if pre_manifest_rejection else observed_live_spend,
             "live_spend_unknown": live_spend_unknown,
+            "known_spend_observed": False if pre_manifest_rejection else known_spend_observed,
             "live_source_collection": False,
         }))
         return 1

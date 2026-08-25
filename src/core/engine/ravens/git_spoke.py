@@ -1,34 +1,36 @@
-"""Fail-closed compatibility facade for the retired Ravens Git spoke."""
+"""Retired autonomous Git spoke."""
 
 from __future__ import annotations
 
-from pathlib import Path
+from typing import NoReturn
 
-from src.core.engine.ravens.retired import reject_ravens_operation
+
+LEGACY_PYTHON_RAVENS_ENGINE_ERROR = (
+    "legacy_python_ravens_engine_retired_use_cstar_kernel"
+)
+
+
+def _retired() -> NoReturn:
+    raise RuntimeError(LEGACY_PYTHON_RAVENS_ENGINE_ERROR)
 
 
 class GitSpoke:
-    def __init__(self, repo_path: Path | str) -> None:
-        self.repo_path = repo_path
+    """Fail before repository inspection or mutation."""
 
-    def run_cmd(self, args: list[str]) -> str | None:
-        del args
-        reject_ravens_operation("GitSpoke.run_cmd")
+    def __init__(self, *_args: object, **_kwargs: object) -> None:
+        _retired()
 
-    def is_clean(self) -> bool:
-        reject_ravens_operation("GitSpoke.is_clean")
+    def run_cmd(self, *_args: object, **_kwargs: object) -> NoReturn:
+        _retired()
 
-    def ensure_branch(self, branch_name: str = "sovereign-fish-auto") -> str | None:
-        del branch_name
-        reject_ravens_operation("GitSpoke.ensure_branch")
+    def is_clean(self, *_args: object, **_kwargs: object) -> NoReturn:
+        _retired()
 
-    def restore_branch(self, original_branch: str | None) -> None:
-        del original_branch
-        reject_ravens_operation("GitSpoke.restore_branch")
+    def ensure_branch(self, *_args: object, **_kwargs: object) -> NoReturn:
+        _retired()
 
-    def commit_changes(self, message: str) -> None:
-        del message
-        reject_ravens_operation("GitSpoke.commit_changes")
+    def restore_branch(self, *_args: object, **_kwargs: object) -> NoReturn:
+        _retired()
 
-
-__all__ = ["GitSpoke"]
+    def commit_changes(self, *_args: object, **_kwargs: object) -> NoReturn:
+        _retired()

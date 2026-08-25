@@ -1,57 +1,31 @@
 #!/usr/bin/env python3
-"""Fail-closed tombstone for the retired direct skill-acquisition tool.
-
-Reusable capabilities must be proposed, built, validated, and promoted through
-the current host/CStar authority path.  This compatibility module deliberately
-performs no search, model invocation, clone, or filesystem write.
-"""
+"""Retired autonomous Hunt-and-Forge acquisition tool."""
 
 from __future__ import annotations
 
-import argparse
-import asyncio
-import sys
+import re
 
 
-DECOMMISSION_MESSAGE = (
-    "Direct skill acquisition is decommissioned. Use the current host skill-first "
-    "workflow and record any build or promotion through CStar."
-)
-
-
-class SkillAcquisitionDecommissioned(RuntimeError):
-    """Raised when a caller reaches the retired acquisition compatibility API."""
+RETIRED_ERROR = "legacy_skill_acquirer_retired_use_researcher_and_cstar_forge"
 
 
 class SkillAcquirer:
-    """Compatibility surface that permanently rejects direct acquisition."""
+    """Preserve only the pure name normalizer for artifact compatibility."""
+
+    @staticmethod
+    def _slugify(text: str) -> str:
+        return re.sub(r"[^a-z0-9]+", "_", (text or "").lower()).strip("_")
 
     @staticmethod
     async def hunt_and_forge(query: str, skill_name: str | None = None) -> None:
-        """Reject the retired Brave/Antigravity acquisition path without side effects."""
-        del query, skill_name
-        raise SkillAcquisitionDecommissioned(DECOMMISSION_MESSAGE)
+        raise RuntimeError(RETIRED_ERROR)
 
 
-async def _run(args: argparse.Namespace) -> int:
-    try:
-        await SkillAcquirer.hunt_and_forge(args.query, args.name)
-    except SkillAcquisitionDecommissioned as error:
-        print(str(error), file=sys.stderr)
-        return 2
-    return 0
-
-
-def main() -> int:
-    """Retain a deterministic CLI tombstone for stale callers."""
-    parser = argparse.ArgumentParser(
-        description="Retired Corvus Star direct skill-acquisition compatibility command",
-    )
-    parser.add_argument("query", help="Legacy query; never sent to a network or model")
-    parser.add_argument("--name", help="Legacy name; never written")
-    args = parser.parse_args()
-    return asyncio.run(_run(args))
+async def main() -> int:
+    return 2
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    import asyncio
+
+    raise SystemExit(asyncio.run(main()))

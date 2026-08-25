@@ -1,144 +1,147 @@
-# CoS and Project Information-Repository Architecture
+# CoS and Project-Context Thread Architecture
+
+This document defines the Corvus Codex-thread operating architecture. Thread
+topology is part of the system architecture. Refactoring thread responsibility
+follows the same separation-of-concerns rules as refactoring source code.
 
 ## Control Principle
 
-The operator sets direction and grants gates. CoS owns estate sequencing,
-converts direction into bounded CStar lifecycle state, routes work through the
-correct execution or research lane, packages evidence, and closes accepted
-Green/Yellow work. CStar is the estate axle and canonical state plane; it is not
-authority above the operator or platform.
+CStar is the canonical control plane for Corvus estate work. Planning state,
+proposal lifecycle, execution state, validation, and completion should be
+represented through CStar proposals, beads, receipts, or bounded artifacts
+whenever a kernel-backed path exists.
 
-PMT is retained as a project information-repository concept only. MM is legacy
-and has no active role.
+Authority begins with platform safety and the current operator grant, followed
+by global Corvus invariants, the nearest repository policy, and then CStar
+lifecycle state. Registries and observed runtime are evidence; neither may
+create or weaken authority.
 
-## CoS
+The User authorizes high-order direction and red-gated instructions. CoS turns
+that direction into bounded CStar work, selects the proper execution or review
+spoke, packages evidence, and closes the lifecycle. PMT tasks are mapped
+project-context repositories. When an in-scope project has a mapped PMT, CoS
+must read one bounded context packet. PMTs do not own work or route workers.
 
-CoS is the operator-facing coordinator and owns:
+## Required Thread Boundaries
 
-- estate and cross-project sequencing;
-- bounded Green/Yellow execution and closeout;
-- bead/decision anchoring, evidence packaging, and lifecycle updates;
-- routing builds to Forge and research to Researcher;
-- deciding when independent CorvusEye or other validation is required;
-- returning red gates, spend/scope expansion, and authority conflicts to the
-  operator; and
-- compact state-update packets to project information repositories after
-  meaningful work.
+### CoS Thread
 
-CoS does not bypass CStar with direct Hall/SQLite writes, replace Forge with a
-Codex subagent, replace Researcher with ad hoc browsing, or infer authority from
-a registry, callback, runtime observation, PMT record, or model claim.
+CoS is the estate overseer and operator-facing decision surface.
 
-## PMT Information Repositories
+CoS owns:
 
-PMTs are passive project information repositories. When active targets are
-inside a project with a mapped PMT, CoS queries that PMT once for the bounded
-context relevant to the mission. Unrelated PMTs are not queried. The repository
-retains decisions, constraints, material evidence, and unresolved gates so a
-later CoS context does not need the full estate history.
+- translating User intent into CStar-tracked goals, proposals, gates, and
+  routing decisions;
+- sequencing bounded Green or Yellow work and returning red gates to the User;
+- querying only a mapped project PMT for bounded context when its project is in
+  scope;
+- sending a compact `STATE_UPDATE` to that PMT after meaningful project work;
+- reviewing worker and validator evidence and recording lifecycle outcomes;
+- detecting cross-domain conflicts, authority disputes, stale context, and
+  unsafe boundary expansion.
 
-PMTs do not:
+CoS does not bypass CStar state when a kernel-backed route exists. It does not
+substitute a Codex subagent for Forge implementation, Researcher collection, or
+independent CorvusEye review.
 
-- own execution, review, approval, routing, monitoring, or operator contact;
-- assign workers or invoke Forge/Researcher;
-- accept or reject a delivery;
-- create or weaken an authority gate;
-- act as a required relay; or
-- replace CStar lifecycle state.
+### Mapped Project PMTs
 
-After meaningful work, CoS sends a bounded `STATE_UPDATE` packet containing:
+PMTs are project-scoped information repositories only.
 
-- bead/decision and current status;
-- changed or reviewed paths;
-- validation identifiers and material evidence hashes;
-- decisions made, residual risks, and remaining gates; and
-- the next safe action.
+A mapped PMT may provide:
 
-The repository stores the packet. It does not answer with an authoritative
-verdict. If repository state conflicts with CStar or current operator policy,
-CoS fails closed, repairs the record, and treats the PMT copy as stale.
-If the repository is unavailable, CoS records a freshness gap and continues
-from current CStar and repository evidence when otherwise authorized.
+- bounded historical project context;
+- pointers to project artifacts, decisions, and known hazards;
+- a compact snapshot that CoS can compare with current CStar and repository
+  evidence;
+- a destination for a post-work `STATE_UPDATE`.
 
-Run the query in the PMT thread with an enforceable current GPT-5.6 selector:
-Luna for routine bounded retrieval, Terra for conflicting-context synthesis,
-and Sol for high-stakes architecture, security, or incident forensics. Record
-requested versus actual model identity. If selection is unavailable, do not
-claim control over it.
+A PMT grants no ownership, execution, review, approval, routing, or monitoring
+authority. CoS does not query unrelated PMTs. A missing or stale mapped PMT is
+a freshness gap, not an execution gate, and cannot park or block the goal.
 
-## MM Legacy Status
+For a mapped-PMT query, CoS requests the task-appropriate current GPT-5.6
+profile only when the host exposes an enforceable selector: Luna for routine
+retrieval, Terra for conflicting-context synthesis, and Sol for high-stakes
+architecture, security, or incident forensics. The request records requested
+and actual identity separately; absent a reported identity, actual is
+`unreported`.
 
-MM is retired from active estate routing. Do not send work, decisions,
-cross-project synthesis, or status packets through MM. CoS directly handles
-estate sequencing and resolves cross-project conflicts under the applicable
-operator gates. Historical MM threads and records are archival leads only.
+### CStar Control Plane
 
-## Corvus Forge
+CStar is the axle rather than a PMT or worker spoke. Its kernel owns the
+canonical lifecycle surfaces for beads, proposals, Augury, Hall, routing,
+receipts, validation, and completion. The cstar-console and PennyOne mirror
+operator-visible state but do not supersede kernel lifecycle records.
 
-Corvus Forge is the implementation lane. Live builds use only:
+### Researcher
 
-`cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute -> private Hermes cstar-hub /
-minimax MiniMax-M3 -> delivered_unverified -> independent cstar_record_result`
+Researcher gathers evidence through authorized source lanes. It owns source
+discovery, source receipts, evidence packages, and research-run telemetry. It
+does not own CStar implementation, Forge delivery, or production rollout.
 
-The Forge request may name a `state_update_thread_id` for the passive project
-repository and names a CoS callback destination. Its absence cannot block an
-otherwise authorized execution. The deprecated
-`owner_pmt_thread_id` alias may be accepted for transport compatibility but
-grants no ownership or review authority.
+### Corvus Forge
 
-## Researcher
+Corvus Forge builds implementation through the durable
+`cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute -> private Hermes cstar-hub ->
+minimax/MiniMax-M3` path. Its delivery remains unverified until independent
+validation is recorded through CStar. Forge does not approve its own rollout.
 
-Researcher gathers evidence through authorized source lanes and writes bounded
-receipts or artifacts. Live external collection is separately gated. Researcher
-does not implement spoke code, mutate CStar lifecycle state outside its request
-contract, or self-certify a consequential truth/production claim.
+### CorvusEye
 
-## CorvusEye
+CorvusEye is the independent evaluation and red-team spoke. It reviews
+Researcher or Forge evidence when producer-independent validation is required;
+it does not perform the originating work it judges.
 
-CorvusEye is an independent evaluation and red-team lane. Use it when the gate
-requires producer/reviewer separation, adversarial testing, or a truth/lie
-assessment. Its evidence informs CoS and CStar; CorvusEye does not replace the
-operator's authority.
+### MM
 
-## PennyOne and Console
-
-PennyOne/Hall and the console mirror bounded operator-visible state. Hall bead,
-proposal, request, attempt, and validation records are canonical lifecycle
-evidence. Mongo, dashboards, PMTs, and legacy MM are mirrors or archives, not
-lifecycle authority.
+MM is legacy and has no active estate-routing, synthesis, ownership, or relay
+role. Current work routes from CoS through CStar to the appropriate spoke.
 
 ## Goal Lifecycle
 
-1. CoS records or resumes the bounded CStar bead/decision.
-2. CoS selects Forge, Researcher, independent review, or an operator gate.
-3. Green/Yellow work proceeds through the proper lane inside the accepted
-   envelope; red or expanded work returns to the operator.
-4. Delivery artifacts remain evidence until independent validation is recorded.
-5. CoS records the result, updates or resolves the bead, writes the bounded PMT
-   information packet, and closes the operator-facing loop.
-6. When waiting on an external lane, CoS pauses rather than continuously polls.
+1. CoS receives User intent and records the goal as a bounded CStar-tracked
+   decision, proposal, or bead.
+2. If the target belongs to a project with a mapped PMT, CoS reads one bounded
+   context packet; failure is recorded only as a freshness gap.
+3. CoS resolves route and scope through CStar and sends build work to Forge,
+   research work to Researcher, and independent review to CorvusEye.
+4. Each worker request, execution receipt, artifact, and validation remains
+   evidence until the corresponding lifecycle transition is persisted.
+5. Red gates return to CoS for explicit User authorization when required.
+6. When waiting on a live worker or external state, CoS pauses rather than
+   polling. A PMT read is never the live worker and never blocks execution.
+7. CoS reviews returned evidence, records the decision, sends a compact mapped
+   PMT `STATE_UPDATE` after meaningful project work, and closes or routes the
+   next gate.
 
-## Operator Gates
+## Red Gates
 
-Explicit operator authorization remains required for:
+Red gates require explicit CoS/User authorization before execution:
 
-- spend beyond the recorded request or any retry not already authorized;
-- live source collection or a new source lane;
-- locked holdout or production-readiness claims;
-- merge, push, deploy, restart, secrets, credentials, or host configuration;
-- destructive cleanup or broad cross-spoke mutation;
-- authority-model or persistent-role changes; and
-- scope expansion beyond the accepted bead/decision.
+- secrets, credentials, token inspection, token output, or credential mutation;
+- production deploys, restarts, broad rollout, or external irreversible effects;
+- destructive cleanup, history rewrite, deletion, reset, or stash operations
+  outside a narrow explicit request;
+- main/master push, merge, release, or acceptance of production readiness;
+- locked-holdout evaluation, hidden-label access, or tuning against sealed
+  evaluation data;
+- authority-model or execution-boundary changes;
+- direct Hall or SQLite bypass when a CStar kernel-backed path exists;
+- source/model budget expansion outside the accepted envelope.
 
 ## Separation Tests
 
-An architecture change fails review when it:
+Future architecture changes fail review if they:
 
-- gives a PMT or legacy MM any authority;
-- lets a producer supply the only consequential validation of its own output;
-- lets a Codex subagent or direct model call replace Forge;
-- lets Researcher both collect and self-certify a high-stakes claim;
-- lets persona, Council, Augury, TokenPath, registry, or runtime metadata grant
-  execution authority; or
-- records a lifecycle transition only in a callback, artifact, dashboard,
-  Mongo queue, PMT packet, MM archive, or ad hoc state file instead of CStar.
+- grant a PMT ownership, execution, review, approval, routing, or monitoring
+  authority;
+- make mapped PMT availability an execution or completion gate;
+- restore MM as an active coordination or relay lane;
+- merge CStar control-plane behavior with Researcher or Forge execution;
+- merge Researcher and Forge responsibilities; or
+- let a producer perform an independent review required for its own gate.
+
+Temporary bootstrap repairs must be recorded as bounded exceptions and followed
+by restoration work that returns implementation, research, and review to their
+proper spokes.

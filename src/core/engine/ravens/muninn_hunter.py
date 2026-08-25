@@ -1,24 +1,25 @@
-"""Fail-closed compatibility facade for the retired Muninn hunter."""
+"""Retired autonomous Ravens mission hunter."""
 
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Any
+from typing import NoReturn
 
-from src.core.engine.ravens.retired import reject_ravens_operation
+
+LEGACY_PYTHON_RAVENS_ENGINE_ERROR = (
+    "legacy_python_ravens_engine_retired_use_cstar_kernel"
+)
+
+
+def _retired() -> NoReturn:
+    raise RuntimeError(LEGACY_PYTHON_RAVENS_ENGINE_ERROR)
 
 
 class MuninnHunter:
-    def __init__(self, root: Path | str, memory: Any = None) -> None:
-        self.root = root
-        self.memory = memory
+    def __init__(self, *_args: object, **_kwargs: object) -> None:
+        _retired()
 
-    async def execute_hunt(self) -> tuple[list[dict], dict]:
-        reject_ravens_operation("MuninnHunter.execute_hunt")
+    async def execute_hunt(self, *_args: object, **_kwargs: object) -> NoReturn:
+        _retired()
 
-    def select_target(self, breaches: list[dict]) -> dict | None:
-        del breaches
-        reject_ravens_operation("MuninnHunter.select_target")
-
-
-__all__ = ["MuninnHunter"]
+    def select_target(self, *_args: object, **_kwargs: object) -> NoReturn:
+        _retired()

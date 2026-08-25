@@ -250,43 +250,18 @@ function validateMarketplaceEntry(filePath: string): void {
     }
 }
 
-export function installGeminiExtension(options: InstallOptions): { linkPath: string } {
-    const projectRoot = resolveCanonicalDirectory(options.projectRoot, 'CStar project root');
-    const homeDir = resolveHomeDir(options.homeDir);
-    const extensionRoot = path.join(homeDir, '.gemini', 'extensions');
-    const linkPath = path.join(extensionRoot, 'corvus-star');
-
-    ensureGenerated(projectRoot);
-    assertManagedPathSafe(homeDir, extensionRoot, 'Gemini extension root');
-    if (fs.existsSync(extensionRoot) && !fs.lstatSync(extensionRoot).isDirectory()) {
-        throw new Error(`Gemini extension root must be a real directory: ${extensionRoot}`);
-    }
-    fs.mkdirSync(extensionRoot, { recursive: true });
-
-    let existing: fs.Stats | undefined;
-    try {
-        existing = fs.lstatSync(linkPath);
-    } catch (error) {
-        if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
-    }
-    if (existing) {
-        const stat = existing;
-        if (stat.isSymbolicLink()) {
-            const currentTarget = fs.readlinkSync(linkPath);
-            const resolvedTarget = path.resolve(path.dirname(linkPath), currentTarget);
-            if (resolvedTarget === projectRoot) {
-                return { linkPath };
-            }
-        }
-        throw new Error(
-            `Refusing to replace existing Gemini extension path without an explicit recovery decision: ${linkPath}`,
-        );
-    }
-
-    fs.symlinkSync(projectRoot, linkPath, 'dir');
-    return { linkPath };
+/** @deprecated Host-global Gemini installation requires a supported host surface. */
+export function installGeminiExtension(_options: InstallOptions): never {
+    throw new Error(
+        'direct_gemini_extension_install_retired_requires_supported_host_surface',
+    );
 }
 
+/**
+ * Stage verified Codex plugin source into a prepared personal marketplace.
+ * The compatibility name is retained, but this does not install or activate
+ * the plugin and never mutates marketplace or Codex cache state.
+ */
 export function installCodexPlugin(options: InstallOptions): CodexPluginInstallResult {
     const projectRoot = resolveCanonicalDirectory(options.projectRoot, 'CStar project root');
     const homeDir = resolveHomeDir(options.homeDir);

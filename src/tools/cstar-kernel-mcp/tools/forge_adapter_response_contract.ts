@@ -42,17 +42,136 @@ function looksLikePathClaim(value: string): boolean {
     return trimmed.includes('/') || trimmed.includes('\\') || trimmed.startsWith('.') || /^[A-Za-z]:[\\/]/.test(trimmed);
 }
 
-function collectArtifactPathClaims(value: unknown): string[] {
-    if (typeof value === 'string') {
-        return looksLikePathClaim(value) ? [value] : [];
+const MAX_ARTIFACT_STRUCTURE_DEPTH = 64;
+const MAX_ARTIFACT_STRUCTURE_NODES = 10_000;
+const MAX_RESPONSE_PATH_CLAIMS = 1_000;
+const EXPLICIT_SINGULAR_PATH_FIELDS = new Set([
+    'artifact_path',
+    'file',
+    'file_path',
+    'filename',
+    'path',
+]);
+const EXPLICIT_PLURAL_PATH_FIELDS = new Set([
+    'filenames',
+    'files',
+    'paths',
+]);
+const EXPLICIT_PATH_FIELDS = new Set([
+    'artifacts',
+    ...EXPLICIT_SINGULAR_PATH_FIELDS,
+    ...EXPLICIT_PLURAL_PATH_FIELDS,
+]);
+
+type ArtifactPathClaimCollection =
+    | { ok: true; claims: string[] }
+    | { ok: false; error: string };
+
+function collectArtifactPathClaims(value: unknown, maxClaims: number): ArtifactPathClaimCollection {
+    const stack: Array<{
+        value: unknown;
+        depth: number;
+        fieldName?: string;
+        requiresPathString?: boolean;
+    }> = [
+        { value, depth: 0, fieldName: 'artifacts' },
+    ];
+    const claims: string[] = [];
+    let scheduledNodes = 1;
+    const addClaim = (claim: string): string | null => {
+        const trimmed = claim.trim();
+        if (!trimmed || trimmed !== claim) {
+            return 'adapter_response_artifact_path_claim_invalid';
+        }
+        claims.push(trimmed);
+        return claims.length <= maxClaims
+            ? null
+            : 'adapter_response_path_claim_limit_exceeded';
+    };
+
+    while (stack.length > 0) {
+        const current = stack.pop()!;
+        if (current.requiresPathString && typeof current.value !== 'string') {
+            return { ok: false, error: 'adapter_response_artifact_path_claim_invalid' };
+        }
+        if (typeof current.value === 'string') {
+            const explicitPathField = current.fieldName
+                ? EXPLICIT_PATH_FIELDS.has(current.fieldName.trim().toLowerCase().replace(/-/g, '_'))
+                : false;
+            if (explicitPathField || looksLikePathClaim(current.value)) {
+                const claimError = addClaim(current.value);
+                if (claimError) return { ok: false, error: claimError };
+            }
+            continue;
+        }
+        if (!current.value || typeof current.value !== 'object') {
+            continue;
+        }
+
+        if (Array.isArray(current.value)) {
+            if (current.value.length === 0) continue;
+            if (current.depth >= MAX_ARTIFACT_STRUCTURE_DEPTH) {
+                return { ok: false, error: 'adapter_response_artifact_structure_too_deep' };
+            }
+            if (scheduledNodes + current.value.length > MAX_ARTIFACT_STRUCTURE_NODES) {
+                return { ok: false, error: 'adapter_response_artifact_structure_too_large' };
+            }
+            scheduledNodes += current.value.length;
+            for (let index = current.value.length - 1; index >= 0; index -= 1) {
+                stack.push({
+                    value: current.value[index],
+                    depth: current.depth + 1,
+                    fieldName: current.fieldName,
+                    requiresPathString: current.fieldName
+                        ? EXPLICIT_PLURAL_PATH_FIELDS.has(
+                            current.fieldName.trim().toLowerCase().replace(/-/g, '_'),
+                        )
+                        : false,
+                });
+            }
+            continue;
+        }
+
+        const object = current.value as Record<string, unknown>;
+        let childCount = 0;
+        for (const fieldName in object) {
+            if (!Object.hasOwn(object, fieldName)) continue;
+            const normalizedFieldName = fieldName.trim().toLowerCase().replace(/-/g, '_');
+            const fieldValue = object[fieldName];
+            if (
+                EXPLICIT_SINGULAR_PATH_FIELDS.has(normalizedFieldName)
+                && typeof fieldValue !== 'string'
+            ) {
+                return { ok: false, error: 'adapter_response_artifact_path_claim_invalid' };
+            }
+            if (
+                EXPLICIT_PLURAL_PATH_FIELDS.has(normalizedFieldName)
+                && !Array.isArray(fieldValue)
+            ) {
+                return { ok: false, error: 'adapter_response_artifact_path_claim_invalid' };
+            }
+            childCount += 1;
+            if (current.depth >= MAX_ARTIFACT_STRUCTURE_DEPTH) {
+                return { ok: false, error: 'adapter_response_artifact_structure_too_deep' };
+            }
+            if (scheduledNodes + childCount > MAX_ARTIFACT_STRUCTURE_NODES) {
+                return { ok: false, error: 'adapter_response_artifact_structure_too_large' };
+            }
+            if (looksLikePathClaim(fieldName)) {
+                const claimError = addClaim(fieldName);
+                if (claimError) return { ok: false, error: claimError };
+            }
+            stack.push({
+                value: fieldValue,
+                depth: current.depth + 1,
+                fieldName,
+                requiresPathString: EXPLICIT_SINGULAR_PATH_FIELDS.has(normalizedFieldName),
+            });
+        }
+        scheduledNodes += childCount;
     }
-    if (Array.isArray(value)) {
-        return value.flatMap((entry) => collectArtifactPathClaims(entry));
-    }
-    if (value && typeof value === 'object') {
-        return Object.values(value as Record<string, unknown>).flatMap((entry) => collectArtifactPathClaims(entry));
-    }
-    return [];
+
+    return { ok: true, claims };
 }
 
 function isInside(candidate: string, root: string): boolean {
@@ -64,14 +183,17 @@ function isInside(candidate: string, root: string): boolean {
     );
 }
 
-function claimedPathExists(claim: string, evidenceRoots: string[]): boolean {
-    const roots = evidenceRoots.flatMap((root) => {
+function canonicalEvidenceRoots(evidenceRoots: string[]): string[] {
+    return [...new Set(evidenceRoots.flatMap((root) => {
         try {
             return [fs.realpathSync(root)];
         } catch {
             return [];
         }
-    });
+    }))];
+}
+
+function claimedPathExists(claim: string, roots: string[]): boolean {
     const candidates = path.isAbsolute(claim)
         ? [path.resolve(claim)]
         : roots.map((root) => path.resolve(root, claim));
@@ -129,7 +251,11 @@ export function validateForgeAdapterResponseContract(
         return { ok: false, error: 'adapter_response_callback_packet_mismatch', summary: null };
     }
     const filesChanged = obj.files_changed as unknown[];
-    if (!filesChanged.every((entry) => typeof entry === 'string')) {
+    if (!filesChanged.every((entry) => (
+        typeof entry === 'string'
+        && entry.length > 0
+        && entry === entry.trim()
+    ))) {
         return { ok: false, error: 'adapter_response_invalid_files_changed', summary: null };
     }
     if (!isSuccessAdapterStatus(obj.status)) {
@@ -139,11 +265,22 @@ export function validateForgeAdapterResponseContract(
             summary: { status: obj.status, ...callbackPacket },
         };
     }
-    const claimedPaths = [
+    if (filesChanged.length > MAX_RESPONSE_PATH_CLAIMS) {
+        return { ok: false, error: 'adapter_response_path_claim_limit_exceeded', summary: null };
+    }
+    const artifactPathClaims = collectArtifactPathClaims(
+        obj.artifacts,
+        MAX_RESPONSE_PATH_CLAIMS - filesChanged.length,
+    );
+    if (!artifactPathClaims.ok) {
+        return { ok: false, error: artifactPathClaims.error, summary: null };
+    }
+    const claimedPaths = [...new Set([
         ...filesChanged,
-        ...collectArtifactPathClaims(obj.artifacts),
-    ].map((entry) => String(entry).trim()).filter(Boolean);
-    const missingClaims = claimedPaths.filter((claim) => !claimedPathExists(claim, evidenceRoots));
+        ...artifactPathClaims.claims,
+    ].map((entry) => String(entry).trim()).filter(Boolean))];
+    const roots = canonicalEvidenceRoots(evidenceRoots);
+    const missingClaims = claimedPaths.filter((claim) => !claimedPathExists(claim, roots));
     if (missingClaims.length > 0) {
         return {
             ok: false,

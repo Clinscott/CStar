@@ -1,30 +1,21 @@
-from src.core.engine.ravens_stage import (
-    RavensCycleResult,
-    RavensHallReferenceSet,
-    RavensStageResult,
-    RavensTargetIdentity,
+import pytest
+
+from src.core.engine.ravens.muninn_heart import (
+    LEGACY_PYTHON_RAVENS_ENGINE_ERROR,
+    MuninnHeart,
 )
+from src.core.engine.ravens_stage import RavensTargetIdentity
 
 
-def test_ravens_stage_contract_serializes_nested_references() -> None:
-    result = RavensCycleResult(
-        status="SUCCESS",
-        summary="Cycle complete.",
-        mission_id="ravens-cycle:test",
-        target=RavensTargetIdentity(target_path="src/core/sample.py", rationale="Repair sample path"),
-        hall=RavensHallReferenceSet(repo_id="repo:test", observation_id="obs:test"),
-        stages=[
-            RavensStageResult(
-                stage="hunt",
-                status="SUCCESS",
-                summary="Target selected.",
-                target=RavensTargetIdentity(target_path="src/core/sample.py"),
-                hall=RavensHallReferenceSet(repo_id="repo:test", observation_id="obs:hunt"),
-            )
-        ],
+def test_detached_mission_target_parser_remains_available():
+    target = MuninnHeart._target_from_mission(
+        {"file": "src/example.py", "bead_id": "bead:test", "metrics": {"logic": 1.0}}
     )
+    assert isinstance(target, RavensTargetIdentity)
+    assert target.target_path == "src/example.py"
+    assert target.bead_id == "bead:test"
 
-    payload = result.to_dict()
-    assert payload["target"]["target_path"] == "src/core/sample.py"
-    assert payload["hall"]["observation_id"] == "obs:test"
-    assert payload["stages"][0]["stage"] == "hunt"
+
+def test_muninn_heart_is_retired_before_cycle_state():
+    with pytest.raises(RuntimeError, match=f"^{LEGACY_PYTHON_RAVENS_ENGINE_ERROR}$"):
+        MuninnHeart("synthetic", object())

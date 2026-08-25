@@ -1,6 +1,10 @@
 # Augury Usefulness Evaluator Contract
 
-Status: PROPOSED
+Status: HISTORICAL DRAFT — DATA CONTRACT BLOCKED
+
+> The direct host Augury ledger writer and terminal command proposed below are
+> retired. This draft grants no execution authority. A renewed evaluator must
+> consume sanctioned, provenance-bound kernel observations and remain read-only.
 
 ## Purpose
 
@@ -8,9 +12,9 @@ Build a read-only evaluator that tells agents and future GEPA/DSPy work whether 
 
 The evaluator must measure route quality from existing records. It must not mutate prompts, rewrite contracts, dispatch agents, or start optimizer work.
 
-## Command Shape
+## Historical Command Sketch
 
-Suggested command:
+The following command was proposed before terminal Augury routes were retired:
 
 ```bash
 ./cstar augury metrics --json

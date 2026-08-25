@@ -5,44 +5,42 @@ import type {
     RuntimeDispatchPort,
     WeaveInvocation,
     WeaveResult,
-} from '../contracts.ts';
+} from '../contracts.js';
+import type { HostTextInvoker } from './host_bridge.js';
 
-const RETIREMENT_MESSAGE = [
-    'Host Governor is decommissioned and cannot plan, promote, replan, execute, or mutate lifecycle state.',
-    'Use explicit cstar-kernel lifecycle transitions.',
-    'Route implementation through cstar_forge_request -> cstar_forge_execute and research through an authorized Researcher request.',
-].join(' ');
-
-/**
- * Fail-closed compatibility record retained so persisted weave identifiers and
- * runtime bootstrap do not silently resolve to a different capability.
- */
+/** Retired model-owned governance entrypoint retained only for clear failures. */
 export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayload> {
     public readonly id = 'weave:host-governor';
 
     public constructor(
-        _legacyDispatchPort?: RuntimeDispatchPort,
-        _legacyHostInvoker?: unknown,
-    ) {}
+        _dispatchPort?: RuntimeDispatchPort,
+        _hostTextInvoker?: HostTextInvoker,
+    ) {
+        void _dispatchPort;
+        void _hostTextInvoker;
+    }
 
     public async execute(
         _invocation: WeaveInvocation<HostGovernorWeavePayload>,
         _context: RuntimeContext,
     ): Promise<WeaveResult> {
+        void _invocation;
+        void _context;
         return {
             weave_id: this.id,
             status: 'FAILURE',
             output: '',
-            error: RETIREMENT_MESSAGE,
+            error: 'legacy_host_governor_retired_use_cstar_kernel',
             metadata: {
-                capability_status: 'decommissioned',
-                execution_attempted: false,
-                lifecycle_mutation_attempted: false,
-                required_routes: {
-                    lifecycle: 'cstar-kernel',
-                    implementation: 'cstar_forge_request -> cstar_forge_execute',
-                    research: 'authorized Researcher request',
-                },
+                compatibility: 'retired',
+                operator_action_required: true,
+                required_surface: 'cstar-kernel',
+                recommended_tools: ['cstar_handoff', 'cstar_augury', 'cstar_bead'],
+                execution_dispatched: false,
+                provider_requests_started: 0,
+                hall_mutation_started: false,
+                automatic_replan_started: false,
+                automatic_promotion_started: false,
             },
         };
     }

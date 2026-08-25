@@ -34,8 +34,8 @@ describe('BeadController Unit Tests', () => {
             prepare: prepareMock,
         };
 
-        // Mock the database object's getDb method
-        mock.method(database, 'getDb', () => mockDb);
+        mock.method(database, 'getReadDb', () => mockDb as any);
+        mock.method(database, 'getWritableDb', () => mockDb as any);
     });
 
     afterEach(() => {

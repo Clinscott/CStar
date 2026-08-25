@@ -39,6 +39,7 @@ describe('CStar Forge worker manifest fail-close boundaries', () => {
             objective: 'Update one bounded executable through the worker',
             target_paths: [target],
             required_output_paths: [target],
+            requested_actions: ['project_files'],
             execution_adapter_ref: 'cstar-forge-hermes-minimax-worker-adapter',
         }));
         const parsed = JSON.parse(result.content[0].text);
@@ -74,6 +75,7 @@ describe('CStar Forge worker manifest fail-close boundaries', () => {
                 objective: 'Build one bounded fixture through the worker.',
                 target_paths: [root],
                 required_output_paths: [target],
+                requested_actions: ['project_files'],
                 execution_adapter_ref: 'cstar-forge-hermes-minimax-worker-adapter',
             }));
             const parsed = JSON.parse(result.content[0].text);
@@ -93,15 +95,15 @@ describe('CStar Forge worker manifest fail-close boundaries', () => {
             assert.equal(createHash('sha256').update(artifactBytes).digest('hex'), artifact.sha256);
             assert.doesNotMatch(artifactBytes.toString('utf-8'), new RegExp(canary));
             const evidence = JSON.parse(artifactBytes.toString('utf-8'));
+            assert.equal(evidence.schema, 'cstar.forge_worker_response_rejection.v1');
             assert.equal(evidence.status, 'rejected');
             assert.deepEqual(evidence.files_changed, []);
             assert.equal(
-                evidence.artifacts.rejected_manifest.failure_class,
-                fixture.failureClass,
+                evidence.artifacts.worker_response_rejection.contract_error,
+                'adapter_response_reported_failure',
             );
-            assert.equal(evidence.artifacts.rejected_manifest.raw_manifest_persisted, false);
-            assert.equal(evidence.artifacts.rejected_manifest.raw_values_emitted, false);
-            assert.match(evidence.artifacts.rejected_manifest.sha256, /^[a-f0-9]{64}$/);
+            assert.equal(evidence.artifacts.worker_response_rejection.raw_response_persisted, false);
+            assert.match(evidence.artifacts.worker_response_rejection.private_response_sha256, /^[a-f0-9]{64}$/);
             assert.equal(evidence.callback_packet, 'TEST_FORGE_WORKER_PACKET');
 
             const executionDirectory = path.dirname(artifact.path);
@@ -136,6 +138,7 @@ describe('CStar Forge worker manifest fail-close boundaries', () => {
             objective: 'Build one exact bounded fixture through the worker.',
             target_paths: [target],
             required_output_paths: [target],
+            requested_actions: ['project_files'],
             execution_adapter_ref: 'cstar-forge-hermes-minimax-worker-adapter',
         }));
         const parsed = JSON.parse(result.content[0].text);
@@ -148,12 +151,13 @@ describe('CStar Forge worker manifest fail-close boundaries', () => {
         const evidence = JSON.parse(fs.readFileSync(
             parsed.forge_execution.adapter_result.envelope.response_artifact.path,
             'utf-8',
-        )).artifacts.rejected_manifest;
-        assert.equal(evidence.comparison, 'sealed_canonical_exact_set');
-        assert.deepEqual(evidence.missing_required_indexes, [0]);
-        assert.equal(evidence.extra_count, 1);
-        assert.deepEqual(evidence.duplicate_entry_indexes, []);
-        assert.deepEqual(evidence.invalid_entry_indexes, []);
+        ));
+        assert.equal(evidence.schema, 'cstar.forge_worker_response_rejection.v1');
+        assert.equal(
+            evidence.artifacts.worker_response_rejection.contract_error,
+            'adapter_response_reported_failure',
+        );
+        assert.equal(evidence.artifacts.worker_response_rejection.raw_response_persisted, false);
         assert.doesNotMatch(JSON.stringify(evidence), /generated\.ts|\.bak/);
     });
 

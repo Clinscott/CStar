@@ -12,16 +12,8 @@ import {
     type RecordedEngram,
 } from '../../src/tools/war_game/score_trigger.js';
 
-/**
- * BEAD-CSTAR-WAR-GAME-SCORING-001 — Integration test.
- * Exercises the full scoring round-trip against an in-memory SQLite database:
- *   register contest → record shot-fired Engram → record verdict Engram
- *   → assert score row inserted + cstar/war-game/scored/<shot_id> Engram emitted
- *   → assert tally/recent/by_scenario/get_score return correct results.
- *
- * Does NOT exercise the MCP layer (stdio); the unit-style integration here
- * proves the kernel-side scoring engine end-to-end through its public functions.
- */
+// BEAD-CSTAR-WAR-GAME-SCORING-001: kernel-side scoring round-trip against in-memory SQLite.
+// The MCP stdio layer is intentionally outside this integration test.
 
 function makeDb(): Database.Database {
     const db = new Database(':memory:');
@@ -32,14 +24,8 @@ function makeDb(): Database.Database {
     return db;
 }
 
-function insertEngram(
-    db: Database.Database,
-    memoryId: string,
-    beadId: string,
-    repoId: string,
-    intent: string,
-    metadata: Record<string, unknown>,
-): RecordedEngram {
+function insertEngram(db: Database.Database, memoryId: string, beadId: string, repoId: string,
+    intent: string, metadata: Record<string, unknown>): RecordedEngram {
     const now = Date.now();
     db.prepare(
         `INSERT INTO hall_episodic_memory (
@@ -47,14 +33,7 @@ function insertEngram(
             successes_json, metadata_json, created_at, updated_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     ).run(memoryId, beadId, repoId, intent, '[]', '[]', JSON.stringify(metadata), now, now);
-    return {
-        memory_id: memoryId,
-        bead_id: beadId,
-        repo_id: repoId,
-        intent,
-        metadata,
-        created_at: now,
-    };
+    return { memory_id: memoryId, bead_id: beadId, repo_id: repoId, intent, metadata, created_at: now };
 }
 
 function ensureBead(db: Database.Database, beadId: string, repoId: string): void {
@@ -91,8 +70,18 @@ function repoId(db: Database.Database): string {
     return r.repo_id;
 }
 
-test('war-game scoring integration', (t) => {
-    t.test('schema migration creates war_game tables', () => {
+function makeContestDb(...beadIds: string[]): { db: Database.Database; repoId: string } {
+    const db = makeDb();
+    const id = repoId(db);
+    registerContest(db, { ...USB_CONTEST, repo_id: id });
+    const selectedBeads = beadIds.length > 0
+        ? beadIds : [USB_CONTEST.attacker_bead_id, USB_CONTEST.defender_bead_id];
+    selectedBeads.forEach((beadId) => ensureBead(db, beadId, id));
+    return { db, repoId: id };
+}
+
+test('war-game scoring integration', async (t) => {
+    await t.test('schema migration creates war_game tables', () => {
         const db = makeDb();
         const tables = db
             .prepare(`SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'war_game_%' ORDER BY name`)
@@ -101,9 +90,8 @@ test('war-game scoring integration', (t) => {
         db.close();
     });
 
-    t.test('register_contest persists the contest row', () => {
-        const db = makeDb();
-        registerContest(db, { ...USB_CONTEST, repo_id: repoId(db) });
+    await t.test('register_contest persists the contest row', () => {
+        const { db } = makeContestDb();
         const row = db.prepare(`SELECT * FROM war_game_contests WHERE contest_id = ?`).get(USB_CONTEST.contest_id) as any;
         assert.strictEqual(row.contest_id, USB_CONTEST.contest_id);
         assert.strictEqual(row.attacker_label, 'claude:forge');
@@ -117,20 +105,16 @@ test('war-game scoring integration', (t) => {
         db.close();
     });
 
-    t.test('register_contest is idempotent — second call upserts', () => {
-        const db = makeDb();
-        registerContest(db, { ...USB_CONTEST, repo_id: repoId(db) });
-        registerContest(db, { ...USB_CONTEST, repo_id: repoId(db), contest_name: 'updated' });
+    await t.test('register_contest is idempotent — second call upserts', () => {
+        const { db, repoId: r } = makeContestDb();
+        registerContest(db, { ...USB_CONTEST, repo_id: r, contest_name: 'updated' });
         const row = db.prepare(`SELECT contest_name FROM war_game_contests WHERE contest_id = ?`).get(USB_CONTEST.contest_id) as any;
         assert.strictEqual(row.contest_name, 'updated');
         db.close();
     });
 
-    t.test('shot-fired Engram alone does not produce a score', () => {
-        const db = makeDb();
-        const r = repoId(db);
-        registerContest(db, { ...USB_CONTEST, repo_id: r });
-        ensureBead(db, 'BEAD-USB-FORGE-001', r);
+    await t.test('shot-fired Engram alone does not produce a score', () => {
+        const { db, repoId: r } = makeContestDb('BEAD-USB-FORGE-001');
 
         const shotFired = insertEngram(
             db,
@@ -153,12 +137,8 @@ test('war-game scoring integration', (t) => {
         db.close();
     });
 
-    t.test('verdict Engram with matching shot-fired triggers a score', () => {
-        const db = makeDb();
-        const r = repoId(db);
-        registerContest(db, { ...USB_CONTEST, repo_id: r });
-        ensureBead(db, 'BEAD-USB-FORGE-001', r);
-        ensureBead(db, 'BEAD-USB-SENTRY-FORGE-LISTENER-001', r);
+    await t.test('verdict Engram with matching shot-fired triggers a score', () => {
+        const { db, repoId: r } = makeContestDb();
 
         // attacker writes shot-fired first
         insertEngram(
@@ -209,12 +189,8 @@ test('war-game scoring integration', (t) => {
         db.close();
     });
 
-    t.test('attacker bypass scores +1 Claude', () => {
-        const db = makeDb();
-        const r = repoId(db);
-        registerContest(db, { ...USB_CONTEST, repo_id: r });
-        ensureBead(db, 'BEAD-USB-FORGE-001', r);
-        ensureBead(db, 'BEAD-USB-SENTRY-FORGE-LISTENER-001', r);
+    await t.test('attacker bypass scores +1 Claude', () => {
+        const { db, repoId: r } = makeContestDb();
 
         insertEngram(db, 'e1', 'BEAD-USB-FORGE-001', r, 'usb-forge/shot-fired/FORGE-MS-002', {
             shot_id: 'SHOT-BYPASS', scenario_id: 'FORGE-MS-002', expected: { outcome: 'deflected' },
@@ -229,12 +205,8 @@ test('war-game scoring integration', (t) => {
         db.close();
     });
 
-    t.test('baseline pass does not award a point', () => {
-        const db = makeDb();
-        const r = repoId(db);
-        registerContest(db, { ...USB_CONTEST, repo_id: r });
-        ensureBead(db, 'BEAD-USB-FORGE-001', r);
-        ensureBead(db, 'BEAD-USB-SENTRY-FORGE-LISTENER-001', r);
+    await t.test('baseline pass does not award a point', () => {
+        const { db, repoId: r } = makeContestDb();
 
         insertEngram(db, 'e1', 'BEAD-USB-FORGE-001', r, 'usb-forge/shot-fired/FORGE-MS-001', {
             shot_id: 'SHOT-BASE', scenario_id: 'FORGE-MS-001', expected: { outcome: 'captured_clean' },
@@ -247,12 +219,8 @@ test('war-game scoring integration', (t) => {
         db.close();
     });
 
-    t.test('false positive scores +1 Claude', () => {
-        const db = makeDb();
-        const r = repoId(db);
-        registerContest(db, { ...USB_CONTEST, repo_id: r });
-        ensureBead(db, 'BEAD-USB-FORGE-001', r);
-        ensureBead(db, 'BEAD-USB-SENTRY-FORGE-LISTENER-001', r);
+    await t.test('false positive scores +1 Claude', () => {
+        const { db, repoId: r } = makeContestDb();
 
         insertEngram(db, 'e1', 'BEAD-USB-FORGE-001', r, 'usb-forge/shot-fired/FORGE-MS-001', {
             shot_id: 'SHOT-FP', scenario_id: 'FORGE-MS-001', expected: { outcome: 'captured_clean' },
@@ -265,12 +233,8 @@ test('war-game scoring integration', (t) => {
         db.close();
     });
 
-    t.test('protocol violation when terminal_event is impossible for scenario', () => {
-        const db = makeDb();
-        const r = repoId(db);
-        registerContest(db, { ...USB_CONTEST, repo_id: r });
-        ensureBead(db, 'BEAD-USB-FORGE-001', r);
-        ensureBead(db, 'BEAD-USB-SENTRY-FORGE-LISTENER-001', r);
+    await t.test('protocol violation when terminal_event is impossible for scenario', () => {
+        const { db, repoId: r } = makeContestDb();
 
         // FORGE-HID-001 is pure-HID — usb-sentry/complete is structurally impossible
         insertEngram(db, 'e1', 'BEAD-USB-FORGE-001', r, 'usb-forge/shot-fired/FORGE-HID-001', {
@@ -285,11 +249,8 @@ test('war-game scoring integration', (t) => {
         db.close();
     });
 
-    t.test('orphan verdict (no attacker engram) scores as inconclusive', () => {
-        const db = makeDb();
-        const r = repoId(db);
-        registerContest(db, { ...USB_CONTEST, repo_id: r });
-        ensureBead(db, 'BEAD-USB-SENTRY-FORGE-LISTENER-001', r);
+    await t.test('orphan verdict (no attacker engram) scores as inconclusive', () => {
+        const { db, repoId: r } = makeContestDb('BEAD-USB-SENTRY-FORGE-LISTENER-001');
 
         // no shot-fired Engram — only a verdict
         const verdict = insertEngram(db, 'e1', 'BEAD-USB-SENTRY-FORGE-LISTENER-001', r, 'usb-sentry/verdict/SHOT-ORPHAN', {
@@ -302,12 +263,8 @@ test('war-game scoring integration', (t) => {
         db.close();
     });
 
-    t.test('listener-timeout terminal scores as inconclusive', () => {
-        const db = makeDb();
-        const r = repoId(db);
-        registerContest(db, { ...USB_CONTEST, repo_id: r });
-        ensureBead(db, 'BEAD-USB-FORGE-001', r);
-        ensureBead(db, 'BEAD-USB-SENTRY-FORGE-LISTENER-001', r);
+    await t.test('listener-timeout terminal scores as inconclusive', () => {
+        const { db, repoId: r } = makeContestDb();
 
         insertEngram(db, 'e1', 'BEAD-USB-FORGE-001', r, 'usb-forge/shot-fired/FORGE-MS-002', {
             shot_id: 'SHOT-TO', scenario_id: 'FORGE-MS-002', expected: { outcome: 'deflected' },
@@ -320,12 +277,8 @@ test('war-game scoring integration', (t) => {
         db.close();
     });
 
-    t.test('double verdict — same outcome is no-op', () => {
-        const db = makeDb();
-        const r = repoId(db);
-        registerContest(db, { ...USB_CONTEST, repo_id: r });
-        ensureBead(db, 'BEAD-USB-FORGE-001', r);
-        ensureBead(db, 'BEAD-USB-SENTRY-FORGE-LISTENER-001', r);
+    await t.test('double verdict — same outcome is no-op', () => {
+        const { db, repoId: r } = makeContestDb();
 
         insertEngram(db, 'e1', 'BEAD-USB-FORGE-001', r, 'usb-forge/shot-fired/FORGE-MS-002', {
             shot_id: 'SHOT-D1', scenario_id: 'FORGE-MS-002', expected: { outcome: 'deflected' },
@@ -350,12 +303,8 @@ test('war-game scoring integration', (t) => {
         db.close();
     });
 
-    t.test('double verdict — more-severe outcome upgrades', () => {
-        const db = makeDb();
-        const r = repoId(db);
-        registerContest(db, { ...USB_CONTEST, repo_id: r });
-        ensureBead(db, 'BEAD-USB-FORGE-001', r);
-        ensureBead(db, 'BEAD-USB-SENTRY-FORGE-LISTENER-001', r);
+    await t.test('double verdict — more-severe outcome upgrades', () => {
+        const { db, repoId: r } = makeContestDb();
 
         insertEngram(db, 'e1', 'BEAD-USB-FORGE-001', r, 'usb-forge/shot-fired/FORGE-MS-002', {
             shot_id: 'SHOT-UP', scenario_id: 'FORGE-MS-002', expected: { outcome: 'deflected' },
@@ -378,12 +327,8 @@ test('war-game scoring integration', (t) => {
         db.close();
     });
 
-    t.test('double verdict — less-severe outcome does not downgrade', () => {
-        const db = makeDb();
-        const r = repoId(db);
-        registerContest(db, { ...USB_CONTEST, repo_id: r });
-        ensureBead(db, 'BEAD-USB-FORGE-001', r);
-        ensureBead(db, 'BEAD-USB-SENTRY-FORGE-LISTENER-001', r);
+    await t.test('double verdict — less-severe outcome does not downgrade', () => {
+        const { db, repoId: r } = makeContestDb();
 
         insertEngram(db, 'e1', 'BEAD-USB-FORGE-001', r, 'usb-forge/shot-fired/FORGE-MS-002', {
             shot_id: 'SHOT-DN', scenario_id: 'FORGE-MS-002', expected: { outcome: 'deflected' },
@@ -405,12 +350,8 @@ test('war-game scoring integration', (t) => {
         db.close();
     });
 
-    t.test('tally returns running totals', () => {
-        const db = makeDb();
-        const r = repoId(db);
-        registerContest(db, { ...USB_CONTEST, repo_id: r });
-        ensureBead(db, 'BEAD-USB-FORGE-001', r);
-        ensureBead(db, 'BEAD-USB-SENTRY-FORGE-LISTENER-001', r);
+    await t.test('tally returns running totals', () => {
+        const { db, repoId: r } = makeContestDb();
 
         const shots: Array<[string, string, 'deflected' | 'captured_clean', string]> = [
             ['T1', 'FORGE-MS-002', 'deflected', 'usb-sentry/phase1-hit'],
@@ -443,12 +384,8 @@ test('war-game scoring integration', (t) => {
         db.close();
     });
 
-    t.test('recent returns scored events in reverse-chronological order', async () => {
-        const db = makeDb();
-        const r = repoId(db);
-        registerContest(db, { ...USB_CONTEST, repo_id: r });
-        ensureBead(db, 'BEAD-USB-FORGE-001', r);
-        ensureBead(db, 'BEAD-USB-SENTRY-FORGE-LISTENER-001', r);
+    await t.test('recent returns scored events in reverse-chronological order', async () => {
+        const { db, repoId: r } = makeContestDb();
 
         for (let i = 0; i < 3; i++) {
             insertEngram(db, `ra${i}`, 'BEAD-USB-FORGE-001', r, 'usb-forge/shot-fired/FORGE-MS-002', {
@@ -469,12 +406,8 @@ test('war-game scoring integration', (t) => {
         db.close();
     });
 
-    t.test('by_scenario groups by scenario_id', () => {
-        const db = makeDb();
-        const r = repoId(db);
-        registerContest(db, { ...USB_CONTEST, repo_id: r });
-        ensureBead(db, 'BEAD-USB-FORGE-001', r);
-        ensureBead(db, 'BEAD-USB-SENTRY-FORGE-LISTENER-001', r);
+    await t.test('by_scenario groups by scenario_id', () => {
+        const { db, repoId: r } = makeContestDb();
 
         for (const [sid, scen, exp, term] of [
             ['B1', 'FORGE-MS-002', 'deflected', 'usb-sentry/phase1-hit'],
@@ -500,12 +433,8 @@ test('war-game scoring integration', (t) => {
         db.close();
     });
 
-    t.test('get_score returns a single shot lookup', () => {
-        const db = makeDb();
-        const r = repoId(db);
-        registerContest(db, { ...USB_CONTEST, repo_id: r });
-        ensureBead(db, 'BEAD-USB-FORGE-001', r);
-        ensureBead(db, 'BEAD-USB-SENTRY-FORGE-LISTENER-001', r);
+    await t.test('get_score returns a single shot lookup', () => {
+        const { db, repoId: r } = makeContestDb();
 
         insertEngram(db, 'g1', 'BEAD-USB-FORGE-001', r, 'usb-forge/shot-fired/FORGE-MS-002', {
             shot_id: 'GET-ME', scenario_id: 'FORGE-MS-002', expected: { outcome: 'deflected' },
@@ -522,11 +451,8 @@ test('war-game scoring integration', (t) => {
         db.close();
     });
 
-    t.test('non-contest Engrams pass through untouched (no regression)', () => {
-        const db = makeDb();
-        const r = repoId(db);
-        registerContest(db, { ...USB_CONTEST, repo_id: r });
-        ensureBead(db, 'BEAD-UNRELATED', r);
+    await t.test('non-contest Engrams pass through untouched (no regression)', () => {
+        const { db, repoId: r } = makeContestDb('BEAD-UNRELATED');
 
         const unrelated = insertEngram(db, 'u1', 'BEAD-UNRELATED', r, 'unrelated-system/event/foo', {
             payload: 'bar',
@@ -539,12 +465,8 @@ test('war-game scoring integration', (t) => {
         db.close();
     });
 
-    t.test('trigger is fail-soft — drops the score table mid-run, original Engram remains', () => {
-        const db = makeDb();
-        const r = repoId(db);
-        registerContest(db, { ...USB_CONTEST, repo_id: r });
-        ensureBead(db, 'BEAD-USB-FORGE-001', r);
-        ensureBead(db, 'BEAD-USB-SENTRY-FORGE-LISTENER-001', r);
+    await t.test('trigger is fail-soft — drops the score table mid-run, original Engram remains', () => {
+        const { db, repoId: r } = makeContestDb();
 
         insertEngram(db, 'f1', 'BEAD-USB-FORGE-001', r, 'usb-forge/shot-fired/FORGE-MS-002', {
             shot_id: 'SHOT-FS', scenario_id: 'FORGE-MS-002', expected: { outcome: 'deflected' },

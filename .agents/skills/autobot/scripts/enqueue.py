@@ -1,29 +1,18 @@
 #!/usr/bin/env python3
-"""Fail-closed tombstone for the retired public AutoBot queue intake."""
+"""Retired AutoBot compatibility tombstone."""
 
 from __future__ import annotations
 
-import json
-
-DECOMMISSIONED_ERROR = (
-    "autobot_permanently_decommissioned: use the receipt-bound "
-    "cstar_forge_request -> cstar_forge_execute path"
-)
+import sys
 
 
-def enqueue(*_args: object, **_kwargs: object) -> dict[str, object]:
-    """Refuse stale queue callers without writing a task record."""
-    return {
-        "status": "blocked",
-        "error": DECOMMISSIONED_ERROR,
-        "live_spend": False,
-        "wrote_to": None,
-    }
+RETIRED_ERROR = "legacy_autobot_retired_use_cstar_forge"
 
 
 def main() -> int:
-    print(json.dumps(enqueue(), sort_keys=True))
-    return 2
+    """Fail closed without inspecting arguments or touching external state."""
+    print(RETIRED_ERROR, file=sys.stderr)
+    return 1
 
 
 if __name__ == "__main__":

@@ -15,7 +15,10 @@ The live route is:
 minimax MiniMax-M3 bounded-six-role-manifest-v1 -> delivered_unverified ->
 independent cstar_record_result`
 
-`cstar_forge_request` and `cstar_forge_authorize` are always no-spend.
+`cstar_forge_request` and `cstar_forge_authorize` are always no-spend. The
+normal authorize transition binds one unambiguous current root-user build
+instruction to the immutable request; an exact byte challenge is legacy v2
+compatibility evidence only and is not operator-facing workflow.
 `cstar_forge_execute` is the only model-spend and implementation surface.
 
 ## Required Inputs
@@ -26,7 +29,9 @@ The canonical request must contain:
 - optional project-information repository and required source callback thread
   ids;
 - bounded `target_paths` and complete `required_output_paths`;
-- requested and prohibited actions;
+- nonempty canonical requested/prohibited action ids and their durable
+  authority envelope. Exactly one primary id is allowed; objective, prompt,
+  paths, and artifact prose are context only;
 - required metrics with thresholds and acceptance rules;
 - expected artifacts and callback packet shape;
 - spend, live-source, attempt, and retry policy;
@@ -35,11 +40,70 @@ The canonical request must contain:
   request-bound Hermes runtime expectation; and
 - dirty-root and operator-gate constraints relevant to the task.
 
-Live requests additionally require a CStar-verifiable operator authorization
-attestation bound to both the exact target scope and every required output, one
-attempt, zero retries, no live source collection, and an expiry. An existing
-target directory may contain declared descendants; an existing file or missing
-target authorizes only that exact path.
+Live-intent requests are no-spend `PENDING_AUTH` records. The response returns a
+full `authorization_manifest` and `request_sha256`; legacy freeform
+authorization references are forbidden and v3 exposes no machine challenge.
+CoS fills and verifies those fields from the accepted work item. In the same
+root-user turn, `cstar_forge_authorize` recovers the operator's ordinary build,
+implement, repair, fix, or route-to-Forge instruction and resolves exactly one
+bead, decision, canonical Hall target reference, or exact derived operator
+label. A derived label retains, in decision order, shared target-identity tokens
+plus structured `qN`, `phaseN`, or `prN` stage tokens; it requires at least
+three unique tokens including both classes. Partial, reordered, date-only,
+internal-activity, zero-match, and multi-match labels fail closed. The accepted
+turn binds to the unchanged request, target scope, every required output, one
+attempt, zero retries, synthetic fixtures, no live source collection, and an expiry.
+Questions, examples, negation, revocation, bare deictic continuations,
+ambiguity, extra/duplicate user records, steering, stale turns, forks, and
+subagents fail closed. An existing target directory may contain declared
+descendants; an existing file or missing target authorizes only that exact path.
+
+A supported host restart preserves the goal and immutable pending request, not
+the authority of earlier prose. The next live authorization requires one fresh
+current root-user instruction naming the work. `Continue building <unique
+work>` and `Resume the <unique work> build` are ordinary operative variants;
+bare continue/proceed, restart acknowledgements, status questions, and reserved
+goal packets fail closed. A goal-only turn returns
+`forge_operator_signal_required`, with no Hall mutation or provider call.
+
+Before a live request can become `PENDING_AUTH`, the kernel must report a
+supported live launcher, distinct code/control roots, a synchronized package
+manifest/lock root, a regular non-symlink dependency tree whose hidden lock and
+installed versions match, and a complete manifest-bound private runtime. The
+same predicate runs after operator-intent verification and before its Hall
+mutation. No-spend requests remain available when live readiness is red.
+
+For a preserved, unspent `cstar.forge_request.v2` receipt, the current typed
+request must reproduce every non-runtime semantic field. CStar keeps the v2
+JSON, id, and hash immutable and emits a separate
+`cstar.forge_legacy_v2_execution_grant.v1` manifest. The manifest binds the
+original action/lock/output digests, current sealed adapter/Hermes runtime, one
+attempt, zero retries, no live source, and a newly challenged `synthetic_only`
+overlay. Its exact challenge is `CSTAR_FORGE_AUTHORIZE v2-compat-v1 ...
+compatibility_manifest_sha256=<sha256>`. It is not reissued as v3 and does not
+claim that fixture authority existed in the legacy hash. Before publishing the
+challenge, reconciliation atomically binds its independently verified root-user
+turn into the legacy row's previously empty requester-lineage extension, only
+while the receipt is pending, unauthorised, and unattempted. The v2 JSON, id,
+hashes, targets, and scope remain unchanged. A later root task may replay that
+same binding but cannot replace it. Missing, partial, or tampered lineage,
+sidecar drift, runtime drift, semantic widening, prior authorization, terminal
+state, or prior attempt fails closed. Independent validation must come from a
+third root thread distinct from this bound requester and the authorizing executor.
+
+A new request's initial `cstar_forge_execute` reservation must occur in the same
+root-user turn. The identity is rechecked after runtime/OAuth preflight
+immediately before reservation. A later root-user turn normally may only
+retrieve an existing idempotency-key receipt. The sole new-reservation exception
+is a pending `cstar.forge_pre_provider_continuation.v1` receipt that preserves
+the original unrevoked, unexpired authorization and every non-runtime request
+field. It grants no new scope or spend authority.
+
+For a new attempt, execution captures the readiness binding after authority,
+rechecks the same digest before reservation, and rechecks it after preparation
+before marking the attempt started or invoking Hermes. A changed-but-still-
+valid runtime is drift, not equivalent readiness. No-op and durable replay do
+not require current live readiness and cannot create spend.
 
 ## Outputs
 
@@ -53,7 +117,9 @@ The skill produces durable, machine-readable records for:
    per-role token usage;
 6. QA response artifact and strict exact-output file manifest;
 7. independent validation evidence; and
-8. terminal attempt and request state.
+8. pre-provider continuation status, budget class, repair-validation binding,
+   and bounded-cycle accounting when applicable; and
+9. terminal attempt and request state.
 
 Information-repository update packets and policy-required GitHub
 issues/branches/PRs are conditional outputs. PMTs do not review or approve, and
@@ -107,14 +173,18 @@ six-pack. The upstream tmux/Git-worktree orchestration remains separately
 operator-gated and must not be claimed by a
 `bounded-six-role-manifest-v1` receipt. Upstream calls its fifth producer
 `hardender`; this adaptation intentionally uses the clearer name `hardener`.
+The design reference is `unclebob/swarm-forge` branch `six-pack` at commit
+`59803dadb38e0e09d5357d749452036e4a82ae60`; no upstream source or orchestration
+code is copied into CStar.
 
 ## Adapter Contract
 
 The approved private adapter must be sealed into the request by path and
 SHA-256. The seal covers the top-level adapter, the absolute Python
 interpreter, and, for the write-capable worker, the absolute Node interpreter,
-`forge_worker_safety.py`, `hermes_minimax_delegate.mjs`, and
-`hermes_runtime_lineage.mjs` plus `forge_role_plan.mjs`. Invocation copies
+worker safety/evidence helpers, delegate evidence/preflight helpers,
+`hermes_minimax_delegate.mjs`, `hermes_runtime_lineage.mjs`, and
+`forge_role_plan.mjs`. Invocation copies
 the verified scripts into an owner-only runtime directory and passes only an
 allowlisted, non-secret environment. The write-capable worker:
 
@@ -155,36 +225,41 @@ variables plus the non-secret sealed provider identity before startup, and
 inherits no provider, cloud, shell, loader, or credential secret. The only
 profile selector is `HERMES_HOME` pointing at the existing private
 `cstar-hub` profile; it contains no token. CStar never opens Hermes `auth.json`.
-The sealed stdlib Hermes snapshot reads only the owner-safe `minimax-oauth`
+The sealed CStar-owned stdlib snapshot reads only the owner-safe `minimax-oauth`
 record, validates the pinned global MiniMax client, scope, and endpoints, and
 keeps the access token in that isolated Python process. It emits no token,
 refresh token, credential path, expiry, or fingerprint. Forge performs no OAuth
 refresh or auth-file write under the normal execution grant. Unsafe, missing,
-out-of-scope, expired, or less-than-2100-second state fails closed before an
+out-of-scope, expired, or unable-to-cover-the-fixed-2100-second state fails closed before an
 attempt is reserved. Refresh requires a separately authorized credential
 lifecycle action.
 
 The sealed prompt is sent over stdin with an exact byte count and SHA-256; it
-is never placed in argv. In each fresh role process, the Hermes-owned stdlib
+is never placed in argv. In each fresh role process, the CStar-owned stdlib
 entrypoint makes exactly one non-redirecting, non-retrying HTTPS POST to the
 fixed MiniMax Anthropic endpoint. It uses no provider SDK, fallback, stream
 retry, iteration-limit summary, prompt cache, auxiliary inference, proxy
 environment, or second call within that role.
 
-All adapter descendants execute inside sealed Bubblewrap containment with a
-private PID namespace, namespace PID 1, `--die-with-parent`, disabled nested
-user namespaces, a cleared environment, and a read-only host view. Only the
-authorized project root, response directory, and invocation bundle are
-writable. The worker interpreter uses `-I -S -B`; timeout and PID-1 termination
-tests must prove detached descendants are gone before the wrapper returns.
+All adapter descendants execute inside an empty-root Bubblewrap namespace with
+a private PID namespace, namespace PID 1, `--die-with-parent`, disabled nested
+user namespaces, and a cleared environment. CStar projects only the sealed
+runtime, exact system runtime files, exact Hermes runtime/profile inputs, an
+exact read-only package-lock projection, and an exact shadow workspace. The
+child can write only its private I/O directory and shadow workspace. It cannot
+see or write the host project, CStar response directory, execution trace, or
+unlisted sibling files. The worker interpreter uses `-I -S -B`; timeout and
+PID-1 termination tests must prove detached descendants are gone before the
+wrapper returns.
 
 The worker runtime performs a non-spending compatibility and OAuth-readiness
-preflight before the model-call boundary: launcher, root-owned system interpreter,
-dependency-lock, four-file Forge-entrypoint source-content, and source-instance hashes plus
+preflight before the model-call boundary: CStar-owned manifest/launcher,
+root-owned system interpreter, five-file Forge-entrypoint source-content, and
+source-instance hashes plus
 `--version`, `--help`, and `chat --help` under a sterile temporary HOME/XDG
 tree. The console script is only a locator. Exact in-memory source bytes for
-`hermes_cli/__init__.py`, `forge_mode.py`, `forge_minimax_oauth.py`, and
-`forge_entrypoint.py` are copied
+`hermes_cli/__init__.py`, `forge_mode.py`, `forge_minimax_oauth.py`,
+`forge_provider_journal.py`, and `forge_entrypoint.py` are copied
 with exclusive owner-private writes into a fresh snapshot. The root-owned
 system Python launches that snapshot with `-I -S -B`, no site-packages path,
 and a fresh empty `sys.pycache_prefix`; original-tree `.pyc`, `.pth`,
@@ -196,11 +271,13 @@ requires the CStar-bound proof outside the dual synthetic-test gate, resolves
 one exact byte set, compares every lineage field, and launches the snapshot
 made from those same bytes before credential opening.
 
-The request seals that complete Hermes runtime expectation before spend.
-Execute re-resolves and compares it, then requires a redacted ready
-`minimax-oauth` proof with at least 2100 seconds of life before attempt
-reservation. The prepared invocation reruns the probe and requires the same
-proof immediately before launch. A durable idempotency-key replay is returned
+The request seals that complete CStar-owned runtime expectation before spend.
+Execute re-resolves and compares it, then creates one fixed 2100 seconds OAuth
+horizon (1800-second execution cap plus 300-second margin) before attempt
+reservation. The start/deadline and request, execute, decision, adapter, and
+runtime identities are hash-bound. The prepared invocation reruns the probe and
+all six roles reuse the same deadline and binding; no role requests a sliding
+TTL. A durable idempotency-key replay is returned
 without requiring fresh OAuth because it performs no reservation or provider
 call. Production rejects ambient `HERMES_BIN`; only the dual
 synthetic-test gate may supply an override. The verified preflight remains in
@@ -219,6 +296,16 @@ echoes and validates the role, ordinal phase, role-plan id/hash, and immediate
 input-handoff hash plus `specification_handoff_sha256` before its handoff can
 advance the chain.
 
+Before every irreversible provider step, the isolated entrypoint appends and
+fsyncs the next token-free, hash-chained journal transition:
+`not_reached -> capability_consumed -> dispatch_attempted -> request_sent ->
+response_headers_received -> response_body_complete`. CStar counts a request
+start only from valid `dispatch_attempted` evidence and never from a PID. A
+missing, malformed, truncated, regressing, or binding-mismatched journal makes
+additional spend unknown. Earlier completed-role usage remains recorded while
+that uncertainty remains visible; it can never collapse to
+`live_spend=false`.
+
 The live invocation places `--provider` and `--model` after `chat`; Hermes'
 chat-subparser defaults otherwise overwrite top-level values with nulls.
 
@@ -236,7 +323,11 @@ returned result. Unrecognized worker identifiers, counters, paths, and ledger
 fields are discarded; any returned `wrote_to` value is reconstructed only from
 the CStar-owned response artifact after containment and private-mode checks.
 
-The multi-file writer is exception-safe, not crash-atomic. There is no durable
+The model edits only the shadow workspace. After response-contract validation,
+CStar rechecks every host source and package-lock preimage, stages only the
+exact required outputs, and commits them with mode preservation, directory
+fsync, rollback, and a final source/lock/output recheck. The host-side
+multi-file writer is exception-safe, not crash-atomic. There is no durable
 write-ahead journal yet; a process or host crash between replacements requires
 independent inspection and cannot be represented as a completed transaction.
 
@@ -244,15 +335,16 @@ Outer success cannot hide inner failure. Missing or mismatched callback fields,
 claimed files that do not exist, undeclared artifacts, source-lane use, unknown
 spend state, and response-contract violations fail closed.
 
-Rejected worker manifests retain bounded evidence without retaining model
-content. After the model response is parsed but before any accepted delivery, a
-manifest-contract or bounded-application failure writes the standard private
-adapter response with status `rejected`, zero changed files, a stable failure
-class, and only the canonical manifest hash, byte count, field presence/types,
-and entry counts. Raw manifest values, file paths/content, callback values, and
-unknown field names are not persisted or emitted. The kernel hashes and retains
-that receipt-local artifact while continuing to mark the execution terminally
-failed; it can never be accepted as delivery evidence.
+The child response always remains private and ephemeral. For a successful
+commit, CStar persists a parent-built `cstar.forge_delivery_receipt.v1` using
+canonical host paths and committed hashes; raw worker bytes and disappearing
+shadow paths are never the durable delivery artifact. A contract-invalid
+response produces only parent-sanitized
+`cstar.forge_worker_response_rejection.v1` evidence containing a stable error,
+private-response hash/size, and `raw_response_persisted=false`. A structurally
+valid response that cannot be committed produces the equally non-delivery
+`cstar.forge_worker_response_unverified.v1` receipt. These artifacts can never
+be accepted as delivery evidence.
 
 ## Attempt Semantics
 
@@ -261,27 +353,64 @@ failed; it can never be accepted as delivery evidence.
   operator grant, re-hash the exact request, verify locks, and atomically reserve
   the attempt before adapter invocation.
 - Reusing an idempotency key returns the existing attempt without new spend.
-- Runtime-bundle and symlink-safe trace preflight occurs before the durable
-  attempt is marked started. Failure before adapter spawn is `FAILED_FINAL`.
+- Runtime-bundle and symlink-safe trace preflight occurs before provider start.
+  An allowlisted failure is `FAILED_RETRYABLE` and `mechanical_no_provider` only
+  with exact zero-provider, zero-spend, no-source, no-write evidence.
+- CStar repairs and independently validates that local failure, then reserves a
+  child cycle with `retry_of_attempt_id` and a new internal idempotency key. The
+  original request, hash, authorization, outputs, actions, locks, and provider
+  attempt budget remain unchanged; the operator does not restate the build.
+- Provider start or ambiguity, unknown spend, missing evidence, scope/worktree/
+  lock drift, expiry, revocation, or another request is `provider_or_unknown`
+  and cannot inherit continuation.
+- The third consecutive identical mechanical failure and tenth total mechanical
+  cycle are `BLOCKED`; the latter exhausts the request.
 - One reserved orchestration attempt contains the six fixed role calls; it is
   not six independently retryable CStar attempts.
 - Failure after adapter start with unknown spend is `UNKNOWN` and consumes the
   grant.
 - A structurally valid response is `delivered_unverified`, never immediate
   success.
-- There is no automatic role retry or orchestration-attempt retry in the
-  bootstrap contract.
+- There is no automatic role retry or provider/orchestration-attempt retry.
+  Bounded pre-provider mechanical continuity is repair/resume accounting, not a
+  model retry.
 
 ## Validation Contract
 
-Only `cstar_record_result` with independent hash-verified evidence may finalize
-a delivered attempt. The validator must be distinct from the Forge producer and
-must supply bounded artifact paths and hashes plus focused test evidence.
+Only `cstar_record_result` with an exact execution receipt and hash-verified
+evidence may finalize a delivered attempt. The caller supplies bounded artifact
+and focused-check paths and hashes only. CStar derives validator identity from
+the verified active Codex request, emits `cstar.validation-evidence.v2`, and
+requires the validator root thread to differ from both the Forge requester and
+authorizing executor. The manifest binds the exact request, authorization,
+attempt, adapter, result artifact, bead, repository, and target-set hashes.
+Legacy v1 validation remains readable but cannot finalize Forge.
+
+For `FAILED_RETRYABLE`, a positive verified validation may bind the repaired
+source artifacts to the exact parent execution receipt without claiming
+delivery. CStar checks those artifact hashes against the current adapter bundle
+and target preimages before marking the continuation `RESUMED`. Before that
+validation, CStar creates the bounded owner-only
+`continuation-runtime-evidence.json` under the parent execution receipt so the
+validator can hash the exact adapter, interpreter, containment, dependency, and
+Hermes runtime binding, together with the named CStar-owned runtime files,
+without reading external system paths through the result surface. Goal-resume
+evidence supplies continuity only; the original Forge authorization remains the
+authority.
+Prepared workspace source preimages are checked against the same validation
+before `STARTED` or model invocation, and appended same-turn steering is
+included in revocation scanning rather than folded into the old authorization.
 
 Positive verified evidence finalizes `SUCCEEDED`; negative verified evidence
 finalizes `FAILED_FINAL`. Reported positive evidence without verification is
 stored as `INCONCLUSIVE`. Validation persistence and Forge finalization are
 transactional.
+
+For an already-terminal `FAILED_FINAL` or `UNKNOWN` attempt, independently
+verified `REJECTED`/`FAILURE` or `INCONCLUSIVE` evidence may be linked without
+changing execution state. The `terminal_evidence_link` mode updates only the
+validation identity and evidence fields. Positive validation is rejected and
+cannot resurrect failed delivery.
 
 ## Failure Classes
 
@@ -291,7 +420,13 @@ transactional.
 - `package_lock_mismatch`
 - `adapter_unregistered_or_runtime_drifted`
 - `attempt_replay_or_budget_exhausted`
+- `pre_provider_continuation_evidence_invalid`
+- `pre_provider_continuation_repair_validation_required`
+- `pre_provider_continuation_runtime_or_target_drifted`
+- `pre_provider_continuation_no_progress_or_cycle_limit`
 - `adapter_spend_unknown`
+- `provider_journal_invalid_or_ambiguous`
+- `oauth_fixed_horizon_invalid_or_expired`
 - `adapter_reported_failure`
 - `manifest_or_callback_mismatch`
 - `path_or_file_type_violation`
@@ -306,10 +441,12 @@ to prevent unsafe replay.
 
 ## Verification Requirements
 
-Tests must cover request immutability, one-shot authority, atomic reservation,
+Tests must cover request immutability, initial authority, atomic reservation,
 replay, adapter sealing, response semantics, path/link containment,
 caught-exception rollback and mode preservation, actual-versus-requested model identity, independent
-evidence hashing, and validation/finalization rollback. Run focused tests in the
+evidence hashing, trace-tamper rejection, continuation validation binding,
+provider-versus-mechanical accounting, no-progress limits, and validation/
+finalization rollback. Run focused tests in the
 changed repository and CStar contract tests when the control-plane boundary
 changes.
 

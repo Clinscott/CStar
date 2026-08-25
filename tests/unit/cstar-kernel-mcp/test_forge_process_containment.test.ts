@@ -6,6 +6,8 @@ import { afterEach, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
+    buildForgeContainmentArguments,
+    forgeRuntimeReadOnlyPaths,
     isolatedPythonArguments,
     spawnContainedForgeProcess,
 } from '../../../src/tools/cstar-kernel-mcp/tools/forge_adapter_containment.js';
@@ -32,6 +34,95 @@ afterEach(() => {
 });
 
 describe('CStar Forge Bubblewrap containment', () => {
+    it('projects both exact Hermes auth stores for per-provider profile fallback', () => {
+        const item = fixture();
+        const home = path.join(item.root, 'home');
+        const globalHermesHome = path.join(home, '.hermes');
+        const profileHome = path.join(globalHermesHome, 'profiles', 'cstar-hub');
+        fs.mkdirSync(profileHome, { recursive: true });
+        const globalAuth = path.join(globalHermesHome, 'auth.json');
+        const profileAuth = path.join(profileHome, 'auth.json');
+        const unrelated = path.join(globalHermesHome, 'unrelated-secret.json');
+        fs.writeFileSync(globalAuth, '{"providers":{"minimax-oauth":{}}}\n');
+        fs.writeFileSync(profileAuth, '{"providers":{}}\n');
+        fs.writeFileSync(unrelated, '{"secret":"not-mounted"}\n');
+
+        const projected = forgeRuntimeReadOnlyPaths(item.runtimeProof, {
+            HOME: home,
+            HERMES_HOME: profileHome,
+        });
+
+        assert.equal(projected.includes(fs.realpathSync(globalAuth)), true);
+        assert.equal(projected.includes(fs.realpathSync(profileAuth)), true);
+        assert.equal(projected.includes(fs.realpathSync(unrelated)), false);
+        assert.equal(projected.includes(fs.realpathSync(globalHermesHome)), false);
+        assert.equal(projected.includes(fs.realpathSync(profileHome)), false);
+    });
+
+    it('projects the global fallback when the profile has no auth store', () => {
+        const item = fixture();
+        const home = path.join(item.root, 'fallback-home');
+        const globalHermesHome = path.join(home, '.hermes');
+        const profileHome = path.join(globalHermesHome, 'profiles', 'cstar-hub');
+        fs.mkdirSync(profileHome, { recursive: true });
+        const globalAuth = path.join(globalHermesHome, 'auth.json');
+        fs.writeFileSync(globalAuth, '{"providers":{"minimax-oauth":{}}}\n');
+
+        const projected = forgeRuntimeReadOnlyPaths(item.runtimeProof, {
+            HOME: home,
+            HERMES_HOME: profileHome,
+        });
+
+        assert.equal(projected.includes(fs.realpathSync(globalAuth)), true);
+        assert.equal(projected.some((candidate) => candidate === path.join(profileHome, 'auth.json')), false);
+    });
+
+    it('builds an empty-root projection without whole-host visibility', () => {
+        const item = fixture();
+        const args = buildForgeContainmentArguments({
+            runtimeProof: item.runtimeProof,
+            command: '/usr/bin/true',
+            commandArgs: [],
+            cwd: item.root,
+            environment: {},
+            writablePaths: [item.root],
+            timeoutMs: 5_000,
+        });
+        assert.equal(args.some((value, index) => (
+            value === '--ro-bind' && args[index + 1] === '/' && args[index + 2] === '/'
+        )), false);
+        assert.equal(args.some((value, index) => (
+            value === '--ro-bind' && args[index + 1] === '/usr' && args[index + 2] === '/usr'
+        )), true);
+    });
+
+    it('cannot see an unprojected host file', () => {
+        const item = fixture();
+        const outside = fs.mkdtempSync(path.join('/tmp', 'cstar-containment-canary-'));
+        roots.push(outside);
+        const secret = path.join(outside, 'secret.txt');
+        const observed = path.join(item.root, 'observed.txt');
+        fs.writeFileSync(secret, 'host-secret');
+        const probe = [
+            'from pathlib import Path',
+            `Path(${JSON.stringify(observed)}).write_text(str(Path(${JSON.stringify(secret)}).exists()))`,
+        ].join(';');
+
+        const result = spawnContainedForgeProcess({
+            runtimeProof: item.runtimeProof,
+            command: item.runtimeProof.python_interpreter.path,
+            commandArgs: ['-I', '-S', '-B', '-c', probe],
+            cwd: item.root,
+            environment: { PYTHONDONTWRITEBYTECODE: '1' },
+            writablePaths: [item.root],
+            timeoutMs: 5_000,
+        });
+
+        assert.equal(result.status, 0, result.stderr);
+        assert.equal(fs.readFileSync(observed, 'utf-8'), 'False');
+        assert.equal(fs.readFileSync(secret, 'utf-8'), 'host-secret');
+    });
+
     it('runs Python isolated from user-site pth startup code', () => {
         const item = fixture();
         const home = path.join(item.root, 'home');
@@ -81,6 +172,7 @@ describe('CStar Forge Bubblewrap containment', () => {
             commandArgs: ['-e', parent],
             cwd: item.root,
             environment: {},
+            readOnlyPaths: [process.execPath],
             writablePaths: [item.root],
             timeoutMs: 250,
         });
@@ -109,6 +201,7 @@ describe('CStar Forge Bubblewrap containment', () => {
             commandArgs: ['-e', parent],
             cwd: item.root,
             environment: {},
+            readOnlyPaths: [process.execPath],
             writablePaths: [item.root],
             timeoutMs: 5_000,
         });

@@ -1,28 +1,18 @@
 #!/usr/bin/env python3
-"""Fail-closed tombstone for the retired public AutoBot queue worker."""
+"""Retired AutoBot compatibility tombstone."""
 
 from __future__ import annotations
 
-import json
-
-DECOMMISSIONED_ERROR = (
-    "autobot_permanently_decommissioned: queued AutoBot work cannot execute"
-)
+import sys
 
 
-def process_queue(*_args: object, **_kwargs: object) -> dict[str, object]:
-    """Refuse stale worker callers without claiming, spending, or writing."""
-    return {
-        "status": "blocked",
-        "error": DECOMMISSIONED_ERROR,
-        "live_spend": False,
-        "processed": 0,
-    }
+RETIRED_ERROR = "legacy_autobot_retired_use_cstar_forge"
 
 
 def main() -> int:
-    print(json.dumps(process_queue(), sort_keys=True))
-    return 2
+    """Fail closed without inspecting arguments or touching external state."""
+    print(RETIRED_ERROR, file=sys.stderr)
+    return 1
 
 
 if __name__ == "__main__":

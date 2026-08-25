@@ -1,49 +1,34 @@
-import { createHash } from 'node:crypto';
+export const RETIRED_BLACKBOARD_COMPACTION_FAILURE =
+    'legacy_blackboard_compaction_retired_use_cstar_kernel';
 
-import { StateRegistry, type BlackboardEntry } from './state.js';
-
+/** Import-compatible dependency seam with no runtime capability. */
 export const blackboardManagerDeps = {
-    stateRegistry: StateRegistry,
+    stateRegistry: null,
+    registry: null,
+    requestHostText: async (): Promise<never> => {
+        throw new Error(RETIRED_BLACKBOARD_COMPACTION_FAILURE);
+    },
 };
 
-/** Deterministic, non-model compaction for the volatile operator blackboard. */
+export interface BlackboardCompactionRequest {
+    trigger: 'operator';
+    source: 'tui';
+}
+
+export type BlackboardCompactionResult =
+    | { status: 'COMPACTED'; compactedEntries: number }
+    | { status: 'SKIPPED'; reason: 'below_threshold' }
+    | { status: 'REJECTED'; reason: 'explicit_operator_request_required' }
+    | { status: 'FAILED'; error: string };
+
+/** Compaction compatibility returns a stable failure before state or provider access. */
 export class BlackboardManager {
-    private static compacting = false;
-
-    public static async compactIfNecessary(): Promise<void> {
-        if (this.compacting) return;
-        this.compacting = true;
-
-        const { stateRegistry } = blackboardManagerDeps;
-        try {
-            const state = stateRegistry.get();
-            const blackboard = state.blackboard || [];
-            if (blackboard.length < 20) return;
-
-            const toCompact = blackboard.slice(0, 15);
-            const remaining = blackboard.slice(15);
-            const digest = createHash('sha256')
-                .update(JSON.stringify(toCompact))
-                .digest('hex');
-            const firstAt = toCompact.at(0)?.at ?? 0;
-            const lastAt = toCompact.at(-1)?.at ?? firstAt;
-            const summaryEntry: BlackboardEntry = {
-                at: Date.now(),
-                from: 'CStar',
-                message: `[COMPACTION] Rolled up ${toCompact.length} entries; range=${firstAt}-${lastAt}; sha256=${digest}.`,
-                type: 'INFO',
-            };
-            const nextBlackboard = [summaryEntry, ...remaining];
-            stateRegistry.save({ ...state, blackboard: nextBlackboard });
-            state.blackboard = nextBlackboard;
-            stateRegistry.pushTerminalLog(
-                '[CStar] Blackboard compacted deterministically; no model or external lane was invoked.',
-            );
-        } catch (error) {
-            const message = error instanceof Error ? error.message : String(error);
-            stateRegistry.pushTerminalLog(`[CStar:ERR] Blackboard compaction failed: ${message}`);
-        } finally {
-            this.compacting = false;
-        }
+    public static async compact(
+        _request: BlackboardCompactionRequest,
+    ): Promise<BlackboardCompactionResult> {
+        return {
+            status: 'FAILED',
+            error: RETIRED_BLACKBOARD_COMPACTION_FAILURE,
+        };
     }
 }

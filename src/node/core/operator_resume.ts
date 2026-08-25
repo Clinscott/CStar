@@ -1,5 +1,4 @@
 import type { HostProvider } from  '../../core/host_session.js';
-import { resolveHostProvider } from  '../../core/host_session.js';
 import { getHallPlanningSession, listHallPlanningSessions } from '../../tools/pennyone/intel/database.js';
 import type { HallOneMindBranchDigest, HallPlanningSessionRecord, HallPlanningSessionStatus } from '../../types/hall.js';
 import type {
@@ -14,6 +13,7 @@ import type {
 export interface OperatorResumeOptions {
     workspaceRoot: string;
     cwd: string;
+    explicitHostResume?: boolean;
     task?: string;
     ledger?: string;
     env?: NodeJS.ProcessEnv;
@@ -173,7 +173,7 @@ export function buildHostGovernorResumeInvocation(
             auto_replan_blocked: false,
             max_parallel: options.maxParallel ?? 1,
             max_promotions: options.maxPromotions,
-            dry_run: true,
+            dry_run: options.dryRun,
             project_root: options.workspaceRoot,
             cwd: options.cwd,
             source: options.source ?? 'cli',
@@ -184,24 +184,31 @@ export function buildHostGovernorResumeInvocation(
 }
 
 export async function executeHostGovernorResume(
-    _dispatchPort: RuntimeDispatchPort,
+    dispatchPort: RuntimeDispatchPort,
     options: OperatorResumeOptions,
     provider: HostProvider | null,
-    _dependencies: OperatorResumeDependencies = {},
+    dependencies: OperatorResumeDependencies = {},
 ): Promise<OperatorResumeResult> {
+    void dispatchPort;
     void options;
+    void provider;
+    void dependencies;
     return {
         resumed: false,
-        provider,
+        provider: null,
         wokeKernel: false,
         governorResult: {
             weave_id: 'weave:host-governor',
-            status: 'TRANSITIONAL',
-            output: 'Automatic Host Governor resume is decommissioned. Use explicit cstar-kernel lifecycle operations and route build or research work through Forge or Researcher.',
+            status: 'FAILURE',
+            output: '',
+            error: 'legacy_host_governor_resume_retired_use_cstar_handoff',
             metadata: {
-                capability_status: 'decommissioned',
-                execution_attempted: false,
-                kernel_wake_attempted: false,
+                compatibility: 'retired',
+                operator_action_required: true,
+                required_surface: 'cstar-kernel',
+                execution_dispatched: false,
+                kernel_wake_started: false,
+                hall_mutation_started: false,
             },
         },
     };
@@ -212,7 +219,13 @@ export async function resumeHostGovernorIfAvailable(
     options: OperatorResumeOptions,
     dependencies: OperatorResumeDependencies = {},
 ): Promise<OperatorResumeResult> {
-    const env = options.env ?? process.env;
-    const provider = resolveHostProvider(env);
-    return executeHostGovernorResume(dispatchPort, options, provider, dependencies);
+    if (options.explicitHostResume !== true) {
+        return {
+            resumed: false,
+            provider: null,
+            wokeKernel: false,
+        };
+    }
+
+    return executeHostGovernorResume(dispatchPort, options, null, dependencies);
 }

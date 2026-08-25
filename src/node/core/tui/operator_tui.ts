@@ -3,10 +3,8 @@ import readline from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
 
 import { StateRegistry, type SovereignState, type AgentState, type BlackboardEntry } from  '../state.js';
-import { BlackboardManager } from '../blackboard_manager.js';
 import { HUD } from  '../hud.js';
 import {
-    getHallPlanningSession,
     getHallBeads,
     getHallSummary,
     listHallPlanningSessions,
@@ -19,23 +17,18 @@ import type {
     HallRepositorySummary,
     HallSkillProposalRecord,
 } from '../../../types/hall.ts';
-import { buildChantInvocation, buildDynamicCommandInvocation } from  '../commands/dispatcher.js';
 import type { RuntimeDispatchPort } from  '../runtime/contracts.js';
 import {
     compactPlanningHandle,
     formatPlanningDigestBadge,
 } from  '../operator_resume.js';
+import {
+    dispatchOperatorInput,
+    type OperatorEvent,
+    type OperatorTab,
+} from './operator_tui_commands.js';
 
-type OperatorEventLevel = 'INFO' | 'WARN' | 'FAIL' | 'PASS';
-
-export interface OperatorEvent {
-    at: number;
-    level: OperatorEventLevel;
-    message: string;
-    detail?: string;
-}
-
-export type OperatorTab = 'OVERVIEW' | 'BLACKBOARD' | 'AGENTS' | 'TERMINALS';
+export type { OperatorEvent, OperatorTab } from './operator_tui_commands.js';
 
 export interface OperatorSnapshot {
     workspaceRoot: string;
@@ -48,21 +41,20 @@ export interface OperatorSnapshot {
     activeTab: OperatorTab;
 }
 
-const KNOWN_DIRECT_COMMANDS = new Set([
-    'chant',
-    'pennyone',
-    'ravens',
-    'start',
-]);
-
-function pushEvent(
-    events: OperatorEvent[],
-    level: OperatorEventLevel,
-    message: string,
-    detail?: string,
-): OperatorEvent[] {
-    return [...events, { at: Date.now(), level, message, detail }].slice(-10);
-}
+export const operatorTuiRuntimeDeps = {
+    getWorkspaceRoot: (): string => registry.getRoot(),
+    getHallSummary: (workspaceRoot: string): HallRepositorySummary | null => getHallSummary(workspaceRoot),
+    readSnapshot: (events: OperatorEvent[], activeTab: OperatorTab): OperatorSnapshot => (
+        readOperatorSnapshot(events, activeTab)
+    ),
+    isInteractive: (): boolean => Boolean(input.isTTY && output.isTTY),
+    write: (value: string): void => {
+        output.write(value);
+    },
+    createInterface: (): ReturnType<typeof readline.createInterface> => (
+        readline.createInterface({ input, output })
+    ),
+};
 
 function truncate(value: string, length: number): string {
     if (value.length <= length) {
@@ -111,20 +103,6 @@ function formatPlanningSession(session: HallPlanningSessionRecord): string {
     );
 }
 
-function formatPlanningStatusEvent(session: HallPlanningSessionRecord | null): string | undefined {
-    if (!session) {
-        return undefined;
-    }
-
-    const digestBadge = formatPlanningDigestBadge(session);
-    const parts = [
-        session.status,
-        compactPlanningHandle(session),
-        digestBadge,
-    ].filter(Boolean);
-    return parts.join(' | ');
-}
-
 function buildSeedEvents(workspaceRoot: string, hallSummary: HallRepositorySummary | null): OperatorEvent[] {
     const events: OperatorEvent[] = [
         {
@@ -151,7 +129,7 @@ function buildSeedEvents(workspaceRoot: string, hallSummary: HallRepositorySumma
 
 export function shouldLaunchOperatorTui(
     argv: string[],
-    interactive: boolean = Boolean(input.isTTY && output.isTTY),
+    interactive: boolean = operatorTuiRuntimeDeps.isInteractive(),
 ): boolean {
     let explicitTui = false;
     let skipNext = false;
@@ -259,8 +237,8 @@ export function renderOperatorShell(snapshot: OperatorSnapshot): string {
         out.push(HUD.boxRow('WORKSPACE', snapshot.workspaceRoot, chalk.cyanBright));
         out.push(HUD.boxRow('STATUS', state.status, chalk.greenBright));
         out.push(HUD.boxRow('PERSONA', state.active_persona, chalk.magentaBright));
-        out.push(HUD.boxRow('GUNGNIR', 'not measured', chalk.yellowBright));
-        out.push(HUD.boxRow('INTEGRITY', 'not measured', chalk.greenBright));
+        out.push(HUD.boxRow('GUNGNIR', state.gungnir_score.toFixed(2), chalk.yellowBright));
+        out.push(HUD.boxRow('INTEGRITY', `${state.intent_integrity.toFixed(1)}%`, chalk.greenBright));
         out.push(HUD.boxSeparator());
 
         if (snapshot.beads.length === 0) {
@@ -322,137 +300,20 @@ export function renderOperatorShell(snapshot: OperatorSnapshot): string {
     return out.join('');
 }
 
-async function dispatchOperatorInput(
-    rawInput: string,
-    dispatchPort: RuntimeDispatchPort,
-    workspaceRoot: string,
-    activeTab: OperatorTab,
-    activePlanningSessionId?: string,
-): Promise<{ events: OperatorEvent[]; exit?: boolean; planningSessionId?: string; activeTab: OperatorTab }> {
-    const normalized = rawInput.trim();
-    let events: OperatorEvent[] = [];
-
-    if (!normalized) {
-        events = pushEvent(events, 'INFO', 'Refresh requested.', workspaceRoot);
-        return { events, activeTab };
-    }
-
-    const lower = normalized.toLowerCase();
-    if (lower === 'exit' || lower === 'quit') {
-        events = pushEvent(events, 'PASS', 'Operator shell closing.');
-        return { events, exit: true, activeTab };
-    }
-
-    if (lower === 'clear') {
-        events = pushEvent(events, 'INFO', 'Event crawl cleared.');
-        return { events, planningSessionId: undefined, activeTab };
-    }
-
-    const [head, ...rest] = normalized.split(/\s+/);
-
-    if (lower === '1' || lower === 'overview') return { events: pushEvent(events, 'INFO', 'Tab: OVERVIEW'), activeTab: 'OVERVIEW', planningSessionId: activePlanningSessionId };
-    if (lower === '2' || lower === 'blackboard') return { events: pushEvent(events, 'INFO', 'Tab: BLACKBOARD'), activeTab: 'BLACKBOARD', planningSessionId: activePlanningSessionId };
-    if (lower === '3' || lower === 'agents') return { events: pushEvent(events, 'INFO', 'Tab: AGENTS'), activeTab: 'AGENTS', planningSessionId: activePlanningSessionId };
-    if (lower === '4' || lower === 'terminals') return { events: pushEvent(events, 'INFO', 'Tab: TERMINALS'), activeTab: 'TERMINALS', planningSessionId: activePlanningSessionId };
-
-    if (lower === 'status' || lower === 'hall') {
-        events = pushEvent(events, 'PASS', 'Operator state refreshed.', lower);
-        return { events, planningSessionId: activePlanningSessionId, activeTab };
-    }
-
-    if (head.toLowerCase() === 'hand') {
-        events = pushEvent(
-            events,
-            'FAIL',
-            'Local handoff is decommissioned.',
-            'Use CStar handoff and host-native routing; no state was mutated.',
-        );
-        return { events, planningSessionId: activePlanningSessionId, activeTab };
-    }
-
-    if (head.toLowerCase() === 'broadcast') {
-        events = pushEvent(
-            events,
-            'FAIL',
-            'Local broadcast is decommissioned.',
-            'Use a host task or CStar lifecycle update; no state was mutated.',
-        );
-        return { events, planningSessionId: activePlanningSessionId, activeTab };
-    }
-
-    events = pushEvent(events, 'INFO', 'Intent received.', normalized);
-
-    const isDirectCommand = KNOWN_DIRECT_COMMANDS.has(head.toLowerCase()) && head.toLowerCase() !== 'chant';
-    const invocation = isDirectCommand
-        ? buildDynamicCommandInvocation(head, rest, workspaceRoot, workspaceRoot)
-        : buildChantInvocation(
-            head.toLowerCase() === 'chant' ? rest : [normalized],
-            workspaceRoot,
-            workspaceRoot,
-            activePlanningSessionId,
-        );
-
-    events = pushEvent(events, 'INFO', 'Dispatching weave.', invocation.weave_id);
-
-    const result = await dispatchPort.dispatch(invocation);
-    if (result.status === 'FAILURE') {
-        events = pushEvent(events, 'FAIL', 'Dispatch failed.', result.error ?? result.weave_id);
-        return { events, planningSessionId: activePlanningSessionId, activeTab };
-    }
-
-    events = pushEvent(events, result.status === 'TRANSITIONAL' ? 'WARN' : 'PASS', 'Dispatch completed.', result.output);
-    const planningSessionId = typeof result.metadata?.planning_session_id === 'string'
-        ? result.metadata.planning_session_id
-        : activePlanningSessionId;
-
-    if (typeof result.metadata?.planning_status === 'string') {
-        const session = planningSessionId ? getHallPlanningSession(planningSessionId) : null;
-        events = pushEvent(
-            events,
-            'INFO',
-            'Planning state updated.',
-            formatPlanningStatusEvent(session) ?? String(result.metadata.planning_status),
-        );
-    }
-
-    if (Array.isArray(result.metadata?.follow_up_questions)) {
-        for (const question of result.metadata.follow_up_questions as unknown[]) {
-            if (typeof question === 'string') {
-                events = pushEvent(events, 'WARN', 'Chant follow-up.', question);
-            }
-        }
-    }
-
-    const metadataBits = [
-        result.metadata?.proposal_id ? `proposal=${String(result.metadata.proposal_id)}` : null,
-        result.metadata?.validation_id ? `validation=${String(result.metadata.validation_id)}` : null,
-        Array.isArray(result.metadata?.emitted_beads)
-            ? `beads=${String((result.metadata?.emitted_beads as unknown[]).length)}`
-            : null,
-        planningSessionId ? `session=${planningSessionId}` : null,
-    ].filter(Boolean);
-
-    if (metadataBits.length > 0) {
-        events = pushEvent(events, 'INFO', 'Result metadata captured.', metadataBits.join(' '));
-    }
-
-    return { events, planningSessionId, activeTab };
-}
-
 export async function runOperatorTui(dispatchPort: RuntimeDispatchPort): Promise<void> {
-    const workspaceRoot = registry.getRoot();
-    const initialSummary = getHallSummary(workspaceRoot);
+    const workspaceRoot = operatorTuiRuntimeDeps.getWorkspaceRoot();
+    const initialSummary = operatorTuiRuntimeDeps.getHallSummary(workspaceRoot);
     let events = buildSeedEvents(workspaceRoot, initialSummary);
     let activePlanningSessionId: string | undefined;
     let activeTab: OperatorTab = 'OVERVIEW';
 
-    if (!input.isTTY || !output.isTTY) {
-        output.write(renderOperatorShell(readOperatorSnapshot(events, activeTab)));
+    if (!operatorTuiRuntimeDeps.isInteractive()) {
+        operatorTuiRuntimeDeps.write(renderOperatorShell(operatorTuiRuntimeDeps.readSnapshot(events, activeTab)));
         return;
     }
 
-    const rl = readline.createInterface({ input, output });
-    output.write('\u001b[?1049h\u001b[?25l');
+    const rl = operatorTuiRuntimeDeps.createInterface();
+    operatorTuiRuntimeDeps.write('\u001b[?1049h\u001b[?25l');
 
     let isRefreshing = false;
     const redraw = () => {
@@ -460,36 +321,22 @@ export async function runOperatorTui(dispatchPort: RuntimeDispatchPort): Promise
         isRefreshing = true;
 
         // Save cursor, clear screen, render, restore cursor
-        output.write('\u001bc');
-        output.write(renderOperatorShell(readOperatorSnapshot(events, activeTab)));
-        output.write(chalk.greenBright.bold(`\nINTENT [${activeTab}] > `));
+        operatorTuiRuntimeDeps.write('\u001bc');
+        operatorTuiRuntimeDeps.write(renderOperatorShell(operatorTuiRuntimeDeps.readSnapshot(events, activeTab)));
+        operatorTuiRuntimeDeps.write(chalk.greenBright.bold(`\nINTENT [${activeTab}] > `));
 
         isRefreshing = false;
     };
 
-    // --- WAR ROOM HEARTBEAT ---
-    // Pulse every 5 seconds to sync background agent state and blackboard updates.
-    let heartbeatInFlight = false;
-    const heartbeat = setInterval(async () => {
-        if (heartbeatInFlight) return;
-        heartbeatInFlight = true;
-        try {
-            await BlackboardManager.compactIfNecessary();
-            redraw();
-        } finally {
-            heartbeatInFlight = false;
-        }
-    }, 5000);
-
     try {
         while (true) {
             redraw();
-            const command = await rl.question(''); // Blocking prompt, but heartbeat handles redraw
+            const command = await rl.question('');
 
             const result = await dispatchOperatorInput(
                 command,
                 dispatchPort,
-                registry.getRoot(),
+                operatorTuiRuntimeDeps.getWorkspaceRoot(),
                 activeTab,
                 activePlanningSessionId
             );
@@ -505,8 +352,7 @@ export async function runOperatorTui(dispatchPort: RuntimeDispatchPort): Promise
             }
         }
     } finally {
-        clearInterval(heartbeat);
         rl.close();
-        output.write('\u001b[?25h\u001b[?1049l');
+        operatorTuiRuntimeDeps.write('\u001b[?25h\u001b[?1049l');
     }
 }

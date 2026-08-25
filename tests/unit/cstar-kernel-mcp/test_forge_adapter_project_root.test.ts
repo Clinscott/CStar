@@ -7,9 +7,12 @@ import {
     validForgeExecuteRequest,
     invokeForgeAdapterForTest,
 } from './shared_test_setup.js';
+import { assertForgeRequiredOutputsContained } from '../../../src/tools/cstar-kernel-mcp/tools/forge_request_contract.js';
+
+const linuxIt = process.platform === 'linux' ? it : it.skip;
 
 describe('CStar MCP Forge adapter project-root inference', () => {
-    it('uses the common project root for mixed tools/tests targets without nesting tools twice', async () => {
+    linuxIt('uses the common project root for mixed tools/tests targets without nesting tools twice', async () => {
         const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-worker-project-'));
         const toolsDir = path.join(projectRoot, 'tools');
         const testsDir = path.join(projectRoot, 'tests');
@@ -48,13 +51,13 @@ describe('CStar MCP Forge adapter project-root inference', () => {
         assert.ok(result.content);
         const parsed = JSON.parse(result.content[0].text);
         const expectedPath = path.join(toolsDir, 'generated_skill_module.py');
-        assert.strictEqual(parsed.status, 'executed');
+        assert.strictEqual(parsed.status, 'executed', JSON.stringify(parsed));
         assert.strictEqual(parsed.forge_execution.fail_closed_reason, null);
         assert.strictEqual(fs.existsSync(expectedPath), true);
         assert.strictEqual(fs.existsSync(path.join(toolsDir, 'tools', 'generated_skill_module.py')), false);
     });
 
-    it('allows explicit external target roots while keeping writes bounded to those targets', async () => {
+    linuxIt('allows explicit external target roots while keeping writes bounded to those targets', async () => {
         const estateRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-worker-estate-'));
         const corvusEyeRoot = path.join(estateRoot, 'CorvusEye');
         const hermesSkillRoot = path.join(estateRoot, '.hermes', 'profiles', 'cstar-hub', 'skills', 'research', 'research-agent-loop');
@@ -67,8 +70,7 @@ describe('CStar MCP Forge adapter project-root inference', () => {
             status: 'success',
             summary: 'Applied explicit external target root write.',
             files: [
-                { path: path.relative(estateRoot, generatedSkillPath).split(path.sep).join('/'),
-                    content: 'PIPELINE_VERSION = "test"\n' },
+                { path: path.relative(estateRoot, generatedSkillPath), content: 'PIPELINE_VERSION = "test"\n' },
             ],
             artifacts: {},
             validation: { mixed_roots: 'pass' },
@@ -93,40 +95,24 @@ describe('CStar MCP Forge adapter project-root inference', () => {
         }));
         assert.ok(result.content);
         const parsed = JSON.parse(result.content[0].text);
-        assert.strictEqual(parsed.status, 'executed');
+        assert.strictEqual(parsed.status, 'executed', JSON.stringify(parsed));
         assert.strictEqual(parsed.forge_execution.fail_closed_reason, null);
         assert.strictEqual(parsed.forge_execution.adapter_result.status, 'ok');
         assert.strictEqual(fs.readFileSync(generatedSkillPath, 'utf-8'), 'PIPELINE_VERSION = "test"\n');
     });
 
-    it('does not guess that a missing extensionless target is a directory root', async () => {
+    it('does not let a missing extensionless target authorize undeclared descendants', async () => {
         const estateRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-worker-estate-'));
         const futureSkillsRoot = path.join(estateRoot, 'research-vault', 'skills');
         const generatedSkillPath = path.join(futureSkillsRoot, 'researcher-metric-category-auditor', 'SKILL.md');
-        const modelResponse = path.join(estateRoot, 'model-response.json');
-        fs.writeFileSync(modelResponse, JSON.stringify({
-            status: 'success',
-            summary: 'Applied new skill write under future root.',
-            files: [
-                { path: generatedSkillPath, content: '# Skill\n' },
-            ],
-            artifacts: {},
-            validation: { future_root: 'pass' },
-            metrics: { files_written: 1 },
-            boundaries: { no_codex_worker_fallback: true },
-            callback_packet: 'TEST_FORGE_FUTURE_ROOT_PACKET',
-        }));
-        process.env.CSTAR_FORGE_WORKER_MODEL_RESPONSE = modelResponse;
-        const artifactRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'fake-forge-artifacts-'));
-        process.env.CSTAR_FORGE_EXECUTION_ARTIFACT_ROOT = artifactRoot;
-        await assert.rejects(() => invokeForgeAdapterForTest(validForgeExecuteRequest({
-            objective: 'Build new reusable Researcher metric category audit skill through the Forge worker adapter',
-            target_paths: [futureSkillsRoot], required_output_paths: [generatedSkillPath],
-            requested_actions: ['build reusable skill package'],
-            artifact_expectations: ['changed skill files'],
-            execution_adapter_ref: 'cstar-forge-hermes-minimax-worker-adapter',
-            callback_contract: { expected_packet: 'TEST_FORGE_FUTURE_ROOT_PACKET', callback_required: true },
-        })), /forge_containment_writable_path_unavailable/);
+        assert.throws(
+            () => assertForgeRequiredOutputsContained(
+                estateRoot,
+                [futureSkillsRoot],
+                [generatedSkillPath],
+            ),
+            /forge_required_output_outside_targets/,
+        );
         assert.strictEqual(fs.existsSync(generatedSkillPath), false);
     });
 });

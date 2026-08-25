@@ -13,6 +13,24 @@ import {
 // Proposal generation and adversarial critique are LLM-driven and stay
 // host-native; this surface only exposes file/ledger inspection.
 type EvolveAction = 'list_proposals' | 'get_proposal' | 'list_sprt_history';
+const MAX_PROPOSAL_DIRECTORY_ENTRIES = 5_000;
+
+function listBoundedProposalEntries(directoryPath: string): fs.Dirent[] {
+    const entries: fs.Dirent[] = [];
+    const directory = fs.opendirSync(directoryPath);
+    try {
+        let entry: fs.Dirent | null;
+        while ((entry = directory.readSync()) !== null) {
+            if (entries.length >= MAX_PROPOSAL_DIRECTORY_ENTRIES) {
+                throw new Error('evolve_proposal_directory_entry_limit_exceeded');
+            }
+            entries.push(entry);
+        }
+    } finally {
+        directory.closeSync();
+    }
+    return entries;
+}
 
 export async function handleEvolve({
     action,
@@ -32,8 +50,7 @@ export async function handleEvolve({
                 return textResponse({ status: 'ok', count: 0, proposals: [] });
             }
             const safeProposalDir = resolveExistingPathInside(root, proposalDir, 'directory');
-            const all = fs
-                .readdirSync(safeProposalDir, { withFileTypes: true })
+            const all = listBoundedProposalEntries(safeProposalDir)
                 .filter((entry) => entry.isFile() && entry.name.endsWith('.json'))
                 .map((entry) => {
                     const full = path.join(safeProposalDir, entry.name);

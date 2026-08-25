@@ -6,22 +6,20 @@ import path from 'node:path';
 import { afterEach, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 const PROJECT_ROOT = path.resolve(import.meta.dirname, '..', '..', '..');
-const DELEGATE = path.join(
-    PROJECT_ROOT,
-    '.agents',
-    'skills',
-    'corvus-forge',
-    'scripts',
-    'hermes_minimax_delegate.mjs',
-);
+const DELEGATE = path.join(PROJECT_ROOT, '.agents/skills/corvus-forge/scripts/hermes_minimax_delegate.mjs');
 const WORKER = path.join(PROJECT_ROOT, '.agents', 'skills', 'corvus-forge', 'scripts', 'forge_worker_adapter.py');
 const SAFETY = path.join(PROJECT_ROOT, '.agents', 'skills', 'corvus-forge', 'scripts', 'forge_worker_safety.py');
 const LINEAGE = path.join(PROJECT_ROOT, '.agents/skills/corvus-forge/scripts/hermes_runtime_lineage.mjs');
 const ROLE_PLAN = path.join(PROJECT_ROOT, '.agents/skills/corvus-forge/scripts/forge_role_plan.mjs');
+const WORKER_EVIDENCE = path.join(PROJECT_ROOT, '.agents/skills/corvus-forge/scripts/forge_worker_evidence.py');
+const DELEGATE_EVIDENCE = path.join(PROJECT_ROOT, '.agents/skills/corvus-forge/scripts/forge_delegate_evidence.mjs');
+const DELEGATE_PREFLIGHT = path.join(PROJECT_ROOT, '.agents/skills/corvus-forge/scripts/forge_delegate_preflight.mjs');
 const EXECUTION_IDENTITY = {
     forge_request_receipt_id: 'forge-request-test', forge_execute_receipt_id: 'forge-execute-test',
     decision_id: 'decision-test',
     adapter_ref: 'cstar-forge-hermes-minimax-worker-adapter' };
+const MATERIAL_POLICY = { schema: 'cstar.forge_material_policy.v1', file_max_bytes: 512 * 1024,
+    total_max_bytes: 512 * 1024, prompt_max_bytes: 1024 * 1024 };
 const roots: string[] = [];
 function createFixture() {
     const secureTmp = process.platform === 'linux' ? '/tmp' : os.tmpdir();
@@ -39,6 +37,7 @@ function createFixture() {
         execution_identity: EXECUTION_IDENTITY,
         project_root: root,
         target_paths: [target],
+        material_policy: MATERIAL_POLICY,
         payload: {
             hermes_profile: 'cstar-hub',
             model: 'MiniMax-M3',
@@ -50,7 +49,6 @@ function createFixture() {
     fs.writeFileSync(intentPath, JSON.stringify(intent));
     return { root, home, profileHome, target, response, intentPath, intent };
 }
-
 function writeFakeHermes(root: string, mode = 0o700) {
     const script = path.join(root, 'fake-hermes.mjs');
     fs.writeFileSync(script, [
@@ -93,7 +91,6 @@ function writeFakeHermes(root: string, mode = 0o700) {
     fs.chmodSync(script, mode);
     return script;
 }
-
 function writeLingeringFakeHermes(root: string) {
     const script = path.join(root, 'fake-hermes-lingering.mjs');
     const marker = path.join(root, 'descendant-survived');
@@ -111,7 +108,6 @@ function writeLingeringFakeHermes(root: string) {
     fs.chmodSync(script, 0o700);
     return { script, marker };
 }
-
 function writeFailingFakeHermes(root: string, stderrCanary: string) {
     const script = path.join(root, 'fake-hermes-failure.mjs');
     fs.writeFileSync(script, [
@@ -142,7 +138,7 @@ function writePreflightFakeHermes(root: string, omitSourceFlag = false, leakStat
         `else if (args.length === 2 && args[0] === "chat" && args[1] === "--help") process.stdout.write(${JSON.stringify(`--forge-query-stdin --quiet --toolsets --safe-mode --max-turns${omitSourceFlag ? '' : ' --source'} --provider --model\n`)});`,
         'else if (args.length === 1 && args[0] === "--oauth-status") {',
         `  if(process.env.HERMES_HOME!==${JSON.stringify(path.join(root, 'home', '.hermes', 'profiles', 'cstar-hub'))}||process.env.HERMES_SAFE_MODE_PROVIDER!=="minimax-oauth"||process.env.HERMES_SAFE_MODE_CREDENTIAL_NAMES!=="[]"||process.env.HERMES_FORGE_CREDENTIAL_FD)process.exit(73);`,
-        `  const packet={schema:"hermes.forge_minimax_oauth_status.v1",status:"ready",provider:"minimax-oauth",auth_mode:"oauth",profile:"cstar-hub",refresh_required:false,min_ttl_seconds:2100};${leakStatusField ? 'packet.access_token="OAUTH_STATUS_CANARY";' : ''}process.stdout.write(JSON.stringify(packet));`,
+        `  const packet={schema:"hermes.forge_minimax_oauth_status.v2",status:"ready",provider:"minimax-oauth",auth_mode:"oauth",profile:"cstar-hub",refresh_required:false,horizon_seconds:2100,horizon_started_unix_ms:Number(process.env.CSTAR_FORGE_OAUTH_HORIZON_STARTED_UNIX_MS),required_until_unix_ms:Number(process.env.CSTAR_FORGE_OAUTH_REQUIRED_UNTIL_UNIX_MS),horizon_binding_sha256:process.env.CSTAR_FORGE_OAUTH_HORIZON_BINDING_SHA256};${leakStatusField ? 'packet.access_token="OAUTH_STATUS_CANARY";' : ''}process.stdout.write(JSON.stringify(packet));`,
         '}',
         'else process.exit(72);',
     ].join('\n'));
@@ -215,7 +211,7 @@ describe('Forge-private Hermes MiniMax delegate', () => {
         });
         assert.equal(result.status, 0, result.stderr || result.stdout);
         const envelope = JSON.parse(result.stdout);
-        assert.equal(envelope.schema, 'cstar.forge_hermes_preflight.v1');
+        assert.equal(envelope.schema, 'cstar.forge_hermes_preflight.v2');
         assert.equal(envelope.status, 'ok');
         assert.match(envelope.executable_sha256, /^[a-f0-9]{64}$/);
         assert.match(envelope.version_sha256, /^[a-f0-9]{64}$/);
@@ -243,7 +239,13 @@ describe('Forge-private Hermes MiniMax delegate', () => {
         assert.equal(envelope.oauth_profile, 'cstar-hub');
         assert.equal(envelope.oauth_status, 'ready');
         assert.equal(envelope.oauth_refresh_required, false);
-        assert.equal(envelope.oauth_min_ttl_seconds, 2100);
+        assert.equal(envelope.oauth_horizon_seconds, 2100);
+        assert.equal(envelope.oauth_required_until_unix_ms
+            - envelope.oauth_horizon_started_unix_ms, 2_100_000);
+        assert.match(envelope.oauth_horizon_binding_sha256, /^[a-f0-9]{64}$/);
+        assert.equal(envelope.runtime_schema, 'synthetic_test_executable_v1');
+        assert.equal(envelope.runtime_owner, 'synthetic_test');
+        assert.equal(envelope.credential_profile_owner, 'synthetic_test');
         assert.equal(fs.existsSync(fixture.response), false);
     });
 
@@ -327,7 +329,7 @@ describe('Forge-private Hermes MiniMax delegate', () => {
 
     it('fails closed instead of truncating an oversized target', () => {
         const fixture = createFixture();
-        fs.writeFileSync(fixture.target, 'x'.repeat(64 * 1024 + 1));
+        fs.writeFileSync(fixture.target, 'x'.repeat(512 * 1024 + 1));
 
         const result = runDelegate(fixture.intentPath, writeFakeHermes(fixture.root));
 
@@ -401,6 +403,7 @@ describe('Forge-private Hermes MiniMax delegate', () => {
         fs.writeFileSync(workerIntent, JSON.stringify({
             intent: 'Bounded synthetic delegate failure fixture.',
             execution_identity: EXECUTION_IDENTITY,
+            material_policy: MATERIAL_POLICY,
             project_root: fixture.root,
             target_paths: [fixture.target],
             required_output_paths: [fixture.target],
@@ -412,6 +415,9 @@ describe('Forge-private Hermes MiniMax delegate', () => {
                     { role: 'hermes_minimax_delegate', ...runtimeFileProof(DELEGATE) },
                     { role: 'hermes_runtime_lineage', ...runtimeFileProof(LINEAGE) },
                     { role: 'forge_role_plan', ...runtimeFileProof(ROLE_PLAN) },
+                    { role: 'forge_worker_evidence', ...runtimeFileProof(WORKER_EVIDENCE) },
+                    { role: 'forge_delegate_evidence', ...runtimeFileProof(DELEGATE_EVIDENCE) },
+                    { role: 'forge_delegate_preflight', ...runtimeFileProof(DELEGATE_PREFLIGHT) },
                 ],
                 python_interpreter: runtimeFileProof(python),
                 node_interpreter: runtimeFileProof(process.execPath),
@@ -477,13 +483,14 @@ describe('Forge-private Hermes MiniMax delegate', () => {
 
     it('contains no credential transport or legacy AutoBot delegate route', () => {
         const source = fs.readFileSync(DELEGATE, 'utf-8');
+        const preflightSource = fs.readFileSync(DELEGATE_PREFLIGHT, 'utf-8');
         const worker = fs.readFileSync(
             path.join(PROJECT_ROOT, '.agents', 'skills', 'corvus-forge', 'scripts', 'forge_worker_adapter.py'),
             'utf-8',
         );
 
         assert.doesNotMatch(source, /MINIMAX_API_KEY|auth\.json|forge-minimax\.env|HERMES_FORGE_CREDENTIAL_FD|openForgeCredential/);
-        assert.match(source, /--oauth-status/);
+        assert.match(preflightSource, /--oauth-status/);
         assert.match(source, /HERMES_HOME/);
         assert.match(source, /HERMES_SAFE_MODE_CREDENTIAL_NAMES/);
         assert.doesNotMatch(worker, /autobot.*delegate|skills\/autobot|delegate\.py/);

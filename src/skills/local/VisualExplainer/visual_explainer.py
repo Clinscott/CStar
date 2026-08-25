@@ -10,6 +10,11 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+# Support direct script execution without loading environment state at import.
+project_root = Path(__file__).resolve().parents[4]
+if str(project_root) not in sys.path:
+    sys.path.append(str(project_root))
+
 from src.core.sovereign_hud import SovereignHUD
 
 

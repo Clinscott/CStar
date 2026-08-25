@@ -1,30 +1,31 @@
 #!/usr/bin/env python3
-"""Fail-closed tombstone for the retired Mimir lesson harvester.
-
-The former script opened PennyOne SQLite, inserted model-written Hall lessons,
-and projected them into ``.lore/lessons``. Canonical memory now requires an
-explicit operator-reviewed CStar lifecycle, so this compatibility path must
-never inspect targets, open a database, create directories, or write files.
-"""
-
-from __future__ import annotations
+"""Retired direct Hall lesson harvester tombstone."""
 
 import sys
-from collections.abc import Sequence
+from typing import Any
 
 
-DECOMMISSIONED_MESSAGE = (
-    "mimir_harvester is decommissioned: model-generated lessons cannot be "
-    "written or promoted to canonical CStar memory."
-)
+ERROR = "legacy_direct_hall_script_retired_use_cstar_kernel"
 
 
-def main(argv: Sequence[str] | None = None) -> int:
-    """Reject every legacy invocation before touching caller-supplied paths."""
-    del argv
-    print(DECOMMISSIONED_MESSAGE, file=sys.stderr)
-    return 2
+class MimirHarvester:
+    def __init__(self, db_path: str, project_root: str):
+        self.db_path = db_path
+        self.project_root = project_root
+
+    def __getattr__(self, name: str) -> Any:
+        del name
+        raise RuntimeError(ERROR)
+
+    def harvest(self, limit: int = 5) -> None:
+        del limit
+        raise RuntimeError(ERROR)
+
+
+def main() -> int:
+    sys.stderr.write(f"{ERROR}\n")
+    return 1
 
 
 if __name__ == "__main__":
-    raise SystemExit(main(sys.argv[1:]))
+    raise SystemExit(main())

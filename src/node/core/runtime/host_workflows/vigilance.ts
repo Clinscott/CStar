@@ -5,21 +5,25 @@ import type {
     WeaveInvocation,
     WeaveResult,
 } from '../contracts.js';
-import { retiredWorkflowResult } from '../retired_workflow.js';
+import { buildRetiredRuntimeResult } from '../retired_adapter.js';
 
+/** Retired direct Ravens/Warden composition workflow. */
 export class VigilanceHostWorkflow implements RuntimeAdapter<VigilanceWeavePayload> {
     public readonly id = 'weave:vigilance';
-    public constructor(...args: unknown[]) { void args; }
+
+    public constructor(..._retiredDependencies: unknown[]) {
+        void _retiredDependencies;
+    }
 
     public async execute(
-        invocation: WeaveInvocation<VigilanceWeavePayload>,
-        context: RuntimeContext,
+        _invocation: WeaveInvocation<VigilanceWeavePayload>,
+        _context: RuntimeContext,
     ): Promise<WeaveResult> {
-        void invocation; void context;
-        return retiredWorkflowResult(
-            this.id,
-            'Use bounded CorvusEye evaluation or explicit cstar_warden scans; never model-supervise mutation.',
-        );
+        return buildRetiredRuntimeResult({
+            weaveId: this.id,
+            boundary: 'retired-vigilance-host-workflow',
+            recommendedTool: 'cstar_warden',
+        });
     }
 }
 

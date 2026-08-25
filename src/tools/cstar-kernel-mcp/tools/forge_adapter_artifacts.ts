@@ -49,6 +49,39 @@ function fsyncDirectory(directory: string): void {
     }
 }
 
+function removeStageOrThrow(stage: string): void {
+    try {
+        fs.unlinkSync(stage);
+    } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+            throw new Error('forge_artifact_stage_cleanup_failed');
+        }
+    }
+}
+
+function writePrivateStage(stage: string, content: Buffer | string, mode: number): void {
+    const flags = fs.constants.O_WRONLY
+        | fs.constants.O_CREAT
+        | fs.constants.O_EXCL
+        | (fs.constants.O_NOFOLLOW ?? 0);
+    let fd: number | null = null;
+    let complete = false;
+    try {
+        fd = fs.openSync(stage, flags, mode);
+        if (typeof content === 'string') fs.writeFileSync(fd, content, 'utf-8');
+        else fs.writeFileSync(fd, content);
+        fs.fsyncSync(fd);
+        fs.closeSync(fd);
+        fd = null;
+        complete = true;
+    } finally {
+        if (fd !== null) {
+            try { fs.closeSync(fd); } catch { /* Stage cleanup below is authoritative. */ }
+        }
+        if (!complete) removeStageOrThrow(stage);
+    }
+}
+
 export function assertSafePrivateArtifact(pathname: string): void {
     const stat = fs.lstatSync(pathname);
     if (stat.isSymbolicLink() || !stat.isFile() || stat.nlink !== 1) {
@@ -81,25 +114,93 @@ export function atomicWritePrivateFile(
         canonicalDirectory,
         `.${path.basename(destination)}.cstar-${randomBytes(12).toString('hex')}`,
     );
-    const flags = fs.constants.O_WRONLY
-        | fs.constants.O_CREAT
-        | fs.constants.O_EXCL
-        | (fs.constants.O_NOFOLLOW ?? 0);
-    const fd = fs.openSync(temporary, flags, mode);
+    let renamed = false;
     try {
-        if (typeof content === 'string') fs.writeFileSync(fd, content, 'utf-8');
-        else fs.writeFileSync(fd, content);
-        fs.fsyncSync(fd);
-    } finally {
-        fs.closeSync(fd);
-    }
-    try {
+        writePrivateStage(temporary, content, mode);
         fs.renameSync(temporary, destination);
+        renamed = true;
         assertSafePrivateArtifact(destination);
         fsyncDirectory(canonicalDirectory);
     } finally {
-        try { fs.unlinkSync(temporary); } catch (error) {
-            if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
-        }
+        if (!renamed) removeStageOrThrow(temporary);
     }
+}
+
+export function publishPrivateFileNoClobber(
+    directory: string,
+    destination: string,
+    content: Buffer | string,
+    mode = 0o600,
+): void {
+    const canonicalDirectory = assertSafeOwnedDirectory(directory);
+    if (path.dirname(path.resolve(destination)) !== canonicalDirectory) {
+        throw new Error(`forge_artifact_target_outside_directory:${destination}`);
+    }
+    if (fs.lstatSync(destination, { throwIfNoEntry: false })) {
+        throw new Error(`forge_artifact_target_already_exists:${destination}`);
+    }
+    const stage = path.join(
+        canonicalDirectory,
+        `.${path.basename(destination)}.cstar-publish-${randomBytes(12).toString('hex')}`,
+    );
+    let published = false;
+    let failure: unknown = null;
+    try {
+        writePrivateStage(stage, content, mode);
+        fs.linkSync(stage, destination);
+        published = true;
+        fs.unlinkSync(stage);
+        assertSafePrivateArtifact(destination);
+        fsyncDirectory(canonicalDirectory);
+    } catch (error) {
+        failure = error;
+        if (published) {
+            try {
+                fs.unlinkSync(destination);
+                fsyncDirectory(canonicalDirectory);
+                published = false;
+            } catch {
+                throw new Error('forge_artifact_publication_rollback_failed');
+            }
+        }
+        throw failure;
+    } finally {
+        removeStageOrThrow(stage);
+    }
+}
+
+export function removePrivateFile(
+    directory: string,
+    destination: string,
+): void {
+    const canonicalDirectory = assertSafeOwnedDirectory(directory);
+    if (path.dirname(path.resolve(destination)) !== canonicalDirectory) {
+        throw new Error(`forge_artifact_target_outside_directory:${destination}`);
+    }
+    const existing = fs.lstatSync(destination, { throwIfNoEntry: false });
+    if (!existing) return;
+    assertSafePrivateArtifact(destination);
+    fs.unlinkSync(destination);
+    fsyncDirectory(canonicalDirectory);
+}
+
+export function quarantinePrivateEntryNoFollow(
+    directory: string,
+    destination: string,
+): string | null {
+    const canonicalDirectory = assertSafeOwnedDirectory(directory);
+    if (path.dirname(path.resolve(destination)) !== canonicalDirectory) {
+        throw new Error(`forge_artifact_target_outside_directory:${destination}`);
+    }
+    if (!fs.lstatSync(destination, { throwIfNoEntry: false })) return null;
+    const quarantine = path.join(
+        canonicalDirectory,
+        `.cstar-quarantine-${randomBytes(12).toString('hex')}`,
+    );
+    fs.renameSync(destination, quarantine);
+    if (fs.lstatSync(destination, { throwIfNoEntry: false })) {
+        throw new Error('forge_artifact_quarantine_failed');
+    }
+    fsyncDirectory(canonicalDirectory);
+    return quarantine;
 }

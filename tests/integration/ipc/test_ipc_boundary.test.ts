@@ -1,17 +1,15 @@
-import { test } from 'node:test';
+import { test, mock } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { CortexLink } from  '../../../src/node/cortex_link.js';
+import { CortexLink } from '../../../src/node/cortex_link.js';
+import { RETIRED_GATEWAY_ERROR } from '../../../src/node/retired_gateway.js';
 
-/**
- * [Ω] IPC BOUNDARY VERIFICATION (Adamant Crucible)
- * Purpose: Verify the Node.js -> Python one-shot kernel bridge.
- */
-test('IPC Boundary: one-shot kernel bridge ping', async () => {
-    const link = new CortexLink();
+test('IPC boundary is retired before any executor or socket work', () => {
+    const executor = mock.fn(async () => ({ status: 'success' }));
 
-    const response = await link.sendCommand('ping', []);
-
-    assert.equal(response.status, 'success');
-    assert.match(String((response.data as { message?: string } | undefined)?.message ?? ''), /kernel bridge ready/i);
+    assert.throws(
+        () => new CortexLink(50051, '127.0.0.1', undefined, executor),
+        new RegExp(RETIRED_GATEWAY_ERROR),
+    );
+    assert.equal(executor.mock.callCount(), 0);
 });
