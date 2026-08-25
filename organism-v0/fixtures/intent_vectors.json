@@ -1,0 +1,43 @@
+{
+  "schema": "corvus.organism.intent_vectors.v0",
+  "canonicalization": "compact sorted-key UTF-8 JSON with final LF",
+  "vectors": [
+    {
+      "id": "empty-journal",
+      "value": {
+        "schema": "corvus.journal_state.v0",
+        "revision": 0,
+        "events": []
+      },
+      "canonical": "{\"events\":[],\"revision\":0,\"schema\":\"corvus.journal_state.v0\"}\n",
+      "sha256": "29fe3483b48b173d6b9c697cf5bb3d5e8e25ffdaf18caad1832b5612a32759a2"
+    },
+    {
+      "id": "sorted-nested-object",
+      "value": {
+        "z": 1,
+        "a": {
+          "d": true,
+          "b": "ok"
+        },
+        "items": [
+          {
+            "y": 2,
+            "x": 1
+          }
+        ]
+      },
+      "canonical": "{\"a\":{\"b\":\"ok\",\"d\":true},\"items\":[{\"x\":1,\"y\":2}],\"z\":1}\n",
+      "sha256": "e4a3b0d639d77e6675e9a8c680d83ab238ff550951cc2006c98eb2af45216c75"
+    },
+    {
+      "id": "intent-raw-bytes",
+      "value": {
+        "schema": "corvus.intent.raw.v0",
+        "raw_text_utf8": "operator status\n"
+      },
+      "canonical": "{\"raw_text_utf8\":\"operator status\\n\",\"schema\":\"corvus.intent.raw.v0\"}\n",
+      "sha256": "e178d75aa770039dc82b84051eccccc3c6ee83bcaece121c78cf50ba21556a8e"
+    }
+  ]
+}
