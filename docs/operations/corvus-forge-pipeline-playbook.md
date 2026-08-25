@@ -7,14 +7,71 @@ bypassing operator gates or CStar lifecycle state.
 ## Canonical Route
 
 `User -> CoS -> CStar bead/decision -> cstar_forge_request ->
-cstar_forge_authorize -> cstar_forge_execute -> bounded-six-role-manifest-v1 through private Hermes
-cstar-hub / minimax MiniMax-M3 ->
-delivered_unverified -> independent cstar_record_result -> CoS closeout`
+cstar_forge_authorize -> cstar_forge_execute -> cstar_forge_swarm_plan ->
+direct host-native workers -> cstar_forge_swarm_update -> separate read-only
+aggregator -> cstar_forge_swarm_complete -> DELIVERED_UNVERIFIED -> independent
+cstar_record_result -> CoS closeout`
+
+The active connection is `forge-native-codex-swarm-v1`. Execute reserves or
+replays one exact run and returns a worker package plus a distinct control
+receipt. It does not itself launch a model or worker. CoS derives a closed host
+packet, records one plan, and launches one to three useful direct workers with
+disjoint write ownership. No nested Forge parent, descendant, worker peer
+authority transfer, retry, replay, replacement, or selector fallback is
+allowed by the active packet contract.
+
+Requested model and reasoning are immutable per-task packet inputs, not a
+validator default. Actual identity is a separate host observation and remains
+`unreported` unless the host supplies distinct attestation; worker self-report
+does not attest identity.
+
+### Native host packet and terminal receipt boundary
+
+Before dispatch, validate the canonical packet:
+
+```text
+node .agents/skills/corvus-forge/scripts/validate_native_swarm_packet.mjs \
+  <packet.json>
+```
+
+The validator closes fields, normalizes declared unordered sets, preserves
+explicit worker ordinals, checks path containment and disjoint ownership, and
+recomputes the packet digest. The packet's selector fields are compared as
+exact inputs; they are not compared to a hard-coded model.
+
+After every worker is terminal, a separate read-only aggregator consumes only
+the packet, terminal leaf receipts, frozen candidate identities, and bounded
+evidence. It implements nothing, repairs nothing, reruns no check, changes no
+authority, and writes no source. Validate its receipt before completion:
+
+```text
+node .agents/skills/corvus-forge/scripts/validate_native_swarm_receipt.mjs \
+  <packet.json> <receipt.json>
+```
+
+The receipt validator reopens local evidence by exact path, byte count, and
+SHA-256; proves all workers are direct siblings; binds the separate aggregator;
+and requires zero descendants, source writes, peer messages, retry, replay,
+replacement, fallback, and lease extension. `cstar_forge_swarm_complete` may
+then persist only `DELIVERED_UNVERIFIED`. Independent validation remains the
+next lifecycle gate.
+
+`cstar_forge_swarm_status` is read-only. Cancellation first records
+`CANCEL_REQUESTED`; the host must inspect and stop every task before finalizing
+`CANCELLED`. Missing or nonterminal inspection freezes `UNKNOWN`, retains the
+worktree, and launches no replacement.
+
+Historical Codex-host state-only handoff and private Hermes/MiniMax material is
+preserved only as explicitly labelled legacy or tombstone evidence. It is not
+the current, default, target, replacement, recovery, or fallback Forge path.
 
 When targets are inside a project with a mapped PMT, read that repository once
 for bounded context and send it a bounded update packet after meaningful state
 changes. Do not query unrelated PMTs, and do not block execution on repository
-availability. PMTs grant no review or execution authority, and MM is legacy.
+availability. PMTs are project-scoped information repositories only; they grant
+no ownership, execution, approval, review, routing, monitoring, or lifecycle
+authority. MM is inactive and has no active routing, synthesis, ownership, relay,
+review, or execution role.
 Add GitHub issue, branch, and PR packaging only when repository policy requires
 those artifacts.
 
@@ -28,13 +85,16 @@ Codex-subagent implementation are not Forge substitutes.
   updates, and closeout.
 - CStar records the durable request, attempt, validation, and bead state. It is
   canonical state, not authority above the operator or platform.
-- Corvus Forge builds through its sealed private adapter.
+- Current Forge records a native flat plan, direct worker receipts, and a
+  separate read-only aggregate. Historical adapters remain non-default
+  compatibility evidence and require an explicit legacy contract.
 - The fixed producer chain is `specifier -> coder -> cleaner -> architect ->
   hardener -> QA`. Each role has a distinct bounded responsibility; QA alone
   emits the final exact-output manifest for adapter validation and application.
 - PMTs are information repositories only; they receive state-update packets and
   grant no execution, review, approval, or routing authority.
-- MM is legacy. CoS owns cross-project sequencing and conflict handling.
+- MM is inactive and has no active routing, synthesis, ownership, relay, review,
+  or execution role. CoS owns cross-project sequencing and conflict handling.
 - CorvusEye or another independent validator may evaluate the delivery when the
   gate requires producer/reviewer separation.
 
@@ -115,7 +175,7 @@ directory or equal to an explicit file/prospective target. No-spend, pending,
 expired, terminal, or receipt-mismatched requests remain non-executable and do
 not emit a new challenge.
 
-## Execute Gate: One Provider Attempt with Bounded Mechanical Continuity
+## Legacy v2 adapter execution (explicit selection only)
 
 For an initial reservation, `cstar_forge_execute` must run in the same root-user
 turn that supplied the operative build instruction. It receives the matching durable receipt,
@@ -208,9 +268,9 @@ runtime and receipts are CStar-owned. The inspected tree exposed no root
 license file, so the boundary is design inspiration only rather than vendoring
 or source reuse.
 
-## Private Hermes / MiniMax-M3 Adapter
+### Private Hermes / MiniMax-M3 Adapter
 
-Live implementation uses the private Hermes `cstar-hub` profile pinned to
+Legacy v2 compatibility uses the private Hermes `cstar-hub` profile pinned to
 `minimax-oauth/MiniMax-M3`. Receipts record provider, requested model, actual model,
 model-source evidence, reasoning profile, and adapter version separately. If
 the host does not report actual model identity, record `unreported`; never infer

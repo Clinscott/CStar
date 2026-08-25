@@ -11,10 +11,13 @@ from an explicit allowlist. It never copies the parent environment wholesale
 and the TypeScript kernel does not load a project `.env` file.
 
 The allowlist preserves only the operating-system values needed to start the
-runtime, `HOME` and `CODEX_HOME` for bounded operator-attestation and Hermes
-OAuth profile location, the direct-stdio caller binding, and an optional
-explicit Python interpreter path. The launcher supplies the canonical project
-and workspace roots itself. Linux temporary paths are normalized to `/tmp`.
+runtime, `HOME` and `CODEX_HOME` for bounded operator-attestation and the
+explicitly labeled legacy-v2 Hermes profile metadata boundary, the direct-stdio
+caller binding, and an optional explicit Python interpreter path. The current
+host-v3 transport is Codex-host only; no Hermes/MiniMax selector or provider
+credential is a current kernel input. The launcher supplies the canonical
+project and workspace roots itself. Linux temporary paths are normalized to
+`/tmp`.
 Host cognition markers are replaced with inactive values.
 
 Provider keys, access tokens, private keys, credentials, passwords, Mongo

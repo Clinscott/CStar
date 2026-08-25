@@ -1,0 +1,7 @@
+command: node scripts/run-tsx.mjs --test tests/unit/cstar-kernel-mcp/test_terminal_forge_validation_linkage.test.ts
+runtime: node v25.8.1
+suite: public terminal Forge validation linkage
+tests: 2
+passed: 2
+failed: 0
+status: pass

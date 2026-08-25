@@ -1,0 +1,74 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:mcp:live-row-preserving-forge-authorization-migratio-mseoewr8",
+  "validation_id": "validation:cstar-forge-authorization-profile-compatibility-20260804-r2",
+  "verdict": "ACCEPTED",
+  "reported_verdict": "ACCEPTED",
+  "artifacts": [
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/src/tools/pennyone/intel/forge_authorization_schema.ts",
+      "sha256": "42f49a4bd056fc5242a53d1a663158e60ed221e1a72ee353ed0adbe89ffdacc5",
+      "bytes": 15554
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/tests/unit/cstar-kernel-mcp/test_forge_authorization_schema_legacy_duplicates.test.ts",
+      "sha256": "33698fd80c3c423a1651a805cb035c4f174acde774a501a4fe3690d871adc533",
+      "bytes": 13713
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/tests/unit/cstar-kernel-mcp/test_forge_authorization_schema_profiles.test.ts",
+      "sha256": "75f6cca3592c91981172305e6cb602702648134a0b72f937fdbd7689a56bc268",
+      "bytes": 11333
+    }
+  ],
+  "checks": [
+    {
+      "name": "current_artifact_hash_recheck",
+      "status": "pass",
+      "evidence_path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-forge-authorization-profile-compatibility-20260804-r2/00-current-artifact-hash-recheck.txt",
+      "sha256": "7d92007661230666fa586f98d779dc45eaa5421233e31039d18985d6ecf25d9c"
+    },
+    {
+      "name": "reused_evidence_self_check",
+      "status": "pass",
+      "evidence_path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-forge-authorization-profile-compatibility-20260804-r2/01-reused-evidence-self-check.txt",
+      "sha256": "45cf194de812979d15876d84b5702a9c6fbe74b96340a69cdac15544a7c1e6af"
+    },
+    {
+      "name": "builder_190_matrix_node25",
+      "status": "pass",
+      "evidence_path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-forge-authorization-profile-compatibility-20260804-r2/02-builder-190-matrix-node25.txt",
+      "sha256": "707e9c8eb01c59d36c67e61f4d9112ec250e3fbb8ba47791ba7eced842d242ef"
+    },
+    {
+      "name": "typecheck_node25",
+      "status": "pass",
+      "evidence_path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-forge-authorization-profile-compatibility-20260804-r2/03-typecheck-node25.txt",
+      "sha256": "e2312b16aaeeaca12603f747b3b070eadb54f0f2154200153e2a8a1c65244890"
+    },
+    {
+      "name": "scoped_diff_line_limits",
+      "status": "pass",
+      "evidence_path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-forge-authorization-profile-compatibility-20260804-r2/04-hash-diff-lines.txt",
+      "sha256": "f25095205cb2e14bccef2902e0bf45c15c920ea76a90afae95e904345c31b73d"
+    },
+    {
+      "name": "independent_profile_migration_fixture",
+      "status": "pass",
+      "evidence_path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-forge-authorization-profile-compatibility-20260804-r2/05-profile-migration-fixture-r2.txt",
+      "sha256": "2a89287300b68c401a21d6d63163a337b78bd721bb70d79b823f6bb0c20e7d5a"
+    },
+    {
+      "name": "live_profile_distribution_readonly",
+      "status": "pass",
+      "evidence_path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-forge-authorization-profile-compatibility-20260804-r2/06-live-profile-counts-readonly.txt",
+      "sha256": "b110f34dbb8b87984f72f0066b9b7d135317f3c5b98087f4fc0936e6ee97f3b7"
+    },
+    {
+      "name": "independent_semantic_review",
+      "status": "pass",
+      "evidence_path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-forge-authorization-profile-compatibility-20260804-r2/07-independent-semantic-review.txt",
+      "sha256": "2d259cd77107c1f0f1ef1424d61248ab58c9033578223da1265e45035baf593c"
+    }
+  ]
+}

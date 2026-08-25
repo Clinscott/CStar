@@ -42,7 +42,11 @@ def test_gherkin_router_targets_only_existing_canonical_contracts() -> None:
 def test_router_keeps_forge_authorization_and_independent_validation_explicit() -> None:
     text = ROUTER.read_text(encoding="utf-8")
     forge = next(line for line in text.splitlines() if "implementation is requested" in line)
-    assert "cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute" in forge
+    assert (
+        "request -> authorize -> execute -> swarm_plan -> direct workers -> "
+        "swarm_update -> separate read-only aggregator -> "
+        "swarm_complete -> independent record_result"
+    ) in forge
     validation = next(line for line in text.splitlines() if "delivery needs validation" in line)
     assert "independent cstar_record_result" in validation
     assert "docs/operations/corvus-forge-pipeline-playbook.md" in forge
@@ -93,7 +97,7 @@ def test_researcher_contract_keeps_pmts_information_only() -> None:
     assert "state_update_thread_id" in text
     assert "deprecated compatibility alias" in text
     assert "PMT unavailability is a freshness gap, not" in text
-    assert "MM is legacy and has no active routing role" in text
+    assert "MM is inactive and has no active routing, synthesis, ownership, relay, review, or execution role" in " ".join(text.split())
     assert "A PMT is never that" in text
     for forbidden in (
         "PMT-owned",

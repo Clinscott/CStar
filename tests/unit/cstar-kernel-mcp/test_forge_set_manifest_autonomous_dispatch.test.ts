@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { afterEach, beforeEach, describe, it } from 'node:test';
 
+import { normalizeMcpResponse } from '../../../src/tools/cstar-kernel-mcp/contracts/responses.js';
 import {
     getForgeAuthorizationByRequest,
     getForgeRequest,
@@ -351,11 +352,14 @@ describe('same-root autonomous SET Forge dispatch', () => {
             forge_request_decision_id: DECISION,
             forge_request_bead_id: CHILD,
             execution_mode: 'live_authorized',
-            execution_adapter_ref: 'missing-test-adapter',
             operator_authorization_ref: auth.operator_authorization_ref,
             idempotency_key: 'autonomous-no-record-guard',
         }, structuralTurn(fixture));
-        assert.equal(result.isError, true);
+        const normalized = normalizeMcpResponse(result);
+        const normalizedPayload = parse(normalized);
+        assert.equal(normalized.isError, undefined);
+        assert.equal(normalizedPayload.outcome, 'ok');
+        assert.equal(normalizedPayload.error_code, undefined);
         assert.doesNotMatch(result.content[0].text, /codex_request_identity_turn_match_count:0/);
     });
 

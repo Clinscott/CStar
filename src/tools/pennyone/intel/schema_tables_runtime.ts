@@ -1,4 +1,60 @@
+export const HALL_FORGE_VALIDATION_TICKETS_IMMUTABLE_UPDATE_TRIGGER_NAME =
+    'hall_forge_validation_tickets_immutable_update';
+
+export const HALL_FORGE_VALIDATION_TICKETS_IMMUTABLE_UPDATE_TRIGGER_SQL = String.raw`CREATE TRIGGER IF NOT EXISTS hall_forge_validation_tickets_immutable_update
+BEFORE UPDATE ON hall_forge_validation_tickets
+WHEN NEW.ticket_id <> OLD.ticket_id
+  OR NEW.ticket_sha256 <> OLD.ticket_sha256
+  OR NEW.nonce_sha256 <> OLD.nonce_sha256
+  OR NEW.repo_id <> OLD.repo_id
+  OR NEW.bead_id <> OLD.bead_id
+  OR NEW.execution_receipt_id <> OLD.execution_receipt_id
+  OR NEW.attempt_id <> OLD.attempt_id
+  OR NEW.scope_sha256 <> OLD.scope_sha256
+  OR NEW.validator_thread_id <> OLD.validator_thread_id
+  OR NEW.validator_turn_id <> OLD.validator_turn_id
+  OR NEW.expires_at <> OLD.expires_at
+  OR NEW.issued_at <> OLD.issued_at
+  OR OLD.consumed_at IS NOT NULL
+  OR NEW.consumed_at IS NULL
+  OR NEW.consumed_validation_id IS NULL
+  OR OLD.consumed_validation_id IS NOT NULL
+BEGIN
+    SELECT RAISE(ABORT, 'validation_ticket_immutable');
+END;`;
+
 export const HALL_SCHEMA_RUNTIME_SQL = String.raw`
+        CREATE TABLE IF NOT EXISTS hall_forge_validation_tickets (
+            ticket_id TEXT PRIMARY KEY,
+            ticket_sha256 TEXT NOT NULL UNIQUE,
+            nonce_sha256 TEXT NOT NULL,
+            repo_id TEXT NOT NULL,
+            bead_id TEXT NOT NULL,
+            execution_receipt_id TEXT NOT NULL UNIQUE,
+            attempt_id TEXT NOT NULL UNIQUE,
+            scope_sha256 TEXT NOT NULL,
+            validator_thread_id TEXT NOT NULL,
+            validator_turn_id TEXT NOT NULL,
+            expires_at INTEGER NOT NULL,
+            issued_at INTEGER NOT NULL,
+            consumed_at INTEGER,
+            consumed_validation_id TEXT UNIQUE,
+            FOREIGN KEY(repo_id) REFERENCES hall_repositories(repo_id),
+            FOREIGN KEY(bead_id) REFERENCES hall_beads(bead_id),
+            FOREIGN KEY(attempt_id) REFERENCES hall_forge_attempts(attempt_id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_hall_forge_validation_tickets_binding
+        ON hall_forge_validation_tickets(repo_id, bead_id, execution_receipt_id, attempt_id);
+
+        ${HALL_FORGE_VALIDATION_TICKETS_IMMUTABLE_UPDATE_TRIGGER_SQL}
+
+        CREATE TRIGGER IF NOT EXISTS hall_forge_validation_tickets_immutable_delete
+        BEFORE DELETE ON hall_forge_validation_tickets
+        BEGIN
+            SELECT RAISE(ABORT, 'validation_ticket_immutable');
+        END;
+
         CREATE TABLE IF NOT EXISTS hall_skill_proposals (
             proposal_id TEXT PRIMARY KEY,
             repo_id TEXT NOT NULL,

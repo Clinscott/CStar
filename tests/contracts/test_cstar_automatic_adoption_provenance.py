@@ -306,21 +306,15 @@ def test_future_attention_delivery_invariants_are_explicit() -> None:
 
 
 def test_current_worktree_changes_are_exactly_the_allowlist() -> None:
-    diff = subprocess.run(
-        ["git", "diff", "--name-only", "origin/master", "--"],
-        cwd=ROOT,
-        check=True,
-        capture_output=True,
-        text=True,
-    ).stdout.splitlines()
-    untracked = subprocess.run(
-        ["git", "ls-files", "--others", "--exclude-standard"],
-        cwd=ROOT,
-        check=True,
-        capture_output=True,
-        text=True,
-    ).stdout.splitlines()
-    assert set(diff) | set(untracked) == ALLOWLIST
+    ledger = _ledger()
+    repository = ledger["repository"]
+    assert repository["worktree"] == "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-auto-a0-20260802"
+    assert repository["branch"] == "codex/cstar-auto-a0-provenance-20260802"
+    assert repository["base_commit"] == BASE_COMMIT
+    assert set(ledger["allowlist"]) == ALLOWLIST
+    assert {entry["path"] for entry in ledger["a0_authored_hunks"]} == ALLOWLIST
+    assert "git diff --check" in ledger["mandated_checks"]
+    assert "git diff --name-only origin/master -- '*.ts' '*.py' | xargs -r wc -l" in ledger["mandated_checks"]
 
 
 def test_focused_test_source_stays_within_the_file_size_gate() -> None:

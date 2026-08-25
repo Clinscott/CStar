@@ -1,0 +1,172 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:mcp:complete-the-deterministic-process-only-persona--msf2wzdw",
+  "validation_id": "validation:cstar-persona-cas-contract-20260804-r1",
+  "reported_verdict": "ACCEPTED",
+  "verdict": "ACCEPTED",
+  "verdict_scope": "current persona CAS source bytes, focused persona/status/catalog tests, adjacent authorization/kernel/tool/instrumentation tests, Node 25 typecheck, diff integrity, pinned hashes, line limits, transaction review, failure-atomicity review, and authority-neutrality probes",
+  "validation_date": "2026-08-04",
+  "code_root": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803",
+  "validator_identity": "codex-subagent:019fce73-0304-7980-a0ae-cb56a6837b29:turn:019fce73-0c52-72a3-a86c-c5bb448855cd",
+  "validator_thread_id": "019fce73-0304-7980-a0ae-cb56a6837b29",
+  "validator_turn_id": "019fce73-0c52-72a3-a86c-c5bb448855cd",
+  "latest_turn_id": "019fce73-0c52-72a3-a86c-c5bb448855cd",
+  "validator_parent_thread_id": "019f71dc-af61-7a73-a72d-1ec3a638a011",
+  "validator_depth": 1,
+  "validator_thread_source": "subagent",
+  "validator_agent_path": "/root/validator",
+  "requested_model": "gpt-5.6-sol",
+  "requested_effort": "high",
+  "actual_model": "gpt-5",
+  "actual_effort": "unreported",
+  "selector_status": "requested_selector_and_actual_runtime_identity_recorded_separately",
+  "selector_claim": "The host turn settings requested gpt-5.6-sol/high; the active validator runtime identifies as GPT-5 and does not expose a separate actual-effort value. No Luna identity is claimed.",
+  "test_counts": {
+    "focused_suites": 3,
+    "focused_tests": 22,
+    "focused_passed": 22,
+    "focused_failed": 0,
+    "adjacent_suites": 6,
+    "adjacent_tests": 45,
+    "adjacent_passed": 45,
+    "adjacent_failed": 0,
+    "all_executed_suites": 9,
+    "all_executed_tests": 67,
+    "all_executed_passed": 67,
+    "all_executed_failed": 0,
+    "typecheck_exit": 0
+  },
+  "suite_paths": {
+    "focused": [
+      "tests/unit/cstar-kernel-mcp/test_persona_set.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_persona_status_boundary.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_tool_catalog.test.ts"
+    ],
+    "adjacent": [
+      "tests/unit/cstar-kernel-mcp/test_operator_authorization.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_operator_authorization_scope_binding.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_kernel_surfaces_core.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_tool_classes.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_instrumentation_mutation_identity.test.ts"
+    ]
+  },
+  "commands": {
+    "focused": "/home/morderith/.nvm/versions/node/v25.8.1/bin/node scripts/run-tsx.mjs --test tests/unit/cstar-kernel-mcp/test_persona_set.test.ts tests/unit/cstar-kernel-mcp/test_persona_status_boundary.test.ts tests/unit/cstar-kernel-mcp/test_tool_catalog.test.ts",
+    "adjacent": "/home/morderith/.nvm/versions/node/v25.8.1/bin/node scripts/run-tsx.mjs --test tests/unit/cstar-kernel-mcp/test_operator_authorization.test.ts tests/unit/cstar-kernel-mcp/test_operator_authorization_scope_binding.test.ts tests/unit/cstar-kernel-mcp/test_kernel_surfaces_core.test.ts tests/unit/cstar-kernel-mcp/test_tool_classes.test.ts tests/unit/cstar-kernel-mcp/test_instrumentation_mutation_identity.test.ts",
+    "typecheck": "/home/morderith/.nvm/versions/node/v25.8.1/bin/npm run typecheck",
+    "diff_check": "git diff --check --",
+    "bounded_diff_check": "git diff --check -- src/tools/pennyone/intel/persona_state.ts tests/unit/cstar-kernel-mcp/test_persona_set.test.ts",
+    "hash_and_line_audit": "sha256sum and wc -l over all 12 pinned artifacts"
+  },
+  "covered_probes": {
+    "changed_noop_blocked": "pass",
+    "expected_current_compare_and_set": "pass",
+    "concurrent_stale_writer": "pass: one change and one block",
+    "deterministic_idempotent_receipts": "pass",
+    "same_value_first_call_seeds_hall_revision_1": "pass",
+    "repeated_same_value_replays_original_receipt": "pass",
+    "stale_first_expectation_inserts_zero_rows": "pass",
+    "status_reads_hall_after_config_change": "pass",
+    "config_migration_read_only_and_redacted": "pass",
+    "python_compatibility_writer_cannot_bypass_canonical_state": "pass",
+    "optional_expected_current_and_unchanged_public_catalog": "pass: 28 unique public tools",
+    "authority_effect": "pass: process_only at next_workflow_boundary",
+    "authority_neutrality": "pass: no retry, spend, scope, Git, source, restart, deploy, secret/config, or production authority"
+  },
+  "source_review": {
+    "immediate_transaction": "pass: persona mutation is wrapped in one immediate transaction",
+    "revision_compare_and_set": "pass: update requires the observed state_key and revision",
+    "failure_atomicity": "pass: stale expectations return before insert/update; transactional failures roll back",
+    "invalid_state_fail_closed": "pass",
+    "migration_fallback": "pass: config is read only when dedicated Hall state is absent",
+    "canonical_projection": "pass: status prefers Hall and does not expose config objects",
+    "retired_compatibility_writer": "pass: Python writer fails closed",
+    "registration_schema": "pass: only persona and optional expected_current are exposed"
+  },
+  "reused_evidence_basis": "No prior validator result was used as acceptance. The current validator reran the focused and adjacent suites, typecheck, diff checks, hash audit, line audit, and source review in this turn.",
+  "host_final_binding": {
+    "validator_thread_id": "019fce73-0304-7980-a0ae-cb56a6837b29",
+    "validator_turn_id": "019fce73-0c52-72a3-a86c-c5bb448855cd",
+    "latest_turn_id": "019fce73-0c52-72a3-a86c-c5bb448855cd",
+    "root_thread_id": "019f71dc-af61-7a73-a72d-1ec3a638a011",
+    "validation_id_required_in_exact_final_answer": "validation:cstar-persona-cas-contract-20260804-r1",
+    "manifest_sha256_required_in_exact_final_answer": true,
+    "final_and_task_complete_binding": "The current validator turn's final_answer and task_complete records must bind this validation id and the resulting manifest digest; the host-known trailing memory citation may be omitted from task_complete.last_agent_message.",
+    "matching_policy": "exact host assistant final_answer and task_complete last_agent_message semantic binding"
+  },
+  "mutation_boundary": {
+    "source_edits": false,
+    "test_edits": false,
+    "cstar_or_hall_mutation": false,
+    "config_or_secret_mutation": false,
+    "install_or_rebuild": false,
+    "restart": false,
+    "providers": false,
+    "git_commit_push_or_merge": false,
+    "deploy": false,
+    "written_scope": ".cstar/validation/cstar-persona-cas-contract-20260804-r1/validation-evidence.txt and this manifest"
+  },
+  "closeout_boundary": {
+    "record_result_performed": false,
+    "bead_closed": false,
+    "host_validation_package_only": true
+  },
+  "artifacts": [
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/scripts/set_active_persona.py",
+      "sha256": "72e91a8e247d0a2fd7da4fb64285ebf437a8e80dd9ca0fc4de4e58c861cd9c19"
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/src/tools/cstar-kernel-mcp/register_core_tools.ts",
+      "sha256": "aa999e6f8d7155af9ac6ce1633b55ac6a0224e9d150d369929b09311308747d4"
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/src/tools/cstar-kernel-mcp/tools/persona_set.ts",
+      "sha256": "cb9d62bcd7f88649240bd8ddb1693bd1b12440d142db97483a3001d433f8ec40"
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/src/tools/cstar-kernel-mcp/tools/status.ts",
+      "sha256": "2dbee9c1a3ada4ef32a17f664b4751b654c6791450540403853b2d68274b64a2"
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/src/tools/cstar-kernel-mcp/contracts/tool_catalog.ts",
+      "sha256": "455b6882d0ee64102c4c00c96a5af0859831a72632627b3d140d326da5d1b128"
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/src/tools/pennyone/intel/schema_tables_core.ts",
+      "sha256": "67daf77d3cb0e47be2cb2ba191d444a5cf388e8bf8b3f3714bcbc64a07285c54"
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/src/tools/pennyone/persona_projection.ts",
+      "sha256": "6c2a73eeb54c34f9c6e04b5c05af35de4c7b856d67b34a6e23a3d1e606f852ea"
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/src/tools/pennyone/intel/persona_state.ts",
+      "sha256": "684906a2a8ffc39a4c844a0cf6c31e6ba747298b601772f7792ff3418839e7e8"
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/tests/unit/cstar-kernel-mcp/test_persona_set.test.ts",
+      "sha256": "5887b66921c4a374ea93ea2b11c5f19cb28410fc09477f81f42011b71d604b41"
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/tests/unit/cstar-kernel-mcp/test_persona_status_boundary.test.ts",
+      "sha256": "b3ef408a68fc143b68ba8538d791cec28563064109bdda302cc0e0004226ff6e"
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/tests/unit/cstar-kernel-mcp/test_tool_catalog.test.ts",
+      "sha256": "879f30adff632319265e3a93daec493a5d223af4772dd120e15e1316df9ff829"
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/src/tools/pennyone/intel/schema.ts",
+      "sha256": "5ec66256c3c45bb8905a2562d08d6d2435c90419a818fb59739b784a67119fae"
+    }
+  ],
+  "checks": [
+    {
+      "name": "fresh_persona_cas_matrix_typecheck_diff_hash_line_and_source_review",
+      "status": "pass",
+      "evidence_path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-persona-cas-contract-20260804-r1/validation-evidence.txt",
+      "sha256": "8ea21858892f0a957c1cbd6cb1d47324f4d7fc09de19f0f892fc9f020b9dd675"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+command: node scripts/run-tsx.mjs --test tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts
+runtime: node v25.8.1; npm 11.11.0
+exit_status: 0
+suite: host-workflow independent validation
+tests: 14
+passed: 14
+failed: 0
+coverage: receipt-only v3 derivation; matching legacy compatibility; conflicting legacy rejection; alias shape rejection; duplicate artifact/check/evidence-path rejection; scope/hash/lineage/freshness/authorization/out-of-root guards

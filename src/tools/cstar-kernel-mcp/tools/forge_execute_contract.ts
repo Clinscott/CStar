@@ -15,6 +15,15 @@ export interface ForgeExecutionArgs extends DispatchRequestArgs {
     operator_authorization_ref?: string;
     idempotency_key: string;
     retry_of_attempt_id?: string;
+    /** Optional only when the v3 request durably binds a project root. */
+    project_root?: string;
+    validation_ticket?: string;
+    validation_ticket_request?: {
+        scope_sha256: string;
+        expires_at?: number;
+        validator_thread_id?: string;
+        validator_turn_id?: string;
+    };
 }
 
 export function findForgeExecutionValidationError(args: ForgeExecutionArgs): string | null {
@@ -41,9 +50,6 @@ export function findForgeExecutionValidationError(args: ForgeExecutionArgs): str
     if (args.execution_mode === 'live_authorized') {
         if (!args.operator_authorization_ref?.trim()) {
             return 'live Forge execution requires operator_authorization_ref';
-        }
-        if (!args.execution_adapter_ref?.trim()) {
-            return 'live Forge execution requires execution_adapter_ref';
         }
         if (args.spend_policy.operator_authorization_ref?.trim()) {
             return 'legacy spend_policy.operator_authorization_ref is forbidden; use the exact outer authorization reference';

@@ -1,0 +1,38 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:mcp:repair-ordinary-hall-writable-bootstrap-so-cstar-msekb1h2",
+  "validation_id": "validation:cstar-bead-forge-schema-isolation-20260804-r5",
+  "reported_verdict": "ACCEPTED",
+  "artifacts": [
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/src/tools/pennyone/intel/schema.ts",
+      "sha256": "5ec66256c3c45bb8905a2562d08d6d2435c90419a818fb59739b784a67119fae",
+      "bytes": 10808
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/tests/unit/cstar-kernel-mcp/test_bead_forge_schema_isolation.test.ts",
+      "sha256": "98a19241830735d709bbd5fe12cd6d5be1bfdedcab13d597dce1c02a35e74685",
+      "bytes": 7357
+    }
+  ],
+  "checks": [
+    {
+      "name": "seven_suite_node25",
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/bead-forge-schema-isolation-20260804-r5/01-seven-suite.txt",
+      "sha256": "8e4533561b1dbb01a46be3ac39f6f6d8679f620260b1e6f7ff26326d5f4423aa",
+      "pass": true
+    },
+    {
+      "name": "typecheck_node25",
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/bead-forge-schema-isolation-20260804-r5/02-typecheck.txt",
+      "sha256": "ac7184a01335ede1bca8c499fd9d4bc90e3f45bb73c33e79edfe0e31f44b4117",
+      "pass": true
+    },
+    {
+      "name": "git_diff_check",
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/bead-forge-schema-isolation-20260804-r5/03-diff-check.txt",
+      "sha256": "1b471967325b0cfbca28daff464377b0f5e3bb17a1449576de706dbc929b3fc0",
+      "pass": true
+    }
+  ]
+}

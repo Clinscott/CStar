@@ -13,7 +13,8 @@ import {
     preAuthorizationErrorResponse,
     textResponse,
 } from '../contracts/responses.js';
-import { CODE_ROOT } from '../contracts/runtime.js';
+import { CODE_ROOT, CONTROL_ROOT } from '../contracts/runtime.js';
+import { resolveValidationEvidenceRoot } from '../contracts/validation_evidence_root.js';
 import {
     compactBead,
     generateBeadId,
@@ -91,9 +92,15 @@ function gateSterlingMandate(bead: SovereignBead, args: BeadToolArgs, hubRoot: s
     if (!validationId || requestedResolvedValidationId(args, bead) !== validationId) {
         throw new Error('sterling_validation_id_must_match_resolved_validation_id');
     }
-    const validation = database.getValidationRunById(validationId);
-    const evidenceRoot = validation?.evidence_manifest?.schema === 'cstar.validation-evidence.v3'
-        ? CODE_ROOT : hubRoot;
+    const repository = database.listHallRepositories(hubRoot)
+        .find((row) => row.repo_id === bead.repo_id);
+    if (!repository) throw new Error('sterling_bead_repository_binding_missing');
+    const evidenceRoot = resolveValidationEvidenceRoot(
+        bead.repo_id,
+        repository.root_path,
+        CODE_ROOT,
+        CONTROL_ROOT,
+    );
     const verdict = verifySterlingMandate(
         beadAsHallRecord,
         args.mandate_evidence,

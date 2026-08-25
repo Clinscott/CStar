@@ -208,9 +208,12 @@ function manifestFilesRemainValid(
 
 function auditContainsDeclaredArtifacts(
     manifest: HallValidationEvidenceManifest,
+    evidenceRoot: string,
     files: VerifiedMandateArtifact[],
 ): boolean {
-    const artifactPairs = new Set(manifest.artifacts.map((entry) => `${path.resolve(entry.path)}\0${entry.sha256}`));
+    const artifactPairs = new Set(
+        manifest.artifacts.map((entry) => `${path.resolve(evidenceRoot, entry.path)}\0${entry.sha256}`),
+    );
     return files.every((file) => artifactPairs.has(`${path.resolve(file.absolute_path)}\0${file.sha256}`));
 }
 
@@ -239,7 +242,7 @@ function checkAudit(
     if (!manifestFilesRemainValid(evidenceRoot, manifest)) {
         return unsatisfied('audit', 'validation_evidence_files_changed_or_unavailable');
     }
-    if (!auditContainsDeclaredArtifacts(manifest, files)) {
+    if (!auditContainsDeclaredArtifacts(manifest, evidenceRoot, files)) {
         return unsatisfied('audit', 'lore_or_isolation_not_bound_to_validation_receipt');
     }
     return {

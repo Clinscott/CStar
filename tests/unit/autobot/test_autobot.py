@@ -55,7 +55,7 @@ def test_durable_forge_is_the_only_registered_implementation_lane() -> None:
     repair_route = registry["intent_grammar"]["REPAIR"]
     forge = registry["entries"]["corvus-forge"]
     catalog = _read("src/tools/cstar-kernel-mcp/contracts/tool_catalog.ts")
-    contract = _read("docs/operations/corvus-forge-skill-spec.md")
+    contract = _read("docs/integrations/host_native_skill_contract.md")
 
     assert build_route["default_path"] == "cstar_forge_request"
     assert repair_route["default_path"] == "cstar_forge_request"
@@ -63,16 +63,35 @@ def test_durable_forge_is_the_only_registered_implementation_lane() -> None:
     assert forge["entry_surface"] == "host-only"
     assert "name: 'cstar_forge_request'" in catalog
     assert "name: 'cstar_forge_execute'" in catalog
-    assert (
-        "cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute -> private Hermes cstar-hub"
-        in contract.replace("\n", " ")
-    )
+    lane = contract.split("## Lane-Specific Rules", 1)[1].split("## Failure Behavior", 1)[0]
+    flat = " ".join(lane.split())
+    assert "forge-native-codex-swarm-v1" in flat
+    assert "cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute" in flat
+    assert "cstar_forge_swarm_plan" in flat
+    assert "direct host-native workers" in flat
+    assert "cstar_forge_swarm_update" in flat
+    assert "separate read-only aggregator" in flat
+    assert "cstar_forge_swarm_complete" in flat
+    assert "DELIVERED_UNVERIFIED" in flat
+    assert "independent cstar_record_result" in flat
+    for required in (
+        "one to three useful direct workers", "disjoint ownership", "no descendants",
+        "one attempt", "zero retry, replay, replacement, or fallback",
+    ):
+        assert required in flat
 
 
 def test_retirement_contract_forbids_environment_reactivation() -> None:
     integration = _read("docs/integrations/cstar-kernel-mcp.md")
     flat = " ".join(integration.split())
+    start = integration.index("### Current native Forge flat-dispatch boundary")
+    end = integration.index("\n## MCP 2026-07-28", start)
+    native = " ".join(integration[start:end].split())
 
     assert "`cstar_autobot` is decommissioned" in flat
     assert "No environment variable reactivates it." in flat
-    assert "Live implementation uses only `cstar_forge_request`" in flat
+    for subject in ("Codex-host state-only handoff", "private Hermes/MiniMax adapter", "AutoBot"):
+        assert subject in native
+    assert "historical, legacy, retired, or generation-tombstoned evidence only" in native
+    assert "never current, default, target, recovery, replacement, or fallback routes" in native
+    assert "performs zero provider calls, network requests, and spend" in native

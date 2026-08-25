@@ -1,0 +1,16 @@
+{
+  "check": "set_03_focused_lifecycle",
+  "runtime": {
+    "node": "v25.8.1",
+    "npm": "11.11.0",
+    "path_prefix": "/home/morderith/.nvm/versions/node/v25.8.1/bin"
+  },
+  "command": "node scripts/run-tsx.mjs --test tests/unit/cstar-kernel-mcp/test_worker_job_lifecycle_binding.test.ts tests/unit/cstar-kernel-mcp/test_durable_async_dispatch.test.ts tests/unit/cstar-kernel-mcp/test_forge_codex_host_worker_dispatch.test.ts tests/unit/cstar-kernel-mcp/test_forge_adapter_project_root.test.ts tests/unit/cstar-kernel-mcp/test_forge_natural_language_authorization.test.ts tests/unit/cstar-kernel-mcp/test_forge_authorization_one_shot.test.ts tests/unit/cstar-kernel-mcp/test_operator_authorization_scope_binding.test.ts tests/unit/cstar-kernel-mcp/test_forge_durable_execution.test.ts tests/unit/cstar-kernel-mcp/test_forge_execute_authority.test.ts",
+  "suites": 9,
+  "tests": 66,
+  "passed": 66,
+  "failed": 0,
+  "cancelled": 0,
+  "skipped": 0,
+  "status": "pass"
+}

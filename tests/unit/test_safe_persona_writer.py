@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import os
 import subprocess
 from pathlib import Path
 
@@ -9,6 +8,7 @@ ROOT = Path(__file__).resolve().parents[2]
 WRITER = ROOT / "scripts" / "set_active_persona.py"
 READER = ROOT / "scripts" / "read_active_persona.py"
 PYTHON = "/usr/bin/python3"
+RETIRED_ERROR = "persona_config_writer_retired_use_hall_persona_state"
 
 
 def make_config(tmp_path: Path, payload: object) -> Path:
@@ -32,6 +32,25 @@ def run_writer(root: Path, persona: str) -> subprocess.CompletedProcess[str]:
     )
 
 
+def snapshot(config: Path) -> tuple[bytes, tuple[int, int, int, int, int]]:
+    current = config.stat()
+    return config.read_bytes(), (
+        current.st_dev, current.st_ino, current.st_mode, current.st_size, current.st_mtime_ns,
+    )
+
+
+def assert_retired(
+    result: subprocess.CompletedProcess[str],
+    config: Path,
+    before: tuple[bytes, tuple[int, int, int, int, int]],
+) -> None:
+    assert result.returncode == 2
+    assert result.stderr == ""
+    assert json.loads(result.stdout) == {"status": "error", "error": RETIRED_ERROR}
+    assert "CANARY" not in result.stdout + result.stderr
+    assert snapshot(config) == before
+
+
 def test_writer_switches_exact_state_without_emitting_or_losing_unknown_fields(tmp_path: Path) -> None:
     config = make_config(tmp_path, {
         "system": {"persona": "A.L.F.R.E.D.", "private": "CANARY_SYSTEM"},
@@ -41,21 +60,8 @@ def test_writer_switches_exact_state_without_emitting_or_losing_unknown_fields(t
         "unknown": {"token": "CANARY_UNKNOWN"},
     })
 
-    result = run_writer(tmp_path, "O.D.I.N.")
-    assert result.returncode == 0, result.stdout
-    assert "CANARY" not in result.stdout + result.stderr
-    receipt = json.loads(result.stdout)
-    assert receipt["status"] == "updated"
-    assert receipt["previous_persona"] == "A.L.F.R.E.D."
-    assert receipt["active_persona"] == "O.D.I.N."
-    assert receipt["changed"] is True
-
-    stored = json.loads(config.read_text(encoding="utf-8"))
-    assert stored["system"] == {"persona": "O.D.I.N.", "private": "CANARY_SYSTEM"}
-    assert stored["persona"] == "O.D.I.N."
-    assert stored["Persona"] == "O.D.I.N."
-    assert stored["activePersona"] == {"name": "O.D.I.N.", "private": "CANARY_ACTIVE"}
-    assert stored["unknown"] == {"token": "CANARY_UNKNOWN"}
+    before = snapshot(config)
+    assert_retired(run_writer(tmp_path, "O.D.I.N."), config, before)
 
     reader = subprocess.run(
         [PYTHON, "-I", "-S", "-B", str(READER), str(tmp_path)],
@@ -65,45 +71,28 @@ def test_writer_switches_exact_state_without_emitting_or_losing_unknown_fields(t
         timeout=5,
     )
     assert reader.returncode == 0
-    assert reader.stdout == "O.D.I.N."
+    assert reader.stdout == "A.L.F.R.E.D."
 
 
 def test_writer_is_idempotent_and_does_not_replace_an_unchanged_file(tmp_path: Path) -> None:
     config = make_config(tmp_path, {"system": {"persona": "O.D.I.N."}})
-    first = run_writer(tmp_path, "O.D.I.N.")
-    assert first.returncode == 0
-    before = config.stat()
-    second = run_writer(tmp_path, "O.D.I.N.")
-    after = config.stat()
-    assert second.returncode == 0
-    receipt = json.loads(second.stdout)
-    assert receipt["status"] == "already_active"
-    assert receipt["changed"] is False
-    assert (after.st_dev, after.st_ino, after.st_mtime_ns) == (
-        before.st_dev, before.st_ino, before.st_mtime_ns,
-    )
+    before = snapshot(config)
+    assert_retired(run_writer(tmp_path, "O.D.I.N."), config, before)
+    assert_retired(run_writer(tmp_path, "O.D.I.N."), config, before)
 
 
 def test_writer_rejects_unsafe_or_structurally_ambiguous_config_without_changes(tmp_path: Path) -> None:
     config = make_config(tmp_path, {"system": "CANARY_NOT_AN_OBJECT"})
-    original = config.read_bytes()
-    result = run_writer(tmp_path, "A.L.F.R.E.D.")
-    assert result.returncode != 0
-    assert json.loads(result.stdout)["error"] == "persona_config_system_invalid"
-    assert config.read_bytes() == original
+    before = snapshot(config)
+    assert_retired(run_writer(tmp_path, "A.L.F.R.E.D."), config, before)
 
     config.chmod(0o622)
-    unsafe = run_writer(tmp_path, "A.L.F.R.E.D.")
-    assert unsafe.returncode != 0
-    assert json.loads(unsafe.stdout)["error"] == "persona_config_file_unsafe"
-    assert config.read_bytes() == original
+    unsafe_before = snapshot(config)
+    assert_retired(run_writer(tmp_path, "A.L.F.R.E.D."), config, unsafe_before)
 
 
 def test_writer_rejects_aliases_and_noncanonical_input(tmp_path: Path) -> None:
     config = make_config(tmp_path, {"system": {"persona": "A.L.F.R.E.D."}})
-    original = config.read_bytes()
+    before = snapshot(config)
     for value in ("ODIN", "ALFRED", " O.D.I.N.", "NOT-ODIN-ADMIN"):
-        result = run_writer(tmp_path, value)
-        assert result.returncode != 0
-        assert json.loads(result.stdout)["error"] == "persona_canonical_value_required"
-        assert config.read_bytes() == original
+        assert_retired(run_writer(tmp_path, value), config, before)

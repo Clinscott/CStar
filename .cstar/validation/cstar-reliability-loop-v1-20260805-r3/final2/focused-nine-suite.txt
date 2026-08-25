@@ -1,0 +1,12 @@
+check: focused nine-suite command
+command: /home/morderith/.nvm/versions/node/v25.8.1/bin/node scripts/run-tsx.mjs --test --test-concurrency=2 tests/unit/cstar-kernel-mcp/test_augury_bead_result.test.ts tests/unit/cstar-kernel-mcp/test_code_control_root_separation.test.ts tests/unit/cstar-kernel-mcp/test_dispatch_requests.test.ts tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts tests/unit/cstar-kernel-mcp/test_reliability_loop.test.ts tests/unit/cstar-kernel-mcp/test_reliability_loop_result.test.ts tests/unit/cstar-kernel-mcp/test_sterling_repository_root_binding.test.ts tests/unit/cstar-kernel-mcp/test_validation_evidence_root.test.ts tests/unit/cstar-kernel-mcp/test_validation_ticket_spoke_result.test.ts
+exit_code: 0
+test_files: 9
+reported_suites: 10
+tests: 87
+passed: 87
+failed: 0
+cancelled: 0
+skipped: 0
+todo: 0
+

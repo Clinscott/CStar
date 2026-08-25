@@ -19,20 +19,78 @@ resumed mission:
 4. If the host exposes no resume transition, do not invent one or replace the
    goal. Anchor the defect to a CStar repair bead, then use
    `cstar_goal_resume` from the canonical root-user turn.
-   This appends a `cstar.host_goal_resume.v1` decision event containing only
-   bounded hashes and lifecycle references. It is a continuity-only overlay:
-   the host status remains `blocked`, no host object is mutated, and it grants
-   no spend, source, Git, installation, restart, deployment, or production
-   authority. Continue the unchanged objective only after that explicit signal
-   verifies and the event persists. The signal must be a dedicated, fully
-   anchored imperative or authorization statement. Questions, quotations,
-   examples, button-label prose, and incidental mentions of resuming a goal do
-   not qualify. Direct repair-and-proceed language such as `Fix the error and
-   continue the build` or `The error should be fixed and the build proceed`
-   qualifies for the unchanged goal. It still grants continuity only and never
-   creates Forge authority.
+   The v2 call accepts only the request receipt id, request SHA-256, and a
+   structured `host_goal_projection`; the kernel derives the bead, decision,
+   target scope, and immutable root-repair sidecar from the persisted request.
+   Callers cannot supply or replace those lineage fields. The projection uses
+   `cstar.host_get_goal_projection.v1` and contains the exact host objective,
+   status, counters, timestamps, root thread, and
+   `hostResumeCapability: "unavailable"`.
+
+   This appends a `cstar.host_goal_resume.v2` decision event containing only
+   bounded hashes, canonical snapshot material, and lifecycle/operator lineage.
+   It is a `continuity_only` overlay: the host status remains `blocked`, no
+   host object is mutated, and it grants no spend, source, Git, installation,
+   restart, deployment, or production authority. A later ordinary turn on the
+   same canonical root thread does not need fresh repair wording or an old
+   exact challenge. Questions, status text, and unrelated neutral text are
+   liveness evidence only; they do not expand authority. Revocation,
+   negation, protected actions, scope expansion, a different target or goal,
+   forks, and switches veto continuity and fail closed.
+
+   After an exact zero-provider, zero-spend, no-source, and no-write mechanical
+   failure, the continuity context may say, `The error should be fixed and the build proceed`. In v2 this wording grants continuity only and never creates Forge authority. Do not ask the operator to repeat the build request when the bounded continuation contract applies: preserve the original Forge authorization, validate the repair, and resume through the trusted receipt. The original Forge authorization remains authoritative, while protected,
+   scope, spend, source, Git, installation, restart, activation, deployment,
+   secrets/config, and production gates remain independently enforced.
+
 5. Maintain a short plan with at most one in-progress step. Put the relevant
    bead or decision ids in the plan/explanation when the host supports it.
+
+### Canonical host-goal snapshot
+
+`cstar_goal_resume` accepts the structured host projection
+
+```json
+{"forge_request_receipt_id":"dispatch-forge-<32 hex>","request_sha256":"<64 lowercase hex>","host_goal_projection":{"schema":"cstar.host_get_goal_projection.v1","threadId":"<host-root-thread>","objective":"<exact objective>","status":"blocked","tokensUsed":<safe integer>,"timeUsedSeconds":<safe integer>,"createdAt":<safe integer>,"updatedAt":<safe integer>,"hostResumeCapability":"unavailable"}}
+```
+
+The caller supplies the request receipt id and request SHA-256 as the only
+request lineage fields. The kernel reads the supported v3 request and derives
+the bead, decision, target/scope digests, package-lock digest, and immutable
+root-repair sidecar. It rejects hash-only host material, caller-supplied bead
+or decision fields, malformed counters, and timestamp drift.
+
+The objective is hashed as the SHA-256 digest of its exact UTF-8 bytes. The
+input is not trimmed and is not Unicode-normalized. `createdAt` and `updatedAt`
+are safe non-negative integers, and `createdAt` cannot be later than
+`updatedAt`. `tokensUsed` and `timeUsedSeconds` are validated projection input
+only; they are not canonical receipt material.
+
+The persisted canonical snapshot material uses
+`cstar.host_goal_snapshot.v1`. Its fixed, no-whitespace JSON key order is
+`schema`, `host_goal_thread_id`, `host_goal_objective_sha256`,
+`host_goal_status`, `host_goal_created_at`, `host_goal_updated_at`, and
+`host_resume_capability`. `host_goal_snapshot_sha256` is the SHA-256 digest of
+that exact serialization. The receipt stores only this material, its hashes,
+and bounded lifecycle/operator lineage. It never persists the raw objective,
+raw operator/current-turn text, `tokensUsed`, or `timeUsedSeconds`.
+
+The returned `resume_id` is an immutable `goal-resume-v2:<sha256>` continuity
+receipt. Exact replay returns the existing id and does not insert a second
+event, attempt, or authorization. It may be passed to
+`cstar_forge_authorize` without repeating repair wording using only this safe
+payload:
+
+```json
+{"forge_request_receipt_id":"dispatch-forge-<32 hex>","request_sha256":"<64 lowercase hex>","goal_resume_id":"goal-resume-v2:<64 lowercase hex>"}
+```
+
+Forge derives bead, decision, root-repair, and operator lineage from the
+trusted request and v2 event. A v1 `goal_resume_id` is historical-only and is
+rejected with `forge_goal_resume_v1_historical_only`. The v2 receipt does not
+inherit or grant any protected effect: the original request, scope, retry,
+spend, source, Git, installation, restart, activation, deployment,
+secrets/config, and production gates remain independently required.
 
 Mark a goal complete only after the requested outcome, focused validation,
 independent review where required, CStar result recording, and closeout are all
@@ -44,9 +102,23 @@ reason to abandon the mission.
 
 Use the narrowest capable lane:
 
-- **Corvus Forge / Hermes MiniMax-M3** for implementation when the Forge lane
-  applies. Request is no-spend; execute consumes the authorized attempt.
-- **Researcher / Hermes** for authorized research and evidence gathering.
+- **Corvus Forge / native flat dispatch** for current implementation. Use
+  `cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute ->
+  cstar_forge_swarm_plan -> direct host-native workers ->
+  cstar_forge_swarm_update -> separate read-only aggregator ->
+  cstar_forge_swarm_complete -> DELIVERED_UNVERIFIED -> independent
+  cstar_record_result` on `forge-native-codex-swarm-v1`. Plans contain one to
+  three useful direct workers with disjoint write ownership, no descendants,
+  one attempt, and zero retry, replay, replacement, or fallback. Requested
+  model and requested reasoning are immutable packet inputs; actual identity is
+  separate host-attested evidence and is `unreported` without attestation.
+- **Historical Forge material** such as the Codex-host state-only handoff,
+  private Hermes/MiniMax, and AutoBot is legacy, retired, or
+  generation-tombstoned evidence only. It is never a current, default, target,
+  recovery, replacement, or fallback route.
+- **Researcher / CStar-native no-spend evidence request** for authorized
+  research and evidence gathering; any live source transport remains separately
+  authorized.
 - **Codex subagent** for bounded analysis, inspection, tests, or independent
   review. A subagent is not Forge implementation.
 - **CoS bootstrap repair** only when the canonical CStar/Forge boundary itself
@@ -83,7 +155,9 @@ commands, exit status, before/after versions, dirty/active-process gates,
 update result, and any restart requirement. It contains no environment dump,
 credential data, token, or auth path.
 
-1. Run `codex --version`, `hermes --version`, and `hermes update --check`.
+1. Run `codex --version`. When an explicitly selected legacy adapter or
+   authorized source transport uses Hermes, also run `hermes --version` and
+   `hermes update --check`.
 2. Confirm there is no active Forge/provider attempt and no goal step that an
    updater could interrupt.
 3. Before `hermes update`, prove its checkout is clean, including untracked

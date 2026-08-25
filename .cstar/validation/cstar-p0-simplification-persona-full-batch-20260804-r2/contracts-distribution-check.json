@@ -1,0 +1,56 @@
+{
+  "schema": "cstar.independent_validation_check.v1",
+  "check": "contracts_distribution_typecheck_diff",
+  "status": "pass",
+  "commands": [
+    {
+      "command": "PATH=/home/morderith/.nvm/versions/node/v25.8.1/bin:$PATH node scripts/run-tsx.mjs --test tests/unit/test_distribution_manifests.test.ts",
+      "status": "pass",
+      "tests": 7,
+      "suites": 1
+    },
+    {
+      "command": "PATH=/home/morderith/.nvm/versions/node/v25.8.1/bin:$PATH python3 -m pytest -s -q -o addopts='' tests/contracts/test_cstar_agent_router.py tests/contracts/test_codex_thread_architecture.py",
+      "status": "pass",
+      "tests": 12
+    },
+    {
+      "command": "PATH=/home/morderith/.nvm/versions/node/v25.8.1/bin:$PATH npm run validate:distributions",
+      "status": "pass",
+      "artifacts_verified": 8
+    },
+    {
+      "command": "PATH=/home/morderith/.nvm/versions/node/v25.8.1/bin:$PATH npm run typecheck",
+      "status": "pass"
+    },
+    {
+      "command": "git diff --check",
+      "status": "pass"
+    }
+  ],
+  "semantic_contracts": {
+    "authorization_non_regression": "pass",
+    "typed_outcomes_and_deadlines": "pass",
+    "telemetry_visibility_and_persistence_truth": "pass",
+    "persona_cas_and_process_only_authority": "pass",
+    "validator_ticket_one_use_and_spoke_root": "pass",
+    "codex_host_handoff_drift_and_zero_provider": "pass",
+    "catalog_router_and_generated_distribution": "pass",
+    "test_only_node_test_context": "pass"
+  },
+  "distribution": {
+    "generated_artifacts": 8,
+    "lineage_reconciled": true,
+    "public_tool_count": 28,
+    "compatibility_default_hidden": true,
+    "explicit_compatibility_lookup": true
+  },
+  "source_test_edits": false,
+  "writes_outside_receipt_dir": false,
+  "provider_or_network_activity": false,
+  "restart_or_reload": false,
+  "git_mutation": false,
+  "install_or_rebuild": false,
+  "deployment": false,
+  "config_or_secret_mutation": false
+}

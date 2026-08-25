@@ -1,0 +1,14 @@
+{
+  "schema": "cstar.node-runtime-policy.v1",
+  "node": {
+    "version": "25.8.1",
+    "node_module_version": "141",
+    "napi_version": "10"
+  },
+  "npm": "11.11.0",
+  "native": {
+    "dependency": "better-sqlite3",
+    "version": "12.6.2",
+    "artifact": "build/Release/better_sqlite3.node"
+  }
+}
