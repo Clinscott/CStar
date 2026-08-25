@@ -1,10 +1,9 @@
-import Database from 'better-sqlite3';
+import type Database from 'better-sqlite3';
 import { normalizeHallPath, buildHallRepositoryId } from '../../../types/hall.js';
 import path from 'node:path';
 import { HALL_SCHEMA_CORE_SQL } from './schema_tables_core.js';
 import { HALL_SCHEMA_RUNTIME_SQL } from './schema_tables_runtime.js';
 import { HALL_SCHEMA_LEGACY_SQL } from './schema_tables_legacy.js';
-import { ensureForgeAuthorizationSchema } from './forge_authorization_schema.js';
 
 function shouldEmitPennyOneDebugLogs(): boolean {
     return process.env.CSTAR_DEBUG_LOGS === '1';
@@ -127,10 +126,8 @@ export function ensureHallSchema(database: Database.Database, rootPath: string):
     ensureColumn(database, 'hall_forge_requests', 'authorization_profile', 'TEXT');
     ensureColumn(database, 'hall_forge_requests', 'authorization_binding_sha256', 'TEXT');
     ensureColumn(database, 'hall_forge_requests', 'authorization_challenge_sha256', 'TEXT');
-    ensureForgeAuthorizationSchema(database);
-    ensureColumn(database, 'hall_forge_authorizations', 'execution_grant_schema', 'TEXT');
-    ensureColumn(database, 'hall_forge_authorizations', 'execution_grant_sha256', 'TEXT');
-    ensureColumn(database, 'hall_forge_authorizations', 'execution_grant_json', 'TEXT');
+    // Forge authorization migration belongs to the explicit Forge lifecycle;
+    // ordinary Hall mutations must not consume or prepare one-use grants.
     ensureColumn(database, 'hall_mounted_spokes', 'last_health_attempt_at', 'INTEGER');
     ensureColumn(database, 'hall_validation_runs', 'authority_class', "TEXT NOT NULL DEFAULT 'legacy_unverified'");
     ensureColumn(database, 'hall_validation_runs', 'evidence_sha256', 'TEXT');

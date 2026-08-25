@@ -56,12 +56,16 @@ Multi-step Corvus work is represented explicitly:
 5. Commit, push, merge, install, restart, deploy, holdout, and production claims
    remain separate operator gates.
 
-The durable build sequence is:
+The durable current v3 build sequence is:
 
-`cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute -> private Hermes cstar-hub / requested minimax MiniMax-M3 -> delivered_unverified -> independent cstar_record_result`
+`cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute -> Codex-host state-only handoff -> DELIVERED_PENDING_VALIDATION -> independent cstar_record_result`
 
-This private adapter is part of the sealed Forge lane. It does not restore
-public AutoBot, direct Hermes dispatch, or general model-owned orchestration.
+The current handoff records `runner_owner: "codex-host"`, requested
+`gpt-5.6-luna`/`max`, and separate host-attested actual identity; absent
+attestation is `unreported`/`null`. It performs no provider, cognition, or CStar
+launch at handoff. Private Hermes `cstar-hub`/MiniMax-M3 is a sealed legacy v2
+compatibility lane only. Neither route restores public AutoBot, direct Hermes
+dispatch, or general model-owned orchestration.
 
 ## Compatibility Requirements
 

@@ -1,0 +1,61 @@
+{
+  "schema": "cstar.structural_validation_check.v1",
+  "bead_id": "bead:mcp:repair-aggregate-full-suite-current-v3-codex-hos-msfai02i",
+  "validation_id": "validation:cstar-p0-full-batch-repair-host-handoff-20260804-r2",
+  "diff_check": {
+    "command": "git diff --check",
+    "status": "pass",
+    "exit_code": 0
+  },
+  "line_policy": {
+    "rule": "all currently dirty production/test TypeScript files <= 500 lines",
+    "status": "pass",
+    "production_files": 47,
+    "test_files": 32,
+    "total_files": 79,
+    "max_lines": 500,
+    "max_path": "src/tools/cstar-kernel-mcp/tools/augury_mission_binding.ts"
+  },
+  "source_contract_review": {
+    "status": "pass",
+    "node_test_context_assignment_scope": "pass: no process.env.NODE_TEST_CONTEXT assignments in src; scoped test fixtures restore prior values",
+    "runtime_fail_closed_guard_unchanged": "pass: runtime.ts is byte-unchanged and requires NODE_TEST_CONTEXT plus CSTAR_FORGE_RUNTIME_TEST_BYPASS for the test-only bypass",
+    "current_v3_route_before_legacy_adapter": "pass",
+    "pre_reservation_runtime_check": "pass",
+    "post_reservation_runtime_check": "pass",
+    "handoff_queue_replay_and_duplicate_conflict": "pass",
+    "worktree_relative_project_root_and_scope_binding": "pass",
+    "zero_provider_and_no_spend_contract": "pass",
+    "legacy_provider_model_rejection_and_no_fallback": "pass",
+    "evidence": [
+      "src/tools/cstar-kernel-mcp/contracts/runtime.ts:82-119",
+      "src/tools/cstar-kernel-mcp/tools/forge_execute.ts:214-223",
+      "src/tools/pennyone/intel/forge_host_worker_dispatch.ts:188-225",
+      "src/tools/pennyone/intel/forge_host_worker_dispatch.ts:255-310",
+      "tests/unit/cstar-kernel-mcp/test_forge_preprovider_execute_integration.test.ts:130-201",
+      "tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_forge_codex_host_worker_dispatch.test.ts:79-142",
+      "tests/unit/cstar-kernel-mcp/test_durable_async_dispatch.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_worker_job_lifecycle_binding.test.ts"
+    ]
+  },
+  "scope": {
+    "worktree": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803",
+    "unrelated_dirty_work_preserved": true,
+    "validator_source_test_edits": false,
+    "requested_model": "gpt-5.6-luna/max",
+    "actual_model": "gpt-5"
+  },
+  "forbidden_actions_observed": {
+    "cstar_lifecycle_call": false,
+    "provider_attempt": false,
+    "restart_or_reload": false,
+    "git_mutation": false,
+    "install_or_deploy": false,
+    "config_or_secret_mutation": false
+  },
+  "acceptance": {
+    "status": "accepted",
+    "runtime_activation_claimed": false
+  }
+}

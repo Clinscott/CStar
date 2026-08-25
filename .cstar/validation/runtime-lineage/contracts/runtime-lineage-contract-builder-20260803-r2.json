@@ -1,0 +1,100 @@
+{
+  "schema": "cstar.runtime_lineage_contract_builder_receipt_correction.v1",
+  "revision": 2,
+  "status": "READY_FOR_INDEPENDENT_REVALIDATION",
+  "decision_id": "decision:cstar-state-only-luna-host-seam-batch1-20260803",
+  "bead_id": "bead:cstar:state-only-luna-host-seam-batch1-20260803:parent:02-runner-transport-contracts",
+  "host_goal_id": "019fca13-17c3-7881-87b4-a1f1b7c8a589",
+  "worktree": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803",
+  "head": "afbbc1770ec6a7a2adc15b83f91c5586ac2525c0",
+  "correction_scope": "receipt metadata only; no source, test, manifest, dependency, launcher, or runtime mutation",
+  "supersedes_for_postimage_evidence": {
+    "path": ".cstar/validation/runtime-lineage/contracts/runtime-lineage-contract-builder-20260803.json",
+    "sha256": "5363a20a8a67b7e1fa04d95cc5d9b90dd81f91eefd15364d146bc082f5400a78",
+    "preserved_unchanged": true
+  },
+  "independent_reject": {
+    "path": ".cstar/validation/runtime-lineage/independent/luna-max-independent-runtime-lineage-codex-host-batch1-20260803.json",
+    "sha256": "b45819e905d98761f1ca7b9f30323a478b048c9f79bec6d6459b1912ef63eee8",
+    "preserved_unchanged": true,
+    "finding": "prior builder receipt recorded one malformed 62-character postimage digest"
+  },
+  "dependency_receipt": {
+    "path": ".cstar/validation/runtime-lineage/dependencies/node-modules-materialization-20260803.json",
+    "sha256": "6631b5a173bd70038f73b35ef2f3f20e4c190d3205a911f8dfd199ce8dc26689",
+    "preserved_unchanged": true
+  },
+  "corrected_field": {
+    "path": "src/tools/cstar-kernel-mcp/contracts/runtime_lineage.ts",
+    "prior_recorded_sha256": "a44c6669801048ff0ec326bfa776cd577f2b509403b4f720665f620cb11113",
+    "prior_recorded_length": 62,
+    "correct_sha256": "a44c6669801048ff0ec326bfa776cd577f2b50940379b4f720665f620cb11113",
+    "correct_length": 64,
+    "source_bytes_changed": false
+  },
+  "postimages": [
+    {
+      "path": "src/tools/cstar-kernel-mcp/contracts/runtime_lineage.ts",
+      "sha256": "a44c6669801048ff0ec326bfa776cd577f2b50940379b4f720665f620cb11113"
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/contracts/runtime_lineage_forge.ts",
+      "sha256": "4cd69cc299d2a238d9c21c8df5cd01d1a2acd223d9bae514ca77ec7ce6cdfdf1"
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/contracts/worker_jobs.ts",
+      "sha256": "521e729590c875668ee42dfedbd2232721294764481b1d16369b2a3cbec2794e"
+    },
+    {
+      "path": ".agents/skills/corvus-forge/runtime/host-manifest.json",
+      "sha256": "63ff3b31feb9991501c0cd3a4a300cc4bb1f259145e9781e9d6f03409c8d69ef"
+    },
+    {
+      "path": ".agents/skills/corvus-forge/runtime/host-manifest.schema.json",
+      "sha256": "bdeeae11caaff13209ab45306a84d5354d7f170341b44e6563d57a2db7c3ab78"
+    },
+    {
+      "path": ".agents/skills/corvus-forge/scripts/codex_host_runtime_lineage.mjs",
+      "sha256": "12aa42315ac98396fc7438cf14065b611bff3f152fbf763ce8277412943535c0"
+    },
+    {
+      "path": "tests/features/cstar_autonomous_hermes_dispatch_policy.feature",
+      "sha256": "7aa983df0c74a3821d835279c41a684be3aef752d10ab4f79d5785cf48b80641"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_runtime_readiness.test.ts",
+      "sha256": "42ce333447b07d19b0567b1c5df16380a15c01f162d4b1596847f3164095328b"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_runtime_lineage_codex_host.test.ts",
+      "sha256": "c53f91aff5b0e1cde71979c97f79c1a7d01297205be80a4fb56d576eecea054a"
+    }
+  ],
+  "postimage_validation": {
+    "count": 9,
+    "matched": 9,
+    "mismatched": 0,
+    "digest_format": "^[a-f0-9]{64}$",
+    "all_digests_64_lowercase_hex": true,
+    "source_hash_passes": 2,
+    "source_hash_passes_equal": true,
+    "source_diff_sha256_before_correction": "7db3100ba94a0c00de11bc5a0859ac1fffe403d4e7ba09697f22b3a21f1b72e3",
+    "source_behavior_tests_rerun": false,
+    "source_behavior_tests_not_rerun_reason": "all nine source/test/manifest hashes match the prior accepted-byte set; this correction adds only a receipt"
+  },
+  "runtime_node_activation_constraint": {
+    "required_node_path": "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+    "required_node_version": "v25.8.1",
+    "required_module_abi": "141",
+    "default_node_version": "v26.5.0",
+    "default_module_abi": "147",
+    "native_artifact_sha256": "2cbc7eb7f9da445e6221244aeae015716659780944ce165e428046c7b2bc78eb",
+    "constraint": "activation worker must select Node 25 deterministically; this correction does not edit or activate the launcher"
+  },
+  "prohibitions_observed": [
+    "no CStar MCP, Hall, SQLite, or lifecycle mutation",
+    "no source, test, manifest, dependency, launcher, or config edit",
+    "no Git index/history mutation, commit, push, merge, or PR operation",
+    "no reload, restart, deployment, provider, network, or secret action"
+  ]
+}

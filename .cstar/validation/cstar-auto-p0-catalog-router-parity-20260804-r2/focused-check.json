@@ -1,0 +1,61 @@
+{
+  "schema": "cstar.set04.focused_check.v2",
+  "validation_id": "validation:cstar-auto-p0-catalog-router-parity-20260804-r2",
+  "bead_id": "bead:mcp:after-mechanism-closure-make-the-default-capabil-msf54o97",
+  "commands": [
+    {
+      "name": "set04_catalog_router_behavior",
+      "command": "PATH=/home/morderith/.nvm/versions/node/v25.8.1/bin:$PATH node scripts/run-tsx.mjs --test tests/unit/cstar-kernel-mcp/test_tool_catalog.test.ts tests/unit/cstar-kernel-mcp/test_kernel_surfaces_core.test.ts tests/unit/cstar-kernel-mcp/test_capability_compatibility_discovery.test.ts",
+      "status": "pass",
+      "tests": 26,
+      "suites": 3,
+      "passed": 26,
+      "failed": 0,
+      "skipped": 0,
+      "cancelled": 0
+    },
+    {
+      "name": "registry_router_documentation_contracts",
+      "command": "python3 -m pytest -s -q -o addopts='' tests/contracts/test_cstar_agent_router.py tests/unit/test_current_documentation_contract.py tests/unit/test_retired_surface_documentation_contract.py tests/unit/test_registry_and_pennyone_effect_documentation.py tests/unit/test_skill_registry_audit.py",
+      "status": "pass",
+      "tests": 49,
+      "passed": 49,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "name": "registry_catalog_contracts_excluding_materialization",
+      "command": "PATH=/home/morderith/.nvm/versions/node/v25.8.1/bin:$PATH node scripts/run-tsx.mjs --test tests/unit/test_skill_registry_shape.test.ts tests/unit/test_command_catalog.test.ts tests/unit/test_capability_registry_read_boundary.test.ts",
+      "status": "pass",
+      "tests": 14,
+      "suites": 3,
+      "passed": 14,
+      "failed": 0,
+      "skipped": 0,
+      "cancelled": 0
+    }
+  ],
+  "probes": {
+    "registry_entries": ["calculus", "corvus-forge", "researcher", "cstar-closeout"],
+    "default_operator_entries": ["corvus-forge", "researcher", "cstar-closeout"],
+    "compatibility_entries": ["calculus"],
+    "default_excludes_compatibility": true,
+    "exact_calculus_lookup_available": true,
+    "public_tool_count": 28,
+    "public_tool_names_unique": true,
+    "cstar_forge_authorize_present": true,
+    "active_forge_lifecycle_phrase": "request -> authorize -> execute -> independent record_result",
+    "active_forge_lifecycle_phrase_files": {
+      ".agents/skills/corvus-forge/SKILL.md": true,
+      ".agents/skill_registry.json": true,
+      "docs/architecture/SKILL_REGISTRY.md": true,
+      "docs/integrations/host_native_skill_contract.md": true
+    },
+    "active_router_has_no_retired_route_terms": true,
+    "codex_host_handoff_documentation_only": true,
+    "no_runtime_activation_claim": true,
+    "no_provider_readiness_claim": true
+  },
+  "requested_model": "gpt-5.6-luna/max",
+  "actual_model": "unreported"
+}

@@ -1,0 +1,53 @@
+{
+  "schema": "cstar.set04.distribution_check.v2",
+  "validation_id": "validation:cstar-auto-p0-catalog-router-parity-20260804-r2",
+  "bead_id": "bead:mcp:after-mechanism-closure-make-the-default-capabil-msf54o97",
+  "commands": [
+    {
+      "name": "validate_distributions",
+      "command": "npm run validate:distributions",
+      "status": "pass",
+      "generated_artifacts_verified": 8,
+      "mismatches": []
+    },
+    {
+      "name": "distribution_manifest_tests",
+      "command": "PATH=/home/morderith/.nvm/versions/node/v25.8.1/bin:$PATH node scripts/run-tsx.mjs --test tests/unit/test_distribution_manifests.test.ts",
+      "status": "pass",
+      "tests": 7,
+      "suites": 1,
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0,
+      "cancelled": 0
+    }
+  ],
+  "generator_reconciliation": {
+    "lineage_path": "plugins/corvus-star/lineage.json",
+    "lineage_sha256": "5ad42f79fb0cc6109c5a49fa3c6237710a76ad67d5b0698382cc8284a2c101c8",
+    "declared_capability_hash": "6919dcee0b039eddbcdd4dcb481dfbe39c68a98f989cb55038afff8c23d8163a",
+    "computed_capability_hash": "6919dcee0b039eddbcdd4dcb481dfbe39c68a98f989cb55038afff8c23d8163a",
+    "capability_hash_matches": true,
+    "declared_codex_count": 3,
+    "computed_codex_count": 3,
+    "declared_gemini_count": 3,
+    "computed_gemini_count": 3,
+    "plugin_files_match_lineage": true,
+    "plugin_files": {
+      ".codex-plugin/plugin.json": {
+        "sha256": "8701811112da9c03b4cba31616597d63ffd64b1de1869723dabe84487789c12f",
+        "bytes": 1446
+      },
+      "README.md": {
+        "sha256": "576652223fd036fd9c2db2342da8a8f1ceccef631a4fb4ea0436980316e563fc",
+        "bytes": 2259
+      },
+      "skills/corvus-star/SKILL.md": {
+        "sha256": "3a19b3b5bc132b5bf90d11ae1b3b72988ef67f1b6def7d0d6551e452683c779e",
+        "bytes": 11841
+      }
+    }
+  },
+  "requested_model": "gpt-5.6-luna/max",
+  "actual_model": "unreported"
+}

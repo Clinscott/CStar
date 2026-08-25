@@ -7,3 +7,4 @@ plugins/corvus-star/README.md text eol=lf
 plugins/corvus-star/lineage.json text eol=lf
 .agents/plugins/marketplace.json text eol=lf
 distributions/README.md text eol=lf
+.cstar/validation/** whitespace=-blank-at-eof

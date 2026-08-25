@@ -1,7 +1,7 @@
 {
   "name": "corvusstar",
   "version": "1.0.1",
-  "codexPluginVersion": "1.0.2",
+  "codexPluginVersion": "1.0.3",
   "description": "Deterministic control plane and lifecycle ledger for the Corvus estate.",
   "keywords": [
     "corvus",
@@ -22,7 +22,7 @@
   "type": "module",
   "packageManager": "npm@11.11.0",
   "engines": {
-    "node": ">=22"
+    "node": "25.8.1"
   },
   "bin": {
     "cstar": "./bin/cstar.js",
@@ -35,6 +35,9 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json",
+    "validate:runtime": "node scripts/run-tsx.mjs scripts/validate_runtime_policy.ts",
+    "validate:forge-native-packet": "node .agents/skills/corvus-forge/scripts/validate_native_swarm_packet.mjs",
+    "validate:forge-native-receipt": "node .agents/skills/corvus-forge/scripts/validate_native_swarm_receipt.mjs",
     "test": "npm run test:node && npm run test:python",
     "test:python": "node scripts/run-python.mjs -m pytest tests/test_*.py tests/unit tests/integration tests/contracts tests/empire_tests tests/crucible",
     "test:node": "node scripts/run-tsx.mjs --test --test-concurrency=2 tests/*.test.ts tests/node/*.test.ts tests/node/pennyone/*.test.ts tests/unit/*.test.ts tests/unit/war_game/*.test.ts tests/unit/spoke_discovery/*.test.ts tests/unit/node-runtime/*.test.ts tests/unit/node-runtime/adapters/*.test.ts tests/unit/node-runtime/weaves/*.test.ts tests/unit/cstar-kernel-mcp/*.test.ts tests/integration/*.test.ts tests/integration/ipc/*.test.ts",
@@ -66,7 +69,7 @@
     "@react-three/fiber": "^8.18.0",
     "@react-three/postprocessing": "2.19.1",
     "@sinclair/typebox": "^0.34.14",
-    "better-sqlite3": "^12.6.2",
+    "better-sqlite3": "12.6.2",
     "chalk": "^5.6.2",
     "chokidar": "^5.0.0",
     "commander": "^14.0.3",

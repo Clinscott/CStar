@@ -11,7 +11,10 @@ global Corvus instructions first. This file contains repository deltas only.
   receipts are the durable timeline for lifecycle state.
 - CoS coordinates. Forge implements. Researcher researches. CorvusEye or a
   distinct validator evaluates. PMTs are project-scoped information repositories only.
-  MM is retired.
+  MM is inactive and has no active routing, synthesis, ownership, relay, review,
+  or execution role.
+- Ordinary Forge and Researcher use is coordinator-decided; preserve ordinary
+  operator language instead of requiring robot-language prompts.
 - Preserve explicit gates for spend, sources, retry, scope, Git, restart,
   activation, deployment, secrets/config, destructive action, and production.
 - Pause for live workers or external state. Do not poll or duplicate a provider

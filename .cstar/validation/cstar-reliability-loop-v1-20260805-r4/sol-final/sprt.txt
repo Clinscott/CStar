@@ -1,0 +1,58 @@
+schema: cstar.independent_validation_sprt.v1
+validation_id: validation:cstar-reliability-loop-v1-20260805-r4-sol-final
+verdict: ACCEPTED
+
+receipt_path: .cstar/validation/cstar-reliability-loop-v1-20260805-r4/sprt/receipt.json
+receipt_bytes: 43374
+receipt_sha256: da57e25788452d700d6215fb4f7db4e897872ec877277df12b0bb3db3d13d400
+checksum_path: .cstar/validation/cstar-reliability-loop-v1-20260805-r4/sprt/receipt.sha256
+checksum_bytes: 79
+checksum_sha256: b93a772e3b76b4ca57516b8299865b58438183d64a615e963ae46faef3d7ebfd
+sha256sum_check: pass
+
+candidate_digest_verification:
+  source_entries: 13
+  recorded_digest: fa3c91f0f2aa7397575dc36484ac7ce177fb2eaa16aa1b5e94fbd27549cd9d4c
+  independently_recomputed_digest: fa3c91f0f2aa7397575dc36484ac7ce177fb2eaa16aa1b5e94fbd27549cd9d4c
+  digest_match: true
+  source_entry_hash_mismatches: 0
+
+gungnir_verification:
+  schema: cstar.gungnir_evidence.v1
+  authority: heuristic_evidence_only
+  valid: true
+  scored_count: 11
+  candidate_count: 13
+  excluded_count: 2
+  string_heuristic_records: 11
+  nonheuristic_or_nonstring_records: 0
+  canonical_source_hash_mismatches: 0
+  overall_score: 9.502863636363637
+  aggregate_evidence_sha256: ddda3d85334c2aa39662ea0c9368c0bbba07c05c159b5246094620c11b505f1d
+
+receipt_claims:
+  schema: cstar.workflow_sprt_autoresearcher.v1
+  node_version: v25.8.1
+  sprt_verdict: ACCEPTED
+  raw_status: ACCEPT
+  trials: 11
+  passed: 11
+  failed: 0
+  maximum_trials: 12
+  workflow_score: 100.0
+  cstar_acceptance: UNVERIFIED
+
+candidate_parser_execution:
+  function: verifyReliabilityReceipt
+  receipt_manifest_binding_count: 1
+  pre_suite_verified: true
+  post_suite_verified: true
+  present: true
+  verified: true
+  error: null
+  effective_sprt_verdict: ACCEPTED
+  effective_passed: 11
+  effective_failed: 0
+  effective_total: 11
+
+sprt_conclusion: checksum, current candidate digest, canonical Gungnir hashes, heuristic-only shape, and direct candidate-parser acceptance all pass

@@ -1,0 +1,30 @@
+{
+  "schema": "cstar.set04.focused_check.v1",
+  "validation_id": "validation:cstar-auto-p0-catalog-router-parity-20260804-r1",
+  "bead_id": "bead:mcp:after-mechanism-closure-make-the-default-capabil-msf54o97",
+  "command": "PATH=/home/morderith/.nvm/versions/node/v25.8.1/bin:$PATH node scripts/run-tsx.mjs --test tests/unit/cstar-kernel-mcp/test_tool_catalog.test.ts tests/unit/cstar-kernel-mcp/test_kernel_surfaces_core.test.ts tests/unit/cstar-kernel-mcp/test_capability_compatibility_discovery.test.ts",
+  "status": "pass",
+  "counts": {
+    "tests": 26,
+    "suites": 3,
+    "passed": 26,
+    "failed": 0,
+    "skipped": 0,
+    "cancelled": 0
+  },
+  "probes": {
+    "default_registry_entries": ["corvus-forge", "researcher", "cstar-closeout"],
+    "compatibility_entries": ["calculus"],
+    "default_manifest_excludes_compatibility": true,
+    "exact_skill_lookup_discovers_calculus": true,
+    "public_tool_count": 28,
+    "public_tool_names_unique": true,
+    "cstar_forge_authorize_present": true,
+    "active_forge_descriptions_use_exact_four_stage_phrase": true,
+    "supported_compatibility_surface_retained": true,
+    "active_router_has_no_one_mind_or_weave_route": true,
+    "codex_host_handoff_is_documented_as_static_only": true
+  },
+  "requested_model": "gpt-5.6-luna/max",
+  "actual_model": "unreported"
+}

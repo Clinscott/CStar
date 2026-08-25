@@ -103,7 +103,7 @@ def test_legacy_authority_pointer_matches_the_kernel_only_boundary() -> None:
         "runbook named by its selected row",
         "Do not copy procedures back into this file",
         "PMTs are information-only",
-        "MM has no active routing role",
+        "MM is inactive and has no active routing, synthesis, ownership, relay, review, or execution role",
     ):
         assert required in flat_pointer
 

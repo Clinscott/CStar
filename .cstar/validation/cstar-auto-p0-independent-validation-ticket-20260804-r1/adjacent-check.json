@@ -1,0 +1,52 @@
+{
+  "schema": "cstar.independent_validation_check.v1",
+  "validation_id": "validation:cstar-auto-p0-independent-validation-ticket-20260804-r1",
+  "bead_id": "bead:mcp:add-one-immutable-one-use-independent-validator--msf54no2",
+  "check": "adjacent_result_authorization_storage_transaction",
+  "status": "pass",
+  "runtime": {
+    "path_prefix": "/home/morderith/.nvm/versions/node/v25.8.1/bin:$PATH",
+    "node": "v25.8.1",
+    "node_module_abi": "141"
+  },
+  "bounded_listing": [
+    "tests/unit/cstar-kernel-mcp/test_augury_bead_result.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_forge_authorization_one_shot.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_forge_request_authorization_controller.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_forge_receipt_controller.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_forge_hall_store_compatibility.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_forge_durable_execution.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_telemetry_storage_boundary.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_forge_execute_authority.test.ts"
+  ],
+  "full_selected_run": {
+    "tests": 59,
+    "suites": 8,
+    "passed": 57,
+    "failed": 2,
+    "failures": [
+      {
+        "path": "tests/unit/cstar-kernel-mcp/test_forge_durable_execution.test.ts:392",
+        "assertion": "driftResult.isError === true",
+        "observed": "undefined",
+        "expected": true,
+        "classification": "out_of_scope_prior_typed_outcome_contract_expectation"
+      },
+      {
+        "path": "tests/unit/cstar-kernel-mcp/test_forge_execute_authority.test.ts:68",
+        "assertion": "result.isError === true",
+        "observed": "undefined",
+        "expected": true,
+        "classification": "out_of_scope_prior_typed_outcome_contract_expectation"
+      }
+    ]
+  },
+  "compatible_subset_run": {
+    "command": "node scripts/run-tsx.mjs --test tests/unit/cstar-kernel-mcp/test_augury_bead_result.test.ts tests/unit/cstar-kernel-mcp/test_forge_authorization_one_shot.test.ts tests/unit/cstar-kernel-mcp/test_forge_request_authorization_controller.test.ts tests/unit/cstar-kernel-mcp/test_forge_receipt_controller.test.ts tests/unit/cstar-kernel-mcp/test_forge_hall_store_compatibility.test.ts tests/unit/cstar-kernel-mcp/test_telemetry_storage_boundary.test.ts",
+    "tests": 51,
+    "suites": 6,
+    "passed": 51,
+    "failed": 0
+  },
+  "classification_basis": "The two failures assert legacy MCP isError on guardrail/preauthorization responses. The current typed-outcome contract reserves isError for transport/internal outcomes and intentionally omits it for guardrail_block. No SET-02 file or ticket path is implicated; the failures remain visible for the owning SET-01 contract lane."
+}

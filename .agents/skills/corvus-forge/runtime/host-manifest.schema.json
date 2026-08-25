@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "cstar.forge_native_host_manifest.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "runtime_owner", "runner_owner", "connection_id", "requested_model", "requested_reasoning", "selector_status", "actual_identity", "actual_identity_attested", "capabilities", "parent_limit", "leaf_limit", "descendant_limit", "provider_attempted", "network_accessed", "cognition_launch", "cstar_launch", "manifest_schema_path", "proof_files", "hash_algorithm"],
+  "properties": {
+    "schema": {"const": "cstar.forge_native_host_manifest.v1"},
+    "runtime_owner": {"const": "cstar-native-swarm"},
+    "runner_owner": {"const": "codex-host"},
+    "connection_id": {"const": "forge-native-codex-swarm-v1"},
+    "requested_model": {"const": "gpt-5.6-luna"},
+    "requested_reasoning": {"const": "max"},
+    "selector_status": {"const": "enforced"},
+    "actual_identity": {"type": "string", "minLength": 1},
+    "actual_identity_attested": {"type": "boolean"},
+    "capabilities": {"type": "array", "const": ["spawn_agent", "list_agents", "send_message", "followup_task", "wait_agent", "interrupt_agent"]},
+    "parent_limit": {"const": 1},
+    "leaf_limit": {"const": 3},
+    "descendant_limit": {"const": 0},
+    "provider_attempted": {"const": false},
+    "network_accessed": {"const": false},
+    "cognition_launch": {"const": false},
+    "cstar_launch": {"const": false},
+    "manifest_schema_path": {"const": "host-manifest.schema.json"},
+    "proof_files": {"type": "array", "minItems": 2},
+    "hash_algorithm": {"const": "sha256"}
+  }
+}

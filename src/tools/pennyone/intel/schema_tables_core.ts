@@ -15,6 +15,18 @@ export const HALL_SCHEMA_CORE_SQL = String.raw`
             updated_at INTEGER NOT NULL
         );
 
+        CREATE TABLE IF NOT EXISTS hall_persona_state (
+            state_schema TEXT NOT NULL,
+            state_key TEXT PRIMARY KEY,
+            active_persona TEXT NOT NULL,
+            revision INTEGER NOT NULL,
+            receipt_id TEXT NOT NULL,
+            effective_boundary TEXT NOT NULL,
+            authority_effect TEXT NOT NULL,
+            value_sha256 TEXT NOT NULL,
+            updated_at INTEGER NOT NULL
+        );
+
         CREATE TABLE IF NOT EXISTS hall_scans (
             scan_id TEXT PRIMARY KEY,
             repo_id TEXT NOT NULL,

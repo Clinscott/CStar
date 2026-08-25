@@ -154,7 +154,32 @@ export const CSTAR_KERNEL_TOOL_CATALOG = [
     {
         name: 'cstar_forge_execute',
         toolClass: 'EXECUTION',
-        description: 'Atomically run one provider attempt through the private Hermes/MiniMax adapter, with durable replay, independently validated pre-provider continuity, and delivered-pending-validation semantics.',
+        description: 'Atomically persist or replay the native Forge request-bound run lease with zero provider/cognition launch; delivery remains DELIVERED_UNVERIFIED until independent validation.',
+    },
+    {
+        name: 'cstar_mission',
+        toolClass: 'REQUEST',
+        description: 'Compatibility-first ordinary bounded mission coordinator; derives immutable identifiers and hashes, persists host-owned queue intent when authorized, and never launches workers, providers, or Forge authority.',
+    },
+    {
+        name: 'cstar_forge_swarm_status',
+        toolClass: 'READ',
+        description: 'Read bounded native Forge run state and worker receipts; delivery remains unverified until independent validation.',
+    },
+    {
+        name: 'cstar_forge_swarm_update',
+        toolClass: 'MUTATION',
+        description: 'Reserve a native Forge run, bind authority intersection, record a disjoint plan, or persist immutable worker evidence.',
+    },
+    {
+        name: 'cstar_forge_swarm_cancel',
+        toolClass: 'MUTATION',
+        description: 'Request bounded native Forge cancellation while retaining worktree and evidence and freezing uninspectable work as UNKNOWN.',
+    },
+    {
+        name: 'cstar_forge_swarm_complete',
+        toolClass: 'MUTATION',
+        description: 'Aggregate complete native worker evidence into DELIVERED_UNVERIFIED without performing lifecycle acceptance.',
     },
 ] as const satisfies readonly CstarKernelToolCatalogShape[];
 

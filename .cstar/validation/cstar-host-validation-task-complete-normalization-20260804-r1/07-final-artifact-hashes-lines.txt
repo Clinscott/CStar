@@ -1,0 +1,15 @@
+final bytes, sha256, and line-limit audit:
+- src/tools/cstar-kernel-mcp/tools/host_workflow_validation.ts
+  sha256=57b702151c7cd80866a34a0925ecf11316a70ded6892c88ac15b9bd9fe373b91
+  bytes=22145; lines=493; limit_result=pass
+- src/tools/cstar-kernel-mcp/tools/host_workflow_message.ts
+  sha256=d3054f593e693ae97d888f029a8afd4c927d5776935b64a91e46719853b0752d
+  bytes=2351; lines=45; limit_result=pass
+- tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts
+  sha256=3cf4fc4668688e23ae567019ae733c54de6b5dae36ca5e497a5c77e350cf5ff5
+  bytes=20104; lines=461; limit_result=pass
+- tests/unit/cstar-kernel-mcp/test_host_workflow_message.test.ts
+  sha256=add76585c585478c2e4694d83ed677ca791f0f93812e480ddc28b219ff683f7c
+  bytes=2484; lines=55; limit_result=pass
+
+All four final touched production/test source files are at or below 500 lines.

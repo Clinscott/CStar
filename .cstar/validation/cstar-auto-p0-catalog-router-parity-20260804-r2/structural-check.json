@@ -1,0 +1,48 @@
+{
+  "schema": "cstar.set04.structural_check.v2",
+  "validation_id": "validation:cstar-auto-p0-catalog-router-parity-20260804-r2",
+  "bead_id": "bead:mcp:after-mechanism-closure-make-the-default-capabil-msf54o97",
+  "checks": {
+    "npm_run_typecheck": {
+      "status": "pass",
+      "exit_code": 0
+    },
+    "git_diff_check": {
+      "status": "pass",
+      "exit_code": 0
+    },
+    "touched_set04_source_test_line_limit": {
+      "status": "pass",
+      "limit": 500,
+      "files": {
+        "src/node/core/commands/capability_discovery.ts": 440,
+        "tests/unit/cstar-kernel-mcp/test_tool_catalog.test.ts": 168,
+        "tests/unit/cstar-kernel-mcp/test_capability_compatibility_discovery.test.ts": 107
+      },
+      "max_lines": 440
+    },
+    "unrelated_dirty_work_preserved": true,
+    "validator_source_test_edits": 0,
+    "runtime_activation_claim": false,
+    "provider_attempt": false,
+    "restart_or_reload": false,
+    "git_mutation": false,
+    "install_or_deploy": false,
+    "config_or_secret_mutation": false
+  },
+  "set04_artifacts": {
+    ".agents/skill_registry.json": {"sha256": "bd6c1bd3b86f882257f1bb4e4e6a2b5f1eac547cb84904c7be5bc92db9137cc3", "bytes": 6709, "lines": 177},
+    ".agents/skills/corvus-forge/SKILL.md": {"sha256": "c768409d2911e8bcd38fb40370749836a6de0a9ceef26eb6770a10aaf1c665ae", "bytes": 2038, "lines": 34},
+    "AGENTS.md": {"sha256": "016c9aa6413e853d5347ed7ce8cf7a1e48f140b749f617211aadcfc783e23eda", "bytes": 2477, "lines": 47},
+    ".agents/AGENTS.feature": {"sha256": "ecc7bda3216df9885381a88cbb072e7447f827b15eedb13fdc6d93c5807adff3", "bytes": 4191, "lines": 66},
+    "docs/architecture/SKILL_REGISTRY.md": {"sha256": "f7fd7e4babead470038a266e7584816c1e4ed492d0040d87d3d77bdf635ac73c", "bytes": 4066, "lines": 92},
+    "docs/integrations/host_native_skill_contract.md": {"sha256": "57d1ccdb188a9b80dd49fa8e0aa707b5697330bbf7b680171cd4864ee5500b94", "bytes": 5777, "lines": 119},
+    "docs/integrations/cstar-kernel-mcp.md": {"sha256": "88b44a7ebd1db0482a49e7233ab9fc4dc92ab09e293c6d7f3395a5cf03ec6752", "bytes": 79402, "lines": 1498},
+    "src/node/core/commands/capability_discovery.ts": {"sha256": "75f9b3b0505ce76d90beb0736658db5df6d8b41b426ffe57cc0402e3714ebe2f", "bytes": 15818, "lines": 440},
+    "tests/unit/cstar-kernel-mcp/test_tool_catalog.test.ts": {"sha256": "d29f4df5e8d8b52bb60ef9ec1932c6bc1fbbdec92b931963e98bae6327841760", "bytes": 7515, "lines": 168},
+    "tests/unit/cstar-kernel-mcp/test_capability_compatibility_discovery.test.ts": {"sha256": "458647c9aebe3be835f45804fe51d9c9b083a8ac35a8b060752e5285bb89affb", "bytes": 4783, "lines": 107},
+    "plugins/corvus-star/lineage.json": {"sha256": "5ad42f79fb0cc6109c5a49fa3c6237710a76ad67d5b0698382cc8284a2c101c8", "bytes": 1026, "lines": 37}
+  },
+  "requested_model": "gpt-5.6-luna/max",
+  "actual_model": "unreported"
+}

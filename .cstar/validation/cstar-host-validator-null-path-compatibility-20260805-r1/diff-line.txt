@@ -1,0 +1,12 @@
+schema: cstar.independent_check.v1
+validation_id: validation:cstar-host-validator-null-path-compatibility-20260805-r1
+check: diff_and_line_limits
+git_diff_check_command: git diff --check
+git_diff_check_exit_code: 0
+production_line_count: 497
+production_line_limit: 500
+test_line_count: 470
+test_line_limit: 500
+lore_line_count: 56
+files_over_limit: 0
+verdict: pass

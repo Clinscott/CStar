@@ -116,7 +116,7 @@ describe('Sterling independent validation authority boundary', () => {
                 schema: 'cstar.forge_request.v3',
                 required_output_paths: [],
             }),
-            adapter_ref: 'cstar-forge-hermes-minimax-adapter',
+            adapter_ref: null,
             write_capability: 'response_only',
             target_paths_sha256: 'e'.repeat(64),
             live_source_allowed: false,
@@ -149,7 +149,7 @@ describe('Sterling independent validation authority boundary', () => {
             authorization_id: authorization.authorization_id,
             idempotency_key: `sterling-${suffix}`,
             execution_receipt_id: `forge-execute-${suffix}`,
-            adapter_ref: 'cstar-forge-hermes-minimax-adapter',
+            adapter_ref: '',
             adapter_version: 'synthetic-v2',
             now,
         }).attempt;

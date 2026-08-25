@@ -1,0 +1,7 @@
+command: node scripts/run-tsx.mjs --test tests/unit/cstar-kernel-mcp/test_forge_request_authorization_controller.test.ts
+runtime: node v25.8.1
+suite: durable exact Forge request authorization
+tests: 13
+passed: 13
+failed: 0
+status: pass

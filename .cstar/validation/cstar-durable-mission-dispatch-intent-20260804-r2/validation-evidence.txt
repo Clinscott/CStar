@@ -1,0 +1,61 @@
+validation_id=validation:cstar-durable-mission-dispatch-intent-20260804-r2
+bead_id=bead:mcp:replace-the-process-local-automatic-mission-queu-msey1zqx
+verdict=ACCEPTED
+validation_date=2026-08-04
+
+Validator host identity
+- validator_thread_id=019fce07-c2b3-7d71-8c9c-1d648a631bcc
+- validator_turn_id=019fce15-612b-7242-9b7e-b7441e8ded53
+- validator_parent_thread_id=019f71dc-af61-7a73-a72d-1ec3a638a011
+- validator_depth=1
+- requested_model=gpt-5.6-luna
+- requested_effort=max
+- actual_model=gpt-5.6-sol
+- actual_effort=high
+- selector_status=not_honored
+- Identity is reported transparently; this evidence does not claim Luna execution.
+
+Current pinned hashes rechecked immediately before packaging
+- b90fb2a7d6ffb23f669c2ffcfa1247c7b38cbe46683b6ad362e34845f328c5d2  src/tools/pennyone/intel/automatic_mission_controller.ts
+- cfcd01a8efb80bb4843162f5e911c1c0fa6a76d19efbf6129f4bd88fbc164f7b  src/tools/pennyone/intel/automatic_mission_dispatch_store.ts
+- e1ae69b8bd07f119e9c349fcb8f2c257e31149ae3300821ac0982989fddf9a32  src/tools/cstar-kernel-mcp/tools/automatic_mission.ts
+- 016002af45a8cb23f4b5f881010a8e92e03f520b7e2c6599199b4500e49b0dc7  src/tools/cstar-kernel-mcp/tools/augury.ts
+- 00283a80aaadce364825336fb81d2bc614fe540208ca4139ed7bd04f43311d74  src/tools/cstar-kernel-mcp/tools/augury_mission_dispatch_controller.ts
+- 08cb45e3b2ab53becab469207b6b3a06e8a94cad5f2ca91b23cb322e7930c95c  tests/unit/cstar-kernel-mcp/test_automatic_mission_state.test.ts
+- c0234309a795e2c41cac1b1d47c0b6458f0950c198a4c1ac79ffaaf5294dd753  tests/unit/cstar-kernel-mcp/test_augury_natural_translation_integration.test.ts
+- b7698c6c4cdc79f92c0dbb6f015fb54e3b2ff87908ea0990244d7bf9158864af  tests/unit/cstar-kernel-mcp/test_automatic_mission_durable_dispatch.test.ts
+- 5ec66256c3c45bb8905a2562d08d6d2435c90419a818fb59739b784a67119fae  src/tools/pennyone/intel/schema.ts
+- 4c4550c448706efc9b7f164f7b7443adfe062d812b0fa905c5007054810064a5  src/tools/pennyone/intel/repository_spokes.ts
+- Result: all ten hashes exactly match the operator-pinned values, so completed validation evidence remains applicable.
+
+Reused executed checks
+- Node v25.8.1 focused durable mission suites: 18/18 tests passed, 3/3 suites passed, 0 failed.
+- Node v25.8.1 adjacent SET-authority suites: 113/113 tests passed, 4/4 suites passed, 0 failed.
+- Aggregate: 131/131 tests passed, 7/7 suites passed, 0 failed.
+- Node v25.8.1 npm run typecheck: passed.
+- git diff --check --: passed, exit 0.
+- Line counts: 400, 366, 54, 427, 136, 172, 347, 207, 246, 216; every pinned file is <=500 lines.
+
+Adversarial proof results
+- Active registered spoke reached live Augury materialization with exactly one receipt row and exactly one dispatch row.
+- Inactive spoke, unknown spoke, and root/repository-id mismatch cases failed closed with zero receipt rows and zero dispatch rows.
+- Hub routing remained exactly the canonical CODE_ROOT.
+- An omitted-deadline later retry replayed the original receipt and original deadline.
+- An explicit conflicting deadline and changed stable fields rejected.
+- Transaction boundaries, idempotency, typed transitions, deadline behavior, and cancel terminal behavior passed.
+
+Targeted independent source review
+- PASS no authoritative Map: automatic mission authority is persisted by AutomaticMissionDispatchStore on SQLite; no target implementation uses Map as mission authority. Adjacent WeakMap ownership tokens are ephemeral identity guards, not mission or dispatch authority.
+- PASS no worker launch or provider spend: the reviewed path has no child-process, spawn, fork, exec, fetch, or provider invocation; worker_launch_performed remains false and dispatch intent spend_authority is not_granted.
+- PASS no default catalog expansion: the skill registry and kernel tool catalog are unchanged; the existing cstar_augury registration only accepts the optional mission_boundary argument. No new default tool is registered.
+- PASS root-user, SET, and scope gates: root-user records remain required; verified SET identity binds before MATERIALIZED; exact canonical root, repository id, target SET, and canonical scope comparisons fail closed on mismatch.
+- PASS Augury materialization and dispatch atomicity: dispatchAuguryMissionBoundary uses one database handle and one immediate outer transaction containing receipt materialization and dispatch enqueue. Failure rolls back both; the dispatch uniqueness key preserves idempotency.
+- PASS frozen and negative boundaries: schema.ts and repository_spokes.ts retained their exact pinned bytes; there is no scope weakening, root-user weakening, SET weakening, worker launch, provider spend, or tool-catalog expansion.
+
+Mutation boundary
+- Source files edited: no.
+- Test files edited: no.
+- CStar/Hall lifecycle mutation: no.
+- Install, rebuild, restart, commit, push, merge, deploy, config, or secret mutation: no.
+- Temporary fixture persistence: none.
+- Only this bounded host-validation package was written under the operator-authorized r2 validation directory.

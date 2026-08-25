@@ -1,0 +1,48 @@
+{
+  "schema": "cstar.focused_validation_check.v1",
+  "bead_id": "bead:mcp:repair-aggregate-full-suite-current-v3-codex-hos-msfai02i",
+  "validation_id": "validation:cstar-p0-full-batch-repair-host-handoff-20260804-r2",
+  "runtime": {
+    "node": "v25.8.1",
+    "path_prefix": "/home/morderith/.nvm/versions/node/v25.8.1/bin"
+  },
+  "command": "node scripts/run-tsx.mjs --test tests/unit/cstar-kernel-mcp/test_forge_preprovider_execute_integration.test.ts tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts tests/unit/cstar-kernel-mcp/test_worker_job_lifecycle_binding.test.ts tests/unit/cstar-kernel-mcp/test_durable_async_dispatch.test.ts tests/unit/cstar-kernel-mcp/test_forge_codex_host_worker_dispatch.test.ts tests/unit/cstar-kernel-mcp/test_forge_adapter_project_root.test.ts tests/unit/cstar-kernel-mcp/test_forge_natural_language_authorization.test.ts tests/unit/cstar-kernel-mcp/test_forge_authorization_one_shot.test.ts tests/unit/cstar-kernel-mcp/test_operator_authorization_scope_binding.test.ts",
+  "tests": {
+    "passed": 63,
+    "failed": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "suites": 9,
+    "duration_ms": 22793.970022,
+    "passed_files": [
+      "tests/unit/cstar-kernel-mcp/test_forge_preprovider_execute_integration.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_worker_job_lifecycle_binding.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_durable_async_dispatch.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_forge_codex_host_worker_dispatch.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_forge_adapter_project_root.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_forge_natural_language_authorization.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_forge_authorization_one_shot.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_operator_authorization_scope_binding.test.ts"
+    ]
+  },
+  "typecheck": {
+    "command": "npm run typecheck",
+    "status": "pass",
+    "exit_code": 0
+  },
+  "diff_check": {
+    "command": "git diff --check",
+    "status": "pass",
+    "exit_code": 0
+  },
+  "environment_scope": {
+    "node_test_context_assignments_in_src": 0,
+    "test_assignments_scoped_and_restored": true,
+    "runtime_contract_sha256": "9d019ebf7505dfca782a8d702df3fc6299e88cee0c541a08d0fbf923714b1f8a",
+    "runtime_contract_changed": false
+  },
+  "requested_model": "gpt-5.6-luna/max",
+  "actual_model": "gpt-5"
+}

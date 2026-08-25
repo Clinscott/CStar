@@ -1,0 +1,22 @@
+{
+  "schema": "cstar.forge_native_host_manifest.v1",
+  "runtime_owner": "cstar-native-swarm",
+  "runner_owner": "codex-host",
+  "connection_id": "forge-native-codex-swarm-v1",
+  "requested_model": "gpt-5.6-luna",
+  "requested_reasoning": "max",
+  "selector_status": "enforced",
+  "actual_identity": "unreported",
+  "actual_identity_attested": false,
+  "capabilities": ["spawn_agent", "list_agents", "send_message", "followup_task", "wait_agent", "interrupt_agent"],
+  "parent_limit": 1,
+  "leaf_limit": 3,
+  "descendant_limit": 0,
+  "provider_attempted": false,
+  "network_accessed": false,
+  "cognition_launch": false,
+  "cstar_launch": false,
+  "manifest_schema_path": "host-manifest.schema.json",
+  "proof_files": ["runtime/host-manifest.json", "runtime/host-manifest.schema.json", "scripts/validate_native_swarm_packet.mjs", "scripts/validate_native_swarm_receipt.mjs"],
+  "hash_algorithm": "sha256"
+}

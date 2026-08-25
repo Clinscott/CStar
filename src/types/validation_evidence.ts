@@ -38,7 +38,7 @@ export interface HallValidationEvidenceManifestV2 {
         target_paths_sha256: string;
         attempt_id: string;
         result_artifact_sha256: string | null;
-        adapter_ref: string;
+        adapter_ref: string | null;
         adapter_version: string | null;
         external_execution_id: string | null;
     };
@@ -217,7 +217,7 @@ export function isValidationEvidenceManifestV2StructurallyValid(
         && nonempty(subject.attempt_id)
         && (subject.result_artifact_sha256 === null
             || VALIDATION_EVIDENCE_SHA256.test(subject.result_artifact_sha256))
-        && nonempty(subject.adapter_ref)
+        && nullableNonempty(subject.adapter_ref)
         && nullableNonempty(subject.adapter_version)
         && nullableNonempty(subject.external_execution_id)
         && independence.policy === 'distinct_codex_root_thread_from_forge_requester_and_executor_v1'

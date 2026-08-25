@@ -1,0 +1,9 @@
+validation_id=validation:cstar-forge-authorization-child-fk-migration-20260804-r2
+runtime=/home/morderith/.nvm/versions/node/v25.8.1/bin/node v25.8.1; npm 11.11.0
+command=/home/morderith/.nvm/versions/node/v25.8.1/bin/node scripts/run-tsx.mjs --test --test-concurrency=2 [the exact 11 requested tests under tests/unit/cstar-kernel-mcp]
+files=test_automatic_mission_authority.test.ts,test_automatic_mission_state.test.ts,test_bead_forge_schema_isolation.test.ts,test_forge_authorization_schema_legacy_duplicates.test.ts,test_forge_authorization_schema_profiles.test.ts,test_forge_natural_language_authorization.test.ts,test_forge_request_authorization_controller.test.ts,test_forge_set_manifest_authorization.test.ts,test_forge_set_manifest_autonomous_dispatch.test.ts,test_forge_set_manifest_natural_translation.test.ts,test_host_workflow_validation.test.ts
+result=192/192 passed, 0 failed, 0 cancelled, 0 skipped, 11 suites, exit 0
+count_reconciliation=prior accepted 190 had 14 host-workflow tests; current host-workflow suite has 16
+legitimate_delta=+2 current host tests: exact default-host null/absent path shape; one trailing memory citation omitted from task completion
+no_test_was_relabelled_or_suppressed=true
+

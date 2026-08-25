@@ -2,12 +2,13 @@
 
 ## Scope
 
-This is the invocation contract for the three current capabilities marked
+This is the invocation contract for the four current capabilities marked
 `entry_surface: host-only` in `.agents/skill_registry.json`:
 
 - `corvus-forge`;
-- `researcher`; and
-- `cstar-closeout`.
+- `researcher`;
+- `cstar-closeout`; and
+- `cstar-reliability-loop`.
 
 They are agent-native procedures. They are not public shell commands, runtime
 models, or dispatcher-owned executions.
@@ -99,18 +100,31 @@ make the skill terminal-executable.
 
 ## Lane-Specific Rules
 
-- `corvus-forge` uses only the durable request/execute/result lifecycle. The
-  private Hermes `cstar-hub` MiniMax-M3 adapter is sealed inside Forge; direct
-  Hermes and public AutoBot remain retired. Requested and actual model identity
-  are recorded separately.
+- `corvus-forge` uses the durable request -> authorize -> execute -> native
+  parent -> `DELIVERED_UNVERIFIED` -> independent `record_result` lifecycle.
+  The active connection is `forge-native-codex-swarm-v1`: CStar owns the
+  durable SET/request/policy intersection, one idempotent run lease,
+  generation/tombstone history, and separate worker/control receipts. The
+  parent owns integration and may dispatch zero to three useful leaves with
+  disjoint exact write paths; leaves cannot create descendants. Missing
+  capabilities, broader/empty intersections, path overlap/escape, duplicate
+  leases, or missing durable request rows fail closed. Requested
+  `gpt-5.6-luna`/`max` and host-attested actual identity are separate; actual is
+  `unreported` without host proof. Hermes, MiniMax, AutoBot, CLI, provider,
+  bridge, transcript, and fallback execution are retired and tombstoned.
 - `researcher` uses authorized Researcher source lanes. New live collection or
   source expansion remains operator-gated.
 - `cstar-closeout` assembles evidence and handoff state first. Stage, commit,
   push, merge, install, cache reconciliation, restart, and deploy are separate
   actions requiring their applicable explicit grants.
+- `cstar-reliability-loop` coordinates bounded validation and automatic repair
+  continuation; CStar records state, Forge implements, and an independent
+  validator accepts.
 
 PMTs may be queried only as mapped project information repositories and may
-receive a compact `STATE_UPDATE`; they grant no authority. MM is legacy.
+receive a compact `STATE_UPDATE`; they grant no ownership, execution, approval,
+review, routing, monitoring, or lifecycle authority. MM is inactive and has no
+active routing, synthesis, ownership, relay, review, or execution role.
 
 ## Failure Behavior
 

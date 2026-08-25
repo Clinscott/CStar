@@ -84,7 +84,7 @@ function createPendingRequest(suffix: string) {
         retry_policy: { budget: 0, spent: 0 },
         callback_contract: { expected_packet: 'EXACT_AUTH_TEST', callback_required: true },
         package_locks: [],
-    }, root, decisionId, 'cstar-forge-hermes-minimax-adapter', 'response_only', 1);
+    }, root, decisionId, null, 'response_only', 1);
     const requestSha256 = hashCanonicalForgeRequest(canonical);
     const requestId = buildForgeRequestId(requestSha256);
     const challenge = buildForgeAuthorizationChallenge(requestId, requestSha256);
@@ -103,7 +103,7 @@ function createPendingRequest(suffix: string) {
         requester_record_set_sha256: 'a'.repeat(64),
         authorization_profile: 'exact_request_challenge_v1',
         authorization_challenge_sha256: hashForgeAuthorizationChallenge(requestId, requestSha256),
-        adapter_ref: 'cstar-forge-hermes-minimax-adapter',
+        adapter_ref: null,
         write_capability: 'response_only',
     });
     return { root, db, requestId, requestSha256, challenge };
@@ -151,7 +151,6 @@ describe('exact hash-bound Forge authorization', () => {
             fixture_policy: 'synthetic_only',
             retry_policy: { budget: 0, spent: 0 },
             callback_contract: { expected_packet: 'SCHEMA_TEST', callback_required: true },
-            execution_adapter_ref: 'cstar-forge-hermes-minimax-adapter',
         });
         assert.equal(parsed.success, false);
         assert.match(JSON.stringify(parsed.error), /operator_authorization_ref/);
@@ -243,7 +242,6 @@ describe('exact hash-bound Forge authorization', () => {
             retry_policy: { budget: 0, spent: 0 },
             callback_contract: { expected_packet: 'PUBLIC_LIVE_TEST', callback_required: true },
             package_locks: [],
-            execution_adapter_ref: 'cstar-forge-hermes-minimax-adapter',
         };
         const requestSession = createSession({ textParts: [
             `Build the bounded synthetic Forge work for ${beadId} and decision:test:public-live.`,

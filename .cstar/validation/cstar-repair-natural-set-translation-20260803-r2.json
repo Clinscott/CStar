@@ -1,0 +1,135 @@
+{
+  "schema": "cstar.validation.cstar_repair_natural_set_translation.v3",
+  "status": "builder_correction_verified_pending_fresh_independent_validation",
+  "decision_id": "decision:cstar-state-only-luna-host-seam-batch1-20260803",
+  "bead_id": "bead:cstar:repair-natural-set-translation-20260803",
+  "successor": {
+    "worktree": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803",
+    "branch": "codex/cstar-state-only-luna-host-seam-batch1-20260803",
+    "head": "afbbc1770ec6a7a2adc15b83f91c5586ac2525c0"
+  },
+  "preserved_evidence": [
+    {
+      "path": ".cstar/validation/independent/luna-max-cstar-repair-natural-set-translation-20260803.json",
+      "sha256": "c1df11d508509090542699f117588c02f160b6285978f83349afec6eb44cb1a7",
+      "role": "independent_rejection"
+    },
+    {
+      "path": ".cstar/validation/cstar-repair-natural-set-translation-20260803.json",
+      "sha256": "87af4b91e4fc47447d951e259dd9ee781eb31a5ba665fc473ad7399516b18624",
+      "role": "prior_builder_delivery"
+    }
+  ],
+  "correction": {
+    "mechanism": "finite_full_record_revocation_set",
+    "applied_before_operative_selection": true,
+    "open_ended_nlp_parser_added": false,
+    "legacy_exact_set_changed": false,
+    "natural_do_it_binding_changed": false,
+    "one_use_consumption_changed": false,
+    "covered_actions": ["stop", "pause", "cancel", "revoke", "withdraw"],
+    "covered_targets": ["standalone", "it", "this", "that", "the mission", "this mission"],
+    "covered_first_person_denials": [
+      "I am not authorizing/permitting/allowing <target>",
+      "I do not authorize/permit/allow <target>"
+    ],
+    "reproductions": [
+      {
+        "records": ["Do it", "Stop this mission."],
+        "result": "forge_set_manifest_natural_signal_revoked"
+      },
+      {
+        "records": ["Stop this mission.", "Do it"],
+        "result": "forge_set_manifest_natural_signal_revoked"
+      },
+      {
+        "records": ["Do it", "I am not authorizing this."],
+        "result": "forge_set_manifest_natural_signal_revoked"
+      },
+      {
+        "records": ["I am not authorizing this.", "Do it"],
+        "result": "forge_set_manifest_natural_signal_revoked"
+      }
+    ]
+  },
+  "correction_paths": [
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_signal.ts",
+      "preimage_sha256": "748d8f43d17273b0dd4b1b23483d08547670116ca113c9f2daa6edcd8252aa4f",
+      "postimage_sha256": "e0cf3af76e1669f3656b7ef6b39e7588f5e5450583e13c14d360ef3258154cf0",
+      "line_count": 498
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_natural_revocation.ts",
+      "preimage_sha256": "absent",
+      "postimage_sha256": "8edfb2ed68b9e0d2e08e1747b689d37b377faf3ef1416f074ec1f929d0cebf39",
+      "line_count": 32
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/forge_set_manifest_natural_revocation_test_cases.ts",
+      "preimage_sha256": "absent",
+      "postimage_sha256": "7252fab917fa2f4130e9f9d093701f477d9a47a6dc47a9c119d26ae4128ba6f3",
+      "line_count": 19
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_set_manifest_natural_translation.test.ts",
+      "preimage_sha256": "33dc7f51ac8b14ee35be6fa10037e42dc7d47898aed29eb6a933ff12289cea91",
+      "postimage_sha256": "e758a886f2e6ee3c890ee8f254a252474c4d1caa3cdd20430e8b3df49e74c6c6",
+      "line_count": 241
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_augury_natural_translation_integration.test.ts",
+      "preimage_sha256": "0b7d27640e7a25ac5792eae1a3f9b78a0fd4576a27db53a890d5cb8f49cb2b01",
+      "postimage_sha256": "b637c2ecdcea6c953f80e57392ef2fad39044e8d6ea053a8ecd631e62f501588",
+      "line_count": 238
+    }
+  ],
+  "validation": {
+    "recoverable_refinement": {
+      "first_focused_run": {"tests": 54, "passed": 52, "failed": 2},
+      "cause": "two obsolete test expectations",
+      "repair": "denial now expects revocation; informational fixture no longer uses reserved authority wording"
+    },
+    "validator_exact_focused": {
+      "command": "node scripts/run-tsx.mjs --test --test-concurrency=1 tests/unit/cstar-kernel-mcp/test_forge_set_manifest_natural_translation.test.ts tests/unit/cstar-kernel-mcp/test_augury_natural_translation_integration.test.ts",
+      "suites": 2,
+      "tests": 54,
+      "passed": 54,
+      "failed": 0
+    },
+    "validator_exact_authorization_reconciliation": {
+      "command": "node scripts/run-tsx.mjs --test --test-concurrency=1 tests/unit/cstar-kernel-mcp/test_codex_request_identity.test.ts tests/unit/cstar-kernel-mcp/test_operator_authorization.test.ts tests/unit/cstar-kernel-mcp/test_forge_set_manifest_authorization.test.ts tests/unit/cstar-kernel-mcp/test_forge_request_authorization_controller.test.ts tests/unit/cstar-kernel-mcp/test_forge_natural_language_authorization.test.ts tests/unit/cstar-kernel-mcp/test_forge_multirecord_authorization.test.ts tests/unit/cstar-kernel-mcp/test_forge_authorization_one_shot.test.ts tests/unit/cstar-kernel-mcp/test_forge_receipt_controller.test.ts tests/unit/cstar-kernel-mcp/test_augury_natural_translation_integration.test.ts tests/unit/cstar-kernel-mcp/test_forge_set_manifest_natural_translation.test.ts",
+      "suites": 11,
+      "tests": 194,
+      "passed": 194,
+      "failed": 0
+    },
+    "recoverable_broad_reconciliation": {
+      "command": "node scripts/run-tsx.mjs --test --test-concurrency=1 tests/unit/cstar-kernel-mcp/test_codex_request_identity.test.ts tests/unit/cstar-kernel-mcp/test_operator_authorization.test.ts tests/unit/cstar-kernel-mcp/test_forge_set_manifest_authorization.test.ts tests/unit/cstar-kernel-mcp/test_forge_request_authorization_controller.test.ts tests/unit/cstar-kernel-mcp/test_forge_natural_language_authorization.test.ts tests/unit/cstar-kernel-mcp/test_forge_multirecord_authorization.test.ts tests/unit/cstar-kernel-mcp/test_forge_authorization_one_shot.test.ts tests/unit/cstar-kernel-mcp/test_forge_receipt_controller.test.ts tests/unit/cstar-kernel-mcp/test_augury_natural_translation_integration.test.ts tests/unit/cstar-kernel-mcp/test_forge_set_manifest_natural_translation.test.ts tests/unit/cstar-kernel-mcp/test_automatic_mission_authority.test.ts tests/unit/cstar-kernel-mcp/test_automatic_mission_state.test.ts tests/unit/cstar-kernel-mcp/test_forge_set_manifest_autonomous_dispatch.test.ts tests/unit/cstar-kernel-mcp/test_augury_bead_result.test.ts tests/unit/cstar-kernel-mcp/test_augury_read_only_failure_effects.test.ts tests/unit/cstar-kernel-mcp/test_tool_catalog.test.ts tests/unit/cstar-kernel-mcp/test_typed_outcomes.test.ts tests/unit/cstar-kernel-mcp/test_response_contracts.test.ts",
+      "suites": 19,
+      "tests": 262,
+      "passed": 262,
+      "failed": 0
+    },
+    "typecheck": {"command": "npm run typecheck", "exit_code": 0},
+    "diff_check": {"command": "git diff --check", "exit_code": 0},
+    "line_audit": {
+      "command": "git ls-files --modified --others --exclude-standard | rg '^(src|tests)/.*\\.(ts|py)$' | sort | xargs wc -l",
+      "source_files": 20,
+      "all_le_500": true,
+      "maximum_lines": 500,
+      "maximum_path": "src/tools/cstar-kernel-mcp/tools/augury_mission_binding.ts"
+    }
+  },
+  "effects": {
+    "network_calls": 0,
+    "provider_attempts": 0,
+    "cstar_mcp_mutations": 0,
+    "reloads": 0,
+    "git_commit_push_merge": false,
+    "deploy_or_activation": false,
+    "config_or_secrets_mutation": false,
+    "parent_or_live_truth_mutation": false
+  },
+  "next_gate": "fresh_independent_final_byte_validation_before_scoped_reload"
+}

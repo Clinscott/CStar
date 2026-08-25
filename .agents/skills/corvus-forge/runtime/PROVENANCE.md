@@ -1,34 +1,20 @@
-# CStar private Forge runtime
+# Native Forge runtime provenance
 
-This directory is owned and versioned by CStar. It is the sealed, stdlib-only
-provider child used by the private Forge adapter. It is not a vendored Hermes
-agent checkout and it does not make AutoBot or the upstream Hermes repository
-part of CStar's authorized estate.
+This directory describes the native Codex collaboration boundary used by the
+CStar Forge replacement. It is not a provider runtime and contains no provider
+credentials, launch command, fallback adapter, or network contract.
 
-Hermes owns and updates the `cstar-hub` OAuth profile and credential
-lifecycle. The isolated child in this directory may open only the allowlisted
-MiniMax OAuth record through the read-only resolver. It never refreshes or
-writes the store. The CStar kernel receives only redacted readiness and
-provider-result envelopes; it never receives the bearer.
+The authoritative connection is `forge-native-codex-swarm-v1`. Native task
+operations are supplied by the host. CStar records the requested selector,
+host-attested actual identity, task graph, bounded work package, receipts, and
+candidate digest. Without a distinct host attestation the actual identity is
+`unreported`. Missing capability fails closed before a run lease is reserved.
 
-The initial implementation was adapted from the locally validated CStar Forge
-entrypoint previously staged under the Hermes checkout. The ownership migration
-intentionally replaces upstream `__init__.py`, `pyproject.toml`, and
-`uv.lock` lineage with this manifest, launcher, five source files, and the
-system Python executable.
+The native Forge parent/leaf ceiling is one parent, zero to three useful disjoint leaves,
+and zero descendants. The parent retains integration ownership. Worker and
+control receipts are separate. Native delivery is `DELIVERED_UNVERIFIED` and
+requires an independent validator before any lifecycle acceptance.
 
-MiniMax M3 requests use the provider's OpenAI-compatible `/v1` route with
-bounded SSE streaming. This follows the current supported Hermes M3 transport;
-the Anthropic-compatible MiniMax route remains an M2.x route and is not used by
-the pinned M3 worker.
-
-The six-role topology was independently reimplemented from the design described
-by `https://github.com/unclebob/swarm-forge`, branch `six-pack`, commit
-`59803dadb38e0e09d5357d749452036e4a82ae60`. No upstream source, shell, Clojure,
-tmux, or Git-worktree implementation is copied into this runtime. The inspected
-tree had no root license file, so this provenance records design inspiration
-only and makes no vendoring or upstream-execution claim.
-
-Every provider child writes only a CStar-initialized, token-free, hash-chained
-state journal. The journal records dispatch progress, never credentials,
-provider bodies, prompts, paths, timestamps, or raw errors.
+The manifest and schema are parity evidence only. They do not authorize
+installation, activation, restart, deployment, production, Git publication,
+or protected configuration effects.

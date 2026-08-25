@@ -6,10 +6,14 @@ import {
     type NativeArtifactProof,
     verifyRequiredNativeArtifacts,
 } from './runtime_native_artifacts.js';
+import {
+    buildForgeRuntimeProof,
+    type RuntimeForgeProof,
+} from './runtime_lineage_forge.js';
 
 type JsonRecord = Record<string, unknown>;
 
-export interface RuntimeFileProof {
+interface RuntimeFileProof {
     path: string;
     sha256: string;
     bytes: number;
@@ -27,15 +31,6 @@ export interface RuntimeDependencyProof {
     mismatch_count: number;
     mismatch_reasons: string[];
     native_artifact_proof: NativeArtifactProof;
-}
-
-export interface RuntimeForgeProof {
-    contract: 'verified_manifest_content' | 'partial';
-    manifest_sha256: string | null;
-    launcher_sha256: string | null;
-    source_files: RuntimeFileProof[];
-    content_sha256: string | null;
-    mismatch_reasons: string[];
 }
 
 export interface KernelRuntimeLineage {
@@ -58,8 +53,13 @@ export interface KernelRuntimeLineage {
     dependency_proof: RuntimeDependencyProof;
     forge_runtime_root: string;
     forge_runtime_manifest_sha256: string | null;
+    forge_runtime_manifest_path: string | null;
+    forge_runtime_schema_sha256: string | null;
+    forge_runtime_generator_sha256: string | null;
     forge_runtime_launcher_sha256: string | null;
     forge_runtime_manifest_present: boolean;
+    forge_runtime_receipt_sha256: string | null;
+    forge_runtime_actionable: boolean;
     forge_runtime_content_sha256: string | null;
     forge_runtime_proof: RuntimeForgeProof;
     test_only_bypass: boolean;
@@ -70,21 +70,6 @@ export interface KernelForgeReadiness {
     ready: boolean;
     failures: string[];
 }
-
-const FORGE_RUNTIME_SOURCE_FILES = [
-    'hermes_cli/__init__.py',
-    'hermes_cli/forge_mode.py',
-    'hermes_cli/forge_minimax_oauth.py',
-    'hermes_cli/forge_provider_journal.py',
-    'hermes_cli/forge_entrypoint.py',
-] as const;
-
-const FORGE_RUNTIME_MANIFEST_KEYS = [
-    'allow_arbitrary_source_root', 'bootstrap_mode', 'credential_profile',
-    'credential_profile_owner', 'dependency_mode', 'launcher', 'model',
-    'network_entrypoint', 'oauth_read_only', 'oauth_refresh_allowed',
-    'oauth_store_write_allowed', 'provider', 'runtime_owner', 'schema', 'source_files',
-].sort();
 
 function sha256(value: Buffer | string): string {
     return createHash('sha256').update(value).digest('hex');
@@ -344,77 +329,6 @@ function buildDependencyProof(codeRoot: string): {
     };
 }
 
-function resolveRuntimeFile(runtimeRoot: string, relativePath: string): string | null {
-    if (!relativePath || path.isAbsolute(relativePath) || relativePath.includes('\0')) return null;
-    const candidate = path.resolve(runtimeRoot, relativePath);
-    const relative = path.relative(runtimeRoot, candidate);
-    if (!relative || relative.startsWith('..') || path.isAbsolute(relative)) return null;
-    let current = runtimeRoot;
-    for (const segment of relative.split(path.sep)) {
-        current = path.join(current, segment);
-        const stat = fs.lstatSync(current, { throwIfNoEntry: false });
-        if (!stat || stat.isSymbolicLink()) return null;
-    }
-    return candidate;
-}
-
-function buildForgeRuntimeProof(codeRoot: string): RuntimeForgeProof {
-    const runtimeRoot = path.join(codeRoot, '.agents', 'skills', 'corvus-forge', 'runtime');
-    const reasons: string[] = [];
-    const runtimeStat = fs.lstatSync(runtimeRoot, { throwIfNoEntry: false });
-    if (!runtimeStat?.isDirectory() || runtimeStat.isSymbolicLink()) reasons.push('forge_runtime_root_unsafe');
-    const manifest = runtimeStat?.isDirectory() ? readJson(path.join(runtimeRoot, 'manifest.json')) : null;
-    if (!manifest) reasons.push('forge_runtime_manifest_missing');
-    const expectedSources = [...FORGE_RUNTIME_SOURCE_FILES];
-    const rawSources = manifest?.value.source_files;
-    const manifestContractMatches = Boolean(manifest
-        && stableValue(Object.keys(manifest.value).sort()) === stableValue(FORGE_RUNTIME_MANIFEST_KEYS)
-        && manifest.value.schema === 'cstar.forge_private_runtime_manifest.v2'
-        && manifest.value.runtime_owner === 'cstar'
-        && manifest.value.credential_profile_owner === 'hermes'
-        && manifest.value.credential_profile === 'cstar-hub'
-        && manifest.value.provider === 'minimax-oauth'
-        && manifest.value.model === 'MiniMax-M3'
-        && manifest.value.launcher === 'bin/hermes'
-        && manifest.value.bootstrap_mode === 'cstar_owned_python_system_stdlib_snapshot_v2'
-        && manifest.value.dependency_mode === 'stdlib_only_no_site_packages_v2'
-        && manifest.value.network_entrypoint === 'hermes_cli.forge_entrypoint'
-        && manifest.value.allow_arbitrary_source_root === false
-        && manifest.value.oauth_read_only === true
-        && manifest.value.oauth_refresh_allowed === false
-        && manifest.value.oauth_store_write_allowed === false
-        && Array.isArray(rawSources)
-        && rawSources.every((item) => typeof item === 'string')
-        && stableValue(rawSources) === stableValue(expectedSources));
-    if (!manifestContractMatches) reasons.push('forge_runtime_manifest_contract_invalid');
-    const requestedFiles = ['bin/hermes', ...expectedSources];
-    const proofs: RuntimeFileProof[] = [];
-    for (const relativePath of requestedFiles) {
-        const candidate = resolveRuntimeFile(runtimeRoot, relativePath);
-        const proof = candidate ? hashRuntimeFile(candidate) : null;
-        if (proof) proofs.push({ ...proof, path: relativePath });
-        else reasons.push(`forge_runtime_file_missing_or_unsafe:${relativePath}`);
-    }
-    const launcherPath = resolveRuntimeFile(runtimeRoot, 'bin/hermes');
-    const launcherProof = proofs.find((proof) => proof.path === 'bin/hermes');
-    if (!launcherProof || !launcherPath
-        || !fs.readFileSync(launcherPath, 'utf8').includes('# CSTAR_FORGE_RUNTIME_LAUNCHER_V2')) {
-        reasons.push('forge_runtime_launcher_marker_missing');
-    }
-    const uniqueReasons = [...new Set(reasons)].sort();
-    const contentSha256 = uniqueReasons.length === 0 && manifest
-        ? sha256(stableValue({ manifest: manifest.proof.sha256, files: proofs }))
-        : null;
-    return {
-        contract: uniqueReasons.length === 0 ? 'verified_manifest_content' : 'partial',
-        manifest_sha256: manifest?.proof.sha256 ?? null,
-        launcher_sha256: launcherProof?.sha256 ?? null,
-        source_files: proofs.filter((proof) => proof.path !== 'bin/hermes'),
-        content_sha256: contentSha256,
-        mismatch_reasons: uniqueReasons,
-    };
-}
-
 export function buildKernelRuntimeLineageForRoots(args: {
     codeRoot: string;
     controlRoot: string;
@@ -460,9 +374,15 @@ export function buildKernelRuntimeLineageForRoots(args: {
         dependency_proof: dependency.proof,
         forge_runtime_root: path.join(codeRoot, '.agents', 'skills', 'corvus-forge', 'runtime'),
         forge_runtime_manifest_sha256: forge.manifest_sha256,
+        forge_runtime_manifest_path: forge.manifest_path,
+        forge_runtime_schema_sha256: forge.schema_sha256,
+        forge_runtime_generator_sha256: forge.generator_sha256,
         forge_runtime_launcher_sha256: forge.launcher_sha256,
-        forge_runtime_manifest_present: forge.contract === 'verified_manifest_content',
+        forge_runtime_manifest_present: forge.manifest_version === 'host_v2'
+            && forge.contract === 'verified_manifest_content',
         forge_runtime_content_sha256: forge.content_sha256,
+        forge_runtime_receipt_sha256: forge.receipt_sha256,
+        forge_runtime_actionable: forge.actionable,
         forge_runtime_proof: forge,
         test_only_bypass: false,
         binding_sha256: sha256(stableValue(binding)),
@@ -481,6 +401,31 @@ export function evaluateKernelForgeReadiness(lineage: KernelRuntimeLineage): Ker
     }
     if (lineage.forge_runtime_proof.contract !== 'verified_manifest_content') {
         failures.push('forge_runtime_private_runtime_partial');
+    }
+    if (lineage.forge_runtime_proof.manifest_version !== 'host_v2') {
+        failures.push('forge_runtime_legacy_v1_non_actionable');
+    }
+    if (!lineage.forge_runtime_proof.actionable) {
+        failures.push('forge_runtime_host_contract_non_actionable');
+    }
+    if (lineage.forge_runtime_proof.runner_owner !== 'codex-host') {
+        failures.push('forge_runtime_codex_host_owner_required');
+    }
+    if (lineage.forge_runtime_proof.requested_model !== 'gpt-5.6-luna') {
+        failures.push('forge_runtime_luna_model_required');
+    }
+    if (lineage.forge_runtime_proof.requested_reasoning !== 'max') {
+        failures.push('forge_runtime_luna_reasoning_required');
+    }
+    if (lineage.forge_runtime_proof.selector_status !== 'enforced') {
+        failures.push('forge_runtime_selector_evidence_required');
+    }
+    if (lineage.forge_runtime_proof.transport !== 'codex-host') {
+        failures.push('forge_runtime_codex_host_transport_required');
+    }
+    if (lineage.forge_runtime_proof.executable_launcher_present
+        || lineage.forge_runtime_proof.launcher_sha256 !== null) {
+        failures.push('forge_runtime_executable_launcher_forbidden');
     }
     return { ready: failures.length === 0, failures };
 }

@@ -7,14 +7,39 @@ bypassing operator gates or CStar lifecycle state.
 ## Canonical Route
 
 `User -> CoS -> CStar bead/decision -> cstar_forge_request ->
-cstar_forge_authorize -> cstar_forge_execute -> bounded-six-role-manifest-v1 through private Hermes
-cstar-hub / minimax MiniMax-M3 ->
-delivered_unverified -> independent cstar_record_result -> CoS closeout`
+`cstar_forge_authorize -> cstar_forge_execute -> native parent ->
+DELIVERED_UNVERIFIED -> independent cstar_record_result -> CoS closeout`
+
+The active connection is `forge-native-codex-swarm-v1`. CStar persists the
+durable SET, immutable request, policy intersection, one idempotent run lease,
+generation/tombstone state, worker receipts, and the control receipt. The
+native parent owns integration and evidence aggregation. It may use zero to
+three useful leaves; every leaf has a disjoint exact write set and no leaf may
+create descendants. Worker packages never contain SET authority, cancellation
+secrets, control receipts, or lifecycle capability.
+
+The effective authority is the fail-closed intersection
+`durable_SET ∩ immutable_request ∩ connection_policy ∩ run_lease`. Missing
+native capabilities, empty intersections, path escape/overlap, duplicate
+idempotency keys, missing durable request rows, and generation tombstones reject
+before execution. Requested `gpt-5.6-luna`/`max` is recorded separately from
+host-attested actual identity; absent attestation is `unreported`. Delivery is
+always `DELIVERED_UNVERIFIED`; only an independent validator may support
+`cstar_record_result`.
+
+The former Hermes/MiniMax, host-handoff, AutoBot, CLI, bridge, provider, and
+legacy v2/v3 sections below are historical compatibility material. They are not
+an executable fallback for the native connection and are retained only as
+readable history until their tombstone/quarantine evidence is independently
+reviewed.
 
 When targets are inside a project with a mapped PMT, read that repository once
 for bounded context and send it a bounded update packet after meaningful state
 changes. Do not query unrelated PMTs, and do not block execution on repository
-availability. PMTs grant no review or execution authority, and MM is legacy.
+availability. PMTs are project-scoped information repositories only; they grant
+no ownership, execution, approval, review, routing, monitoring, or lifecycle
+authority. MM is inactive and has no active routing, synthesis, ownership, relay,
+review, or execution role.
 Add GitHub issue, branch, and PR packaging only when repository policy requires
 those artifacts.
 
@@ -28,13 +53,16 @@ Codex-subagent implementation are not Forge substitutes.
   updates, and closeout.
 - CStar records the durable request, attempt, validation, and bead state. It is
   canonical state, not authority above the operator or platform.
-- Corvus Forge builds through its sealed private adapter.
+- The native Forge parent persists a bounded plan and aggregates only to
+  `DELIVERED_UNVERIFIED`; the former v2/v3 adapter and host-handoff lanes are
+  historical and tombstoned, not fallbacks.
 - The fixed producer chain is `specifier -> coder -> cleaner -> architect ->
   hardener -> QA`. Each role has a distinct bounded responsibility; QA alone
   emits the final exact-output manifest for adapter validation and application.
 - PMTs are information repositories only; they receive state-update packets and
   grant no execution, review, approval, or routing authority.
-- MM is legacy. CoS owns cross-project sequencing and conflict handling.
+- MM is inactive and has no active routing, synthesis, ownership, relay, review,
+  or execution role. CoS owns cross-project sequencing and conflict handling.
 - CorvusEye or another independent validator may evaluate the delivery when the
   gate requires producer/reviewer separation.
 
@@ -115,7 +143,7 @@ directory or equal to an explicit file/prospective target. No-spend, pending,
 expired, terminal, or receipt-mismatched requests remain non-executable and do
 not emit a new challenge.
 
-## Execute Gate: One Provider Attempt with Bounded Mechanical Continuity
+## Legacy v2 adapter execution (explicit selection only)
 
 For an initial reservation, `cstar_forge_execute` must run in the same root-user
 turn that supplied the operative build instruction. It receives the matching durable receipt,
@@ -208,9 +236,9 @@ runtime and receipts are CStar-owned. The inspected tree exposed no root
 license file, so the boundary is design inspiration only rather than vendoring
 or source reuse.
 
-## Private Hermes / MiniMax-M3 Adapter
+### Private Hermes / MiniMax-M3 Adapter
 
-Live implementation uses the private Hermes `cstar-hub` profile pinned to
+Legacy v2 compatibility uses the private Hermes `cstar-hub` profile pinned to
 `minimax-oauth/MiniMax-M3`. Receipts record provider, requested model, actual model,
 model-source evidence, reasoning profile, and adapter version separately. If
 the host does not report actual model identity, record `unreported`; never infer
