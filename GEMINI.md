@@ -26,10 +26,12 @@
 - Use `cstar_bead` for bead get/list/create/claim/status/block/resolve operations when available.
 - Use `cstar_goal_resume` only for an explicit root-user continuation signal when the host lacks a blocked-to-active transition; it records continuity and does not mutate host state or grant new authority.
 - If the MCP surface is degraded or unavailable, report the exact failure and remain read-only for control-plane state; do not mutate Hall or SQLite directly.
-- CoS coordinates estate sequencing and bounded Green/Yellow execution. Forge builds implementation; Researcher gathers evidence through authorized lanes.
+- CoS coordinates operator-facing work. CStar owns lifecycle state and deterministic effects. Bounded native workers implement; Researcher gathers evidence and proposes improvements; a distinct validator evaluates.
 - Start or resume one host goal for every non-trivial mission, keep one plan step in progress, and close the goal only after CStar lifecycle state and validation agree.
-- Before the first CStar mutation or provider attempt of each local day, follow `docs/operations/cstar-goal-driven-daily-bootstrap.md` for Codex/Hermes freshness; updates do not authorize a restart.
-- PMTs are project-scoped information repositories only, and MM has no active routing role.
+- Before the first CStar mutation or authorized provider attempt of each local day, follow `docs/operations/cstar-goal-driven-daily-bootstrap.md`; version checks do not authorize update, install, activation, restart, or configuration mutation.
+- Forge is `TOMBSTONED_PERMANENT`. Historical Forge tools, skills, adapters, and receipts are evidence only and must not be invoked.
+- Implementation uses an authorized Bead/SET, `cstar_mission`, deterministic effect reservation, native task-control work cells, typed ACK and terminal packets, independent validation, `cstar_record_result`, and a CSF-D007 checkpoint.
+- PMTs are project-scoped information repositories only. MM is inactive and has no active routing, synthesis, ownership, relay, review, or execution role.
 - Preserve operator gates for acceptance, dispatch, commit, push, merge, deletion, restarts, and publish actions.
 - Keep reasoning, planning, critique, and recovery in the host session when the registry marks a capability host-executable.
 - Keep deterministic local primitives in the kernel; do not fork Gemini-specific capability definitions.
@@ -47,9 +49,9 @@
 - Foundational CStar work uses `Scope: brain:CStar`; use `Scope: spoke:<name>` only when a spoke is explicit.
 - Do not echo a full Augury block unless the operator asks for the route packet.
 
-## Kernel MCP Tools (28)
+## Kernel MCP Tools (30)
 
-The `cstar-kernel` MCP server is the authoritative kernel surface — invoke these tools directly via MCP rather than shelling out to `./cstar` whenever the needed primitive exists. Tool classes declare bounded effects; observed runtime remains evidence and cannot grant authority. Full API reference: `docs/integrations/cstar-kernel-mcp.md`.
+The `cstar-kernel` MCP server is the authoritative kernel surface — invoke active tools directly via MCP rather than shelling out to `./cstar` whenever the needed primitive exists. Tool classes declare bounded effects; observed runtime remains evidence and cannot grant authority. Full API reference: `docs/integrations/cstar-kernel-mcp.md`.
 
 - `cstar_hall_maintenance` (LEGACY) — Decommissioned lesson study/harvest compatibility surface; always fails closed without reading or writing Hall state.
 - `cstar_handoff` (READ) — Return compact active state from Augury/handoff logic.
@@ -76,13 +78,18 @@ The `cstar-kernel` MCP server is the authoritative kernel surface — invoke the
 - `cstar_warden` (EXECUTION) — On-demand local Sentinel Warden execution. list and bounties are read-only; scan starts a constrained project-venv process and performs no LLM inference.
 - `cstar_telemetry` (READ) — Read-only MCP telemetry summaries over the last 24h.
 - `cstar_researcher_request` (REQUEST) — Create a CStar-native no-spend Researcher request receipt.
-- `cstar_forge_request` (REQUEST) — Persist an immutable no-spend Forge request; machine challenge material stays hidden from the normal operator workflow.
-- `cstar_forge_authorize` (MUTATION) — Bind one explicit root-user build instruction or immutable CStar goal-continuation receipt to one unchanged pending Forge request; performs no provider call.
-- `cstar_forge_execute` (EXECUTION) — Atomically run one provider attempt through the private Hermes/MiniMax adapter, with durable replay, independently validated pre-provider continuity, and delivered-pending-validation semantics.
+- `cstar_mission` (REQUEST) — Compatibility-first ordinary bounded mission coordinator; derives immutable identifiers and hashes, persists host-owned queue intent when authorized, and never launches workers, providers, or Forge authority.
+
+### Historical Forge compatibility exposures
+- Forge is `TOMBSTONED_PERMANENT`. The following registered names are non-actionable parity debt and must not be invoked:
+- `cstar_forge_request` — historical only; fail closed
+- `cstar_forge_authorize` — historical only; fail closed
+- `cstar_forge_execute` — historical only; fail closed
+- `cstar_forge_host_complete` — historical only; fail closed
 
 ## Exported Gemini Capabilities (3)
-- `corvus-forge` (SKILL, native-session, host-workflow, kernel fallback forbidden)
 - `cstar-closeout` (SKILL, native-session, host-workflow, kernel fallback forbidden)
+- `cstar-reliability-loop` (SKILL, native-session, host-workflow, kernel fallback forbidden)
 - `researcher` (SKILL, native-session, host-workflow, kernel fallback forbidden)
 
 ## Notes

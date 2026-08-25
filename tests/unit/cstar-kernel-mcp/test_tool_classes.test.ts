@@ -21,9 +21,10 @@ describe('CStar MCP tool class contract', () => {
             Object.keys(CSTAR_KERNEL_TOOL_CLASSES),
             [...CSTAR_KERNEL_TOOL_NAMES],
         );
-        assert.equal(CSTAR_KERNEL_TOOL_CLASSES.cstar_forge_request, 'REQUEST');
-        assert.equal(CSTAR_KERNEL_TOOL_CLASSES.cstar_forge_authorize, 'MUTATION');
-        assert.equal(CSTAR_KERNEL_TOOL_CLASSES.cstar_forge_execute, 'EXECUTION');
+        assert.equal('cstar_forge_request' in CSTAR_KERNEL_TOOL_CLASSES, false);
+        assert.equal('cstar_forge_authorize' in CSTAR_KERNEL_TOOL_CLASSES, false);
+        assert.equal('cstar_forge_execute' in CSTAR_KERNEL_TOOL_CLASSES, false);
+        assert.equal('cstar_forge_host_complete' in CSTAR_KERNEL_TOOL_CLASSES, false);
         assert.equal('cstar_autobot' in CSTAR_KERNEL_TOOL_CLASSES, false);
         assert.equal(CSTAR_KERNEL_TOOL_CLASSES.cstar_bead, 'MUTATION');
         assert.equal(CSTAR_KERNEL_TOOL_CLASSES.cstar_persona_set, 'MUTATION');

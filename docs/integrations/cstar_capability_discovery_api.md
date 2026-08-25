@@ -7,7 +7,9 @@
 does not grant execution, lifecycle, spend, mutation, or activation authority.
 
 The current registry contains exactly three agent-native skills:
-`corvus-forge`, `researcher`, and `cstar-closeout`. Deterministic kernel tools
+`researcher`, `cstar-closeout`, and `cstar-reliability-loop`. It also preserves
+`corvus-forge` as an unsupported `TOMBSTONED_PERMANENT` compatibility record.
+Deterministic kernel tools
 are declared by the typed `cstar-kernel` MCP catalog instead of being duplicated
 as registry entries.
 
@@ -31,13 +33,16 @@ Each capability record may include:
 - host-support declarations; and
 - normalized invocation metadata.
 
-For the current three entries:
+For the three active entries:
 
 - `tier` is `SKILL`;
 - `entry_surface` is `host-only`;
 - `execution_mode` is `agent-native`;
 - `owner_runtime` is `host-agent`; and
 - shell invocation is unavailable.
+
+The Forge tombstone may be returned only by an exact `skill-info corvus-forge`
+lookup. It must not appear in the default manifest or become executable.
 
 `active_in_runtime: true` means the runtime recognizes the declaration and can
 enforce its boundary. It does not mean the dispatcher may execute the skill.

@@ -2,7 +2,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { registry } from '../../pennyone/pathRegistry.js';
-import { errorResponse, mcpGuardrail, textResponse, type McpTextResponse } from '../contracts/responses.js';
+import {
+    errorResponse,
+    mcpGuardrail,
+    preAuthorizationResponse,
+    textResponse,
+    type McpTextResponse,
+} from '../contracts/responses.js';
 import {
     CODE_ROOT,
     readBoundedFileInside,
@@ -67,7 +73,15 @@ export interface DispatchRequestArgs {
     dispatch_surface_ref?: string;
 }
 
-export function makeDispatchDecisionId(kind: DispatchRequestKind, args: DispatchRequestArgs): string {
+export type ResearcherRequestArgs = Omit<DispatchRequestArgs, 'callback_contract' | 'decision_id'> & {
+    decision_id?: string;
+    callback_contract?: DispatchCallbackContract;
+};
+
+export function makeDispatchDecisionId(
+    kind: DispatchRequestKind,
+    args: Pick<DispatchRequestArgs, 'bead_id' | 'decision_id' | 'objective'>,
+): string {
     if (args.decision_id?.trim()) {
         return args.decision_id.trim();
     }
@@ -228,7 +242,7 @@ export async function handleDispatchRequest(
         const validationError = findDispatchValidationError(args);
         const decisionId = makeDispatchDecisionId(kind, args);
         if (validationError) {
-            return textResponse({
+            return preAuthorizationResponse({
                 status: 'rejected',
                 dispatch_kind: kind,
                 decision_id: decisionId,
@@ -241,13 +255,13 @@ export async function handleDispatchRequest(
                     ['dispatch_contract'],
                     ['request_validation'],
                 ),
-            }, true);
+            }, 'dispatch_request_contract_invalid', validationError);
         }
 
         const root = registry.getRoot();
         const actionAuthority = resolveDispatchActionAuthority(args, root);
         if (kind === 'researcher' && actionAuthority.primary_action === 'project_files') {
-            return textResponse({
+            return preAuthorizationResponse({
                 status: 'rejected',
                 dispatch_kind: kind,
                 decision_id: decisionId,
@@ -260,7 +274,7 @@ export async function handleDispatchRequest(
                     ['dispatch_action_authority'],
                     ['route_to_forge'],
                 ),
-            }, true);
+            }, 'researcher_project_files_action_forbidden');
         }
         const surface = resolveDispatchSurface(kind, args);
         const liveAuthority = args.spend_policy.mode === 'live_authorized'
@@ -332,8 +346,18 @@ export async function handleDispatchRequest(
     }
 }
 
-export async function handleResearcherRequest(args: DispatchRequestArgs): Promise<McpTextResponse> {
-    return handleDispatchRequest('researcher', args);
+export async function handleResearcherRequest(args: ResearcherRequestArgs): Promise<McpTextResponse> {
+    const decisionId = makeDispatchDecisionId('researcher', args);
+    const normalizedArgs: DispatchRequestArgs = {
+        ...args,
+        decision_id: decisionId,
+        callback_contract: args.callback_contract ?? {
+            expected_packet: `CSTAR_RESEARCHER_RESULT:${decisionId}`,
+            callback_required: true,
+            callback_thread_id: args.source_callback_thread_id,
+        },
+    };
+    return handleDispatchRequest('researcher', normalizedArgs);
 }
 
 export async function handleForgeRequest(args: DispatchRequestArgs): Promise<McpTextResponse> {

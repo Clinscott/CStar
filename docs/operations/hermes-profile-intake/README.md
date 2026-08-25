@@ -1,10 +1,16 @@
-# Hermes Profile Intake
+# Legacy v2 Hermes Profile Intake (Metadata Only)
+
+This document is historical compatibility material. It does not enroll a
+worker, select a transport, or establish runtime readiness. Current
+implementation uses CStar deterministic effects and native task-control work
+cells. Forge is `TOMBSTONED_PERMANENT`; Hermes/MiniMax Forge material is
+historical only, and MM is inactive.
 
 ## Purpose
 
-This package defines a metadata-first intake contract for identifying reusable
-Forge or Researcher profile source candidates without copying Hermes profile
-contents or private runtime state into CStar.
+This package defines a metadata-first intake contract for identifying historical
+reusable Forge or Researcher profile source candidates without copying Hermes
+profile contents or private runtime state into CStar.
 
 The first pass records only normalized relative candidate paths, byte sizes,
 modification epochs, asset classifications, and review status. It includes no
@@ -66,12 +72,17 @@ Excluded paths are summarized by category and are never enumerated.
 ## Ownership and Authority
 
 Hermes continues to own and update the `cstar-hub` OAuth profile and credential
-lifecycle. This intake neither reads nor changes that state.
+lifecycle. This intake neither reads nor changes that state. That ownership is
+legacy-v2 compatibility history only; it is not current CStar ownership,
+readiness, routing, or transport authority.
 
-Local role boundaries remain unchanged:
+The current host workflow is Codex-host Luna (`gpt-5.6-luna`, `max`). This
+package never discovers, recommends, or substitutes a Hermes/MiniMax transport.
 
-- Corvus Forge builds implementation only through its separately authorized
-  lifecycle.
+Local role boundaries are:
+
+- CStar reserves deterministic implementation effects for bounded native work
+  cells. Forge is permanently tombstoned.
 - Researcher gathers evidence only through separately authorized source lanes.
 
 An intake manifest is classification evidence only. It grants no worker
@@ -92,5 +103,5 @@ restart, deployment, or production authority.
    enrollment, source use, profile change, or activation as a separate gate.
 
 The metadata schema cannot be reused as sanitized-bundle authority. No profile
-becomes available to CStar, Forge, or Researcher merely because its metadata
+becomes available to CStar, an implementation work cell, or Researcher merely because its metadata
 appears in a valid manifest.

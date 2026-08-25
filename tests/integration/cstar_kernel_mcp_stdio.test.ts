@@ -266,7 +266,10 @@ describe('cstar-kernel-mcp stdio launcher', () => {
         const listResp = await client.request('tools/list', {});
         assert.ok(listResp.result, `tools/list returned error: ${JSON.stringify(listResp.error)}`);
         assert.ok(Array.isArray(listResp.result.tools), 'tools/list result must contain a tools array');
-        const tools = listResp.result.tools as Array<{ name: string }>;
+        const tools = listResp.result.tools as Array<{
+            name: string;
+            inputSchema?: { required?: unknown; properties?: Record<string, unknown> };
+        }>;
         const actualNames = tools.map((t) => t.name).sort();
         const duplicateNames = actualNames.filter((name, index) => actualNames.indexOf(name) !== index);
         const expectedNames = [...CSTAR_KERNEL_TOOL_NAMES].sort();
@@ -278,6 +281,20 @@ describe('cstar-kernel-mcp stdio launcher', () => {
             `tools/list drifted from the documented inventory; got: ${actualNames.join(', ')}`,
         );
         assert.ok(!actualNames.includes('cstar_autobot'), 'decommissioned cstar_autobot must stay absent');
+        for (const name of [
+            'cstar_forge_request',
+            'cstar_forge_authorize',
+            'cstar_forge_execute',
+            'cstar_forge_host_complete',
+        ]) {
+            assert.ok(!actualNames.includes(name), `${name} must be absent from the public inventory`);
+        }
+        const recordResult = tools.find((tool) => tool.name === 'cstar_record_result');
+        assert.ok(recordResult?.inputSchema, 'result recording must expose its input schema');
+        assert.ok(
+            Object.hasOwn(recordResult.inputSchema.properties ?? {}, 'host_artifact_validation_receipt'),
+            'result recording must accept host-native controller and independent-validator artifacts',
+        );
     });
 
     it('keeps tool schemas independent of protocol session state for stateless MCP readiness', async () => {
@@ -338,11 +355,11 @@ describe('cstar-kernel-mcp stdio launcher', () => {
             assert.match(body.runtime_lineage?.[field] ?? '', /^[a-f0-9]{64}$/, field);
         }
         assert.strictEqual(body.readiness?.kernel_root_binding, true);
+        assert.strictEqual(body.readiness?.forge, false);
+        assert.strictEqual(body.readiness?.forge_status, 'TOMBSTONED_PERMANENT');
         assert.strictEqual(
-            body.readiness?.forge,
-            body.readiness?.kernel_root_binding
-                && body.readiness?.dependency_lineage
-                && body.readiness?.forge_runtime_manifest,
+            body.readiness?.host_work_cell,
+            body.readiness?.kernel_root_binding && body.readiness?.dependency_lineage,
         );
 
         const forgeStatusResp = await client.request('tools/call', {
@@ -376,14 +393,6 @@ describe('cstar-kernel-mcp stdio launcher', () => {
             assert.fail('client was not initialized by prior test');
         }
 
-        const forgeExecuteRequest = {
-            ...validDispatchRequest,
-            decision_id: 'decision-mcp-stdio-smoke',
-            forge_request_receipt_id: 'dispatch-forge-decision-mcp-stdio-smoke-receipt',
-            forge_request_decision_id: 'decision-mcp-stdio-smoke',
-            forge_request_bead_id: 'bead-mcp-stdio-smoke',
-            execution_mode: 'no_op',
-        };
         const cases: Array<{ name: string; args: Record<string, unknown>; expectError?: boolean }> = [
             { name: 'cstar_hall_maintenance', args: { action: 'harvest', limit: 1 }, expectError: true },
             { name: 'cstar_handoff', args: {} },
@@ -409,16 +418,6 @@ describe('cstar-kernel-mcp stdio launcher', () => {
             { name: 'cstar_warden', args: { action: 'list' } },
             { name: 'cstar_telemetry', args: { section: 'usage' } },
             { name: 'cstar_researcher_request', args: validDispatchRequest },
-            { name: 'cstar_forge_request', args: validDispatchRequest, expectError: true },
-            {
-                name: 'cstar_forge_authorize',
-                args: {
-                    forge_request_receipt_id: `dispatch-forge-${'0'.repeat(32)}`,
-                    request_sha256: '0'.repeat(64),
-                },
-                expectError: true,
-            },
-            { name: 'cstar_forge_execute', args: forgeExecuteRequest, expectError: true },
         ];
 
         for (const testCase of cases) {

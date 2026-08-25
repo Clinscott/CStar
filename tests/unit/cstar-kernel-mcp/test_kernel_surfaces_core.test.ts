@@ -146,8 +146,8 @@ describe("CStar MCP promoted kernel surfaces core", () => {
         const parsed = JSON.parse(result.content[0].text);
         assert.strictEqual(parsed.status, 'matched');
         assert.strictEqual(parsed.intent_category, 'BUILD');
-        assert.strictEqual(parsed.tier, 'SKILL');
-        assert.strictEqual(parsed.default_path, 'cstar_forge_request');
+        assert.strictEqual(parsed.tier, 'PRIME');
+        assert.strictEqual(parsed.default_path, 'cstar_mission');
         assert.strictEqual(parsed.matched_trigger, 'build');
     });
 

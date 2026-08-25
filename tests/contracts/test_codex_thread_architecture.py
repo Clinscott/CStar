@@ -22,13 +22,14 @@ def test_thread_architecture_doctrine_exists():
     assert "Feature: CoS and project-context thread architecture" in feature
 
 
-def test_cstar_researcher_forge_and_corvuseye_have_separate_roles():
+def test_cstar_researcher_work_cells_and_corvuseye_have_separate_roles():
     doctrine = _normalized(DOCTRINE)
 
     required = [
         "CStar is the axle rather than a PMT or worker spoke.",
         "Researcher gathers evidence through authorized source lanes.",
-        "Corvus Forge builds implementation through the durable",
+        "CStar routes implementation through an authorized Bead/SET",
+        "Forge is `TOMBSTONED_PERMANENT`",
         "CorvusEye is the independent evaluation and red-team spoke.",
     ]
 
@@ -46,9 +47,9 @@ def test_cos_user_pmt_and_mm_authority_boundaries_are_explicit():
         "A PMT grants no ownership, execution, review, approval, routing, or monitoring",
         "A missing or stale mapped PMT is a freshness gap, not an execution gate",
         "When an in-scope project has a mapped PMT, CoS must read one bounded context packet.",
-        "Luna for routine retrieval, Terra for conflicting-context synthesis, and Sol for high-stakes",
-        "requested and actual identity separately; absent a reported identity, actual is `unreported`.",
-        "MM is legacy and has no active estate-routing, synthesis, ownership, or relay",
+        "versioned model-policy registry",
+        "requested and actual identity separately; absent host attestation, actual is `unreported`.",
+        "MM is inactive and has no active routing, synthesis, ownership, relay, review, or execution role",
     ]
 
     for phrase in required:

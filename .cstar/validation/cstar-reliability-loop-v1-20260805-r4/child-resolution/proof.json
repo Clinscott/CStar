@@ -1,0 +1,22 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:mcp:prove-the-reliability-loop-v1-contracts-with-foc-msg578et",
+  "validation_id": "validation:cstar-reliability-loop-proof-20260805-r4",
+  "reported_verdict": "ACCEPTED",
+  "artifacts": [
+    {"path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/tests/features/cstar_reliability_loop.feature", "sha256": "ec7719d36f330e7b4512cd2047b6507507485946573baef4b12b81e438e92fab", "bytes": 3380},
+    {"path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/tests/unit/cstar-kernel-mcp/test_reliability_loop.test.ts", "sha256": "abcf9826a1535f3780e4f88ec349898dcc0a9a69211b4ff2895d303c24e6b810", "bytes": 16158},
+    {"path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/tests/unit/cstar-kernel-mcp/test_reliability_loop_result.test.ts", "sha256": "56418c4119637638c59976102fa030228968edd53b18668981a814a8c4134515", "bytes": 7345},
+    {"path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/tests/unit/cstar-kernel-mcp/test_validation_evidence_root.test.ts", "sha256": "b668d3edf7a963531f09f1f9ae6c2d22372671af81acf9efae33686c243139f4", "bytes": 4327},
+    {"path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-reliability-loop-v1-20260805-r4/sprt/receipt.json", "sha256": "da57e25788452d700d6215fb4f7db4e897872ec877277df12b0bb3db3d13d400", "bytes": 43374},
+    {"path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-reliability-loop-v1-20260805-r4/sprt/receipt.sha256", "sha256": "b93a772e3b76b4ca57516b8299865b58438183d64a615e963ae46faef3d7ebfd", "bytes": 79},
+    {"path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-reliability-loop-v1-20260805-r4/forked-sol-high-live/lore.txt", "sha256": "db8cb0d9997d235cb1bac07dabfb9afbda27eaea68b221b620baa56a484e8469", "bytes": 1142},
+    {"path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-reliability-loop-v1-20260805-r4/forked-sol-high-live/isolation.txt", "sha256": "d68bce00edc7f28b2d4f07d8d2fcffce3f30e4e090c0afe704b137daaf57dc33", "bytes": 1853},
+    {"path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-reliability-loop-v1-20260805-r4/forked-sol-high-live/sprt.txt", "sha256": "d85d98fdec4fb66a73d7dc46644641aa93e9a27c681f40365afa881f4f6e1e11", "bytes": 1485}
+  ],
+  "checks": [
+    {"name": "Proof child frozen Lore evidence accepted", "status": "pass", "evidence_path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-reliability-loop-v1-20260805-r4/forked-sol-high-live/lore.txt", "sha256": "db8cb0d9997d235cb1bac07dabfb9afbda27eaea68b221b620baa56a484e8469"},
+    {"name": "Proof child isolation evidence accepted", "status": "pass", "evidence_path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-reliability-loop-v1-20260805-r4/forked-sol-high-live/isolation.txt", "sha256": "d68bce00edc7f28b2d4f07d8d2fcffce3f30e4e090c0afe704b137daaf57dc33"},
+    {"name": "Proof child SPRT evidence accepted", "status": "pass", "evidence_path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-reliability-loop-v1-20260805-r4/forked-sol-high-live/sprt.txt", "sha256": "d85d98fdec4fb66a73d7dc46644641aa93e9a27c681f40365afa881f4f6e1e11"}
+  ]
+}

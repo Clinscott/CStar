@@ -12,7 +12,7 @@ Three independent designs were produced and reviewed with `agy -p` using
 
 | Design | Main contribution | Gemini score | CoS score |
 |---|---|---:|---:|
-| A. Bead-Backed State Refresh | Bead lifecycle, PMT/Forge/Researcher receipts, failure modes | 88 | 88 |
+| A. Bead-Backed State Refresh | Bead lifecycle, PMT/work-cell/Researcher receipts, failure modes | 88 | 88 |
 | B. Snapshot-First Context Refresh | PennyOne/dashboard state, live-run deltas, artifact load policies | 88 | 90 |
 | C. Sentinel Refresh | Inverse-trust posture, green/yellow/red/blocked gates, perfect-score audits | 92 | 93 |
 
@@ -65,7 +65,7 @@ The packet must include:
 - Current active work phase, gate, next action, target paths, and checker.
 - Mapped-PMT context and freshness state when the in-scope project has a
   mapping; it grants no authority.
-- Researcher, Forge, CorvusEye, and PennyOne lane state.
+- Researcher, native work-cell, CorvusEye, and PennyOne lane state.
 - Live-run manifests or dashboard refs, not raw transcripts.
 - Artifact index with path/hash/load policy.
 - Verification rules, perfect-score policy, and cycle breaker.
@@ -118,17 +118,18 @@ Do not loop forever trying to get a perfect startup.
 - PMTs are project-scoped information repositories only. They grant no
   ownership, execution, review, approval, routing, or monitoring authority.
 - A missing mapped PMT is a freshness gap, not an execution gate.
-- Mapped-PMT reads request Luna for routine retrieval, Terra for
-  conflicting-context synthesis, and Sol for high-stakes architecture,
-  security, or incident forensics only through an enforceable host selector.
-  Requested and actual identity are recorded separately; absent host identity
-  is `unreported`.
+- Mapped-PMT reads resolve the task role through the versioned model-policy
+  registry and use it only through an enforceable host selector. Requested and
+  actual identity are recorded separately; absent host attestation, actual is
+  `unreported`.
 - CoS coordinates, verifies, records, and closes out.
-- Corvus Forge builds implementation when a Forge route exists.
+- CStar reserves deterministic effects for bounded native implementation work
+  cells. Forge is `TOMBSTONED_PERMANENT`.
 - Researcher researches; live external collection is lane-gated.
 - CorvusEye evaluates and red-teams; it cannot self-certify Researcher.
 - PennyOne/dashboard mirrors state for operator visibility.
-- MM is legacy and has no active routing or relay role.
+- MM is inactive and has no active routing, synthesis, ownership, relay, review,
+  or execution role.
 - Chat history is a locator, not evidence.
 
 ## Operator Gates
@@ -226,8 +227,9 @@ Opening moves:
    Missing PMT context is a freshness gap and cannot block execution. Request
    the task-appropriate Luna, Terra, or Sol profile only through an enforceable
    selector, and record requested versus actual identity.
-6. If Forge routing exists for implementation, route through Forge instead of
-   direct implementation.
+6. Route implementation through an authorized Bead/SET, deterministic runner
+   effect, native task-control work cell, and independent validation. If the
+   route is unavailable, fail closed without a Forge or direct fallback.
 7. If Researcher live collection is involved, verify authorized lane and
    evaluation isolation.
 
@@ -250,7 +252,8 @@ Operating rules:
   explicit authorization.
 - When waiting on external state, stop and pause. Do not poll-loop.
 - PMTs grant no ownership, execution, review, approval, routing, or monitoring
-  authority. MM is legacy and has no active role.
+  authority. MM is inactive and has no active routing, synthesis, ownership,
+  relay, review, or execution role.
 
 Default CoS response shape:
 - Verdict
@@ -272,7 +275,7 @@ bead, run, or metric. Do not reload the whole project history.
   perfect-score audit, and token policy.
 - The generated packet has a state checksum and staleness fields.
 - Degraded boot path exists and has a cycle breaker.
-- Mapped-PMT context and freshness, Forge, Researcher, CorvusEye, PennyOne, and
+- Mapped-PMT context and freshness, native work cells, Researcher, CorvusEye, PennyOne, and
   beads are represented without granting PMTs authority.
 - A mapped-PMT read uses the task-appropriate Luna/Terra/Sol selector contract
   and records requested versus actual identity.

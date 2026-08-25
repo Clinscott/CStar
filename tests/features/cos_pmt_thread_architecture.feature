@@ -6,16 +6,17 @@ Feature: CoS and project-context thread architecture
     And PMT availability is a freshness signal rather than an execution gate
     And the PMT grants no ownership, execution, review, approval, or routing authority
     And CoS sends a compact state update after meaningful work
-    And the query requests Luna, Terra, or Sol only through an enforceable selector
+    And the query resolves a role through the versioned model-policy registry and an enforceable selector
     And requested and actual model identity are recorded separately
 
   Scenario: Current work routes through active CStar spokes
     Given CoS has represented the work in CStar
     When the next bounded action is selected
-    Then Forge builds implementation through the durable Forge path
+    Then CStar reserves deterministic effects for bounded native implementation work cells
     And Researcher gathers evidence through authorized lanes
     And CorvusEye performs independent evaluation when required
-    And MM has no active routing or relay role
+    And Forge is TOMBSTONED_PERMANENT and historical only
+    And MM is inactive and has no active routing, synthesis, ownership, relay, review, or execution role
 
   Scenario: The User is asked only for high-order or red-gated decisions
     Given CoS is executing bounded Green or Yellow work

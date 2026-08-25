@@ -146,6 +146,33 @@ export function mcpOutcomeResponse(
 
 export const typedOutcomeResponse = mcpOutcomeResponse;
 
+/**
+ * Apply the typed response contract at the public MCP boundary.
+ *
+ * Handlers still return their legacy payload envelopes internally. The
+ * instrumenter owns the final response shape so every public invocation has
+ * one canonical outcome and one matching MCP error disposition.
+ */
+export function normalizeMcpResponse(response: McpTextResponse): McpTextResponse {
+    const text = response.content[0]?.text;
+    let payload: unknown;
+    try {
+        payload = JSON.parse(text ?? 'null');
+    } catch {
+        return mcpOutcomeResponse('internal_error', {
+            error_code: 'mcp_response_invalid',
+            error: 'MCP response content was not valid JSON.',
+        });
+    }
+
+    const outcome = inferMcpOutcome(payload)
+        ?? (response.isError === true ? 'internal_error' : 'ok');
+    if (payload && typeof payload === 'object' && !Array.isArray(payload)) {
+        return mcpOutcomeResponse(outcome, payload as Record<string, unknown>);
+    }
+    return mcpOutcomeResponse(outcome, { result: payload });
+}
+
 export function normalizeErrorMessage(error: unknown, maxLength = MCP_ERROR_MESSAGE_MAX): string {
     const raw = error instanceof Error ? error.message : String(error);
     return raw.replace(/\s+/g, ' ').slice(0, maxLength);

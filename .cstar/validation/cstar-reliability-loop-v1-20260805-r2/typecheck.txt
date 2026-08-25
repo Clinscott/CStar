@@ -1,0 +1,8 @@
+--- node/npm identity ---
+v25.8.1
+11.11.0
+--- npm run typecheck ---
+
+> corvusstar@1.0.1 typecheck
+> tsc --noEmit -p tsconfig.json
+

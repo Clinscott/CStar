@@ -1,20 +1,70 @@
 # Corvus Forge Pipeline Playbook
 
-Corvus Forge is the CStar-governed implementation lane. It converts an accepted,
-bounded build objective into an independently validated delivery without
-bypassing operator gates or CStar lifecycle state.
+> **HISTORICAL ONLY — TOMBSTONED_PERMANENT**
+>
+> Forge is defunct. Nothing in this file is an executable procedure,
+> compatibility lane, fallback, lifecycle route, or authority source. Preserve
+> this file for receipts, migrations, incident analysis, and regression tests.
+> Current implementation routing is defined by
+> `docs/integrations/codex_mcp_contract.md` and `.agents/AGENTS.feature`.
 
-## Canonical Route
+Corvus Forge was a CStar-governed implementation lane. The material below
+documents its retired behavior and must not be resumed.
+
+## Historical Route — Non-Actionable
 
 `User -> CoS -> CStar bead/decision -> cstar_forge_request ->
-cstar_forge_authorize -> cstar_forge_execute -> bounded-six-role-manifest-v1 through private Hermes
-cstar-hub / minimax MiniMax-M3 ->
-delivered_unverified -> independent cstar_record_result -> CoS closeout`
+cstar_forge_authorize -> cstar_forge_execute -> Codex-host state-only handoff ->
+DELIVERED_PENDING_VALIDATION -> independent cstar_record_result -> CoS closeout`
+
+Current Forge v3 records or queues a host-owned handoff with
+`runner_owner: "codex-host"`, requested `gpt-5.6-luna`/`max`, and separate
+host-attested actual identity. Use `unreported` in operator prose and `null` in
+structured records when the host provides no attestation. The handoff sets
+`host_launch_required: true`, `provider_attempted: false`,
+`cognition_launch: false`, and `cstar_launch: false`; CStar does not launch a
+provider, cognition, or CStar worker at handoff. The private Hermes
+`cstar-hub`/MiniMax-M3 material below is explicit legacy v2 compatibility only.
+
+### Post-return Codex-host consumption boundary
+
+The response `host_handoff_queued` or `host_handoff_replayed` is the return from
+CStar, not the host's executable job. The active Codex host retains the exact
+returned `handoff_path`, `handoff_sha256`, `forge_request_receipt_id`, request
+hash, `execution_receipt_id`, `attempt_id`, and `target_paths_sha256`, then runs:
+
+```text
+npm run consume:forge-host-handoff -- \
+  --handoff-path <handoff_path> --handoff-sha256 <handoff_sha256> \
+  --request-id <forge_request_receipt_id> --request-sha256 <request_sha256> \
+  --execution-receipt-id <execution_receipt_id> --attempt-id <attempt_id> \
+  --scope-sha256 <target_paths_sha256>
+```
+
+This distinct host procedure opens the exact durable handoff with an
+owner-only, regular-file, one-link, no-follow descriptor; validates schema,
+hashes, current v3 Codex-host flags, and the trusted return binding; and
+revalidates every bound target/output path immediately before returning a
+`ready_for_host_execution` job. A replay projection may still point to an
+on-disk `queued` envelope; the returned binding, not a status rewrite, controls
+this read. The command emits an evidence-only local receipt and performs no
+provider/cognition launch, CStar lifecycle mutation, Hall/SQLite write,
+validation-ticket consumption, cleanup, or quarantine. Any unsafe or drifted
+input exits nonzero with no executable job.
+
+The final identity check reduces the replacement window but cannot claim
+filesystem-wide atomicity across the check and later host opens/execution. A
+sequential TOCTOU remains. Producer `fsync` and private publication likewise do
+not form a transaction spanning CStar state, the filesystem, and host
+execution; after a crash, missing, malformed, or unsafe state remains blocked.
 
 When targets are inside a project with a mapped PMT, read that repository once
 for bounded context and send it a bounded update packet after meaningful state
 changes. Do not query unrelated PMTs, and do not block execution on repository
-availability. PMTs grant no review or execution authority, and MM is legacy.
+availability. PMTs are project-scoped information repositories only; they grant
+no ownership, execution, approval, review, routing, monitoring, or lifecycle
+authority. MM is inactive and has no active routing, synthesis, ownership, relay,
+review, or execution role.
 Add GitHub issue, branch, and PR packaging only when repository policy requires
 those artifacts.
 
@@ -28,13 +78,15 @@ Codex-subagent implementation are not Forge substitutes.
   updates, and closeout.
 - CStar records the durable request, attempt, validation, and bead state. It is
   canonical state, not authority above the operator or platform.
-- Corvus Forge builds through its sealed private adapter.
+- Current Forge v3 persists a Codex-host state-only handoff. The private
+  adapter is a legacy v2 compatibility lane selected explicitly by the request.
 - The fixed producer chain is `specifier -> coder -> cleaner -> architect ->
   hardener -> QA`. Each role has a distinct bounded responsibility; QA alone
   emits the final exact-output manifest for adapter validation and application.
 - PMTs are information repositories only; they receive state-update packets and
   grant no execution, review, approval, or routing authority.
-- MM is legacy. CoS owns cross-project sequencing and conflict handling.
+- MM is inactive and has no active routing, synthesis, ownership, relay, review,
+  or execution role. CoS owns cross-project sequencing and conflict handling.
 - CorvusEye or another independent validator may evaluate the delivery when the
   gate requires producer/reviewer separation.
 
@@ -115,7 +167,7 @@ directory or equal to an explicit file/prospective target. No-spend, pending,
 expired, terminal, or receipt-mismatched requests remain non-executable and do
 not emit a new challenge.
 
-## Execute Gate: One Provider Attempt with Bounded Mechanical Continuity
+## Legacy v2 adapter execution (explicit selection only)
 
 For an initial reservation, `cstar_forge_execute` must run in the same root-user
 turn that supplied the operative build instruction. It receives the matching durable receipt,
@@ -208,9 +260,9 @@ runtime and receipts are CStar-owned. The inspected tree exposed no root
 license file, so the boundary is design inspiration only rather than vendoring
 or source reuse.
 
-## Private Hermes / MiniMax-M3 Adapter
+### Private Hermes / MiniMax-M3 Adapter
 
-Live implementation uses the private Hermes `cstar-hub` profile pinned to
+Legacy v2 compatibility uses the private Hermes `cstar-hub` profile pinned to
 `minimax-oauth/MiniMax-M3`. Receipts record provider, requested model, actual model,
 model-source evidence, reasoning profile, and adapter version separately. If
 the host does not report actual model identity, record `unreported`; never infer

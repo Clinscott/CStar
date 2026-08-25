@@ -7,7 +7,7 @@ import {
     type ActivePersonaProjectionState,
 } from '../../pennyone/persona_projection.js';
 import { errorResponse, textResponse, type McpTextResponse } from '../contracts/responses.js';
-import { buildKernelRuntimeLineage, evaluateKernelForgeReadiness } from '../contracts/runtime.js';
+import { buildKernelRuntimeLineage, evaluateKernelHostWorkCellReadiness } from '../contracts/runtime.js';
 import {
     getForgeAttemptByExecutionReceipt,
     getForgeRequest,
@@ -24,16 +24,24 @@ export function buildStatusPersonaProjection(
 ): Record<string, unknown> {
     const persona = parseCanonicalPersona(personaName);
     if (!persona || projectionStatus === 'unavailable'
+        || projectionStatus === 'canonical_state_invalid'
+        || projectionStatus === 'canonical_state_unavailable'
         || projectionStatus === 'bounded_config_invalid'
         || projectionStatus === 'bounded_config_reader_unavailable') {
         const reportedStatus = projectionStatus === 'bounded_config_invalid'
             || projectionStatus === 'bounded_config_reader_unavailable'
+            || projectionStatus === 'canonical_state_invalid'
+            || projectionStatus === 'canonical_state_unavailable'
             ? projectionStatus : 'unavailable';
         const freshnessGap = projectionStatus === 'bounded_config_invalid'
             ? 'active_persona_configuration_invalid'
             : projectionStatus === 'bounded_config_reader_unavailable'
                 ? 'active_persona_reader_unavailable'
-                : 'active_persona_projection_unavailable';
+                : projectionStatus === 'canonical_state_invalid'
+                    ? 'active_persona_state_invalid'
+                    : projectionStatus === 'canonical_state_unavailable'
+                        ? 'active_persona_state_unavailable'
+                        : 'active_persona_projection_unavailable';
         return {
             persona: null,
             persona_projection_status: reportedStatus,
@@ -54,7 +62,7 @@ export async function handleStatus(args: StatusArgs = {}): Promise<McpTextRespon
         const fw = snapshot.framework;
         const personaProjection = readActivePersonaProjectionState(root);
         const runtimeLineage = buildKernelRuntimeLineage();
-        const forgeReadiness = evaluateKernelForgeReadiness(runtimeLineage);
+        const hostWorkCellReadiness = evaluateKernelHostWorkCellReadiness(runtimeLineage);
 
         let hallReachable = false;
         let forgeExecution: Record<string, unknown> | undefined;
@@ -111,9 +119,11 @@ export async function handleStatus(args: StatusArgs = {}): Promise<McpTextRespon
             readiness: {
                 kernel_root_binding: runtimeLineage.binding_mode === 'live_launcher',
                 dependency_lineage: runtimeLineage.dependency_lineage === 'verified_lock_match',
-                forge_runtime_manifest: runtimeLineage.forge_runtime_manifest_present,
-                forge: forgeReadiness.ready,
-                forge_failures: forgeReadiness.failures,
+                host_work_cell: hostWorkCellReadiness.ready,
+                host_work_cell_failures: hostWorkCellReadiness.failures,
+                forge: false,
+                forge_status: 'TOMBSTONED_PERMANENT',
+                historical_forge_runtime_manifest: runtimeLineage.forge_runtime_manifest_present,
             },
             hall_reachable: hallReachable,
             ...(forgeExecution ? { forge_execution: forgeExecution } : {}),

@@ -9,9 +9,18 @@ global Corvus instructions first. This file contains repository deltas only.
   with direct Hall/SQLite writes or ad hoc state files.
 - Registries and observed runtime are evidence, not authority. Beads and
   receipts are the durable timeline for lifecycle state.
-- CoS coordinates. Forge implements. Researcher researches. CorvusEye or a
-  distinct validator evaluates. PMTs are project-scoped information repositories only.
-  MM is retired.
+- CoS coordinates operator-facing work. CStar owns lifecycle state and reserves
+  deterministic effects. Bounded host-native workers implement. Researcher
+  gathers evidence and proposes next improvements. CorvusEye or a distinct
+  independent validator evaluates. PMTs are project-scoped information
+  repositories only.
+  MM is inactive and has no active routing, synthesis, ownership, relay, review,
+  or execution role.
+- Forge is `TOMBSTONED_PERMANENT`. Historical Forge bytes and receipts remain
+  evidence only. They grant no execution, compatibility, fallback, or routing
+  authority.
+- Ordinary Researcher use is coordinator-decided; preserve ordinary operator
+  language instead of requiring robot-language prompts.
 - Preserve explicit gates for spend, sources, retry, scope, Git, restart,
   activation, deployment, secrets/config, destructive action, and production.
 - Pause for live workers or external state. Do not poll or duplicate a provider
@@ -20,8 +29,9 @@ global Corvus instructions first. This file contains repository deltas only.
 ## Situation router
 
 Follow [`.agents/AGENTS.feature`](.agents/AGENTS.feature). One situation selects
-one narrow surface and one canonical runbook. The Forge route is always
-`request -> authorize -> execute -> independent record_result`.
+one narrow surface and one canonical runbook. Implementation uses an authorized
+CStar Bead/SET, deterministic runner effect, native task-control work cell,
+typed ACK and terminal packet, then independent `cstar_record_result`.
 Daily freshness follows `docs/operations/cstar-goal-driven-daily-bootstrap.md`.
 
 ## Repository deltas

@@ -20,10 +20,9 @@ def test_retired_python_autonomous_surface_docs_match_feature_contract():
         assert error in documentation
         assert error in feature
 
-    assert (
-        "cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute"
-        in documentation
-    )
+    assert "cstar_mission" in documentation
+    assert "native task-control work cell" in documentation
+    assert "Forge is\n`TOMBSTONED_PERMANENT`" in documentation
     assert "cstar_record_result" in documentation
     assert "Vector engine's former neural reranker" in documentation
     assert "Mocking a retired engine into success" in documentation

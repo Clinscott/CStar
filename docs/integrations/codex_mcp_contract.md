@@ -4,6 +4,32 @@ This is the authoritative Codex integration contract for Corvus Star.
 
 If any generated README, plugin skill, installer message, or older prose disagrees with this file, follow this file.
 
+## Current Implementation Route
+
+Forge is `TOMBSTONED_PERMANENT`. Historical Forge tools, skills, adapters,
+receipts, and runtime artifacts grant no authority and must not be invoked.
+
+The current route is:
+
+`operator intent -> Chief of Staff -> CStar Bead/SET -> cstar_mission ->
+deterministic effect reservation -> native task-control work cell -> typed ACK
+-> typed terminal packet -> independent validation -> cstar_record_result ->
+CSF-D007 checkpoint`
+
+`cstar_mission` may derive and persist a bounded host-owned request. It never
+launches a worker or grants root authority. The deterministic runner owns state
+transitions. Task-control transports effects and evidence only. If either
+surface is unavailable, return the exact typed failure and stop; do not fall
+back to Forge, CLI injection, transcript parsing, Hall/SQLite mutation, or a
+provider bridge.
+
+`cstar_record_result` accepts hash-bound host-native controller and fresh
+independent-validator artifact receipts directly. Current work must not require,
+synthesize, or route through a Forge request, execution receipt, or compatibility
+adapter. A `verified_v4` receipt is authoritative for result recording and Bead
+resolution when its controller, validator, hashes, ancestry, and protected-effect
+claims verify.
+
 ## Supported Runtime Surface
 
 Corvus Star supports exactly one Codex runtime integration surface:
@@ -30,15 +56,18 @@ Corvus Star supports exactly one Codex runtime integration surface:
    - `cstar_pennyone_context`
    - `cstar_mongo_mailbox`
    - `cstar_status`
+   - `cstar_persona_set`
    - `cstar_evolve`
    - `cstar_spoke`
    - `cstar_intent_route`
    - `cstar_warden`
    - `cstar_telemetry`
    - `cstar_researcher_request`
-   - `cstar_forge_request`
-   - `cstar_forge_authorize`
-   - `cstar_forge_execute`
+   - `cstar_mission`
+
+   `cstar_forge_request`, `cstar_forge_authorize`, `cstar_forge_execute`, and
+   `cstar_forge_host_complete` are absent from the supported public inventory.
+   A runtime that exposes any of them has parity drift.
 
 The exhaustive API reference is `docs/integrations/cstar-kernel-mcp.md`. If a
 tool inventory test and this list disagree, fix the prose; runtime registration

@@ -1,6 +1,10 @@
 {
   "schema_version": "hermes.profile.intake.policy.v1",
   "mode": "metadata_only_first_pass",
+  "compatibility_lane": "legacy_v2_only",
+  "current_host_transport": "native-task-control",
+  "current_runtime_integration": false,
+  "mm_status": "inactive",
   "source_root_representation": "alias_only",
   "profile_kinds": [
     "forge",
@@ -149,9 +153,11 @@
     "live_configuration"
   ],
   "ownership_boundaries": {
+    "current_host_transport": "native-task-control",
+    "legacy_profile_authority_only": true,
     "oauth_profile": "cstar-hub",
     "oauth_owner": "hermes",
-    "forge_lane": "local_authorized_implementation",
+    "forge_lane": "historical_only_tombstoned",
     "researcher_lane": "local_authorized_evidence",
     "intake_changes_boundaries": false
   },

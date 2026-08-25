@@ -1,0 +1,22 @@
+schema: cstar.independent_check.v1
+validation_id: validation:cstar-host-validator-null-path-compatibility-20260805-r1
+bead_id: bead:mcp:repair-the-host-validator-lineage-parser-so-both-msgby6q3
+check: full_host_workflow_validation_suite
+command: /home/morderith/.nvm/versions/node/v25.8.1/bin/node scripts/run-tsx.mjs --test tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts
+working_directory: /home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803
+exit_code: 0
+suites: 1
+tests: 17
+passed: 17
+failed: 0
+cancelled: 0
+skipped: 0
+todo: 0
+verdict: pass
+
+configured_model: gpt-5.6-sol
+configured_reasoning: high
+actual_model: unreported
+actual_reasoning: unreported
+validator_thread_id: 019fd2d0-fe5d-7be0-b637-2dc6ce274903
+validator_turn_id: unreported

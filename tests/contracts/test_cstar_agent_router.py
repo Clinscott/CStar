@@ -12,9 +12,11 @@ RESEARCHER = ROOT / ".agents" / "skills" / "researcher" / "SKILL.md"
 
 def test_agents_md_is_a_small_router_not_a_parallel_runbook() -> None:
     text = AGENTS.read_text(encoding="utf-8")
-    assert len(text.splitlines()) <= 50
+    assert len(text.splitlines()) <= 60
     assert ".agents/AGENTS.feature" in text
-    assert "request -> authorize -> execute -> independent record_result" in text
+    assert "deterministic runner effect" in text
+    assert "native task-control work cell" in text
+    assert "TOMBSTONED_PERMANENT" in text
     assert "direct Hall/SQLite" in text
     assert "Detailed procedures belong in" in text
 
@@ -39,14 +41,16 @@ def test_gherkin_router_targets_only_existing_canonical_contracts() -> None:
         assert (ROOT / relative).is_file(), relative
 
 
-def test_router_keeps_forge_authorization_and_independent_validation_explicit() -> None:
+def test_router_keeps_native_work_cells_and_independent_validation_explicit() -> None:
     text = ROUTER.read_text(encoding="utf-8")
-    forge = next(line for line in text.splitlines() if "implementation is requested" in line)
-    assert "cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute" in forge
+    implementation = next(line for line in text.splitlines() if "implementation is requested" in line)
+    assert "cstar_mission" in implementation
+    assert "deterministic runner effect" in implementation
+    assert "native task-control work cell" in implementation
     validation = next(line for line in text.splitlines() if "delivery needs validation" in line)
     assert "independent cstar_record_result" in validation
-    assert "docs/operations/corvus-forge-pipeline-playbook.md" in forge
-    assert "docs/operations/corvus-forge-pipeline-playbook.md" in validation
+    assert "docs/integrations/codex_mcp_contract.md" in implementation
+    assert "docs/integrations/codex_mcp_contract.md" in validation
 
 
 def test_router_covers_current_operator_situations() -> None:
@@ -80,10 +84,11 @@ def test_persona_route_is_explicit_iterative_and_non_authoritative() -> None:
     assert "do not infer authority from persona" in router
 
 
-def test_compatibility_pointer_cannot_reintroduce_a_short_forge_route() -> None:
+def test_compatibility_pointer_cannot_reintroduce_forge_authority() -> None:
     text = POINTER.read_text(encoding="utf-8")
     assert "compatibility pointer only" in text
-    assert re.search(r"request,\s*authorize, execute, and independent[- ]validation", text)
+    assert "Forge is `TOMBSTONED_PERMANENT`" in text
+    assert "deterministic effects" in text
     assert "cstar_persona_set" in text
 
 
@@ -93,7 +98,7 @@ def test_researcher_contract_keeps_pmts_information_only() -> None:
     assert "state_update_thread_id" in text
     assert "deprecated compatibility alias" in text
     assert "PMT unavailability is a freshness gap, not" in text
-    assert "MM is legacy and has no active routing role" in text
+    assert "MM is inactive and has no active routing, synthesis, ownership, relay, review, or execution role" in " ".join(text.split())
     assert "A PMT is never that" in text
     for forbidden in (
         "PMT-owned",

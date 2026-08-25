@@ -1,0 +1,155 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "validation_id": "validation:cstar-forge-authorization-child-fk-migration-20260804-r2",
+  "bead_id": "bead:mcp:the-live-authorization-profile-migration-renames-mseu1cid",
+  "decision_id": "decision:cstar-forge-authorization-child-fk-migration-20260804",
+  "validation_date": "2026-08-04",
+  "validator_identity": "direct depth-one root Luna Max independent validator",
+  "validator_thread_id": "019fcda2-a479-7dc2-a8a3-38b7ed6a35d7",
+  "latest_turn_id": "019fcda2-adbd-7753-9523-db2a8ada89d7",
+  "requested_model": "gpt-5.6-luna",
+  "requested_effort": "max",
+  "actual_model": "gpt-5.6-luna",
+  "actual_effort": "max",
+  "reported_verdict": "ACCEPTED",
+  "verdict": "ACCEPTED",
+  "verdict_scope": "read-only source/runtime validation with disposable SQLite migration fixture",
+  "code_root": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803",
+  "focused_counts": {
+    "profile_suite": "3/3",
+    "legacy_duplicate_suite": "5/5",
+    "total": "8/8",
+    "failed": 0
+  },
+  "broad_counts": {
+    "requested_file_count": 11,
+    "passed": 192,
+    "failed": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "result": "192/192",
+    "prior_190_delta": "+2 legitimate host-normalization tests",
+    "delta_tests": [
+      "accepts the exact default-host null/absent path shape with a fixed informational path",
+      "accepts one trailing memory citation omitted from task completion"
+    ]
+  },
+  "fixture_result": {
+    "database": ":memory:",
+    "parent_rows": 10,
+    "parent_profile_counts": {
+      "root_user_forge_intent_v1": 8,
+      "exact_request_challenge_v1": 1,
+      "autonomous_dispatch_policy_v1": 1
+    },
+    "parent_snapshot_preserved": true,
+    "child_rows": 10,
+    "child_snapshot_preserved": true,
+    "child_fk_before": "hall_forge_authorizations",
+    "child_fk_after": "hall_forge_authorizations",
+    "associated_index_retained": true,
+    "associated_trigger_retained_and_fired": true,
+    "trigger_audit_rows_after_new_insert": 11,
+    "legacy_and_temp_tables_absent": true,
+    "replay_insert_guard": "forge_operator_turn_already_consumed",
+    "replay_update_guard": "forge_operator_turn_already_consumed",
+    "unrelated_fk_orphan_preserved": true,
+    "unrelated_fk_check_rows": 1,
+    "live_hall_opened": false
+  },
+  "live_hall_readonly": {
+    "path": "/home/morderith/Corvus/CStar/.stats/pennyone.db",
+    "readonly": true,
+    "two_snapshots_identical": true,
+    "total_authorization_rows": 10,
+    "profile_counts": {
+      "root_user_forge_intent_v1": 8,
+      "exact_request_challenge_v1": 1,
+      "autonomous_dispatch_policy_v1": 1
+    },
+    "mutation_attempted": false
+  },
+  "artifacts": [
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/src/tools/pennyone/intel/forge_authorization_schema.ts",
+      "sha256": "e1779144d27256560e0dbb3ff210c16a4a4e6eb340646cb0ed9cb56978d33502",
+      "bytes": 19960,
+      "lines": 427
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/tests/unit/cstar-kernel-mcp/test_forge_authorization_schema_profiles.test.ts",
+      "sha256": "78554da446cfb7eac7d206078431f1bfff21be99a5d915f2ace0f1108a7700e3",
+      "bytes": 14340,
+      "lines": 332
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/tests/unit/cstar-kernel-mcp/test_forge_authorization_schema_legacy_duplicates.test.ts",
+      "sha256": "33698fd80c3c423a1651a805cb035c4f174acde774a501a4fe3690d871adc533",
+      "bytes": 13713,
+      "lines": 311
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-forge-authorization-child-fk-migration-20260804-r2/disposable-child-fk-fixture.mjs",
+      "sha256": "1039a2d631891ba557c23e4fb660901709ceb81a221aeec48b33531867501f7b",
+      "bytes": 14269,
+      "lines": 354
+    }
+  ],
+  "checks": [
+    {
+      "name": "focused_profile_and_legacy_suites",
+      "status": "pass",
+      "evidence_path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-forge-authorization-child-fk-migration-20260804-r2/01-focused-suites.txt",
+      "sha256": "1b18717370f687a4cfcbee7497677de84e04cd0298b77dd691adc6f5ab96d825"
+    },
+    {
+      "name": "exact_11_file_broad_aggregate",
+      "status": "pass",
+      "evidence_path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-forge-authorization-child-fk-migration-20260804-r2/02-broad-aggregate.txt",
+      "sha256": "fe245d50d44ea85c342094320b0f9dd7dd8cd31e648dcf0bd0c84d5db530c09e"
+    },
+    {
+      "name": "typecheck_diff_hash_and_line_audit",
+      "status": "pass",
+      "evidence_path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-forge-authorization-child-fk-migration-20260804-r2/03-typecheck-diff-hash-lines.txt",
+      "sha256": "97dc923891bc5ad35db59a49a0a1b467e8b54a3f6a6dd7106a948233d3f8e822"
+    },
+    {
+      "name": "independent_source_review",
+      "status": "pass",
+      "evidence_path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-forge-authorization-child-fk-migration-20260804-r2/04-source-review.txt",
+      "sha256": "f9f57c287c3827df30da6c2c78cd39505f0a35574cc896b2dc8ce463f9fe713a"
+    },
+    {
+      "name": "disposable_sqlite_parent_child_fk_fixture",
+      "status": "pass",
+      "evidence_path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-forge-authorization-child-fk-migration-20260804-r2/05-disposable-fixture.txt",
+      "sha256": "0c2a645b8438c3405ae1648fe7c1ef5d86617b60e96e62d537c7d53dae22d288"
+    },
+    {
+      "name": "live_hall_readonly_no_mutation",
+      "status": "pass",
+      "evidence_path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-forge-authorization-child-fk-migration-20260804-r2/06-live-hall-readonly.txt",
+      "sha256": "b1be4a2dc7e3b3d44d0c17e678c7053f46afae19053552be0efd6a6721b88658"
+    },
+    {
+      "name": "validator_identity_and_effort",
+      "status": "pass",
+      "evidence_path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-forge-authorization-child-fk-migration-20260804-r2/07-validator-identity.txt",
+      "sha256": "6277c6c05bfb337195bd70ea21d7a0e0e052291b1f82b42870d9e6ca21f11db4"
+    }
+  ],
+  "mutation_boundary": {
+    "source_tests_docs_edited_by_validator": false,
+    "bounded_evidence_only_path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-forge-authorization-child-fk-migration-20260804-r2",
+    "cstar_mcp_lifecycle_calls": 0,
+    "cstar_or_hall_mutated": false,
+    "git_mutated": false,
+    "config_or_host_state_mutated": false,
+    "forge_called": false,
+    "agents_spawned": false,
+    "install_rebuild_restart_performed": false,
+    "high_volume_payloads": "omitted"
+  },
+  "closeout_boundary": "Independent receipt only; no CStar record_result or lifecycle mutation was attempted by this read-only validator."
+}

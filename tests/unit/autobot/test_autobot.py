@@ -49,24 +49,34 @@ def test_active_skill_registry_contains_no_autobot_entry_or_route() -> None:
     )
 
 
-def test_durable_forge_is_the_only_registered_implementation_lane() -> None:
+def test_autobot_tombstone_routes_to_native_mission_not_forge() -> None:
+    tombstone = _read(".agents/skills/autobot/SKILL.md")
+    flat = " ".join(tombstone.split())
+
+    assert "Forge is `TOMBSTONED_PERMANENT`" in flat
+    assert "cstar_mission" in flat
+    assert "native task-control work cell" in flat
+    assert "cstar_forge_request ->" not in flat
+
+
+def test_native_mission_is_registered_and_forge_is_tombstoned() -> None:
     registry = json.loads(_read(".agents/skill_registry.json"))
     build_route = registry["intent_grammar"]["BUILD"]
     repair_route = registry["intent_grammar"]["REPAIR"]
     forge = registry["entries"]["corvus-forge"]
     catalog = _read("src/tools/cstar-kernel-mcp/contracts/tool_catalog.ts")
-    contract = _read("docs/operations/corvus-forge-skill-spec.md")
+    contract = _read("docs/integrations/codex_mcp_contract.md")
 
-    assert build_route["default_path"] == "cstar_forge_request"
-    assert repair_route["default_path"] == "cstar_forge_request"
-    assert forge["viability"] == "ACTIVE"
-    assert forge["entry_surface"] == "host-only"
+    assert build_route["default_path"] == "cstar_mission"
+    assert repair_route["default_path"] == "cstar_mission"
+    assert forge["viability"] == "TOMBSTONED_PERMANENT"
+    assert forge["entry_surface"] == "compatibility"
+    assert set(forge["host_support"].values()) == {"unsupported"}
     assert "name: 'cstar_forge_request'" in catalog
     assert "name: 'cstar_forge_execute'" in catalog
-    assert (
-        "cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute -> private Hermes cstar-hub"
-        in contract.replace("\n", " ")
-    )
+    assert "Forge is `TOMBSTONED_PERMANENT`" in contract
+    assert "cstar_mission" in contract
+    assert "must not be invoked" in contract
 
 
 def test_retirement_contract_forbids_environment_reactivation() -> None:
@@ -75,4 +85,5 @@ def test_retirement_contract_forbids_environment_reactivation() -> None:
 
     assert "`cstar_autobot` is decommissioned" in flat
     assert "No environment variable reactivates it." in flat
-    assert "Live implementation uses only `cstar_forge_request`" in flat
+    assert "Codex-host state-only Luna handoff is separate" in flat
+    assert "performs zero provider calls" in flat

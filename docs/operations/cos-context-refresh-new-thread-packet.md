@@ -79,7 +79,7 @@ The durable handoff work is complete:
   - Sentinel/zero-trust design: Gemini `92/100`, CoS `93/100`
 - The final primer adopted:
   - bead lifecycle authority
-  - CoS, mapped-PMT context, Forge, Researcher, CorvusEye, and PennyOne
+  - CoS, mapped-PMT context, native work cells, Researcher, CorvusEye, and PennyOne
     boundaries
   - snapshot and live-run delta packets
   - staleness timestamps
@@ -111,8 +111,10 @@ Validation passed:
   security, or incident forensics only when the host exposes an enforceable
   selector. Record requested and actual identity separately; use `unreported`
   when the host reports none.
-- MM is legacy and has no active routing or relay role.
-- Corvus Forge builds implementation when a Forge route exists.
+- MM is inactive and has no active routing, synthesis, ownership, relay, review,
+  or execution role.
+- CStar reserves deterministic effects for bounded native implementation work
+  cells. Forge is `TOMBSTONED_PERMANENT` and historical only.
 - Researcher researches; live external collection is lane-gated.
 - CorvusEye evaluates/red-teams; it cannot self-certify Researcher.
 - PennyOne/dashboard should hold live project state so CoS is not used as the

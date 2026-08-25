@@ -5,12 +5,15 @@
 This is the invocation contract for the three current capabilities marked
 `entry_surface: host-only` in `.agents/skill_registry.json`:
 
-- `corvus-forge`;
-- `researcher`; and
-- `cstar-closeout`.
+- `researcher`;
+- `cstar-closeout`; and
+- `cstar-reliability-loop`.
 
 They are agent-native procedures. They are not public shell commands, runtime
 models, or dispatcher-owned executions.
+
+`corvus-forge` is a separate `TOMBSTONED_PERMANENT` compatibility record. It is
+not a current capability and must fail closed.
 
 ## Host Path
 
@@ -99,18 +102,24 @@ make the skill terminal-executable.
 
 ## Lane-Specific Rules
 
-- `corvus-forge` uses only the durable request/execute/result lifecycle. The
-  private Hermes `cstar-hub` MiniMax-M3 adapter is sealed inside Forge; direct
-  Hermes and public AutoBot remain retired. Requested and actual model identity
-  are recorded separately.
+- Implementation uses an authorized Bead/SET, `cstar_mission`, deterministic
+  effect reservation, native task-control work cells, typed ACK and terminal
+  packets, independent validation, and `cstar_record_result`. Missing runner or
+  transport capability fails closed. Forge, Hermes/MiniMax implementation, and
+  public AutoBot are not fallbacks.
 - `researcher` uses authorized Researcher source lanes. New live collection or
   source expansion remains operator-gated.
 - `cstar-closeout` assembles evidence and handoff state first. Stage, commit,
   push, merge, install, cache reconciliation, restart, and deploy are separate
   actions requiring their applicable explicit grants.
+- `cstar-reliability-loop` coordinates bounded validation and automatic repair
+  continuation; CStar records state, a bounded native work cell implements, and
+  an independent validator accepts.
 
 PMTs may be queried only as mapped project information repositories and may
-receive a compact `STATE_UPDATE`; they grant no authority. MM is legacy.
+receive a compact `STATE_UPDATE`; they grant no ownership, execution, approval,
+review, routing, monitoring, or lifecycle authority. MM is inactive and has no
+active routing, synthesis, ownership, relay, review, or execution role.
 
 ## Failure Behavior
 

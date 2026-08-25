@@ -49,7 +49,7 @@ export const CSTAR_KERNEL_TOOL_CATALOG = [
     {
         name: 'cstar_bead',
         toolClass: 'MUTATION',
-        description: 'Create, inspect, claim, block, resolve, and list bounded Hall beads. RESOLVED requires fresh contained Lore/Isolation artifacts bound to an exact independent Hall validation receipt; no scalar, cached, force, or exemption bypass exists.',
+        description: 'Create, inspect, claim, block, resolve, and list bounded Hall beads. RESOLVED accepts either receipt-bound contained Lore/Isolation evidence or a verified_v4 host-native controller and independent-validator artifact receipt.',
     },
     {
         name: 'cstar_goal_resume',
@@ -64,7 +64,7 @@ export const CSTAR_KERNEL_TOOL_CATALOG = [
     {
         name: 'cstar_record_result',
         toolClass: 'MUTATION',
-        description: 'Record independent validation for a Hall bead and optionally finalize a delivered Forge receipt.',
+        description: 'Record independent validation for a Hall bead from a hash-bound host-native controller and independent-validator artifact receipt; historical Forge receipts remain evidence only.',
     },
     {
         name: 'cstar_engram_record',
@@ -104,7 +104,7 @@ export const CSTAR_KERNEL_TOOL_CATALOG = [
     {
         name: 'cstar_status',
         toolClass: 'READ',
-        description: 'Deterministic kernel state snapshot with optional exact Forge execution lifecycle status.',
+        description: 'Deterministic kernel state snapshot with host-work-cell readiness and an explicit permanently tombstoned Forge status.',
     },
     {
         name: 'cstar_persona_set',
@@ -142,19 +142,9 @@ export const CSTAR_KERNEL_TOOL_CATALOG = [
         description: 'Create a CStar-native no-spend Researcher request receipt.',
     },
     {
-        name: 'cstar_forge_request',
+        name: 'cstar_mission',
         toolClass: 'REQUEST',
-        description: 'Persist an immutable no-spend Forge request; machine challenge material stays hidden from the normal operator workflow.',
-    },
-    {
-        name: 'cstar_forge_authorize',
-        toolClass: 'MUTATION',
-        description: 'Bind one explicit root-user build instruction or immutable CStar goal-continuation receipt to one unchanged pending Forge request; performs no provider call.',
-    },
-    {
-        name: 'cstar_forge_execute',
-        toolClass: 'EXECUTION',
-        description: 'Atomically run one provider attempt through the private Hermes/MiniMax adapter, with durable replay, independently validated pre-provider continuity, and delivered-pending-validation semantics.',
+        description: 'Compatibility-first ordinary bounded mission coordinator; derives immutable identifiers and hashes, persists host-owned queue intent when authorized, and never launches workers, providers, or Forge authority.',
     },
 ] as const satisfies readonly CstarKernelToolCatalogShape[];
 

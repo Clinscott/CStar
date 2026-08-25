@@ -42,16 +42,17 @@ metadata:
 - Use `cstar_handoff` when resuming active planning/runtime state, then carry forward only the lead bead, gate, next action, target paths, and checker commands.
 - Use `cstar_handoff` when resuming, `cstar_doctor` when kernel health is unknown, and `cstar_augury` only when route or material scope is ambiguous.
 - Use direct Codex thread tools for read/list/send when exposed; session JSONL fallback is read-only degraded mode, not an execution or assignment surface.
-- CoS owns estate sequencing, bounded Green/Yellow execution, evidence packaging, lifecycle updates, and closeout.
+- CoS coordinates operator-facing work, sequencing, evidence packaging, and closeout. CStar alone owns lifecycle transitions.
 - Start or resume one host goal for every non-trivial mission, keep one plan step in progress, and close the goal only after CStar lifecycle state and validation agree.
-- Before the first CStar mutation or provider attempt of each local day, follow `docs/operations/cstar-goal-driven-daily-bootstrap.md` for Codex/Hermes freshness; updates do not authorize a restart.
-- Forge builds implementation; Researcher gathers evidence; CorvusEye evaluates and red-teams.
+- Before the first CStar mutation or authorized provider attempt of each local day, follow `docs/operations/cstar-goal-driven-daily-bootstrap.md`; version checks do not authorize update, install, activation, restart, or configuration mutation.
+- CStar owns lifecycle state and deterministic effects. Bounded native workers implement; Researcher gathers evidence and proposes improvements; CorvusEye or a distinct validator evaluates.
 - PMTs are project-scoped information repositories only. Query only the mapped PMT for bounded context and send a compact state update after meaningful work.
-- MM is legacy and has no active estate-routing role.
+- MM is inactive and has no active routing, synthesis, ownership, relay, review, or execution role.
 - Preserve operator gates for acceptance, dispatch, implementation bypass, commit, push, merge, post, deletion, restarts, deploys, and secret/config mutation.
 - Keep high-volume collectors outside beads; collectors write receipts or artifacts, then bounded proposals/results enter CStar.
-- Public AutoBot is decommissioned. Forge alone may use its private CStar -> Hermes -> MiniMax-M3 adapter after an authorized execute transition.
-- Choose Luna, Terra, or Sol only through a host surface that exposes an enforceable selector. Record requested and actual identity separately; use `unreported` when actual identity is absent.
+- Forge and public AutoBot are decommissioned. Forge is `TOMBSTONED_PERMANENT`; private Hermes/MiniMax material is historical evidence, not compatibility or fallback.
+- Implementation uses an authorized Bead/SET, `cstar_mission`, deterministic effect reservation, native task-control work cells, typed ACK and terminal packets, independent validation, `cstar_record_result`, and a CSF-D007 checkpoint.
+- Resolve model selection through the canonical model-policy registry and an enforceable host selector. Record requested and actual identity separately; use `unreported` when actual identity is absent.
 - Keep host-specific packaging separate from kernel logic.
 - Treat `native-session` and `exec-bridge` capabilities as host-routed work, and `supported` capabilities as kernel-backed launch surfaces.
 - Treat `host-workflow` entries as host-owned cognition/workflow surfaces and `kernel-primitive` entries as deterministic kernel control-plane primitives.
@@ -69,9 +70,9 @@ metadata:
 - Foundational CStar work uses `Scope: brain:CStar`; use `Scope: spoke:<name>` only when a spoke is explicit.
 - Do not echo a full Augury block unless the operator asks for the route packet.
 
-## Kernel MCP Tools (28)
+## Kernel MCP Tools (26)
 
-The `cstar-kernel` MCP server is the authoritative kernel surface — invoke these tools directly via MCP rather than shelling out to `./cstar` whenever the needed primitive exists. Tool classes declare bounded effects; observed runtime remains evidence and cannot grant authority. Full API reference: `docs/integrations/cstar-kernel-mcp.md`.
+The `cstar-kernel` MCP server is the authoritative kernel surface — invoke active tools directly via MCP rather than shelling out to `./cstar` whenever the needed primitive exists. Tool classes declare bounded effects; observed runtime remains evidence and cannot grant authority. Full API reference: `docs/integrations/cstar-kernel-mcp.md`.
 
 - `cstar_hall_maintenance` (LEGACY) — Decommissioned lesson study/harvest compatibility surface; always fails closed without reading or writing Hall state.
 - `cstar_handoff` (READ) — Return compact active state from Augury/handoff logic.
@@ -79,10 +80,10 @@ The `cstar-kernel` MCP server is the authoritative kernel surface — invoke the
 - `cstar_augury` (READ) — Resolve a mission to a route with deterministic grammar, active session context, council expert, Mimir targets, and persona advice.
 - `cstar_doctor` (READ) — Diagnose base kernel health and active Augury health.
 - `cstar_verify_plan` (READ) — Recommend focused checks; do not run them.
-- `cstar_bead` (MUTATION) — Create, inspect, claim, block, resolve, and list bounded Hall beads. RESOLVED requires fresh contained Lore/Isolation artifacts bound to an exact independent Hall validation receipt; no scalar, cached, force, or exemption bypass exists.
+- `cstar_bead` (MUTATION) — Create, inspect, claim, block, resolve, and list bounded Hall beads. RESOLVED accepts either receipt-bound contained Lore/Isolation evidence or a `verified_v4` host-native controller and fresh independent-validator artifact receipt.
 - `cstar_goal_resume` (MUTATION) — Append immutable continuity evidence for an explicitly resumed blocked host goal. It does not change host state or grant spend, source, Git, restart, deployment, or production authority.
 - `cstar_spoke_bead_import` (MUTATION) — Import a spoke-originated bead into the Hall through a bounded, validated handoff payload.
-- `cstar_record_result` (MUTATION) — Record independent validation for a Hall bead and optionally finalize a delivered Forge receipt.
+- `cstar_record_result` (MUTATION) — Record independent validation from hash-bound host-native controller and fresh independent-validator artifacts. Historical Forge receipts are evidence only.
 - `cstar_engram_record` (MUTATION) — Publish an Engram to the Hall episodic memory table and fire war-game scoring when applicable.
 - `cstar_war_game_score` (MUTATION) — War-game scoring: register_contest, tally, recent, by_scenario, get_score, list_contests.
 - `cstar_manifest` (READ) — Capability discovery. Returns the kernel registry merged with spoke-local skill manifests.
@@ -90,7 +91,7 @@ The `cstar-kernel` MCP server is the authoritative kernel surface — invoke the
 - `cstar_spoke_journal` (READ) — Four-file journal state for a registered spoke.
 - `cstar_pennyone_context` (READ) — Bounded PennyOne/Hall state summaries. No arbitrary SQL is accepted.
 - `cstar_mongo_mailbox` (LEGACY) — Decommissioned Mongo mirror/intent compatibility surface; always fails closed without secret, network, or write activity.
-- `cstar_status` (READ) — Deterministic kernel state snapshot with optional exact Forge execution lifecycle status.
+- `cstar_status` (READ) — Deterministic kernel state snapshot with host-work-cell readiness and explicit permanently tombstoned Forge status.
 - `cstar_persona_set` (MUTATION) — Explicitly select O.D.I.N. or A.L.F.R.E.D. for the next workflow boundary; style-only and never expands authority or bypasses gates.
 - `cstar_evolve` (READ) — Read-only inspection of Karpathy-loop artifacts: list_proposals, get_proposal, list_sprt_history.
 - `cstar_spoke` (READ) — Redacted mounted-spoke inspection and exact-match prune preview; link, unlink, project, and destructive prune fail closed until a request-scoped operator-attestation contract exists.
@@ -98,9 +99,13 @@ The `cstar-kernel` MCP server is the authoritative kernel surface — invoke the
 - `cstar_warden` (EXECUTION) — On-demand local Sentinel Warden execution. list and bounties are read-only; scan starts a constrained project-venv process and performs no LLM inference.
 - `cstar_telemetry` (READ) — Read-only MCP telemetry summaries over the last 24h.
 - `cstar_researcher_request` (REQUEST) — Create a CStar-native no-spend Researcher request receipt.
-- `cstar_forge_request` (REQUEST) — Persist an immutable no-spend Forge request; machine challenge material stays hidden from the normal operator workflow.
-- `cstar_forge_authorize` (MUTATION) — Bind one explicit root-user build instruction or immutable CStar goal-continuation receipt to one unchanged pending Forge request; performs no provider call.
-- `cstar_forge_execute` (EXECUTION) — Atomically run one provider attempt through the private Hermes/MiniMax adapter, with durable replay, independently validated pre-provider continuity, and delivered-pending-validation semantics.
+- `cstar_mission` (REQUEST) — Compatibility-first ordinary bounded mission coordinator; derives immutable identifiers and hashes, persists host-owned queue intent when authorized, and never launches workers, providers, or Forge authority.
+
+### Removed Forge exposures
+- Forge is `TOMBSTONED_PERMANENT`. `cstar_forge_request`,
+  `cstar_forge_authorize`, `cstar_forge_execute`, and
+  `cstar_forge_host_complete` are absent from the public MCP inventory.
+- Historical Forge receipts and parsers remain forensic evidence only.
 
 ## Context Budget
 - Never preload Hall memory, logs, full registry dumps, or complete bead ledgers.
@@ -118,6 +123,6 @@ The `cstar-kernel` MCP server is the authoritative kernel surface — invoke the
 
 ## Registry-Exported Codex Capabilities
 - This list is generated from `.agents/skill_registry.json` and may be empty when no Codex executable capabilities are registered.
-- `corvus-forge` (SKILL, native-session, host-workflow, kernel fallback forbidden)
 - `cstar-closeout` (SKILL, native-session, host-workflow, kernel fallback forbidden)
+- `cstar-reliability-loop` (SKILL, native-session, host-workflow, kernel fallback forbidden)
 - `researcher` (SKILL, native-session, host-workflow, kernel fallback forbidden)

@@ -16,6 +16,8 @@ This repository generates verified host source-staging artifacts from the declar
 - Source staging only: `npm run install:codex-local` verifies and stages the plugin under `~/plugins/corvus-star`; it does not run `codex plugin add`, refresh Codex cache, restart Desktop, or prove live activation.
 - Marketplace reconciliation, `codex plugin add`, restart or new-task pickup, and live proof remain separately operator-gated.
 - Never copy plugin caches or marketplace state by hand.
+- Forge is `TOMBSTONED_PERMANENT`. Historical Forge tools and host-handoff bytes are not executable plugin capabilities.
+- Current implementation uses CStar deterministic effects and native task-control work cells; installed or cached packages must not claim this route until separately activated and proven.
 - Codex skill context presents Augury as an advisory route explanation, never authority or proof.
 - Public host fronts marked as no-fallback are expected to fail closed when the host session is unavailable.
 

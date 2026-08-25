@@ -5,6 +5,7 @@
 The former Prime/Skill/Weave/Spell permutation model is retained only as
 compatibility vocabulary in types and historical records. It is not the current
 execution topology. The current registry has three active `SKILL` entries and
+one `TOMBSTONED_PERMANENT` Forge compatibility record, with
 no active registered weaves or spells.
 
 ## Current Composition Rule
@@ -22,12 +23,14 @@ The active compositions are:
 
 | Intent | Agent-native skill | Kernel lifecycle |
 | --- | --- | --- |
-| Build, repair, improve | `corvus-forge` | `cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute -> cstar_record_result` |
+| Build, repair, improve | deterministic CStar runner | `cstar_mission -> authorized Bead/SET -> native task-control work cell -> cstar_record_result` |
 | Research, external evidence | `researcher` | `cstar_researcher_request -> authorized collection -> receipt/result` |
 | Handoff and session closeout | `cstar-closeout` | bounded evidence snapshot -> lifecycle update -> separately gated Git/activation actions |
+| Validate and repair | `cstar-reliability-loop` | bounded validation -> automatic repair continuation -> independent acceptance |
 
 CoS owns sequencing. PMTs may supply or receive bounded project context but are
-information repositories only. MM has no active routing role.
+information repositories only. MM is inactive and has no active routing,
+synthesis, ownership, relay, review, or execution role.
 
 ## Compatibility Tiers
 

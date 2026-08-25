@@ -1,0 +1,133 @@
+{
+  "schema": "cstar.runtime_lineage_dependency_materialization.v1",
+  "status": "verified",
+  "decision_id": "decision:cstar-state-only-luna-host-seam-batch1-20260803",
+  "bead_id": "bead:cstar:state-only-luna-host-seam-batch1-20260803:parent:01-baseline",
+  "host_goal_id": "019fca13-0587-7c30-9805-f90727f3db42",
+  "worktree": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803",
+  "source_root": "/home/morderith/Corvus/CStar/work/truth/cstar-master-20260730/node_modules",
+  "scope": [
+    "node_modules/**",
+    ".cstar/validation/runtime-lineage/dependencies/node-modules-materialization-20260803.json"
+  ],
+  "prohibitions_observed": [
+    "no network",
+    "no npm/yarn/pnpm install",
+    "no provider",
+    "no source/package/config/launcher mutation",
+    "no CStar/Hall mutation",
+    "no Git index/history mutation",
+    "no process/service/restart/reload"
+  ],
+  "preimage": {
+    "destination_node_modules_exists": false,
+    "destination_staging_candidates": [],
+    "truth_package_json_sha256": "fce32d009f4600c5f37475b1c329fa603205e33ccf20389365f9d106cb60f210",
+    "successor_package_json_sha256": "fce32d009f4600c5f37475b1c329fa603205e33ccf20389365f9d106cb60f210",
+    "truth_package_lock_sha256": "17444f155c3c718d9a9d4197b7c6b794314b2c13a653f48a98fdc6737dbbf270",
+    "successor_package_lock_sha256": "17444f155c3c718d9a9d4197b7c6b794314b2c13a653f48a98fdc6737dbbf270",
+    "truth_installed_package_lock_sha256": "ac6407c2a376b9afab1dc1f8ffb043170cf6c6810d83c60d4d35fa25777c52f3",
+    "truth_semantic_inventory_sha256": "93e1c00e06f9008bdc2b72015b685dea8cd042db78fbbc2060ec9acb01b5ba0d",
+    "truth_regular_file_count": 22352,
+    "truth_symlink_count": 34,
+    "truth_directory_count": 2954,
+    "truth_regular_bytes": 417562620,
+    "truth_package_lock_bytes": 343202,
+    "truth_installed_package_lock_bytes": 299202,
+    "truth_native_sha256": "2cbc7eb7f9da445e6221244aeae015716659780944ce165e428046c7b2bc78eb",
+    "truth_native_bytes": 2139624,
+    "truth_native_path": "node_modules/better-sqlite3/build/Release/better_sqlite3.node",
+    "truth_native_elf": "ELF64, DYN, x86-64",
+    "source_inventory_two_passes_equal": true,
+    "source_lock_two_passes_equal": true,
+    "source_installed_lock_two_passes_equal": true
+  },
+  "materialization": {
+    "method": "cp -a --reflink=auto source/. staging; mv staging destination",
+    "copy_command": "cp -a --reflink=auto /home/morderith/Corvus/CStar/work/truth/cstar-master-20260730/node_modules/. /home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/node_modules.staging.XpMhIk/",
+    "staging_path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/node_modules.staging.XpMhIk",
+    "atomic_rename_command": "mv /home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/node_modules.staging.XpMhIk /home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/node_modules",
+    "staging_birth_time": "2026-08-03T20:03:13.972897692-04:00",
+    "atomic_rename_started": "2026-08-03T20:04:23.764-04:00",
+    "atomic_rename_finished": "2026-08-03T20:04:23.769-04:00",
+    "atomic_rename_duration_ms": 3,
+    "copy_duration_ms": null,
+    "copy_duration_caveat": "The first conservative inventory check aborted before emitting copy start/end timestamps because it included filesystem allocation size for directories. Regular-file bytes, file/symlink/directory counts, semantic inventory, and rsync checksum comparison were then verified equal before the atomic rename; no second copy was performed.",
+    "first_raw_inventory_check": {
+      "source_sha256": "7dc774023694011191fe27a1c167538a52bc5b884ed698ec53ff80f492127161",
+      "staging_sha256": "ca702f8f1d93918e81259e16785a34df73aee9afcb775cda5d436229a1a0f01f",
+      "classification": "directory_allocation_size_only_false_alarm"
+    },
+    "semantic_inventory_before_rename_sha256": "93e1c00e06f9008bdc2b72015b685dea8cd042db78fbbc2060ec9acb01b5ba0d",
+    "rsync_checksum_dry_run": "no differences",
+    "source_stable_before_rename": true,
+    "destination_absent_before_rename": true,
+    "atomic_rename_safe": true
+  },
+  "postimage": {
+    "destination_type": "directory",
+    "destination_mode": "755",
+    "destination_realpath": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/node_modules",
+    "destination_realpath_inside_successor": true,
+    "node_modules_symlinked": false,
+    "destination_package_lock_sha256": "17444f155c3c718d9a9d4197b7c6b794314b2c13a653f48a98fdc6737dbbf270",
+    "destination_installed_package_lock_sha256": "ac6407c2a376b9afab1dc1f8ffb043170cf6c6810d83c60d4d35fa25777c52f3",
+    "destination_semantic_inventory_sha256": "93e1c00e06f9008bdc2b72015b685dea8cd042db78fbbc2060ec9acb01b5ba0d",
+    "destination_regular_file_count": 22352,
+    "destination_symlink_count": 34,
+    "destination_directory_count": 2954,
+    "destination_regular_bytes": 417562620,
+    "destination_native_sha256": "2cbc7eb7f9da445e6221244aeae015716659780944ce165e428046c7b2bc78eb",
+    "destination_native_bytes": 2139624,
+    "native_source_destination_hash_equal": true
+  },
+  "runtime_lineage_checker": {
+    "runtime_node": "v25.8.1",
+    "runtime_node_module_version": "141",
+    "schema": "cstar.kernel_runtime_lineage.v2",
+    "node_modules_symlinked": false,
+    "node_modules_realpath_matches_root": true,
+    "installed_lock_present": true,
+    "package_lock_root_match": true,
+    "installed_inventory": "verified_lock_match",
+    "dependency_lineage": "verified_lock_match",
+    "expected_packages": 727,
+    "installed_packages": 642,
+    "omitted_incompatible_optional_packages": 85,
+    "mismatch_count": 0,
+    "mismatch_reasons": [],
+    "native_artifact_contract": "verified_required_native_artifacts",
+    "native_artifact_runtime_smoke": "verified",
+    "forge_runtime_contract": "partial",
+    "forge_runtime_caveat": "The existing Hermes/MiniMax manifest is intentionally outside this dependency-only scope and is owned by the separate runtime-manifest worker. Forge readiness was not required for this receipt."
+  },
+  "native_runtime_smoke": {
+    "runtime_node": "v25.8.1",
+    "runtime_node_module_version": "141",
+    "status": "ok",
+    "sqlite_version": "3.51.2"
+  },
+  "commands": [
+    "cp -a --reflink=auto /home/morderith/Corvus/CStar/work/truth/cstar-master-20260730/node_modules/. /home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/node_modules.staging.XpMhIk/",
+    "rsync -a -c -n --itemize-changes /home/morderith/Corvus/CStar/work/truth/cstar-master-20260730/node_modules/ /home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/node_modules.staging.XpMhIk/",
+    "mv /home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/node_modules.staging.XpMhIk /home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/node_modules",
+    "/home/morderith/.nvm/versions/node/v25.8.1/bin/node --import file:///home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/node_modules/tsx/dist/loader.mjs --input-type=module -e 'buildKernelRuntimeLineageForRoots({ codeRoot: process.env.SUCCESSOR_ROOT, controlRoot: \"/home/morderith/Corvus/CStar\", bindingMode: \"library_default\" })'",
+    "/home/morderith/.nvm/versions/node/v25.8.1/bin/node --input-type=module -e 'require(\"/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/node_modules/better-sqlite3\")'",
+    "sha256sum package-lock.json node_modules/.package-lock.json node_modules/better-sqlite3/build/Release/better_sqlite3.node"
+  ],
+  "node26_environment_caveat": {
+    "default_node": "v26.5.0",
+    "default_node_module_version": "147",
+    "observed_error": "ERR_DLOPEN_FAILED: better_sqlite3.node was compiled against NODE_MODULE_VERSION 141; Node.js v26 requires NODE_MODULE_VERSION 147",
+    "truth_and_destination_same_error": true,
+    "resolution": "Used the existing local Node v25.8.1 runtime matching the verified native artifact; no rebuild or install was performed."
+  },
+  "git_and_cstar": {
+    "successor_head": "afbbc1770ec6a7a2adc15b83f91c5586ac2525c0",
+    "truth_head": "5887042deefaae240db2a546f3cc9640f601e9e2",
+    "git_index_or_history_mutated": false,
+    "cstar_or_hall_mutated": false,
+    "source_truth_dependency_root_touched": false
+  },
+  "final_note": "Successor-local dependency lineage is materialized and verified under the existing Node 25 runtime. This receipt does not claim Forge readiness, CStar acceptance, activation, or production readiness."
+}

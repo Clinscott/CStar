@@ -19,15 +19,16 @@ policy remains above both surfaces.
 
 ## Current Inventory
 
-The active registry contains exactly three agent-native leaf skills:
+The active registry contains exactly three agent-native leaf skills and one
+historical Forge tombstone:
 
 | Skill | Purpose | Mutation boundary |
 | --- | --- | --- |
-| `corvus-forge` | Route bounded implementation through durable Forge request, execute, and independent validation. | Only CStar lifecycle tools and the sealed private Forge adapter may mutate within the authorized request. |
 | `researcher` | Route bounded evidence work through authorized Researcher lanes. | Live collection and source-lane expansion remain separately gated. |
 | `cstar-closeout` | Assemble evidence-backed handoff and closeout packets. | Stage, commit, push, merge, install, restart, and deploy are distinct operator gates. |
+| `cstar-reliability-loop` | Coordinate bounded validation and automatic repair continuation with independent acceptance. | CStar records state; repair, retry, and acceptance remain bounded and separately gated. |
 
-All three use:
+The three active skills use:
 
 - `tier: SKILL`;
 - `entry_surface: host-only`;
@@ -39,12 +40,16 @@ All three use:
 it in-session. It is not permission for `cstar run-skill`, a runtime adapter,
 shell wrapper, model callback, or dynamic dispatcher to execute the skill.
 
+`corvus-forge` is retained as `TOMBSTONED_PERMANENT`, `compatibility`, and
+unsupported for every host. Its skill is a fail-closed tombstone. Historical
+Forge files and receipts are evidence only.
+
 ## Routing
 
 Registry intent grammar is advisory discovery metadata:
 
-- build, repair, and evolve intents route to `corvus-forge` and the
-  `cstar_forge_request` lifecycle;
+- build, repair, and evolve intents route to the deterministic
+  `cstar_mission` request surface and the authorized Bead/SET runner lifecycle;
 - research intents route to `researcher` and `cstar_researcher_request`;
 - documentation and handoff intents route to `cstar-closeout`; and
 - deterministic observation, lifecycle, and validation intents route to the
@@ -79,7 +84,8 @@ The following are not active skills or alternate execution lanes:
 
 Compatibility names may remain as read-only projections or fail-closed
 tombstones. Their presence in source, historical records, or old documentation
-does not restore capability or authority. MM is legacy, and PMTs are
+does not restore capability or authority. MM is inactive and has no active
+routing, synthesis, ownership, relay, review, or execution role. PMTs are
 project-scoped information repositories only.
 
 ## Change Rule

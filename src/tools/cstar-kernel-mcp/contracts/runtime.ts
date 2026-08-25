@@ -5,6 +5,7 @@ import { resolveKernelMcpLaunchRoots } from '../../../../bin/cstar-kernel-mcp-en
 import {
     buildKernelRuntimeLineageForRoots,
     evaluateKernelForgeReadiness,
+    evaluateKernelHostWorkCellReadiness,
     type KernelRuntimeLineage,
 } from './runtime_lineage.js';
 import {
@@ -119,7 +120,7 @@ export function createForgeHandlerRuntimeReadinessAssertion(
     return createStableForgeRuntimeReadinessAssertion(testOverride);
 }
 
-export { evaluateKernelForgeReadiness, type KernelRuntimeLineage } from './runtime_lineage.js';
+export { evaluateKernelForgeReadiness, evaluateKernelHostWorkCellReadiness, type KernelRuntimeLineage } from './runtime_lineage.js';
 
 export function isPathInside(child: string, parent: string): boolean {
     const resolvedChild = path.resolve(child);

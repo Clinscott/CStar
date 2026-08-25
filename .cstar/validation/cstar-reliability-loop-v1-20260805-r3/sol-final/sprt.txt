@@ -1,0 +1,56 @@
+schema: cstar.independent_validation_sprt.v1
+validation_id: validation:cstar-reliability-loop-v1-20260805-r3-sol-final
+verdict: REJECTED
+
+receipt_path: .cstar/validation/cstar-reliability-loop-v1-20260805-r3/sprt/receipt.json
+receipt_bytes: 43373
+receipt_sha256: 802814c0ebf3846405513a15cfdbf1043c215ae5ba4895502d794f78081a463d
+checksum_path: .cstar/validation/cstar-reliability-loop-v1-20260805-r3/sprt/receipt.sha256
+checksum_bytes: 79
+checksum_sha256: 98788f7756169ce40db0d345f2fbc80a453db32636932b0dce3ae4d56008b56d
+sha256sum_check: pass
+
+candidate_digest_verification:
+  source_entries: 13
+  recorded_digest: 734bcede97508530fc2325ffbf97f31ecc5f6e92d1aa9a415887d598e23b2b70
+  independently_recomputed_digest: 734bcede97508530fc2325ffbf97f31ecc5f6e92d1aa9a415887d598e23b2b70
+  digest_match: true
+  source_entry_hash_mismatches: 0
+
+receipt_claims:
+  schema: cstar.workflow_sprt_autoresearcher.v1
+  node_version: v25.8.1
+  sprt_verdict: ACCEPTED
+  raw_status: ACCEPT
+  trials: 11
+  passed: 11
+  failed: 0
+  workflow_score: 100.0
+  gungnir_valid: true
+  gungnir_scored_count: 11
+  gungnir_candidate_count: 13
+  gungnir_excluded_count: 2
+  gungnir_score: 9.502863636363637
+  gungnir_authority: heuristic_evidence_only
+  cstar_acceptance: UNVERIFIED
+
+candidate_parser_execution:
+  node_path: /home/morderith/.nvm/versions/node/v25.8.1/bin/node
+  function: verifyReliabilityReceipt
+  repository_root: /home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803
+  receipt_manifest_binding_count: 1
+  present: true
+  verified: false
+  error: reliability_receipt_schema_invalid
+  effective_sprt_verdict: null
+
+schema_contradiction:
+  scored_records_checked: 11
+  scored_records_with_string_coverage_heuristic: 11
+  scored_records_with_array_coverage: 0
+  producer_requires: coverage is the string heuristic
+  canonical_engine_emits: coverage is the string heuristic
+  candidate_acceptance_parser_requires: Array.isArray(entry.coverage)
+  direct_effect: the exact r3 receipt is unreadable as accepted reliability proof by the candidate that would consume it
+
+sprt_conclusion: checksum integrity and source-digest integrity pass, but semantic/schema acceptance fails; claimed ACCEPTED is not an effective accepted receipt

@@ -1,4 +1,14 @@
 import { describe, it } from 'node:test';
+import { z } from 'zod';
+import {
+    dispatchRequestSchema,
+    forgeExecuteSchema,
+    forgeRequestSchema,
+} from '../../../src/tools/cstar-kernel-mcp/contracts/schemas.js';
+import type {
+    DispatchRequestArgs,
+    ResearcherRequestArgs,
+} from '../../../src/tools/cstar-kernel-mcp/tools/dispatch_request.js';
 import {
     assert,
     fs,
@@ -41,6 +51,23 @@ import {
     callerRequestedActiveSessionContinuity,
     resolveAuguryCurrentIntentCategory
 } from './shared_test_setup.js';
+
+function omitCallbackContract(request: Record<string, any>): Record<string, any> {
+    const { callback_contract: _callbackContract, ...requestWithoutCallback } = request;
+    return requestWithoutCallback;
+}
+
+type IsOptional<T, K extends keyof T> = {} extends Pick<T, K> ? true : false;
+type AssertTrue<T extends true> = T;
+type DispatchCallbackMustBeRequired = AssertTrue<
+    IsOptional<DispatchRequestArgs, 'callback_contract'> extends false ? true : false
+>;
+type ResearcherCallbackMayBeOmitted = AssertTrue<
+    IsOptional<ResearcherRequestArgs, 'callback_contract'>
+>;
+type ResearcherDecisionMayBeOmitted = AssertTrue<
+    IsOptional<ResearcherRequestArgs, 'decision_id'>
+>;
 
 describe("CStar MCP dispatch request tools", () => {
 it('cstar_handoff tool handler should return a valid MCP response', async () => {
@@ -127,6 +154,91 @@ it('cstar_researcher_request returns a no-spend receipt with callback and metric
     assert.strictEqual(parsed.required_metrics[0].name, 'artifact_integrity');
 });
 
+it('cstar_researcher_request derives a deterministic callback when callback_contract is omitted', async () => {
+    const result = await handleResearcherRequest(omitCallbackContract(validDispatchRequest()));
+    assert.ok(result.content);
+    const parsed = JSON.parse(result.content[0].text);
+    assert.strictEqual(parsed.status, 'dry_run_no_spend');
+    assert.ok(parsed.decision_id.startsWith('decision-researcher-'));
+    assert.strictEqual(
+        parsed.callback_contract.expected_packet,
+        `CSTAR_RESEARCHER_RESULT:${parsed.decision_id}`,
+    );
+    assert.strictEqual(parsed.callback_contract.callback_required, true);
+    assert.strictEqual(
+        parsed.callback_contract.callback_thread_id,
+        '019e9063-56e8-7831-a7ee-9241badce6c5',
+    );
+    assert.ok(parsed.receipt_id.startsWith(`dispatch-researcher-${parsed.decision_id}-`));
+});
+
+it('cstar_researcher_request binds an omitted callback to the supplied decision id', async () => {
+    const decisionId = 'decision-researcher-supplied-callback-test';
+    const result = await handleResearcherRequest(omitCallbackContract(validDispatchRequest({ decision_id: decisionId })));
+    assert.ok(result.content);
+    const parsed = JSON.parse(result.content[0].text);
+    assert.strictEqual(parsed.decision_id, decisionId);
+    assert.strictEqual(
+        parsed.callback_contract.expected_packet,
+        `CSTAR_RESEARCHER_RESULT:${decisionId}`,
+    );
+    assert.ok(parsed.receipt_id.startsWith(`dispatch-researcher-${decisionId}-`));
+});
+
+it('cstar_researcher_request uses one generated decision id for callback and receipt binding', async () => {
+    const result = await handleResearcherRequest(omitCallbackContract(validDispatchRequest({
+        decision_id: undefined,
+    })));
+    assert.ok(result.content);
+    const parsed = JSON.parse(result.content[0].text);
+    const expectedPacket = `CSTAR_RESEARCHER_RESULT:${parsed.decision_id}`;
+    assert.strictEqual(parsed.callback_contract.expected_packet, expectedPacket);
+    assert.ok(parsed.receipt_id.startsWith(`dispatch-researcher-${parsed.decision_id}-`));
+    assert.strictEqual(parsed.receipt_id.split(parsed.decision_id).length - 1, 1);
+});
+
+it('cstar_researcher_request preserves an explicit legacy callback contract and defaults', async () => {
+    const result = await handleResearcherRequest(validDispatchRequest({
+        callback_contract: { expected_packet: 'LEGACY_RESEARCHER_PACKET' },
+    }));
+    assert.ok(result.content);
+    const parsed = JSON.parse(result.content[0].text);
+    assert.deepStrictEqual(parsed.callback_contract, {
+        expected_packet: 'LEGACY_RESEARCHER_PACKET',
+        callback_required: true,
+        callback_thread_id: '019e9063-56e8-7831-a7ee-9241badce6c5',
+    });
+});
+
+it('cstar_researcher_request fails closed when source_callback_thread_id is missing', async () => {
+    const result = await handleResearcherRequest(omitCallbackContract(validDispatchRequest({
+        source_callback_thread_id: undefined,
+    })));
+    assert.strictEqual(result.isError, undefined);
+    const parsed = JSON.parse(result.content[0].text);
+    assert.strictEqual(parsed.outcome, 'guardrail_block');
+    assert.strictEqual(parsed.error, 'source_callback_thread_id is required');
+});
+
+it('Researcher permits omitted callbacks while both Forge schemas remain strict', () => {
+    const researcherRequest = omitCallbackContract(validDispatchRequest());
+    const forgeRequest = omitCallbackContract(validDispatchRequest());
+    const forgeExecuteRequest = omitCallbackContract(validForgeExecuteRequest());
+
+    assert.strictEqual(z.object(dispatchRequestSchema).safeParse(researcherRequest).success, true);
+    assert.strictEqual(z.object(forgeRequestSchema).safeParse(forgeRequest).success, false);
+    assert.strictEqual(z.object(forgeExecuteSchema).safeParse(forgeExecuteRequest).success, false);
+});
+
+it('keeps the Forge handler type complete while the Researcher input type stays compatibility-first', () => {
+    const typeChecks: [
+        DispatchCallbackMustBeRequired,
+        ResearcherCallbackMayBeOmitted,
+        ResearcherDecisionMayBeOmitted,
+    ] = [true, true, true];
+    assert.deepStrictEqual(typeChecks, [true, true, true]);
+});
+
 it('cstar_researcher_request proves the default authorized surface but blocks live dispatch without operator authorization', async () => {
     const result = await handleResearcherRequest(validDispatchRequest());
     assert.ok(result.content);
@@ -178,14 +290,14 @@ it('cstar_forge_request honors explicit decision ids and fails closed on missing
     }));
     assert.ok(result.content);
     const parsed = JSON.parse(result.content[0].text);
-    assert.strictEqual(parsed.status, 'blocked');
+    assert.strictEqual(parsed.outcome, 'guardrail_block');
     assert.strictEqual(parsed.dispatch_kind, 'forge');
     assert.strictEqual(parsed.decision_id, 'decision-explicit-forge-test');
     assert.strictEqual(parsed.bead_id, 'bead-test-dispatch');
     assert.strictEqual(parsed.error, 'missing_authorized_dispatch_surface');
 });
 
-it('cstar_forge_request proves the default surface and blocks adapter/action capability mismatch before persistence', async () => {
+it('cstar_forge_request rejects a legacy adapter on the current v3 route before persistence', async () => {
     const result = await handleForgeRequest(validDispatchRequest({
         decision_id: 'decision-forge-action-mismatch-test',
         requested_actions: ['response_only'],
@@ -193,25 +305,28 @@ it('cstar_forge_request proves the default surface and blocks adapter/action cap
     }));
     assert.ok(result.content);
     const parsed = JSON.parse(result.content[0].text);
-    assert.strictEqual(parsed.status, 'blocked');
-    assert.strictEqual(parsed.dispatch_kind, 'forge');
-    assert.strictEqual(parsed.error, 'dispatch_action_adapter_capability_mismatch');
+    assert.strictEqual(parsed.outcome, 'guardrail_block');
+    assert.strictEqual(parsed.error_code, 'forge_v3_legacy_execution_adapter_forbidden');
 });
 
 it('dispatch requests reject missing required metrics', async () => {
     const result = await handleResearcherRequest(validDispatchRequest({ required_metrics: [] }));
-    assert.strictEqual(result.isError, true);
+    assert.strictEqual(result.isError, undefined);
     const parsed = JSON.parse(result.content[0].text);
+    assert.strictEqual(parsed.outcome, 'guardrail_block');
+    assert.strictEqual(parsed.error_code, 'dispatch_request_contract_invalid');
     assert.strictEqual(parsed.status, 'rejected');
-    assert.match(parsed.error, /required_metrics/);
+    assert.strictEqual(parsed.error, 'required_metrics must include at least one metric with an acceptance threshold');
 });
 
 it('dispatch requests reject prohibited or red-gated requested actions', async () => {
     const result = await handleForgeRequest(validDispatchRequest({
         requested_actions: ['merge to master'],
     }));
-    assert.strictEqual(result.isError, true);
+    assert.strictEqual(result.isError, undefined);
     const parsed = JSON.parse(result.content[0].text);
+    assert.strictEqual(parsed.outcome, 'guardrail_block');
+    assert.strictEqual(parsed.error_code, 'forge_request_contract_invalid');
     assert.strictEqual(parsed.status, 'rejected');
     assert.strictEqual(parsed.error, 'dispatch_requested_action_red_gated');
 });
@@ -219,16 +334,17 @@ it('dispatch requests reject prohibited or red-gated requested actions', async (
 it('Forge requests reject live source collection before issuing an exact authorization challenge', async () => {
     const result = await handleForgeRequest(validDispatchRequest({
         decision_id: 'decision-forge-live-source-rejected-test',
-        execution_adapter_ref: 'cstar-forge-hermes-minimax-adapter',
         spend_policy: { mode: 'live_authorized', max_retries: 0, live_source_allowed: true },
         retry_policy: { budget: 0, spent: 0 },
         requested_actions: ['response_only', 'authorized_source_collection'],
         live_source_policy: 'live source collection requested',
     }));
-    assert.strictEqual(result.isError, true);
+    assert.strictEqual(result.isError, undefined);
     const parsed = JSON.parse(result.content[0].text);
+    assert.strictEqual(parsed.outcome, 'guardrail_block');
+    assert.strictEqual(parsed.error_code, 'forge_request_contract_invalid');
     assert.strictEqual(parsed.status, 'rejected');
-    assert.match(parsed.error, /does not permit live source collection/);
+    assert.strictEqual(parsed.error, 'the bootstrap Forge authorization does not permit live source collection');
 });
 
 });

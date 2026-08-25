@@ -24,7 +24,8 @@ all return the applicable stable retirement error before importing or
 constructing an effectful dependency. Mocking a retired engine into success is
 not valid contract evidence.
 
-Use CStar kernel tools for health and lifecycle state. Use the durable
-`cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute` path for implementation and
-`cstar_record_result` for independent validation. A parsed payload or legacy
-return type never grants authority.
+Use CStar kernel tools for health and lifecycle state. Implementation uses
+`cstar_mission`, an authorized Bead/SET, deterministic effect reservation, a
+native task-control work cell, and independent `cstar_record_result`. Forge is
+`TOMBSTONED_PERMANENT`. A parsed payload or legacy return type never grants
+authority.

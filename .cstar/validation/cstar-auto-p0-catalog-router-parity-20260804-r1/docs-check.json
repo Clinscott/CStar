@@ -1,0 +1,51 @@
+{
+  "schema": "cstar.set04.docs_check.v1",
+  "validation_id": "validation:cstar-auto-p0-catalog-router-parity-20260804-r1",
+  "bead_id": "bead:mcp:after-mechanism-closure-make-the-default-capabil-msf54o97",
+  "checks": [
+    {
+      "name": "router_documentation_registry_contracts",
+      "command": "python3 -m pytest -s -q -o addopts='' tests/contracts/test_cstar_agent_router.py tests/unit/test_current_documentation_contract.py tests/unit/test_retired_surface_documentation_contract.py tests/unit/test_registry_and_pennyone_effect_documentation.py tests/unit/test_skill_registry_audit.py",
+      "status": "pass",
+      "tests": 49,
+      "passed": 49,
+      "failed": 0
+    },
+    {
+      "name": "registry_and_catalog_contracts_excluding_materialization",
+      "command": "PATH=/home/morderith/.nvm/versions/node/v25.8.1/bin:$PATH node scripts/run-tsx.mjs --test tests/unit/test_skill_registry_shape.test.ts tests/unit/test_command_catalog.test.ts tests/unit/test_capability_registry_read_boundary.test.ts",
+      "status": "pass",
+      "tests": 14,
+      "passed": 14,
+      "failed": 0
+    },
+    {
+      "name": "checked_in_distribution_materializations",
+      "command": "PATH=/home/morderith/.nvm/versions/node/v25.8.1/bin:$PATH node scripts/run-tsx.mjs --test tests/unit/test_distribution_manifests.test.ts",
+      "status": "fail",
+      "tests": 7,
+      "passed": 6,
+      "failed": 1,
+      "failure": {
+        "assertion": "validateDistributions(process.cwd())",
+        "result": ["plugins/corvus-star/lineage.json: stale"],
+        "artifact": "plugins/corvus-star/lineage.json",
+        "artifact_sha256": "aa8676f8c9d87f2f9753755c62685d3fc205cce73546c77c38aad2807536e7c2",
+        "registry_sha256": "bd6c1bd3b86f882257f1bb4e4e6a2b5f1eac547cb84904c7be5bc92db9137cc3"
+      }
+    }
+  ],
+  "semantic_review": {
+    "roles_truthful": true,
+    "no_robot_language_operator_requirement": true,
+    "codex_host_luna_handoff_static_only": true,
+    "requested_actual_identity_separate": true,
+    "no_runtime_activation_claim": true,
+    "cross_platform_wording_present": true,
+    "credential_mutation_absent": true,
+    "unrelated_dirty_work_preserved": true
+  },
+  "status": "fail",
+  "requested_model": "gpt-5.6-luna/max",
+  "actual_model": "unreported"
+}

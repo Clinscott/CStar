@@ -1,34 +1,65 @@
 ---
 name: corvus-forge
-description: Route Corvus implementation, repair, refactoring, and build work through the durable CStar Forge request, execute, and independent-validation lifecycle. Use for any source-writing task, Forge live-fire, delivery manifest, worker callback, retry/spend decision, or Forge readiness review.
+description: "Historical-only Forge tombstone. It must fail closed and redirect no work."
+metadata:
+  status: TOMBSTONED_PERMANENT
+  entry_surface: compatibility
+  owner_runtime: historical-record
 ---
 
-# Corvus Forge
+# Corvus Forge Tombstone
 
-Use the canonical lifecycle only:
+Forge is permanently defunct. This skill exists only so stale prompts,
+registries, links, and historical receipts fail closed with one stable result.
+Historical Forge material is evidence only.
 
-`cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute -> private Hermes cstar-hub -> requested minimax/MiniMax-M3 -> cstar_record_result`
+## Mandatory result
 
-Read `docs/operations/corvus-forge-pipeline-playbook.md` and
-`docs/operations/corvus-forge-skill-spec.md` for packet and validation details.
+Any attempted Forge invocation must return:
 
-- A request is no-spend. Codex fills the machine contract from the accepted
-  bead/proposal; the operator gives a normal build, implement, repair, fix, or
-  route-to-Forge instruction with one exact work reference. Authorize binds
-  that root-user turn without provider spend. Execute consumes the attempt.
-- Preserve an unspent v2 receipt byte-for-byte. Reconcile only through its
-  internal `v2-compat-v1` sidecar/challenge; never expose that compatibility
-  token as the normal operator UX, reissue v2 as v3, or infer legacy prose as
-  authority.
-- Carry exact head, targets, required outputs, checker, evidence, retry/spend,
-  dirty-root isolation, callback, and operator authorization in the packet.
-- Treat adapter delivery as `delivered_unverified`. Only independent validation
-  may complete the lifecycle.
-- Record requested and actual worker identity separately; never infer an
-  unreported model.
-- Never substitute AutoBot, One Mind, Host Governor, Ravens, a Codex subagent,
-  direct Hermes, shell generation, or a local worker for Forge.
-- Preserve separate gates for installation, restart, commit, push, merge,
-  deploy, secrets/configuration, locked holdout, and production claims.
-- On missing lifecycle primitives, head drift, manifest drift, dirty overlap,
-  or validation failure, fail closed and record the exact repair item.
+`FORGE_TOMBSTONED_PERMANENT`
+
+It must perform zero implementation, dispatch, provider, network, lifecycle,
+Hall, Git, install, activation, restart, deployment, secret/configuration, or
+destructive effects.
+
+## Prohibited behavior
+
+- Do not call `cstar_forge_request`, `cstar_forge_authorize`,
+  `cstar_forge_execute`, or `cstar_forge_host_complete`.
+- Do not use Forge as an implementation substrate, lifecycle synonym,
+  compatibility lane, fallback, transport, router, or future effector.
+- Do not revive Hermes, MiniMax, AutoBot, provider handoffs, role chains, or
+  cached Forge runtime bytes.
+- Do not translate a Forge request into a provider call or generic worker call.
+- Do not delete or rewrite historical Forge evidence.
+
+## Current implementation route
+
+Implementation requires this sequence:
+
+`operator intent -> Chief of Staff -> CStar Bead/SET -> deterministic effect
+reservation -> native task-control work cell -> typed ACK -> typed terminal
+packet -> independent validation -> cstar_record_result -> CSF-D007 checkpoint`
+
+`cstar_mission` may derive and persist a bounded host-owned mission request. It
+does not launch a worker or grant authority. The deterministic runner owns the
+effect transition. Task-control transports the effect and evidence only.
+
+If the deterministic runner, required effect transition, capability profile,
+or task-control transport is unavailable, record the exact typed failure and
+stop. Do not choose a weaker fallback.
+
+## Historical evidence
+
+The following files may retain detailed Forge history and tests. They are not
+current procedures:
+
+- `docs/operations/corvus-forge-pipeline-playbook.md`
+- `docs/operations/corvus-forge-skill-spec.md`
+- `.agents/skills/corvus-forge/runtime/`
+- `.agents/skills/corvus-forge/scripts/`
+- Forge receipts, migrations, quarantines, and validation fixtures
+
+Current registries and generated host packages must mark this skill
+`TOMBSTONED_PERMANENT` and unsupported for every host.

@@ -50,18 +50,20 @@ Multi-step Corvus work is represented explicitly:
 
 1. CoS anchors the mission to a CStar bead or decision.
 2. `cstar-kernel` performs bounded deterministic state transitions.
-3. `corvus-forge`, `researcher`, or `cstar-closeout` supplies the applicable
-   agent-native procedure.
+3. The deterministic runner, `researcher`, or `cstar-closeout` supplies the
+   applicable bounded procedure.
 4. Deliveries remain evidence until independently validated and recorded.
 5. Commit, push, merge, install, restart, deploy, holdout, and production claims
    remain separate operator gates.
 
-The durable build sequence is:
+The current build sequence is:
 
-`cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute -> private Hermes cstar-hub / requested minimax MiniMax-M3 -> delivered_unverified -> independent cstar_record_result`
+`cstar_mission -> authorized Bead/SET -> deterministic effect reservation -> native task-control work cell -> typed terminal packet -> independent cstar_record_result`
 
-This private adapter is part of the sealed Forge lane. It does not restore
-public AutoBot, direct Hermes dispatch, or general model-owned orchestration.
+Forge is `TOMBSTONED_PERMANENT`. Historical Forge and Hermes/MiniMax material
+is evidence only and supplies no compatibility or fallback lane. Requested and
+actual worker identity remain separate; actual is `unreported` absent host
+attestation.
 
 ## Compatibility Requirements
 
@@ -71,7 +73,7 @@ Any retained autonomous weave adapter or CLI name must:
   Git, Hall, or memory mutation;
 - never auto-dispatch a worker, broker, daemon, or subagent;
 - never interpret historical scores, personas, or model prose as authority;
-- never bypass a current Forge/Researcher request; and
+- never bypass a current deterministic-runner or Researcher request; and
 - remain covered by a focused retirement contract test.
 
 Read-only historical status projection is allowed when it cannot mutate or

@@ -43,6 +43,11 @@ function getRegistryEntries(manifest: CapabilityRegistryManifest): Record<string
     return getSkillRegistryEntries<CapabilityRegistryEntry>(manifest);
 }
 
+/** Keep compatibility entries available to exact skill-info lookup, not defaults. */
+function isDefaultOperatorEntry(capabilityId: string, entry: CapabilityRegistryEntry): boolean {
+    return resolveEntrySurface(entry, capabilityId) !== 'compatibility';
+}
+
 function toStringValue(value: unknown): string | null {
     if (typeof value !== 'string') {
         return null;
@@ -321,6 +326,7 @@ export function buildCapabilityManifestPayload(
     const manifest = loadCapabilityRegistryManifest(projectRoot);
     const activeIds = new Set(activeAdapterIds);
     const capabilities = Object.entries(getRegistryEntries(manifest))
+        .filter(([capabilityId, entry]) => isDefaultOperatorEntry(capabilityId, entry))
         .map(([capabilityId, entry]) => resolveCapabilitySummary(capabilityId, entry, activeIds))
         .sort((left, right) => left.id.localeCompare(right.id));
 

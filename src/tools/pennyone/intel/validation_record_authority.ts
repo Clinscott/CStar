@@ -3,6 +3,7 @@ import {
     hashValidationEvidenceManifest,
     isValidationEvidenceManifestV2StructurallyValid,
     isValidationEvidenceManifestV3StructurallyValid,
+    isValidationEvidenceManifestV4StructurallyValid,
     VALIDATION_EVIDENCE_SHA256,
 } from '../../../types/validation_evidence.js';
 import {
@@ -19,7 +20,7 @@ export interface ValidationAuthorityRecord {
 }
 
 export function isImmutableValidationAuthority(value: unknown): boolean {
-    return value === 'verified' || value === 'verified_v2' || value === 'verified_v3';
+    return value === 'verified' || value === 'verified_v2' || value === 'verified_v3' || value === 'verified_v4';
 }
 
 export function assertValidationRecordAuthority(
@@ -27,15 +28,16 @@ export function assertValidationRecordAuthority(
     kernelEvidence?: VerifiedValidationEvidence,
 ): void {
     if (record.authority_class === 'verified') throw new Error('verified_validation_v1_retired');
-    if (record.authority_class !== 'verified_v2' && record.authority_class !== 'verified_v3') return;
+    if (!['verified_v2', 'verified_v3', 'verified_v4'].includes(record.authority_class ?? '')) return;
     const manifest = record.evidence_manifest;
-    const errorPrefix = record.authority_class === 'verified_v2'
-        ? 'verified_validation_v2' : 'verified_validation_v3';
-    const expectedSchema = record.authority_class === 'verified_v2'
-        ? 'cstar.validation-evidence.v2' : 'cstar.validation-evidence.v3';
+    const version = record.authority_class?.slice('verified_v'.length);
+    const errorPrefix = `verified_validation_v${version}`;
+    const expectedSchema = `cstar.validation-evidence.v${version}`;
     const structurallyValid = expectedSchema === 'cstar.validation-evidence.v2'
         ? isValidationEvidenceManifestV2StructurallyValid(manifest)
-        : isValidationEvidenceManifestV3StructurallyValid(manifest);
+        : expectedSchema === 'cstar.validation-evidence.v3'
+            ? isValidationEvidenceManifestV3StructurallyValid(manifest)
+            : isValidationEvidenceManifestV4StructurallyValid(manifest);
     if (
         !manifest
         || manifest.schema !== expectedSchema

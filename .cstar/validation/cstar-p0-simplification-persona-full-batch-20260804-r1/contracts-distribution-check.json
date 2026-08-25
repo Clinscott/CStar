@@ -1,0 +1,66 @@
+{
+  "schema": "cstar.independent_validation_check.v1",
+  "reported_verdict": "REJECTED",
+  "checks": {
+    "distribution_unit": {
+      "command": "PATH=/home/morderith/.nvm/versions/node/v25.8.1/bin:$PATH node scripts/run-tsx.mjs --test tests/unit/test_distribution_manifests.test.ts",
+      "exit_code": 0,
+      "tests": 7,
+      "suites": 1,
+      "passed": 7,
+      "failed": 0
+    },
+    "contracts": {
+      "command": "python3 -m pytest -s -q -o addopts='' tests/contracts/test_cstar_agent_router.py tests/contracts/test_codex_thread_architecture.py",
+      "exit_code": 0,
+      "tests": 12,
+      "passed": 12,
+      "failed": 0
+    },
+    "validate_distributions": {
+      "command": "PATH=/home/morderith/.nvm/versions/node/v25.8.1/bin:$PATH npm run validate:distributions",
+      "exit_code": 0,
+      "artifacts_verified": 8
+    },
+    "typecheck": {
+      "command": "PATH=/home/morderith/.nvm/versions/node/v25.8.1/bin:$PATH npm run typecheck",
+      "exit_code": 0
+    },
+    "diff_check": {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  },
+  "accepted_child_manifests": [
+    {
+      "path": ".cstar/validation/cstar-auto-p0-outcome-deadline-telemetry-20260804-r2/manifest.json",
+      "sha256": "5cc9772fc416f92213427303d7456d6166c9f59c5ca602eea8021b26e74e84bc",
+      "reported_verdict": "ACCEPTED",
+      "artifact_hash_reconciliation": "PASS"
+    },
+    {
+      "path": ".cstar/validation/cstar-auto-p0-independent-validation-ticket-20260804-r1/manifest.json",
+      "sha256": "c09dfeadcc87cb8ffe840d64a5ac7e74f1e722277b56411c3c2ba9ad9dafa4e2",
+      "reported_verdict": "ACCEPTED",
+      "artifact_hash_reconciliation": "PASS"
+    },
+    {
+      "path": ".cstar/validation/cstar-auto-p0-codex-host-worker-consumption-20260804-r1/manifest.json",
+      "sha256": "3e55b46284ff2917b0677cadb5279738f894d14f5c1c73f613cec34124954c60",
+      "reported_verdict": "ACCEPTED",
+      "artifact_hash_reconciliation": "PASS"
+    },
+    {
+      "path": ".cstar/validation/cstar-auto-p0-catalog-router-parity-20260804-r2/manifest.json",
+      "sha256": "d0637e466cad52c4080e27489d075e359afd149a69377ce95503578ad7960c17",
+      "reported_verdict": "ACCEPTED",
+      "artifact_hash_reconciliation": "PASS"
+    }
+  ],
+  "child_artifact_hashes": {
+    "checked": 48,
+    "matched": 48,
+    "mismatched": 0,
+    "missing": 0
+  }
+}

@@ -25,6 +25,7 @@ import { writeCountingAdapter } from './forge_durable_execution_test_support.js'
 
 const originalRoot = registry.getRoot();
 const originalAdapter = process.env.CSTAR_FORGE_HERMES_MINIMAX_ADAPTER_SCRIPT;
+const originalNodeTestContext = process.env.NODE_TEST_CONTEXT;
 const originalRuntimeBypass = process.env.CSTAR_FORGE_RUNTIME_TEST_BYPASS;
 const roots: string[] = [];
 
@@ -91,7 +92,6 @@ export function requestArgs(
         retry_policy: { budget: 0, spent: 0 },
         callback_contract: { expected_packet: 'NATURAL_AUTH_TEST', callback_required: true },
         package_locks: [],
-        execution_adapter_ref: 'cstar-forge-hermes-minimax-adapter',
     };
 }
 
@@ -100,7 +100,7 @@ export function saveExactProfileRequest(
 ): { requestId: string; requestSha256: string } {
     const canonical = canonicalizeForgeRequest(
         requestArgs(value, beadId, decisionId, '019f0000-0000-7000-8000-000000000001'),
-        value.root, decisionId, 'cstar-forge-hermes-minimax-adapter', 'response_only', 1,
+        value.root, decisionId, null, 'response_only', 1,
     );
     const requestSha256 = hashCanonicalForgeRequest(canonical);
     const requestId = buildForgeRequestId(requestSha256);
@@ -121,7 +121,7 @@ export function saveExactProfileRequest(
         authorization_challenge_sha256: hashForgeAuthorizationChallenge(
             requestId, requestSha256,
         ),
-        adapter_ref: 'cstar-forge-hermes-minimax-adapter',
+        adapter_ref: null,
         write_capability: 'response_only',
     });
     return { requestId, requestSha256 };
@@ -143,6 +143,7 @@ export async function requestAndAuthorize(
 }
 
 export function beginNaturalAuthorizationTest(): void {
+    process.env.NODE_TEST_CONTEXT = 'cstar-synthetic';
     process.env.CSTAR_FORGE_RUNTIME_TEST_BYPASS = '1';
 }
 
@@ -152,6 +153,8 @@ export function cleanupNaturalAuthorizationTest(): void {
     cleanupOperatorAuthorizationFixtures();
     if (originalAdapter === undefined) delete process.env.CSTAR_FORGE_HERMES_MINIMAX_ADAPTER_SCRIPT;
     else process.env.CSTAR_FORGE_HERMES_MINIMAX_ADAPTER_SCRIPT = originalAdapter;
+    if (originalNodeTestContext === undefined) delete process.env.NODE_TEST_CONTEXT;
+    else process.env.NODE_TEST_CONTEXT = originalNodeTestContext;
     if (originalRuntimeBypass === undefined) delete process.env.CSTAR_FORGE_RUNTIME_TEST_BYPASS;
     else process.env.CSTAR_FORGE_RUNTIME_TEST_BYPASS = originalRuntimeBypass;
     while (roots.length) fs.rmSync(roots.pop()!, { recursive: true, force: true });

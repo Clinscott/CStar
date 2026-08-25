@@ -41,8 +41,8 @@ CoS owns:
   unsafe boundary expansion.
 
 CoS does not bypass CStar state when a kernel-backed route exists. It does not
-substitute a Codex subagent for Forge implementation, Researcher collection, or
-independent CorvusEye review.
+substitute an unbound generic task for a CStar-authorized work cell, Researcher
+collection, or independent CorvusEye review.
 
 ### Mapped Project PMTs
 
@@ -60,12 +60,10 @@ A PMT grants no ownership, execution, review, approval, routing, or monitoring
 authority. CoS does not query unrelated PMTs. A missing or stale mapped PMT is
 a freshness gap, not an execution gate, and cannot park or block the goal.
 
-For a mapped-PMT query, CoS requests the task-appropriate current GPT-5.6
-profile only when the host exposes an enforceable selector: Luna for routine
-retrieval, Terra for conflicting-context synthesis, and Sol for high-stakes
-architecture, security, or incident forensics. The request records requested
-and actual identity separately; absent a reported identity, actual is
-`unreported`.
+For a mapped-PMT query, CoS resolves the task-appropriate selector through the
+versioned model-policy registry and uses it only when the host exposes an
+enforceable selector. The request records requested and actual identity
+separately; absent host attestation, actual is `unreported`.
 
 ### CStar Control Plane
 
@@ -77,26 +75,31 @@ operator-visible state but do not supersede kernel lifecycle records.
 ### Researcher
 
 Researcher gathers evidence through authorized source lanes. It owns source
-discovery, source receipts, evidence packages, and research-run telemetry. It
-does not own CStar implementation, Forge delivery, or production rollout.
+discovery, source receipts, evidence packages, research-run telemetry, and
+bounded proposals for next steps and improvements. It does not own CStar
+implementation, lifecycle acceptance, or production rollout.
 
-### Corvus Forge
+### Implementation Work Cells
 
-Corvus Forge builds implementation through the durable
-`cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute -> private Hermes cstar-hub ->
-minimax/MiniMax-M3` path. Its delivery remains unverified until independent
-validation is recorded through CStar. Forge does not approve its own rollout.
+Forge is `TOMBSTONED_PERMANENT`. Historical Forge material is evidence only.
+CStar routes implementation through an authorized Bead/SET, deterministic
+effect reservation, native task-control work cell, typed ACK and terminal
+packet, and independent `cstar_record_result`. A work cell owns only its exact
+packet and never approves its own result. Missing runner or task-control
+capability fails closed without a Forge, CLI, transcript, Hall, or provider
+fallback.
 
 ### CorvusEye
 
 CorvusEye is the independent evaluation and red-team spoke. It reviews
-Researcher or Forge evidence when producer-independent validation is required;
-it does not perform the originating work it judges.
+Researcher or implementation-work-cell evidence when producer-independent
+validation is required; it does not perform the originating work it judges.
 
 ### MM
 
-MM is legacy and has no active estate-routing, synthesis, ownership, or relay
-role. Current work routes from CoS through CStar to the appropriate spoke.
+MM is inactive and has no active routing, synthesis, ownership, relay, review,
+or execution role. Current work routes from CoS through CStar to the appropriate
+spoke.
 
 ## Goal Lifecycle
 
@@ -104,8 +107,9 @@ role. Current work routes from CoS through CStar to the appropriate spoke.
    decision, proposal, or bead.
 2. If the target belongs to a project with a mapped PMT, CoS reads one bounded
    context packet; failure is recorded only as a freshness gap.
-3. CoS resolves route and scope through CStar and sends build work to Forge,
-   research work to Researcher, and independent review to CorvusEye.
+3. CoS resolves route and scope through CStar. CStar reserves build effects for
+   bounded native work cells, sends research to Researcher, and sends
+   independent review to CorvusEye.
 4. Each worker request, execution receipt, artifact, and validation remains
    evidence until the corresponding lifecycle transition is persisted.
 5. Red gates return to CoS for explicit User authorization when required.
@@ -138,8 +142,8 @@ Future architecture changes fail review if they:
   authority;
 - make mapped PMT availability an execution or completion gate;
 - restore MM as an active coordination or relay lane;
-- merge CStar control-plane behavior with Researcher or Forge execution;
-- merge Researcher and Forge responsibilities; or
+- merge CStar control-plane behavior with Researcher or work-cell execution;
+- merge Researcher and implementation responsibilities; or
 - let a producer perform an independent review required for its own gate.
 
 Temporary bootstrap repairs must be recorded as bounded exceptions and followed

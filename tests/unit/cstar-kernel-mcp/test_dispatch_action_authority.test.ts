@@ -238,7 +238,7 @@ describe('structured dispatch action authority', () => {
         assert.equal(canonical.action_authority.prohibited_alias_count, 0);
     });
 
-    it('blocks a selected project-files adapter for a response-only request before runtime or database work', async () => {
+    it('rejects a legacy adapter on the current v3 request before runtime or database work', async () => {
         const priorRoot = registry.getRoot();
         registry.setRoot(WORKTREE_ROOT);
         try {
@@ -246,9 +246,11 @@ describe('structured dispatch action authority', () => {
                 execution_adapter_ref: 'cstar-forge-hermes-minimax-worker-adapter',
             }));
             const parsed = JSON.parse(result.content[0].text);
-            assert.equal(result.isError, true);
-            assert.equal(parsed.status, 'blocked');
-            assert.equal(parsed.error, 'dispatch_action_adapter_capability_mismatch');
+            assert.equal(result.isError, undefined);
+            assert.equal(parsed.outcome, 'guardrail_block');
+            assert.equal(parsed.error_code, 'forge_v3_legacy_execution_adapter_forbidden');
+            assert.equal(parsed.outcome, 'guardrail_block');
+            assert.equal(parsed.error, 'forge_v3_legacy_execution_adapter_forbidden');
         } finally {
             registry.setRoot(priorRoot);
         }

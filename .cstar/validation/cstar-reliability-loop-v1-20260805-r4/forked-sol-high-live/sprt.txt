@@ -1,0 +1,31 @@
+schema: cstar.independent_validation_sprt.v1
+validation_id: validation:cstar-reliability-loop-v1-20260805-r4-forked-sol-high-live
+verdict: ACCEPTED
+
+receipt_path: /home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-reliability-loop-v1-20260805-r4/sprt/receipt.json
+receipt_sha256: da57e25788452d700d6215fb4f7db4e897872ec877277df12b0bb3db3d13d400
+checksum_path: /home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-reliability-loop-v1-20260805-r4/sprt/receipt.sha256
+checksum_match: true
+
+candidate_source_entries: 13
+candidate_source_digest_recorded: fa3c91f0f2aa7397575dc36484ac7ce177fb2eaa16aa1b5e94fbd27549cd9d4c
+candidate_source_digest_recomputed: fa3c91f0f2aa7397575dc36484ac7ce177fb2eaa16aa1b5e94fbd27549cd9d4c
+candidate_source_digest_match: true
+
+direct_parser: verifyReliabilityReceipt
+direct_parser_verified: true
+direct_parser_error: null
+sprt_verdict: ACCEPTED
+sprt_passed: 11
+sprt_failed: 0
+sprt_total: 11
+
+gungnir_authority: heuristic_evidence_only
+gungnir_valid: true
+gungnir_records: 11
+gungnir_heuristic_records: 11
+gungnir_nonheuristic_records: 0
+gungnir_overall_score: 9.502863636363637
+gungnir_aggregate_evidence_sha256: ddda3d85334c2aa39662ea0c9368c0bbba07c05c159b5246094620c11b505f1d
+
+sprt_conclusion: checksum, current candidate digest, direct parser acceptance, 11 of 11 SPRT trials, and heuristic-only Gungnir evidence all pass

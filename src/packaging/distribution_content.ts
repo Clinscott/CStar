@@ -4,6 +4,13 @@ import path from 'node:path';
 import type { CapabilityExport } from './distributions.js';
 import { CSTAR_KERNEL_TOOL_CATALOG } from '../tools/cstar-kernel-mcp/contracts/tool_catalog.js';
 
+const TOMBSTONED_FORGE_TOOL_NAMES = new Set([
+    'cstar_forge_request',
+    'cstar_forge_authorize',
+    'cstar_forge_execute',
+    'cstar_forge_host_complete',
+]);
+
 interface PackageMetadata {
     name?: string;
     version?: string;
@@ -120,10 +127,12 @@ export function buildGeminiContextContent(projectRoot: string, capabilities: Cap
         '- Use `cstar_bead` for bead get/list/create/claim/status/block/resolve operations when available.',
         '- Use `cstar_goal_resume` only for an explicit root-user continuation signal when the host lacks a blocked-to-active transition; it records continuity and does not mutate host state or grant new authority.',
         '- If the MCP surface is degraded or unavailable, report the exact failure and remain read-only for control-plane state; do not mutate Hall or SQLite directly.',
-        '- CoS coordinates estate sequencing and bounded Green/Yellow execution. Forge builds implementation; Researcher gathers evidence through authorized lanes.',
+        '- CoS coordinates operator-facing work. CStar owns lifecycle state and deterministic effects. Bounded native workers implement; Researcher gathers evidence and proposes improvements; a distinct validator evaluates.',
         '- Start or resume one host goal for every non-trivial mission, keep one plan step in progress, and close the goal only after CStar lifecycle state and validation agree.',
-        '- Before the first CStar mutation or provider attempt of each local day, follow `docs/operations/cstar-goal-driven-daily-bootstrap.md` for Codex/Hermes freshness; updates do not authorize a restart.',
-        '- PMTs are project-scoped information repositories only, and MM has no active routing role.',
+        '- Before the first CStar mutation or authorized provider attempt of each local day, follow `docs/operations/cstar-goal-driven-daily-bootstrap.md`; version checks do not authorize update, install, activation, restart, or configuration mutation.',
+        '- Forge is `TOMBSTONED_PERMANENT`. Historical Forge tools, skills, adapters, and receipts are evidence only and must not be invoked.',
+        '- Implementation uses an authorized Bead/SET, `cstar_mission`, deterministic effect reservation, native task-control work cells, typed ACK and terminal packets, independent validation, `cstar_record_result`, and a CSF-D007 checkpoint.',
+        '- PMTs are project-scoped information repositories only. MM is inactive and has no active routing, synthesis, ownership, relay, review, or execution role.',
         '- Preserve operator gates for acceptance, dispatch, commit, push, merge, deletion, restarts, and publish actions.',
         '- Keep reasoning, planning, critique, and recovery in the host session when the registry marks a capability host-executable.',
         '- Keep deterministic local primitives in the kernel; do not fork Gemini-specific capability definitions.',
@@ -228,16 +237,17 @@ export function buildCodexPluginSkillContent(capabilities: CapabilityExport[]): 
         '- Use `cstar_handoff` when resuming active planning/runtime state, then carry forward only the lead bead, gate, next action, target paths, and checker commands.',
         '- Use `cstar_handoff` when resuming, `cstar_doctor` when kernel health is unknown, and `cstar_augury` only when route or material scope is ambiguous.',
         '- Use direct Codex thread tools for read/list/send when exposed; session JSONL fallback is read-only degraded mode, not an execution or assignment surface.',
-        '- CoS owns estate sequencing, bounded Green/Yellow execution, evidence packaging, lifecycle updates, and closeout.',
+        '- CoS coordinates operator-facing work, sequencing, evidence packaging, and closeout. CStar alone owns lifecycle transitions.',
         '- Start or resume one host goal for every non-trivial mission, keep one plan step in progress, and close the goal only after CStar lifecycle state and validation agree.',
-        '- Before the first CStar mutation or provider attempt of each local day, follow `docs/operations/cstar-goal-driven-daily-bootstrap.md` for Codex/Hermes freshness; updates do not authorize a restart.',
-        '- Forge builds implementation; Researcher gathers evidence; CorvusEye evaluates and red-teams.',
+        '- Before the first CStar mutation or authorized provider attempt of each local day, follow `docs/operations/cstar-goal-driven-daily-bootstrap.md`; version checks do not authorize update, install, activation, restart, or configuration mutation.',
+        '- CStar owns lifecycle state and deterministic effects. Bounded native workers implement; Researcher gathers evidence and proposes improvements; CorvusEye or a distinct validator evaluates.',
         '- PMTs are project-scoped information repositories only. Query only the mapped PMT for bounded context and send a compact state update after meaningful work.',
-        '- MM is legacy and has no active estate-routing role.',
+        '- MM is inactive and has no active routing, synthesis, ownership, relay, review, or execution role.',
         '- Preserve operator gates for acceptance, dispatch, implementation bypass, commit, push, merge, post, deletion, restarts, deploys, and secret/config mutation.',
         '- Keep high-volume collectors outside beads; collectors write receipts or artifacts, then bounded proposals/results enter CStar.',
-        '- Public AutoBot is decommissioned. Forge alone may use its private CStar -> Hermes -> MiniMax-M3 adapter after an authorized execute transition.',
-        '- Choose Luna, Terra, or Sol only through a host surface that exposes an enforceable selector. Record requested and actual identity separately; use `unreported` when actual identity is absent.',
+        '- Forge and public AutoBot are decommissioned. Forge is `TOMBSTONED_PERMANENT`; private Hermes/MiniMax material is historical evidence, not compatibility or fallback.',
+        '- Implementation uses an authorized Bead/SET, `cstar_mission`, deterministic effect reservation, native task-control work cells, typed ACK and terminal packets, independent validation, `cstar_record_result`, and a CSF-D007 checkpoint.',
+        '- Resolve model selection through the canonical model-policy registry and an enforceable host selector. Record requested and actual identity separately; use `unreported` when actual identity is absent.',
         '- Keep host-specific packaging separate from kernel logic.',
         '- Treat `native-session` and `exec-bridge` capabilities as host-routed work, and `supported` capabilities as kernel-backed launch surfaces.',
         '- Treat `host-workflow` entries as host-owned cognition/workflow surfaces and `kernel-primitive` entries as deterministic kernel control-plane primitives.',
@@ -291,14 +301,25 @@ function buildMcpServers(rootCwd: string | undefined): Record<string, McpServerC
 }
 
 function buildKernelMcpToolsSection(): string[] {
+    const activeTools = CSTAR_KERNEL_TOOL_CATALOG.filter(
+        ({ name }) => !TOMBSTONED_FORGE_TOOL_NAMES.has(name),
+    );
+    const historicalForgeTools = CSTAR_KERNEL_TOOL_CATALOG.filter(
+        ({ name }) => TOMBSTONED_FORGE_TOOL_NAMES.has(name),
+    );
+
     return [
         `## Kernel MCP Tools (${CSTAR_KERNEL_TOOL_CATALOG.length})`,
         '',
-        'The `cstar-kernel` MCP server is the authoritative kernel surface — invoke these tools directly via MCP rather than shelling out to `./cstar` whenever the needed primitive exists. Tool classes declare bounded effects; observed runtime remains evidence and cannot grant authority. Full API reference: `docs/integrations/cstar-kernel-mcp.md`.',
+        'The `cstar-kernel` MCP server is the authoritative kernel surface — invoke active tools directly via MCP rather than shelling out to `./cstar` whenever the needed primitive exists. Tool classes declare bounded effects; observed runtime remains evidence and cannot grant authority. Full API reference: `docs/integrations/cstar-kernel-mcp.md`.',
         '',
-        ...CSTAR_KERNEL_TOOL_CATALOG.map(({ name, toolClass, description }) => (
+        ...activeTools.map(({ name, toolClass, description }) => (
             `- \`${name}\` (${toolClass}) — ${description}`
         )),
+        '',
+        '### Historical Forge compatibility exposures',
+        '- Forge is `TOMBSTONED_PERMANENT`. The following registered names are non-actionable parity debt and must not be invoked:',
+        ...historicalForgeTools.map(({ name }) => `- \`${name}\` — historical only; fail closed`),
         '',
     ];
 }
@@ -327,6 +348,8 @@ export function buildDistributionReadmeContent(geminiCapabilities: CapabilityExp
         '- Source staging only: `npm run install:codex-local` verifies and stages the plugin under `~/plugins/corvus-star`; it does not run `codex plugin add`, refresh Codex cache, restart Desktop, or prove live activation.',
         '- Marketplace reconciliation, `codex plugin add`, restart or new-task pickup, and live proof remain separately operator-gated.',
         '- Never copy plugin caches or marketplace state by hand.',
+        '- Forge is `TOMBSTONED_PERMANENT`. Historical Forge tools and host-handoff bytes are not executable plugin capabilities.',
+        '- Current implementation uses CStar deterministic effects and native task-control work cells; installed or cached packages must not claim this route until separately activated and proven.',
         '- Codex skill context presents Augury as an advisory route explanation, never authority or proof.',
         '- Public host fronts marked as no-fallback are expected to fail closed when the host session is unavailable.',
         '',

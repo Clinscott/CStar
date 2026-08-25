@@ -124,7 +124,8 @@ describe('Hermes profile intake contract', () => {
 
         assert.equal(boundaries.oauth_profile, 'cstar-hub');
         assert.equal(boundaries.oauth_owner, 'hermes');
-        assert.equal(boundaries.forge_lane, 'local_authorized_implementation');
+        assert.equal(boundaries.forge_lane, 'historical_only_tombstoned');
+        assert.equal(boundaries.current_host_transport, 'native-task-control');
         assert.equal(boundaries.researcher_lane, 'local_authorized_evidence');
         assert.equal(boundaries.intake_changes_boundaries, false);
     });
@@ -168,7 +169,8 @@ describe('Hermes profile intake contract', () => {
         for (const required of [
             'no collector command',
             'Hermes continues to own and update the `cstar-hub` OAuth profile',
-            'Corvus Forge builds implementation only through its separately authorized lifecycle',
+            'Forge is permanently tombstoned',
+            'CStar reserves deterministic implementation effects for bounded native work cells',
             'Researcher gathers evidence only through separately authorized source lanes',
             'grants no worker enrollment, source authority, execution, spend, provider selection, model selection, profile mutation, or activation',
             'local secret paths',
