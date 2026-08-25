@@ -3,18 +3,5 @@
   "interface": {
     "displayName": "Corvus Star"
   },
-  "plugins": [
-    {
-      "name": "corvus-star",
-      "source": {
-        "source": "local",
-        "path": "./plugins/corvus-star"
-      },
-      "policy": {
-        "installation": "AVAILABLE",
-        "authentication": "ON_INSTALL"
-      },
-      "category": "Developer Tools"
-    }
-  ]
+  "plugins": []
 }

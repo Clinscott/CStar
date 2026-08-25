@@ -1,6 +1,26 @@
-import test from 'node:test';
-import assert from 'node:assert';
-import { getTracesForFile, saveTrace } from  '../src/tools/pennyone/intel/database.js';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import test, { after, before } from 'node:test';
+
+import { closeDb, getTracesForFile, saveTrace } from '../src/tools/pennyone/intel/database.js';
+import { registry } from '../src/tools/pennyone/pathRegistry.js';
+
+const originalRoot = registry.getRoot();
+let testRoot: string;
+
+before(() => {
+    testRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'cstar-phase88-neural-'));
+    registry.setRoot(testRoot);
+    closeDb();
+});
+
+after(() => {
+    closeDb();
+    registry.setRoot(originalRoot);
+    fs.rmSync(testRoot, { recursive: true, force: true });
+});
 
 test('Neural Trajectory Database Logic', async () => {
     const testFile = 'src/core/test_logic.py';

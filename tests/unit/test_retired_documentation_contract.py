@@ -47,8 +47,10 @@ def test_current_operator_pointers_do_not_advertise_retired_routes() -> None:
     gemini = _read(".agents/extension/GEMINI.md")
     restoration = _read(".agents/extension/skills/restoration/SKILL.md")
     coordination = _read("docs/integrations/hall_multi_agent_coordination_api.md")
-    assert "direct `cstar-kernel` MCP" in gemini
-    assert "Persona is style-only" in gemini
+    flat_gemini = " ".join(gemini.split())
+    assert "Do not register or launch the former direct `cstar-kernel` MCP" in flat_gemini
+    assert "Persona is style-only" in flat_gemini
+    assert "archive tombstones with no MCP registration" in flat_gemini
     assert "not registered" in restoration
     assert "grant no current authority" in coordination
 

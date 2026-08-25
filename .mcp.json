@@ -1,15 +1,3 @@
 {
-  "mcpServers": {
-    "cstar-kernel": {
-      "command": "node",
-      "args": [
-        "bin/cstar-kernel-mcp.js"
-      ],
-      "env": {
-        "GEMINI_CLI_ACTIVE": "true",
-        "CSTAR_KERNEL_MCP": "1",
-        "CSTAR_KERNEL_DISABLE_WATCH": "1"
-      }
-    }
-  }
+  "mcpServers": {}
 }

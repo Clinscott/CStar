@@ -90,7 +90,7 @@ describe('release bundle generation', () => {
         };
         assert.equal(lineage.schema_version, 1);
         assert.deepEqual(lineage.plugin, { name: 'corvus-star', version: '2.4.6' });
-        assert.equal(lineage.runtime_binding?.integration_mode, 'skill-only');
+        assert.equal(lineage.runtime_binding?.integration_mode, 'archived-no-runtime');
         assert.equal(lineage.runtime_binding?.kernel_bundled, false);
         assert.deepEqual(Object.keys(lineage.files ?? {}).sort(), [
             '.codex-plugin/plugin.json',

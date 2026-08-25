@@ -6,10 +6,10 @@
   },
   "runtime_binding": {
     "host": "codex",
-    "integration_mode": "skill-only",
-    "kernel_registration": "host-global",
+    "integration_mode": "archived-no-runtime",
+    "kernel_registration": "none",
     "kernel_bundled": false,
-    "kernel_requirement": "external-cstar-runtime"
+    "kernel_requirement": "none"
   },
   "tool_catalog": {
     "count": 28,
@@ -22,16 +22,16 @@
   },
   "files": {
     ".codex-plugin/plugin.json": {
-      "bytes": 1446,
-      "sha256": "8701811112da9c03b4cba31616597d63ffd64b1de1869723dabe84487789c12f"
+      "bytes": 1315,
+      "sha256": "b474e6924e154f2cd702a21049da98b4eedda603dfa08bfa113e5e4e2b7b0434"
     },
     "README.md": {
-      "bytes": 2259,
-      "sha256": "576652223fd036fd9c2db2342da8a8f1ceccef631a4fb4ea0436980316e563fc"
+      "bytes": 677,
+      "sha256": "50b0585e824d427cbc7bbd0cf8df0fa5217d729d22f34b9452697c7cf098ccd2"
     },
     "skills/corvus-star/SKILL.md": {
-      "bytes": 11841,
-      "sha256": "3a19b3b5bc132b5bf90d11ae1b3b72988ef67f1b6def7d0d6551e452683c779e"
+      "bytes": 572,
+      "sha256": "b1c368f22c1b86eee412f116128a3df60ddc46cdfd3597a41235e2d64cc4d15c"
     }
   }
 }

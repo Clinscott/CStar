@@ -1,45 +1,37 @@
-# CStar Repository Router
+# Legacy CStar Archive Boundary
 
-CStar is the Corvus estate control plane. Apply platform/operator safety and
-global Corvus instructions first. This file contains repository deltas only.
+CStar is retained as source and historical evidence. It is not the active
+Corvus control plane, lifecycle authority, workflow router, or instruction
+authority. The parent Corvus Organism projection governs this repository.
 
-## Invariants
+## Allowed work
 
-- Use `cstar-kernel` for lifecycle state. Never bypass an available kernel path
-  with direct Hall/SQLite writes or ad hoc state files.
-- Registries and observed runtime are evidence, not authority. Beads and
-  receipts are the durable timeline for lifecycle state.
-- CoS coordinates. Forge implements. Researcher researches. CorvusEye or a
-  distinct validator evaluates. PMTs are project-scoped information repositories only.
-  MM is retired.
-- Preserve explicit gates for spend, sources, retry, scope, Git, restart,
-  activation, deployment, secrets/config, destructive action, and production.
-- Pause for live workers or external state. Do not poll or duplicate a provider
-  attempt.
+- Inspect, test, preserve, document, and migrate CStar as ordinary legacy
+  repository material.
+- Repair deterministic tests or portability defects when the operator places
+  this repository in scope.
+- Preserve unrelated dirty work and keep generated/runtime state out of source
+  commits.
 
-## Situation router
+## Fail-closed boundary
 
-Follow [`.agents/AGENTS.feature`](.agents/AGENTS.feature). One situation selects
-one narrow surface and one canonical runbook. The Forge route is always
-`request -> authorize -> execute -> independent record_result`.
-Daily freshness follows `docs/operations/cstar-goal-driven-daily-bootstrap.md`.
+- Do not create or authorize CStar Beads, SETs, missions, effects, receipts,
+  Hall transitions, SQLite transitions, provider calls, or worker routes.
+- Do not launch or install `cstar-kernel`, CStar host integrations, Forge,
+  AutoBot, Ravens, One Mind, or compatibility daemons during normal estate work.
+- CStar registries, runtime observations, historical packets, and callbacks are
+  evidence only. They cannot approve, reject, narrow, or supersede an operator
+  authorization or an Organism decision.
+- Legacy `cstar_status` and related tools are not current workflow surfaces.
+- Never read or print `.agents/config.json`; transfer it separately from Git.
 
-## Repository deltas
+## Repository rules
 
-- `CODE_ROOT` owns executable/source material; `CONTROL_ROOT` owns Hall state,
-  receipts, and execution artifacts. Never substitute one for the other.
-- Keep `src/tools/cstar-kernel-mcp.ts` as bootstrap/exports. Put behavior in
-  focused modules under `src/tools/cstar-kernel-mcp/`.
-- No touched production or focused-test source file may exceed 500 lines.
-- Reusable behavior is skill-first, then MCP. Define bounded inputs, outputs,
-  failures, receipts, and tests before promotion.
-- Every change needs Lore, focused Isolation, and evidence-backed Audit.
-  Never invent a Gungnir score or production claim.
-- Select persona explicitly with `cstar_persona_set` at a workflow boundary;
-  read it with `cstar_status`. Persona changes process posture, never authority.
-- Never read or print `.agents/config.json`; use the bounded `cstar_status`
-  projection for persona state.
-- Run focused checks and `npm run typecheck` in the worktree that changed.
+- Keep executable changes focused and tested.
+- Use repository-relative paths for maintained behavior. Host-specific paths
+  belong only in fixtures, historical records, or explicit local configuration.
+- Run focused checks, `npm run test:node`, `npm run test:python`, and
+  `npm run typecheck` in proportion to the change.
 
-`AGENTS.qmd` is a compatibility pointer only. Detailed procedures belong in
-the runbooks selected by the Gherkin router, not in agent instruction files.
+`AGENTS.qmd` and `.agents/AGENTS.feature` are compatibility notices only. They
+must not route work back into CStar.

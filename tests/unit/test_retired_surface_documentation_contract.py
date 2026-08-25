@@ -90,20 +90,18 @@ def test_retired_python_secret_bootstrap_contract_is_fail_closed() -> None:
         assert required in feature
 
 
-def test_legacy_authority_pointer_matches_the_kernel_only_boundary() -> None:
+def test_legacy_authority_pointer_matches_the_archive_boundary() -> None:
     pointer = _read("AGENTS.qmd")
     flat_pointer = _flat(pointer)
     weave_doc = _read("docs/architecture/WEAVES.md")
     flat_weave_doc = _flat(weave_doc)
 
     for required in (
-        "compatibility pointer only",
-        "Current repository instructions live in `AGENTS.md`",
-        "current `CODE_ROOT/.agents/AGENTS.feature` for situation routing",
-        "runbook named by its selected row",
-        "Do not copy procedures back into this file",
-        "PMTs are information-only",
-        "MM has no active routing role",
+        "non-authoritative",
+        "parent Corvus Organism projection",
+        "archived source and evidence",
+        "Do not use `.agents/AGENTS.feature` for situation routing",
+        "never restores CStar authority",
     ):
         assert required in flat_pointer
 
@@ -116,7 +114,7 @@ def test_legacy_authority_pointer_matches_the_kernel_only_boundary() -> None:
     ):
         assert stale not in pointer
 
-    assert pointer.startswith("# CStar Authority Pointer\n")
+    assert pointer.startswith("# Legacy CStar Compatibility Notice\n")
     assert "## " not in pointer
     assert len(pointer.splitlines()) <= 20
     assert "exact empty adapter inventory" in flat_weave_doc

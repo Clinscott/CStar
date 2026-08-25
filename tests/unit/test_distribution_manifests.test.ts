@@ -148,7 +148,7 @@ describe('distribution generator', () => {
         );
     });
 
-    it('renders install surfaces with launcher and marketplace metadata', () => {
+    it('renders inert archive surfaces with lineage metadata', () => {
         const projectRoot = createProjectRoot();
         const build = buildDistributions(projectRoot);
 
@@ -159,23 +159,14 @@ describe('distribution generator', () => {
         };
         assert.equal(geminiManifest.contextFileName, 'GEMINI.md');
         assert.equal(geminiManifest.version, '2.4.6');
-        assert.equal(geminiManifest.mcpServers?.['cstar-kernel']?.command, 'node');
-        assert.deepEqual(geminiManifest.mcpServers?.['cstar-kernel']?.args, ['bin/cstar-kernel-mcp.js']);
-        assert.deepEqual(Object.keys(geminiManifest.mcpServers ?? {}), ['cstar-kernel']);
+        assert.deepEqual(geminiManifest.mcpServers ?? {}, {});
 
         const geminiContext = build.files[1]?.content ?? '';
-        assert.match(geminiContext, /node bin\/cstar\.js <command>/);
-        assert.match(geminiContext, /Exported Gemini Capabilities \(3\)/);
-        assert.match(geminiContext, /Host-native Gemini CLI extension/);
-        assert.match(geminiContext, /host session when the registry marks a capability host-executable/);
-        assert.match(geminiContext, /host-owned cognition\/workflow surfaces and `kernel-primitive` entries/);
-        assert.match(geminiContext, /Corvus Star Augury \[Ω\]/);
-        assert.match(geminiContext, /read-only typed route explanation/);
-        assert.doesNotMatch(geminiContext, /Mode: (?:full|lite)/);
-        assert.match(geminiContext, /Omit numeric confidence unless an independently validated scorer/);
-        assert.match(geminiContext, /Start or resume one host goal for every non-trivial mission/);
-        assert.match(geminiContext, /cstar-goal-driven-daily-bootstrap\.md/);
-        assert.match(geminiContext, /`hall` \(PRIME, native-session, host-workflow, kernel fallback forbidden\)/);
+        assert.match(geminiContext, /inert archive tombstone/);
+        assert.match(geminiContext, /Corvus Organism, not CStar/);
+        assert.match(geminiContext, /registers no MCP server, tool, hook, workflow, or provider/);
+        assert.doesNotMatch(geminiContext, /node bin\/cstar\.js/);
+        assert.doesNotMatch(geminiContext, /cstar_hall_search|cstar_forge_execute/);
 
         const codexPlugin = JSON.parse(build.files[2]?.content ?? '{}') as {
             name?: string;
@@ -185,20 +176,16 @@ describe('distribution generator', () => {
             interface?: { displayName?: string; capabilities?: string[]; shortDescription?: string };
         };
         assert.equal(codexPlugin.name, 'corvus-star');
-        assert.equal(codexPlugin.skills, './skills/');
+        assert.equal(codexPlugin.skills, undefined);
         assert.equal(codexPlugin.mcpServers, undefined);
         assert.equal(codexPlugin.hooks, undefined);
-        assert.deepEqual(codexPlugin.interface?.capabilities, ['Interactive', 'Write']);
-        assert.equal(codexPlugin.interface?.shortDescription, 'Corvus Star Augury and Hall integration for Codex.');
+        assert.deepEqual(codexPlugin.interface?.capabilities, ['Read']);
+        assert.equal(codexPlugin.interface?.shortDescription, 'Inactive CStar archive compatibility metadata.');
 
         const codexSkill = build.files[3]?.content ?? '';
-        assert.match(codexSkill, /Corvus Star Augury \[Ω\]/);
-        assert.match(codexSkill, /Council experts are advisory critique lenses/);
-        assert.match(codexSkill, /skill-only/);
-        assert.match(codexSkill, /Omit numeric confidence unless an independently validated scorer/);
-        assert.match(codexSkill, /Start or resume one host goal for every non-trivial mission/);
-        assert.match(codexSkill, /cstar-goal-driven-daily-bootstrap\.md/);
-        assert.doesNotMatch(codexSkill, /`cstar_autobot`/);
+        assert.match(codexSkill, /does not register this file as a skill/);
+        assert.match(codexSkill, /Corvus Organism governs current workflow/);
+        assert.doesNotMatch(codexSkill, /cstar_hall_search|cstar_forge_execute/);
 
         const materializedGemini = fs.readFileSync(path.join(process.cwd(), 'GEMINI.md'), 'utf-8');
         const materializedCodexSkill = fs.readFileSync(
@@ -206,8 +193,8 @@ describe('distribution generator', () => {
             'utf-8',
         );
         for (const materialized of [materializedGemini, materializedCodexSkill]) {
-            assert.match(materialized, /numeric confidence/i);
-            assert.doesNotMatch(materialized, /Confidence belongs in learning metadata/);
+            assert.match(materialized, /archive|archived/i);
+            assert.doesNotMatch(materialized, /authoritative CStar runtime/);
         }
 
         const lineage = JSON.parse(build.files[5]?.content ?? '{}') as {
@@ -220,7 +207,7 @@ describe('distribution generator', () => {
         };
         assert.equal(lineage.schema_version, 1);
         assert.deepEqual(lineage.plugin, { name: 'corvus-star', version: '2.4.6' });
-        assert.equal(lineage.runtime_binding?.integration_mode, 'skill-only');
+        assert.equal(lineage.runtime_binding?.integration_mode, 'archived-no-runtime');
         assert.equal(lineage.runtime_binding?.kernel_bundled, false);
         assert.ok((lineage.tool_catalog?.count ?? 0) > 0);
         assert.match(lineage.tool_catalog?.sha256 ?? '', /^[a-f0-9]{64}$/);
@@ -240,20 +227,16 @@ describe('distribution generator', () => {
         const marketplace = JSON.parse(build.files[6]?.content ?? '{}') as {
             plugins?: Array<{ source?: { path?: string } }>;
         };
-        assert.equal(marketplace.plugins?.[0]?.source?.path, './plugins/corvus-star');
+        assert.deepEqual(marketplace.plugins, []);
 
         const pluginReadme = build.files[4]?.content ?? '';
-        assert.match(pluginReadme, /source plugin under `plugins\/corvus-star\/` is skill-only/);
-        assert.match(pluginReadme, /host-global CStar kernel is managed independently/);
-        assert.match(pluginReadme, /lineage\.json` binds the immutable version/);
-        assert.match(pluginReadme, /Source staging only/);
-        assert.match(pluginReadme, /does not run `codex plugin add`/);
-        assert.match(pluginReadme, /Augury as an advisory route explanation/);
-        assert.match(pluginReadme, /fail closed when the host session is unavailable/);
+        assert.match(pluginReadme, /registers zero MCP servers/);
+        assert.match(pluginReadme, /registers no skills, MCP servers, hooks, or write capability/);
+        assert.match(pluginReadme, /Do not stage, install, activate, restart, or publish/);
 
         const distReadme = build.files[7]?.content ?? '';
         assert.match(distReadme, /npm run build:distributions/);
-        assert.match(distReadme, /never hand-edit Codex plugin caches or marketplace state/);
+        assert.match(distReadme, /inert/);
     });
 
     it('guards generated host surfaces against legacy Trace display drift', () => {

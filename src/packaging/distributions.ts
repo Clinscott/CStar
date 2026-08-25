@@ -79,10 +79,10 @@ const CAPABILITY_REGISTRY_MAX_BYTES = 1024 * 1024;
 
 const CODEX_PLUGIN_RUNTIME_BINDING = {
     host: 'codex',
-    integration_mode: 'skill-only',
-    kernel_registration: 'host-global',
+    integration_mode: 'archived-no-runtime',
+    kernel_registration: 'none',
     kernel_bundled: false,
-    kernel_requirement: 'external-cstar-runtime',
+    kernel_requirement: 'none',
 } as const;
 
 function resolveProjectRoot(projectRoot: string): string {

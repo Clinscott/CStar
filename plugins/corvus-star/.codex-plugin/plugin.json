@@ -1,7 +1,7 @@
 {
   "name": "corvus-star",
   "version": "1.0.2",
-  "description": "Host-native Corvus Star Augury, Hall, and CStar runtime integration.",
+  "description": "Archived Corvus Star compatibility material with no active runtime integration.",
   "author": {
     "name": "Craig Linscott"
   },
@@ -16,24 +16,22 @@
     "mcp",
     "agent-governance"
   ],
-  "skills": "./skills/",
   "interface": {
-    "displayName": "Corvus Star",
-    "shortDescription": "Corvus Star Augury and Hall integration for Codex.",
-    "longDescription": "Routes Codex through CStar with bounded Hall discovery, advisory Augury explanations, and explicit host/kernel authority boundaries.",
+    "displayName": "Corvus Star Archive",
+    "shortDescription": "Inactive CStar archive compatibility metadata.",
+    "longDescription": "Preserves historical CStar source lineage without registering skills, tools, hooks, or workflow authority.",
     "developerName": "Craig Linscott",
     "category": "Developer Tools",
     "capabilities": [
-      "Interactive",
-      "Write"
+      "Read"
     ],
     "websiteURL": "https://github.com/Clinscott/CStar#readme",
     "privacyPolicyURL": "https://github.com/Clinscott/CStar#readme",
     "termsOfServiceURL": "https://github.com/Clinscott/CStar#readme",
     "defaultPrompt": [
-      "Apply the current operator grant and Corvus authority order before CStar lifecycle state.",
-      "Use CStar kernel tools for bounded control-plane work and narrow Hall discovery.",
-      "Do not emit numeric Augury confidence without independently validated scoring evidence."
+      "Treat CStar as inactive historical source and evidence.",
+      "Follow the parent Corvus Organism projection for current workflow authority.",
+      "Do not launch, install, or route work through CStar."
     ],
     "brandColor": "#0F6E5B"
   }

@@ -272,31 +272,20 @@ def test_forge_docs_preserve_legacy_v2_receipts_through_exact_sidecars() -> None
     assert "no vendoring" in provenance
 
 
-def test_agents_points_to_goal_driven_daily_bootstrap_without_stale_authority() -> None:
+def test_agents_establishes_the_organism_archive_boundary() -> None:
     agents = _read("AGENTS.md")
-    bootstrap = _read("docs/operations/cstar-goal-driven-daily-bootstrap.md")
-    flat_bootstrap = _flat(bootstrap)
-
-    assert "docs/operations/cstar-goal-driven-daily-bootstrap.md" in agents
-    assert "Registries and observed runtime are evidence" in agents
-    assert "PMTs are project-scoped information repositories only" in agents
-    assert "Never invent a Gungnir" in agents
-    assert "PMTs are durable project knowledge and review authorities" not in agents
-    assert "Registry and runtime contracts outrank prose" not in agents
+    flat_agents = _flat(agents)
 
     for required in (
-        "operator explicitly resumes it",
-        "host exposes no resume transition",
-        "hermes update --check",
-        "hermes update --backup --yes",
-        "auto-stash",
-        "actual_model: null",
-        "model_source: unreported",
-        "restart gate",
-        "drift is informational, not a red gate",
-        "Do not rerun Hermes or Codex update checks",
+        "Legacy CStar Archive Boundary",
+        "parent Corvus Organism projection governs",
+        "not the active Corvus control plane",
+        "Do not launch or install `cstar-kernel`",
+        "must not route work back into CStar",
     ):
-        assert required in flat_bootstrap
+        assert required in flat_agents
+    assert "CStar is the Corvus estate control plane" not in agents
+    assert "request -> authorize -> execute" not in agents
 
 
 def test_daily_bootstrap_preserves_git_and_runtime_dispatch_gates() -> None:

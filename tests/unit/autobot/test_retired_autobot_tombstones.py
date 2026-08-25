@@ -58,22 +58,28 @@ def test_retired_entrypoints_contain_no_execution_or_state_implementation() -> N
             assert token not in source, f"{script_name} retains forbidden token {token}"
 
 
-def test_retired_skill_is_only_a_durable_forge_pointer() -> None:
-    source = (ROOT / ".agents" / "skills" / "autobot" / "SKILL.md").read_text(
-        encoding="utf-8"
-    )
-    assert (
-        "cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute"
-        in source
-    )
-    assert RETIRED_ERROR in source
+def test_retired_skill_is_absent_from_discovery_and_archived_inertly() -> None:
+    skill_root = ROOT / ".agents" / "skills" / "autobot"
+    assert not (skill_root / "SKILL.md").exists()
+
+    decommissioned = (skill_root / "DECOMMISSIONED.md").read_text(encoding="utf-8")
+    archive = (skill_root / "LEGACY_SKILL_ARCHIVE.md").read_text(encoding="utf-8")
+
+    assert "intentionally has no `SKILL.md`" in decommissioned
+    assert "not a discoverable" in decommissioned
+    assert "fail-closed tombstones" in decommissioned
+    assert "intentionally absent" in archive
+    assert "not a skill manifest" in archive
+
+    combined = f"{decommissioned}\n{archive}".lower()
     for forbidden in (
+        "cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute",
         "entry_surface:",
         "terminal_required:",
         "intent_category:",
         "python3 ",
         "--intent",
-        "## When to use",
-        "## Execution",
+        "## when to use",
+        "## execution",
     ):
-        assert forbidden not in source
+        assert forbidden not in combined

@@ -92,3 +92,12 @@ tmp_*/
 err
 out
 debug_*.mjs
+
+# Host-local ledgers, validation receipts, and one-run diagnostics
+.agents/config.json
+.agents/brave_quota.json
+.agents/debug_ledger.jsonl
+.cstar/validation/set-intent-binding-live-proof-20260801-checks.json
+.cstar/validation/set-intent-binding-live-proof-20260801-independent.json
+flash-canary-output.txt
+node-event-reporter.synthetic.test.v1.mjs

@@ -29,16 +29,16 @@ function createPreparedCodexHome(): { homeDir: string; marketplacePath: string }
 }
 
 describe('Setup, packaging, and installation authority', () => {
-    it('stages verified Codex source through a prepared marketplace without activation', () => {
+    it('rejects prepared Codex staging before host mutation', () => {
         const { homeDir, marketplacePath } = createPreparedCodexHome();
         const marketplaceBefore = fs.readFileSync(marketplacePath);
 
-        const result = installCodexPlugin({ projectRoot: process.cwd(), homeDir });
-
-        assert.equal(result.changed, true);
-        assert.equal(result.pluginPath, path.join(homeDir, 'plugins', 'corvus-star'));
-        assert.equal(fs.existsSync(path.join(result.pluginPath, 'lineage.json')), true);
+        assert.throws(
+            () => installCodexPlugin({ projectRoot: process.cwd(), homeDir }),
+            /legacy_cstar_codex_plugin_install_retired_use_organism_host_integration/,
+        );
         assert.deepEqual(fs.readFileSync(marketplacePath), marketplaceBefore);
+        assert.equal(fs.existsSync(path.join(homeDir, 'plugins')), false);
         assert.equal(fs.existsSync(path.join(homeDir, '.codex')), false);
         fs.rmSync(homeDir, { recursive: true, force: true });
     });
@@ -48,7 +48,7 @@ describe('Setup, packaging, and installation authority', () => {
         const before = fs.readdirSync(homeDir);
         assert.throws(
             () => installCodexPlugin({ projectRoot: process.cwd(), homeDir }),
-            /Personal Codex marketplace source entry is not prepared/,
+            /legacy_cstar_codex_plugin_install_retired_use_organism_host_integration/,
         );
         assert.throws(
             () => installGeminiExtension({ projectRoot: process.cwd(), homeDir }),

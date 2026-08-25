@@ -1,5 +1,6 @@
 import { describe, test } from 'node:test';
 import { strict as assert } from 'node:assert';
+import fs from 'node:fs';
 import path from 'node:path';
 
 import { executeGenesisSequence, getVenvBinaryPath } from '../../src/node/setup.js';
@@ -14,6 +15,20 @@ describe('Retired local setup boundary', () => {
             getVenvBinaryPath('linux', '/test/root', 'pip').replace(/\\/g, '/'),
             '/test/root/.venv/bin/pip',
         );
+        assert.equal(
+            getVenvBinaryPath('darwin', '/test/root', 'pip').replace(/\\/g, '/'),
+            '/test/root/.venv/bin/pip',
+        );
+    });
+
+    test('pins an ABI-compatible Node line for macOS transfer', () => {
+        const root = path.resolve(import.meta.dirname, '..', '..');
+        const packageJson = JSON.parse(
+            fs.readFileSync(path.join(root, 'package.json'), 'utf-8'),
+        ) as { engines?: { node?: string } };
+
+        assert.equal(packageJson.engines?.node, '>=22 <26');
+        assert.equal(fs.readFileSync(path.join(root, '.nvmrc'), 'utf-8'), '24\n');
     });
 
     test('fails before filesystem, package, environment, or process effects', async () => {
