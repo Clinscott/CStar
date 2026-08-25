@@ -1,0 +1,19 @@
+{
+  "schema": "corvus.organism.health_signals.v1",
+  "contract_sha256": "a0096f1c49f3012b89c256c30eb6c9e2892a8f7a3ff8b68b2da80538c91fa011",
+  "measurement_rule": "measured_or_typed_unavailable",
+  "signals": [
+    {"id": "controller_generation_current", "grade": "measured", "source": "cstar-durable-state"},
+    {"id": "journal_append_and_hash_chain", "grade": "measured", "source": "canonical-journal"},
+    {"id": "reducer_replay_consistency", "grade": "measured", "source": "canonical-reducer"},
+    {"id": "outbox_inbox_idempotency", "grade": "measured", "source": "effect-protocol"},
+    {"id": "transport_ack_and_terminal_freshness", "grade": "measured", "source": "native-task-control"},
+    {"id": "local_manifest_and_capability_hash", "grade": "measured", "source": "topology-lint"},
+    {"id": "memory_integrity_and_bound", "grade": "measured", "source": "bounded-memory-policy"},
+    {"id": "validator_freshness", "grade": "measured", "source": "independent-validator"},
+    {"id": "protected_gate_state", "grade": "measured", "source": "cstar-gates"},
+    {"id": "csf_d007_state", "grade": "measured", "source": "cstar-checkpoint"}
+  ],
+  "closed": true,
+  "health_sha256": "a0096f1c49f3012b89c256c30eb6c9e2892a8f7a3ff8b68b2da80538c91fa011"
+}
