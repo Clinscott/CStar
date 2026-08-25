@@ -1,0 +1,16 @@
+{
+  "schema": "corvus.organism.controller_continuity.v1",
+  "contract_sha256": "a0096f1c49f3012b89c256c30eb6c9e2892a8f7a3ff8b68b2da80538c91fa011",
+  "controller_identity": "cstar",
+  "active_controller_cardinality": 1,
+  "controller_generation_source": "cstar-durable-state",
+  "local_declaration_authority": false,
+  "stale_generation": "FAIL_CLOSED",
+  "succession_transition": ["revoke_old_generation", "identify_new_generation", "bind_handoff_packet", "append_event"],
+  "old_generation_terminal_states": ["DRAINING", "QUARANTINED"],
+  "automatic_continuation": false,
+  "duplicate_dispatch": false,
+  "continuity_receipt_schema": "corvus.organism.succession_receipt.v1",
+  "closed": true,
+  "continuity_sha256": "a0096f1c49f3012b89c256c30eb6c9e2892a8f7a3ff8b68b2da80538c91fa011"
+}
