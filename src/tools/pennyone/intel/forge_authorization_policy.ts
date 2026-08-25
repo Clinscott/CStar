@@ -13,6 +13,7 @@ import {
     isForgeGoalResumeProjectionJson,
     parseForgeGoalResumeAuthorizationProjection,
 } from './forge_goal_resume_authorization_policy.js';
+import { forgeGoalResumeV2AuthorizationMatchesRequest } from './forge_goal_resume_v2_lineage.js';
 
 export const ROOT_USER_FORGE_INTENT_PROFILE = 'root_user_forge_intent_v1' as const;
 export const LEGACY_EXACT_FORGE_CHALLENGE_PROFILE = 'exact_request_challenge_v1' as const;
@@ -399,6 +400,7 @@ function forgeAuthorizationProfileMatchesRequest(
     if (authorization.authorization_profile !== ROOT_USER_FORGE_INTENT_PROFILE
         || request.authorization_challenge_sha256 !== undefined
         || authorization.challenge_sha256 !== undefined) return false;
+    if (forgeGoalResumeV2AuthorizationMatchesRequest(request, authorization)) return true;
     try {
         if (isForgeGoalResumeProjectionJson(authorization.operator_intent_json)) {
             const projection = parseForgeGoalResumeAuthorizationProjection(

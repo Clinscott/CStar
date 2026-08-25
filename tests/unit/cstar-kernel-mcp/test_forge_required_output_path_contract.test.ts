@@ -76,4 +76,31 @@ describe('Forge required-output path contract', () => {
                 && !error.message.includes('OUTSIDE_PATH_CANARY'),
         );
     });
+
+    it('rejects existing regular target and output hardlinks', () => {
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-required-hardlinks-'));
+        try {
+            const target = path.join(root, 'target.ts');
+            const targetSource = path.join(root, 'target-source.ts');
+            fs.writeFileSync(targetSource, 'target\n');
+            fs.linkSync(targetSource, target);
+            assert.throws(
+                () => assertForgeRequiredOutputsContained(root, [target], [target]),
+                /forge_target_path_hardlink_forbidden/,
+            );
+
+            const targetDirectory = path.join(root, 'target-dir');
+            const output = path.join(targetDirectory, 'output.txt');
+            const outputSource = path.join(root, 'output-source.txt');
+            fs.mkdirSync(targetDirectory);
+            fs.writeFileSync(outputSource, 'output\n');
+            fs.linkSync(outputSource, output);
+            assert.throws(
+                () => assertForgeRequiredOutputsContained(root, [targetDirectory], [output]),
+                /forge_required_output_path_hardlink_forbidden/,
+            );
+        } finally {
+            fs.rmSync(root, { recursive: true, force: true });
+        }
+    });
 });

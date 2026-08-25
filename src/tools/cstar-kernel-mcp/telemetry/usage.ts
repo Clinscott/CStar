@@ -3,11 +3,22 @@ import { buildHallRepositoryId, normalizeHallPath } from '../../../types/hall.js
 import { registry } from '../../pennyone/pathRegistry.js';
 import { database } from '../../pennyone/intel/database.js';
 import {
+    isMcpOutcome,
     isNonRecordablePreAuthorization,
+    normalizeMcpResponse,
     type McpTextResponse,
+    type McpOutcome,
 } from '../contracts/responses.js';
 import type { McpRequestContext } from '../contracts/request_context.js';
 import { PROJECT_ROOT } from '../contracts/runtime.js';
+import { getCstarKernelToolCatalogEntry } from '../contracts/tool_catalog.js';
+import {
+    clampReadDeadlineMs,
+    DEFAULT_READ_DEADLINE_MS,
+    withReadDeadline,
+    type ReadDeadlineOptions,
+} from '../contracts/deadlines.js';
+import { readFailureResponse } from '../tools/read_deadline.js';
 import {
     appendBoundedTelemetryLine,
     MCP_TELEMETRY_MAX_BYTES,
@@ -30,6 +41,7 @@ export interface McpUsageEvent {
     ok: boolean;
     duration_ms: number;
     root: string;
+    outcome?: McpOutcome;
 }
 
 export interface McpUsefulnessEvent extends McpUsageEvent {
@@ -267,6 +279,84 @@ function parseTextResponsePayload(result: McpTextResponse): any {
     }
 }
 
+function responseOutcome(result: McpTextResponse): McpOutcome {
+    const payload = parseTextResponsePayload(result);
+    return isMcpOutcome(payload?.outcome)
+        ? payload.outcome
+        : result.isError === true ? 'internal_error' : 'ok';
+}
+
+function isPublicReadTool(toolName: string): boolean {
+    try {
+        return getCstarKernelToolCatalogEntry(toolName).toolClass === 'READ';
+    } catch {
+        return false;
+    }
+}
+
+function requestSignal(context?: McpRequestContext): AbortSignal | undefined {
+    const signal = (context as (McpRequestContext & { signal?: unknown }) | undefined)?.signal;
+    if (!signal || typeof signal !== 'object') return undefined;
+    const candidate = signal as Partial<AbortSignal>;
+    return typeof candidate.aborted === 'boolean'
+        && typeof candidate.addEventListener === 'function'
+        ? signal as AbortSignal
+        : undefined;
+}
+
+function requestedReadDeadline(args: unknown): number | null | undefined {
+    if (!args || typeof args !== 'object' || Array.isArray(args)) return undefined;
+    const record = args as Record<string, unknown>;
+    for (const key of ['deadlineMs', 'timeoutMs', 'deadline_ms', 'timeout_ms']) {
+        const value = record[key];
+        if (value === null || typeof value === 'number') return value;
+    }
+    return undefined;
+}
+
+function publicReadDeadlineOptions(
+    args: unknown,
+    context?: McpRequestContext,
+): ReadDeadlineOptions {
+    return {
+        deadlineMs: clampReadDeadlineMs(
+            requestedReadDeadline(args) ?? DEFAULT_READ_DEADLINE_MS,
+        ),
+        signal: requestSignal(context),
+    };
+}
+
+function isValidationRollbackOrPartial(payload: any): boolean {
+    if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return false;
+    if (payload.validation_persisted === false
+        || payload.validation_transaction_rolled_back === true
+        || payload.rolled_back === true
+        || payload.partial === true) return true;
+
+    const status = typeof payload.status === 'string' ? payload.status.toLowerCase() : '';
+    if (['partial', 'rolled_back', 'rollback', 'not_persisted',
+        'validation_transaction_rolled_back', 'validation_not_persisted'].includes(status)) {
+        return true;
+    }
+
+    return ['error_code', 'error', 'validation_warning', 'forge_validation_warning']
+        .some((key) => {
+            const value = payload[key];
+            return typeof value === 'string'
+                && /(?:validation_)?(?:transaction_)?rolled_back|(?:validation_)?not_persisted/i.test(value);
+        });
+}
+
+function validationWasRecorded(payload: any): boolean {
+    if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return false;
+    if (payload.error || isValidationRollbackOrPartial(payload)) return false;
+    const status = typeof payload.status === 'string' ? payload.status.toLowerCase() : '';
+    return payload.validation_persisted === true
+        || status === 'recorded'
+        || status === 'recorded_verified'
+        || status === 'recorded_unverified';
+}
+
 /**
  * Rejected callers have not crossed the mutation boundary, so they must not
  * be able to create telemetry state as a side effect of probing that gate.
@@ -295,6 +385,7 @@ export function deriveMcpUsefulnessEvent(
         action: typeof argRecord.action === 'string' ? argRecord.action : undefined,
         bead_id: typeof argRecord.bead_id === 'string' ? argRecord.bead_id : undefined,
         outcome_kind: base.ok ? 'ok' : 'error',
+        outcome: base.outcome ?? (result ? responseOutcome(result) : undefined),
     };
 
     if (typeof payload?.bead_id === 'string') event.bead_id = payload.bead_id;
@@ -335,45 +426,73 @@ export function deriveMcpUsefulnessEvent(
         event.result_count = Array.isArray(payload?.beads) ? payload.beads.length : undefined;
         event.has_results = Array.isArray(payload?.beads) ? payload.beads.length > 0 : undefined;
     } else if (base.tool === 'cstar_record_result') {
-        event.outcome_kind = payload?.error ? 'validation_error' : 'validation_recorded';
+        const recorded = validationWasRecorded(payload);
+        event.outcome_kind = recorded
+            ? 'validation_recorded'
+            : payload?.error ? 'validation_error' : 'validation_not_recorded';
         event.bead_id = typeof payload?.bead_id === 'string' ? payload.bead_id : event.bead_id;
         event.verdict = typeof payload?.verdict === 'string' ? payload.verdict : undefined;
-        event.validation_recorded = payload?.validation_persisted === true
-            || ['recorded', 'recorded_verified', 'recorded_unverified'].includes(String(payload?.status ?? ''));
+        event.validation_recorded = recorded;
     } else if (base.tool === 'cstar_researcher_request' || base.tool === 'cstar_forge_request') {
         event.outcome_kind = payload?.error ? 'dispatch_request_error' : `dispatch_${payload?.status ?? 'unknown'}`;
         event.bead_id = typeof payload?.bead_id === 'string' ? payload.bead_id : event.bead_id;
+    } else if (base.tool === 'cstar_researcher_host_complete') {
+        event.outcome_kind = payload?.error ? 'researcher_delivery_error' : `researcher_${payload?.status ?? 'unknown'}`;
+        event.bead_id = typeof payload?.bead_id === 'string' ? payload.bead_id : event.bead_id;
+        event.validation_present = payload?.status === 'DELIVERED_UNVERIFIED';
     }
 
     return event;
+}
+
+function recordMcpTelemetry(
+    toolName: string,
+    args: unknown,
+    startedAt: number,
+    root: string,
+    result?: McpTextResponse,
+): void {
+    const usageEvent: McpUsageEvent = {
+        ts: new Date(startedAt).toISOString(), tool: toolName,
+        ok: result ? result.isError !== true : false,
+        duration_ms: Date.now() - startedAt, root,
+        outcome: result ? responseOutcome(result) : 'internal_error',
+    };
+    appendMcpUsageEvent(usageEvent);
+    appendMcpUsefulnessEvent({
+        ...deriveMcpUsefulnessEvent(usageEvent, args, result),
+        repo_id: resolveUsefulnessRepoId(root),
+    });
 }
 
 export function instrumentTool<TArgs>(
     toolName: string,
     handler: (args: TArgs, context?: McpRequestContext) => Promise<McpTextResponse>,
 ) {
+    const publicRead = isPublicReadTool(toolName);
     return async (args: TArgs, context?: McpRequestContext) => {
         const startedAt = Date.now();
         const root = resolveTelemetryRoot();
         try {
-            const result = await handler(args, context);
-            if (isPreAuthorizationRejection(result)) return result;
-            const usageEvent = { ts: new Date(startedAt).toISOString(), tool: toolName, ok: result.isError !== true, duration_ms: Date.now() - startedAt, root };
-            appendMcpUsageEvent(usageEvent);
-            appendMcpUsefulnessEvent({
-                ...deriveMcpUsefulnessEvent(usageEvent, args, result),
-                repo_id: resolveUsefulnessRepoId(root),
-            });
+            const rawResult = publicRead
+                ? await withReadDeadline(
+                    () => handler(args, context),
+                    publicReadDeadlineOptions(args, context),
+                )
+                : await handler(args, context);
+            if (isPreAuthorizationRejection(rawResult)) return rawResult;
+            const result = normalizeMcpResponse(rawResult);
+            recordMcpTelemetry(toolName, args, startedAt, root, result);
             return result;
         } catch (error) {
             if (isPreAuthorizationRejection(error)) throw error;
-            const usageEvent = { ts: new Date(startedAt).toISOString(), tool: toolName, ok: false, duration_ms: Date.now() - startedAt, root };
-            appendMcpUsageEvent(usageEvent);
-            appendMcpUsefulnessEvent({
-                ...deriveMcpUsefulnessEvent(usageEvent, args),
-                repo_id: resolveUsefulnessRepoId(root),
-            });
-            throw error;
+            if (!publicRead) {
+                recordMcpTelemetry(toolName, args, startedAt, root);
+                throw error;
+            }
+            const result = normalizeMcpResponse(readFailureResponse(error));
+            recordMcpTelemetry(toolName, args, startedAt, root, result);
+            return result;
         }
     };
 }

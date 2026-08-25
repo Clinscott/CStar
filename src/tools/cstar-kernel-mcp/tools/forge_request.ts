@@ -46,13 +46,13 @@ import { sealForgeHermesRuntimeExpectation } from './forge_hermes_runtime_contra
 import { verifyCodexRequestIdentity } from './operator_authorization.js';
 import { reconcileLegacyV2ForgeRequest } from './forge_legacy_v2_reconciliation.js';
 import { findForgeRequestByDecisionBeforeMutation } from './forge_execute_request_authority.js';
+import { isLegacyV2ForgeRequest } from './forge_request_route.js';
 import { assertLiveForgeRuntimeReady } from '../contracts/runtime.js';
 import { resolveForgeRuntimeRoots } from './forge_runtime_roots.js';
 
 export interface ForgeRequestArgs extends DispatchRequestArgs {
     execution_adapter_ref?: string;
 }
-
 function forgeRequestValidationError(args: ForgeRequestArgs): string | null {
     const baseError = findDispatchValidationError(args, {
         require_operator_authorization_ref: false,
@@ -70,9 +70,6 @@ function forgeRequestValidationError(args: ForgeRequestArgs): string | null {
         if (args.spend_policy.operator_authorization_ref?.trim()) {
             return 'legacy freeform operator_authorization_ref is forbidden; use root-user Forge intent';
         }
-        if (!args.execution_adapter_ref?.trim()) {
-            return 'live Forge requests require execution_adapter_ref';
-        }
         if (args.spend_policy.live_source_allowed === true) {
             return 'the bootstrap Forge authorization does not permit live source collection';
         }
@@ -82,7 +79,6 @@ function forgeRequestValidationError(args: ForgeRequestArgs): string | null {
     }
     return null;
 }
-
 export async function handleForgeRequest(
     args: ForgeRequestArgs,
     requestContext?: McpRequestContext,
@@ -105,9 +101,8 @@ export async function handleForgeRequest(
                     ['forge_request_contract'],
                     ['request_validation'],
                 ),
-            }, 'forge_request_contract_invalid', validationError);
+                }, 'forge_request_contract_invalid', validationError);
         }
-
         const { controlRoot, codeRoot } = resolveForgeRuntimeRoots();
         const actionAuthority = resolveDispatchActionAuthority(args, codeRoot);
         const surface = resolveDispatchSurface('forge', args);
@@ -128,10 +123,20 @@ export async function handleForgeRequest(
                 ),
             }, 'missing_authorized_dispatch_surface');
         }
-
-        const adapter = resolveForgeExecutionAdapterRef(args.execution_adapter_ref);
+        const legacyV2 = isLegacyV2ForgeRequest(controlRoot, args.bead_id!.trim(), decisionId);
+        if (!legacyV2 && args.execution_adapter_ref?.trim()) throw new Error('forge_v3_legacy_execution_adapter_forbidden');
+        const adapter = legacyV2
+            ? resolveForgeExecutionAdapterRef(args.execution_adapter_ref)
+            : { requested_ref: null, canonical_ref: null, found: false, selected: null, checked: [] };
         const liveRequested = args.spend_policy.mode === 'live_authorized';
-        if (liveRequested && !adapter.selected) {
+        const writeCapability: 'project_files' | 'response_only' | null = adapter.selected?.write_capability === 'project_files'
+            ? 'project_files'
+            : adapter.selected?.write_capability === 'response_only'
+                ? 'response_only'
+                : actionAuthority.primary_action === 'project_files'
+                    ? 'project_files'
+                    : actionAuthority.primary_action === 'response_only' ? 'response_only' : null;
+        if (legacyV2 && liveRequested && !adapter.selected) {
             return preAuthorizationResponse({
                 status: 'blocked',
                 dispatch_kind: 'forge',
@@ -150,7 +155,7 @@ export async function handleForgeRequest(
         }
         if (
             liveRequested
-            && adapter.selected?.write_capability === 'project_files'
+            && writeCapability === 'project_files'
             && (!args.required_output_paths || args.required_output_paths.length === 0)
         ) {
             return preAuthorizationResponse({
@@ -195,7 +200,7 @@ export async function handleForgeRequest(
                     ),
                 }, mcpErrorCode(reason, 'dispatch_action_adapter_capability_mismatch'), reason);
             }
-        } else if (liveRequested) {
+        } else if (legacyV2 && liveRequested) {
             return preAuthorizationResponse({
                 status: 'blocked',
                 dispatch_kind: 'forge',
@@ -216,7 +221,7 @@ export async function handleForgeRequest(
         requestIdentityVerified = true;
         if (liveRequested) assertLiveForgeRuntimeReady();
 
-        if (liveRequested && adapter.selected?.write_capability === 'project_files') {
+        if (liveRequested && writeCapability === 'project_files') {
             try {
                 assertForgeRequiredOutputsContained(codeRoot, args.target_paths, args.required_output_paths);
             } catch (error) {
@@ -248,11 +253,6 @@ export async function handleForgeRequest(
             && adapterRuntimeProof
             ? await sealForgeHermesRuntimeExpectation(adapterRuntimeProof)
             : null;
-        const writeCapability = selectedAdapter?.write_capability === 'project_files'
-            ? 'project_files'
-            : selectedAdapter?.write_capability === 'response_only'
-                ? 'response_only'
-                : null;
         const canonical = canonicalizeForgeRequest(
             args as ForgeRequestContractArgs,
             codeRoot,
@@ -282,6 +282,7 @@ export async function handleForgeRequest(
                     throw new Error('forge_request_summary_invalid');
                 }
                 if (existingSchema === 'cstar.forge_request.v2') {
+                    if (!adapter.selected) throw new Error('missing_authorized_execution_adapter');
                     if (!liveRequested || !adapterRuntimeProof || !hermesRuntimeExpectation) {
                         throw new Error('forge_legacy_v2_reconciliation_requires_live_worker_contract');
                     }

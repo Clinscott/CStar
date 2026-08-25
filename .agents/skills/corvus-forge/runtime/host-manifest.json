@@ -1,0 +1,28 @@
+{
+  "schema": "cstar.forge_host_runtime_manifest.v2",
+  "runtime_owner": "cstar-state-only",
+  "runner_owner": "codex-host",
+  "workflow_surfaces": [
+    "forge",
+    "researcher"
+  ],
+  "requested_model": "gpt-5.6-luna",
+  "requested_reasoning": "max",
+  "selector_status": "enforced",
+  "actual_identity": null,
+  "transport": "codex-host",
+  "host_launch_required": true,
+  "provider_attempted": false,
+  "network_policy": "codex_host_no_cstar_network",
+  "cognition_launch": false,
+  "cstar_launch": false,
+  "manifest_schema_path": "host-manifest.schema.json",
+  "generator_path": "scripts/codex_host_runtime_lineage.mjs",
+  "proof_files": [
+    "runtime/host-manifest.json",
+    "runtime/host-manifest.schema.json",
+    "scripts/codex_host_runtime_lineage.mjs"
+  ],
+  "receipt_schema": "cstar.forge_host_runtime_receipt.v2",
+  "hash_algorithm": "sha256"
+}

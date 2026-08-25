@@ -9,12 +9,17 @@ import {
     evaluateKernelForgeReadiness,
 } from '../../../src/tools/cstar-kernel-mcp/contracts/runtime_lineage.js';
 import {
+    buildBetterSqliteRuntimeSmokeSource,
+    inspectNativeArtifactLoadBinding,
+    runBetterSqliteRuntimeSmoke,
     verifyRequiredNativeArtifacts,
 } from '../../../src/tools/cstar-kernel-mcp/contracts/runtime_native_artifacts.js';
+import { loadRuntimePolicy } from '../../../src/tools/cstar-kernel-mcp/contracts/runtime_policy.js';
 
 const roots: string[] = [];
-const lockKey = 'node_modules/better-sqlite3';
-const relativeArtifact = 'build/Release/better_sqlite3.node';
+const runtimePolicy = loadRuntimePolicy();
+const lockKey = `node_modules/${runtimePolicy.native.dependency}`;
+const relativeArtifact = runtimePolicy.native.artifact;
 
 function writeJson(candidate: string, value: unknown): void {
     fs.mkdirSync(path.dirname(candidate), { recursive: true });
@@ -73,11 +78,11 @@ function fixture(artifact: Buffer | null = nativeHeader()): {
     const sourceManifest = {
         name: 'synthetic-cstar',
         version: '1.0.1',
-        dependencies: { 'better-sqlite3': '12.6.2' },
+        dependencies: { [runtimePolicy.native.dependency]: runtimePolicy.native.version },
     };
     const expectedPackages = {
         '': sourceManifest,
-        [lockKey]: { version: '12.6.2', hasInstallScript: true },
+        [lockKey]: { version: runtimePolicy.native.version, hasInstallScript: true },
     };
     const installedPackages = {
         [lockKey]: expectedPackages[lockKey],
@@ -98,10 +103,10 @@ function fixture(artifact: Buffer | null = nativeHeader()): {
         lockfileVersion: 3,
         packages: installedPackages,
     });
-    writeJson(path.join(nodeModulesRoot, 'better-sqlite3', 'package.json'), {
-        name: 'better-sqlite3', version: '12.6.2',
+    writeJson(path.join(nodeModulesRoot, runtimePolicy.native.dependency, 'package.json'), {
+        name: runtimePolicy.native.dependency, version: runtimePolicy.native.version,
     });
-    const artifactPath = path.join(nodeModulesRoot, 'better-sqlite3', relativeArtifact);
+    const artifactPath = path.join(nodeModulesRoot, runtimePolicy.native.dependency, relativeArtifact);
     if (artifact) writeFile(artifactPath, artifact);
     return {
         codeRoot,
@@ -128,6 +133,17 @@ afterEach(() => {
 });
 
 describe('required native runtime artifact proof', () => {
+    it('binds the child smoke to the policy-bound artifact instead of package resolution', () => {
+        const source = buildBetterSqliteRuntimeSmokeSource();
+        assert.match(source, /process\.argv\[2\]/);
+        assert.match(source, /process\.argv\[3\]/);
+        assert.match(source, /policyArtifactPath/);
+        assert.match(source, /nativeBinding: binding\.resolved_path/);
+        assert.match(source, /require\.resolve\(artifactPath\)/);
+        assert.match(source, /createHash\('sha256'\)/);
+        assert.match(source, /revalidateBinding\(\)/);
+    });
+
     it('fails Forge readiness when a matching inventory omits the generated addon', () => {
         const value = fixture(null);
         const lineage = buildKernelRuntimeLineageForRoots({
@@ -185,12 +201,12 @@ describe('required native runtime artifact proof', () => {
         fs.rmSync(value.artifactPath);
         fs.linkSync(outside, value.artifactPath);
         assert.equal(proof(value).artifacts[0]?.status, 'unsafe');
-        fs.rmSync(path.join(value.nodeModulesRoot, 'better-sqlite3', 'build'), { recursive: true });
+        fs.rmSync(path.join(value.nodeModulesRoot, runtimePolicy.native.dependency, 'build'), { recursive: true });
         const outsideBuild = path.join(path.dirname(value.codeRoot), 'outside-build');
         writeFile(path.join(outsideBuild, 'Release', 'better_sqlite3.node'), nativeHeader());
-        fs.symlinkSync(outsideBuild, path.join(value.nodeModulesRoot, 'better-sqlite3', 'build'));
+        fs.symlinkSync(outsideBuild, path.join(value.nodeModulesRoot, runtimePolicy.native.dependency, 'build'));
         assert.equal(proof(value).artifacts[0]?.status, 'unsafe');
-        fs.rmSync(path.join(value.nodeModulesRoot, 'better-sqlite3', 'build'));
+        fs.rmSync(path.join(value.nodeModulesRoot, runtimePolicy.native.dependency, 'build'));
         writeFile(value.artifactPath, 'not-a-native-binary');
         assert.equal(proof(value).artifacts[0]?.status, 'invalid_binary');
     });
@@ -204,5 +220,52 @@ describe('required native runtime artifact proof', () => {
         assert.ok(result.mismatch_reasons.includes(
             `required_native_artifact_size_invalid:${lockKey}/${relativeArtifact}`,
         ));
+    });
+
+    it('smokes the installed artifact and rejects path substitution and post-hash mutation', (t) => {
+        const packageRoot = path.join(process.cwd(), 'node_modules', runtimePolicy.native.dependency);
+        const installedArtifact = path.join(packageRoot, runtimePolicy.native.artifact);
+        if (!fs.existsSync(packageRoot) || !fs.existsSync(installedArtifact)) {
+            t.skip('the pinned native artifact is not installed in this worktree');
+            return;
+        }
+        const installedBinding = inspectNativeArtifactLoadBinding(installedArtifact);
+        assert.ok(installedBinding);
+        assert.equal(runBetterSqliteRuntimeSmoke({
+            artifactPath: installedArtifact,
+            packageRoot,
+            policy: runtimePolicy,
+            load_binding: installedBinding,
+        }), true);
+
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'cstar-native-load-binding-'));
+        roots.push(root);
+        const substituted = path.join(root, 'substituted.node');
+        const mutated = path.join(root, 'mutated.node');
+        fs.copyFileSync(installedArtifact, substituted);
+        fs.copyFileSync(installedArtifact, mutated);
+        const substitutedBinding = inspectNativeArtifactLoadBinding(substituted);
+        const mutatedBinding = inspectNativeArtifactLoadBinding(mutated);
+        assert.ok(substitutedBinding);
+        assert.ok(mutatedBinding);
+        const policyFor = (artifact: string) => ({
+            ...runtimePolicy,
+            native: { ...runtimePolicy.native, artifact: path.relative(packageRoot, artifact) },
+        });
+        assert.equal(runBetterSqliteRuntimeSmoke({
+            artifactPath: substituted,
+            packageRoot,
+            policy: policyFor(substituted),
+            load_binding: mutatedBinding,
+        }), false);
+        const bytes = fs.readFileSync(mutated);
+        bytes[bytes.length - 1] ^= 0xff;
+        fs.writeFileSync(mutated, bytes);
+        assert.equal(runBetterSqliteRuntimeSmoke({
+            artifactPath: mutated,
+            packageRoot,
+            policy: policyFor(mutated),
+            load_binding: mutatedBinding,
+        }), false);
     });
 });

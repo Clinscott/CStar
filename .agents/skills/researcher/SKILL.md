@@ -4,7 +4,7 @@ description: Govern bounded CStar Researcher evidence requests, truth-verificati
 tier: SKILL
 risk: medium
 intent_category: VERIFY
-entry_surface: docs
+entry_surface: host-only
 terminal_required: false
 ---
 
@@ -12,8 +12,8 @@ terminal_required: false
 
 Researcher is the Corvus evidence scout and truth-verification evaluation lane.
 It finds or evaluates bounded evidence, grades outputs against explicit metrics,
-and routes decision packets into CStar. This file is also the default authorized
-dispatch surface checked by `cstar_researcher_request`.
+and routes decision packets into CStar. This file is also the default host-only
+documentation/request-receipt surface checked by `cstar_researcher_request`.
 
 This surface is a request and authority contract. It is not a live execution
 adapter. A valid request receipt proves that bounded routing, metrics,
@@ -21,10 +21,20 @@ artifacts, prohibited actions, callback, and package locks are present. It does
 not itself run Hermes, MiniMax, source adapters, browser collection, GitHub
 mutation, or model spend.
 
+The current native handoff is a separate host boundary. A request receipt is
+not a worker launch, and the registry remains `active_in_runtime=false` until
+the later runtime gate. A host may consume one immutable
+`cstar.researcher_native_work_package.v1`, then report exactly one
+`cstar.researcher_host_completion.v1` through
+`cstar_researcher_host_complete`. That receipt is
+`DELIVERED_UNVERIFIED`; only an independent validator may bind a positive
+`cstar_record_result` with `subject_kind=researcher_execution`.
+
 ## Dispatch Authority Contract
 
-`cstar_researcher_request` may use this file as the default Researcher dispatch
-surface when all request fields pass validation. The request must include:
+`cstar_researcher_request` may use this file as the default host-only
+documentation/request-receipt surface when all request fields pass validation.
+The request must include:
 
 - `bead_id` or explicit `decision_id`
 - required `source_callback_thread_id` for CoS or the requesting source
@@ -49,7 +59,8 @@ request fails closed.
 
 No live Researcher dispatch is authorized by this skill alone.
 
-Live Hermes/MiniMax or source-adapter work requires all of the following:
+An explicitly authorized Researcher source transport requires all of the
+following:
 
 - `spend_policy.mode = live_authorized`
 - explicit `operator_authorization_ref`
@@ -61,16 +72,23 @@ Live Hermes/MiniMax or source-adapter work requires all of the following:
 - compact artifact-first final report back to CoS
 
 Even with live authorization, `cstar_researcher_request` remains a receipt
-surface. Execution must happen only through the approved Researcher adapter or
-Hermes Researcher lane for the exact bead and decision. A PMT is never that
-execution lane and never grants permission to use it.
+surface. Execution must happen only through the approved Researcher source
+transport for the exact bead and decision. The current Researcher host workflow
+uses `transport: codex-host` with requested `gpt-5.6-luna` / `max`; a distinct
+host-attested actual identity is recorded separately, or is structurally null
+and prose-level `unreported` when no attestation is supplied. A PMT is never that
+execution lane and never grants permission to use one. Hermes/MiniMax is
+legacy v2 Forge compatibility, not a default Researcher route; any remaining
+mention is explicitly labeled compatibility or rejection-only evidence and is
+not current routing guidance.
 
 ## Project Context Boundary
 
 A mapped PMT is an optional project-scoped information repository. Researcher
 may receive one bounded context packet through CoS and may send one compact
 state update after meaningful work. PMT unavailability is a freshness gap, not
-an execution gate. MM is legacy and has no active routing role.
+an execution gate. MM is inactive and has no active routing, synthesis,
+ownership, relay, review, or execution role.
 
 ## Active Scope
 

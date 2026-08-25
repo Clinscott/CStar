@@ -299,6 +299,16 @@ describe('durable CStar Forge attempt receipts', () => {
         fixture.db.close();
     });
 
+    it('rejects host-v3 as a Forge terminalization authority', () => {
+        const fixture = createForgeReceiptFixture();
+        assert.throws(() => finalizeForgeValidation(fixture.db, {
+            execution_receipt_id: 'forge-v3-authority-rejected',
+            validation_id: 'validation-v3-authority-rejected',
+            validation_authority: 'verified_v3' as never,
+        }), /forge_terminal_validation_requires_verified_evidence_v2/);
+        fixture.db.close();
+    });
+
     it('links verified terminal evidence without changing execution state', () => {
         for (const [status, verdict, expectedAccepted] of [
             ['FAILED_FINAL', 'REJECTED', false],

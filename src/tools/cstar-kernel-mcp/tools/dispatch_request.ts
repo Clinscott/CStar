@@ -2,13 +2,20 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { registry } from '../../pennyone/pathRegistry.js';
-import { errorResponse, mcpGuardrail, textResponse, type McpTextResponse } from '../contracts/responses.js';
+import {
+    errorResponse,
+    mcpGuardrail,
+    preAuthorizationResponse,
+    textResponse,
+    type McpTextResponse,
+} from '../contracts/responses.js';
 import {
     CODE_ROOT,
     readBoundedFileInside,
     resolveExistingPathInside,
 } from '../contracts/runtime.js';
 import { resolveDispatchActionAuthority } from './dispatch_action_authority.js';
+import { researcherNativeRequestSchema } from '../contracts/schemas.js';
 
 export type DispatchRequestKind = 'researcher' | 'forge';
 export type DispatchSpendMode = 'no_spend' | 'dry_run' | 'live_authorized';
@@ -67,7 +74,111 @@ export interface DispatchRequestArgs {
     dispatch_surface_ref?: string;
 }
 
-export function makeDispatchDecisionId(kind: DispatchRequestKind, args: DispatchRequestArgs): string {
+export type ResearcherRequestArgs = Omit<DispatchRequestArgs, 'callback_contract' | 'decision_id'> & {
+    decision_id?: string;
+    callback_contract?: DispatchCallbackContract;
+};
+
+export interface ResearcherRequestProjection {
+    schema: 'cstar.researcher_request.v2';
+    contract_version: 'v2';
+    bead_id?: string;
+    decision_id: string;
+    source_callback_thread_id: string;
+    objective: string;
+    research_questions: string[];
+    target_spokes: string[];
+    primary_requested_action: 'report';
+    target_paths: string[];
+    scope: string;
+    system_under_test: string | null;
+    authority_lane: DispatchRequestArgs['authority_lane'];
+    source_grants: Array<Record<string, unknown>>;
+    source_budget: Record<string, unknown>;
+    spend_policy: Record<string, unknown>;
+    retry_policy: Record<string, unknown>;
+    selector: {
+        requested_model: 'gpt-5.6-luna';
+        requested_reasoning: 'max';
+        selector_status: 'enforced';
+        actual_identity: 'unreported';
+    };
+    expected_artifacts: string[];
+    metrics: DispatchMetricContract[];
+    prohibitions: string[];
+    idempotency_key: string;
+    request_id: string;
+    request_sha256: string;
+}
+
+function stableProjection(value: unknown): unknown {
+    if (Array.isArray(value)) return value.map(stableProjection);
+    if (!value || typeof value !== 'object') return value;
+    return Object.fromEntries(Object.entries(value as Record<string, unknown>)
+        .sort(([left], [right]) => left.localeCompare(right))
+        .map(([key, item]) => [key, stableProjection(item)]));
+}
+
+function projectionJson(value: unknown): string {
+    return JSON.stringify(stableProjection(value));
+}
+
+function projectionHash(value: unknown): string {
+    return createHash('sha256').update(projectionJson(value), 'utf8').digest('hex');
+}
+
+export function buildResearcherRequestProjection(
+    args: DispatchRequestArgs,
+    decisionId: string,
+): ResearcherRequestProjection {
+    const questions = [args.prompt?.trim() || args.objective.trim()];
+    const sourceBudget = {
+        max_tool_calls: args.spend_policy.live_source_allowed === true ? 8 : 0,
+        max_queries: args.spend_policy.live_source_allowed === true ? 8 : 0,
+        max_items: args.spend_policy.live_source_allowed === true ? 128 : 0,
+        max_provider_requests_started: args.spend_policy.live_source_allowed === true ? 8 : 0,
+    };
+    const unsigned = {
+        schema: 'cstar.researcher_request.v2' as const,
+        contract_version: 'v2' as const,
+        ...(args.bead_id?.trim() ? { bead_id: args.bead_id.trim() } : {}),
+        decision_id: decisionId,
+        source_callback_thread_id: args.source_callback_thread_id.trim(),
+        objective: args.objective.trim(), research_questions: questions,
+        target_spokes: (args.target_paths ?? []).map((value) => value.trim()).filter(Boolean).sort(),
+        primary_requested_action: 'report' as const,
+        target_paths: (args.target_paths ?? []).map((value) => value.trim()).filter(Boolean),
+        scope: args.scope.trim(), system_under_test: args.system_under_test?.trim() || null,
+        authority_lane: args.authority_lane,
+        source_grants: [], source_budget: sourceBudget,
+        spend_policy: {
+            mode: args.spend_policy.mode,
+            live_source_allowed: args.spend_policy.live_source_allowed === true,
+            max_retries: args.spend_policy.max_retries ?? 0,
+        },
+        retry_policy: args.retry_policy ?? { budget: args.spend_policy.max_retries ?? 0, spent: 0 },
+        selector: {
+            requested_model: 'gpt-5.6-luna' as const,
+            requested_reasoning: 'max' as const,
+            selector_status: 'enforced' as const,
+            actual_identity: 'unreported' as const,
+        },
+        expected_artifacts: args.artifact_expectations.map((value) => value.trim()).filter(Boolean).sort(),
+        metrics: args.required_metrics,
+        prohibitions: args.prohibited_actions.map((value) => value.trim()).filter(Boolean).sort(),
+        idempotency_key: `researcher-request-${projectionHash({ decisionId, objective: args.objective.trim() }).slice(0, 32)}`,
+    };
+    const requestSha256 = projectionHash(unsigned);
+    const requestId = `researcher-request-v2-${requestSha256.slice(0, 32)}`;
+    return researcherNativeRequestSchema.parse({
+        ...unsigned, request_id: requestId, request_sha256: requestSha256,
+    }) as ResearcherRequestProjection;
+}
+
+export function makeDispatchDecisionId(
+    kind: DispatchRequestKind,
+    args: Pick<DispatchRequestArgs, 'bead_id' | 'decision_id' | 'objective'>,
+): string {
     if (args.decision_id?.trim()) {
         return args.decision_id.trim();
     }
@@ -228,7 +339,7 @@ export async function handleDispatchRequest(
         const validationError = findDispatchValidationError(args);
         const decisionId = makeDispatchDecisionId(kind, args);
         if (validationError) {
-            return textResponse({
+            return preAuthorizationResponse({
                 status: 'rejected',
                 dispatch_kind: kind,
                 decision_id: decisionId,
@@ -241,13 +352,13 @@ export async function handleDispatchRequest(
                     ['dispatch_contract'],
                     ['request_validation'],
                 ),
-            }, true);
+            }, 'dispatch_request_contract_invalid', validationError);
         }
 
         const root = registry.getRoot();
         const actionAuthority = resolveDispatchActionAuthority(args, root);
         if (kind === 'researcher' && actionAuthority.primary_action === 'project_files') {
-            return textResponse({
+            return preAuthorizationResponse({
                 status: 'rejected',
                 dispatch_kind: kind,
                 decision_id: decisionId,
@@ -260,13 +371,15 @@ export async function handleDispatchRequest(
                     ['dispatch_action_authority'],
                     ['route_to_forge'],
                 ),
-            }, true);
+            }, 'researcher_project_files_action_forbidden');
         }
         const surface = resolveDispatchSurface(kind, args);
         const liveAuthority = args.spend_policy.mode === 'live_authorized'
             && Boolean(args.spend_policy.operator_authorization_ref)
             && surface.found;
         const receiptId = `dispatch-${kind}-${decisionId}-${Date.now().toString(36)}`;
+        const researcherProjection = kind === 'researcher'
+            ? buildResearcherRequestProjection(args, decisionId) : null;
         const failClosedReason = !surface.found
             ? 'missing_authorized_dispatch_surface'
             : liveAuthority
@@ -278,6 +391,17 @@ export async function handleDispatchRequest(
             dispatch_kind: kind,
             decision_id: decisionId,
             receipt_id: receiptId,
+            ...(researcherProjection ? {
+                request_id: researcherProjection.request_id,
+                request_sha256: researcherProjection.request_sha256,
+                request_contract: researcherProjection,
+                authority_receipt_only: true,
+                runtime_registry_active: false,
+                requested_model: 'gpt-5.6-luna',
+                requested_reasoning: 'max',
+                selector_enforcement: 'enforced',
+                actual_identity: 'unreported',
+            } : {}),
             bead_id: args.bead_id ?? null,
             state_update_thread_id: resolveStateUpdateThreadId(args) || null,
             legacy_owner_pmt_thread_id_accepted: !args.state_update_thread_id?.trim()
@@ -311,6 +435,7 @@ export async function handleDispatchRequest(
                 attempted: false,
                 live_spend: false,
                 live_source_collection: false,
+                native_handoff_persisted: false,
                 codex_worker_fallback_allowed: false,
                 fail_closed_reason: failClosedReason,
             },
@@ -332,8 +457,18 @@ export async function handleDispatchRequest(
     }
 }
 
-export async function handleResearcherRequest(args: DispatchRequestArgs): Promise<McpTextResponse> {
-    return handleDispatchRequest('researcher', args);
+export async function handleResearcherRequest(args: ResearcherRequestArgs): Promise<McpTextResponse> {
+    const decisionId = makeDispatchDecisionId('researcher', args);
+    const normalizedArgs: DispatchRequestArgs = {
+        ...args,
+        decision_id: decisionId,
+        callback_contract: args.callback_contract ?? {
+            expected_packet: `CSTAR_RESEARCHER_RESULT:${decisionId}`,
+            callback_required: true,
+            callback_thread_id: args.source_callback_thread_id,
+        },
+    };
+    return handleDispatchRequest('researcher', normalizedArgs);
 }
 
 export async function handleForgeRequest(args: DispatchRequestArgs): Promise<McpTextResponse> {

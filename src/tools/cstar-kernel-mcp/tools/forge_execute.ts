@@ -66,6 +66,7 @@ import {
 } from './forge_continuation_authority.js';
 import { reserveVerifiedForgeExecution } from './forge_execute_reservation.js';
 import { resolveForgeRuntimeRoots } from './forge_runtime_roots.js';
+import { dispatchCurrentForgeV3, isCurrentForgeV3Request } from '../../pennyone/intel/forge_host_worker_dispatch.js';
 export async function handleForgeExecute(
     args: ForgeExecutionArgs,
     requestContext?: McpRequestContext,
@@ -163,7 +164,8 @@ export async function handleForgeExecute(
         if (request.operator_authorization_ref !== args.operator_authorization_ref?.trim()) {
             throw new Error('forge_operator_authorization_reference_mismatch');
         }
-        if (request.status === 'FAILED_FINAL' && args.retry_of_attempt_id?.trim()) {
+        const currentV3 = isCurrentForgeV3Request(request);
+        if (!currentV3 && request.status === 'FAILED_FINAL' && args.retry_of_attempt_id?.trim()) {
             let recorded: CanonicalForgeRequest;
             try { recorded = JSON.parse(request.request_summary_json) as CanonicalForgeRequest; } catch {
                 throw new Error('forge_request_summary_invalid');
@@ -194,7 +196,7 @@ export async function handleForgeExecute(
             request.request_id,
             args.idempotency_key.trim(),
         );
-        if (existingAttempt) {
+        if (existingAttempt && !currentV3) {
             releaseReadDb();
             releaseReadDb = null;
             return markNonRecordablePreAuthorizationResponse(
@@ -208,7 +210,17 @@ export async function handleForgeExecute(
             requestContext,
         );
         executionAuthorizationVerified = true;
-        assertStableRuntimeReady();
+        const runtimeReadiness = assertStableRuntimeReady();
+        if (currentV3) {
+            const response = await dispatchCurrentForgeV3({
+                controlRoot, request, authorization: executionAuthority.authorization,
+                args, decisionId, runtimeReadiness, surfaceFound: surface.found,
+                assertRuntimeReady: assertStableRuntimeReady,
+                releaseReadDb: releaseReadDb!,
+            });
+            releaseReadDb = null;
+            return response;
+        }
         if (!surface.found) throw new Error('missing_authorized_dispatch_surface');
         const adapter = resolveForgeExecutionAdapter(args);
         if (!adapter.selected) throw new Error('missing_authorized_execution_adapter');

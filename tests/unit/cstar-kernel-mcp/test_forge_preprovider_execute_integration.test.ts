@@ -1,34 +1,28 @@
-import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
 
 import { database } from '../../../src/tools/pennyone/intel/database.js';
-import {
-    countForgeProviderAttempts,
-    getForgeContinuationByAttempt,
-} from '../../../src/tools/pennyone/intel/forge_continuation_controller.js';
 import { registry } from '../../../src/tools/pennyone/pathRegistry.js';
 import { buildHallRepositoryId, normalizeHallPath } from '../../../src/types/hall.js';
 import { handleForgeAuthorize } from '../../../src/tools/cstar-kernel-mcp/tools/forge_authorize.js';
 import { handleForgeExecute } from '../../../src/tools/cstar-kernel-mcp/tools/forge_execute.js';
 import { handleForgeRequest } from '../../../src/tools/cstar-kernel-mcp/tools/forge_request.js';
-import { handleRecordResult } from '../../../src/tools/cstar-kernel-mcp/tools/result.js';
-import { writeSingleInputSession } from './forge_durable_execution_test_support.js';
+import {
+    writeCountingAdapter,
+    writeSingleInputSession,
+} from './forge_durable_execution_test_support.js';
 
 const originalRoot = registry.getRoot();
 const savedEnv = Object.fromEntries([
     'CODEX_HOME', 'CSTAR_MCP_CALLER_THREAD_ID', 'CSTAR_MCP_CALLER_TRANSPORT',
-    'CSTAR_FORGE_TEST_MODE', 'CSTAR_FORGE_RUNTIME_TEST_BYPASS',
+    'NODE_TEST_CONTEXT', 'CSTAR_FORGE_TEST_MODE', 'CSTAR_FORGE_RUNTIME_TEST_BYPASS',
     'CSTAR_FORGE_HERMES_MINIMAX_ADAPTER_SCRIPT',
 ].map((key) => [key, process.env[key]]));
 const roots: string[] = [];
-
-function sha256(value: string | Buffer): string {
-    return createHash('sha256').update(value).digest('hex');
-}
 
 function context(session: { threadId: string; turnId: string }) {
     return {
@@ -42,50 +36,6 @@ function context(session: { threadId: string; turnId: string }) {
             },
         },
     };
-}
-
-function writeAdapter(script: string, mode: 'failure' | 'success'): void {
-    const failure = {
-        status: 'degraded', degraded_reason: 'forge_hermes_target_material_too_large',
-        provider: 'minimax-oauth', requested_model: 'MiniMax-M3', actual_model: null,
-        model_source: 'unreported', hermes_profile: 'cstar-hub',
-        role_receipts: [], provider_request_receipts: [],
-        provider_requests_started: 0, provider_requests_completed: 0,
-        provider_requests_ambiguous: 0, input_tokens: 0, output_tokens: 0,
-        live_spend: false, live_spend_unknown: false,
-        known_spend_observed: false, live_source_collection: false,
-    };
-    const lines = [
-        '#!/usr/bin/env python3',
-        'import argparse, json, os',
-        'parser = argparse.ArgumentParser()',
-        'parser.add_argument("--intent-file", required=True)',
-        'args = parser.parse_args()',
-        'with open(args.intent_file, encoding="utf-8") as handle:',
-        '    intent = json.load(handle)',
-    ];
-    if (mode === 'failure') {
-        lines.push(`print(json.dumps(json.loads(${JSON.stringify(JSON.stringify(failure))})))`);
-    } else {
-        lines.push(
-            'write_to = intent["payload"]["write_to"]',
-            'response = {"status":"pass","summary":"continued synthetic delivery",',
-            ' "files_changed":[],"artifacts":{},"validation":{"focused":"pass"},',
-            ' "metrics":{"continuation":1},"boundaries":{"live_source_collection":False},',
-            ' "callback_packet":"CONTINUATION_TEST"}',
-            'os.makedirs(os.path.dirname(write_to), exist_ok=True)',
-            'with open(write_to, "w", encoding="utf-8") as handle:',
-            '    json.dump(response, handle)',
-            'print(json.dumps({"status":"ok","intent_id":"continued-synthetic",',
-            ' "provider":"minimax-oauth","requested_model":"MiniMax-M3",',
-            ' "actual_model":None,"model_source":"unreported",',
-            ' "hermes_profile":"cstar-hub","wrote_to":write_to,',
-            ' "live_spend":False,"live_spend_unknown":False,',
-            ' "known_spend_observed":False,"live_source_collection":False}))',
-        );
-    }
-    fs.writeFileSync(script, `${lines.join('\n')}\n`, { mode: 0o700 });
-    fs.chmodSync(script, 0o700);
 }
 
 function restoreEnv(): void {
@@ -102,8 +52,8 @@ afterEach(() => {
     while (roots.length) fs.rmSync(roots.pop()!, { recursive: true, force: true });
 });
 
-describe('Forge automatic pre-provider continuation', () => {
-    it('requires repair binding and resumes in the original authorizing turn', async () => {
+describe('Forge current-v3 Codex-host handoff compatibility', () => {
+    it('queues and replays one exact host handoff without legacy adapter fallback', async () => {
         const root = fs.mkdtempSync(path.join(os.tmpdir(), 'cstar-forge-continuation-e2e-'));
         roots.push(root);
         fs.chmodSync(root, 0o700);
@@ -111,10 +61,8 @@ describe('Forge automatic pre-provider continuation', () => {
         fs.writeFileSync(path.join(root, 'docs', 'operations', 'corvus-forge-skill-spec.md'), '# Forge\n');
         fs.writeFileSync(path.join(root, 'docs', 'operations', 'corvus-forge-pipeline-playbook.md'), '# Forge\n');
         const target = path.join(root, 'target.ts');
-        const adapter = path.join(root, 'sealed-forge-adapter.py');
-        const check = path.join(root, 'repair-check.txt');
+        const adapter = writeCountingAdapter(root, true);
         fs.writeFileSync(target, 'export const unchanged = true;\n');
-        writeAdapter(adapter, 'failure');
         const codexHome = path.join(root, 'codex-home');
         fs.mkdirSync(codexHome, { recursive: true });
         const beadId = 'bead:test:preprovider-execute-integration';
@@ -126,6 +74,7 @@ describe('Forge automatic pre-provider continuation', () => {
         process.env.CODEX_HOME = codexHome;
         process.env.CSTAR_MCP_CALLER_THREAD_ID = original.threadId;
         process.env.CSTAR_MCP_CALLER_TRANSPORT = 'direct-stdio';
+        process.env.NODE_TEST_CONTEXT = 'cstar-synthetic';
         process.env.CSTAR_FORGE_TEST_MODE = '1';
         process.env.CSTAR_FORGE_RUNTIME_TEST_BYPASS = '1';
         process.env.CSTAR_FORGE_HERMES_MINIMAX_ADAPTER_SCRIPT = adapter;
@@ -156,9 +105,14 @@ describe('Forge automatic pre-provider continuation', () => {
             live_source_policy: 'none', fixture_policy: 'synthetic_only' as const,
             retry_policy: { budget: 0, spent: 0 },
             callback_contract: { expected_packet: 'CONTINUATION_TEST', callback_required: true },
-            package_locks: [], execution_adapter_ref: 'cstar-forge-hermes-minimax-adapter',
+            package_locks: [],
         };
         const requested = JSON.parse((await handleForgeRequest(base, context(original))).content[0]!.text);
+        assert.equal(requested.status, 'pending_authorization_recorded');
+        const storedRequest = db.prepare(
+            'SELECT request_summary_json FROM hall_forge_requests WHERE request_id = ?',
+        ).get(requested.receipt_id) as { request_summary_json: string };
+        assert.equal(JSON.parse(storedRequest.request_summary_json).schema, 'cstar.forge_request.v3');
         const authorized = JSON.parse((await handleForgeAuthorize({
             forge_request_receipt_id: requested.receipt_id,
             request_sha256: requested.request_sha256,
@@ -169,71 +123,125 @@ describe('Forge automatic pre-provider continuation', () => {
             forge_request_decision_id: decisionId, forge_request_bead_id: beadId,
             execution_mode: 'live_authorized' as const,
             operator_authorization_ref: authorized.operator_authorization_ref,
+            project_root: root,
+            idempotency_key: 'mechanical-parent',
         };
-        const failed = JSON.parse((await handleForgeExecute({
-            ...executeBase, idempotency_key: 'mechanical-parent',
-        }, context(original))).content[0]!.text);
-        assert.equal(failed.status, 'pre_provider_continuation_pending');
-        assert.equal(failed.attempt_status, 'FAILED_RETRYABLE');
-        assert.equal(failed.request_status, 'AUTHORIZED');
-        assert.equal(typeof failed.execution_receipt_id, 'string');
-        assert.ok(failed.execution_receipt_id.length > 0);
-        assert.equal(failed.forge_execution.provider_attempted, false);
+        const first = JSON.parse((await handleForgeExecute(
+            executeBase, context(original),
+        )).content[0]!.text);
+        assert.equal(first.status, 'host_handoff_queued', JSON.stringify(first));
+        assert.equal(first.attempt_status, 'STARTED');
+        assert.equal(first.request_status, 'AUTHORIZED');
+        assert.equal(first.worker_job.schema, 'cstar.codex_host_worker_job.v2');
+        assert.equal(first.worker_job.runner_owner, 'codex-host');
+        assert.equal(first.worker_job.requested_model, 'gpt-5.6-luna');
+        assert.equal(first.worker_job.requested_reasoning, 'max');
+        assert.equal(first.worker_job.actual_identity, null);
+        assert.equal(first.worker_job.transport, 'codex-host');
+        assert.equal(first.worker_job.provider_requests_started, 0);
+        assert.equal(first.worker_job.spend_uncertain, false);
+        assert.equal(first.worker_job.known_spend_observed, false);
+        assert.equal(first.worker_job.cstar_launch, false);
+        assert.equal(first.worker_job.project_root, root);
+        assert.equal(first.host_handoff.provider_attempted, false);
+        assert.equal(first.forge_execution.provider_attempted, false);
+        assert.equal(first.forge_execution.adapter_invoked, false);
+        assert.equal(first.forge_execution.codex_worker_fallback_allowed, false);
 
-        writeAdapter(adapter, 'success');
-        const unvalidatedContinuation = await handleForgeExecute({
-            ...executeBase,
-            idempotency_key: 'mechanical-child-unvalidated',
-            retry_of_attempt_id: failed.attempt_id,
-        }, context(original));
-        assert.equal(unvalidatedContinuation.isError, true);
-        assert.match(
-            unvalidatedContinuation.content[0]!.text,
-            /forge_continuation_repair_validation_required/,
-        );
-        assert.equal(countForgeProviderAttempts(db, requested.receipt_id), 0);
+        const binding = first.worker_job.validation_ticket_binding;
+        assert.deepEqual(binding, {
+            schema: 'cstar.validation_ticket_binding.v1',
+            repository_id: buildHallRepositoryId(normalizeHallPath(root)),
+            bead_id: beadId,
+            execution_receipt_id: first.execution_receipt_id,
+            attempt_id: first.attempt_id,
+            scope_sha256: requested.target_paths_sha256,
+            one_use: true,
+        });
+        const ticketRequest = first.worker_job.validation_ticket_request;
+        assert.equal(ticketRequest.schema, 'cstar.validation_ticket_request.v1');
+        assert.equal(ticketRequest.repository_id, binding.repository_id);
+        assert.equal(ticketRequest.bead_id, binding.bead_id);
+        assert.equal(ticketRequest.execution_receipt_id, binding.execution_receipt_id);
+        assert.equal(ticketRequest.attempt_id, binding.attempt_id);
+        assert.equal(ticketRequest.scope_sha256, binding.scope_sha256);
+        assert.equal(ticketRequest.one_use, true);
+        assert.ok(ticketRequest.expires_at <= authorized.expires_at);
 
-        fs.writeFileSync(check, 'repair validation passed\n');
-        const runtimeEvidence = path.join(
-            root, 'work', 'forge-executions', failed.execution_receipt_id,
-            'continuation-runtime-evidence.json',
-        );
-        assert.equal(fs.existsSync(runtimeEvidence), true);
-        const validator = writeSingleInputSession(codexHome, 'Validate the exact continuation repair.');
-        process.env.CSTAR_MCP_CALLER_THREAD_ID = validator.threadId;
-        const validation = JSON.parse((await handleRecordResult({
-            bead_id: beadId, verdict: 'SUCCESS',
-            validation_id: 'validation:preprovider-execute-integration',
-            forge_execution_receipt_id: failed.execution_receipt_id,
-            validation_evidence: {
-                artifacts: [target, adapter, runtimeEvidence].map((file) => ({
-                    path: file, sha256: sha256(fs.readFileSync(file)),
-                })),
-                checks: [{
-                    name: 'focused continuation repair', status: 'pass',
-                    evidence_path: check, sha256: sha256(fs.readFileSync(check)),
-                }],
-            },
-        }, context(validator))).content[0]!.text);
-        assert.equal(validation.status, 'recorded_verified', JSON.stringify(validation));
-        assert.equal(validation.forge_validation.mode, 'continuation_repair_binding');
+        const handoffPath = first.host_handoff.handoff_path;
+        const handoffBytes = fs.readFileSync(handoffPath, 'utf8');
+        assert.deepEqual(JSON.parse(handoffBytes), first.host_handoff);
+        const durableAttempt = db.prepare(`
+            SELECT status, provider, requested_model, provider_requests_started,
+                provider_requests_completed, provider_requests_ambiguous, live_spend,
+                known_spend_observed
+            FROM hall_forge_attempts WHERE request_id = ? AND idempotency_key = ?
+        `).get(requested.receipt_id, 'mechanical-parent') as Record<string, unknown>;
+        assert.equal(durableAttempt.status, 'STARTED');
+        assert.equal(durableAttempt.provider, 'codex-host');
+        assert.equal(durableAttempt.requested_model, 'gpt-5.6-luna');
+        assert.equal(Number(durableAttempt.provider_requests_started ?? 0), 0);
+        assert.equal(Number(durableAttempt.provider_requests_completed ?? 0), 0);
+        assert.equal(Number(durableAttempt.provider_requests_ambiguous ?? 0), 0);
+        assert.equal(durableAttempt.live_spend, null);
+        assert.equal(durableAttempt.known_spend_observed, 0);
+        assert.equal(fs.existsSync(path.join(root, 'forge-adapter-invoked')), false);
 
-        process.env.CSTAR_MCP_CALLER_THREAD_ID = original.threadId;
-        const continued = JSON.parse((await handleForgeExecute({
-            ...executeBase,
-            idempotency_key: 'mechanical-child',
-            retry_of_attempt_id: failed.attempt_id,
-        }, context(original))).content[0]!.text);
-        assert.equal(continued.status, 'delivered_unverified');
-        assert.equal(continued.replayed, false);
-        assert.equal(continued.forge_execution.provider_attempted, true);
-        assert.equal(getForgeContinuationByAttempt(db, failed.attempt_id)?.status, 'RESUMED');
-        assert.equal(countForgeProviderAttempts(db, requested.receipt_id), 1);
-        assert.equal(db.prepare(
-            'SELECT COUNT(*) FROM hall_forge_authorizations WHERE request_id = ?',
-        ).pluck().get(requested.receipt_id), 1);
+        const replay = JSON.parse((await handleForgeExecute(
+            executeBase, context(original),
+        )).content[0]!.text);
+        assert.equal(replay.status, 'host_handoff_replayed', JSON.stringify(replay));
+        assert.equal(replay.replayed, true);
+        assert.equal(replay.attempt_id, first.attempt_id);
+        assert.equal(replay.execution_receipt_id, first.execution_receipt_id);
+        assert.equal(replay.worker_job.job_id, first.worker_job.job_id);
+        assert.deepEqual(replay.worker_job.validation_ticket_binding, binding);
+        assert.equal(replay.forge_execution.provider_attempted, false);
+        assert.equal(replay.forge_execution.adapter_invoked, false);
         assert.equal(db.prepare(
             'SELECT COUNT(*) FROM hall_forge_attempts WHERE request_id = ?',
-        ).pluck().get(requested.receipt_id), 2);
+        ).pluck().get(requested.receipt_id), 1);
+        assert.equal(fs.existsSync(path.join(root, 'forge-adapter-invoked')), false);
+
+        const changedProjectRoot = JSON.parse((await handleForgeExecute(
+            { ...executeBase, project_root: path.dirname(root) }, context(original),
+        )).content[0]!.text);
+        assert.equal(changedProjectRoot.status, 'host_handoff_terminal_replay');
+        assert.equal(
+            changedProjectRoot.forge_execution.fail_closed_reason,
+            'forge_codex_host_handoff_replay_input_conflict',
+        );
+
+        const changedValidationTicket = JSON.parse((await handleForgeExecute(
+            {
+                ...executeBase,
+                validation_ticket_request: {
+                    scope_sha256: requested.target_paths_sha256,
+                    validator_thread_id: randomUUID(),
+                    validator_turn_id: randomUUID(),
+                },
+            }, context(original),
+        )).content[0]!.text);
+        assert.equal(changedValidationTicket.status, 'host_handoff_terminal_replay');
+        assert.equal(
+            changedValidationTicket.forge_execution.fail_closed_reason,
+            'forge_codex_host_handoff_replay_input_conflict',
+        );
+        assert.equal(fs.readFileSync(handoffPath, 'utf8'), handoffBytes);
+
+        fs.rmSync(handoffPath);
+        db.prepare('UPDATE hall_forge_attempts SET status = \'RESERVED\' WHERE attempt_id = ?')
+            .run(first.attempt_id);
+        const missingHandoffReplay = JSON.parse((await handleForgeExecute(
+            executeBase, context(original),
+        )).content[0]!.text);
+        assert.equal(missingHandoffReplay.status, 'host_handoff_terminal_replay');
+        assert.equal(
+            missingHandoffReplay.forge_execution.fail_closed_reason,
+            'forge_codex_host_handoff_missing',
+        );
+        assert.equal(db.prepare(
+            'SELECT COUNT(*) FROM hall_forge_attempts WHERE request_id = ?',
+        ).pluck().get(requested.receipt_id), 1);
     });
 });

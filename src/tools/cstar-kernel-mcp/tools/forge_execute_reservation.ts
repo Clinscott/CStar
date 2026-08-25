@@ -7,7 +7,6 @@ import type {
 } from '../../../types/forge.js';
 import { getForgeWritableDb } from '../../pennyone/intel/forge_hall_store.js';
 import {
-    getForgeAttemptByIdempotency,
     getForgeAuthorizationByRequest,
     getForgeRequest,
     reserveForgeAttempt,
@@ -32,6 +31,8 @@ export type ForgeExecutionReservation = {
     attempt: HallForgeAttemptRecord;
 });
 
+export type ForgeReservationMode = 'legacy-hermes' | 'codex-host';
+
 /** Revalidate immutable Hall authority and atomically reserve before local
  * no-provider readiness gates. No adapter or provider process runs here. */
 export function reserveVerifiedForgeExecution({
@@ -42,6 +43,7 @@ export function reserveVerifiedForgeExecution({
     executionReceiptId,
     adapterRef,
     canonical,
+    mode = 'legacy-hermes',
 }: {
     root: string;
     request: HallForgeRequestRecord;
@@ -50,6 +52,7 @@ export function reserveVerifiedForgeExecution({
     executionReceiptId: string;
     adapterRef: string;
     canonical: CanonicalForgeRequest;
+    mode?: ForgeReservationMode;
 }): ForgeExecutionReservation {
     const db = getForgeWritableDb(root);
     const currentRequest = getForgeRequest(db, request.request_id);
@@ -61,33 +64,26 @@ export function reserveVerifiedForgeExecution({
         throw new Error('forge_authorization_drift_before_reservation');
     }
     const idempotencyKey = args.idempotency_key.trim();
-    const racedAttempt = getForgeAttemptByIdempotency(db, currentRequest.request_id, idempotencyKey);
-    if (racedAttempt) {
-        return {
-            kind: 'replay',
-            db,
-            current_request: currentRequest,
-            current_authorization: currentAuthorization,
-            attempt: racedAttempt,
-        };
-    }
+    const hostOwned = mode === 'codex-host';
     const reservation = reserveForgeAttempt(db, {
         request_id: request.request_id,
         authorization_id: authorization.authorization_id,
         idempotency_key: idempotencyKey,
         execution_receipt_id: executionReceiptId,
         adapter_ref: adapterRef,
-        provider: 'minimax-oauth',
-        requested_model: 'MiniMax-M3',
+        provider: hostOwned ? 'codex-host' : 'minimax-oauth',
+        requested_model: hostOwned ? 'gpt-5.6-luna' : 'MiniMax-M3',
         model_source: 'unreported',
-        reasoning_profile: 'forge-private',
-        adapter_version: adapterRef,
+        reasoning_profile: hostOwned ? 'max' : 'forge-private',
+        adapter_version: hostOwned
+            ? 'cstar.codex_host_worker_job.v2'
+            : adapterRef,
         retry_of_attempt_id: args.retry_of_attempt_id?.trim() || undefined,
         continuation_runtime_sha256: args.retry_of_attempt_id?.trim()
             ? hashForgeRuntimeBinding(canonical) : undefined,
     });
     return {
-        kind: 'reserved',
+        kind: reservation.replayed ? 'replay' : 'reserved',
         db,
         current_request: reservation.request,
         current_authorization: currentAuthorization,

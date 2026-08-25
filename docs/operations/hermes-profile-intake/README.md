@@ -1,10 +1,16 @@
-# Hermes Profile Intake
+# Legacy v2 Hermes Profile Intake (Metadata Only)
+
+This document is historical compatibility material. It does not enroll a
+current Forge or Researcher worker, select a transport, or establish runtime
+readiness. Current host-v3 worker contracts use the Codex-host transport only;
+Hermes/MiniMax remains readable only behind an explicitly labeled legacy-v2
+compatibility decision, and MM is inactive.
 
 ## Purpose
 
-This package defines a metadata-first intake contract for identifying reusable
-Forge or Researcher profile source candidates without copying Hermes profile
-contents or private runtime state into CStar.
+This package defines a metadata-first intake contract for identifying historical
+reusable Forge or Researcher profile source candidates without copying Hermes
+profile contents or private runtime state into CStar.
 
 The first pass records only normalized relative candidate paths, byte sizes,
 modification epochs, asset classifications, and review status. It includes no
@@ -66,7 +72,12 @@ Excluded paths are summarized by category and are never enumerated.
 ## Ownership and Authority
 
 Hermes continues to own and update the `cstar-hub` OAuth profile and credential
-lifecycle. This intake neither reads nor changes that state.
+lifecycle. This intake neither reads nor changes that state. That ownership is
+legacy-v2 compatibility history only; it is not current CStar ownership,
+readiness, routing, or transport authority.
+
+The current host workflow is Codex-host Luna (`gpt-5.6-luna`, `max`). This
+package never discovers, recommends, or substitutes a Hermes/MiniMax transport.
 
 Local role boundaries remain unchanged:
 

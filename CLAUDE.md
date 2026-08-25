@@ -18,7 +18,8 @@ Operational invariants:
 - Route implementation through the durable CStar Forge lifecycle. Do not use
   direct Hermes, retired AutoBot, One Mind, Ravens, or generic shell execution
   as a substitute.
-- Treat PMTs as project-context repositories only and MM as legacy.
+- Treat PMTs as project-context repositories only. MM is inactive and has no
+  active routing, synthesis, ownership, relay, review, or execution role.
 - Preserve explicit gates for spend, live sources, installation, restart,
   deployment, Git mutation, secret/config mutation, and production claims.
 - Never read the complete `.agents/config.json`; persona context comes only
