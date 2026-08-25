@@ -1,6 +1,5 @@
 import { createHash } from 'node:crypto';
 import path from 'node:path';
-
 import type { HallValidationEvidenceManifestV3 } from '../../../types/validation_evidence.js';
 import {
     hashValidationEvidenceManifest,
@@ -19,49 +18,124 @@ import {
     MAX_CODEX_SESSION_FILE_BYTES,
     resolveCodexSessionsRoot,
 } from './codex_session_locator.js';
+import { taskCompleteMessageMatchesFinalAnswer } from './host_workflow_message.js';
 import type { VerifiedCodexRequestIdentity } from './operator_authorization.js';
 import {
     markKernelVerifiedValidationEvidence,
     type ValidationEvidencePayload,
     type VerifiedValidationEvidence,
 } from './validation_evidence.js';
-
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const EXPLICIT_VALIDATOR_AGENT_PATH = /^\/root\/[a-z0-9_]+$/;
 const DEFAULT_HOST_VALIDATOR_AGENT_PATH = '/root/validator';
 const MAX_EVIDENCE_BYTES = 4 * 1024 * 1024;
 const MAX_RECEIPT_AGE_MS = 24 * 60 * 60 * 1000;
 const MAX_VALIDATOR_FINAL_BYTES = 256 * 1024;
-
 export interface HostValidationReceiptInput {
-    validator_thread_id: string;
-    validator_turn_id: string;
-    manifest_path: string;
-    manifest_sha256: string;
+    validator_thread_id: string; validator_turn_id: string; manifest_path: string; manifest_sha256: string;
+    validator_task_id?: string; effect_id?: string; set_id?: string; controller_generation?: string;
+    work_packet_sha256?: string; validation_scope_sha256?: string; dispatch_ack_content_sha256?: string;
+    host_spawn_receipt_sha256?: string; terminal_packet_path?: string; terminal_packet_sha256?: string;
+    terminal_packet_schema?: string; host_terminal_receipt_sha256?: string; evidence_manifest_schema?: string;
+    evidence_materialization_order?: 'MANIFEST_BEFORE_TERMINAL' | 'TERMINAL_BEFORE_MANIFEST_BEFORE_RECORD_RESULT';
 }
-
 export interface HostValidationSubject {
-    repository_id: string;
-    bead_id: string;
-    target_path: string | null;
-    validation_id: string;
-    verdict: string;
+    repository_id: string; bead_id: string; target_path: string | null; validation_id: string; verdict: string;
+    effect_id?: string; set_id?: string; controller_generation?: string; work_packet_sha256?: string;
+    validation_scope_sha256?: string; dispatch_ack_content_sha256?: string; validator_task_id?: string;
 }
-
 interface IndependentValidationInput {
-    schema: 'cstar.independent_validation_input.v1';
-    bead_id: string;
+    schema: 'cstar.independent_validation_input.v1'; bead_id: string;
     validation_id: string;
     reported_verdict: string;
-    artifacts: Array<{ path: string; sha256: string; bytes?: number }>;
-    checks: Array<{
-        name: string;
-        status: 'pass' | 'fail';
-        evidence_path: string;
-        sha256: string;
-    }>;
+    validation_stage_order?: string;
+    artifacts: unknown[];
+    checks: unknown[];
 }
-
+interface IndependentValidationArtifact {
+    path: string;
+    sha256: string;
+    bytes?: number;
+}
+interface IndependentValidationCheck {
+    name: string;
+    status: 'pass' | 'fail';
+    evidence_path: string;
+    sha256: string;
+}
+interface CanonicalHostEvidence {
+    artifacts: Array<{ path: string; sha256: string }>;
+    checks: HallValidationEvidenceManifestV3['checks'];
+}
+function assertManifestShape(
+    input: IndependentValidationInput,
+): asserts input is IndependentValidationInput & {
+    artifacts: IndependentValidationArtifact[];
+    checks: IndependentValidationCheck[];
+} {
+    if (input.artifacts.length === 0 || input.checks.length === 0) {
+        throw new Error('host_validation_evidence_required');
+    }
+    const artifactsValid = input.artifacts.length > 0 && input.artifacts.length <= 50
+        && input.artifacts.every((entry) => isRecord(entry)
+            && typeof entry.path === 'string'
+            && entry.path.trim().length > 0
+            && typeof entry.sha256 === 'string'
+            && VALIDATION_EVIDENCE_SHA256.test(entry.sha256)
+            && (entry.bytes === undefined
+                || (typeof entry.bytes === 'number'
+                    && Number.isSafeInteger(entry.bytes) && entry.bytes >= 0)));
+    const checksValid = input.checks.length > 0 && input.checks.length <= 25
+        && input.checks.every((entry) => isRecord(entry)
+            && typeof entry.name === 'string'
+            && entry.name.trim().length > 0
+            && entry.name.length <= 240
+            && (entry.status === 'pass' || entry.status === 'fail')
+            && typeof entry.evidence_path === 'string'
+            && entry.evidence_path.trim().length > 0
+            && typeof entry.sha256 === 'string'
+            && VALIDATION_EVIDENCE_SHA256.test(entry.sha256));
+    if (!artifactsValid || !checksValid) {
+        throw new Error('host_validation_manifest_shape_invalid');
+    }
+}
+function canonicalLegacyEvidence(
+    root: string,
+    payload: ValidationEvidencePayload,
+): CanonicalHostEvidence {
+    if (!Array.isArray(payload.artifacts) || !Array.isArray(payload.checks)
+        || payload.artifacts.length === 0 || payload.artifacts.length > 50
+        || payload.checks.length === 0 || payload.checks.length > 25) {
+        throw new Error('host_validation_manifest_evidence_mismatch');
+    }
+    const artifacts = payload.artifacts.map((entry) => {
+        if (!isRecord(entry) || typeof entry.path !== 'string'
+            || typeof entry.sha256 !== 'string'
+            || !VALIDATION_EVIDENCE_SHA256.test(entry.sha256)) {
+            throw new Error('host_validation_manifest_evidence_mismatch');
+        }
+        return {
+            path: path.resolve(evidencePath(root, entry.path)),
+            sha256: entry.sha256.toLowerCase(),
+        };
+    }).sort((left, right) => left.path.localeCompare(right.path));
+    const checks = payload.checks.map((entry) => {
+        if (!isRecord(entry) || typeof entry.name !== 'string'
+            || entry.status !== 'pass'
+            || typeof entry.evidence_path !== 'string'
+            || typeof entry.sha256 !== 'string'
+            || !VALIDATION_EVIDENCE_SHA256.test(entry.sha256)) {
+            throw new Error('host_validation_manifest_evidence_mismatch');
+        }
+        return {
+            name: entry.name.trim(),
+            status: 'pass' as const,
+            evidence_path: path.resolve(evidencePath(root, entry.evidence_path)),
+            sha256: entry.sha256.toLowerCase(),
+        };
+    }).sort((left, right) => left.name.localeCompare(right.name));
+    return { artifacts, checks };
+}
 interface ValidatorSessionReceipt {
     agentPath: string;
     sessionSha256: string;
@@ -69,11 +143,9 @@ interface ValidatorSessionReceipt {
     taskCompleteRecordSha256: string;
     completedAt: number;
 }
-
 function isRecord(value: unknown): value is Record<string, unknown> {
     return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
-
 function validatorAgentPath(
     payload: Record<string, unknown>,
     spawn: Record<string, unknown> | undefined,
@@ -81,8 +153,12 @@ function validatorAgentPath(
     if (!spawn) return null;
     const payloadHasPath = Object.prototype.hasOwnProperty.call(payload, 'agent_path');
     const spawnHasPath = Object.prototype.hasOwnProperty.call(spawn, 'agent_path');
-    if (!payloadHasPath && spawnHasPath && spawn.agent_path === null) {
-        // Current default-host metadata omits role paths. This fixed label is informational only.
+    if (
+        spawnHasPath
+        && spawn.agent_path === null
+        && (!payloadHasPath || payload.agent_path === null)
+    ) {
+        // Current default-host metadata may omit role paths or encode them as null. This fixed label is informational only.
         return DEFAULT_HOST_VALIDATOR_AGENT_PATH;
     }
     if (!payloadHasPath || !spawnHasPath
@@ -93,21 +169,17 @@ function validatorAgentPath(
     }
     return payload.agent_path;
 }
-
 function sha256(value: string): string {
     return createHash('sha256').update(value, 'utf-8').digest('hex');
 }
-
 function evidencePath(root: string, candidate: string): string {
     return path.isAbsolute(candidate)
         ? candidate : resolveExistingRelativePathInside(root, candidate, 'file');
 }
-
 function exactIdentifier(text: string, identifier: string): boolean {
     const escaped = identifier.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     return new RegExp(`(^|[^\\p{L}\\p{N}_:./-])${escaped}($|[^\\p{L}\\p{N}_:./-])`, 'iu').test(text);
 }
-
 function outputText(payload: Record<string, unknown>): string | null {
     if (!Array.isArray(payload.content) || payload.content.length === 0) return null;
     const parts = payload.content.map((entry) => (
@@ -116,7 +188,6 @@ function outputText(payload: Record<string, unknown>): string | null {
     ));
     return parts.some((entry) => entry === null) ? null : parts.join('');
 }
-
 function verifyValidatorSession(
     rootThreadId: string,
     input: HostValidationReceiptInput,
@@ -157,7 +228,10 @@ function verifyValidatorSession(
                 || payload.thread_source !== 'subagent'
                 || payload.session_id !== rootThreadId
                 || payload.parent_thread_id !== rootThreadId
-                || payload.forked_from_id !== rootThreadId
+                || (payload.forked_from_id !== rootThreadId
+                    && payload.forked_from_id !== undefined
+                    && payload.forked_from_id !== null
+                    && payload.forked_from_id !== '')
                 || spawn?.parent_thread_id !== rootThreadId
                 || spawn?.depth !== 1
                 || candidatePath === null
@@ -201,7 +275,7 @@ function verifyValidatorSession(
                 taskCompleteIndex = index;
                 taskCompleteRecordSha256 = sha256(rawLine);
                 completedAt = payload.completed_at * 1000;
-                if (payload.last_agent_message !== finalText) {
+                if (!taskCompleteMessageMatchesFinalAnswer(finalText, payload.last_agent_message)) {
                     throw new Error('host_validation_task_complete_message_mismatch');
                 }
                 const eventTimestamp = Date.parse(row.timestamp);
@@ -248,13 +322,12 @@ function verifyValidatorSession(
         completedAt,
     };
 }
-
 function parseManifest(
     root: string,
     input: HostValidationReceiptInput,
-    payload: ValidationEvidencePayload,
+    payload: ValidationEvidencePayload | undefined,
     subject: HostValidationSubject,
-): { manifestPath: string; artifacts: Array<{ path: string; sha256: string }>; checks: HallValidationEvidenceManifestV3['checks'] } {
+): { manifestPath: string } & CanonicalHostEvidence {
     const normalizedHash = input.manifest_sha256.trim().toLowerCase();
     if (!VALIDATION_EVIDENCE_SHA256.test(normalizedHash)) {
         throw new Error('host_validation_manifest_sha256_invalid');
@@ -277,23 +350,10 @@ function parseManifest(
         throw new Error('host_validation_manifest_scope_mismatch');
     }
     const declared = parsed as unknown as IndependentValidationInput;
-    const manifestArtifacts = declared.artifacts.map((entry) => ({ path: entry.path, sha256: entry.sha256 }));
-    const manifestChecks = declared.checks.map((entry) => ({
-        name: entry.name,
-        status: entry.status,
-        evidence_path: entry.evidence_path,
-        sha256: entry.sha256,
-    }));
-    if (new Set(manifestArtifacts.map((entry) => entry.path)).size !== manifestArtifacts.length
-        || new Set(manifestChecks.map((entry) => entry.name)).size !== manifestChecks.length
-        || new Set(manifestChecks.map((entry) => entry.evidence_path)).size !== manifestChecks.length) {
-        throw new Error('host_validation_manifest_duplicate_evidence');
-    }
-    if (JSON.stringify(manifestArtifacts) !== JSON.stringify(payload.artifacts)
-        || JSON.stringify(manifestChecks) !== JSON.stringify(payload.checks)) {
-        throw new Error('host_validation_manifest_evidence_mismatch');
-    }
-    const artifacts = declared.artifacts.map((entry) => {
+    assertManifestShape(declared);
+    const manifestArtifacts = declared.artifacts as IndependentValidationArtifact[];
+    const manifestChecks = declared.checks as IndependentValidationCheck[];
+    const artifacts = manifestArtifacts.map((entry) => {
         const artifact = readBoundedUtf8FileInside(
             root, evidencePath(root, entry.path), MAX_EVIDENCE_BYTES,
         );
@@ -306,7 +366,10 @@ function parseManifest(
         }
         return { path: path.resolve(artifact.path), sha256: actual };
     });
-    const checks = declared.checks.map((entry) => {
+    if (new Set(artifacts.map((entry) => entry.path)).size !== artifacts.length) {
+        throw new Error('host_validation_manifest_duplicate_evidence');
+    }
+    const checks = manifestChecks.map((entry) => {
         if (!entry.name?.trim() || entry.name.length > 240 || entry.status !== 'pass') {
             throw new Error('validation_evidence_check_not_passed');
         }
@@ -324,9 +387,33 @@ function parseManifest(
             sha256: actual,
         };
     });
-    return { manifestPath: path.resolve(file.path), artifacts, checks };
+    if (new Set(checks.map((entry) => entry.name)).size !== checks.length
+        || new Set(checks.map((entry) => entry.evidence_path)).size !== checks.length) {
+        throw new Error('host_validation_manifest_duplicate_evidence');
+    }
+    const canonical = {
+        artifacts: artifacts.sort((left, right) => left.path.localeCompare(right.path)),
+        checks: checks.sort((left, right) => left.name.localeCompare(right.name)),
+    };
+    if (payload && JSON.stringify(canonical) !== JSON.stringify(canonicalLegacyEvidence(root, payload))) {
+        throw new Error('host_validation_manifest_evidence_mismatch');
+    }
+    if ((input.terminal_packet_path === undefined) !== (input.terminal_packet_sha256 === undefined)) throw new Error('host_validation_terminal_binding_incomplete');
+    if (input.terminal_packet_path !== undefined) {
+        const terminalHash = input.terminal_packet_sha256!.toLowerCase();
+        if (!VALIDATION_EVIDENCE_SHA256.test(terminalHash)) throw new Error('host_validation_terminal_packet_sha256_invalid');
+        const terminalFile = readBoundedUtf8FileInside(root, evidencePath(root, input.terminal_packet_path), MAX_EVIDENCE_BYTES);
+        if (sha256(terminalFile.content) !== terminalHash) throw new Error('host_validation_terminal_packet_sha256_mismatch');
+        let terminal: unknown;
+        try { terminal = JSON.parse(terminalFile.content); } catch { throw new Error('host_validation_terminal_packet_json_invalid'); }
+        if (!isRecord(terminal) || (input.terminal_packet_schema !== undefined && terminal.schema !== input.terminal_packet_schema)
+            || ![['bead_id', subject.bead_id], ['validation_id', subject.validation_id], ['verdict', subject.verdict], ['effect_id', input.effect_id], ['set_id', input.set_id], ['validator_task_id', input.validator_task_id]].every(([key, expected]) => expected === undefined || terminal[key] === expected)) throw new Error('host_validation_terminal_scope_mismatch');
+        if (!canonical.artifacts.some((entry) => entry.path === path.resolve(terminalFile.path) && entry.sha256 === terminalHash)) throw new Error('host_validation_terminal_not_declared');
+    }
+    if (input.host_terminal_receipt_sha256 !== undefined && !VALIDATION_EVIDENCE_SHA256.test(input.host_terminal_receipt_sha256)) throw new Error('host_validation_host_terminal_receipt_sha256_invalid');
+    if ((input.evidence_manifest_schema !== undefined && input.evidence_manifest_schema !== declared.schema) || (input.evidence_materialization_order === 'TERMINAL_BEFORE_MANIFEST_BEFORE_RECORD_RESULT' && declared.validation_stage_order !== 'MANIFEST_MATERIALIZED_AFTER_VALIDATOR_TERMINAL_FOR_LEGACY_KERNEL_RECORD_ATTEMPT')) throw new Error('host_validation_manifest_order_mismatch');
+    return { manifestPath: path.resolve(file.path), ...canonical };
 }
-
 export function verifyHostWorkflowValidationEvidence(
     root: string,
     payload: ValidationEvidencePayload | undefined,
@@ -336,10 +423,6 @@ export function verifyHostWorkflowValidationEvidence(
     now = Date.now(),
 ): VerifiedValidationEvidence | null {
     if (!receipt) return null;
-    if (!payload || payload.artifacts.length === 0 || payload.artifacts.length > 50
-        || payload.checks.length === 0 || payload.checks.length > 25) {
-        throw new Error('host_validation_evidence_required');
-    }
     if (process.env.CSTAR_MCP_CALLER_THREAD_ID
         && process.env.CSTAR_MCP_CALLER_THREAD_ID.trim() !== recorder.thread_id) {
         throw new Error('host_validation_recorder_identity_mismatch');
@@ -372,6 +455,12 @@ export function verifyHostWorkflowValidationEvidence(
             validation_manifest_schema: 'cstar.independent_validation_input.v1',
             validation_manifest_path: parsed.manifestPath,
             validation_manifest_sha256: receipt.manifest_sha256.toLowerCase(),
+            ...Object.fromEntries(Object.entries(subject).filter(([key, value]) => !['repository_id', 'bead_id', 'target_path', 'validation_id', 'verdict', 'validator_task_id'].includes(key) && value !== undefined)),
+            ...(subject.validator_task_id ? { validator_task_id: subject.validator_task_id } : {}),
+            ...(receipt.terminal_packet_sha256 ? { terminal_packet_sha256: receipt.terminal_packet_sha256.toLowerCase() } : {}),
+            ...(receipt.terminal_packet_schema ? { terminal_packet_schema: receipt.terminal_packet_schema } : {}),
+            ...(receipt.evidence_manifest_schema ? { evidence_manifest_schema: receipt.evidence_manifest_schema } : {}),
+            ...(receipt.evidence_materialization_order ? { evidence_materialization_order: receipt.evidence_materialization_order } : {}),
         },
         independence: {
             policy: 'depth_one_codex_subagent_from_recording_root_v1',

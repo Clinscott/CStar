@@ -38,7 +38,7 @@ export interface HallValidationEvidenceManifestV2 {
         target_paths_sha256: string;
         attempt_id: string;
         result_artifact_sha256: string | null;
-        adapter_ref: string;
+        adapter_ref: string | null;
         adapter_version: string | null;
         external_execution_id: string | null;
     };
@@ -81,6 +81,17 @@ export interface HallValidationEvidenceManifestV3 {
         validation_manifest_schema: 'cstar.independent_validation_input.v1';
         validation_manifest_path: string;
         validation_manifest_sha256: string;
+        effect_id?: string;
+        set_id?: string;
+        controller_generation?: string;
+        work_packet_sha256?: string;
+        validation_scope_sha256?: string;
+        dispatch_ack_content_sha256?: string;
+        validator_task_id?: string;
+        terminal_packet_sha256?: string;
+        terminal_packet_schema?: string;
+        evidence_manifest_schema?: string;
+        evidence_materialization_order?: 'MANIFEST_BEFORE_TERMINAL' | 'TERMINAL_BEFORE_MANIFEST_BEFORE_RECORD_RESULT';
     };
     independence: {
         policy: 'depth_one_codex_subagent_from_recording_root_v1';
@@ -217,7 +228,7 @@ export function isValidationEvidenceManifestV2StructurallyValid(
         && nonempty(subject.attempt_id)
         && (subject.result_artifact_sha256 === null
             || VALIDATION_EVIDENCE_SHA256.test(subject.result_artifact_sha256))
-        && nonempty(subject.adapter_ref)
+        && nullableNonempty(subject.adapter_ref)
         && nullableNonempty(subject.adapter_version)
         && nullableNonempty(subject.external_execution_id)
         && independence.policy === 'distinct_codex_root_thread_from_forge_requester_and_executor_v1'
@@ -299,6 +310,19 @@ export function isValidationEvidenceManifestV3StructurallyValid(
         && subject.validation_manifest_schema === 'cstar.independent_validation_input.v1'
         && nonempty(subject.validation_manifest_path)
         && VALIDATION_EVIDENCE_SHA256.test(subject.validation_manifest_sha256)
+        && (subject.effect_id === undefined || nonempty(subject.effect_id))
+        && (subject.set_id === undefined || nonempty(subject.set_id))
+        && (subject.controller_generation === undefined || nonempty(subject.controller_generation))
+        && (subject.work_packet_sha256 === undefined || VALIDATION_EVIDENCE_SHA256.test(subject.work_packet_sha256))
+        && (subject.validation_scope_sha256 === undefined || VALIDATION_EVIDENCE_SHA256.test(subject.validation_scope_sha256))
+        && (subject.dispatch_ack_content_sha256 === undefined || VALIDATION_EVIDENCE_SHA256.test(subject.dispatch_ack_content_sha256))
+        && (subject.validator_task_id === undefined || nonempty(subject.validator_task_id))
+        && (subject.terminal_packet_sha256 === undefined || VALIDATION_EVIDENCE_SHA256.test(subject.terminal_packet_sha256))
+        && (subject.terminal_packet_schema === undefined || nonempty(subject.terminal_packet_schema))
+        && (subject.evidence_manifest_schema === undefined || nonempty(subject.evidence_manifest_schema))
+        && (subject.evidence_materialization_order === undefined
+            || subject.evidence_materialization_order === 'MANIFEST_BEFORE_TERMINAL'
+            || subject.evidence_materialization_order === 'TERMINAL_BEFORE_MANIFEST_BEFORE_RECORD_RESULT')
         && independence.policy === 'depth_one_codex_subagent_from_recording_root_v1'
         && independence.recorder_thread_id === manifest.request_thread_id
         && independence.recorder_turn_id === manifest.request_turn_id
