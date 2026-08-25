@@ -127,7 +127,12 @@ function saveExactRequest(value: ReturnType<typeof setupRoot>, sourceThreadId: s
     return { requestId, requestSha256 };
 }
 
-function appendExactEventMirror(sessionFile: string, message: string, timestamp: string): void {
+function appendExactEventMirror(
+    sessionFile: string,
+    message: string,
+    timestamp: string,
+    payloadOverrides: Record<string, unknown> = {},
+): void {
     fs.appendFileSync(sessionFile, `${JSON.stringify({
         timestamp,
         type: 'event_msg',
@@ -136,7 +141,10 @@ function appendExactEventMirror(sessionFile: string, message: string, timestamp:
             message,
             images: [],
             local_images: [],
+            audio: [],
+            local_audio: [],
             text_elements: [],
+            ...payloadOverrides,
         },
     })}\n`);
 }
@@ -173,7 +181,7 @@ describe('Forge current-turn authorization after host restart', () => {
             session.turnId);
     });
 
-    it('accepts an exact adjacent host event mirror without widening authority', async () => {
+    it('accepts an exact adjacent host event mirror with empty multimodal fields', async () => {
         const value = setupRoot('exact-mirror');
         const text = 'Resume the TokenPath Q0 phase-one repair.';
         const session = createSession({ textParts: [text] });
@@ -189,6 +197,106 @@ describe('Forge current-turn authorization after host restart', () => {
         }, validRequestContext(session.threadId, session.turnId)));
 
         assert.equal(granted.status, 'authorized');
+    });
+
+    it('accepts an older adjacent host event mirror without audio fields', async () => {
+        const value = setupRoot('older-mirror');
+        const text = 'Resume the TokenPath Q0 phase-one repair.';
+        const session = createSession({ textParts: [text] });
+        appendExactEventMirror(
+            session.sessionFile,
+            text,
+            new Date(Date.parse(session.timestamp) + 1).toISOString(),
+            { audio: undefined, local_audio: undefined },
+        );
+        const request = saveExactRequest(value, session.threadId);
+        const granted = parse(await handleForgeAuthorize({
+            forge_request_receipt_id: request.requestId,
+            request_sha256: request.requestSha256,
+        }, validRequestContext(session.threadId, session.turnId)));
+
+        assert.equal(granted.status, 'authorized');
+        assert.equal(getForgeAuthorizationByRequest(value.db, request.requestId)?.operator_turn_id,
+            session.turnId);
+    });
+
+    it('rejects mirror near misses without storing authorization', async () => {
+        const cases: Array<{
+            label: string;
+            append: (session: ReturnType<typeof createSession>, text: string) => void;
+        }> = [
+            {
+                label: 'nonempty audio',
+                append: (session, text) => appendExactEventMirror(
+                    session.sessionFile, text, new Date(Date.parse(session.timestamp) + 1).toISOString(),
+                    { audio: ['audio'] },
+                ),
+            },
+            {
+                label: 'nonempty local_audio',
+                append: (session, text) => appendExactEventMirror(
+                    session.sessionFile, text, new Date(Date.parse(session.timestamp) + 1).toISOString(),
+                    { local_audio: ['audio'] },
+                ),
+            },
+            {
+                label: 'non-array audio',
+                append: (session, text) => appendExactEventMirror(
+                    session.sessionFile, text, new Date(Date.parse(session.timestamp) + 1).toISOString(),
+                    { audio: 'audio' },
+                ),
+            },
+            {
+                label: 'unknown payload key',
+                append: (session, text) => appendExactEventMirror(
+                    session.sessionFile, text, new Date(Date.parse(session.timestamp) + 1).toISOString(),
+                    { unknown_payload_key: true },
+                ),
+            },
+            {
+                label: 'mismatched message',
+                append: (session, text) => appendExactEventMirror(
+                    session.sessionFile, `${text} changed`,
+                    new Date(Date.parse(session.timestamp) + 1).toISOString(),
+                ),
+            },
+            {
+                label: 'nonadjacent event',
+                append: (session, text) => {
+                    appendExactEventMirror(
+                        session.sessionFile, 'intervening event',
+                        new Date(Date.parse(session.timestamp) + 1).toISOString(),
+                    );
+                    appendExactEventMirror(
+                        session.sessionFile, text,
+                        new Date(Date.parse(session.timestamp) + 2).toISOString(),
+                    );
+                },
+            },
+            {
+                label: 'delayed more than one second',
+                append: (session, text) => appendExactEventMirror(
+                    session.sessionFile, text,
+                    new Date(Date.parse(session.timestamp) + 1_001).toISOString(),
+                ),
+            },
+        ];
+
+        for (const [index, testCase] of cases.entries()) {
+            const value = setupRoot(`mirror-near-miss-${index}`);
+            const text = 'Resume the TokenPath Q0 phase-one repair.';
+            const session = createSession({ textParts: [text] });
+            testCase.append(session, text);
+            const request = saveExactRequest(value, session.threadId);
+            const rejected = parse(await handleForgeAuthorize({
+                forge_request_receipt_id: request.requestId,
+                request_sha256: request.requestSha256,
+            }, validRequestContext(session.threadId, session.turnId)));
+
+            assert.equal(rejected.error_code, 'forge_operator_authorization_required', testCase.label);
+            assert.equal(getForgeAuthorizationByRequest(value.db, request.requestId), null,
+                testCase.label);
+        }
     });
 
     for (const [label, text] of [
