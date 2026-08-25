@@ -1,5 +1,7 @@
 # Council Execution System
 
+Status: DESIGN RECORD — LIVE CONFIDENCE SCORING NOT IMPLEMENTED
+
 This document is the working design record for the CStar council as an execution system.
 
 It exists to preserve design intent across sessions, keep the council/augury/token-path relationship coherent, and provide an append-only question-and-answer trail for future refinement.
@@ -110,6 +112,13 @@ Voice policy:
 - authenticity is judged by reasoning pattern, not stylistic imitation
 
 ## Confidence Model
+
+This section records a desired future model, not a current runtime capability.
+The present Council/Augury path emits no numeric selection or advice confidence
+and must not modulate live behavior from one. Activation requires an
+independently validated scorer with a declared formula, nonzero denominator,
+row evidence, exclusion accounting, provenance, and a sanctioned kernel
+observation path.
 
 Initial confidence model:
 - selection confidence
@@ -581,7 +590,8 @@ Q: Stability conditions?
 A: Same phase, same domain, same primary, no risk increase, no verification contradiction, no critic swap, no severe mismatch.
 
 Q: Should the pair have confidence scores?
-A: Yes: selection confidence and advice confidence for now.
+A: Eventually. Selection confidence and advice confidence remain design fields;
+they are not live until the scoring and validation contract above exists.
 
 Q: Confidence-lowering factors?
 A: Use the selection/advice penalty sets defined above.

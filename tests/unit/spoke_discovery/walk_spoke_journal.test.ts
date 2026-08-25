@@ -19,6 +19,13 @@ import type { HallMountedSpokeRecord } from '../../../src/types/hall.js';
 
 function makeSpokeJournalFixture(slug: string): { spoke: HallMountedSpokeRecord; root: string; cleanup: () => void } {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), `spoke-journal-${slug}-`));
+    const mountToken = `synthetic-${slug}-mount-token`;
+    fs.mkdirSync(path.join(root, '.cstar'), { recursive: true });
+    fs.writeFileSync(
+        path.join(root, '.cstar', 'IDENTITY.json'),
+        JSON.stringify({ mount_token: mountToken }),
+        { mode: 0o600 },
+    );
     const spoke = {
         spoke_id: `spoke-${slug}`,
         repo_id: `repo:${root}`,
@@ -29,6 +36,7 @@ function makeSpokeJournalFixture(slug: string): { spoke: HallMountedSpokeRecord;
         trust_level: 'trusted',
         write_policy: 'read_write',
         projection_status: 'projected',
+        metadata: { authority: { mount_token: mountToken } },
         created_at: 0,
         updated_at: 0,
     } as unknown as HallMountedSpokeRecord;
@@ -61,6 +69,8 @@ test('Q7: all four files present yields ok report with full payload', () => {
 
         assert.strictEqual(r.validation, 'ok');
         assert.strictEqual(r.spoke, 'alpha');
+        assert.match(r.root_sha256, /^[a-f0-9]{64}$/);
+        assert.strictEqual((r as any).root_path, undefined);
 
         assert.strictEqual(r.files.memory_md.present, true);
         assert.strictEqual(r.files.memory_md.validation, 'ok');
@@ -142,7 +152,7 @@ test('Q7: missing files report present=false with validation=missing', () => {
 
 // ── Q8: spoke root missing on disk ──────────────────────────────────────────
 
-test('Q8: missing spoke root reports validation=mount_status_drift', () => {
+test('Q8: missing spoke root reports validation=mount_binding_unverified', () => {
     const ghostRoot = path.join(os.tmpdir(), `spoke-journal-ghost-${Date.now()}`);
     const spoke = {
         spoke_id: 'spoke-ghost',
@@ -158,11 +168,29 @@ test('Q8: missing spoke root reports validation=mount_status_drift', () => {
         updated_at: 0,
     } as unknown as HallMountedSpokeRecord;
     const r = walkSpokeJournalForRecord(spoke);
-    assert.strictEqual(r.validation, 'mount_status_drift');
+    assert.strictEqual(r.validation, 'mount_binding_unverified');
     assert.strictEqual(r.files.memory_md.present, false);
     assert.strictEqual(r.files.tasks_md.present, false);
     assert.strictEqual(r.files.wireframe_md.present, false);
     assert.strictEqual(r.files.dev_journal_md.present, false);
+});
+
+test('Q8: symlinked and hardlinked journal files are not read', () => {
+    for (const kind of ['symlink', 'hardlink'] as const) {
+        const { spoke, root, cleanup } = makeSpokeJournalFixture(`unsafe-${kind}`);
+        try {
+            const outside = path.join(root, 'outside.md');
+            const target = path.join(root, 'tasks.md');
+            fs.writeFileSync(outside, '# Secret-shaped external content\n');
+            if (kind === 'symlink') fs.symlinkSync(outside, target);
+            else fs.linkSync(outside, target);
+            const report = walkSpokeJournalForRecord(spoke);
+            assert.strictEqual(report.validation, 'ok');
+            assert.strictEqual(report.files.tasks_md.present, false);
+        } finally {
+            cleanup();
+        }
+    }
 });
 
 // ── Helper-level coverage ────────────────────────────────────────────────────

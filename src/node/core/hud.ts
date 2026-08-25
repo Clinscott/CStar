@@ -1,10 +1,9 @@
 import chalk, { ChalkInstance } from 'chalk';
-import { activePersona } from '../../tools/pennyone/personaRegistry.js';
 import { isHostSessionActive } from  '../../core/host_session.js';
 
 /**
  * 🔱 SovereignHUD (TypeScript Edition)
- * Purpose: Provide refined, persona-aware terminal primitives for Corvus Star.
+ * Purpose: Provide neutral terminal primitives for Corvus Star.
  * Standard: Linscott Protocol ([L] > 4.0 Compliance).
  */
 export class HUD {
@@ -19,7 +18,6 @@ export class HUD {
 
     private static getTheme() {
         const isHostSession = this.isHostSession();
-        const persona = (activePersona?.name || 'ALFRED').toUpperCase();
         
         // No-op or Markdown-safe color mapping
         const colors = {
@@ -34,36 +32,17 @@ export class HUD {
             void: isHostSession ? (s: string) => s : chalk.gray
         };
 
-        if (persona === 'O.D.I.N.' || persona === 'GOD') {
-            return {
-                name: 'ODIN',
-                main: isHostSession ? (s: string) => s : chalk.red,
-                dim: isHostSession ? (s: string) => s : chalk.magenta,
-                accent: isHostSession ? (s: string) => s : chalk.yellow,
-                title: 'Ω O.D.I.N. GUNGNIR CONTROL Ω',
-                ...colors,
-                quotes: [
-                    'The ravens see all. There is no hiding from the All-Father.',
-                    'Strategy is the blade; creation is the forge.',
-                    'The Gungnir Matrix is absolute.',
-                    'Speak, and let the runes fall as they may.',
-                    'The thread of fate is woven by my hand.'
-                ]
-            };
-        }
         return {
-            name: 'ALFRED',
+            name: 'CSTAR',
             main: isHostSession ? (s: string) => s : chalk.cyan,
             dim: isHostSession ? (s: string) => s : chalk.gray,
             accent: isHostSession ? (s: string) => s : chalk.green,
-            title: 'C* A.L.F.R.E.D. DASHBOARD',
+            title: 'C* CORVUS STAR CONTROL',
             ...colors,
             quotes: [
-                'Everything is in order, sir. Mostly.',
-                'The Archive is synchronized and ready for your command.',
-                'I\'ve taken the liberty of optimizing the neural pathways.',
-                'A bit of a mess in the sub-sectors, but nothing I can\'t handle.',
-                'The Batcave remains secure, sir.'
+                'Authority, evidence, and runtime state remain distinct.',
+                'Current proof is stronger than historical assertion.',
+                'The control plane reports what it can verify.',
             ]
         };
     }
@@ -120,29 +99,29 @@ export class HUD {
     }
 
     static traceHUD(trace: { intent: string; well?: string; wisdom?: string; verdict?: string; confidence?: number }): string {
+        // `confidence` remains accepted for legacy callers but is intentionally
+        // inert until a sanctioned scorer/evidence contract exists.
         const isHostSession = this.isHostSession();
-        const { main, dim, accent } = this.getTheme();
+        const { dim, accent } = this.getTheme();
         const wideSeparator = "━".repeat(80);
         
         if (isHostSession) {
-            let md = `\n**🔱 CORVUS STAR TRACE [Ω]**\n\n`;
+            let md = `\n**🔱 CORVUS STAR AUGURY [Ω]**\n\n`;
             md += `| ◈ **TRACING CONTEXT** | ${wideSeparator} |\n`;
             md += `| :--- | :--- |\n`;
             md += `| **INTENT** | \`${trace.intent}\` |\n`;
             if (trace.well) md += `| **MIMIR'S WELL** | \`${trace.well}\` |\n`;
             if (trace.verdict) md += `| **GUNGNIR VERDICT** | \`${trace.verdict}\` |\n`;
-            if (trace.confidence !== undefined) md += `| **CONFIDENCE** | \`${(trace.confidence * 100).toFixed(0)}%\` |\n`;
             if (trace.wisdom) {
                 md += `\n> ◈ **"${trace.wisdom}"**\n`;
             }
             return md + '---\n';
         }
 
-        let out = this.boxTop('◤ CORVUS STAR TRACE [Ω] ◢');
+        let out = this.boxTop('◤ CORVUS STAR AUGURY [Ω] ◢');
         out += this.boxRow('INTENT', trace.intent, accent);
         if (trace.well) out += this.boxRow('MIMIR\'S WELL', trace.well, dim);
         if (trace.verdict) out += this.boxRow('VERDICT', trace.verdict, accent);
-        if (trace.confidence !== undefined) out += this.boxRow('CONFIDENCE', `${(trace.confidence * 100).toFixed(0)}%`, dim);
         out += this.boxSeparator();
         if (trace.wisdom) out += this.boxNote(trace.wisdom);
         out += this.boxBottom();
@@ -196,9 +175,7 @@ export class HUD {
         const displayNote = note || quotes[Math.floor(Math.random() * quotes.length)];
 
         if (this.isHostSession()) {
-            const persona = (activePersona?.name || 'ALFRED').toUpperCase();
-            const icon = (persona === 'O.D.I.N.' || persona === 'GOD') ? 'Ω' : 'C*';
-            return `\n> ◈ **${displayNote}**\n> ${icon} *${this.getTheme().title}*\n`;
+            return `\n> ◈ **${displayNote}**\n> C* *${this.getTheme().title}*\n`;
         }
 
         const w = this.width;
@@ -269,4 +246,3 @@ export class HUD {
         process.stdout.write(`\r  ${chalk.green('✔')} ${dim(message)}\n`);
     }
 }
-

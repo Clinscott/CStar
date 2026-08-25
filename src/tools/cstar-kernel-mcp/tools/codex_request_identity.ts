@@ -1,6 +1,11 @@
 import { createHash } from 'node:crypto';
-import fs from 'node:fs';
-import { TextDecoder } from 'node:util';
+
+import {
+    codexUserRecordHasRootLineage,
+    createCodexPlatformContextProjection,
+    scanFixedCodexSession,
+    type FixedCodexSessionRecord,
+} from './codex_session_authority_projection.js';
 
 const MAX_TURN_RECORDS = 256;
 const MAX_TURN_RECORD_BYTES = 4 * 1024 * 1024;
@@ -12,11 +17,6 @@ export interface CanonicalCodexUserTurn {
     recordSetSha256: string;
     recordCount: number;
     recordSha256s: string[];
-}
-
-export interface FixedCodexSessionSnapshot {
-    content: string;
-    sha256: string;
 }
 
 interface TurnRecord {
@@ -33,6 +33,7 @@ export type CodexSessionRecordKind =
 export interface CodexSessionRecordClassification {
     kind: CodexSessionRecordKind;
     turnId: unknown;
+    rootLineage: boolean;
 }
 
 function sha256(value: string): string {
@@ -60,6 +61,7 @@ export function classifyCodexSessionRecord(
             ? 'canonical-root-user'
             : explicitlyUserLike ? 'noncanonical-user-like' : 'non-user',
         turnId: metadata?.turn_id,
+        rootLineage: canonicalRootUser && codexUserRecordHasRootLineage(row),
     };
 }
 
@@ -67,93 +69,19 @@ function optionalLineageFieldIsEmpty(value: unknown): boolean {
     return value === undefined || value === null || value === '';
 }
 
-function sameOpenedFile(left: fs.Stats, right: fs.Stats): boolean {
-    return left.dev === right.dev
-        && left.ino === right.ino
-        && left.uid === right.uid
-        && left.gid === right.gid
-        && left.mode === right.mode
-        && left.nlink === right.nlink
-        && left.size === right.size
-        && left.mtimeMs === right.mtimeMs
-        && left.ctimeMs === right.ctimeMs;
+export interface CanonicalCodexUserTurnAccumulator {
+    consume(record: FixedCodexSessionRecord): void;
+    finish(): CanonicalCodexUserTurn;
 }
 
-function assertOpenedSessionFileIsSafe(stat: fs.Stats, maxFileBytes: number): void {
-    if (
-        !stat.isFile() || stat.nlink !== 1
-        || stat.uid !== process.getuid?.() || (stat.mode & 0o022) !== 0
-        || stat.size === 0 || stat.size > maxFileBytes
-    ) {
-        throw new Error('codex_request_identity_opened_session_file_is_unsafe');
-    }
-}
-
-export function readFixedCodexSessionSnapshot(
-    sessionFile: string,
-    maxFileBytes: number,
-): FixedCodexSessionSnapshot {
-    const beforeOpen = fs.lstatSync(sessionFile);
-    if (beforeOpen.isSymbolicLink()) {
-        throw new Error('codex_request_identity_opened_session_file_is_unsafe');
-    }
-    const descriptor = fs.openSync(sessionFile, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
-    try {
-        const opened = fs.fstatSync(descriptor);
-        assertOpenedSessionFileIsSafe(opened, maxFileBytes);
-        if (!sameOpenedFile(beforeOpen, opened)) {
-            throw new Error('codex_request_identity_session_changed_before_open');
-        }
-
-        const snapshot = Buffer.allocUnsafe(opened.size);
-        let offset = 0;
-        while (offset < snapshot.length) {
-            const read = fs.readSync(descriptor, snapshot, offset, snapshot.length - offset, offset);
-            if (read === 0) break;
-            offset += read;
-        }
-        if (offset !== snapshot.length) {
-            throw new Error('codex_request_identity_session_changed_during_read');
-        }
-        if (snapshot[snapshot.length - 1] !== 0x0a) {
-            throw new Error('codex_request_identity_session_has_incomplete_final_line');
-        }
-
-        const afterRead = fs.fstatSync(descriptor);
-        let afterPath: fs.Stats;
-        try {
-            afterPath = fs.lstatSync(sessionFile);
-        } catch {
-            throw new Error('codex_request_identity_session_changed_during_read');
-        }
-        if (afterPath.isSymbolicLink() || !sameOpenedFile(opened, afterRead) || !sameOpenedFile(opened, afterPath)) {
-            throw new Error('codex_request_identity_session_changed_during_read');
-        }
-        try {
-            return {
-                content: new TextDecoder('utf-8', { fatal: true }).decode(snapshot),
-                sha256: createHash('sha256').update(snapshot).digest('hex'),
-            };
-        } catch {
-            throw new Error('codex_request_identity_session_utf8_invalid');
-        }
-    } finally {
-        fs.closeSync(descriptor);
-    }
-}
-
-/** Bind one Codex turn inside an already sealed session snapshot. */
-export function readCanonicalCodexUserTurnFromSnapshot(
-    snapshot: FixedCodexSessionSnapshot,
+/** Track one selected turn without retaining unrelated session rows. */
+export function createCanonicalCodexUserTurnAccumulator(
     expectedThreadId: string,
     turnId: string,
     now: number,
     maxRecordAgeMs: number,
     allowHistorical = false,
-): CanonicalCodexUserTurn {
-    const rawLines = snapshot.content.split('\n');
-    rawLines.pop();
-
+): CanonicalCodexUserTurnAccumulator {
     let canonicalSessionMetaCount = 0;
     let noncanonicalSessionMetaFound = false;
     let matchingSegmentStarted = false;
@@ -162,20 +90,7 @@ export function readCanonicalCodexUserTurnFromSnapshot(
     const seenRecordHashes = new Set<string>();
     const records: TurnRecord[] = [];
 
-    for (const rawLineWithPossibleCr of rawLines) {
-        const rawLine = rawLineWithPossibleCr.endsWith('\r')
-            ? rawLineWithPossibleCr.slice(0, -1)
-            : rawLineWithPossibleCr;
-        let unknownRow: unknown;
-        try {
-            unknownRow = JSON.parse(rawLine);
-        } catch {
-            throw new Error('codex_request_identity_session_json_malformed');
-        }
-        if (!isRecord(unknownRow)) {
-            throw new Error('codex_request_identity_session_record_invalid');
-        }
-        const row = unknownRow;
+    const consumeProjected = ({ row, rawLine }: FixedCodexSessionRecord): void => {
         const payload = isRecord(row.payload) ? row.payload : undefined;
 
         if (row.type === 'session_meta') {
@@ -186,19 +101,25 @@ export function readCanonicalCodexUserTurnFromSnapshot(
                 && optionalLineageFieldIsEmpty(payload.forked_from_id);
             if (canonical) canonicalSessionMetaCount += 1;
             else noncanonicalSessionMetaFound = true;
-            continue;
+            return;
         }
 
         const classification = classifyCodexSessionRecord(row);
         const rowTurnId = classification.turnId;
-        if (rowTurnId === turnId && classification.kind === 'noncanonical-user-like') {
-            throw new Error('codex_request_identity_turn_record_is_not_canonical_root_user');
+        if (classification.kind === 'noncanonical-user-like') {
+            if (rowTurnId === turnId) {
+                throw new Error('codex_request_identity_turn_record_is_not_canonical_root_user');
+            }
+            if (matchingSegmentStarted && rowTurnId !== undefined) {
+                matchingSegmentClosed = true;
+            }
+            return;
         }
-        if (classification.kind !== 'canonical-root-user') continue;
+        if (classification.kind !== 'canonical-root-user') return;
 
         if (rowTurnId !== turnId) {
             if (matchingSegmentStarted) matchingSegmentClosed = true;
-            continue;
+            return;
         }
         if (matchingSegmentClosed) {
             throw new Error('codex_request_identity_turn_records_noncontiguous');
@@ -209,12 +130,7 @@ export function readCanonicalCodexUserTurnFromSnapshot(
             }
             throw new Error('codex_request_identity_turn_precedes_canonical_session_meta');
         }
-        if (!payload || (
-            (payload.thread_source !== undefined && payload.thread_source !== 'user')
-            || !optionalLineageFieldIsEmpty(payload.parent_thread_id)
-            || !optionalLineageFieldIsEmpty(payload.agent_path)
-            || !optionalLineageFieldIsEmpty(payload.forked_from_id)
-        )) {
+        if (!payload || !classification.rootLineage) {
             throw new Error('codex_request_identity_turn_record_lineage_invalid');
         }
         if (!Array.isArray(payload.content) || payload.content.length === 0) {
@@ -253,36 +169,41 @@ export function readCanonicalCodexUserTurnFromSnapshot(
         }
         matchingSegmentStarted = true;
         records.push({ timestamp: row.timestamp, timestampMs, recordSha256 });
-    }
-
-    if (canonicalSessionMetaCount === 0 || noncanonicalSessionMetaFound) {
-        throw new Error('codex_request_identity_session_is_not_canonical_root_user');
-    }
-    if (records.length === 0) throw new Error('codex_request_identity_turn_match_count:0');
-    if (matchingSegmentClosed && !allowHistorical) throw new Error('codex_request_identity_turn_not_latest');
-
-    const terminal = records[records.length - 1]!;
-    const recordSetSha256 = sha256(JSON.stringify({
-        schema: 'cstar.codex_root_user_turn_record_set.v1',
-        thread_id: expectedThreadId,
-        turn_id: turnId,
-        records: records.map(({ timestamp, recordSha256: hash }, index) => ({
-            index,
-            timestamp,
-            record_sha256: hash,
-        })),
-    }));
-    return {
-        firstTimestamp: records[0]!.timestamp,
-        timestamp: terminal.timestamp,
-        recordSha256: terminal.recordSha256,
-        recordSetSha256,
-        recordCount: records.length,
-        recordSha256s: records.map((record) => record.recordSha256),
     };
+    const projection = createCodexPlatformContextProjection(consumeProjected);
+    const finish = (): CanonicalCodexUserTurn => {
+        projection.finish();
+        if (canonicalSessionMetaCount === 0 || noncanonicalSessionMetaFound) {
+            throw new Error('codex_request_identity_session_is_not_canonical_root_user');
+        }
+        if (records.length === 0) throw new Error('codex_request_identity_turn_match_count:0');
+        if (matchingSegmentClosed && !allowHistorical) {
+            throw new Error('codex_request_identity_turn_not_latest');
+        }
+        const terminal = records[records.length - 1]!;
+        const recordSetSha256 = sha256(JSON.stringify({
+            schema: 'cstar.codex_root_user_turn_record_set.v1',
+            thread_id: expectedThreadId,
+            turn_id: turnId,
+            records: records.map(({ timestamp, recordSha256: hash }, index) => ({
+                index,
+                timestamp,
+                record_sha256: hash,
+            })),
+        }));
+        return {
+            firstTimestamp: records[0]!.timestamp,
+            timestamp: terminal.timestamp,
+            recordSha256: terminal.recordSha256,
+            recordSetSha256,
+            recordCount: records.length,
+            recordSha256s: records.map((record) => record.recordSha256),
+        };
+    };
+    return { consume: projection.consume, finish };
 }
 
-/** Read one fixed snapshot, then bind a complete ordered root-user turn. */
+/** Scan one fixed descriptor, then bind a complete ordered root-user turn. */
 export async function readCanonicalCodexUserTurn(
     sessionFile: string,
     expectedThreadId: string,
@@ -292,12 +213,13 @@ export async function readCanonicalCodexUserTurn(
     maxRecordAgeMs: number,
     allowHistorical = false,
 ): Promise<CanonicalCodexUserTurn> {
-    return readCanonicalCodexUserTurnFromSnapshot(
-        readFixedCodexSessionSnapshot(sessionFile, maxFileBytes),
+    const accumulator = createCanonicalCodexUserTurnAccumulator(
         expectedThreadId,
         turnId,
         now,
         maxRecordAgeMs,
         allowHistorical,
     );
+    scanFixedCodexSession(sessionFile, maxFileBytes, accumulator.consume);
+    return accumulator.finish();
 }

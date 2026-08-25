@@ -1,37 +1,34 @@
-import json
+import pytest
 
-from src.synapse.synapse_sync import KnowledgeExtractor, PushRateLimiter
+from src.synapse.synapse_sync import (
+    RETIRED_ERROR,
+    GitHelper,
+    KnowledgeExtractor,
+    PushRateLimiter,
+    Synapse,
+)
 
 
-def test_push_rate_limiter(tmp_path):
-    # Setup core path
-    core_path = tmp_path / "core"
-    core_path.mkdir()
-
-    limiter = PushRateLimiter(core_path)
-
-    # Recording 11 pushes should trigger limit
-    for _ in range(11):
+def test_file_backed_rate_limiter_is_inert(tmp_path):
+    limiter = PushRateLimiter(tmp_path)
+    assert limiter.check() == (False, RETIRED_ERROR)
+    with pytest.raises(RuntimeError, match=RETIRED_ERROR):
         limiter.record(success=True)
+    assert list(tmp_path.iterdir()) == []
 
-    ok, msg = limiter.check()
-    assert ok is False
-    assert "Rate limit exceeded" in msg
 
-def test_knowledge_extractor_corrections(tmp_path):
-    agent_dir = tmp_path / "agent"
-    agent_dir.mkdir()
-    corrections_file = agent_dir / "corrections.json"
-    corrections_file.write_text(json.dumps({
-        "phrase_mappings": {
-            "test_query": "test_target",
-            "ignore_me": "GLOBAL:something"
-        }
-    }), encoding='utf-8')
+def test_git_and_knowledge_surfaces_fail_closed(tmp_path):
+    assert GitHelper(tmp_path).run(["status"]) == (False, RETIRED_ERROR)
+    assert GitHelper(tmp_path).check_permissions() == (False, RETIRED_ERROR)
+    extractor = KnowledgeExtractor(tmp_path, tmp_path / "agents")
+    assert extractor.extract_all() == []
+    assert list(tmp_path.iterdir()) == []
 
-    extractor = KnowledgeExtractor(tmp_path, agent_dir)
-    knowledge = extractor._extract_corrections()
 
-    assert len(knowledge) == 1
-    assert knowledge[0]["query"] == "test_query"
-    assert knowledge[0]["target"] == "test_target"
+def test_synapse_push_and_pull_are_retired(tmp_path):
+    synapse = Synapse("synthetic")
+    with pytest.raises(RuntimeError, match=RETIRED_ERROR):
+        synapse.pull()
+    with pytest.raises(RuntimeError, match=RETIRED_ERROR):
+        synapse.push(dry_run=True)
+    assert list(tmp_path.iterdir()) == []

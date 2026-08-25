@@ -1,54 +1,28 @@
-import { WebSocket } from 'ws';
+import type { WebSocket } from 'ws';
 
-/**
- * [O.D.I.N.] The Nerve Center of the Universal Event Router.
- * Manages multi-tenant subscriptions and prevents memory leaks.
- */
+export const LEGACY_EVENT_MANAGER_RETIRED =
+    'legacy_event_manager_retired_use_host_transport';
+
+/** Inert compatibility singleton; it stores no listeners or clients. */
 export class EventManager {
     private static instance: EventManager;
-    private subscriptions: Map<string, Set<WebSocket>> = new Map();
 
-    private constructor() { }
+    private constructor() {}
 
     public static getInstance(): EventManager {
-        if (!EventManager.instance) {
-            EventManager.instance = new EventManager();
-        }
+        EventManager.instance ??= new EventManager();
         return EventManager.instance;
     }
 
-    public subscribe(appId: string, ws: WebSocket): void {
-        if (!this.subscriptions.has(appId)) {
-            this.subscriptions.set(appId, new Set());
-        }
-        this.subscriptions.get(appId)?.add(ws);
+    public subscribe(_appId: string, _socket: WebSocket): never {
+        throw new Error(LEGACY_EVENT_MANAGER_RETIRED);
     }
 
-    /**
-     * [CRITICAL] Memory Leak Protection - Ghost Key Removal
-     * @param appId
-     * @param ws
-     */
-    public unsubscribe(appId: string, ws: WebSocket): void {
-        const clients = this.subscriptions.get(appId);
-        if (clients) {
-            clients.delete(ws);
-            if (clients.size === 0) {
-                this.subscriptions.delete(appId);
-            }
-        }
+    public unsubscribe(_appId: string, _socket: WebSocket): never {
+        throw new Error(LEGACY_EVENT_MANAGER_RETIRED);
     }
 
-    public broadcast(appId: string, payload: any): void {
-        const clients = this.subscriptions.get(appId);
-        if (!clients) return;
-
-        const message = JSON.stringify(payload);
-        for (const client of clients) {
-            if (client.readyState === WebSocket.OPEN) {
-                client.send(message);
-            }
-        }
+    public broadcast(_appId: string, _payload: unknown): never {
+        throw new Error(LEGACY_EVENT_MANAGER_RETIRED);
     }
 }
-

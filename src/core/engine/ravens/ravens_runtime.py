@@ -1,28 +1,24 @@
+"""Retired autonomous Ravens runtime entrypoints."""
+
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Any
+from typing import NoReturn
 
-from src.core.engine.ravens_stage import RavensCycleResult
-from src.cstar.core.uplink import AntigravityUplink
-from src.core.engine.ravens.muninn_heart import MuninnHeart
+
+LEGACY_PYTHON_RAVENS_ENGINE_ERROR = (
+    "legacy_python_ravens_engine_retired_use_cstar_kernel"
+)
+
+
+def _retired() -> NoReturn:
+    raise RuntimeError(LEGACY_PYTHON_RAVENS_ENGINE_ERROR)
 
 
 async def execute_ravens_cycle_contract(
-    project_root: Path | str,
-    *,
-    uplink: Any | None = None,
-) -> RavensCycleResult:
-    root = Path(project_root).resolve()
-    runtime_uplink = uplink or AntigravityUplink()
-    heart = MuninnHeart(root, runtime_uplink)
-    return await heart.execute_cycle_contract()
+    *_args: object, **_kwargs: object
+) -> NoReturn:
+    _retired()
 
 
-async def execute_ravens_cycle(
-    project_root: Path | str,
-    *,
-    uplink: Any | None = None,
-) -> bool:
-    cycle = await execute_ravens_cycle_contract(project_root, uplink=uplink)
-    return cycle.status == "SUCCESS"
+async def execute_ravens_cycle(*_args: object, **_kwargs: object) -> NoReturn:
+    _retired()

@@ -1,11 +1,16 @@
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { readCanonicalCodexUserTurn } from '../../../src/tools/cstar-kernel-mcp/tools/codex_request_identity.js';
+import {
+    createCanonicalCodexUserTurnAccumulator,
+    readCanonicalCodexUserTurn,
+} from '../../../src/tools/cstar-kernel-mcp/tools/codex_request_identity.js';
+import { scanFixedCodexSession } from '../../../src/tools/cstar-kernel-mcp/tools/codex_session_authority_projection.js';
+import { verifyOperatorAuthorization } from '../../../src/tools/cstar-kernel-mcp/tools/operator_authorization.js';
 
 const THREAD_ID = '019f0000-0000-7000-8000-000000000001';
 const TURN_ID = '019f0000-0000-7000-8000-000000000002';
@@ -180,6 +185,38 @@ describe('canonical Codex root-user turn scanner', () => {
         assert.equal(mutated.recordSetSha256, baseline.recordSetSha256);
     });
 
+    it('binds identity above the legacy 64 MiB cap without retaining non-user rows', () => {
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'cstar-codex-large-identity-'));
+        roots.push(root);
+        const sessionFile = path.join(root, 'rollout-large.jsonl');
+        const expectedDigest = createHash('sha256');
+        const append = (row: unknown): void => {
+            const line = `${JSON.stringify(row)}\n`;
+            fs.appendFileSync(sessionFile, line, { mode: 0o600 });
+            expectedDigest.update(line, 'utf-8');
+        };
+        append(sessionMeta());
+        const megabyte = 'x'.repeat(1024 * 1024);
+        for (let index = 0; index < 65; index += 1) {
+            append({ timestamp: BASE_TIMESTAMP, type: 'response_item', payload: {
+                type: 'custom_tool_call_output', call_id: `large-${index}`, output: megabyte,
+            } });
+        }
+        append(userRecord('request'));
+        const fileBytes = fs.statSync(sessionFile).size;
+        const accumulator = createCanonicalCodexUserTurnAccumulator(
+            THREAD_ID, TURN_ID, NOW, MAX_RECORD_AGE_MS,
+        );
+
+        const scanResult = scanFixedCodexSession(sessionFile, fileBytes, accumulator.consume);
+        const result = accumulator.finish();
+
+        assert.ok(fileBytes > 64 * 1024 * 1024);
+        assert.equal(scanResult.recordCount, 67);
+        assert.equal(scanResult.sha256, expectedDigest.digest('hex'));
+        assert.equal(result.recordCount, 1);
+    });
+
     it('rejects an exact replay of a selected-turn record', async () => {
         const user = userRecord('same bytes');
         await expectFailure(
@@ -226,6 +263,23 @@ describe('canonical Codex root-user turn scanner', () => {
                 userRecord('A2', '2026-07-13T12:00:02.000Z'),
             ],
             'codex_request_identity_turn_records_noncontiguous',
+        );
+    });
+
+    it('rejects A as latest when a tagged noncanonical user-like turn B follows it', async () => {
+        const taggedNoncanonicalB = {
+            timestamp: '2026-07-13T12:00:01.000Z',
+            type: 'event_msg',
+            payload: {
+                type: 'user_message',
+                message: 'later host-projected user turn',
+                internal_chat_message_metadata_passthrough: { turn_id: OTHER_TURN_ID },
+            },
+        };
+
+        await expectFailure(
+            [sessionMeta(), userRecord('canonical A'), taggedNoncanonicalB],
+            'codex_request_identity_turn_not_latest',
         );
     });
 
@@ -353,6 +407,61 @@ describe('canonical Codex root-user turn scanner', () => {
             'codex_request_identity_session_has_incomplete_final_line',
             { trailingNewline: false },
         );
+    });
+
+    it('derives request and authorization identities from exactly one fixed open', async () => {
+        const codexHome = fs.mkdtempSync(path.join(os.tmpdir(), 'cstar-single-scan-auth-'));
+        roots.push(codexHome);
+        const sessions = path.join(codexHome, 'sessions', '2026', '07', '13');
+        fs.mkdirSync(sessions, { recursive: true, mode: 0o700 });
+        const threadId = randomUUID();
+        const turnId = randomUUID();
+        const timestamp = new Date().toISOString();
+        const content = [{
+            type: 'input_text',
+            text: 'Corvus CStar 5.6. I authorize you to complete the audit in full through Hermes M3 for bead:repair:single-scan and decision:single-scan, with zero retries, synthetic fixtures only, no live source collection, targeting exactly /home/morderith/Corvus/CStar/AGENTS.md.',
+        }];
+        const sessionFile = path.join(sessions, `rollout-single-${threadId}.jsonl`);
+        fs.writeFileSync(sessionFile, `${[
+            sessionMeta({ id: threadId }),
+            userRecord(content[0]!.text, timestamp, turnId),
+        ].map(serialize).join('\n')}\n`, { mode: 0o600 });
+        const reference = `codex-thread:${threadId}:turn:${turnId}:sha256:${sha256(JSON.stringify(content))}`;
+        const priorCodexHome = process.env.CODEX_HOME;
+        const originalOpenSync = fs.openSync;
+        let sessionOpenCount = 0;
+        process.env.CODEX_HOME = codexHome;
+        fs.openSync = ((...args: Parameters<typeof fs.openSync>) => {
+            if (path.resolve(String(args[0])) === sessionFile) sessionOpenCount += 1;
+            return originalOpenSync(...args);
+        }) as typeof fs.openSync;
+        try {
+            const verified = await verifyOperatorAuthorization(reference, {
+                caller_thread_id: threadId,
+                caller_transport: 'direct-stdio',
+                target_paths: ['/home/morderith/Corvus/CStar/AGENTS.md'],
+                requires_forge_hermes_m3: true,
+                bead_id: 'bead:repair:single-scan',
+                decision_id: 'decision:single-scan',
+                requires_zero_retries: true,
+                requires_synthetic_fixtures_only: true,
+                requires_no_live_source: true,
+                request_context: { _meta: {
+                    threadId,
+                    'x-codex-turn-metadata': {
+                        session_id: threadId, thread_id: threadId, turn_id: turnId,
+                        thread_source: 'user', parent_thread_id: null,
+                        forked_from_thread_id: null, subagent_kind: null,
+                    },
+                } },
+            });
+            assert.equal(verified.thread_id, threadId);
+            assert.equal(sessionOpenCount, 1);
+        } finally {
+            fs.openSync = originalOpenSync;
+            if (priorCodexHome === undefined) delete process.env.CODEX_HOME;
+            else process.env.CODEX_HOME = priorCodexHome;
+        }
     });
 
     it('enforces the public file-size snapshot cap at its exact boundary', async () => {

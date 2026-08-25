@@ -1,32 +1,32 @@
 import { createHash } from 'node:crypto';
 import fs from 'node:fs';
-import os from 'node:os';
-import path from 'node:path';
 
 import type { McpRequestContext } from '../contracts/request_context.js';
 import {
     classifyCodexSessionRecord,
-    readCanonicalCodexUserTurn,
-    readCanonicalCodexUserTurnFromSnapshot,
-    readFixedCodexSessionSnapshot,
-    type FixedCodexSessionSnapshot,
+    createCanonicalCodexUserTurnAccumulator,
+    type CanonicalCodexUserTurn,
 } from './codex_request_identity.js';
+import {
+    createCodexPlatformContextProjection,
+    scanFixedCodexSession,
+    type FixedCodexSessionRecord,
+} from './codex_session_authority_projection.js';
+import {
+    findCodexSessionFile,
+    MAX_CODEX_SESSION_FILE_BYTES,
+    resolveCodexSessionsRoot,
+} from './codex_session_locator.js';
+import {
+    assertOperatorAuthorizationScope,
+    hasContradictoryForgeLaneInstruction,
+    type OperatorAuthorizationScope,
+} from './operator_authorization_scope.js';
+export type { OperatorAuthorizationScope } from './operator_authorization_scope.js';
 
 const CODEX_AUTHORIZATION_REF = /^codex-thread:([0-9a-f-]{36}):turn:([0-9a-f-]{36}):sha256:([a-f0-9]{64})$/;
-const MAX_SESSION_FILE_BYTES = 64 * 1024 * 1024;
 const MAX_AUTHORIZATION_AGE_MS = 24 * 60 * 60 * 1000;
-const MAX_SESSION_FILES_SCANNED = 20_000;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-export interface OperatorAuthorizationScope {
-    target_paths?: string[];
-    requires_forge_hermes_m3?: boolean;
-    caller_thread_id?: string;
-    caller_transport?: string;
-    request_context?: McpRequestContext;
-    now?: number;
-}
-
 export interface VerifiedCodexRequestIdentity {
     source: 'codex_request_meta';
     session_id: string;
@@ -53,8 +53,12 @@ export interface VerifiedOperatorAuthorization {
     session_record_timestamp: string;
     authorized_at: number;
     expires_at: number;
-    authorized_roots: string[];
-    authorization_profile: 'gpt56-cstar-audit-bootstrap-v1';
+    authorized_paths: string[];
+    authorization_profile: 'gpt56-cstar-exact-request-v3';
+    authorized_bead_id: string | null;
+    authorized_decision_id: string | null;
+    authorized_package_lock_sha256s: string[];
+    synthetic_fixtures_only: boolean;
     max_attempts: 1;
     live_source_allowed: false;
 }
@@ -69,23 +73,25 @@ interface CodexTurnMetadata {
     thread_source?: unknown;
 }
 
+export interface ParsedCodexTurnMetadata {
+    session_id: string;
+    thread_id: string;
+    turn_id: string;
+}
+
+interface AuthorizedTurn {
+    text: string;
+    canonicalContent: string;
+    timestamp: string;
+    recordSha256: string;
+}
+
 function sha256(value: string): string {
     return createHash('sha256').update(value, 'utf-8').digest('hex');
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
     return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
-}
-
-function hasContradictoryForgeLaneInstruction(text: string): boolean {
-    return (
-        /\b(?:do\s+not|don't|never|must\s+not|not\s+authorized\s+to)\s+(?:(?:use|run|invoke|call|execute|start|perform|make)\s+){0,2}(?:the\s+)?(?:forge|hermes|m3|execution|model\s+calls?|spend)\b/i.test(text)
-        || /\bwithout\s+(?:(?:using|running|invoking|calling)\s+)?(?:forge|hermes|m3)\b/i.test(text)
-        || /\bauthorize\b[^.\n]{0,80}\bnot\s+to\s+(?:use|run|invoke|call|execute)\s+(?:forge|hermes|m3)\b/i.test(text)
-        || /\bno\s+(?:hermes(?:\s*\/\s*m3)?|m3|forge\s+execution|model\s+calls?|spend)(?=$|[.!;,])/i.test(text)
-        || /\bnot\s+(?:via|through)\s+(?:forge|hermes|m3)\b/i.test(text)
-        || /\b(?:forge|hermes|m3|execute|execution|model\s+call|spend)\b[^.\n]{0,100}\b(?:forbidden|prohibited|disallowed|not\s+authorized)\b/i.test(text)
-    );
 }
 
 function isLaterAuthorizationConflict(text: string): boolean {
@@ -100,122 +106,16 @@ function optionalIdentityFieldIsEmpty(value: unknown): boolean {
     return value === undefined || value === null || value === '';
 }
 
-function isInside(candidate: string, root: string): boolean {
-    const relative = path.relative(root, candidate);
-    return relative === '' || (!relative.startsWith(`..${path.sep}`) && relative !== '..' && !path.isAbsolute(relative));
-}
-
-function nearestExistingAncestor(candidate: string): string {
-    let current = path.resolve(candidate);
-    while (!fs.existsSync(current)) {
-        const parent = path.dirname(current);
-        if (parent === current) {
-            throw new Error(`operator_authorization_target_has_no_existing_ancestor:${candidate}`);
-        }
-        current = parent;
-    }
-    return fs.realpathSync(current);
-}
-
-function assertTargetsInsideAuthorizedRoots(targets: string[], roots: string[]): void {
-    const canonicalRoots = roots.map((root) => fs.realpathSync(root));
-    for (const target of targets) {
-        if (!path.isAbsolute(target)) {
-            throw new Error(`operator_authorization_target_must_be_absolute:${target}`);
-        }
-        const resolved = path.resolve(target);
-        const existingAncestor = nearestExistingAncestor(resolved);
-        const authorized = canonicalRoots.some((root) => isInside(resolved, root) && isInside(existingAncestor, root));
-        if (!authorized) {
-            throw new Error(`operator_authorization_target_out_of_scope:${target}`);
-        }
-    }
-}
-
-function resolveSessionsRoot(): string {
-    const codexHome = process.env.CODEX_HOME?.trim() || path.join(os.homedir(), '.codex');
-    const sessionsRoot = path.join(codexHome, 'sessions');
-    const stat = fs.lstatSync(sessionsRoot);
-    if (
-        stat.isSymbolicLink()
-        || !stat.isDirectory()
-        || stat.uid !== process.getuid?.()
-        || (stat.mode & 0o022) !== 0
-    ) {
-        throw new Error('operator_authorization_sessions_root_is_not_a_real_directory');
-    }
-    return fs.realpathSync(sessionsRoot);
-}
-
-function findSessionFile(sessionsRoot: string, threadId: string): string {
-    const matches: string[] = [];
-    let scanned = 0;
-    const visit = (directory: string): void => {
-        for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
-            if (++scanned > MAX_SESSION_FILES_SCANNED) {
-                throw new Error('operator_authorization_session_scan_limit_exceeded');
-            }
-            const candidate = path.join(directory, entry.name);
-            if (entry.isSymbolicLink()) {
-                continue;
-            }
-            if (entry.isDirectory()) {
-                visit(candidate);
-            } else if (entry.isFile() && entry.name.endsWith(`-${threadId}.jsonl`)) {
-                matches.push(candidate);
-            }
-        }
-    };
-    visit(sessionsRoot);
-    if (matches.length !== 1) {
-        throw new Error(`operator_authorization_session_match_count:${matches.length}`);
-    }
-    const sessionFile = matches[0]!;
-    const stat = fs.lstatSync(sessionFile);
-    if (
-        stat.isSymbolicLink()
-        || !stat.isFile()
-        || stat.nlink !== 1
-        || stat.uid !== process.getuid?.()
-        || (stat.mode & 0o022) !== 0
-        || stat.size > MAX_SESSION_FILE_BYTES
-    ) {
-        throw new Error('operator_authorization_session_file_is_unsafe');
-    }
-    const canonical = fs.realpathSync(sessionFile);
-    if (!isInside(canonical, sessionsRoot)) {
-        throw new Error('operator_authorization_session_file_escapes_root');
-    }
-    return canonical;
-}
-
-function readAuthorizedTurn(
-    snapshot: FixedCodexSessionSnapshot,
+function createAuthorizedTurnMatcher(
     expectedThreadId: string,
     turnId: string,
     expectedMessageSha256: string,
-): {
-    text: string;
-    canonicalContent: string;
-    timestamp: string;
-    recordSha256: string;
-} {
-    const rawLines = snapshot.content.split('\n');
-    rawLines.pop();
+): { consume(record: FixedCodexSessionRecord): void; finish(): AuthorizedTurn } {
     let canonicalUserSession = false;
-    let matched: { text: string; canonicalContent: string; timestamp: string; recordSha256: string } | null = null;
+    let matched: AuthorizedTurn | null = null;
     let matchingRecords = 0;
     let matchedAuthorization = false;
-    for (const line of rawLines) {
-        const rawLine = line.endsWith('\r') ? line.slice(0, -1) : line;
-        let unknownRow: unknown;
-        try {
-            unknownRow = JSON.parse(rawLine);
-        } catch {
-            continue;
-        }
-        if (!isRecord(unknownRow)) continue;
-        const row = unknownRow;
+    const consumeProjected = ({ row, rawLine }: FixedCodexSessionRecord): void => {
         const payload = isRecord(row.payload) ? row.payload : undefined;
         if (row.type === 'session_meta') {
             canonicalUserSession = payload?.id === expectedThreadId
@@ -223,16 +123,22 @@ function readAuthorizedTurn(
                 && optionalIdentityFieldIsEmpty(payload.parent_thread_id)
                 && optionalIdentityFieldIsEmpty(payload.agent_path)
                 && optionalIdentityFieldIsEmpty(payload.forked_from_id);
-            continue;
+            return;
         }
         const classification = classifyCodexSessionRecord(row);
         if (classification.kind === 'noncanonical-user-like') {
             if (matchedAuthorization && classification.turnId !== undefined) {
                 throw new Error('operator_authorization_later_user_record_uninspectable');
             }
-            continue;
+            return;
         }
-        if (classification.kind !== 'canonical-root-user' || !payload) continue;
+        if (classification.kind !== 'canonical-root-user' || !payload) return;
+        if (!classification.rootLineage) {
+            if (matchedAuthorization || classification.turnId === turnId) {
+                throw new Error('operator_authorization_later_user_record_uninspectable');
+            }
+            return;
+        }
         const rawContent: unknown = payload.content;
         const content = Array.isArray(rawContent) ? rawContent.filter(isRecord) : [];
         const text = content
@@ -251,7 +157,7 @@ function readAuthorizedTurn(
         }
         const metadata = isRecord(payload.internal_chat_message_metadata_passthrough)
             ? payload.internal_chat_message_metadata_passthrough : undefined;
-        if (metadata?.turn_id !== turnId) continue;
+        if (metadata?.turn_id !== turnId) return;
         if (!canonicalUserSession) {
             throw new Error('operator_authorization_turn_is_not_from_canonical_user_thread');
         }
@@ -259,28 +165,23 @@ function readAuthorizedTurn(
             throw new Error('operator_authorization_turn_is_incomplete');
         }
         const canonicalContent = JSON.stringify(content.map((entry) => ({ type: 'input_text', text: entry.text })));
-        if (sha256(canonicalContent) !== expectedMessageSha256) continue;
+        if (sha256(canonicalContent) !== expectedMessageSha256) return;
         matchingRecords += 1;
         matchedAuthorization = true;
         matched = { text, canonicalContent, timestamp: row.timestamp, recordSha256: sha256(rawLine) };
-    }
-    if (matchingRecords !== 1 || !matched) {
-        throw new Error(`operator_authorization_turn_match_count:${matchingRecords}`);
-    }
-    return matched;
+    };
+    const projection = createCodexPlatformContextProjection(consumeProjected);
+    const finish = (): AuthorizedTurn => {
+        projection.finish();
+        if (matchingRecords !== 1 || !matched) {
+            throw new Error(`operator_authorization_turn_match_count:${matchingRecords}`);
+        }
+        return matched;
+    };
+    return { consume: projection.consume, finish };
 }
 
-/**
- * Verify the per-call identity injected by Codex into the MCP request.
- *
- * This binds the request to a canonical root-user thread and turn without
- * trusting caller-supplied tool arguments. The local session store remains
- * inside the documented same-UID Codex trust boundary.
- */
-export async function verifyCodexRequestIdentity(
-    context: McpRequestContext | undefined,
-    now = Date.now(),
-): Promise<VerifiedCodexRequestIdentity> {
+export function parseCodexTurnMetadata(context: McpRequestContext | undefined): ParsedCodexTurnMetadata {
     const meta = context?._meta;
     if (!isRecord(meta)) throw new Error('codex_request_identity_metadata_required');
     const topLevelThreadId = meta.threadId;
@@ -313,21 +214,22 @@ export async function verifyCodexRequestIdentity(
     ) {
         throw new Error('codex_request_identity_rejects_parent_fork_or_subagent');
     }
-    const sessionsRoot = resolveSessionsRoot();
-    const sessionFile = findSessionFile(sessionsRoot, nested.thread_id);
-    const turn = await readCanonicalCodexUserTurn(
-        sessionFile,
-        nested.thread_id,
-        nested.turn_id,
-        now,
-        MAX_SESSION_FILE_BYTES,
-        MAX_AUTHORIZATION_AGE_MS,
-    );
     return {
-        source: 'codex_request_meta',
         session_id: nested.session_id,
         thread_id: nested.thread_id,
         turn_id: nested.turn_id,
+    };
+}
+
+function verifiedRequestIdentity(
+    metadata: ParsedCodexTurnMetadata,
+    turn: CanonicalCodexUserTurn,
+): VerifiedCodexRequestIdentity {
+    return {
+        source: 'codex_request_meta',
+        session_id: metadata.session_id,
+        thread_id: metadata.thread_id,
+        turn_id: metadata.turn_id,
         thread_source: 'user',
         turn_record_sha256: turn.recordSha256,
         turn_record_set_sha256: turn.recordSetSha256,
@@ -337,26 +239,22 @@ export async function verifyCodexRequestIdentity(
     };
 }
 
-function assertAuthorizationSemantics(text: string, requiresForgeHermesM3: boolean): string[] {
-    if (
-        /\b(?:do\s+not|don't|not)\s+authorize\b|\brevoke\b/i.test(text)
-        || /\b(?:example|hypothetical|not\s+permission|do\s+not\s+treat)\b/i.test(text)
-    ) {
-        throw new Error('operator_authorization_negated_or_revoked');
-    }
-    if (requiresForgeHermesM3 && hasContradictoryForgeLaneInstruction(text)) {
-        throw new Error('operator_authorization_contradictory_forge_lane_instruction');
-    }
-    if (!/\bi authorize you to complete the audit in full\b/i.test(text)) {
-        throw new Error('operator_authorization_explicit_consent_missing');
-    }
-    if (!/\bcorvus\b/i.test(text) || !/\bcstar\b/i.test(text) || !/\b5\.6\b/i.test(text)) {
-        throw new Error('operator_authorization_scope_missing');
-    }
-    if (requiresForgeHermesM3 && (!/\bhermes\b/i.test(text) || !/\bm3\b/i.test(text))) {
-        throw new Error('operator_authorization_forge_hermes_m3_missing');
-    }
-    return ['/home/morderith/Corvus/CStar'];
+/** Bind one MCP request to a canonical root-user turn in one fixed scan. */
+export async function verifyCodexRequestIdentity(
+    context: McpRequestContext | undefined,
+    now = Date.now(),
+): Promise<VerifiedCodexRequestIdentity> {
+    const metadata = parseCodexTurnMetadata(context);
+    const sessionsRoot = resolveCodexSessionsRoot();
+    const sessionFile = findCodexSessionFile(sessionsRoot, metadata.thread_id);
+    const accumulator = createCanonicalCodexUserTurnAccumulator(
+        metadata.thread_id,
+        metadata.turn_id,
+        now,
+        MAX_AUTHORIZATION_AGE_MS,
+    );
+    scanFixedCodexSession(sessionFile, MAX_CODEX_SESSION_FILE_BYTES, accumulator.consume);
+    return verifiedRequestIdentity(metadata, accumulator.finish());
 }
 
 export async function verifyOperatorAuthorization(
@@ -374,38 +272,70 @@ export async function verifyOperatorAuthorization(
         throw new Error('operator_authorization_requires_direct_stdio_connection');
     }
     const now = scope.now ?? Date.now();
-    let requestIdentity: VerifiedCodexRequestIdentity | undefined;
+    let requestMetadata: ParsedCodexTurnMetadata | undefined;
     if (scope.request_context) {
-        requestIdentity = await verifyCodexRequestIdentity(scope.request_context, now);
-        if (callerThreadId && callerThreadId !== requestIdentity.thread_id) {
+        requestMetadata = parseCodexTurnMetadata(scope.request_context);
+        if (callerThreadId && callerThreadId !== requestMetadata.thread_id) {
             throw new Error('operator_authorization_request_identity_mismatch');
         }
-        callerThreadId = requestIdentity.thread_id;
+        callerThreadId = requestMetadata.thread_id;
     }
     if (!callerThreadId || callerThreadId !== threadId) {
         throw new Error('operator_authorization_thread_not_bound_to_connection');
     }
-    const sessionsRoot = resolveSessionsRoot();
-    const sessionFile = findSessionFile(sessionsRoot, threadId!);
-    const authorizationSnapshot = readFixedCodexSessionSnapshot(sessionFile, MAX_SESSION_FILE_BYTES);
-    const authorizedTurn = readAuthorizedTurn(
-        authorizationSnapshot,
+    const sessionsRoot = resolveCodexSessionsRoot();
+    const sessionFile = findCodexSessionFile(sessionsRoot, threadId!);
+    const requestAccumulator = requestMetadata
+        ? createCanonicalCodexUserTurnAccumulator(
+            requestMetadata.thread_id,
+            requestMetadata.turn_id,
+            now,
+            MAX_AUTHORIZATION_AGE_MS,
+        ) : undefined;
+    const authorizationMatcher = createAuthorizedTurnMatcher(
         threadId!,
         turnId!,
         expectedMessageSha256!,
     );
-    const authorizedAt = Date.parse(authorizedTurn.timestamp);
-    if (!Number.isFinite(authorizedAt) || authorizedAt > now + 60_000 || now - authorizedAt > MAX_AUTHORIZATION_AGE_MS) {
-        throw new Error('operator_authorization_expired_or_future_dated');
-    }
-    const canonicalTurn = readCanonicalCodexUserTurnFromSnapshot(
-        authorizationSnapshot,
+    const authorizationAccumulator = createCanonicalCodexUserTurnAccumulator(
         threadId!,
         turnId!,
         now,
         MAX_AUTHORIZATION_AGE_MS,
         true,
     );
+    let requestFailure: Error | undefined;
+    let matcherFailure: Error | undefined;
+    let authorizationFailure: Error | undefined;
+    scanFixedCodexSession(sessionFile, MAX_CODEX_SESSION_FILE_BYTES, (record) => {
+        if (requestAccumulator && !requestFailure) {
+            try { requestAccumulator.consume(record); } catch (error) {
+                requestFailure = error instanceof Error ? error : new Error('codex_request_identity_projection_failed');
+            }
+        }
+        if (!matcherFailure) {
+            try { authorizationMatcher.consume(record); } catch (error) {
+                matcherFailure = error instanceof Error ? error : new Error('operator_authorization_projection_failed');
+            }
+        }
+        if (!authorizationFailure) {
+            try { authorizationAccumulator.consume(record); } catch (error) {
+                authorizationFailure = error instanceof Error ? error : new Error('operator_authorization_projection_failed');
+            }
+        }
+    });
+    if (requestFailure) throw requestFailure;
+    const requestIdentity = requestAccumulator && requestMetadata
+        ? verifiedRequestIdentity(requestMetadata, requestAccumulator.finish())
+        : undefined;
+    if (matcherFailure) throw matcherFailure;
+    const authorizedTurn = authorizationMatcher.finish();
+    const authorizedAt = Date.parse(authorizedTurn.timestamp);
+    if (!Number.isFinite(authorizedAt) || authorizedAt > now + 60_000 || now - authorizedAt > MAX_AUTHORIZATION_AGE_MS) {
+        throw new Error('operator_authorization_expired_or_future_dated');
+    }
+    if (authorizationFailure) throw authorizationFailure;
+    const canonicalTurn = authorizationAccumulator.finish();
     if (!canonicalTurn.recordSha256s.includes(authorizedTurn.recordSha256)) {
         throw new Error('operator_authorization_reference_record_not_in_canonical_turn');
     }
@@ -420,14 +350,7 @@ export async function verifyOperatorAuthorization(
     if (messageSha256 !== expectedMessageSha256) {
         throw new Error('operator_authorization_message_hash_mismatch');
     }
-    const authorizedRoots = assertAuthorizationSemantics(
-        authorizedTurn.text,
-        scope.requires_forge_hermes_m3 === true,
-    );
-    if (!scope.target_paths || scope.target_paths.length === 0) {
-        throw new Error('operator_authorization_requires_nonempty_targets');
-    }
-    assertTargetsInsideAuthorizedRoots(scope.target_paths, authorizedRoots);
+    const authorizedPaths = assertOperatorAuthorizationScope(authorizedTurn.text, scope);
     return {
         provider: 'codex-session',
         reference: reference.trim(),
@@ -441,8 +364,13 @@ export async function verifyOperatorAuthorization(
         session_record_timestamp: canonicalTurn.timestamp,
         authorized_at: authorizedAt,
         expires_at: authorizedAt + MAX_AUTHORIZATION_AGE_MS,
-        authorized_roots: authorizedRoots,
-        authorization_profile: 'gpt56-cstar-audit-bootstrap-v1',
+        authorized_paths: authorizedPaths,
+        authorization_profile: 'gpt56-cstar-exact-request-v3',
+        authorized_bead_id: scope.bead_id?.trim() || null,
+        authorized_decision_id: scope.decision_id?.trim() || null,
+        authorized_package_lock_sha256s: (scope.package_lock_sha256s ?? [])
+            .map((digest) => digest.trim().toLowerCase()),
+        synthetic_fixtures_only: scope.requires_synthetic_fixtures_only === true,
         max_attempts: 1,
         live_source_allowed: false,
     };

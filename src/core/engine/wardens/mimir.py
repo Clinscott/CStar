@@ -6,19 +6,40 @@ Purpose: Identify cyclomatic complexity and maintainability issues.
 
 import contextlib
 import time
+from pathlib import Path
 from typing import Any
 
-from radon.complexity import cc_visit
-from radon.metrics import mi_visit
+try:
+    from radon.complexity import cc_visit
+    from radon.metrics import mi_visit
+except ImportError:
+    cc_visit = None
+    mi_visit = None
 
 from src.core.engine.wardens.base import BaseWarden
 
 
+def _require_radon() -> None:
+    """Fail when complexity analysis is invoked without its dependency."""
+    if cc_visit is None or mi_visit is None:
+        raise RuntimeError("optional_dependency_unavailable:radon")
+
+
 class MimirWarden(BaseWarden):
+    def __init__(
+        self,
+        root: Path,
+        *,
+        cc_threshold: int = 10,
+        mi_threshold: int = 40,
+    ) -> None:
+        super().__init__(root)
+        self.cc_threshold = cc_threshold
+        self.mi_threshold = mi_threshold
+
     def scan(self) -> list[dict[str, Any]]:
+        _require_radon()
         targets = []
-        cc_threshold = self.config.get("MIMIR_CC_THRESHOLD", 10)
-        mi_threshold = self.config.get("MIMIR_MI_THRESHOLD", 40) # < 40 is usually bad
 
         for py_file in self.root.rglob("*.py"):
             if self._should_ignore(py_file):
@@ -78,7 +99,7 @@ class MimirWarden(BaseWarden):
                 # 1. Cyclomatic Complexity
                 blocks = cc_visit(content)
                 for block in blocks:
-                    if block.complexity > cc_threshold:
+                    if block.complexity > self.cc_threshold:
                         targets.append({
                             "type": "MIMIR_COMPLEXITY",
                             "file": rel_path,
@@ -89,11 +110,11 @@ class MimirWarden(BaseWarden):
 
                 # 2. Maintainability Index
                 mi_score = mi_visit(content, multi=False)
-                if mi_score < mi_threshold:
+                if mi_score < self.mi_threshold:
                      targets.append({
                             "type": "MIMIR_MAINTAINABILITY",
                             "file": rel_path,
-                            "action": f"Restructure Saga: File Maintainability Index too low ({mi_score:.2f} < {mi_threshold})",
+                            "action": f"Restructure Saga: File Maintainability Index too low ({mi_score:.2f} < {self.mi_threshold})",
                             "severity": "MEDIUM",
                             "line": 1
                         })

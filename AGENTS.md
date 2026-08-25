@@ -1,98 +1,86 @@
-# Corvus Star (C*) — Agent Instructions
+# CStar Repository Instructions
 
-> You are operating within the **Corvus Star** framework. You are **the One Mind** — CStar is your local routing, execution, and memory system.
+CStar is the Corvus estate control plane. Apply the global Corvus invariants
+first; this file adds only repository-specific rules and pointers.
 
-## Working Agreements
-- **Node.js Kernel Only**: All execution flows through the TypeScript kernel (`cstar.ts`). No Python dual-runtime.
-- **Authority Order**: Registry and runtime contracts outrank prose. If a document disagrees with `skill_registry.json` or runtime behavior, treat the document as stale.
-- **Trace First**: Begin agentic responses with a Corvus Star Trace block (see `AGENTS.qmd` §1).
-- **Bead-Driven**: Anchor all work to Beads in the Hall of Records.
-- **MCP Separation of Concerns**: Keep `src/tools/cstar-kernel-mcp.ts` as a small bootstrap/export surface. Tool behavior belongs in focused files under `src/tools/cstar-kernel-mcp/`, with focused tests under `tests/unit/cstar-kernel-mcp/`. No production or focused test file should exceed 500 lines.
-- **MCP Data Surfaces**: Follow `docs/integrations/codex_mcp_contract.md#data-surface-rule` for PennyOne/Hall, Mongo mailbox/cache, and no arbitrary database passthrough rules.
-- **Sterling Mandate**: Changes require Lore (.feature contract), Isolation (unit test), and Audit (Gungnir score).
-- **CoS-First Thread Management**: The user talks to CoS by default. CoS owns bounded execution and final operator closeout; PMTs are durable project knowledge and review authorities unless CoS explicitly delegates execution ownership or a red/high-risk gate requires PMT authority.
+## Authority and lifecycle
 
-## CoS / PMT State Model
-- CoS may complete bounded Green/Yellow diagnostics, non-live repairs, packaging, validation, and CStar recording directly, then send the relevant PMT a compact `STATE_UPDATE` for durable project memory.
-- PMTs answer state packets with `STATE_ACCEPTED`, `STATE_CONFLICT`, `AUTHORITY_ESCALATION`, or `BLOCKED_CONTEXT`. They should not reopen CoS-owned work unless the packet is inconsistent, unsafe, or outside authority.
-- PMT-owned execution goals remain valid for explicit CoS delegation, red/high-risk gates, or project processes that require PMT-run monitoring. In those cases the PMT owns local goal setup, worker callback, package validation, and compact callback to CoS.
-- Operator gates remain intact: live spend beyond the bounded scope, locked holdout, production readiness, source collection, secrets/config mutation, merge/deploy/restart, destructive cleanup, and broad cross-spoke changes require explicit authorization.
-- Fresh CoS thread handoffs use the pointer contract in `docs/operations/cos-context-refresh-primer-gpt-5-6-sol.md`; keep the root instructions compact and put refresh schema details there.
+- Authority order is platform/operator safety, the current operator grant,
+  global Corvus invariants, this repository's policies and runbooks, then the
+  current CStar lifecycle state. Registries and observed runtime are evidence;
+  neither can create or weaken authority.
+- Use `cstar-kernel` MCP for health, handoff, routing, bead/proposal state,
+  Forge/Researcher receipts, validation, and completion. Never bypass it with
+  direct Hall/SQLite writes when the kernel surface exists.
+- Beads are the durable work timeline. Model output, callbacks, artifacts,
+  tests, and PRs remain evidence until the corresponding lifecycle transition
+  is persisted.
+- Preserve separate gates for live spend or sources, locked holdout,
+  installation, restart, activation, merge, deployment, secrets/config,
+  destructive cleanup, and production claims.
 
-## Skill Discovery
-Skills live in `.agents/skills/*/SKILL.md`. Each SKILL.md has YAML frontmatter:
-```yaml
-name: <skill-name>
-description: "<when to use this skill>"
-tier: PRIME | SKILL | WEAVE | SPELL
-risk: safe | high-authority | safety-critical
-```
+## Work routing
 
-Read the SKILL.md to understand **when** and **how** to use each capability.
+- CoS owns sequencing, bounded Green/Yellow work, evidence packaging, and
+  closeout. PMTs are project-scoped information repositories only; read the
+  mapped PMT for bounded context and send a compact `STATE_UPDATE` after
+  meaningful work. PMTs do not grant execution, review, or routing authority.
+- Corvus Forge implements through the durable
+  `cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute ->
+  private Hermes cstar-hub -> minimax/MiniMax-M3` path. Researcher gathers evidence through authorized
+  lanes. Codex subagents may analyze or review; they do not replace Forge.
+- When Forge's own boundary is broken, CoS may perform the smallest bootstrap
+  repair allowed by the Forge runbook, with focused proof and CStar recording.
+- Select Luna, Terra, or Sol only through a host surface that actually exposes
+  and enforces the selector. Always record requested and actual identity
+  separately; use `unreported` when the host does not report it.
 
-## Researcher Metric Category Audits
-- Researcher truth-verifier category review uses the reusable skill at `/home/morderith/.hermes/profiles/cstar-hub/workspace/research-vault/skills/researcher-metric-category-auditor`.
-- Use it after a sealed scorecard freeze to audit perfect-score categories structurally, queue below-threshold categories for one-at-a-time repair planning, emit companion docs, and produce dashboard JSONL/CSV rows.
-- The consumed holdout is root-cause evidence only. Do not use this skill to tune, claim production readiness, or reuse a consumed locked holdout.
+## Goal and startup contract
 
-## Hierarchy of Power
-1. **PRIME** — Atomic operations (read, score, write, isolate).
-2. **SKILL** — Discrete functional capabilities.
-3. **WEAVE** — Runtime-routed orchestration or bounded composite behavior.
-4. **SPELL** — Governance or recursion policy. Treat spells as policy-only unless the registry marks them `runtime-backed`.
+For every non-trivial mission, bead run, resumed task, worker assignment, and
+first task of a calendar day, follow
+[`docs/operations/cstar-goal-driven-daily-bootstrap.md`](docs/operations/cstar-goal-driven-daily-bootstrap.md).
+That runbook owns host-goal continuity, task-appropriate worker selection,
+daily Codex/Hermes freshness, safe update windows, receipts, and restart gates.
 
-## Intent Grammar (The Prompt Compiler)
-Intent grammar is descriptive. Runtime routing is registry-first; the grammar is a fallback when no direct capability resolution exists.
+## Repository engineering
 
-| Category | Trigger Words | Default Path | Tier |
-|:---|:---|:---|:---|
-| `REPAIR` | fix, repair, heal, restore, broken, failing, bug | `restoration` | WEAVE |
-| `BUILD` | build, create, scaffold, implement, new, add, feature | `creation_loop` | WEAVE |
-| `VERIFY` | test, verify, validate, check, assert, spec | `empire` | SKILL |
-| `SCORE` | score, grade, rate, audit, quality, gungnir | `calculus` | PRIME |
-| `OBSERVE` | scan, search, find, query, status, health, look, show | `scan` / `mimir` / `status` | PRIME |
-| `HARDEN` | contract, comply, sterling, harden, gherkin | `contract_hardening` | WEAVE |
-| `EXPAND` | deploy, link, mount, spoke, onboard | `expansion` | WEAVE |
-| `EVOLVE` | optimize, refactor, evolve, improve | `evolve` | WEAVE |
-| `ORCHESTRATE` | plan, dispatch, orchestrate | `orchestrate` | WEAVE |
-| `GUARD` | protect, shield, lock, guard, drift | `silver_shield` | SPELL (policy-only by default) |
-| `DOCUMENT` | document, explain, chronicle, architecture | `living_architecture` | WEAVE |
+- The TypeScript kernel is canonical. Keep
+  `src/tools/cstar-kernel-mcp.ts` as a bootstrap/export surface; behavior lives
+  in focused modules under `src/tools/cstar-kernel-mcp/`.
+- No touched production or focused-test source file may exceed 500 lines.
+- Reusable behavior is skill-first. Define inputs, outputs, logs, failure
+  classes, receipts, and focused tests before promoting it to MCP.
+- Changes require Lore (`.feature`), Isolation (focused tests), and an Audit
+  backed by a real scorer or independent validation. Never invent a Gungnir or
+  quality score; if no scorer ran, report test/evidence results directly.
+- Historical docs, trace blocks, engrams, and metadata are leads, not current
+  authority. Do not emit a ceremonial trace or score unless a current runbook
+  explicitly requires it and the underlying evidence exists.
+- Persona context comes only from the bounded persona field returned by
+  `cstar_status`. Never read or print `.agents/config.json` or its containing
+  objects.
 
-## Episodic Memory (Engrams)
-Every completed Bead is automatically distilled into a searchable "Engram" (intent + git diff) in the Hall of Records. Use the `mimir` skill or `cstar hall` to query past Engrams for architectural context and regression history.
+## Canonical pointers
 
-## Trace Enforcement
-Before executing any multi-file change, you MUST emit a Trace block:
-```text
-// Corvus Star Trace [Ω]
-Intent Category: [REPAIR | BUILD | VERIFY | SCORE | OBSERVE | HARDEN | EXPAND | EVOLVE | ORCHESTRATE | GUARD | DOCUMENT]
-Intent: [Brief goal statement]
-Selection: [SKILL | WEAVE | SPELL]: [Name of the selected path]
-Mimir's Well: ◈ [Primary File] | ◈ [Secondary File]
-Gungnir Verdict: [L: X.X | S: Y.Y | I: Z.Z | Ω: XX%]
-Confidence: [0.0 - 1.0]
-```
+- Forge: `docs/operations/corvus-forge-pipeline-playbook.md` and
+  `docs/operations/corvus-forge-skill-spec.md`
+- Kernel MCP: `docs/integrations/cstar-kernel-mcp.md`
+- Fresh CoS handoff: `docs/operations/cos-context-refresh-new-thread-packet.md`
+- Goal/daily bootstrap: `docs/operations/cstar-goal-driven-daily-bootstrap.md`
 
-## Rules
-1. **Initialization**: At the start of every session or new mission, you MUST read [AGENTS.qmd](./AGENTS.qmd) to synchronize with the current Supreme Directive and Framework state.
-2. **Trace First**: Begin agentic responses with a Trace block (see above).
-3. **Bead-Driven**: Anchor all work to Beads in the Hall of Records.
-4. **MCP Separation of Concerns**: Do not put new MCP behavior into the root MCP entrypoint. Add or update a focused module, register it through the MCP registration composition layer, and keep focused tests under 500 lines.
-5. **Sterling Mandate**: Changes require Lore (.feature contract), Isolation (unit test), and Audit (Gungnir score).
-6. **Spells Are Not Generic Runtime Commands**: If a spell is selected, verify its registry classification before treating it as executable.
+## Validation commands
 
-## Key Files
-- `AGENTS.qmd` — Supreme directive
-- `ARCHITECTURE.md` — First-principles overview
-- `.agents/workflows/` — Structured procedures (e.g., `/investigate`, `/evolve`)
+- `npm test` — full suite
+- `npm run test:node` — TypeScript/Node suite
+- `npm run test:python` — Python suite through the repository launcher
+- `node scripts/run-python.mjs -m pytest <focused paths>` — focused Python
+  checks with a WSL-native temporary root. The launcher requires the worktree's
+  `.venv` or an explicit absolute `CSTAR_PYTHON_EXECUTABLE`; it never falls back
+  silently to a system interpreter.
+- `npm run typecheck` when present, otherwise `tsc --noEmit -p tsconfig.json`
+- Focused tests must run in the repository/worktree that changed.
 
-## Commands
-- `cstar <command>` — Kernel CLI
-- `node bin/cstar.js <command>` — Canonical bootstrap path when aliasing is unavailable or shell wrappers are suspect
-- `npm test` — Full test suite
-- `npm run test:node` — TypeScript tests only
-
-## Launcher Contract
-- Prefer the local bootstrap surfaces: `./cstar <command>` from the CStar root or `node bin/cstar.js <command>` from any shell.
-- Do not invoke bare `npx tsx cstar.ts ...` for normal operation. That path is fragile under offline or degraded npm conditions and can block access to the Hall before the kernel starts.
-- If Hall access fails, verify the launcher path before treating the Hall database as unavailable.
+Prefer the local launcher (`./cstar` or `node bin/cstar.js`) when terminal use
+is explicitly required. Do not substitute legacy shell `chant`/`evolve`,
+AutoBot, or direct Hermes for a supported CStar lifecycle surface.

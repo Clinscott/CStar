@@ -1,34 +1,30 @@
-import os
-from dotenv import load_dotenv
-from google import genai
+"""Import-safe tombstone for the retired direct provider model lister."""
+
+from __future__ import annotations
+
+import sys
+from typing import NoReturn
+
+
+RETIRED_SECRET_PROVIDER_TOOL_ERROR = (
+    "legacy_secret_vault_provider_tools_retired_use_supported_surfaces"
+)
+
+
+def _retired(*_args: object, **_kwargs: object) -> NoReturn:
+    raise RuntimeError(RETIRED_SECRET_PROVIDER_TOOL_ERROR)
+
 
 class ModelLister:
-    """[ALFRED] Orchestration logic for Gemini model discovery."""
+    """Historical provider probe retained only to fail before credential access."""
 
-    @staticmethod
-    def execute() -> None:
-        """
-        Lists available models using the Google GenAI SDK.
-        """
-        # Load .env.local explicitly
-        load_dotenv(".env.local")
-        
-        api_key = os.getenv("GOOGLE_API_KEY")
-        if not api_key:
-            print("Error: GOOGLE_API_KEY not found in .env.local")
-            return
+    execute = staticmethod(_retired)
 
-        print(f"Using API Key: {api_key[:5]}...")
 
-        try:
-            client = genai.Client(api_key=api_key)
-            print("Listing available models...")
-            # Note: client.models.list() returns an iterator
-            for m in client.models.list():
-                print(f"- {m.name} (Display: {m.display_name})")
+def main() -> int:
+    sys.stderr.write(f"{RETIRED_SECRET_PROVIDER_TOOL_ERROR}\n")
+    return 1
 
-        except Exception as e:
-            print(f"Error listing models: {e}")
 
 if __name__ == "__main__":
-    ModelLister.execute()
+    raise SystemExit(main())

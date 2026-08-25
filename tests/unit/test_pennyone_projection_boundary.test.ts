@@ -35,7 +35,7 @@ describe('PennyOne projection boundary (CS-P1-08)', () => {
         closeDb();
     });
 
-    it('rebuilds matrix-graph.json from Hall-backed file records', async () => {
+    it('builds a Hall-backed projection without writing matrix-graph.json', async () => {
         const repoId = buildHallRepositoryId(tmpRoot.replace(/\\/g, '/'));
         upsertHallRepository({
             root_path: tmpRoot,
@@ -83,25 +83,26 @@ describe('PennyOne projection boundary (CS-P1-08)', () => {
             created_at: 1700000000201,
         });
 
-        const graphPath = await writeProjectedMatrixGraph(tmpRoot, 'scan-projection-1');
-        const graph = JSON.parse(fs.readFileSync(graphPath, 'utf-8')) as {
-            projection?: { authority: string; artifact_role: string; scan_id?: string };
-            files: Array<{ path: string; intent: string; matrix: { overall: number }; dependencies: string[] }>;
-        };
+        const graph = readProjectedMatrixGraph(tmpRoot, 'scan-projection-1');
         const samplePath = path.join(tmpRoot, 'src', 'sample.ts').replace(/\\/g, '/');
         const dependencyPath = path.join(tmpRoot, 'src', 'dep.ts').replace(/\\/g, '/');
         const sampleFile = graph.files.find((file) => file.path === samplePath);
 
         assert.equal(graph.files.length, 2);
         assert.equal(graph.projection?.authority, 'hall_projection');
-        assert.equal(graph.projection?.artifact_role, 'compatibility_export');
+        assert.equal(graph.projection?.artifact_role, 'runtime_view');
         assert.equal(graph.projection?.scan_id, 'scan-projection-1');
         assert.equal(sampleFile?.intent, 'Projected intent');
         assert.equal(sampleFile?.matrix.overall, 7.8);
         assert.deepStrictEqual(sampleFile?.dependencies, [dependencyPath]);
+        await assert.rejects(
+            writeProjectedMatrixGraph(tmpRoot, 'scan-projection-1'),
+            /legacy_matrix_artifact_write_retired_use_cstar_kernel/,
+        );
+        assert.equal(fs.existsSync(path.join(tmpRoot, '.stats', 'matrix-graph.json')), false);
     });
 
-    it('serves PennyOne search from Hall-backed projections without raw graph authority', async () => {
+    it('requires the kernel Hall search surface instead of direct PennyOne output', async () => {
         const repoId = buildHallRepositoryId(tmpRoot.replace(/\\/g, '/'));
         upsertHallRepository({
             root_path: tmpRoot,
@@ -144,13 +145,10 @@ describe('PennyOne projection boundary (CS-P1-08)', () => {
         assert.deepStrictEqual(record?.imports, [{ source: './support', local: 'supportProjection', imported: 'supportProjection' }]);
         assert.deepStrictEqual(record?.exports, ['searchProjection']);
 
-        const originalWrite = process.stdout.write.bind(process.stdout);
-        process.stdout.write = (() => true) as typeof process.stdout.write;
-        try {
-            await searchMatrix('projection boundary', tmpRoot);
-        } finally {
-            process.stdout.write = originalWrite;
-        }
+        await assert.rejects(
+            searchMatrix('projection boundary', tmpRoot),
+            /legacy_pennyone_direct_search_retired_use_cstar_hall_search/,
+        );
     });
 
     it('materializes the live matrix view from Hall even if a stale graph artifact exists', () => {

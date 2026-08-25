@@ -1,11 +1,16 @@
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
+
+import pytest
 
 from src.core.engine.validation_result import (
+    LEGACY_VALIDATION_PERSISTENCE_ERROR,
     ValidationCheck,
+    ValidationEvidence,
     create_benchmark_result,
     create_sprt_verdict,
     create_validation_result,
+    save_validation_result,
 )
 from src.core.engine.ravens.muninn_crucible import MuninnCrucible
 
@@ -30,10 +35,17 @@ def test_validation_result_accepts_when_checks_and_scores_hold() -> None:
             upper_bound=2.9,
         ),
         checks=[ValidationCheck(name="crucible", status="PASS")],
+        evidence=ValidationEvidence(
+            validator_identity="independent:test-validator",
+            evidence_sha256="a" * 64,
+            independent_of_execution=True,
+            evaluated_checks=1,
+        ),
     )
 
     assert result.verdict == "ACCEPTED"
     assert result.blocking_reasons == []
+    assert result.evidence_gaps == []
     assert result.score_delta.delta["logic"] == 0.5
 
 
@@ -42,6 +54,12 @@ def test_validation_result_rejects_on_negative_protected_axis() -> None:
         before={"logic": 8.0, "style": 8.0, "sovereignty": 8.0, "overall": 8.0},
         after={"logic": 7.5, "style": 8.1, "sovereignty": 8.0, "overall": 7.9},
         checks=[ValidationCheck(name="crucible", status="PASS")],
+        evidence=ValidationEvidence(
+            validator_identity="independent:test-validator",
+            evidence_sha256="b" * 64,
+            independent_of_execution=True,
+            evaluated_checks=1,
+        ),
     )
 
     assert result.verdict == "REJECTED"
@@ -68,17 +86,52 @@ def test_validation_result_remains_inconclusive_when_sprt_is_unresolved() -> Non
     assert result.blocking_reasons == []
 
 
-def test_muninn_crucible_emits_canonical_validation_result(tmp_path: Path) -> None:
-    crucible = MuninnCrucible(tmp_path, MagicMock())
-    with patch("src.core.engine.ravens.muninn_crucible.subprocess.run") as mock_run:
-        mock_run.return_value = MagicMock(returncode=0, stdout="1 passed", stderr="")
-        result = crucible.verify_fix_result(
-            tmp_path / "tests" / "gauntlet" / "test_sample.py",
-            before_scores={"logic": 7.0, "style": 7.0, "sovereignty": 7.0, "overall": 7.0},
-            after_scores={"logic": 7.1, "style": 7.2, "sovereignty": 7.0, "overall": 7.1},
-        )
+def test_validation_result_is_inconclusive_without_independent_evidence() -> None:
+    result = create_validation_result(
+        checks=[ValidationCheck(name="focused-tests", status="PASS")]
+    )
 
-        assert result.verdict == "ACCEPTED"
-        assert result.benchmark is not None
-        assert result.checks[0].name == "crucible"
-        assert crucible.verify_fix(tmp_path / "tests" / "gauntlet" / "test_sample.py") is True
+    assert result.verdict == "INCONCLUSIVE"
+    assert "evidence is missing" in " ".join(result.evidence_gaps).lower()
+
+
+def test_validation_result_is_inconclusive_with_zero_sprt_denominator() -> None:
+    result = create_validation_result(
+        checks=[ValidationCheck(name="focused-tests", status="PASS")],
+        sprt=create_sprt_verdict(
+            verdict="ACCEPTED",
+            summary="Caller claimed acceptance without observations.",
+            llr=0,
+            passed=0,
+            total=0,
+            lower_bound=-1,
+            upper_bound=1,
+        ),
+        evidence=ValidationEvidence(
+            validator_identity="independent:test-validator",
+            evidence_sha256="c" * 64,
+            independent_of_execution=True,
+            evaluated_checks=1,
+        ),
+    )
+
+    assert result.verdict == "INCONCLUSIVE"
+    assert "zero sample denominator" in " ".join(result.evidence_gaps).lower()
+
+
+def test_muninn_crucible_emits_canonical_validation_result(tmp_path: Path) -> None:
+    with pytest.raises(
+        RuntimeError,
+        match="^legacy_python_ravens_engine_retired_use_cstar_kernel$",
+    ):
+        MuninnCrucible(tmp_path, MagicMock())
+
+
+def test_direct_validation_persistence_fails_before_hall_access(tmp_path: Path) -> None:
+    result = create_validation_result(summary="Synthetic detached result.")
+
+    with pytest.raises(
+        RuntimeError,
+        match=f"^{LEGACY_VALIDATION_PERSISTENCE_ERROR}$",
+    ):
+        save_validation_result(str(tmp_path), result, bead_id="bead:synthetic")

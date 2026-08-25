@@ -1,105 +1,96 @@
-import test from 'node:test';
+import test, { after, before } from 'node:test';
 import assert from 'node:assert';
-import {
-    updateChronicleIndex,
-    updateFtsIndex,
-    searchIntents,
-    getRecentSessions,
-    getPingsForSession,
-    getDb,
-} from  '../../src/tools/pennyone/intel/database.js';
+import fs from 'node:fs';
+import fsPromises from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
 
-test('Well of Mimir FTS5 Operations', async () => {
+let isolatedRoot = '';
+let previousProjectRoot: string | undefined;
+let databaseApi: typeof import('../../src/tools/pennyone/intel/database.js');
+
+before(async () => {
+    isolatedRoot = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'cstar-pennyone-database-'));
+    previousProjectRoot = process.env.CSTAR_PROJECT_ROOT;
+    process.env.CSTAR_PROJECT_ROOT = isolatedRoot;
+    fs.writeFileSync(path.join(isolatedRoot, 'package.json'), '{"name":"synthetic-pennyone-database"}');
+    databaseApi = await import('../../src/tools/pennyone/intel/database.js');
+});
+
+after(async () => {
+    databaseApi.closeDb();
+    if (previousProjectRoot === undefined) delete process.env.CSTAR_PROJECT_ROOT;
+    else process.env.CSTAR_PROJECT_ROOT = previousProjectRoot;
+    await fsPromises.rm(isolatedRoot, { recursive: true, force: true });
+});
+
+test('Well of Mimir FTS5 Operations', () => {
     const testPath = 'src/core/annex.py';
     const testIntent = 'Handles database connections for the neural matrix.';
     const testProtocol = 'Import getDb()';
+    databaseApi.updateFtsIndex(testPath, testIntent, testProtocol);
 
-    // 1. Update Index
-    updateFtsIndex(testPath, testIntent, testProtocol);
+    const resultsExact = databaseApi.searchIntents('connections neural');
+    assert.ok(resultsExact.some(r => r.path === testPath));
+    assert.strictEqual(resultsExact[0].interaction_protocol, testProtocol);
 
-    // 2. Search Index (Exact match)
-    const resultsExact = searchIntents('connections neural');
-    assert.ok(resultsExact.some(r => r.path === testPath), 'Should find the exact intent');
-    assert.strictEqual(resultsExact[0].interaction_protocol, testProtocol, 'Should store the protocol');
+    const resultsStem = databaseApi.searchIntents('connect matrix');
+    assert.ok(resultsStem.some(r => r.path === testPath));
 
-    // 3. Search Index (Partial/stemming match - FTS5 porter stemming)
-    const resultsStem = searchIntents('connect matrix');
-    assert.ok(resultsStem.some(r => r.path === testPath), 'Should find stemmed intent');
+    databaseApi.updateFtsIndex('XO/docs/planning/XO_SCOPE_MATRIX.md', 'XO bead charter scope operating modes foundation', 'Open scope matrix');
+    assert.ok(Array.isArray(databaseApi.searchIntents('pb-xo-foundation xo-bead-01 scope non-goals')));
 
-    // 3b. Search Index (Hyphenated bead-style query should not break FTS parsing)
-    updateFtsIndex('XO/docs/planning/XO_SCOPE_MATRIX.md', 'XO bead charter scope operating modes foundation', 'Open scope matrix');
-    const resultsHyphen = searchIntents('pb-xo-foundation xo-bead-01 scope non-goals');
-    assert.ok(Array.isArray(resultsHyphen), 'Should return a result array for bead-style queries');
-
-    // 3c. Search Index (Natural multi-term queries should not collapse to zero when one token is absent)
-    updateFtsIndex(
+    databaseApi.updateFtsIndex(
         'src/tools/pennyone/personaRegistry.ts',
         'persona active config behavior planning investigation operating policy',
         'Open active persona registry',
     );
-    const resultsNatural = searchIntents('persona active persona config agent behavior investigation');
-    assert.ok(
-        resultsNatural.some(r => r.path === 'src/tools/pennyone/personaRegistry.ts'),
-        'Should recover relevant records when broad natural-language queries contain extra terms',
-    );
-    assert.ok(resultsNatural.length <= 30, 'Broad fallback should stay bounded for operator-readable Hall output');
+    const resultsNatural = databaseApi.searchIntents('persona active persona config agent behavior investigation');
+    assert.ok(resultsNatural.some(r => r.path === 'src/tools/pennyone/personaRegistry.ts'));
+    assert.ok(resultsNatural.length <= 30);
 
-    // 4. Update existing path
-    const updatedIntent = 'Updated intent.';
-    updateFtsIndex(testPath, updatedIntent, testProtocol);
-    
-    // Check it replaced rather than duplicated
-    const db = getDb();
-    const count = db.prepare('SELECT count(*) as count FROM intents_fts WHERE path = ?').get(testPath) as any;
-    assert.strictEqual(count.count, 1, 'Should UPSERT, not duplicate');
+    databaseApi.updateFtsIndex(testPath, 'Updated intent.', testProtocol);
+    const db = databaseApi.getWritableDb();
+    const count = db.prepare('SELECT count(*) as count FROM intents_fts WHERE path = ?').get(testPath) as { count: number };
+    assert.strictEqual(count.count, 1);
 });
 
-test('Well of Mimir FTS5 ranking demotes archived lore behind live runtime authority', async () => {
+test('Well of Mimir FTS5 ranking demotes archived lore behind live runtime authority', () => {
     const probe = 'rankprobe-fts-chant-architect-authority';
-    updateChronicleIndex(
+    databaseApi.updateChronicleIndex(
         'docs/legacy_archive/root_docs/tasks.qmd',
         `Archived architect doctrine ${probe}`,
         `Architect owns proposal synthesis ${probe}.`,
     );
-    updateFtsIndex(
+    databaseApi.updateFtsIndex(
         'src/node/core/runtime/host_workflows/chant_planner.ts',
         `Live chant planning authority ${probe}`,
         'Open chant planner',
     );
 
-    const results = searchIntents(probe);
-    const liveIndex = results.findIndex((result) => result.path === 'src/node/core/runtime/host_workflows/chant_planner.ts');
-    const archivedIndex = results.findIndex((result) => result.path === 'docs/legacy_archive/root_docs/tasks.qmd');
-
-    assert.notStrictEqual(liveIndex, -1, 'Should return the live runtime authority result');
-    assert.notStrictEqual(archivedIndex, -1, 'Should return the archived lore result');
-    assert.ok(liveIndex < archivedIndex, 'Live runtime authority should outrank archived lore');
+    const results = databaseApi.searchIntents(probe);
+    const liveIndex = results.findIndex(result => result.path === 'src/node/core/runtime/host_workflows/chant_planner.ts');
+    const archivedIndex = results.findIndex(result => result.path === 'docs/legacy_archive/root_docs/tasks.qmd');
+    assert.notStrictEqual(liveIndex, -1);
+    assert.notStrictEqual(archivedIndex, -1);
+    assert.ok(liveIndex < archivedIndex);
 });
 
-test('Session Query Operations', async () => {
-    // 1. Add mock session to DB
-    const db = getDb();
-    
-    // Create a spoke
+test('Session Query Operations', () => {
+    const db = databaseApi.getWritableDb();
     db.prepare('INSERT OR IGNORE INTO spokes (id, name, root_path) VALUES (?, ?, ?)').run(999, 'Test Spoke', 'test/path');
-    
-    // Create a session
     const sessionId = 99999;
-    db.prepare('INSERT OR REPLACE INTO sessions (id, spoke_id, agent_id, start_timestamp, total_pings) VALUES (?, ?, ?, ?, ?)').run(sessionId, 999, 'MUNINN', Date.now(), 2);
-    
-    // Clear old pings for idempotency
+    db.prepare('INSERT OR REPLACE INTO sessions (id, spoke_id, agent_id, start_timestamp, total_pings) VALUES (?, ?, ?, ?, ?)')
+        .run(sessionId, 999, 'MUNINN', Date.now(), 2);
     db.prepare('DELETE FROM pings WHERE session_id = ?').run(sessionId);
-    
-    // Add pings
-    db.prepare('INSERT INTO pings (session_id, agent_id, action, target_path, timestamp) VALUES (?, ?, ?, ?, ?)').run(sessionId, 'MUNINN', 'TEST', 'test.py', Date.now());
-    db.prepare('INSERT INTO pings (session_id, agent_id, action, target_path, timestamp) VALUES (?, ?, ?, ?, ?)').run(sessionId, 'MUNINN', 'TEST', 'test2.py', Date.now() + 100);
+    db.prepare('INSERT INTO pings (session_id, agent_id, action, target_path, timestamp) VALUES (?, ?, ?, ?, ?)')
+        .run(sessionId, 'MUNINN', 'TEST', 'test.py', Date.now());
+    db.prepare('INSERT INTO pings (session_id, agent_id, action, target_path, timestamp) VALUES (?, ?, ?, ?, ?)')
+        .run(sessionId, 'MUNINN', 'TEST', 'test2.py', Date.now() + 100);
 
-    // 2. Test getRecentSessions
-    const sessions = getRecentSessions(5);
-    assert.ok(sessions.some(s => s.id === sessionId), 'Should retrieve recent sessions with spoke joins');
-
-    // 3. Test getPingsForSession
-    const pings = getPingsForSession(sessionId);
-    assert.strictEqual(pings.length, 2, 'Should retrieve all pings for the session');
-    assert.strictEqual(pings[0].target_path, 'test.py', 'Pings should be ordered by timestamp ASC');
+    const sessions = databaseApi.getRecentSessions(5);
+    assert.ok(sessions.some(session => session.id === sessionId));
+    const pings = databaseApi.getPingsForSession(sessionId);
+    assert.strictEqual(pings.length, 2);
+    assert.strictEqual(pings[0].target_path, 'test.py');
 });

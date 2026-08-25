@@ -3,17 +3,7 @@ import os
 import re
 import sys
 
-try:
-    from sv_engine import SovereignHUD
-except ImportError:
-    class SovereignHUD:
-        RED, GREEN, YELLOW, RESET, BOLD, CYAN = "\033[31m", "\033[32m", "\033[33m", "\033[0m", "\033[1m", "\033[36m"
-        @staticmethod
-        def box_top(t) -> None: print(f"--- {t} ---")
-        @staticmethod
-        def box_row(l, v, c) -> None: print(f"{l}: {v}")
-        @staticmethod
-        def box_bottom() -> None: print("------")
+from src.core.sovereign_hud import SovereignHUD
 
 class SecurityScanner:
     RISK_VECTORS = {

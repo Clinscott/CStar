@@ -1,66 +1,92 @@
-# 🔱 THE UNIVERSAL SKILL REGISTRY
+# CStar Skill Registry Contract
 
-> **ROLE**: The Authority Manifest  
-> **LOCATION**: `.agents/skill_registry.json`
+## Status
 
-The Universal Skill Registry is the single source of truth for all capabilities within the Corvus Star estate. It provides a unified, agent-agnostic map of Primes, Skills, Weaves, and Spells, accessible to Claude Code, Gemini CLI, Codex CLI, and Antigravity.
+This document describes the current registry v3 contract. Older four-tier
+inventories, autonomous skill-learning catalogs, and universal-runtime maps are
+historical designs. They do not describe the active CStar surface.
 
----
+## Boundary
 
-## 💎 REGISTRY SCHEMA (v2.0)
+`.agents/skill_registry.json` declares the reusable agent-native skills that a
+host may discover. It is a capability declaration, not authority to execute,
+mutate lifecycle state, spend, install, restart, or claim success.
 
-The registry (`skill_registry.json`) uses a strict schema defining the tier, viability, risk, and execution mode of every capability.
+CStar lifecycle authority remains in the kernel MCP contracts and Hall records.
+The typed `cstar-kernel` tool catalog declares deterministic kernel primitives;
+those tools do not need duplicate registry entries. Operator and repository
+policy remains above both surfaces.
 
-### 1. The Four Tiers
-Everything in the framework belongs to one of four tiers:
-*   **PRIME**: Atomic operations mapped to the four core directives (`observation`, `reasoning`, `mutation`, `isolation`).
-*   **SKILL**: Discrete, functional capabilities (`empire`, `matrix`, `taste-skill`).
-*   **WEAVE**: Linear sequences of skills orchestrated for a complex outcome (`restoration`, `vigilance`, `expansion`).
-*   **SPELL**: Recursive feedback loops that maintain sovereign states (`phoenix_loop`, `silver_shield`).
+## Current Inventory
 
-### 2. Execution Modes
-Agents discover capabilities by reading `.md` files, but *execution* happens in two ways:
-*   **Agent-Native**: The AI agent follows the Markdown instructions manually using its own CLI tools and file editors. No backend code is required.
-*   **Kernel-Backed**: The AI agent sends a structured JSON payload to the Node.js `RuntimeDispatcher`. The TypeScript CStar Kernel handles the actual execution, state management, and error recovery.
+The active registry contains exactly three agent-native leaf skills:
 
-### 3. Viability & Risk
-*   **Viability**: `ACTIVE` (ready for use), `PLANNED` (stubbed out), or `DEPRECATED` (do not use). Non-viable legacy skills have been moved to `.agents/skills/_archive/`.
-*   **Risk**: `safe` (standard operations), `high-authority` (requires user consent, e.g., git hooks), or `safety-critical` (kernel-level changes).
+| Skill | Purpose | Mutation boundary |
+| --- | --- | --- |
+| `corvus-forge` | Route bounded implementation through durable Forge request, execute, and independent validation. | Only CStar lifecycle tools and the sealed private Forge adapter may mutate within the authorized request. |
+| `researcher` | Route bounded evidence work through authorized Researcher lanes. | Live collection and source-lane expansion remain separately gated. |
+| `cstar-closeout` | Assemble evidence-backed handoff and closeout packets. | Stage, commit, push, merge, install, restart, and deploy are distinct operator gates. |
 
-### 4. Authority Fields
-Active entries are being converged toward explicit authority metadata.
+All three use:
 
-*   **`authority_path`**: The authoritative filesystem root or spell file for the capability.
-*   **`entrypoint_path`**: The executable script or runtime adapter entrypoint when one exists.
-*   **`contract_path`**: The nearest local contract artifact, feature file, or skill mandate.
-*   **`owner_runtime`**: Which layer actually owns execution authority, for example `cstar-kernel`, `host-agent`, or `policy-layer`.
-*   **`host_support`**: Declared provider support across Gemini, Codex, and Claude. Current normalized values are `supported`, `native-session`, `exec-bridge`, `policy-only`, `unsupported`, and `unknown`.
-*   **`recursion_policy`**: Whether the capability is a leaf, bounded composite, bounded orchestrator, or policy-only surface.
-*   **`contracts`**: Explicit contract references associated with the capability.
-*   **`tests`**: Explicit or inferred verification references associated with the capability.
+- `tier: SKILL`;
+- `entry_surface: host-only`;
+- `execution.mode: agent-native`;
+- `owner_runtime: host-agent`; and
+- `recursion_policy: leaf`.
 
-These fields are part of the authority-convergence effort: the registry should describe not just what a capability is called, but where it lives, how it executes, and how it is verified.
+`host-only` means the active host reads the corresponding `SKILL.md` and follows
+it in-session. It is not permission for `cstar run-skill`, a runtime adapter,
+shell wrapper, model callback, or dynamic dispatcher to execute the skill.
 
-### 5. Shell Discovery Companion
-The registry is capability authority, but the shell contract lives in the registered `cstar` command tree.
+## Routing
 
-For proper discovery and use:
-*   Use `.agents/skill_registry.json` for capability identity, execution ownership, and contract anchors.
-*   Use `cstar manifest --json` or `cstar skill-info <id> --json` for the merged operator-facing contract, including `invoke` metadata such as aliases, subcommands, options, examples, and JSON support.
-*   Treat Commander-derived `invoke` metadata as the authoritative shell shape when it is present, because it is extracted from the real registered CLI surfaces rather than maintained as prose.
+Registry intent grammar is advisory discovery metadata:
 
----
+- build, repair, and evolve intents route to `corvus-forge` and the
+  `cstar_forge_request` lifecycle;
+- research intents route to `researcher` and `cstar_researcher_request`;
+- documentation and handoff intents route to `cstar-closeout`; and
+- deterministic observation, lifecycle, and validation intents route to the
+  matching `cstar-kernel` primitive.
 
-## 📊 CURRENT ESTATE INVENTORY (Active Tiers)
+Augury may explain one of these routes when route or material scope is
+ambiguous. Its output is non-actionable and cannot grant authority.
 
-### The Primes (19)
-`hall`, `mimir`, `metrics`, `scan`, `vitals`, `status`, `manifest`, `qmd_search`, `oracle`, `calculus`, `trace`, `style`, `agentic-ingest`, `forge`, `scribe`, `report`, `jailing`, `gatekeeper`, `locks`.
+## Discovery
 
-### The Skills (28)
-`annex`, `autobot`, `bifrost`, `bookmark-weaver`, `cachebro`, `chronicle`, `consciousness`, `corvus-control`, `distill`, `edda`, `empire`, `engine`, `gherkin`, `hunt`, `linter`, `matrix`, `norn`, `one-mind`, `personas`, `promotion`, `redactor`, `research`, `ritual`, `spoke`, `sprt`, `stability`, `sterling`, `taliesin`, `taste-skill`, `telemetry`, `visual-explainer`, `warden`.
+Use the following read-only discovery surfaces:
 
-### The Weaves (8)
-`chant`, `evolve`, `orchestrate`, `ravens`, `start`, `restoration`, `expansion`, `vigilance`, `creation_loop`, `contract_hardening`, `living_architecture`, `secure_speculation`, `ephemeral_grid`.
+- `.agents/skill_registry.json` for the exact declared skill set;
+- `cstar manifest --json` for the normalized registry view; and
+- `cstar skill-info <id> --json` for one declared skill.
 
-### The Spells (4)
-`living_well`, `phoenix_loop`, `shattering_strike`, `silver_shield`.
+The current skills intentionally have no shell invocation metadata. A manifest
+field such as `active_in_runtime` means the runtime recognizes the declaration;
+it does not mean the runtime may execute the agent-native instructions.
+
+## Retired Topology
+
+The following are not active skills or alternate execution lanes:
+
+- public AutoBot;
+- One Mind delegation or fulfillment;
+- Ravens autonomous cycles;
+- model-memory harvest, engrave, distill, or dormancy loops;
+- `chant`, `evolve`, `orchestrate`, restoration, expansion, vigilance, or other
+  legacy mutation weaves; and
+- recursive spells, skill learning, or automatic promotion.
+
+Compatibility names may remain as read-only projections or fail-closed
+tombstones. Their presence in source, historical records, or old documentation
+does not restore capability or authority. MM is legacy, and PMTs are
+project-scoped information repositories only.
+
+## Change Rule
+
+New reusable behavior starts as a reviewed skill with explicit inputs, outputs,
+logs, failure classes, receipts, and focused tests. Promotion to an MCP tool
+requires a separate bounded kernel contract and independent validation.
+Registry edits alone cannot activate a host package: source generation, local
+staging, installed/cache reconciliation, restart, live proof, and production
+claims remain separate gates and evidence classes.

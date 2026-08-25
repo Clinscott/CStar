@@ -1,8 +1,6 @@
 import type { HostProvider } from  '../../core/host_session.js';
-import { resolveHostProvider } from  '../../core/host_session.js';
 import { getHallPlanningSession, listHallPlanningSessions } from '../../tools/pennyone/intel/database.js';
 import type { HallOneMindBranchDigest, HallPlanningSessionRecord, HallPlanningSessionStatus } from '../../types/hall.js';
-import { ANS } from  './ans.js';
 import type {
     HostGovernorWeavePayload,
     RuntimeDispatchPort,
@@ -15,6 +13,7 @@ import type {
 export interface OperatorResumeOptions {
     workspaceRoot: string;
     cwd: string;
+    explicitHostResume?: boolean;
     task?: string;
     ledger?: string;
     env?: NodeJS.ProcessEnv;
@@ -170,8 +169,8 @@ export function buildHostGovernorResumeInvocation(
         payload: {
             task: options.task,
             ledger: options.ledger,
-            auto_execute: options.autoExecute ?? true,
-            auto_replan_blocked: options.autoReplanBlocked ?? true,
+            auto_execute: false,
+            auto_replan_blocked: false,
             max_parallel: options.maxParallel ?? 1,
             max_promotions: options.maxPromotions,
             dry_run: options.dryRun,
@@ -190,32 +189,29 @@ export async function executeHostGovernorResume(
     provider: HostProvider | null,
     dependencies: OperatorResumeDependencies = {},
 ): Promise<OperatorResumeResult> {
-    const wakeKernel = dependencies.wakeKernel ?? (() => ANS.wake());
-    try {
-        await wakeKernel();
-        const governorResult = await dispatchPort.dispatch(buildHostGovernorResumeInvocation(options));
-        const planningSession = resolveResumePlanningSession(options.workspaceRoot, governorResult);
-        return {
-            resumed: true,
-            provider,
-            wokeKernel: true,
-            governorResult,
-            planningSummary: formatPlanningSessionSummary(planningSession),
-        };
-    } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        return {
-            resumed: true,
-            provider,
-            wokeKernel: true,
-            governorResult: {
-                weave_id: 'weave:host-governor',
-                status: 'FAILURE',
-                output: '',
-                error: `Operator entry failed to resume the host governor: ${message}`,
+    void dispatchPort;
+    void options;
+    void provider;
+    void dependencies;
+    return {
+        resumed: false,
+        provider: null,
+        wokeKernel: false,
+        governorResult: {
+            weave_id: 'weave:host-governor',
+            status: 'FAILURE',
+            output: '',
+            error: 'legacy_host_governor_resume_retired_use_cstar_handoff',
+            metadata: {
+                compatibility: 'retired',
+                operator_action_required: true,
+                required_surface: 'cstar-kernel',
+                execution_dispatched: false,
+                kernel_wake_started: false,
+                hall_mutation_started: false,
             },
-        };
-    }
+        },
+    };
 }
 
 export async function resumeHostGovernorIfAvailable(
@@ -223,9 +219,7 @@ export async function resumeHostGovernorIfAvailable(
     options: OperatorResumeOptions,
     dependencies: OperatorResumeDependencies = {},
 ): Promise<OperatorResumeResult> {
-    const env = options.env ?? process.env;
-    const provider = resolveHostProvider(env);
-    if (!provider) {
+    if (options.explicitHostResume !== true) {
         return {
             resumed: false,
             provider: null,
@@ -233,5 +227,5 @@ export async function resumeHostGovernorIfAvailable(
         };
     }
 
-    return executeHostGovernorResume(dispatchPort, options, provider, dependencies);
+    return executeHostGovernorResume(dispatchPort, options, null, dependencies);
 }

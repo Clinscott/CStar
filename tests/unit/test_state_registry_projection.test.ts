@@ -1,294 +1,166 @@
-import { afterEach, beforeEach, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { afterEach, beforeEach, describe, it } from 'node:test';
 
 import {
+    STATE_REGISTRY_MUTATION_RETIRED_ERROR,
     StateRegistry,
-    type ManagedSpokeProjection,
-    type OperatorConsoleProjection,
-    type SovereignState,
-} from '../../src/node/core/state.ts';
+} from '../../src/node/core/state.js';
 import {
     closeDb,
-    listHallAgentPresence,
-    listHallCoordinationEvents,
-    getHallRepositoryRecord,
-    getHallSummary,
-    listHallMountedSpokes,
+    saveHallAgentPresence,
+    saveHallMountedSpoke,
     upsertHallRepository,
-} from '../../src/tools/pennyone/intel/database.ts';
-import { registry } from  '../../src/tools/pennyone/pathRegistry.js';
+} from '../../src/tools/pennyone/intel/database.js';
+import { registry } from '../../src/tools/pennyone/pathRegistry.js';
+import { buildPersonaProjectionMetadata } from '../../src/tools/pennyone/persona_projection.js';
+import { buildHallRepositoryId, normalizeHallPath } from '../../src/types/hall.js';
 
-describe('State registry projection boundary (CS-P2-00)', () => {
-    let tmpRoot: string;
-    let controlRoot: string;
-    const originalControlRoot = process.env.CSTAR_CONTROL_ROOT;
+type Snapshot = Record<string, string>;
 
-    const managedSpokes: ManagedSpokeProjection[] = [
-        {
-            spoke_id: 'spoke-keepos',
-            slug: 'keepos',
-            kind: 'git',
-            root_path: 'C:/Estate/KeepOS',
-            remote_url: 'https://github.com/example/KeepOS.git',
-            default_branch: 'main',
-            mount_status: 'active',
-            trust_level: 'trusted',
-            write_policy: 'read_write',
-            projection_status: 'current',
-            last_scan_at: 1700000001111,
-            last_health_at: 1700000002222,
-        },
-    ];
-    const operatorConsole: OperatorConsoleProjection = {
-        default_entrypoint: 'tui',
-        preferred_prompt_position: 'top',
-        verbose_stream: true,
-        theme: 'matrix',
+function snapshotTree(root: string): Snapshot {
+    const result: Snapshot = {};
+    const visit = (directory: string): void => {
+        for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+            const absolute = path.join(directory, entry.name);
+            if (entry.isDirectory()) visit(absolute);
+            else result[path.relative(root, absolute)] = createHash('sha256')
+                .update(fs.readFileSync(absolute)).digest('hex');
+        }
     };
+    visit(root);
+    return result;
+}
+
+describe('read-only StateRegistry compatibility boundary', () => {
+    let root: string;
+    let originalRoot: string;
+    let originalControlRoot: string | undefined;
 
     beforeEach(() => {
-        tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-state-projection-'));
-        controlRoot = tmpRoot;
-        fs.mkdirSync(path.join(tmpRoot, '.agents'), { recursive: true });
-        registry.setRoot(tmpRoot);
-        process.env.CSTAR_CONTROL_ROOT = controlRoot;
+        originalRoot = registry.getRoot();
+        originalControlRoot = process.env.CSTAR_CONTROL_ROOT;
+        root = fs.mkdtempSync(path.join(os.tmpdir(), 'cstar-state-readonly-'));
+        registry.setRoot(root);
+        process.env.CSTAR_CONTROL_ROOT = root;
         closeDb();
     });
 
     afterEach(() => {
         closeDb();
-        if (originalControlRoot === undefined) {
-            delete process.env.CSTAR_CONTROL_ROOT;
-        } else {
-            process.env.CSTAR_CONTROL_ROOT = originalControlRoot;
-        }
+        registry.setRoot(originalRoot);
+        if (originalControlRoot === undefined) delete process.env.CSTAR_CONTROL_ROOT;
+        else process.env.CSTAR_CONTROL_ROOT = originalControlRoot;
+        fs.rmSync(root, { recursive: true, force: true });
     });
 
-    it('prefers Hall-backed sovereign metadata over legacy projection JSON', () => {
-        fs.writeFileSync(
-            path.join(tmpRoot, '.agents', 'sovereign_state.json'),
-            JSON.stringify(
-                {
-                    framework: {
-                        status: 'DORMANT',
-                        active_persona: 'ODIN',
-                        gungnir_score: 1,
-                        intent_integrity: 2,
-                    },
-                    identity: {
-                        name: 'Legacy Projection',
-                    },
-                },
-                null,
-                2,
-            ),
-            'utf-8',
-        );
-
+    function seedRepository(): string {
+        const repoId = buildHallRepositoryId(normalizeHallPath(root));
         upsertHallRepository({
-            root_path: tmpRoot,
-            name: path.basename(tmpRoot),
+            repo_id: repoId,
+            root_path: root,
+            name: path.basename(root),
             status: 'AGENT_LOOP',
-            active_persona: 'ALFRED',
-            baseline_gungnir_score: 9.1,
-            intent_integrity: 94,
+            active_persona: 'O.D.I.N.',
+            baseline_gungnir_score: 7,
+            intent_integrity: 93,
             metadata: {
-                source: 'hall-authority',
+                source: 'synthetic-state-readonly-test',
+                ...buildPersonaProjectionMetadata('O.D.I.N.'),
                 sovereign_projection: {
-                    framework: {
-                        last_awakening: 1700000001111,
-                        mission_id: 'MISSION-42',
-                        active_task: 'Fortify the spine',
-                    },
-                    identity: {
-                        name: 'Hall Authority',
-                        tagline: 'One mind, one spine.',
-                        guiding_principles: ['Hall first'],
-                        use_systems: {
-                            interface: 'HUD',
-                            orchestration: 'Runtime',
-                            intelligence: 'Bridge',
-                            memory: 'Hall',
-                            visualization: 'PennyOne',
-                        },
-                    },
-                    hall_of_records: {
-                        description: 'Canonical state store',
-                        primary_assets: {
-                            database: '.stats/pennyone.db',
-                            contracts: '.agents/skills/*.feature',
-                            lore: '.agents/lore/',
-                            history: 'dev_journal.qmd',
-                        },
-                    },
-                    managed_spokes: managedSpokes,
-                    operator_console: operatorConsole,
-                    extras: {
-                        last_anomaly_score: 6.5,
-                        warden: { active: true },
-                    },
+                    identity: { name: 'untrusted metadata identity' },
+                    blackboard: [{ message: 'untrusted metadata message' }],
+                    terminal_logs: ['untrusted metadata log'],
                 },
             },
-            created_at: 1700000000000,
-            updated_at: 1700000001111,
+            created_at: 1,
+            updated_at: 2,
         });
+        return repoId;
+    }
+
+    it('ignores legacy JSON and arbitrary repository projection objects', () => {
+        fs.mkdirSync(path.join(root, '.agents'));
+        fs.writeFileSync(path.join(root, '.agents', 'sovereign_state.json'), JSON.stringify({
+            framework: { active_persona: 'SECRET_PERSONA', active_task: 'legacy task' },
+            identity: { name: 'legacy identity' },
+            secret_sentinel: 'must-not-project',
+        }));
+        seedRepository();
 
         const state = StateRegistry.get();
-
-        assert.strictEqual(state.framework.status, 'AGENT_LOOP');
-        assert.strictEqual(state.framework.active_persona, 'ALFRED');
-        assert.strictEqual(state.framework.gungnir_score, 9.1);
-        assert.strictEqual(state.framework.intent_integrity, 94);
-        assert.strictEqual(state.framework.last_awakening, 1700000001111);
-        assert.strictEqual(state.framework.mission_id, 'MISSION-42');
-        assert.strictEqual(state.framework.active_task, 'Fortify the spine');
-        assert.strictEqual(state.identity.name, 'Hall Authority');
-        assert.strictEqual(state.hall_of_records.description, 'Canonical state store');
-        assert.deepStrictEqual(state.managed_spokes, managedSpokes);
-        assert.deepStrictEqual(state.operator_console, operatorConsole);
-        assert.strictEqual(state.last_anomaly_score, 6.5);
-        assert.deepStrictEqual(state.warden, { active: true });
+        assert.equal(state.framework.status, 'AGENT_LOOP');
+        assert.equal(state.framework.active_persona, 'O.D.I.N.');
+        assert.equal(state.framework.gungnir_score, 7);
+        assert.equal(state.framework.intent_integrity, 93);
+        assert.equal(state.framework.active_task, undefined);
+        assert.equal(state.identity.name, 'CStar');
+        assert.deepEqual(state.blackboard, []);
+        assert.deepEqual(state.terminal_logs, []);
+        assert.doesNotMatch(JSON.stringify(state), /SECRET_PERSONA|must-not-project|untrusted metadata/);
     });
 
-    it('writes Hall metadata first and mirrors the compatibility projection file', () => {
-        const state: SovereignState = {
-            framework: {
-                status: 'AWAKE',
-                last_awakening: 1700000002222,
-                active_persona: 'ALFRED',
-                active_task: 'Sync projections',
-                mission_id: 'MISSION-84',
-                gungnir_score: 8.8,
-                intent_integrity: 91,
-            },
-            identity: {
-                name: 'Corvus Star',
-                tagline: 'Projection test.',
-                guiding_principles: ['Hall first'],
-                use_systems: {
-                    interface: 'HUD',
-                    orchestration: 'Runtime',
-                    intelligence: 'Bridge',
-                    memory: 'Hall',
-                    visualization: 'PennyOne',
-                },
-            },
-            hall_of_records: {
-                description: 'Projection authority',
-                primary_assets: {
-                    database: '.stats/pennyone.db',
-                    contracts: '.agents/skills/*.feature',
-                    lore: '.agents/lore/',
-                    history: 'dev_journal.qmd',
-                },
-            },
-            managed_spokes: managedSpokes,
-            operator_console: operatorConsole,
-            last_anomaly_score: 4.4,
-            warden: { active: true },
-        };
-
-        StateRegistry.save(state);
-
-        const record = getHallRepositoryRecord(tmpRoot);
-        const summary = getHallSummary(tmpRoot);
-        const mounted = listHallMountedSpokes(tmpRoot);
-        const projection = JSON.parse(
-            fs.readFileSync(path.join(tmpRoot, '.agents', 'sovereign_state.json'), 'utf-8'),
-        ) as SovereignState;
-
-        assert.ok(record);
-        assert.strictEqual(summary?.status, 'AWAKE');
-        assert.strictEqual(summary?.baseline_gungnir_score, 8.8);
-        assert.strictEqual(
-            ((record?.metadata as {
-                sovereign_projection?: {
-                    extras?: { last_anomaly_score?: number; warden?: { active?: boolean } };
-                };
-            })?.sovereign_projection?.extras?.last_anomaly_score),
-            4.4,
-        );
-        assert.deepStrictEqual(
-            ((record?.metadata as {
-                sovereign_projection?: {
-                    managed_spokes?: ManagedSpokeProjection[];
-                };
-            })?.sovereign_projection?.managed_spokes),
-            managedSpokes,
-        );
-        assert.deepStrictEqual(mounted.map((entry) => entry.slug), ['keepos']);
-        assert.deepStrictEqual(
-            ((record?.metadata as {
-                sovereign_projection?: {
-                    operator_console?: OperatorConsoleProjection;
-                };
-            })?.sovereign_projection?.operator_console),
-            operatorConsole,
-        );
-        assert.deepStrictEqual(
-            ((record?.metadata as {
-                sovereign_projection?: {
-                    extras?: { warden?: { active?: boolean } };
-                };
-            })?.sovereign_projection?.extras?.warden),
-            { active: true },
-        );
-        assert.strictEqual(projection.framework.mission_id, 'MISSION-84');
-        assert.deepStrictEqual(projection.managed_spokes, managedSpokes);
-        assert.deepStrictEqual(projection.operator_console, operatorConsole);
-        assert.strictEqual(projection.last_anomaly_score, 4.4);
-        assert.deepStrictEqual(projection.warden, { active: true });
-    });
-
-    it('anchors compatibility state writes to the configured control root instead of the active workspace root', () => {
-        const workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-state-workspace-'));
-        fs.mkdirSync(path.join(workspaceRoot, '.stats'), { recursive: true });
-        registry.setRoot(workspaceRoot);
-
-        const state = StateRegistry.get();
-        state.framework.status = 'AWAKE';
-        state.framework.active_persona = 'ALFRED';
-        state.framework.gungnir_score = 7.7;
-        state.framework.intent_integrity = 88;
-
-        StateRegistry.save(state);
-
-        assert.equal(fs.existsSync(path.join(controlRoot, '.agents', 'sovereign_state.json')), true);
-        assert.equal(fs.existsSync(path.join(workspaceRoot, '.agents', 'sovereign_state.json')), false);
-        assert.ok(getHallRepositoryRecord(controlRoot));
-    });
-
-    it('mirrors roster focus and blackboard handoffs into Hall coordination records', () => {
-        const state = StateRegistry.get();
-        state.framework.bead_id = 'bead-sync-1';
-        state.agents.codex.status = 'WORKING';
-        state.agents.codex.current_task = 'Investigate the Hall contract';
-        state.agents.codex.active_bead_id = 'bead-sync-1';
-        state.agents.codex.last_seen = 1700000003333;
-
-        StateRegistry.save(state);
-        StateRegistry.postToBlackboard({
-            from: 'ALFRED',
-            to: 'codex',
-            message: 'Read the coordination ledger before editing.',
-            type: 'HANDOFF',
+    it('projects only canonical mounted-spoke and agent-presence tables', () => {
+        const repoId = seedRepository();
+        saveHallMountedSpoke({
+            spoke_id: 'spoke:synthetic',
+            repo_id: repoId,
+            slug: 'synthetic',
+            kind: 'local',
+            root_path: '/synthetic/spoke',
+            mount_status: 'active',
+            trust_level: 'observe',
+            write_policy: 'read_only',
+            projection_status: 'current',
+            metadata: { source: 'synthetic' },
+            created_at: 3,
+            updated_at: 4,
         });
+        saveHallAgentPresence({
+            repo_id: repoId,
+            agent_id: 'synthetic-agent',
+            name: 'Synthetic Agent',
+            status: 'WORKING',
+            current_task: 'bounded fixture',
+            metadata: { source: 'synthetic' },
+            created_at: 3,
+            updated_at: 4,
+        }, root);
 
-        const roster = listHallAgentPresence(controlRoot, { statuses: ['WORKING'] });
-        const events = listHallCoordinationEvents(controlRoot, { beadId: 'bead-sync-1' });
+        const state = StateRegistry.get();
+        assert.deepEqual(state.managed_spokes.map((spoke) => spoke.slug), ['synthetic']);
+        assert.deepEqual(state.agents['synthetic-agent'], {
+            id: 'synthetic-agent',
+            name: 'Synthetic Agent',
+            status: 'WORKING',
+            last_seen: 4,
+            current_task: 'bounded fixture',
+            active_bead_id: undefined,
+            pid: undefined,
+        });
+    });
 
-        assert.equal(roster.length, 1);
-        assert.equal(roster[0]?.agent_id, 'codex');
-        assert.equal(roster[0]?.current_task, 'Investigate the Hall contract');
-        assert.equal(roster[0]?.active_bead_id, 'bead-sync-1');
+    it('retires every mutation method before Hall or filesystem effects', () => {
+        seedRepository();
+        const state = StateRegistry.get();
+        closeDb();
+        const before = snapshotTree(root);
+        const calls = [
+            () => StateRegistry.updateMission('mission', 'task', 'bead'),
+            () => StateRegistry.updateFramework({ status: 'AWAKE' }),
+            () => StateRegistry.postToBlackboard({ from: 'test', message: 'message', type: 'INFO' }),
+            () => StateRegistry.pushTerminalLog('log'),
+            () => StateRegistry.save(state),
+        ];
+        for (const call of calls) {
+            assert.throws(call, new RegExp(STATE_REGISTRY_MUTATION_RETIRED_ERROR));
+        }
+        assert.deepEqual(snapshotTree(root), before);
 
-        assert.equal(events.length, 1);
-        assert.equal(events[0]?.event_kind, 'HANDOFF');
-        assert.equal(events[0]?.from_agent_id, 'ALFRED');
-        assert.equal(events[0]?.to_agent_id, 'codex');
-        assert.equal(events[0]?.summary, 'Read the coordination ledger before editing.');
+        const source = fs.readFileSync(path.join(originalRoot, 'src/node/core/state.ts'), 'utf8');
+        assert.doesNotMatch(source, /readFile|writeFile|mkdirSync|randomUUID|getWritableDb|saveHall|upsertHall/);
     });
 });

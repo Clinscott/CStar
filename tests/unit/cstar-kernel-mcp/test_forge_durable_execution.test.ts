@@ -8,31 +8,44 @@ import assert from 'node:assert/strict';
 import { database } from '../../../src/tools/pennyone/intel/database.js';
 import { registry } from '../../../src/tools/pennyone/pathRegistry.js';
 import { buildHallRepositoryId, normalizeHallPath } from '../../../src/types/hall.js';
-import { handleForgeExecute } from '../../../src/tools/cstar-kernel-mcp/tools/forge_execute.js';
-import { handleForgeRequest } from '../../../src/tools/cstar-kernel-mcp/tools/forge_request.js';
+import { handleForgeExecute as rawHandleForgeExecute } from '../../../src/tools/cstar-kernel-mcp/tools/forge_execute.js';
+import { handleForgeAuthorize as rawHandleForgeAuthorize } from '../../../src/tools/cstar-kernel-mcp/tools/forge_authorize.js';
+import { handleForgeRequest as rawHandleForgeRequest } from '../../../src/tools/cstar-kernel-mcp/tools/forge_request.js';
 import { handleRecordResult } from '../../../src/tools/cstar-kernel-mcp/tools/result.js';
+import {
+    writeCountingAdapter,
+    writeSingleInputSession,
+} from './forge_durable_execution_test_support.js';
 
 const originalRoot = registry.getRoot();
 const originalCodexHome = process.env.CODEX_HOME;
 const originalCallerThread = process.env.CSTAR_MCP_CALLER_THREAD_ID;
 const originalCallerTransport = process.env.CSTAR_MCP_CALLER_TRANSPORT;
 const originalForgeTestMode = process.env.CSTAR_FORGE_TEST_MODE;
+const originalForgeRuntimeTestBypass = process.env.CSTAR_FORGE_RUNTIME_TEST_BYPASS;
 const originalAdapter = process.env.CSTAR_FORGE_HERMES_MINIMAX_ADAPTER_SCRIPT;
 const originalSentinel = process.env.CSTAR_FORGE_TEST_SENTINEL;
 const temporaryRoots: string[] = [];
 const CSTAR_TARGET = '/home/morderith/Corvus/CStar/AGENTS.md';
+const DURABLE_BEAD_ID = 'bead:test:durable-forge-handler';
+const handleForgeRequest: typeof rawHandleForgeRequest = (args, context) =>
+    rawHandleForgeRequest(args, context);
+const handleForgeAuthorize: typeof rawHandleForgeAuthorize = (args, context) =>
+    rawHandleForgeAuthorize(args, context);
+const handleForgeExecute: typeof rawHandleForgeExecute = (args, context) =>
+    rawHandleForgeExecute(args, context);
 
 function sha256(value: string): string {
     return createHash('sha256').update(value, 'utf-8').digest('hex');
 }
 
-function writeAuthorizationSession(codexHome: string) {
+function writeAuthorizationSession(codexHome: string, target: string, decisionId: string) {
     const threadId = randomUUID();
     const turnId = randomUUID();
     const timestamp = new Date().toISOString();
     const content = [{
         type: 'input_text',
-        text: 'Corvus CStar 5.6. I authorize you to complete the audit in full using CStar Forge through Hermes and M3.',
+        text: `Build the repair for ${DURABLE_BEAD_ID} and ${decisionId}.`,
     }];
     const messageSha256 = sha256(JSON.stringify(content));
     const sessionDir = path.join(codexHome, 'sessions', '2026', '07', '12');
@@ -57,15 +70,6 @@ function writeAuthorizationSession(codexHome: string) {
                 internal_chat_message_metadata_passthrough: { turn_id: turnId },
             },
         },
-        ...['first steering update', 'second steering update'].map((text, index) => ({
-            timestamp: new Date(Date.parse(timestamp) + (index + 1) * 1_000).toISOString(),
-            type: 'response_item',
-            payload: {
-                type: 'message', role: 'user',
-                content: [{ type: 'input_text', text }],
-                internal_chat_message_metadata_passthrough: { turn_id: turnId },
-            },
-        })),
     ];
     const sessionFile = path.join(sessionDir, `rollout-fixture-${threadId}.jsonl`);
     fs.writeFileSync(
@@ -81,50 +85,26 @@ function writeAuthorizationSession(codexHome: string) {
     };
 }
 
-function writeCountingAdapter(root: string): string {
-    const script = path.join(root, 'sealed-forge-adapter.py');
-    const sentinel = path.join(root, 'adapter-count.txt');
-    fs.writeFileSync(script, [
-        '#!/usr/bin/env python3',
-        'import argparse, json, os',
-        'parser = argparse.ArgumentParser()',
-        'parser.add_argument("--intent-file", required=True)',
-        'args = parser.parse_args()',
-        'with open(args.intent_file, encoding="utf-8") as handle:',
-        '    intent = json.load(handle)',
-        `sentinel = ${JSON.stringify(sentinel)}`,
-        'count = int(open(sentinel).read()) if os.path.exists(sentinel) else 0',
-        'with open(sentinel, "w", encoding="utf-8") as handle:',
-        '    handle.write(str(count + 1))',
-        'write_to = intent["payload"]["write_to"]',
-        'response = {',
-        '    "status": "pass",',
-        '    "summary": "sealed durable Forge fixture",',
-        '    "files_changed": [],',
-        '    "artifacts": {},',
-        '    "validation": {"sealed_fixture": "pass"},',
-        '    "metrics": {"adapter_invocations": 1},',
-        '    "boundaries": {"codex_worker_fallback_allowed": False, "live_source_collection": False},',
-        '    "callback_packet": "DURABLE_FORGE_TEST_PACKET",',
-        '}',
-        'os.makedirs(os.path.dirname(write_to), exist_ok=True)',
-        'with open(write_to, "w", encoding="utf-8") as handle:',
-        '    json.dump(response, handle)',
-        'print(json.dumps({',
-        '    "status": "ok",',
-        '    "intent_id": "sealed-fixture-intent",',
-        '    "model": intent["payload"]["model"],',
-        '    "hermes_profile": intent["payload"]["hermes_profile"],',
-        '    "wrote_to": write_to,',
-        '    "live_spend": False,',
-        '    "live_source_collection": False,',
-        '}))',
-    ].join('\n'));
-    fs.chmodSync(script, 0o700);
-    return script;
+function requestContext(authorization: { threadId: string; turnId: string }) {
+    return {
+        requestId: 9,
+        _meta: {
+            threadId: authorization.threadId,
+            'x-codex-turn-metadata': {
+                session_id: authorization.threadId,
+                thread_id: authorization.threadId,
+                turn_id: authorization.turnId,
+                thread_source: 'user',
+                parent_thread_id: null,
+                forked_from_thread_id: null,
+                subagent_kind: null,
+            },
+        },
+    };
 }
 
-function createFixture() {
+function createFixture(decisionId = 'decision-test-durable-forge-handler') {
+    process.env.CSTAR_FORGE_RUNTIME_TEST_BYPASS = '1';
     const secureTmp = process.platform === 'linux' ? '/tmp' : os.tmpdir();
     const root = fs.mkdtempSync(path.join(secureTmp, 'cstar-forge-durable-'));
     temporaryRoots.push(root);
@@ -133,17 +113,15 @@ function createFixture() {
     fs.writeFileSync(path.join(root, 'docs', 'operations', 'corvus-forge-pipeline-playbook.md'), '# Forge playbook\n');
     const codexHome = path.join(root, 'codex-home');
     fs.mkdirSync(codexHome, { recursive: true });
-    const authorization = writeAuthorizationSession(codexHome);
-    const sentinel = path.join(root, 'adapter-count.txt');
+    const authorization = writeAuthorizationSession(codexHome, CSTAR_TARGET, decisionId);
     registry.setRoot(root);
     process.env.CODEX_HOME = codexHome;
     process.env.CSTAR_MCP_CALLER_THREAD_ID = authorization.threadId;
     process.env.CSTAR_MCP_CALLER_TRANSPORT = 'direct-stdio';
     process.env.CSTAR_FORGE_HERMES_MINIMAX_ADAPTER_SCRIPT = writeCountingAdapter(root);
-    process.env.CSTAR_FORGE_TEST_SENTINEL = sentinel;
-    const db = database.getDb(root);
+    const db = database.getWritableDb(root);
     const repoId = buildHallRepositoryId(normalizeHallPath(root));
-    const beadId = 'bead:test:durable-forge-handler';
+    const beadId = DURABLE_BEAD_ID;
     const now = Date.now();
     db.prepare(`
         INSERT INTO hall_beads (
@@ -151,7 +129,7 @@ function createFixture() {
             status, created_at, updated_at
         ) VALUES (?, ?, 'WORKFLOW', ?, 'Durable Forge handler test', 'IN_PROGRESS', ?, ?)
     `).run(beadId, repoId, CSTAR_TARGET, now, now);
-    return { root, authorization, sentinel, beadId };
+    return { root, codexHome, authorization, beadId };
 }
 
 function restoreEnv(name: string, value: string | undefined) {
@@ -166,13 +144,14 @@ afterEach(() => {
     restoreEnv('CSTAR_MCP_CALLER_THREAD_ID', originalCallerThread);
     restoreEnv('CSTAR_MCP_CALLER_TRANSPORT', originalCallerTransport);
     restoreEnv('CSTAR_FORGE_TEST_MODE', originalForgeTestMode);
+    restoreEnv('CSTAR_FORGE_RUNTIME_TEST_BYPASS', originalForgeRuntimeTestBypass);
     restoreEnv('CSTAR_FORGE_HERMES_MINIMAX_ADAPTER_SCRIPT', originalAdapter);
     restoreEnv('CSTAR_FORGE_TEST_SENTINEL', originalSentinel);
     while (temporaryRoots.length > 0) fs.rmSync(temporaryRoots.pop()!, { recursive: true, force: true });
 });
 
 describe('CStar durable Forge public path', () => {
-    it('records verified evidence from Codex request metadata when the shared MCP child has no thread env', async () => {
+    it('does not grant verified authority without an exact work receipt subject', async () => {
         const fixture = createFixture();
         const artifactPath = path.join(fixture.root, 'request-meta-artifact.txt');
         const checkPath = path.join(fixture.root, 'request-meta-check.txt');
@@ -186,8 +165,6 @@ describe('CStar durable Forge public path', () => {
             verdict: 'SUCCESS',
             validation_id: 'val-codex-request-meta-binding',
             validation_evidence: {
-                validator_identity: 'caller-label-is-not-authority',
-                independent_of_execution: true,
                 artifacts: [{ path: artifactPath, sha256: sha256(fs.readFileSync(artifactPath, 'utf-8')) }],
                 checks: [{
                     name: 'request metadata binding check',
@@ -196,36 +173,13 @@ describe('CStar durable Forge public path', () => {
                     sha256: sha256(fs.readFileSync(checkPath, 'utf-8')),
                 }],
             },
-        }, {
-            requestId: 9,
-            _meta: {
-                threadId: fixture.authorization.threadId,
-                'x-codex-turn-metadata': {
-                    session_id: fixture.authorization.threadId,
-                    thread_id: fixture.authorization.threadId,
-                    turn_id: fixture.authorization.turnId,
-                    thread_source: 'user',
-                    parent_thread_id: null,
-                    forked_from_thread_id: null,
-                    subagent_kind: null,
-                },
-            },
-        });
+        }, requestContext(fixture.authorization));
 
         const parsed = JSON.parse(result.content[0].text);
-        assert.equal(parsed.status, 'recorded_verified');
-        assert.equal(parsed.authoritative, true);
-        assert.equal(parsed.validator_identity_source, 'codex_request_meta');
-        assert.equal(
-            parsed.validator_identity,
-            `codex-thread:${fixture.authorization.threadId}:turn:${fixture.authorization.turnId}`,
-        );
-        assert.equal(parsed.validation_request_thread_id, fixture.authorization.threadId);
-        assert.equal(parsed.validation_request_turn_id, fixture.authorization.turnId);
-        assert.equal(parsed.validation_request_record_count, 3);
-        assert.match(parsed.validation_request_record_set_sha256, /^[a-f0-9]{64}$/);
-        assert.match(parsed.validation_request_first_timestamp, /^\d{4}-\d{2}-\d{2}T/);
-        assert.match(parsed.validation_request_timestamp, /^\d{4}-\d{2}-\d{2}T/);
+        assert.equal(parsed.status, 'partial');
+        assert.equal(parsed.authoritative, false);
+        assert.equal(parsed.validation_persisted, false);
+        assert.equal(parsed.validation_warning, 'validation_evidence_work_receipt_subject_required');
     });
 
     it('fails closed without host request metadata when the shared MCP child has no thread env', async () => {
@@ -242,8 +196,6 @@ describe('CStar durable Forge public path', () => {
             verdict: 'SUCCESS',
             validation_id: 'val-codex-request-meta-missing',
             validation_evidence: {
-                validator_identity: 'not-authoritative',
-                independent_of_execution: true,
                 artifacts: [{ path: artifactPath, sha256: sha256(fs.readFileSync(artifactPath, 'utf-8')) }],
                 checks: [{
                     name: 'missing metadata check',
@@ -255,11 +207,8 @@ describe('CStar durable Forge public path', () => {
         });
 
         const parsed = JSON.parse(result.content[0].text);
-        assert.equal(parsed.status, 'partial');
-        assert.equal(parsed.validation_persisted, false);
-        assert.equal(parsed.authoritative, false);
-        assert.equal(parsed.validation_warning, 'validation_evidence_requires_bound_direct_stdio_request');
-        const db = database.getDb(fixture.root);
+        assert.equal(parsed.error, 'codex_request_identity_metadata_required');
+        const db = database.getReadDb(fixture.root);
         const persisted = db.prepare(
             'SELECT validation_id FROM hall_validation_runs WHERE validation_id = ?',
         ).get('val-codex-request-meta-missing');
@@ -279,8 +228,6 @@ describe('CStar durable Forge public path', () => {
             validation_id: 'val-rollback-on-forge-finalization-failure',
             forge_execution_receipt_id: 'missing-forge-execution-receipt',
             validation_evidence: {
-                validator_identity: 'ignored-caller-label',
-                independent_of_execution: true,
                 artifacts: [{ path: artifactPath, sha256: sha256(fs.readFileSync(artifactPath, 'utf-8')) }],
                 checks: [{
                     name: 'independent check',
@@ -289,7 +236,7 @@ describe('CStar durable Forge public path', () => {
                     sha256: sha256(fs.readFileSync(checkPath, 'utf-8')),
                 }],
             },
-        });
+        }, requestContext(fixture.authorization));
         const parsed = JSON.parse(result.content[0].text);
         assert.equal(parsed.status, 'partial');
         assert.equal(parsed.validation_persisted, false);
@@ -299,7 +246,7 @@ describe('CStar durable Forge public path', () => {
         assert.equal(parsed.mutation, undefined);
         assert.equal(parsed.forge_validation_warning, 'forge_execution_receipt_not_found');
 
-        const db = database.getDb(fixture.root);
+        const db = database.getReadDb(fixture.root);
         const persisted = db.prepare(
             'SELECT validation_id FROM hall_validation_runs WHERE validation_id = ?',
         ).get('val-rollback-on-forge-finalization-failure');
@@ -307,7 +254,7 @@ describe('CStar durable Forge public path', () => {
     });
 
     it('classifies unsafe trace preflight as failed-final before adapter start', async () => {
-        const fixture = createFixture();
+        const fixture = createFixture('decision-test-trace-preflight-fail-closed');
         const decisionId = 'decision-test-trace-preflight-fail-closed';
         const base = {
             bead_id: fixture.beadId,
@@ -320,14 +267,15 @@ describe('CStar durable Forge public path', () => {
             authority_lane: 'yellow' as const,
             required_metrics: [{ name: 'adapter_invocations', threshold: '= 0' }],
             artifact_expectations: ['DURABLE_FORGE_TEST_PACKET'],
-            prohibited_actions: ['merge', 'push', 'deploy', 'live source collection'],
-            requested_actions: ['produce bounded response packet'],
+            prohibited_actions: ['git_merge', 'git_push', 'deploy', 'authorized_source_collection'],
+            requested_actions: ['response_only'],
             spend_policy: {
                 mode: 'live_authorized' as const,
                 max_retries: 0,
                 live_source_allowed: false,
-                operator_authorization_ref: fixture.authorization.reference,
             },
+            live_source_policy: 'no live source collection',
+            fixture_policy: 'synthetic_only' as const,
             retry_policy: { budget: 0, spent: 0 },
             callback_contract: {
                 expected_packet: 'DURABLE_FORGE_TEST_PACKET',
@@ -336,9 +284,16 @@ describe('CStar durable Forge public path', () => {
             package_locks: [],
             execution_adapter_ref: 'cstar-forge-hermes-minimax-adapter',
         };
-        const requestResult = await handleForgeRequest(base);
+        const requestResult = await handleForgeRequest(base, requestContext(fixture.authorization));
         assert.equal(requestResult.isError, undefined, requestResult.content[0].text);
         const request = JSON.parse(requestResult.content[0].text);
+        assert.equal(request.status, 'pending_authorization_recorded');
+        const authorizeResult = await handleForgeAuthorize({
+            forge_request_receipt_id: request.receipt_id,
+            request_sha256: request.request_sha256,
+        }, requestContext(fixture.authorization));
+        const authorization = JSON.parse(authorizeResult.content[0].text);
+        assert.equal(authorization.status, 'authorized', authorizeResult.content[0].text);
 
         const workRoot = path.join(fixture.root, 'work');
         const outsideArtifacts = path.join(fixture.root, 'outside-artifacts');
@@ -351,9 +306,9 @@ describe('CStar durable Forge public path', () => {
             forge_request_decision_id: decisionId,
             forge_request_bead_id: fixture.beadId,
             execution_mode: 'live_authorized' as const,
-            operator_authorization_ref: fixture.authorization.reference,
+            operator_authorization_ref: authorization.operator_authorization_ref,
             idempotency_key: 'trace-preflight-must-not-spawn',
-        });
+        }, requestContext(fixture.authorization));
         const parsed = JSON.parse(result.content[0].text);
         assert.equal(parsed.status, 'failed_final');
         assert.equal(parsed.attempt_status, 'FAILED_FINAL');
@@ -361,11 +316,10 @@ describe('CStar durable Forge public path', () => {
         assert.equal(parsed.forge_execution.adapter_invoked, false);
         assert.equal(parsed.forge_execution.live_spend, false);
         assert.match(parsed.error, /forge_artifact_directory_unsafe_type/);
-        assert.equal(fs.existsSync(fixture.sentinel), false);
         assert.deepEqual(fs.readdirSync(outsideArtifacts), []);
     });
 
-    it('records one authorized request, invokes once, and replays without spend', async () => {
+    it('records one authorized request, preserves ambiguous spend, and replays without another invocation', async () => {
         const fixture = createFixture();
         const decisionId = 'decision-test-durable-forge-handler';
         const base = {
@@ -380,15 +334,15 @@ describe('CStar durable Forge public path', () => {
             authority_lane: 'yellow' as const,
             required_metrics: [{ name: 'adapter_invocations', threshold: '= 1' }],
             artifact_expectations: ['DURABLE_FORGE_TEST_PACKET'],
-            prohibited_actions: ['merge', 'push', 'deploy', 'live source collection'],
-            requested_actions: ['produce bounded response packet'],
+            prohibited_actions: ['git_merge', 'git_push', 'deploy', 'authorized_source_collection'],
+            requested_actions: ['response_only'],
             spend_policy: {
                 mode: 'live_authorized' as const,
                 max_retries: 0,
                 live_source_allowed: false,
-                operator_authorization_ref: fixture.authorization.reference,
             },
             live_source_policy: 'no live source collection',
+            fixture_policy: 'synthetic_only' as const,
             retry_policy: { budget: 0, spent: 0 },
             callback_contract: {
                 expected_packet: 'DURABLE_FORGE_TEST_PACKET',
@@ -399,18 +353,24 @@ describe('CStar durable Forge public path', () => {
             execution_adapter_ref: 'cstar-forge-hermes-minimax-adapter',
         };
 
-        const requestResult = await handleForgeRequest(base);
+        const requestResult = await handleForgeRequest(base, requestContext(fixture.authorization));
         assert.equal(requestResult.isError, undefined, requestResult.content[0].text);
         const request = JSON.parse(requestResult.content[0].text);
-        assert.equal(request.status, 'authorized_request_recorded');
+        assert.equal(request.status, 'pending_authorization_recorded');
         assert.match(request.receipt_id, /^dispatch-forge-/);
-        const persisted = database.getDb(fixture.root).prepare(`
+        const authorizeResult = await handleForgeAuthorize({
+            forge_request_receipt_id: request.receipt_id,
+            request_sha256: request.request_sha256,
+        }, requestContext(fixture.authorization));
+        const authorization = JSON.parse(authorizeResult.content[0].text);
+        assert.equal(authorization.status, 'authorized', authorizeResult.content[0].text);
+        const persisted = database.getReadDb(fixture.root).prepare(`
             SELECT operator_record_sha256, operator_record_set_sha256, operator_record_count
             FROM hall_forge_requests WHERE request_id = ?
         `).get(request.receipt_id) as Record<string, unknown>;
         assert.match(String(persisted.operator_record_sha256), /^[a-f0-9]{64}$/);
         assert.match(String(persisted.operator_record_set_sha256), /^[a-f0-9]{64}$/);
-        assert.equal(persisted.operator_record_count, 3);
+        assert.equal(persisted.operator_record_count, 1);
 
         const executeArgs = {
             ...base,
@@ -418,73 +378,82 @@ describe('CStar durable Forge public path', () => {
             forge_request_decision_id: decisionId,
             forge_request_bead_id: fixture.beadId,
             execution_mode: 'live_authorized' as const,
-            operator_authorization_ref: fixture.authorization.reference,
+            operator_authorization_ref: authorization.operator_authorization_ref,
             idempotency_key: 'durable-handler-one-shot',
         };
-        const originalSession = fs.readFileSync(fixture.authorization.sessionFile, 'utf-8');
-        fs.writeFileSync(
-            fixture.authorization.sessionFile,
-            originalSession.replace('first steering update', 'first steering UPDATE'),
-            { mode: 0o600 },
+        const laterSession = writeSingleInputSession(
+            fixture.codexHome,
+            'A later root-user turn cannot spend the exact one-turn grant.',
         );
-        const driftResult = await handleForgeExecute({ ...executeArgs, idempotency_key: 'record-set-drift' });
+        const driftResult = await handleForgeExecute(
+            { ...executeArgs, idempotency_key: 'record-set-drift' },
+            requestContext(laterSession),
+        );
         assert.equal(driftResult.isError, true);
-        assert.match(JSON.parse(driftResult.content[0].text).error, /forge_operator_authorization_attestation_drift/);
-        assert.equal(fs.existsSync(fixture.sentinel), false);
-        fs.writeFileSync(fixture.authorization.sessionFile, originalSession, { mode: 0o600 });
-        fs.appendFileSync(fixture.authorization.sessionFile, `${JSON.stringify({ timestamp: new Date().toISOString(), type: 'response_item', payload: { type: 'custom_tool_call_output', call_id: 'same-turn-noise', output: 'ignored', internal_chat_message_metadata_passthrough: { turn_id: fixture.authorization.turnId } } })}\n`);
-        const firstResult = await handleForgeExecute(executeArgs);
-        assert.equal(firstResult.isError, undefined, firstResult.content[0].text);
+        assert.equal(
+            JSON.parse(driftResult.content[0].text).error_code,
+            'forge_execution_authorization_required',
+        );
+        const attemptsBefore = database.getReadDb(fixture.root).prepare(`
+            SELECT COUNT(*) AS count FROM hall_forge_attempts WHERE request_id = ?
+        `).get(request.receipt_id) as { count: number };
+        assert.equal(attemptsBefore.count, 0);
+
+        const firstResult = await handleForgeExecute(executeArgs, requestContext(fixture.authorization));
+        assert.equal(firstResult.isError, true, firstResult.content[0].text);
         const first = JSON.parse(firstResult.content[0].text);
-        assert.equal(first.status, 'delivered_unverified');
-        assert.equal(first.attempt_status, 'STARTED');
-        assert.equal(first.request_status, 'AUTHORIZED');
+        assert.equal(first.status, 'ambiguous');
+        assert.equal(first.attempt_status, 'UNKNOWN');
+        assert.equal(first.request_status, 'AMBIGUOUS');
         assert.equal(first.forge_execution.adapter_result.envelope.requested_model, 'MiniMax-M3');
         assert.equal(first.forge_execution.adapter_result.envelope.actual_model, null);
         assert.equal(first.forge_execution.adapter_result.envelope.model_source, 'unreported');
-        assert.equal(fs.readFileSync(fixture.sentinel, 'utf-8'), '1');
+        assert.equal(first.forge_execution.adapter_result.envelope.live_spend, null);
+        assert.equal(first.forge_execution.adapter_result.envelope.live_spend_unknown, true);
+        const firstArtifact = first.forge_execution.adapter_result.envelope.response_artifact;
+        const firstArtifactStat = fs.statSync(firstArtifact.path);
+        const executionRoot = path.dirname(path.dirname(firstArtifact.path));
+        const executionDirectoriesBeforeReplay = fs.readdirSync(executionRoot).sort();
 
-        const pendingReplayResult = await handleForgeExecute(executeArgs);
-        assert.equal(pendingReplayResult.isError, undefined, pendingReplayResult.content[0].text);
+        const deniedReplayResult = await handleForgeExecute({
+            ...executeArgs,
+            operator_authorization_ref: `${authorization.operator_authorization_ref}-tampered`,
+        }, requestContext(laterSession));
+        assert.equal(deniedReplayResult.isError, true);
+        assert.equal(
+            JSON.parse(deniedReplayResult.content[0].text).error_code,
+            'forge_execution_authorization_required',
+        );
+
+        const tamperDb = database.getWritableDb(fixture.root);
+        tamperDb.prepare(`
+            UPDATE hall_forge_requests SET expires_at = expires_at + 1 WHERE request_id = ?
+        `).run(request.receipt_id);
+        const timeDriftReplayResult = await handleForgeExecute(
+            executeArgs,
+            requestContext(laterSession),
+        );
+        assert.equal(timeDriftReplayResult.isError, true);
+        assert.equal(
+            JSON.parse(timeDriftReplayResult.content[0].text).error_code,
+            'forge_execution_authorization_required',
+        );
+        tamperDb.prepare(`
+            UPDATE hall_forge_requests SET expires_at = expires_at - 1 WHERE request_id = ?
+        `).run(request.receipt_id);
+
+        const pendingReplayResult = await handleForgeExecute(executeArgs, requestContext(laterSession));
+        assert.equal(pendingReplayResult.isError, true, pendingReplayResult.content[0].text);
         const pendingReplay = JSON.parse(pendingReplayResult.content[0].text);
-        assert.equal(pendingReplay.status, 'delivered_pending_validation_replay');
+        assert.equal(pendingReplay.status, 'ambiguous_replay');
         assert.equal(pendingReplay.replayed, true);
-        assert.equal(pendingReplay.forge_execution.fail_closed_reason, 'independent_validation_required');
-        assert.equal(fs.readFileSync(fixture.sentinel, 'utf-8'), '1');
-
-        const validationTranscript = path.join(fixture.root, 'validation-transcript.txt');
-        fs.writeFileSync(validationTranscript, 'independent fixture inspection: pass\n');
-        const responseArtifact = first.forge_execution.adapter_result.envelope.response_artifact;
-        const validationResult = await handleRecordResult({
-            bead_id: fixture.beadId,
-            verdict: 'SUCCESS',
-            notes: 'Independent fixture inspection confirmed the exact callback and one invocation.',
-            validation_id: 'val-durable-handler-one-shot',
-            forge_execution_receipt_id: first.execution_receipt_id,
-            validation_evidence: {
-                validator_identity: 'test:independent-forge-validator',
-                independent_of_execution: true,
-                artifacts: [{ path: responseArtifact.path, sha256: responseArtifact.sha256 }],
-                checks: [{
-                    name: 'independent fixture inspection',
-                    status: 'pass',
-                    evidence_path: validationTranscript,
-                    sha256: sha256(fs.readFileSync(validationTranscript, 'utf-8')),
-                }],
-            },
-        });
-        assert.equal(validationResult.isError, undefined, validationResult.content[0].text);
-        const validation = JSON.parse(validationResult.content[0].text);
-        assert.equal(validation.forge_validation.accepted, true);
-        assert.equal(validation.forge_validation.attempt_status, 'SUCCEEDED');
-        assert.equal(validation.forge_validation.request_status, 'SUCCEEDED');
-
-        const replayResult = await handleForgeExecute(executeArgs);
-        assert.equal(replayResult.isError, undefined, replayResult.content[0].text);
-        const replay = JSON.parse(replayResult.content[0].text);
-        assert.equal(replay.status, 'succeeded_replay');
-        assert.equal(replay.replayed, true);
-        assert.equal(replay.execution_receipt_id, first.execution_receipt_id);
-        assert.equal(fs.readFileSync(fixture.sentinel, 'utf-8'), '1');
+        assert.equal(pendingReplay.attempt_status, 'UNKNOWN');
+        assert.equal(pendingReplay.forge_execution.fail_closed_reason, 'durable_attempt_unknown');
+        assert.equal(fs.statSync(firstArtifact.path).mtimeMs, firstArtifactStat.mtimeMs);
+        assert.deepEqual(fs.readdirSync(executionRoot).sort(), executionDirectoriesBeforeReplay);
+        const attemptsAfter = database.getReadDb(fixture.root).prepare(`
+            SELECT COUNT(*) AS count FROM hall_forge_attempts WHERE request_id = ?
+        `).get(request.receipt_id) as { count: number };
+        assert.equal(attemptsAfter.count, 1);
     });
 });

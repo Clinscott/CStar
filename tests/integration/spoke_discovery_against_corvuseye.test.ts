@@ -1,6 +1,7 @@
 import test from 'node:test';
-import assert from 'node:assert';
+import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 
 import {
@@ -10,95 +11,157 @@ import {
 import type { HallMountedSpokeRecord } from '../../src/types/hall.js';
 
 /**
- * BEAD-CSTAR-SPOKE-DISCOVERY-001 — F3 Integration.
+ * BEAD-CSTAR-SPOKE-DISCOVERY-001 — F3 integration.
  *
- * Exercises the walker against the real CorvusEye spoke on disk.
- * No Hall DB dependency: a synthetic spoke record points at the real spoke root.
- * This proves the walker handles real-world content end-to-end without
- * brittle dependence on whether the user's pennyone.db has the spoke linked.
- *
- * Per design §6.3 acceptance: corvuseye:usb-forge-contract-verify must surface
- * with validation=ok, and all four journal files must report present.
+ * The canonical checks use an isolated CorvusEye-shaped fixture so CI always
+ * exercises the end-to-end walker contract. A separate smoke test may read the
+ * real spoke only when the operator supplies both the opt-in flag and its
+ * current mount token.
  */
 
 const CORVUSEYE_ROOT = '/home/morderith/Corvus/CorvusEye';
+const LIVE_MOUNT_TOKEN = process.env.CSTAR_TEST_CORVUSEYE_MOUNT_TOKEN?.trim();
+const LIVE_INTEGRATION_ENABLED = process.env.CSTAR_RUN_LIVE_SPOKE_INTEGRATION === '1'
+    && Boolean(LIVE_MOUNT_TOKEN);
 
-function corvusEyeSpoke(): HallMountedSpokeRecord {
+function corvusEyeSpoke(root: string, mountToken: string): HallMountedSpokeRecord {
     return {
         spoke_id: 'spoke-corvuseye',
-        repo_id: `repo:${CORVUSEYE_ROOT}`,
+        repo_id: `repo:${root}`,
         slug: 'corvuseye',
         kind: 'spoke',
-        root_path: CORVUSEYE_ROOT,
+        root_path: root,
         mount_status: 'active',
         trust_level: 'trusted',
         write_policy: 'read_write',
         projection_status: 'projected',
+        metadata: { authority: { mount_token: mountToken } },
         created_at: 0,
         updated_at: 0,
     } as unknown as HallMountedSpokeRecord;
 }
 
-const corvusEyeAvailable = fs.existsSync(CORVUSEYE_ROOT)
+function writeFixtureFile(root: string, relativePath: string, content: string): void {
+    const absolutePath = path.join(root, relativePath);
+    fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
+    fs.writeFileSync(absolutePath, content, 'utf8');
+}
+
+function makeSyntheticCorvusEye(): {
+    spoke: HallMountedSpokeRecord;
+    cleanup: () => void;
+} {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'cstar-corvuseye-integration-'));
+    const mountToken = 'synthetic-corvuseye-mount-token';
+
+    writeFixtureFile(root, '.cstar/IDENTITY.json', JSON.stringify({ mount_token: mountToken }));
+    writeFixtureFile(
+        root,
+        '.agents/skills/usb-forge-contract-verify/SKILL.md',
+        [
+            '---',
+            'name: usb-forge-contract-verify',
+            'description: Verify the synthetic three-Engram Forge contract.',
+            'tier: SKILL',
+            'risk: low',
+            '---',
+            '',
+            '# USB Forge Contract Verify',
+            '',
+            '## LOGIC PROTOCOL',
+            '',
+            'Synthetic integration evidence only.',
+            '',
+        ].join('\n'),
+    );
+    writeFixtureFile(root, '.agent/memory.md', '# CorvusEye Memory\n\nSynthetic integration fixture.\n');
+    writeFixtureFile(root, 'tasks.md', '# Active Tasks\n\n- [ ] verify synthetic Forge contract\n');
+    writeFixtureFile(
+        root,
+        'wireframe.md',
+        '# CorvusEye Wireframe\n\n## Prominent Functions\n\n- `usb_forge::ForgeShot::build(...)` — builds a shot\n',
+    );
+    writeFixtureFile(root, 'DEV_JOURNAL.md', '# Dev Journal\n\n## 2026-07-14\nSynthetic fixture created.\n');
+
+    return {
+        spoke: corvusEyeSpoke(root, mountToken),
+        cleanup: () => fs.rmSync(root, { recursive: true, force: true }),
+    };
+}
+
+function withSyntheticCorvusEye(run: (spoke: HallMountedSpokeRecord) => void): void {
+    const fixture = makeSyntheticCorvusEye();
+    try {
+        run(fixture.spoke);
+    } finally {
+        fixture.cleanup();
+    }
+}
+
+test('integration: synthetic CorvusEye skill surfaces with validated metadata', () => {
+    withSyntheticCorvusEye((spoke) => {
+        const out = walkSpokeSkillsForRecords([spoke]);
+        const found = out.find((skill) => skill.id === 'corvuseye:usb-forge-contract-verify');
+        assert.ok(found);
+        assert.equal(found.validation, 'ok');
+        assert.equal(found.tier, 'SKILL');
+        assert.equal(found.risk, 'low');
+        assert.equal(found.spoke_slug, 'corvuseye');
+        assert.equal(found.bare_id, 'usb-forge-contract-verify');
+        assert.match(found.description, /three-Engram/);
+    });
+});
+
+test('integration: synthetic CorvusEye reports all four journal files', () => {
+    withSyntheticCorvusEye((spoke) => {
+        const report = walkSpokeJournalForRecord(spoke);
+        assert.equal(report.validation, 'ok');
+        assert.equal(report.spoke, 'corvuseye');
+        assert.equal(report.files.memory_md.present, true);
+        assert.equal(report.files.tasks_md.present, true);
+        assert.equal(report.files.wireframe_md.present, true);
+        assert.equal(report.files.dev_journal_md.present, true);
+    });
+});
+
+test('integration: synthetic CorvusEye prefers singular .agent memory', () => {
+    withSyntheticCorvusEye((spoke) => {
+        const report = walkSpokeJournalForRecord(spoke);
+        assert.equal(report.files.memory_md.path, '.agent/memory.md');
+        assert.equal(report.files.memory_md.validation, 'ok');
+    });
+});
+
+test('integration: synthetic CorvusEye exposes its Forge function', () => {
+    withSyntheticCorvusEye((spoke) => {
+        const functions = walkSpokeJournalForRecord(spoke).files.wireframe_md.prominent_functions ?? [];
+        assert.ok(functions.some((value) => /usb_forge::ForgeShot::build/.test(value)));
+    });
+});
+
+test('integration: synthetic CorvusEye exposes an open-task count', () => {
+    withSyntheticCorvusEye((spoke) => {
+        assert.equal(walkSpokeJournalForRecord(spoke).files.tasks_md.open_tasks, 1);
+    });
+});
+
+test('integration: synthetic CorvusEye returns skill documentation verbatim', () => {
+    withSyntheticCorvusEye((spoke) => {
+        const found = walkSpokeSkillsForRecords([spoke])
+            .find((skill) => skill.id === 'corvuseye:usb-forge-contract-verify');
+        assert.ok(found);
+        assert.match(found.documentation, /^---/);
+        assert.match(found.documentation, /LOGIC PROTOCOL/);
+    });
+});
+
+const liveCorvusEyeAvailable = LIVE_INTEGRATION_ENABLED
+    && fs.existsSync(CORVUSEYE_ROOT)
     && fs.existsSync(path.join(CORVUSEYE_ROOT, '.agents', 'skills', 'usb-forge-contract-verify', 'SKILL.md'));
 
-test('integration: walkSpokeSkillsForRecords surfaces corvuseye:usb-forge-contract-verify', { skip: !corvusEyeAvailable }, () => {
-    const spoke = corvusEyeSpoke();
-    const out = walkSpokeSkillsForRecords([spoke]);
-    const found = out.find((s) => s.id === 'corvuseye:usb-forge-contract-verify');
-    assert.ok(found !== undefined, `expected corvuseye:usb-forge-contract-verify in walker output; got ${out.map((s) => s.id).join(', ')}`);
-    assert.strictEqual(found.validation, 'ok');
-    assert.strictEqual(found.tier, 'SKILL');
-    assert.strictEqual(found.risk, 'low');
-    assert.strictEqual(found.spoke_slug, 'corvuseye');
-    assert.strictEqual(found.bare_id, 'usb-forge-contract-verify');
-    assert.match(found.description, /three-Engram/);
-});
-
-test('integration: walkSpokeJournalForRecord reports all four CorvusEye journal files present', { skip: !corvusEyeAvailable }, () => {
-    const spoke = corvusEyeSpoke();
-    const r = walkSpokeJournalForRecord(spoke);
-    assert.strictEqual(r.validation, 'ok');
-    assert.strictEqual(r.spoke, 'corvuseye');
-    assert.strictEqual(r.files.memory_md.present, true, 'memory_md present');
-    assert.strictEqual(r.files.tasks_md.present, true, 'tasks_md present');
-    assert.strictEqual(r.files.wireframe_md.present, true, 'wireframe_md present');
-    assert.strictEqual(r.files.dev_journal_md.present, true, 'dev_journal_md present');
-});
-
-test('integration: CorvusEye memory_md is read from .agent/ (singular) per its AGENTS.md', { skip: !corvusEyeAvailable }, () => {
-    const spoke = corvusEyeSpoke();
-    const r = walkSpokeJournalForRecord(spoke);
-    assert.strictEqual(r.files.memory_md.path, '.agent/memory.md');
-    assert.ok(r.files.memory_md.validation === 'ok' || r.files.memory_md.validation === 'drift');
-});
-
-test('integration: CorvusEye wireframe.md exposes prominent Forge functions', { skip: !corvusEyeAvailable }, () => {
-    const spoke = corvusEyeSpoke();
-    const r = walkSpokeJournalForRecord(spoke);
-    assert.strictEqual(r.files.wireframe_md.present, true);
-    const fns = r.files.wireframe_md.prominent_functions ?? [];
-    assert.ok(fns.length > 0, 'expected at least one prominent function in CorvusEye/wireframe.md');
-    // The wireframe lists usb_forge::ForgeShot::build (...) at the top of its Prominent Functions section.
-    assert.ok(
-        fns.some((s) => /usb_forge::ForgeShot::build/.test(s)),
-        `expected usb_forge::ForgeShot::build in prominent functions; got: ${fns.join(' | ')}`,
-    );
-});
-
-test('integration: CorvusEye tasks.md exposes open_tasks count', { skip: !corvusEyeAvailable }, () => {
-    const spoke = corvusEyeSpoke();
-    const r = walkSpokeJournalForRecord(spoke);
-    assert.strictEqual(r.files.tasks_md.present, true);
-    assert.strictEqual(typeof r.files.tasks_md.open_tasks, 'number');
-});
-
-test('integration: corvuseye SKILL.md content is returned verbatim in documentation field', { skip: !corvusEyeAvailable }, () => {
-    const spoke = corvusEyeSpoke();
-    const out = walkSpokeSkillsForRecords([spoke]);
-    const found = out.find((s) => s.id === 'corvuseye:usb-forge-contract-verify');
-    assert.ok(found !== undefined);
-    // Sanity: the documentation should include both the frontmatter and the LOGIC PROTOCOL marker.
-    assert.match(found.documentation, /^---/);
-    assert.match(found.documentation, /LOGIC PROTOCOL/);
+test('live smoke: operator-authorized CorvusEye mount remains readable', { skip: !liveCorvusEyeAvailable }, () => {
+    const spoke = corvusEyeSpoke(CORVUSEYE_ROOT, LIVE_MOUNT_TOKEN ?? '');
+    const skills = walkSpokeSkillsForRecords([spoke]);
+    assert.ok(skills.some((skill) => skill.id === 'corvuseye:usb-forge-contract-verify'));
+    assert.equal(walkSpokeJournalForRecord(spoke).validation, 'ok');
 });

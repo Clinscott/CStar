@@ -34,7 +34,7 @@ class MatrixErrorBoundary extends Component<{ children: ReactNode }, { hasError:
         if (this.state.hasError) {
             return (
                 <div style={{ color: '#ff4d4d', padding: '40px', fontFamily: 'monospace', textAlign: 'center', background: '#050000', height: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <h1>[O.D.I.N.]: CRITICAL RUNTIME EXCEPTION</h1>
+                    <h1>[CSTAR]: CRITICAL RUNTIME EXCEPTION</h1>
                     <p style={{ opacity: 0.6 }}>The neural graph has collapsed under its own gravity.</p>
                     <pre style={{ fontSize: '12px', marginTop: '20px', color: '#ffaaaa', textAlign: 'left', whiteSpace: 'pre-wrap', maxHeight: '50vh', overflow: 'auto' }}>
                         {this.state.error?.stack || this.state.error?.message}
@@ -104,7 +104,7 @@ export const App: React.FC = () => {
     if (!token) {
         return (
             <div style={{ color: '#ff4d4d', padding: '40px', fontFamily: 'monospace', textAlign: 'center', background: '#000', height: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                <h1>[O.D.I.N.]: ACCESS DENIED</h1>
+                <h1>[CSTAR]: ACCESS DENIED</h1>
                 <p>Security Handshake Failed. Valid Token Required.</p>
             </div>
         );
@@ -155,7 +155,7 @@ export const App: React.FC = () => {
                     </>
                 ) : (
                     <div style={{ color: '#00f2ff', padding: '40px', fontFamily: 'monospace', textAlign: 'center', background: '#00050a', height: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                        <h1>[O.D.I.N.]: SYNCHRONIZING NEURAL PATHWAYS...</h1>
+                        <h1>[CSTAR]: SYNCHRONIZING NEURAL PATHWAYS...</h1>
                         <p style={{ opacity: 0.6 }}>Establishing Handshake with Manor Storage</p>
                     </div>
                 )}

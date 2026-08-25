@@ -29,7 +29,7 @@ function boundedLimit(value: unknown, fallback = 10, max = 50): number {
 
 function tableCount(root: string, table: string): number | null {
     try {
-        const db = database.getDb(root);
+        const db = database.getReadDb(root);
         const row = db.prepare(`SELECT COUNT(*) AS count FROM ${table}`).get() as { count?: number } | undefined;
         return typeof row?.count === 'number' ? row.count : null;
     } catch {

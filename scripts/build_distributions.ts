@@ -19,7 +19,7 @@ if (checkOnly) {
 }
 
 const files = writeDistributions(projectRoot);
-console.log(`[corvus:distributions] Wrote ${files.length} artifacts.`);
+console.log(`[corvus:distributions] Synchronized ${files.length} artifacts.`);
 for (const file of files) {
     console.log(`- ${file.relativePath}`);
 }

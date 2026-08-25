@@ -1,14 +1,13 @@
-import json
+import pytest
 
 from src.core.utils import load_config
 
 
 def test_persona_loading(tmp_path):
-    agent_dir = tmp_path / ".agents"
-    agent_dir.mkdir()
-    config_file = agent_dir / "config.json"
-    config_file.write_text(json.dumps({"system": {"persona": "ODIN"}}), encoding='utf-8')
+    with pytest.raises(
+        RuntimeError,
+        match="Direct secret-bearing configuration reads are retired",
+    ):
+        load_config(str(tmp_path))
 
-    # We mock or use the real load_config with the path
-    config = load_config(str(tmp_path))
-    assert config.get("system", {}).get("persona") == "ODIN"
+    assert list(tmp_path.iterdir()) == []

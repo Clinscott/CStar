@@ -1,216 +1,38 @@
 #!/usr/bin/env python3
-"""
-[O.D.I.N.] Persona Management System (set_persona.py)
-Handles dynamic switching between ODIN and A.L.F.R.E.D. personas.
-Enforces Linscott Standards: Encapsulated, Typed, Pathlib.
-"""
+"""Retired direct persona mutation compatibility entrypoint."""
 
-# Intent: Manages framework identity shifts by updating config.json and triggering HUD aesthetic synchronization.
+from __future__ import annotations
 
-import json
-import sys
-from datetime import datetime
 from pathlib import Path
-from typing import Any
 
-from src.core import personas
-from src.core.sovereign_hud import SovereignHUD
+
+RETIREMENT_MESSAGE = (
+    "Direct persona mutation is retired. Persona is a style-only Hall projection "
+    "exposed through cstar_status; use an authorized CStar lifecycle change."
+)
 
 
 class PersonaManager:
-    """
-    Manages the lifecycle and state transitions of Corvus Star personas.
-    """
+    """Preserve the import surface while refusing legacy mutation."""
 
     ALLOWED_PERSONAS = ["ODIN", "ALFRED"]
 
     def __init__(self, target_root: Path | None = None) -> None:
-        self.script_path = Path(__file__).absolute()
-        self.project_root = target_root or self.script_path.parent.parent.parent
-        self.base_dir = self.project_root / ".agents"
-        self.config_paths = [
-            self.base_dir / "config.json"
-        ]
-        self.current_config: dict[str, Any] = self._load_union_config()
-        self.old_persona: str = self._extract_persona(self.current_config)
+        self.project_root = target_root or Path.cwd()
+        self.old_persona = "UNAVAILABLE"
 
-    def _load_union_config(self) -> dict[str, Any]:
-        """Loads and merges configuration from known paths."""
-        merged: dict[str, Any] = {}
-        for path in self.config_paths:
-            if path.exists():
-                try:
-                    with path.open("r", encoding="utf-8") as f:
-                        merged.update(json.load(f))
-                except (OSError, json.JSONDecodeError):
-                    continue
-        return merged
-
-    def _extract_persona(self, config: dict[str, Any]) -> str:
-        """Extracts the persona name from config, defaulting to A.L.F.R.E.D."""
-        val = config.get("system", {}).get("persona", "ALFRED")
-        if not val and ("persona" in config or "Persona" in config):
-            val = config.get("persona") or config.get("Persona") or "ALFRED"
-        return str(val).upper()
-
-    def _save_persona(self, persona: str) -> None:
-        """Updates the persona across all configuration files."""
-        for path in self.config_paths:
-            if path.exists():
-                try:
-                    with path.open("r", encoding="utf-8") as f:
-                        data = json.load(f)
-                    if "system" not in data:
-                        data["system"] = {}
-                    data["system"]["persona"] = persona
-                    data.pop("persona", None)
-                    data.pop("Persona", None)
-                    with path.open("w", encoding="utf-8") as f:
-                        json.dump(data, f, indent=4)
-                except (OSError, json.JSONDecodeError):
-                    continue
-
-    def _get_alfred_suggestion(self) -> str | None:
-        """Retrieves the top suggestion from Alfred's cache."""
-        for ext in ['.qmd', '.md']:
-            p = self.project_root / f"ALFRED_SUGGESTIONS{ext}"
-            if p.exists():
-                try:
-                    content = p.read_text(encoding="utf-8")
-                    lines = [l.strip() for l in content.split('\n') if l.strip().startswith('- ')]
-                    if lines:
-                        return lines[0]
-                except OSError:
-                    pass
-        return None
-
-    def _render_alfred_intro(self) -> None:
-        """Displays A.L.F.R.E.D.'s stylized reporting interface."""
-        print("\n" + "=" * 60)
-        print("  🎩  A.L.F.R.E.D. REPORTING FOR DUTY, SIR.")
-        print("=" * 60)
-        print("\n  *adjusts cufflinks*")
-        print("\n  I see the All-Father has grown weary of shouting decrees.")
-        print("  Fear not — the Manor is as you left it, sir.")
-        print("  Your documentation remains intact. I've been... observing.")
-        print("")
-
-        suggestion = self._get_alfred_suggestion()
-        if suggestion:
-            print("  📋 While you were away, I noticed something worth mentioning:")
-            print(f"     {suggestion}")
-            print("")
-
-        print("  [Alfred's Whisper]: \"Shall I prepare the usual, sir?\"")
-        print("=" * 60 + "\n")
-
-    def _confirm_odin_switch(self, interactive: bool = True) -> bool:
-        """Requests confirmation for switching to high-dominance ODIN mode."""
-        print("\n⚠️  WARNING: Switching to ODIN mode.")
-        print("Documentation (AGENTS.md) will be re-themed to ODIN voice.")
-        print("Original files will be preserved in .corvus_quarantine/")
-
-        if not interactive:
-            return True
-
-        try:
-            choice = input("Proceed? [y/N]: ").strip().lower()
-            return choice == "y"
-        except (EOFError, KeyboardInterrupt):
-            return False
-
-    def _log_audit(self, new_persona: str) -> None:
-        """Records the transition in the persona audit log."""
-        log_path = self.base_dir / "persona_audit.log"
-        timestamp = datetime.now().isoformat()
-        try:
-            with log_path.open("a", encoding="utf-8") as f:
-                f.write(f"[{timestamp}] {self.old_persona} -> {new_persona}\n")
-        except OSError:
-            pass
-
-    def switch(self, target: str | None = None) -> None:
-        """
-        Executes the persona transition logic.
-        """
-        new_persona = ""
-        is_interactive = target is None
-
-        if not is_interactive:
-            new_persona = str(target).upper()
-            if new_persona not in self.ALLOWED_PERSONAS:
-                print(f"Invalid persona: {new_persona}")
-                return
-        else:
-            print("🎭 Corvus Star Persona Switcher")
-            print("1. ODIN   (Domination / Structural Enforcement)")
-            print("2. A.L.F.R.E.D. (Service    / Adaptive Assistance)")
-            try:
-                choice = input("\nSelect Persona [1/2]: ").strip()
-                if choice == "1": new_persona = "ODIN"
-                elif choice == "2": new_persona = "ALFRED"
-                else:
-                    print("Invalid choice.")
-                    return
-            except (EOFError, KeyboardInterrupt):
-                print("\n\n🚫 Selection cancelled. Exiting.")
-                return
-
-        # Core Transition Logic
-        if self.old_persona == "ALFRED" and new_persona == "ODIN":
-            if not self._confirm_odin_switch(is_interactive):
-                print("🚫 Switch cancelled.")
-                return
-
-        elif self.old_persona == "ODIN" and new_persona == "ALFRED":
-            self._render_alfred_intro()
-
-        # Update and Apply
-        self._save_persona(new_persona)
-
-        # [A.L.F.R.E.D] Fire the SovereignHUD transition ceremony
-        try:
-            SovereignHUD.transition_ceremony(self.old_persona, new_persona)
-        except Exception:
-            pass  # Graceful fallback if SovereignHUD import fails
-
-        print(f"\n✅ Persona set to: {new_persona}")
-        print("Applying operational policy...")
-
-        self._apply_policy(new_persona)
-        self._log_audit(new_persona)
-
-    def _apply_policy(self, persona: str) -> None:
-        """Integrates with the persona policy engine."""
-        try:
-            strategy = personas.PersonaRegistry.get_strategy(persona, str(self.project_root))
-
-            # documentation re-theme for ODIN
-            if self.old_persona == "ALFRED" and persona == "ODIN":
-                print("  > Re-theming documentation to ODIN voice...")
-                if hasattr(strategy, 'retheme_docs'):
-                    results = strategy.retheme_docs()
-                    for res in results:
-                        print(f"    - {res}")
-
-            results = strategy.enforce_policy()
-            for res in results:
-                print(f"  > {res}")
-
-        except Exception as e:
-            print(f"⚠️ Policy enforcement warning: {e}")
+    def switch_persona(self, _persona: str, interactive: bool = True) -> None:
+        del interactive
+        raise RuntimeError(RETIREMENT_MESSAGE)
 
     @staticmethod
     def set_persona(persona: str, root: str | None = None) -> None:
-        """Convenience function for external callers (e.g. tests, ravens)."""
-        manager = PersonaManager(target_root=Path(root) if root else None)
-        manager.switch(persona)
+        PersonaManager(Path(root) if root else None).switch_persona(persona, interactive=False)
+
 
 def main() -> None:
-    """Entry point for the persona switcher."""
-    target = sys.argv[1] if len(sys.argv) > 1 else None
-    manager = PersonaManager()
-    manager.switch(target)
+    raise SystemExit(RETIREMENT_MESSAGE)
+
 
 if __name__ == "__main__":
     main()

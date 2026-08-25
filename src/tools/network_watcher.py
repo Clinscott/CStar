@@ -1,89 +1,57 @@
-import os
-import shutil
-import subprocess
-import sys
-import time
+#!/usr/bin/env python3
+"""Retired federated directory watcher and trace ingestion pipeline."""
 
-from src.core.sovereign_hud import SovereignHUD
+from __future__ import annotations
 
-# --- CRUCIBLE CONFIGURATION (THEMES) ---
+from pathlib import Path
+
+
+RETIRED_ERROR = "legacy_network_watcher_retired_use_cstar_kernel_receipts"
+
 THEMES = {
-    "ODIN": {"TITLE": "Ω CRUCIBLE (WAR ROOM) Ω", "DETECTED": "Anomaly Sector", "PASS": "Subjugated", "FAIL": "Defiant", "COLOR_MAIN": SovereignHUD.RED},
-    "ALFRED": {"TITLE": "C* THE CRUCIBLE (SYNC)", "DETECTED": "Trace Detected", "PASS": "Ingested", "FAIL": "Rejected", "COLOR_MAIN": SovereignHUD.CYAN}
+    "ODIN": {"TITLE": "retired", "DETECTED": "retired", "PASS": "retired", "FAIL": "retired"},
+    "ALFRED": {"TITLE": "retired", "DETECTED": "retired", "PASS": "retired", "FAIL": "retired"},
 }
 
+
 class CruciblePipeline:
-    """[ALFRED] Secure ingestion pipeline for the Federated Crucible."""
+    """Preserve lexical path fields while disabling ingestion and mutation."""
+
     def __init__(self, root: str, base: str) -> None:
-        self.root, self.base = root, base
-        self.stage = os.path.join(base, "traces", "staging")
-        self.proc = os.path.join(base, "traces", "processed")
-        self.quar = os.path.join(base, "traces", "quarantine")
-        self.db = os.path.join(root, "fishtest_data.json")
+        self.root = root
+        self.base = base
+        base_path = Path(base)
+        self.stage = str(base_path / "traces" / "staging")
+        self.proc = str(base_path / "traces" / "processed")
+        self.quar = str(base_path / "traces" / "quarantine")
+        self.db = str(Path(root) / "fishtest_data.json")
 
     @staticmethod
-    def get_theme():
-        """Class-level theme retriever."""
-        return THEMES.get(SovereignHUD.PERSONA, THEMES["ALFRED"])
+    def get_theme() -> dict[str, str]:
+        return dict(THEMES["ALFRED"])
 
     @staticmethod
     def log_rejection(filename: str, reason: str) -> None:
-        """Class-level rejection log."""
-        SovereignHUD.log_rejection(SovereignHUD.PERSONA, reason, filename)
+        return None
 
     def process(self, file_path: str) -> None:
-        name = os.path.basename(file_path)
-        SovereignHUD.box_top("CRUCIBLE SCAN")
-        SovereignHUD.log("INFO", f"Ingesting {name}")
+        raise RuntimeError(RETIRED_ERROR)
 
-        try:
-            if os.path.getsize(file_path) > 5*10**6: raise ValueError("DoS: Oversized")
-            os.makedirs(self.stage, exist_ok=True)
-            shutil.move(file_path, os.path.join(self.stage, name))
-
-            # Merge & Ordeal
-            backup = self.db + ".bak"
-            shutil.copy2(self.db, backup)
-
-            # [ALFRED] Note: We call merge_traces via secondary process to avoid path conflicts
-            m_script = os.path.join(os.path.dirname(__file__), "merge_traces.py")
-            res = subprocess.run([sys.executable, m_script, self.stage, self.db], capture_output=True)
-
-            if res.returncode == 0:
-                SovereignHUD.log("PASS", "Trace Ingested")
-                if os.path.exists(backup): os.remove(backup)
-            else:
-                SovereignHUD.log("FAIL", "Merge Error")
-                shutil.copy2(backup, self.db)
-
-        except Exception as e:
-            SovereignHUD.log("FAIL", f"Pipeline Error: {str(e)[:40]}")
-        SovereignHUD.box_bottom()
 
 class NetworkWatcher:
-    """
-    [ALFRED] Persistent monitor for the federated network share.
-    Auto-detects incoming JSON traces and routes them to the CruciblePipeline.
-    """
+    """No persistent loop or directory polling remains."""
+
     def __init__(self, share_path: str, pipeline: CruciblePipeline) -> None:
         self.share = share_path
         self.pipeline = pipeline
 
     def watch(self) -> None:
-        print(f"{SovereignHUD.CYAN}>> The Crucible is active. Watching: {self.share}...{SovereignHUD.RESET}")
-        while True:
-            try:
-                for f in [f for f in os.listdir(self.share) if f.endswith('.json')]:
-                    self.pipeline.process(os.path.join(self.share, f))
-                time.sleep(3)
-            except KeyboardInterrupt: break
-            except OSError: time.sleep(5)
+        raise RuntimeError(RETIRED_ERROR)
+
+
+def main() -> int:
+    return 2
+
 
 if __name__ == "__main__":
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    base = os.path.dirname(script_dir)
-    root = os.path.dirname(base)
-    share = os.path.join(root, "mock_project", "network_share")
-
-    pipe = CruciblePipeline(root, base)
-    NetworkWatcher(share, pipe).watch()
+    raise SystemExit(main())

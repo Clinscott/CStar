@@ -1,65 +1,18 @@
-import { WebSocketServer, WebSocket } from 'ws';
-import { Server } from 'http';
-import chalk from 'chalk';
+import type { Server } from 'node:http';
 
-/**
- * SubspaceRelay: WebSocket broadcast bridge for PennyOne
- */
+import { PENNYONE_LIVE_RETIRED } from './recorder.js';
+
+/** Retired before WebSocket listener registration or client allocation. */
 export class SubspaceRelay {
-    private wss: WebSocketServer;
-    private clients: Set<WebSocket> = new Set();
-
-    constructor(server: Server) {
-        this.wss = new WebSocketServer({ server });
-
-        this.wss.on('connection', (ws) => {
-            this.clients.add(ws);
-            console.log(chalk.blue('[ALFRED]: "New matrix connection established. Synchronizing telemetry stream."'));
-
-            ws.on('close', () => {
-                this.clients.delete(ws);
-                console.log(chalk.blue('[ALFRED]: "Matrix connection terminated."'));
-            });
-        });
+    constructor(_server: Server) {
+        throw new Error(PENNYONE_LIVE_RETIRED);
     }
 
-    /**
-     * Start a chronological playback of an old session.
-     * @param {unknown[]} pings - Pings to play back
-     * @param {number} speed - Playback speed
-     */
-    public async startPlayback(pings: unknown[], speed = 2.0) {
-        console.log(chalk.magenta(`[ALFRED]: "Initiating Chronicle Playback. Replaying ${pings.length} actions at ${speed}x speed."`));
-        
-        for (let i = 0; i < pings.length; i++) {
-            const ping = pings[i] as { timestamp: number };
-            this.broadcast('AGENT_TRACE', ping);
-
-            if (i < pings.length - 1) {
-                const nextPing = pings[i + 1] as { timestamp: number };
-                const delay = (nextPing.timestamp - ping.timestamp) / speed;
-                
-                // Cap delay at 2s for playback fluidity
-                const actualDelay = Math.min(Math.max(delay, 100), 2000);
-                await new Promise(resolve => setTimeout(resolve, actualDelay));
-            }
-        }
-        
-        console.log(chalk.magenta('[ALFRED]: "Chronicle Playback complete."'));
+    public async startPlayback(_pings: unknown[], _speed = 2): Promise<never> {
+        throw new Error(PENNYONE_LIVE_RETIRED);
     }
 
-    /**
-     * Broadcast a message to all connected visualizers
-     * @param {"NODE_UPDATED" | "MATRIX_UPDATED" | "AGENT_TRACE" | "MISSION_TRACE"} type - Event type
-     * @param {unknown} payload - Event payload
-     */
-    public broadcast(type: 'NODE_UPDATED' | 'MATRIX_UPDATED' | 'AGENT_TRACE' | 'MISSION_TRACE', payload: unknown) {
-        const message = JSON.stringify({ type, payload });
-        this.clients.forEach(client => {
-            if (client.readyState === WebSocket.OPEN) {
-                client.send(message);
-            }
-        });
+    public broadcast(_type: string, _payload: unknown): never {
+        throw new Error(PENNYONE_LIVE_RETIRED);
     }
 }
-

@@ -27,7 +27,7 @@ function resolveMcpArg(configPath: string, arg: string): string {
 }
 
 describe('MCP config invariants', () => {
-    for (const configPath of ['.mcp.json', 'gemini-extension.json', 'plugins/corvus-star/.mcp.json']) {
+    for (const configPath of ['.mcp.json', 'gemini-extension.json']) {
         it(`${configPath} registers only cstar-kernel`, () => {
             const config = readJson(configPath);
             const servers = config.mcpServers ?? {};
@@ -53,6 +53,27 @@ describe('MCP config invariants', () => {
             );
         });
     }
+
+    it('keeps the Codex plugin skill-only and the host-global MCP independent', () => {
+        const pluginRoot = path.join(PROJECT_ROOT, 'plugins', 'corvus-star');
+        const pluginManifest = readJson('plugins/corvus-star/.codex-plugin/plugin.json') as {
+            skills?: string;
+            mcpServers?: unknown;
+            hooks?: unknown;
+        };
+
+        assert.equal(
+            fs.existsSync(path.join(pluginRoot, '.mcp.json')),
+            false,
+            'skill-only Codex plugin must not carry an MCP launcher config',
+        );
+        assert.equal(pluginManifest.skills, './skills/');
+        assert.equal(pluginManifest.mcpServers, undefined);
+        assert.equal(pluginManifest.hooks, undefined);
+
+        const supportedHostConfig = readJson('.mcp.json');
+        assert.deepEqual(Object.keys(supportedHostConfig.mcpServers ?? {}), ['cstar-kernel']);
+    });
 
     it('bin/cstar-kernel-mcp.js launches the TypeScript source surface through tsx', () => {
         const launcherPath = path.join(PROJECT_ROOT, 'bin', 'cstar-kernel-mcp.js');

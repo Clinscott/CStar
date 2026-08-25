@@ -4,7 +4,11 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-import { buildDistributions } from '../../src/packaging/distributions.js';
+import {
+    buildDistributions,
+    validateDistributions,
+    writeDistributions,
+} from '../../src/packaging/distributions.js';
 
 function createProjectRoot(): string {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-distributions-'));
@@ -26,15 +30,6 @@ function createProjectRoot(): string {
                 url: 'https://example.com/team',
             },
             keywords: ['corvus', 'kernel'],
-        }, null, 2),
-        'utf-8',
-    );
-    fs.writeFileSync(
-        path.join(root, '.agents', 'config.json'),
-        JSON.stringify({
-            system: {
-                persona: 'O.D.I.N.',
-            },
         }, null, 2),
         'utf-8',
     );
@@ -115,9 +110,6 @@ describe('distribution generator', () => {
                 'gemini-extension.json',
                 'GEMINI.md',
                 path.join('plugins', 'corvus-star', '.codex-plugin', 'plugin.json'),
-                path.join('plugins', 'corvus-star', '.mcp.json'),
-                path.join('plugins', 'corvus-star', 'hooks.json'),
-                path.join('plugins', 'corvus-star', 'scripts', 'cstar_codex_post_write.sh'),
                 path.join('plugins', 'corvus-star', 'skills', 'corvus-star', 'SKILL.md'),
                 path.join('plugins', 'corvus-star', 'README.md'),
                 path.join('.agents', 'plugins', 'marketplace.json'),
@@ -148,47 +140,61 @@ describe('distribution generator', () => {
         assert.match(geminiContext, /host session when the registry marks a capability host-executable/);
         assert.match(geminiContext, /host-owned cognition\/workflow surfaces and `kernel-primitive` entries/);
         assert.match(geminiContext, /Corvus Star Augury \[Ω\]/);
-        // Mode: full removed — Augury mode tokens have evolved; matching lite is sufficient
-        assert.match(geminiContext, /Mode: lite/);
-        assert.match(geminiContext, /Confidence belongs in learning metadata/);
-        assert.match(geminiContext, /`hall` \(PRIME, native-session, host-workflow, kernel fallback allowed\)/);
+        assert.match(geminiContext, /read-only typed route explanation/);
+        assert.doesNotMatch(geminiContext, /Mode: (?:full|lite)/);
+        assert.match(geminiContext, /Omit numeric confidence unless an independently validated scorer/);
+        assert.match(geminiContext, /Start or resume one host goal for every non-trivial mission/);
+        assert.match(geminiContext, /cstar-goal-driven-daily-bootstrap\.md/);
+        assert.match(geminiContext, /`hall` \(PRIME, native-session, host-workflow, kernel fallback forbidden\)/);
 
         const codexPlugin = JSON.parse(build.files[2]?.content ?? '{}') as {
             name?: string;
             skills?: string;
-            mcpServers?: string;
+            mcpServers?: unknown;
+            hooks?: unknown;
             interface?: { displayName?: string; capabilities?: string[]; shortDescription?: string };
         };
         assert.equal(codexPlugin.name, 'corvus-star');
         assert.equal(codexPlugin.skills, './skills/');
-        assert.equal(codexPlugin.mcpServers, './.mcp.json');
+        assert.equal(codexPlugin.mcpServers, undefined);
+        assert.equal(codexPlugin.hooks, undefined);
         assert.deepEqual(codexPlugin.interface?.capabilities, ['Interactive', 'Write']);
         assert.equal(codexPlugin.interface?.shortDescription, 'Corvus Star Augury and Hall integration for Codex.');
 
-        const codexMcp = JSON.parse(build.files[3]?.content ?? '{}') as {
-            mcpServers?: Record<string, { cwd?: string }>;
-        };
-        assert.equal(codexMcp.mcpServers?.['cstar-kernel']?.cwd, '../..');
-
-        const codexSkill = build.files[6]?.content ?? '';
+        const codexSkill = build.files[3]?.content ?? '';
         assert.match(codexSkill, /Corvus Star Augury \[Ω\]/);
-        assert.match(codexSkill, /Mimir's Well/);
-        assert.match(codexSkill, /Council Expert/);
+        assert.match(codexSkill, /Council experts are advisory critique lenses/);
+        assert.match(codexSkill, /skill-only/);
+        assert.match(codexSkill, /Omit numeric confidence unless an independently validated scorer/);
+        assert.match(codexSkill, /Start or resume one host goal for every non-trivial mission/);
+        assert.match(codexSkill, /cstar-goal-driven-daily-bootstrap\.md/);
+        assert.doesNotMatch(codexSkill, /`cstar_autobot`/);
 
-        const marketplace = JSON.parse(build.files[8]?.content ?? '{}') as {
+        const materializedGemini = fs.readFileSync(path.join(process.cwd(), 'GEMINI.md'), 'utf-8');
+        const materializedCodexSkill = fs.readFileSync(
+            path.join(process.cwd(), 'plugins/corvus-star/skills/corvus-star/SKILL.md'),
+            'utf-8',
+        );
+        for (const materialized of [materializedGemini, materializedCodexSkill]) {
+            assert.match(materialized, /numeric confidence/i);
+            assert.doesNotMatch(materialized, /Confidence belongs in learning metadata/);
+        }
+
+        const marketplace = JSON.parse(build.files[5]?.content ?? '{}') as {
             plugins?: Array<{ source?: { path?: string } }>;
         };
         assert.equal(marketplace.plugins?.[0]?.source?.path, './plugins/corvus-star');
 
-        const pluginReadme = build.files[7]?.content ?? '';
-        assert.match(pluginReadme, /repo-local plugin lives under `plugins\/corvus-star\/`/);
-        assert.match(pluginReadme, /same registry-backed host\/kernel split as Gemini/);
-        assert.match(pluginReadme, /full-first\/lite-after Corvus Star Augury display/);
+        const pluginReadme = build.files[4]?.content ?? '';
+        assert.match(pluginReadme, /source plugin under `plugins\/corvus-star\/` is skill-only/);
+        assert.match(pluginReadme, /host-global CStar kernel is managed independently/);
+        assert.match(pluginReadme, /Augury as an advisory route explanation/);
         assert.match(pluginReadme, /fail closed when the host session is unavailable/);
+        assert.doesNotMatch(pluginReadme, /install:codex-local/);
 
-        const distReadme = build.files[9]?.content ?? '';
+        const distReadme = build.files[6]?.content ?? '';
         assert.match(distReadme, /npm run build:distributions/);
-        assert.match(distReadme, /Sync local `~\/\.gemini` and `~\/\.codex` installs/);
+        assert.match(distReadme, /never hand-edit Codex plugin caches or marketplace state/);
     });
 
     it('guards generated host surfaces against legacy Trace display drift', () => {
@@ -209,5 +215,21 @@ describe('distribution generator', () => {
                 assert.doesNotMatch(file.content, pattern, `${file.relativePath} matched ${pattern}`);
             }
         }
+    });
+
+    it('keeps checked-in distribution materializations synchronized', () => {
+        assert.deepEqual(validateDistributions(process.cwd()), []);
+    });
+
+    it('does not rewrite already synchronized materializations', () => {
+        const projectRoot = createProjectRoot();
+        writeDistributions(projectRoot);
+        const target = path.join(projectRoot, 'GEMINI.md');
+        const preservedTime = new Date('2020-01-01T00:00:00.000Z');
+        fs.utimesSync(target, preservedTime, preservedTime);
+
+        writeDistributions(projectRoot);
+
+        assert.equal(fs.statSync(target).mtimeMs, preservedTime.getTime());
     });
 });

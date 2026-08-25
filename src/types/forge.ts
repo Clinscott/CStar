@@ -1,5 +1,9 @@
 export type HallForgeWriteCapability = 'response_only' | 'project_files';
 
+export type HallForgeAuthorizationProfile =
+    | 'root_user_forge_intent_v1'
+    | 'exact_request_challenge_v1';
+
 export type HallForgeRequestStatus =
     | 'PENDING_AUTH'
     | 'AUTHORIZED'
@@ -29,6 +33,12 @@ export interface HallForgeRequestRecord {
     operator_record_sha256?: string;
     operator_record_set_sha256?: string;
     operator_record_count?: number;
+    requester_thread_id?: string;
+    requester_turn_id?: string;
+    requester_record_set_sha256?: string;
+    authorization_profile?: HallForgeAuthorizationProfile;
+    authorization_binding_sha256?: string;
+    authorization_challenge_sha256?: string;
     request_sha256: string;
     request_summary_json: string;
     adapter_ref?: string;
@@ -43,6 +53,72 @@ export interface HallForgeRequestRecord {
     created_at: number;
     updated_at: number;
     completed_at?: number;
+}
+
+export interface HallForgeAuthorizationRecord {
+    authorization_id: string;
+    request_id: string;
+    request_sha256: string;
+    authorization_profile: HallForgeAuthorizationProfile;
+    authorization_binding_sha256: string;
+    challenge_sha256?: string;
+    operator_intent_json?: string;
+    operator_authorization_ref: string;
+    operator_thread_id: string;
+    operator_turn_id: string;
+    operator_message_sha256: string;
+    operator_record_sha256: string;
+    operator_record_set_sha256: string;
+    operator_record_count: number;
+    execution_grant_schema?: 'cstar.forge_legacy_v2_execution_grant.v1';
+    execution_grant_sha256?: string;
+    execution_grant_json?: string;
+    authorized_at: number;
+    expires_at: number;
+    created_at: number;
+}
+
+export interface SaveForgeRequestInput {
+    request_id: string;
+    repo_id: string;
+    bead_id: string;
+    decision_id: string;
+    request_sha256: string;
+    request_summary_json: string;
+    target_paths_sha256: string;
+    live_source_allowed: boolean;
+    max_attempts: number;
+    requester_thread_id?: string;
+    requester_turn_id?: string;
+    requester_record_set_sha256?: string;
+    authorization_profile?: HallForgeAuthorizationProfile;
+    authorization_binding_sha256?: string;
+    authorization_challenge_sha256?: string;
+    adapter_ref?: string;
+    write_capability?: HallForgeWriteCapability;
+    now?: number;
+}
+
+export interface AuthorizeForgeRequestInput {
+    request_id: string;
+    request_sha256: string;
+    authorization_profile: HallForgeAuthorizationProfile;
+    authorization_binding_sha256?: string;
+    challenge_sha256?: string;
+    operator_intent_json?: string;
+    operator_authorization_ref: string;
+    operator_thread_id: string;
+    operator_turn_id: string;
+    operator_message_sha256: string;
+    operator_record_sha256: string;
+    operator_record_set_sha256: string;
+    operator_record_count: number;
+    execution_grant_schema?: 'cstar.forge_legacy_v2_execution_grant.v1';
+    execution_grant_sha256?: string;
+    execution_grant_json?: string;
+    authorized_at: number;
+    expires_at: number;
+    now?: number;
 }
 
 export interface HallForgeAttemptRecord {

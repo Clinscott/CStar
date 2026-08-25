@@ -1,37 +1,18 @@
 ---
-name: Skill Scout
-description: Proactively searches the web to acquire new skills when the local engine fails to match a user intent.
+name: Skill Scout (Retired)
+description: Fail-closed compatibility pointer for a decommissioned acquisition workflow.
 ---
 
-# Skill Scout Protocol
+# Skill Scout — Retired
 
-**Activation Words**: learn, find-skill, acquire, scour, search-web, scout-skill
+This legacy skill is not registered and has no activation or execution surface.
+It must fail closed. This file grants no research, network, file-write, package,
+installation, or execution authority.
 
-## Protocol
+For a new evidence need, create a bounded `cstar_researcher_request` under the
+operator-authorized source lanes. For a reusable implementation, represent the
+work in a CStar bead and use the durable `cstar_forge_request` →
+`cstar_forge_execute` → independent-validation lifecycle.
 
-1.  **Trigger**: 
-    -   Explicit: "Learn how to X", "Find a command for Y".
-    -   Implicit: `Oracle Protocol` returns confidence < 0.60.
-
-2.  **Action (Agent)**:
-    -   **Search**: Perform `search_web` with the query (e.g., "CLI command to convert png to webp").
-    -   **Analyze**: Identify the best tool (e.g., `ffmpeg`, `imagemagick`).
-    -   **Forge**: Create a new Skill Folder: `.agents/skills/<tool-name>`.
-    -   **Template**:
-        ```markdown
-        ---
-        name: <Tool Name>
-        description: <Brief Description>
-        ---
-        # <Tool Name>
-        **Activation Words**: <Keywords>
-        
-        ## Usage
-        ...
-        ```
-    -   **Verify**: Run `sv_engine.py` to confirm the new skill is indexed.
-
-3.  **Mandate**:
-    -   Do not ask for permission to search. **Just search.**
-    -   Do not ask for permission to create the file. **Just create.**
-    -   Ask for permission only to **Execute** the final result.
+Do not use this compatibility pointer to dispatch tools, acquire software,
+create or register skills, or infer approval from a low-confidence route.

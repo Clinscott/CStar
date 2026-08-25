@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import time
 import uuid
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass, field
-from typing import Any, Literal, Mapping
+from typing import Any, Literal, NoReturn
 
 from src.core.engine.gungnir.schema import (
     GUNGNIR_AXIS_KEYS,
@@ -12,13 +13,16 @@ from src.core.engine.gungnir.schema import (
     build_gungnir_matrix,
     matrix_to_dict,
 )
-from src.core.engine.hall_schema import HallOfRecords, HallValidationRun
+from src.core.engine.hall_schema import HallValidationRun
 
 ValidationVerdict = Literal["ACCEPTED", "REJECTED", "INCONCLUSIVE"]
 BenchmarkStatus = Literal["PASS", "FAIL", "SKIPPED"]
 CheckStatus = Literal["PASS", "FAIL", "SKIPPED"]
 
 PROMOTION_BLOCKING_AXES = ("logic", "style", "sovereignty")
+LEGACY_VALIDATION_PERSISTENCE_ERROR = (
+    "legacy_python_validation_persistence_retired_use_cstar_record_result"
+)
 
 
 def _round_metric(value: Any) -> float:
@@ -89,6 +93,17 @@ class ValidationCheck:
 
 
 @dataclass(slots=True)
+class ValidationEvidence:
+    validator_identity: str
+    evidence_sha256: str
+    independent_of_execution: bool
+    evaluated_checks: int
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass(slots=True)
 class ValidationResult:
     validation_id: str
     verdict: ValidationVerdict
@@ -99,6 +114,8 @@ class ValidationResult:
     sprt: SprtVerdict | None = None
     checks: list[ValidationCheck] = field(default_factory=list)
     blocking_reasons: list[str] = field(default_factory=list)
+    evidence: ValidationEvidence | None = None
+    evidence_gaps: list[str] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -112,6 +129,8 @@ class ValidationResult:
             "sprt": self.sprt.to_dict() if self.sprt else None,
             "checks": [check.to_dict() for check in self.checks],
             "blocking_reasons": list(self.blocking_reasons),
+            "evidence": self.evidence.to_dict() if self.evidence else None,
+            "evidence_gaps": list(self.evidence_gaps),
             "metadata": dict(self.metadata),
         }
 
@@ -220,6 +239,7 @@ def create_validation_result(
     benchmark: BenchmarkResult | None = None,
     sprt: SprtVerdict | None = None,
     checks: list[ValidationCheck] | None = None,
+    evidence: ValidationEvidence | None = None,
     summary: str | None = None,
     validation_id: str | None = None,
     metadata: Mapping[str, Any] | None = None,
@@ -228,6 +248,7 @@ def create_validation_result(
     score_delta = create_score_delta(before, after)
     check_list = list(checks or [])
     blocking_reasons: list[str] = []
+    evidence_gaps: list[str] = []
 
     if not allow_regression_override:
         for axis in PROMOTION_BLOCKING_AXES:
@@ -244,9 +265,38 @@ def create_validation_result(
     if sprt and sprt.verdict == "REJECTED":
         blocking_reasons.append(f"SPRT rejected candidate: {sprt.summary}")
 
+    evaluated_checks = [check for check in check_list if check.status != "SKIPPED"]
+    if not evaluated_checks:
+        evidence_gaps.append("No validation checks were evaluated.")
+    if evidence is None:
+        evidence_gaps.append("Independent validation evidence is missing.")
+    else:
+        if not evidence.validator_identity.strip():
+            evidence_gaps.append("Validation evidence has no validator identity.")
+        if len(evidence.evidence_sha256) != 64 or any(
+            char not in "0123456789abcdefABCDEF" for char in evidence.evidence_sha256
+        ):
+            evidence_gaps.append("Validation evidence has no valid SHA-256 digest.")
+        if evidence.independent_of_execution is not True:
+            evidence_gaps.append("Validation evidence is not independent of execution.")
+        if evidence.evaluated_checks != len(evaluated_checks) or evidence.evaluated_checks <= 0:
+            evidence_gaps.append(
+                "Validation evidence evaluated-check count does not match a nonzero check denominator."
+            )
+    if benchmark and benchmark.status == "SKIPPED":
+        evidence_gaps.append("Benchmark was skipped.")
+    elif benchmark and benchmark.status == "PASS" and benchmark.trials <= 0:
+        evidence_gaps.append("Passing benchmark has a zero trial denominator.")
+    if (
+        sprt
+        and sprt.verdict == "ACCEPTED"
+        and (sprt.total <= 0 or sprt.passed <= 0 or sprt.passed > sprt.total)
+    ):
+        evidence_gaps.append("Accepted SPRT verdict has an invalid or zero sample denominator.")
+
     if blocking_reasons:
         verdict: ValidationVerdict = "REJECTED"
-    elif sprt and sprt.verdict == "INCONCLUSIVE":
+    elif (sprt and sprt.verdict == "INCONCLUSIVE") or evidence_gaps:
         verdict = "INCONCLUSIVE"
     else:
         verdict = "ACCEPTED"
@@ -269,6 +319,8 @@ def create_validation_result(
         sprt=sprt,
         checks=check_list,
         blocking_reasons=blocking_reasons,
+        evidence=evidence,
+        evidence_gaps=evidence_gaps,
         metadata=dict(metadata or {}),
     )
 
@@ -282,16 +334,20 @@ def save_validation_result(
     target_path: str | None = None,
     notes: str | None = None,
     legacy_trace_id: int | None = None,
-) -> HallValidationRun:
-    hall = HallOfRecords(project_root)
-    repo = hall.bootstrap_repository()
-    record = result.to_hall_run(
-        repo.repo_id,
-        scan_id=scan_id,
-        bead_id=bead_id,
-        target_path=target_path,
-        notes=notes,
-        legacy_trace_id=legacy_trace_id,
+) -> NoReturn:
+    """Reject the retired direct Hall persistence path.
+
+    ``ValidationResult`` and ``to_hall_run`` remain detached schema helpers.
+    Recording a validation result is a lifecycle mutation and must use the
+    kernel-backed ``cstar_record_result`` surface.
+    """
+    del (
+        project_root,
+        result,
+        scan_id,
+        bead_id,
+        target_path,
+        notes,
+        legacy_trace_id,
     )
-    hall.save_validation_run(record)
-    return record
+    raise RuntimeError(LEGACY_VALIDATION_PERSISTENCE_ERROR)

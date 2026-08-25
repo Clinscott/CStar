@@ -3,36 +3,21 @@ import type Database from 'better-sqlite3';
 import type {
     HallForgeAttemptRecord,
     HallForgeAttemptStatus,
+    HallForgeAuthorizationRecord,
     HallForgeRequestRecord,
     HallForgeRequestStatus,
 } from '../../../types/forge.js';
+import {
+    forgeAuthorizationLineageMatchesRequest,
+    isForgeAuthorizationProfile,
+    LEGACY_EXACT_FORGE_CHALLENGE_PROFILE,
+} from './forge_authorization_policy.js';
 
-export interface SaveForgeRequestInput {
-    request_id: string;
-    repo_id: string;
-    bead_id: string;
-    decision_id: string;
-    request_sha256: string;
-    request_summary_json: string;
-    target_paths_sha256: string;
-    live_source_allowed: boolean;
-    max_attempts: number;
-    operator_authorization_ref?: string;
-    operator_thread_id?: string;
-    operator_turn_id?: string;
-    operator_message_sha256?: string;
-    operator_record_sha256?: string;
-    operator_record_set_sha256?: string;
-    operator_record_count?: number;
-    adapter_ref?: string;
-    write_capability?: 'response_only' | 'project_files';
-    authorized_at?: number;
-    expires_at?: number;
-    now?: number;
-}
+export { forgeAuthorizationLineageMatchesRequest };
 
 export interface ReserveForgeAttemptInput {
     request_id: string;
+    authorization_id: string;
     idempotency_key: string;
     execution_receipt_id: string;
     adapter_ref: string;
@@ -70,6 +55,12 @@ function optionalNumber(value: unknown): number | undefined {
     return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
 }
 
+function optionalAuthorizationProfile(value: unknown): HallForgeRequestRecord['authorization_profile'] {
+    if (value === null || value === undefined || value === '') return undefined;
+    if (!isForgeAuthorizationProfile(value)) throw new Error('forge_authorization_profile_invalid');
+    return value;
+}
+
 function mapForgeRequest(row: Record<string, unknown>): HallForgeRequestRecord {
     return {
         request_id: String(row.request_id),
@@ -83,6 +74,12 @@ function mapForgeRequest(row: Record<string, unknown>): HallForgeRequestRecord {
         operator_record_sha256: optionalString(row.operator_record_sha256),
         operator_record_set_sha256: optionalString(row.operator_record_set_sha256),
         operator_record_count: optionalNumber(row.operator_record_count),
+        requester_thread_id: optionalString(row.requester_thread_id),
+        requester_turn_id: optionalString(row.requester_turn_id),
+        requester_record_set_sha256: optionalString(row.requester_record_set_sha256),
+        authorization_profile: optionalAuthorizationProfile(row.authorization_profile),
+        authorization_binding_sha256: optionalString(row.authorization_binding_sha256),
+        authorization_challenge_sha256: optionalString(row.authorization_challenge_sha256),
         request_sha256: String(row.request_sha256),
         request_summary_json: String(row.request_summary_json),
         adapter_ref: optionalString(row.adapter_ref),
@@ -97,6 +94,35 @@ function mapForgeRequest(row: Record<string, unknown>): HallForgeRequestRecord {
         created_at: Number(row.created_at),
         updated_at: Number(row.updated_at),
         completed_at: optionalNumber(row.completed_at),
+    };
+}
+
+function mapForgeAuthorization(row: Record<string, unknown>): HallForgeAuthorizationRecord {
+    if (!isForgeAuthorizationProfile(row.authorization_profile)) {
+        throw new Error('forge_authorization_profile_invalid');
+    }
+    return {
+        authorization_id: String(row.authorization_id),
+        request_id: String(row.request_id),
+        request_sha256: String(row.request_sha256),
+        authorization_profile: row.authorization_profile,
+        authorization_binding_sha256: String(row.authorization_binding_sha256),
+        challenge_sha256: optionalString(row.challenge_sha256),
+        operator_intent_json: optionalString(row.operator_intent_json),
+        operator_authorization_ref: String(row.operator_authorization_ref),
+        operator_thread_id: String(row.operator_thread_id),
+        operator_turn_id: String(row.operator_turn_id),
+        operator_message_sha256: String(row.operator_message_sha256),
+        operator_record_sha256: String(row.operator_record_sha256),
+        operator_record_set_sha256: String(row.operator_record_set_sha256),
+        operator_record_count: Number(row.operator_record_count),
+        execution_grant_schema: optionalString(row.execution_grant_schema) as
+            HallForgeAuthorizationRecord['execution_grant_schema'],
+        execution_grant_sha256: optionalString(row.execution_grant_sha256),
+        execution_grant_json: optionalString(row.execution_grant_json),
+        authorized_at: Number(row.authorized_at),
+        expires_at: Number(row.expires_at),
+        created_at: Number(row.created_at),
     };
 }
 
@@ -137,123 +163,96 @@ export function getForgeRequest(db: Database.Database, requestId: string): HallF
     return row ? mapForgeRequest(row) : null;
 }
 
+export function getForgeRequestByDecision(
+    db: Database.Database,
+    beadId: string,
+    decisionId: string,
+): HallForgeRequestRecord | null {
+    const row = db.prepare(
+        'SELECT * FROM hall_forge_requests WHERE bead_id = ? AND decision_id = ?',
+    ).get(beadId, decisionId) as Record<string, unknown> | undefined;
+    return row ? mapForgeRequest(row) : null;
+}
+
 export function getForgeAttempt(db: Database.Database, attemptId: string): HallForgeAttemptRecord | null {
     const row = db.prepare('SELECT * FROM hall_forge_attempts WHERE attempt_id = ?').get(attemptId) as Record<string, unknown> | undefined;
     return row ? mapForgeAttempt(row) : null;
 }
 
-function requestIdentityMatches(existing: HallForgeRequestRecord, input: SaveForgeRequestInput): boolean {
-    return existing.request_id === input.request_id
-        && existing.repo_id === input.repo_id
-        && existing.bead_id === input.bead_id
-        && existing.decision_id === input.decision_id
-        && existing.request_sha256 === input.request_sha256
-        && existing.request_summary_json === input.request_summary_json
-        && existing.target_paths_sha256 === input.target_paths_sha256
-        && existing.operator_authorization_ref === input.operator_authorization_ref
-        && existing.operator_thread_id === input.operator_thread_id
-        && existing.operator_turn_id === input.operator_turn_id
-        && existing.operator_message_sha256 === input.operator_message_sha256
-        && existing.operator_record_sha256 === input.operator_record_sha256
-        && existing.operator_record_set_sha256 === input.operator_record_set_sha256
-        && existing.operator_record_count === input.operator_record_count
-        && existing.adapter_ref === input.adapter_ref;
+export function getForgeAttemptByExecutionReceipt(
+    db: Database.Database,
+    executionReceiptId: string,
+): HallForgeAttemptRecord | null {
+    const row = db.prepare(
+        'SELECT * FROM hall_forge_attempts WHERE execution_receipt_id = ?',
+    ).get(executionReceiptId) as Record<string, unknown> | undefined;
+    return row ? mapForgeAttempt(row) : null;
 }
 
-export function saveForgeRequest(
+export function getForgeAuthorizationByRequest(
     db: Database.Database,
-    input: SaveForgeRequestInput,
-): { request: HallForgeRequestRecord; replayed: boolean } {
-    const now = input.now ?? Date.now();
-    const authorized = Boolean(input.operator_authorization_ref);
-    if (input.max_attempts < 1 || input.max_attempts > 10) {
-        throw new Error('forge_request_max_attempts_invalid');
+    requestId: string,
+): HallForgeAuthorizationRecord | null {
+    const row = db.prepare(
+        'SELECT * FROM hall_forge_authorizations WHERE request_id = ?',
+    ).get(requestId) as Record<string, unknown> | undefined;
+    return row ? mapForgeAuthorization(row) : null;
+}
+
+export function getForgeAttemptByIdempotency(
+    db: Database.Database,
+    requestId: string,
+    idempotencyKey: string,
+): HallForgeAttemptRecord | null {
+    const row = db.prepare(
+        'SELECT * FROM hall_forge_attempts WHERE request_id = ? AND idempotency_key = ?',
+    ).get(requestId, idempotencyKey) as Record<string, unknown> | undefined;
+    return row ? mapForgeAttempt(row) : null;
+}
+
+export function exactForgeAuthorizationMatchesRequest(
+    request: HallForgeRequestRecord,
+    authorization: HallForgeAuthorizationRecord | null,
+): authorization is HallForgeAuthorizationRecord {
+    return request.status === 'AUTHORIZED'
+        && authorization?.authorization_profile === LEGACY_EXACT_FORGE_CHALLENGE_PROFILE
+        && forgeAuthorizationLineageMatchesRequest(request, authorization);
+}
+
+export function activeForgeAuthorizationMatchesRequest(
+    request: HallForgeRequestRecord,
+    authorization: HallForgeAuthorizationRecord | null,
+): authorization is HallForgeAuthorizationRecord {
+    return request.status === 'AUTHORIZED'
+        && forgeAuthorizationLineageMatchesRequest(request, authorization);
+}
+
+function assertExactForgeAuthorization(
+    request: HallForgeRequestRecord,
+    authorization: HallForgeAuthorizationRecord | null,
+    expectedAuthorizationId: string,
+): void {
+    if (
+        !activeForgeAuthorizationMatchesRequest(request, authorization)
+        || authorization.authorization_id !== expectedAuthorizationId
+    ) {
+        throw new Error('forge_exact_authorization_receipt_required');
     }
-    if (authorized && (
-        !input.adapter_ref
-        || !input.write_capability
-        || !input.authorized_at
-        || !input.expires_at
-        || !input.operator_thread_id
-        || !input.operator_turn_id
-        || !input.operator_message_sha256
-        || !input.operator_record_sha256
-        || !input.operator_record_set_sha256
-        || !Number.isInteger(input.operator_record_count)
-        || input.operator_record_count! < 1
-    )) {
-        throw new Error('forge_request_authorization_fields_incomplete');
-    }
-    const save = db.transaction(() => {
-        const bead = db.prepare('SELECT repo_id, status FROM hall_beads WHERE bead_id = ?').get(input.bead_id) as {
-            repo_id?: string;
-            status?: string;
-        } | undefined;
-        if (!bead || bead.repo_id !== input.repo_id) {
-            throw new Error('forge_request_bead_not_found_in_repository');
-        }
-        if (['RESOLVED', 'ARCHIVED', 'SUPERSEDED'].includes(bead.status ?? '')) {
-            throw new Error('forge_request_bead_is_terminal');
-        }
-        const existingById = getForgeRequest(db, input.request_id);
-        if (existingById) {
-            if (!requestIdentityMatches(existingById, input)) {
-                throw new Error('forge_request_receipt_conflict');
-            }
-            return { request: existingById, replayed: true };
-        }
-        if (input.operator_authorization_ref) {
-            const consumed = db.prepare(
-                'SELECT request_id FROM hall_forge_requests WHERE operator_authorization_ref = ?',
-            ).get(input.operator_authorization_ref) as { request_id?: string } | undefined;
-            if (consumed) {
-                throw new Error(`forge_operator_authorization_already_consumed:${consumed.request_id}`);
-            }
-        }
-        const decisionConflict = db.prepare(
-            'SELECT request_id FROM hall_forge_requests WHERE bead_id = ? AND decision_id = ?',
-        ).get(input.bead_id, input.decision_id) as { request_id?: string } | undefined;
-        if (decisionConflict) {
-            throw new Error(`forge_request_decision_conflict:${decisionConflict.request_id}`);
-        }
-        db.prepare(`
-            INSERT INTO hall_forge_requests (
-                request_id, repo_id, bead_id, decision_id,
-                operator_authorization_ref, operator_thread_id, operator_turn_id,
-                operator_message_sha256, operator_record_sha256,
-                operator_record_set_sha256, operator_record_count,
-                request_sha256, request_summary_json, adapter_ref, write_capability,
-                target_paths_sha256, live_source_allowed, max_attempts, status,
-                active_attempt_id, authorized_at, expires_at, created_at, updated_at, completed_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?, NULL)
-        `).run(
-            input.request_id,
-            input.repo_id,
-            input.bead_id,
-            input.decision_id,
-            input.operator_authorization_ref ?? null,
-            input.operator_thread_id ?? null,
-            input.operator_turn_id ?? null,
-            input.operator_message_sha256 ?? null,
-            input.operator_record_sha256 ?? null,
-            input.operator_record_set_sha256 ?? null,
-            input.operator_record_count ?? null,
-            input.request_sha256,
-            input.request_summary_json,
-            input.adapter_ref ?? null,
-            input.write_capability ?? null,
-            input.target_paths_sha256,
-            input.live_source_allowed ? 1 : 0,
-            input.max_attempts,
-            authorized ? 'AUTHORIZED' : 'PENDING_AUTH',
-            input.authorized_at ?? null,
-            input.expires_at ?? null,
-            now,
-            now,
-        );
-        return { request: getForgeRequest(db, input.request_id)!, replayed: false };
-    });
-    return save.immediate();
+}
+
+function forgeAttemptReplayInputMatches(
+    attempt: HallForgeAttemptRecord,
+    input: ReserveForgeAttemptInput,
+): boolean {
+    return attempt.request_id === input.request_id
+        && attempt.idempotency_key === input.idempotency_key
+        && attempt.execution_receipt_id === input.execution_receipt_id
+        && attempt.adapter_ref === input.adapter_ref
+        && attempt.provider === input.provider
+        && attempt.requested_model === input.requested_model
+        && attempt.reasoning_profile === input.reasoning_profile
+        && attempt.adapter_version === input.adapter_version
+        && attempt.retry_of_attempt_id === input.retry_of_attempt_id;
 }
 
 export function reserveForgeAttempt(
@@ -271,13 +270,27 @@ export function reserveForgeAttempt(
         if (existing) {
             const request = getForgeRequest(db, input.request_id);
             if (!request) throw new Error('forge_request_not_found');
-            return { attempt: mapForgeAttempt(existing), request, replayed: true };
+            const authorization = getForgeAuthorizationByRequest(db, request.request_id);
+            if (!forgeAuthorizationLineageMatchesRequest(request, authorization)
+                || authorization.authorization_id !== input.authorization_id) {
+                throw new Error('forge_exact_authorization_receipt_required');
+            }
+            const attempt = mapForgeAttempt(existing);
+            if (!forgeAttemptReplayInputMatches(attempt, input)) {
+                throw new Error('forge_attempt_idempotency_replay_conflict');
+            }
+            return { attempt, request, replayed: true };
         }
         const request = getForgeRequest(db, input.request_id);
         if (!request) throw new Error('forge_request_not_found');
         if (request.status !== 'AUTHORIZED') {
             throw new Error(`forge_request_not_authorized:${request.status}`);
         }
+        assertExactForgeAuthorization(
+            request,
+            getForgeAuthorizationByRequest(db, request.request_id),
+            input.authorization_id,
+        );
         if (!request.expires_at || request.expires_at <= now) {
             db.prepare(`
                 UPDATE hall_forge_attempts

@@ -30,7 +30,10 @@ describe('CStar MCP response contract', () => {
 
     it('normalizes and caps error text', () => {
         assert.equal(normalizeErrorMessage(new Error('one\n two\tthree'), 9), 'one two t');
-        assert.deepEqual(parsePayload(errorResponse(new Error('one\n two'), 64)), { error: 'one two' });
+        assert.deepEqual(parsePayload(errorResponse(new Error('one\n two'), 64)), {
+            error_code: 'cstar_internal_error',
+            error: 'one two',
+        });
     });
 
     it('publishes guardrail payloads with explicit failed and warning checks', () => {

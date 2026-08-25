@@ -2,6 +2,25 @@ import { randomUUID } from 'node:crypto';
 
 export type IntelligenceTransportMode = 'auto' | 'host_session' | 'synapse_db';
 export type IntelligenceStatus = 'success' | 'error';
+export type IntelligenceExecutionSurface =
+    | 'host_session_invoker'
+    | 'configured_host_bridge'
+    | 'codex_exec_cli'
+    | 'agy_cli'
+    | 'claude_cli';
+
+const INTELLIGENCE_EXECUTION_SURFACES = new Set<IntelligenceExecutionSurface>([
+    'host_session_invoker',
+    'configured_host_bridge',
+    'codex_exec_cli',
+    'agy_cli',
+    'claude_cli',
+]);
+
+export function isIntelligenceExecutionSurface(value: unknown): value is IntelligenceExecutionSurface {
+    return typeof value === 'string'
+        && INTELLIGENCE_EXECUTION_SURFACES.has(value as IntelligenceExecutionSurface);
+}
 
 export interface IntelligenceCaller {
     source: string;
@@ -14,6 +33,7 @@ export interface IntelligenceRequest {
     prompt: string;
     system_prompt?: string;
     transport_mode?: IntelligenceTransportMode;
+    execution_surface?: IntelligenceExecutionSurface;
     correlation_id?: string;
     caller?: IntelligenceCaller;
     metadata?: Record<string, unknown>;
@@ -23,6 +43,7 @@ export interface NormalizedIntelligenceRequest {
     prompt: string;
     system_prompt?: string;
     transport_mode: IntelligenceTransportMode;
+    execution_surface?: IntelligenceExecutionSurface;
     correlation_id: string;
     caller: IntelligenceCaller;
     metadata: Record<string, unknown>;
@@ -50,6 +71,7 @@ export function normalizeIntelligenceRequest(
         prompt: request.prompt,
         system_prompt: request.system_prompt,
         transport_mode: request.transport_mode ?? 'auto',
+        execution_surface: request.execution_surface,
         correlation_id: request.correlation_id ?? randomUUID(),
         caller: request.caller ?? { source: defaultSource },
         metadata: request.metadata ?? {},

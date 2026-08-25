@@ -60,20 +60,9 @@ class Heimdall:
         self.fix = fix
         self.scripts_dir = Path(__file__).parent.absolute()
         self.project_root = self.scripts_dir.parent.parent
-        self.config = self._load_config()
-        SovereignHUD.PERSONA = persona_override.upper() if persona_override else self.config.get("Persona", "ALFRED").upper()
+        SovereignHUD.PERSONA = persona_override.upper() if persona_override else None
         if SovereignHUD.PERSONA == "GOD":
             SovereignHUD.PERSONA = "ODIN"
-
-    def _load_config(self) -> dict:
-        config_path = self.project_root / ".agents" / "config.json"
-        if config_path.exists():
-            try:
-                with open(config_path, encoding='utf-8') as f:
-                    return json.load(f)
-            except Exception:
-                pass
-        return {}
 
     def scan_for_orphans(self, filepath: Path) -> list[dict[str, Any]]:
         """AST-based scan for top-level functions (orphans)."""

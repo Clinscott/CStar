@@ -30,7 +30,7 @@ export class ChronosIndexer {
      * Index the git history of the repository.
      */
     public async index(limit: number = 1000): Promise<void> {
-        console.error(chalk.cyan(`[ALFRED] Ingesting temporal history for ${this.repoId}...`));
+        console.error(chalk.cyan(`[CSTAR] Ingesting temporal history for ${this.repoId}...`));
 
         try {
             // Get commit history with metadata
@@ -75,7 +75,7 @@ export class ChronosIndexer {
                 count++;
             }
 
-            console.error(chalk.green(`[ALFRED] Temporal ingestion complete. ${count} commits recorded.`));
+            console.error(chalk.green(`[CSTAR] Temporal ingestion complete. ${count} commits recorded.`));
         } catch (e: any) {
             console.error(chalk.red(`[ERROR] Chronos Indexer failed: ${e.message}`));
         }

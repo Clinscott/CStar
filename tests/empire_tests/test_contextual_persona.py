@@ -1,5 +1,4 @@
-import json
-from unittest.mock import mock_open, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -36,21 +35,18 @@ def dialogue_engine():
 # --- Test Scenarios ---
 
 def test_odin_reacts_to_defiance(dialogue_engine):
-    """Scenario: Odin reacts to system defiance with specific vocabulary."""
-    # Simulate sovereign_state.json with DEFIANCE
-    mock_state = json.dumps({"check_pro.py": "DEFIANCE"})
+    """Persona strategy is style-only; display context stays caller-owned."""
+    odin = OdinStrategy(".")
 
-    with patch("builtins.open", mock_open(read_data=mock_state)):
-        with patch("os.path.exists", return_value=True):
-            # We need to pass the root to OdinStrategy
-            odin = OdinStrategy(".")
-            context = odin.enforce_policy() # Should set compliance_breach=True
+    authority = odin.enforce_policy(compliance_breach=True)
+    assert authority == {"authority": "style_only", "persona": "ODIN"}
 
-            assert context.get("compliance_breach") is True
-
-            # Verify dialogue engine selects the correct themed phrase
-            phrase = dialogue_engine.get("ODIN", "TASK_FAILED", context=context)
-            assert any(word in phrase.lower() for word in ["shatters", "hel"])
+    phrase = dialogue_engine.get(
+        "ODIN",
+        "TASK_FAILED",
+        context={"compliance_breach": True},
+    )
+    assert any(word in phrase.lower() for word in ["shatters", "hel"])
 
 def test_alfred_provides_syntax_guidance(dialogue_engine):
     """Scenario: Alfred detects a SyntaxError and provides targeted dialogue."""
