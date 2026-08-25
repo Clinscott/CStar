@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "corvus.organism.succession_receipt.v1",
+  "title": "Closed CStar succession receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "scope_id", "old_generation", "new_generation", "controller_identity", "handoff_packet_hash", "transition", "old_generation_state", "authorized_by_cstar", "automatic_continuation"],
+  "properties": {
+    "schema": {"const": "corvus.organism.succession_receipt.v1"},
+    "scope_id": {"type": "string", "minLength": 1},
+    "old_generation": {"type": "string", "minLength": 1},
+    "new_generation": {"type": "string", "minLength": 1},
+    "controller_identity": {"const": "cstar"},
+    "handoff_packet_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "transition": {"const": ["revoke_old_generation", "identify_new_generation", "bind_handoff_packet", "append_event"]},
+    "old_generation_state": {"enum": ["DRAINING", "QUARANTINED"]},
+    "authorized_by_cstar": {"const": true},
+    "automatic_continuation": {"const": false}
+  }
+}
