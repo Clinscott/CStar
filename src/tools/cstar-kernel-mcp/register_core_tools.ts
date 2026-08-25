@@ -1,14 +1,26 @@
 import { z } from 'zod';
 import type { HallBeadStatus, HallBeadTargetKind } from '../../types/hall.js';
-import { dispatchRequestSchema, forgeExecuteSchema } from './contracts/schemas.js';
+import {
+    dispatchRequestSchema,
+    forgeAuthorizeSchema,
+    forgeExecuteSchema,
+    forgeRequestSchema,
+} from './contracts/schemas.js';
+import {
+    getCstarKernelToolCatalogEntry,
+    type CstarKernelToolName,
+} from './contracts/tool_catalog.js';
 import { mcpToolDescription } from './contracts/tool_classes.js';
-import { handleAutobot, isAutobotMcpEnabled } from './tools/autobot.js';
+import type { McpRequestContext } from './contracts/request_context.js';
 import { handleAugury } from './tools/augury.js';
 import { handleBead } from './tools/bead.js';
 import { handleManifest, handleSkillInfo, handleSpokeJournal } from './tools/capability.js';
 import { handleEvolve } from './tools/evolve.js';
 import { handleForgeExecute } from './tools/forge_execute.js';
-import { handleForgeRequest, handleResearcherRequest } from './tools/dispatch_request.js';
+import { handleForgeAuthorize } from './tools/forge_authorize.js';
+import { handleResearcherRequest } from './tools/dispatch_request.js';
+import { handleForgeRequest } from './tools/forge_request.js';
+import { handleGoalResume } from './tools/goal_resume.js';
 import { handleDoctor, handleHallMaintenance, handleHallSearch, handleHandoff, handleVerifyPlan } from './tools/hall.js';
 import { handleEngramRecord, handleWarGameScore } from './tools/war_game.js';
 import { handleIntentRoute } from './tools/intent_route.js';
@@ -23,72 +35,96 @@ import { handleTelemetry } from './tools/telemetry.js';
 import { handleWarden } from './tools/warden.js';
 
 type ServerWithTool = { tool: (...args: any[]) => unknown };
-type InstrumentTool = (name: string, handler: (args: any) => Promise<any>) => any;
+type ToolHandler = (args: any, context?: McpRequestContext) => Promise<any>;
+type InstrumentTool = (name: CstarKernelToolName, handler: ToolHandler) => any;
+
+function registerCatalogTool(
+    server: ServerWithTool,
+    instrumentTool: InstrumentTool,
+    name: CstarKernelToolName,
+    schema: any,
+    handler: ToolHandler,
+): void {
+    const entry = getCstarKernelToolCatalogEntry(name);
+    server.tool(
+        entry.name,
+        mcpToolDescription(entry.toolClass, entry.description),
+        schema,
+        instrumentTool(entry.name, handler),
+    );
+}
 
 export function registerCoreTools(server: ServerWithTool, instrumentTool: InstrumentTool): void {
-    server.tool(
+    registerCatalogTool(
+        server,
+        instrumentTool,
         'cstar_hall_maintenance',
-        mcpToolDescription('READ', 'Maintenance operations for the Hall of Records: study one Engram or harvest recent lessons.'),
         {
-            action: z.enum(['study', 'harvest']).describe('The maintenance action to perform'),
-            limit: z.number().min(1).max(20).optional().default(5).describe('Batch size for harvest'),
-            memory_id: z.string().optional().describe('Target engram for study'),
+            action: z.enum(['study', 'harvest']).describe('Retired compatibility action; every invocation fails closed'),
+            limit: z.number().min(1).max(20).optional().default(5).describe('Ignored legacy batch size'),
+            memory_id: z.string().optional().describe('Ignored legacy Engram id'),
         },
-        instrumentTool('cstar_hall_maintenance', handleHallMaintenance),
+        handleHallMaintenance,
     );
 
-    server.tool(
+    registerCatalogTool(
+        server,
+        instrumentTool,
         'cstar_handoff',
-        mcpToolDescription('READ', 'Return compact active state from Augury/handoff logic.'),
         {
             prompt: z.string().optional().describe('Optional current mission prompt used to label target-aware handoff checks'),
             scope: z.string().optional().describe('Optional current mission scope used to label target-aware handoff checks'),
             target_paths: z.array(z.string()).optional().describe('Optional current mission targets; diverging active sessions are demoted to background'),
         },
-        instrumentTool('cstar_handoff', handleHandoff),
+        handleHandoff,
     );
 
-    server.tool(
+    registerCatalogTool(
+        server,
+        instrumentTool,
         'cstar_hall_search',
-        mcpToolDescription('READ', 'Bounded Hall search across code/docs/engrams/beads/sessions/lessons.'),
         {
             query: z.string().describe('The search query'),
             limit: z.number().min(1).max(10).optional().default(5).describe('Result limit, max 10'),
             types: z.array(z.enum(['CODE', 'DOC', 'ENGRAM', 'BEAD', 'SESSION', 'LESSON'])).optional().describe('Filter by types'),
         },
-        instrumentTool('cstar_hall_search', handleHallSearch),
+        handleHallSearch,
     );
 
-    server.tool(
+    registerCatalogTool(
+        server,
+        instrumentTool,
         'cstar_augury',
-        mcpToolDescription('READ', 'Resolve a mission to a route with deterministic grammar, active session context, council expert, Mimir targets, and persona advice.'),
         {
             prompt: z.string().describe('The user prompt or mission statement'),
             inferred_intent: z.string().optional().describe('Optional inferred intent'),
             target_paths: z.array(z.string()).optional().describe('Optional target paths'),
             scope: z.string().optional().describe('Optional scope'),
-            bead_id: z.string().optional().describe('Optional bead id used to link token-path advice to later validation observations'),
+            bead_id: z.string().optional().describe('Optional bead id for route provenance; Augury does not write or link TokenPath advice'),
         },
-        instrumentTool('cstar_augury', handleAugury),
+        handleAugury,
     );
 
-    server.tool(
+    registerCatalogTool(
+        server,
+        instrumentTool,
         'cstar_doctor',
-        mcpToolDescription('READ', 'Diagnose base kernel health and active Augury health.'),
         {},
-        instrumentTool('cstar_doctor', handleDoctor),
+        handleDoctor,
     );
 
-    server.tool(
+    registerCatalogTool(
+        server,
+        instrumentTool,
         'cstar_verify_plan',
-        mcpToolDescription('READ', 'Recommend focused checks; do not run them.'),
         {},
-        instrumentTool('cstar_verify_plan', handleVerifyPlan),
+        handleVerifyPlan,
     );
 
-    server.tool(
+    registerCatalogTool(
+        server,
+        instrumentTool,
         'cstar_bead',
-        mcpToolDescription('MUTATION', 'Create, inspect, claim, block, resolve, and list bounded Hall beads. RESOLVED transitions are gated by the Sterling Mandate unless force/exemption evidence is supplied.'),
         {
             action: z.enum(['get', 'list', 'create', 'update_status', 'claim', 'resolve', 'block']).describe('Bounded bead action'),
             bead_id: z.string().optional().describe('Hall bead id'),
@@ -109,31 +145,39 @@ export function registerCoreTools(server: ServerWithTool, instrumentTool: Instru
             triage_reason: z.string().optional().describe('Reason for blocked/triage status'),
             metadata: z.record(z.string(), z.unknown()).optional().describe('Small metadata object'),
             mandate_evidence: z.object({
-                lore_paths: z.array(z.string()).optional().describe('.feature Gherkin paths; existence-checked'),
-                isolation_paths: z.array(z.string()).optional().describe('Unit-test paths; existence-checked'),
+                lore_paths: z.array(z.string()).optional().describe('Safe relative .feature paths; contained bytes must be bound to the validation receipt'),
+                isolation_paths: z.array(z.string()).optional().describe('Safe relative focused-test paths; contained bytes must be bound to the validation receipt'),
                 audit: z.object({
-                    gungnir_score: z.number().optional().describe('Numeric Gungnir score'),
-                    warden_results: z.array(z.object({
-                        name: z.string(),
-                        verdict: z.enum(['ACCEPTED', 'REJECTED', 'INCONCLUSIVE']),
-                        ran_at: z.number(),
-                        notes: z.string().optional(),
-                    })).optional().describe('Warden run results'),
-                    validation_id: z.string().optional().describe('Accepted/success validation id'),
-                }).optional().describe('Audit proof. Any sub-field satisfies this leg.'),
-                mandate_exempt: z.boolean().optional().describe('Skip the mandate. Requires exemption_reason.'),
-                exemption_reason: z.string().optional().describe('Justification for the exemption.'),
-            }).optional().describe('Sterling Mandate evidence for RESOLVED transitions.'),
-            force: z.boolean().optional().describe('Override a rejected Sterling Mandate verdict. Requires force_reason.'),
-            force_reason: z.string().optional().describe('Justification for the force override.'),
+                    validation_id: z.string().min(1).max(240).optional()
+                        .describe('Positive, verified Hall validation receipt bound to this bead'),
+                }).strict().optional()
+                    .describe('Exact independent validation receipt; caller-provided scores and claimed Warden results are non-authoritative.'),
+            }).strict().optional().describe('Sterling Mandate evidence for RESOLVED transitions.'),
             spoke: z.string().optional().describe('Registered Hall spoke slug used to anchor created beads.'),
         },
-        instrumentTool('cstar_bead', handleBead),
+        handleBead,
     );
 
-    server.tool(
+    registerCatalogTool(
+        server,
+        instrumentTool,
+        'cstar_goal_resume',
+        {
+            repair_bead_id: z.string().min(1).max(240).describe('Active repair bead that owns the continuity record'),
+            continued_bead_id: z.string().min(1).max(240).optional().describe('Optional active mission bead being continued'),
+            decision_id: z.string().min(1).max(240).optional().describe('Optional CStar decision correlated with the resumed goal'),
+            host_goal_objective_sha256: z.string().regex(/^[a-fA-F0-9]{64}$/).describe('Hash of the unchanged host goal objective'),
+            host_goal_snapshot_sha256: z.string().regex(/^[a-fA-F0-9]{64}$/).describe('Hash of the bounded blocked host-goal snapshot'),
+            observed_host_status: z.literal('blocked').describe('Host status remains blocked; this action never mutates it'),
+            host_resume_capability: z.literal('unavailable').describe('Observed absence of a supported host blocked-to-active transition'),
+        },
+        handleGoalResume,
+    );
+
+    registerCatalogTool(
+        server,
+        instrumentTool,
         'cstar_spoke_bead_import',
-        mcpToolDescription('MUTATION', 'Import a spoke-originated bead into the Hall through a bounded, validated handoff payload.'),
         {
             spoke: z.string().describe('Registered spoke slug anchoring the imported bead'),
             bead_id: z.string().optional().describe('Optional explicit bead id'),
@@ -153,25 +197,39 @@ export function registerCoreTools(server: ServerWithTool, instrumentTool: Instru
             status: z.enum(HALL_BEAD_STATUSES as [HallBeadStatus, ...HallBeadStatus[]]).optional().describe('Initial status; defaults to OPEN.'),
             metadata: z.record(z.string(), z.unknown()).optional().describe('Small metadata object'),
         },
-        instrumentTool('cstar_spoke_bead_import', handleSpokeBeadImport),
+        handleSpokeBeadImport,
     );
 
-    server.tool(
+    registerCatalogTool(
+        server,
+        instrumentTool,
         'cstar_record_result',
-        mcpToolDescription('MUTATION', 'Record validation results for a Hall bead, optionally linking token-path observation evidence.'),
         {
             bead_id: z.string().describe('Target bead id'),
-            verdict: z.string().describe('Validation verdict'),
+            verdict: z.enum(['ACCEPTED', 'REJECTED', 'INCONCLUSIVE', 'SUCCESS', 'FAILURE']).describe('Reported validation verdict'),
             notes: z.string().optional().describe('Compact validation notes'),
-            token_path_episode_id: z.string().optional().describe('Episode id from a prior cstar_augury token-path response'),
-            token_path_observation: z.record(z.string(), z.unknown()).optional().describe('Structured token-path observation payload'),
+            validation_id: z.string().optional().describe('Caller-stable validation id for idempotent recording'),
+            forge_execution_receipt_id: z.string().optional().describe('Forge execution receipt to finalize only after this independent validation'),
+            validation_evidence: z.object({
+                artifacts: z.array(z.object({
+                    path: z.string().min(1),
+                    sha256: z.string().regex(/^[a-fA-F0-9]{64}$/),
+                })).min(1).max(50),
+                checks: z.array(z.object({
+                    name: z.string().min(1).max(240),
+                    status: z.enum(['pass', 'fail']),
+                    evidence_path: z.string().min(1),
+                    sha256: z.string().regex(/^[a-fA-F0-9]{64}$/),
+                })).min(1).max(25),
+            }).strict().optional().describe('Hash-verified local evidence; CStar derives validator identity and independence against the exact Forge receipt'),
         },
-        instrumentTool('cstar_record_result', handleRecordResult),
+        handleRecordResult,
     );
 
-    server.tool(
+    registerCatalogTool(
+        server,
+        instrumentTool,
         'cstar_engram_record',
-        mcpToolDescription('MUTATION', 'Publish an Engram to the Hall episodic memory table and fire war-game scoring when applicable.'),
         {
             intent: z.string().describe('Engram intent or tactical summary'),
             bead_id: z.string().describe('Associated bead id'),
@@ -179,12 +237,13 @@ export function registerCoreTools(server: ServerWithTool, instrumentTool: Instru
             metadata: z.record(z.string(), z.unknown()).optional().describe('Small metadata object'),
             memory_id: z.string().optional().describe('Optional explicit memory id'),
         },
-        instrumentTool('cstar_engram_record', handleEngramRecord),
+        handleEngramRecord,
     );
 
-    server.tool(
+    registerCatalogTool(
+        server,
+        instrumentTool,
         'cstar_war_game_score',
-        mcpToolDescription('MUTATION', 'War-game scoring: register_contest, tally, recent, by_scenario, get_score, list_contests.'),
         {
             action: z.enum(['register_contest', 'tally', 'recent', 'by_scenario', 'get_score', 'list_contests']).describe('War-game scoring action'),
             contest_id: z.string().optional(),
@@ -208,175 +267,174 @@ export function registerCoreTools(server: ServerWithTool, instrumentTool: Instru
             scenario_compatibility_map: z.record(z.string(), z.array(z.string())).optional(),
             metadata: z.record(z.string(), z.unknown()).optional(),
         },
-        instrumentTool('cstar_war_game_score', handleWarGameScore),
+        handleWarGameScore,
     );
 
-    server.tool(
+    registerCatalogTool(
+        server,
+        instrumentTool,
         'cstar_manifest',
-        mcpToolDescription('READ', 'Capability discovery. Returns the kernel registry merged with spoke-local skill manifests.'),
         {
             scope: z.enum(['hub', 'spoke', 'all']).optional().default('hub').describe('Capability source'),
             spoke: z.string().optional().describe('Optional spoke slug'),
         },
-        instrumentTool('cstar_manifest', handleManifest),
+        handleManifest,
     );
 
-    server.tool(
+    registerCatalogTool(
+        server,
+        instrumentTool,
         'cstar_skill_info',
-        mcpToolDescription('READ', 'Per-capability contract view for hub and namespaced spoke skills.'),
         {
             id: z.string().describe('Capability id; bare for hub, <slug>:<bare> for spoke'),
             spoke: z.string().optional().describe('Optional override of the spoke slug parsed from id'),
         },
-        instrumentTool('cstar_skill_info', handleSkillInfo),
+        handleSkillInfo,
     );
 
-    server.tool(
+    registerCatalogTool(
+        server,
+        instrumentTool,
         'cstar_spoke_journal',
-        mcpToolDescription('READ', 'Four-file journal state for a registered spoke.'),
         {
             spoke: z.string().describe('Slug of a registered spoke'),
         },
-        instrumentTool('cstar_spoke_journal', handleSpokeJournal),
+        handleSpokeJournal,
     );
 
-    server.tool(
+    registerCatalogTool(
+        server,
+        instrumentTool,
         'cstar_pennyone_context',
-        mcpToolDescription('READ', 'Bounded PennyOne/Hall state summaries. No arbitrary SQL is accepted.'),
         {
             action: z.enum(['status', 'bead_summary', 'validation_summary', 'repository_summary']).optional().default('status').describe('Named read surface'),
             limit: z.number().min(1).max(50).optional().default(10).describe('Returned item cap'),
             statuses: z.array(z.enum(HALL_BEAD_STATUSES as [HallBeadStatus, ...HallBeadStatus[]])).optional().describe('Optional bead status filter'),
             bead_id: z.string().optional().describe('Required for validation_summary'),
         },
-        instrumentTool('cstar_pennyone_context', handlePennyOneContext),
+        handlePennyOneContext,
     );
 
-    server.tool(
+    registerCatalogTool(
+        server,
+        instrumentTool,
         'cstar_mongo_mailbox',
-        mcpToolDescription('MUTATION', 'Mongo mailbox status/counts and bounded operator-intent enqueue. No arbitrary Mongo query is accepted.'),
         {
-            action: z.enum(['status', 'mirror_counts', 'enqueue_operator_intent']).optional().default('status').describe('Named Mongo mailbox operation'),
-            intent_action: z.enum(['accept', 'decline', 'refine', 'dispatch', 'edit']).optional().describe('Required for enqueue_operator_intent'),
-            proposal_id: z.string().optional().describe('Required for enqueue_operator_intent'),
-            payload: z.record(z.string(), z.unknown()).nullable().optional().describe('Optional bounded intent payload'),
-            actor: z.string().optional().describe('Operator or system actor label'),
-            operator_authorization_ref: z.string().optional().describe('Required for Mongo mailbox writes'),
+            action: z.enum(['status', 'mirror_counts', 'enqueue_operator_intent']).optional().default('status').describe('Ignored retired compatibility action; every value fails closed'),
+            intent_action: z.enum(['accept', 'decline', 'refine', 'dispatch', 'edit']).optional().describe('Ignored legacy compatibility input'),
+            proposal_id: z.string().optional().describe('Ignored legacy compatibility input'),
+            payload: z.record(z.string(), z.unknown()).nullable().optional().describe('Ignored legacy compatibility input'),
+            actor: z.string().optional().describe('Ignored legacy compatibility input'),
+            operator_authorization_ref: z.string().optional().describe('Ignored evidence string; grants no authority and cannot enable writes'),
         },
-        instrumentTool('cstar_mongo_mailbox', handleMongoMailbox),
+        handleMongoMailbox,
     );
 
-    server.tool(
+    registerCatalogTool(
+        server,
+        instrumentTool,
         'cstar_status',
-        mcpToolDescription('READ', 'Deterministic kernel state snapshot.'),
         {},
-        instrumentTool('cstar_status', handleStatus),
+        handleStatus,
     );
 
-    server.tool(
+    registerCatalogTool(
+        server,
+        instrumentTool,
         'cstar_evolve',
-        mcpToolDescription('READ', 'Read-only inspection of Karpathy-loop artifacts: list_proposals, get_proposal, list_sprt_history.'),
         {
             action: z.enum(['list_proposals', 'get_proposal', 'list_sprt_history']).describe('Read-only operation'),
             proposal_id: z.string().optional().describe('Required for get_proposal'),
             limit: z.number().min(1).max(100).optional().describe('Returned item cap'),
         },
-        instrumentTool('cstar_evolve', handleEvolve),
+        handleEvolve,
     );
 
-    server.tool(
+    registerCatalogTool(
+        server,
+        instrumentTool,
         'cstar_spoke',
-        mcpToolDescription('MUTATION', 'Mounted-spoke lifecycle: list / link / unlink / inspect / project / doctor / prune / verify / health.'),
         {
-            action: z.enum(['list', 'link', 'unlink', 'inspect', 'project', 'doctor', 'prune', 'verify', 'health']).describe('Lifecycle operation'),
-            slug: z.string().optional().describe('Required for link, unlink, inspect, project, verify, health'),
-            root_path: z.string().optional().describe('Required for link'),
-            kind: z.enum(['local', 'git', 'mirror', 'archive']).optional().describe('Spoke kind'),
-            remote_url: z.string().optional().describe('Optional remote URL'),
-            branch: z.string().optional().describe('Default branch'),
-            trust_level: z.enum(['trusted', 'observe', 'quarantined']).optional().describe('Trust policy'),
-            write_policy: z.enum(['read_write', 'read_only']).optional().describe('Whether spoke may submit beads'),
-            accept_beads: z.boolean().optional().describe('Forces trust=trusted and write_policy=read_write'),
-            skip_init: z.boolean().optional().describe('Skip deterministic projection on link'),
-            targets: z.array(z.object({ slug: z.string(), root_path: z.string() })).optional().describe('Prune targets'),
-            dry_run: z.boolean().optional().describe('Prune dry run flag'),
-            cleanup_artifacts: z.boolean().optional().describe('Prune cleanup flag'),
+            action: z.enum(['list', 'link', 'unlink', 'inspect', 'project', 'doctor', 'prune', 'verify', 'health']).describe('Read operation; legacy mutation actions fail closed'),
+            slug: z.string().optional().describe('Required for inspect, verify, and health; ignored by retired mutation actions'),
+            root_path: z.string().optional().describe('Ignored legacy link input; never read or returned'),
+            kind: z.enum(['local', 'git', 'mirror', 'archive']).optional().describe('Ignored legacy link input'),
+            remote_url: z.string().optional().describe('Ignored legacy link input; never read or returned'),
+            branch: z.string().optional().describe('Ignored legacy link input'),
+            trust_level: z.enum(['trusted', 'observe', 'quarantined']).optional().describe('Ignored legacy link input'),
+            write_policy: z.enum(['read_write', 'read_only']).optional().describe('Ignored legacy link input'),
+            accept_beads: z.boolean().optional().describe('Ignored legacy link input'),
+            skip_init: z.boolean().optional().describe('Ignored legacy link input'),
+            targets: z.array(z.object({ slug: z.string(), root_path: z.string() })).optional().describe('Exact Hall row/root pairs for read-only prune preview'),
+            dry_run: z.boolean().optional().describe('Must be explicitly true for prune preview'),
+            cleanup_artifacts: z.boolean().optional().describe('Must remain false; cleanup requires a future verified authority contract'),
         },
-        instrumentTool('cstar_spoke', handleSpoke),
+        handleSpoke,
     );
 
-    server.tool(
+    registerCatalogTool(
+        server,
+        instrumentTool,
         'cstar_intent_route',
-        mcpToolDescription('READ', 'Deterministic grammar-only routing. Prefer cstar_augury when session context is needed.'),
         {
             prompt: z.string().describe('Prompt or mission text to tokenize and match'),
             action: z.enum(['match', 'explain']).optional().default('match').describe('match returns one winner; explain returns all matches'),
         },
-        instrumentTool('cstar_intent_route', handleIntentRoute),
+        handleIntentRoute,
     );
 
-    server.tool(
+    registerCatalogTool(
+        server,
+        instrumentTool,
         'cstar_warden',
-        mcpToolDescription('READ', 'On-demand Sentinel Warden invocation. Deterministic scanners only; no LLM inference.'),
         {
-            action: z.enum(['list', 'bounties', 'scan']).describe('list / bounties / scan'),
+            action: z.enum(['list', 'bounties', 'scan']).describe('list / bounties are read-only; scan is local process execution'),
             warden: z.string().optional().describe('Required for scan'),
             target: z.string().optional().describe('Optional path inside the project root'),
         },
-        instrumentTool('cstar_warden', handleWarden),
+        handleWarden,
     );
 
-    server.tool(
+    registerCatalogTool(
+        server,
+        instrumentTool,
         'cstar_telemetry',
-        mcpToolDescription('READ', 'Read-only MCP telemetry summaries over the last 24h.'),
         {
             section: z.enum(['all', 'usage', 'usefulness', 'token_path']).optional().default('all').describe('Which summary block(s) to return'),
         },
-        instrumentTool('cstar_telemetry', handleTelemetry),
+        handleTelemetry,
     );
 
-    server.tool(
+    registerCatalogTool(
+        server,
+        instrumentTool,
         'cstar_researcher_request',
-        mcpToolDescription('REQUEST', 'Create a CStar-native no-spend Researcher request receipt.'),
         dispatchRequestSchema,
-        instrumentTool('cstar_researcher_request', handleResearcherRequest),
+        handleResearcherRequest,
     );
 
-    server.tool(
+    registerCatalogTool(
+        server,
+        instrumentTool,
         'cstar_forge_request',
-        mcpToolDescription('REQUEST', 'Create a CStar-native no-spend Corvus Forge/Hermes MiniMax request receipt.'),
-        dispatchRequestSchema,
-        instrumentTool('cstar_forge_request', handleForgeRequest),
+        forgeRequestSchema,
+        handleForgeRequest,
     );
 
-    server.tool(
+    registerCatalogTool(
+        server,
+        instrumentTool,
+        'cstar_forge_authorize',
+        forgeAuthorizeSchema,
+        handleForgeAuthorize,
+    );
+
+    registerCatalogTool(
+        server,
+        instrumentTool,
         'cstar_forge_execute',
-        mcpToolDescription('EXECUTION', 'Execute a CStar-native Corvus Forge contract linked to a cstar_forge_request receipt.'),
         forgeExecuteSchema,
-        instrumentTool('cstar_forge_execute', handleForgeExecute),
+        handleForgeExecute,
     );
 
-    if (isAutobotMcpEnabled()) {
-        server.tool(
-            'cstar_autobot',
-            mcpToolDescription('LEGACY', 'Delegate a bounded task to a Hermes-managed sub-agent. Legacy compatibility surface only.'),
-            {
-                intent: z.string().min(1).describe('One-sentence task statement'),
-                project_root: z.string().optional().describe('Anchors relative target_paths'),
-                target_paths: z.array(z.string()).optional().describe('Files to read into the prompt'),
-                payload: z.object({
-                    hermes_profile: z.string().optional(),
-                    model: z.string().optional(),
-                    expected_output: z.enum(['markdown', 'json', 'plain']).optional(),
-                    max_chars: z.number().int().positive().optional(),
-                    session_name: z.string().nullable().optional(),
-                    write_to: z.string().nullable().optional(),
-                    append_with_separator: z.string().nullable().optional(),
-                    tags: z.array(z.string()).optional(),
-                    timeout_seconds: z.number().int().positive().optional(),
-                }).optional(),
-            },
-            instrumentTool('cstar_autobot', handleAutobot),
-        );
-    }
 }

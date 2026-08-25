@@ -16,10 +16,11 @@ Feature: PennyOne v2.0 Autonomic Nervous System
     When the Gungnir Gravity calculation is executed
     Then the file's Gravity [G] should be calculated as "17". # (2*5) + (0.1*50) + (1.0*2) = 10 + 5 + 2 = 17
 
-  Scenario: Decoupled Data Lake Ingestion
-    Given the P1 Daemon is active
-    When the Daemon recalculates the Matrix and writes to ".stats/matrix-graph.json"
-    Then the Daemon should broadcast "MATRIX_UPDATED" via the CortexLink WebSocket bridge.
+  Scenario: Read-only projection does not restore the retired gateway
+    Given PennyOne has a current projected Matrix
+    When an operator reads the projection
+    Then no CortexLink WebSocket bridge should be started
+    And PennyOne should grant no execution or lifecycle authority.
 
   Scenario: Standardized Semantic Intelligence (LSIF/SCIP)
     Given a repository with complex cross-file dependencies

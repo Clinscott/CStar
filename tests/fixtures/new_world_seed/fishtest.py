@@ -164,7 +164,6 @@ def run_test():
         if passed_case:
             passed += 1
         else:
-            status = "FAIL"
             SovereignHUD.box_row("ERROR", "INGEST FAILED", "\033[31m")
             SovereignHUD.box_row("QUERY", case['query'], dim_label=True)
             SovereignHUD.box_row("ACTUAL", f"{info['actual']} ({info['score']:.2f})", dim_label=True)

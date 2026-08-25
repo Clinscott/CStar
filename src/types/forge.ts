@@ -29,6 +29,11 @@ export interface HallForgeRequestRecord {
     operator_record_sha256?: string;
     operator_record_set_sha256?: string;
     operator_record_count?: number;
+    requester_thread_id?: string;
+    requester_turn_id?: string;
+    requester_record_set_sha256?: string;
+    authorization_profile?: string;
+    authorization_challenge_sha256?: string;
     request_sha256: string;
     request_summary_json: string;
     adapter_ref?: string;
@@ -43,6 +48,27 @@ export interface HallForgeRequestRecord {
     created_at: number;
     updated_at: number;
     completed_at?: number;
+}
+
+export interface HallForgeAuthorizationRecord {
+    authorization_id: string;
+    request_id: string;
+    request_sha256: string;
+    authorization_profile: 'exact_request_challenge_v1';
+    challenge_sha256: string;
+    operator_authorization_ref: string;
+    operator_thread_id: string;
+    operator_turn_id: string;
+    operator_message_sha256: string;
+    operator_record_sha256: string;
+    operator_record_set_sha256: string;
+    operator_record_count: number;
+    execution_grant_schema?: 'cstar.forge_legacy_v2_execution_grant.v1';
+    execution_grant_sha256?: string;
+    execution_grant_json?: string;
+    authorized_at: number;
+    expires_at: number;
+    created_at: number;
 }
 
 export interface HallForgeAttemptRecord {

@@ -197,25 +197,23 @@ Purpose: Append an explicit outcome.
 Source:
 
 - `saveValidationRun`
-- optional token-path observation append
 
 Inputs:
 
 - `bead_id`
 - `verdict`: `ACCEPTED`, `REJECTED`, `INCONCLUSIVE`, `SUCCESS`, or `FAILURE`
 - `notes`
-- optional `token_path_episode_id`
-- optional `token_path_observation`
 
 Output:
 
 - `validation_id`
 - `bead_id`
 - `verdict`
-- optional `token_path_episode_id`
-- optional `token_path_observation_id`
 
-This records evidence. Bead state transitions belong in `cstar_bead`. When a `token_path_episode_id` is provided, the tool can auto-link the recent `cstar_augury` advice into a sidecar observation; explicit `token_path_observation` remains supported for richer calibration data.
+This records validation evidence. Bead state transitions belong in
+`cstar_bead`. TokenPath observations are not part of this generic result
+surface; any future observed pipeline requires its own independently validated,
+causally identified promotion contract.
 
 ## Implementation Shape
 

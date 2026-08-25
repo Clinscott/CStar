@@ -1,0 +1,35 @@
+{
+  "schema": "cstar.independent_validation.v1",
+  "validation_id": "val:cstar-persona-projection-provenance-2026-07-14",
+  "bead_id": "bead:repair:cstar-persona-projection-provenance-2026-07-13",
+  "verdict": "ACCEPTED",
+  "validated_at": "2026-07-14T04:00:00-04:00",
+  "validator": {
+    "requested_profile": "gpt-5.6-sol-high",
+    "actual_identity": "unreported",
+    "independent_of_execution": true
+  },
+  "reviewed_manifest_sha256": "86376c5a84b0875212c711571d77be55d8a1645328848df51e79db3b13d019cb",
+  "reviewed_files": [
+    {"path": "src/tools/pennyone/persona_projection.ts", "sha256": "f2436384a6b522c59154e57e330bc39afbd4a3b4221ba065f18f11ecf6f96d99"},
+    {"path": "src/tools/pennyone/persona_provenance.ts", "sha256": "5cafdfefd3e125c99f1b21300253acd266576b9242da8cb9d86c12a917219c59"},
+    {"path": "src/tools/pennyone/intel/repository_core.ts", "sha256": "94e75106470bad2b6355e40e01be0b3b5f98f8fff326ec7a4e4e70414e9b317c"},
+    {"path": "src/tools/pennyone/index.ts", "sha256": "751cc12a0c22f903559682b0cd103d6b741a720a3379862d653a003788b386ee"},
+    {"path": "tests/unit/test_pennyone_persona_projection.test.ts", "sha256": "d17af92a87335186029c4b38c51e444cbcb39f10f859a409a5ac0b7345789d4d"},
+    {"path": "tests/node/index.test.ts", "sha256": "f14085d2c6e80bbbfc609c2f1ae39341d9f12da84e4e144b1011e3dbd7d2b197"},
+    {"path": "tests/node/pennyone/scan_logic.test.ts", "sha256": "75a81b9323d062e0fccb44c636cd6f115628c4fcd5b65800f618bd5b31200829"},
+    {"path": "tests/unit/test_safe_persona_source_boundary.py", "sha256": "eca3c922f5f51e1c55f25d3a40e8257c423202485b816e81e0862fee69f59cb4"},
+    {"path": "docs/integrations/GEMINI.qmd", "sha256": "a774083207468f3042584be96a226df66d85e69ceb2b4c97aa6611aa6814c60b"},
+    {"path": "docs/integrations/CLAUDE.qmd", "sha256": "4162b298a14b2af4f80cdd9d4fd50ea2007f45f15f08035dab1ff0d39c0649a6"}
+  ],
+  "checks": [
+    {"name": "adversarial_continuity_probe", "status": "pass", "evidence": "Unchanged validated scalar preserved its marker; changed or explicitly invalid projections did not inherit or recover it"},
+    {"name": "source_boundary", "status": "pass", "evidence": "Document, default, seed, migration, profile, and arbitrary sources cannot activate a persona"},
+    {"name": "runtime_workflow_continuity", "status": "pass", "evidence": "Validated projection survives actual PennyOne sector and scan upserts"},
+    {"name": "focused_typescript_node", "status": "pass", "evidence": "38/38 tests passed"},
+    {"name": "focused_python_docs", "status": "pass", "evidence": "21/21 tests passed"},
+    {"name": "typescript", "status": "pass", "evidence": "tsc --noEmit exit 0"},
+    {"name": "diff_and_size", "status": "pass", "evidence": "git diff --check clean and reviewed implementation/test files do not exceed 500 lines"}
+  ],
+  "prohibited_actions_observed": []
+}

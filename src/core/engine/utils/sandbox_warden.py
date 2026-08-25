@@ -1,143 +1,27 @@
-#!/usr/bin/env python3
-"""
-[O.D.I.N.] The Sandbox Warden
-Responsible for executing untrusted Python skills in a restricted Docker environment.
-Implements:
-1. Physical Isolation (Docker container with no networking)
-2. Resource Capping (128m RAM, 0.5 CPU)
-3. Zombie Containment (Explicit docker rm -f on timeout/completion)
-4. Cross-Platform Path Handling (Windows -> Linux volume mapping)
-"""
+"""Retired direct Docker/subprocess sandbox compatibility surface."""
 
-import subprocess
-import sys
-import uuid
 from pathlib import Path
+from typing import NoReturn
 
-from src.core.sovereign_hud import SovereignHUD
+
+LEGACY_SANDBOX_WARDEN_ERROR = (
+    "legacy_python_sandbox_warden_retired_use_supported_sandbox"
+)
 
 
 class SandboxWarden:
-    def __init__(self, timeout: int = 5):
+    """Retain construction metadata without probing Docker or starting a process."""
+
+    def __init__(self, timeout: int = 5) -> None:
         self.timeout = timeout
-        # Ensure Docker is available
-        self.docker_available = True
-        try:
-            subprocess.run(["docker", "--version"], capture_output=True, check=True)
-        except (subprocess.CalledProcessError, FileNotFoundError):
-            SovereignHUD.log("WARN", "Docker CLI not found. Physical isolation will be simulated.")
-            self.docker_available = False
+        self.docker_available = False
 
-    def run_in_sandbox(self, file_path: Path, args: list[str] | None = None, hunting: bool = False) -> dict:
-        """
-        Executes a Python script in a transient, isolated Docker container.
-        """
-        # 1. Resolve Path for Cross-Platform compatibility
-        abs_path = file_path.resolve()
-
-        # 2. Assign deterministic name for brute-force cleanup
-        container_name = f"cstar_sandbox_{uuid.uuid4().hex[:8]}"
-
-        # 3. Apply dynamic hunting configuration
-        # Untrusted logic = NO NETWORK + alpine. Hunting logic = BRIDGE + sentinel-hunter.
-        network_mode = "bridge" if hunting else "none"
-        image_name = "sentinel-hunter" if hunting else "sentinel-sandbox" # Or python:3.14-alpine as fallback
-
-        # Determine image (Check if our custom images exist, else fallback to alpine)
-        try:
-            check_img = subprocess.run(["docker", "image", "inspect", image_name], capture_output=True)
-            if check_img.returncode != 0:
-                SovereignHUD.log("WARN", f"Image {image_name} not found. Falling back to python:3.14-alpine.")
-                image_name = "python:3.14-alpine"
-        except Exception:
-            image_name = "python:3.14-alpine"
-
-        # 4. Construct the Docker Command
-        cmd = [
-            "docker", "run",
-            "--rm",
-            "--name", container_name,
-            "--network", network_mode,
-            "--memory", "128m",
-            "--cpus", "0.5",
-            "-v", f"{abs_path}:/app/skill.py:ro",
-            image_name,
-            "python", "/app/skill.py"
-        ]
-
-        if args:
-            cmd.extend(args)
-
-        SovereignHUD.log("HEIMDALL", f"Isolating specimen in container '{container_name}'...")
-
-        result = {
-            "stdout": "",
-            "stderr": "",
-            "exit_code": -1,
-            "timed_out": False,
-            "simulated": not self.docker_available
-        }
-
-        try:
-            # 4. Execute with hard timeout
-            if self.docker_available:
-                try:
-                    proc = subprocess.run(
-                        cmd,
-                        capture_output=True,
-                        text=True,
-                        timeout=self.timeout
-                    )
-                    # Detect Docker daemon connection failures which return exit code 1 or 125
-                    if proc.returncode != 0 and ("docker" in proc.stderr.lower() or "pipe" in proc.stderr.lower() or "connection" in proc.stderr.lower()):
-                         raise OSError(proc.stderr)
-
-                except (subprocess.CalledProcessError, OSError):
-                    SovereignHUD.log("WARN", "Docker Engine connection failed. Falling back to SIMULATED_JAIL.")
-                    self.docker_available = False # Set for current session
-                    result["simulated"] = True
-
-            if not self.docker_available:
-                SovereignHUD.log("HEIMDALL", "[SIMULATION] Applying namespace constraints purely via OS handles...")
-                native_cmd = [sys.executable, str(abs_path)] + (args or [])
-                proc = subprocess.run(
-                    native_cmd,
-                    capture_output=True,
-                    text=True,
-                    timeout=self.timeout
-                )
-
-            result["stdout"] = proc.stdout
-            result["stderr"] = proc.stderr
-            result["exit_code"] = proc.returncode
-
-        except subprocess.TimeoutExpired as e:
-            SovereignHUD.log("WARNING", f"Specimen exceeded time limit ({self.timeout}s). Terminating.")
-            result["timed_out"] = True
-            result["stdout"] = e.stdout.decode() if e.stdout else ""
-            result["stderr"] = e.stderr.decode() if e.stderr else ""
-
-        except Exception as e:
-            SovereignHUD.log("ERROR", f"Sandbox Breach: {e!s}")
-            result["stderr"] = str(e)
-
-        finally:
-            # 5. [CRITICAL] Zombie Containment
-            # Brute-force removal to prevent resource leaks from background container spin
-            SovereignHUD.log("ODIN", f"Purging container {container_name}...")
-            subprocess.run(["docker", "rm", "-f", container_name], capture_output=True)
-
-        return result
-
-if __name__ == "__main__":
-    # Test execution
-    warden = SandboxWarden()
-    test_script = Path("test_sandbox.py")
-    test_script.write_text("print('Hello from the Crucible')")
-
-    try:
-        report = warden.run_in_sandbox(test_script)
-        print(f"Report: {report}")
-    finally:
-        if test_script.exists():
-            test_script.unlink()
+    def run_in_sandbox(
+        self,
+        file_path: Path,
+        args: list[str] | None = None,
+        hunting: bool = False,
+    ) -> NoReturn:
+        """Fail before path, Docker, subprocess, network, or cleanup effects."""
+        del file_path, args, hunting
+        raise RuntimeError(LEGACY_SANDBOX_WARDEN_ERROR)

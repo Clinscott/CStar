@@ -1,183 +1,34 @@
-import {
-    ArchitectProposalHostResponse,
-    ArchitectReviewHostResponse,
+import type {
     ArchitectServicePayload,
     RuntimeContext,
     WeaveResult,
-} from '../contracts.ts';
-import * as hostBridge from '../weaves/host_bridge.js';
-import { resolvePersonaPolicy } from '../../../../tools/pennyone/personaRegistry.js';
+} from '../contracts.js';
 
-export const deps = {
-    ...Object.assign({}, hostBridge),
-};
+export const ARCHITECT_SERVICE_RETIRED_ERROR =
+    'legacy_architect_service_retired_use_host_native_skill';
 
-function normalizeProposalResponse(parsed: ArchitectProposalHostResponse): { proposalSummary: string; beads: Record<string, unknown>[] } {
-    const proposalSummary = typeof parsed.proposal_summary === 'string' ? parsed.proposal_summary.trim() : '';
-    if (!proposalSummary) {
-        throw new Error('Architect proposal response must include a non-empty proposal_summary string.');
-    }
+export const deps = Object.freeze({ compatibility: 'retired' as const });
 
-    if (!Array.isArray(parsed.beads)) {
-        throw new Error('Architect proposal response must include a beads array.');
-    }
-
-    const beads = parsed.beads.filter(
-        (bead): bead is Record<string, unknown> => typeof bead === 'object' && bead !== null && !Array.isArray(bead),
-    );
-    if (beads.length !== parsed.beads.length) {
-        throw new Error('Architect proposal response beads must be objects.');
-    }
-
-    return { proposalSummary, beads };
-}
-
-function normalizeReviewResponse(parsed: ArchitectReviewHostResponse): {
-    isApproved: boolean;
-    architectOpinion: string;
-    finalProposedPath?: string;
-} {
-    if (typeof parsed.is_approved !== 'boolean') {
-        throw new Error('Architect review response must include an is_approved boolean.');
-    }
-
-    const architectOpinion = typeof parsed.architect_opinion === 'string' ? parsed.architect_opinion.trim() : '';
-    if (!architectOpinion) {
-        throw new Error('Architect review response must include a non-empty architect_opinion string.');
-    }
-
-    const finalProposedPath = typeof parsed.final_proposed_path === 'string' && parsed.final_proposed_path.trim()
-        ? parsed.final_proposed_path.trim()
-        : undefined;
-
-    return {
-        isApproved: parsed.is_approved,
-        architectOpinion,
-        finalProposedPath,
-    };
-}
-
+/** Retired before provider selection, callback invocation, or prompt assembly. */
 export async function executeArchitectService(
-    payload: ArchitectServicePayload,
-    context: RuntimeContext,
-    hostTextInvoker: hostBridge.HostTextInvoker = deps.defaultHostTextInvoker,
+    _payload: ArchitectServicePayload,
+    _context: RuntimeContext,
+    ..._legacyArguments: unknown[]
 ): Promise<WeaveResult> {
-    const action = payload.action ?? 'review_critique';
-    const provider = deps.resolveRuntimeHostProvider(context);
-
-    if (action === 'build_proposal' && provider === 'codex') {
-        try {
-            const personaPolicy = resolvePersonaPolicy(context.persona);
-            const rawText = await hostTextInvoker({
-                provider,
-                projectRoot: payload.project_root || context.workspace_root,
-                source: 'runtime:architect',
-                systemPrompt: 'You are the Corvus Star chant architect service. Return strict JSON only.',
-                prompt: [
-                    'Synthesize a structured proposal from the user intent and research data. Return strict JSON only.',
-                    'Expected format: { "proposal_summary": "...", "beads": [{ "id": "...", "title": "...", "rationale": "...", "targets": ["..."], "target_symbol": "...", "depends_on": ["..."], "focus_hint": "...", "acceptance_criteria": ["..."], "checker_shell": "...", "test_file_path": "...", "test_file_content": "...", "target_file_skeleton": "..." }] }',
-                    'Host-governable beads must stay bounded.',
-                    'If the request cannot be kept bounded, emit multiple smaller beads instead of one oversized bead.',
-                    'checker_shell must be executable in this repository without pnpm assumptions.',
-                    'Prefer repository-native verification commands such as `node scripts/run-tsx.mjs --test ...` when shaping checker_shell.',
-                    'Apply the active persona operating policy to proposal shape and execution gates.',
-                    '',
-                    `ACTIVE PERSONA: ${context.persona}`,
-                    `PERSONA OPERATING POLICY: ${JSON.stringify(personaPolicy.planning, null, 2)}`,
-                    `USER INTENT: ${payload.intent}`,
-                    `RESEARCH: ${JSON.stringify(payload.research, null, 2)}`,
-                ].join('\n'),
-                metadata: hostBridge.withRuntimeAuguryMetadata({
-                    runtime_weave: 'architect',
-                    decision: 'build_proposal',
-                    persona: context.persona,
-                    persona_operating_policy: personaPolicy.planning,
-                    trace_critical: true,
-                    require_agent_harness: true,
-                    transport_mode: 'host_session',
-                }, context),
-            });
-            const parsed = deps.extractJsonObject(rawText) as ArchitectProposalHostResponse;
-            const normalized = normalizeProposalResponse(parsed);
-            return {
-                weave_id: 'weave:architect',
-                status: 'SUCCESS',
-                output: normalized.proposalSummary,
-                metadata: {
-                    delegated: true,
-                    provider,
-                    architect_proposal: {
-                        ...parsed,
-                        proposal_summary: normalized.proposalSummary,
-                        beads: normalized.beads,
-                    },
-                },
-            };
-        } catch (error) {
-            const message = error instanceof Error ? error.message : String(error);
-            return {
-                weave_id: 'weave:architect',
-                status: 'FAILURE',
-                output: '',
-                error: `The chant architect service failed to build proposal: ${message}`,
-            };
-        }
-    }
-
-    if (action === 'review_critique' && provider === 'codex') {
-        try {
-            const rawText = await hostTextInvoker({
-                provider,
-                projectRoot: payload.project_root || context.workspace_root,
-                source: 'runtime:architect',
-                systemPrompt: 'You are the Corvus Star chant architect service. Return strict JSON only.',
-                prompt: [
-                    'Review the proposed bead and critique payload, then return strict JSON only.',
-                    'Expected format: { "is_approved": boolean, "architect_opinion": "...", "final_proposed_path": "..." }',
-                    '',
-                    `PROPOSED BEAD:\n${JSON.stringify(payload.bead, null, 2)}`,
-                    `SUB-AGENT CRITIQUE:\n${JSON.stringify(payload.critique_payload, null, 2)}`,
-                ].join('\n'),
-                metadata: hostBridge.withRuntimeAuguryMetadata({
-                    runtime_weave: 'architect',
-                    decision: 'review_critique',
-                    trace_critical: true,
-                    require_agent_harness: true,
-                    transport_mode: 'host_session',
-                }, context),
-            });
-            const parsed = deps.extractJsonObject(rawText) as ArchitectReviewHostResponse;
-            const normalized = normalizeReviewResponse(parsed);
-            return {
-                weave_id: 'weave:architect',
-                status: 'SUCCESS',
-                output: normalized.architectOpinion,
-                metadata: {
-                    delegated: true,
-                    provider,
-                    architect_payload: {
-                        ...parsed,
-                        is_approved: normalized.isApproved,
-                        architect_opinion: normalized.architectOpinion,
-                        final_proposed_path: normalized.finalProposedPath,
-                    },
-                },
-            };
-        } catch (error) {
-            const message = error instanceof Error ? error.message : String(error);
-            return {
-                weave_id: 'weave:architect',
-                status: 'FAILURE',
-                output: '',
-                error: `The chant architect service failed to review critique: ${message}`,
-            };
-        }
-    }
-
+    void _payload;
+    void _context;
+    void _legacyArguments;
     return {
         weave_id: 'weave:architect',
         status: 'FAILURE',
         output: '',
-        error: 'The chant architect service requires an active host session (Codex supported for this action).',
+        error: ARCHITECT_SERVICE_RETIRED_ERROR,
+        metadata: {
+            compatibility: 'retired',
+            provider_attempted: false,
+            callback_invoked: false,
+            source_access_started: false,
+            hall_mutation_started: false,
+        },
     };
 }

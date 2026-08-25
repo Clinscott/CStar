@@ -35,8 +35,15 @@ try:
     from radon.complexity import cc_rank, cc_visit
     from radon.visitors import Class as RadonClass
 except ImportError:
-    SovereignHUD.log("FAIL", "Radon library not found.", "Run 'pip install radon'")
-    sys.exit(1)
+    cc_rank = None
+    cc_visit = None
+    RadonClass = None
+
+
+def _require_radon() -> None:
+    """Fail at analysis time when the declared Radon dependency is absent."""
+    if cc_rank is None or cc_visit is None or RadonClass is None:
+        raise RuntimeError("optional_dependency_unavailable:radon")
 
 
 class DebtAnalyzer:
@@ -65,6 +72,7 @@ class DebtAnalyzer:
 
     def analyze(self, log_errors: bool = True) -> bool:
         """Performs Radon complexity visit on all discovered files."""
+        _require_radon()
         self._get_python_files()
         if not self.files:
             return False
@@ -112,6 +120,7 @@ class DebtAnalyzer:
 
     def render_json(self) -> None:
         """Outputs the results in JSON format."""
+        _require_radon()
         import json
         data = {
             "avg_complexity": self.avg_cc,
@@ -123,6 +132,7 @@ class DebtAnalyzer:
 
     def render_dashboard(self) -> None:
         """Renders the SovereignHUD-styled complexity report."""
+        _require_radon()
         os.environ["HUD_WIDTH"] = str(self.HUD_WIDTH)
 
         # Sort blocks by CC descending

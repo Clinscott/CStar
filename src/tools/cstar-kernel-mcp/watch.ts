@@ -5,14 +5,15 @@ import path from 'node:path';
  * Watch the kernel source tree for changes and exit on edit so the host re-execs
  * us with a fresh module cache. Node's ESM cache never invalidates; without this,
  * `sterling_mandate.ts` and friends keep their boot-time bytecode for the entire
- * process lifetime, meaning disk-side fixes silently fail to enforce until the
- * MCP restarts. Opt out with CSTAR_KERNEL_DISABLE_WATCH=1.
+ * process lifetime. Host-managed MCPs must remain stable, so watching is off by
+ * default and can be enabled only for an explicit local development session.
  */
 export async function attachSourceWatcher(
     projectRoot: string,
     onExit: (reason: string) => void,
+    env: NodeJS.ProcessEnv = process.env,
 ): Promise<() => Promise<void>> {
-    if (process.env.CSTAR_KERNEL_DISABLE_WATCH === '1') {
+    if (env.CSTAR_KERNEL_ENABLE_WATCH !== '1' || env.CSTAR_KERNEL_DISABLE_WATCH === '1') {
         return async () => { /* no-op */ };
     }
     let chokidarMod: typeof import('chokidar');

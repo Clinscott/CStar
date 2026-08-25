@@ -3,7 +3,18 @@ import { spawnSync } from 'node:child_process';
 
 import { PROJECT_ROOT, buildStableTempEnv, resolveProjectPython } from './runtime-env.mjs';
 
-const result = spawnSync(resolveProjectPython(PROJECT_ROOT), process.argv.slice(2), {
+let python;
+try {
+    python = resolveProjectPython(PROJECT_ROOT, process.env);
+} catch (error) {
+    const code = typeof error?.code === 'string'
+        ? error.code
+        : 'CSTAR_PYTHON_EXECUTABLE_UNAVAILABLE';
+    process.stderr.write(`[CSTAR PYTHON] ${code}\n`);
+    process.exit(2);
+}
+
+const result = spawnSync(python, process.argv.slice(2), {
     stdio: 'inherit',
     cwd: PROJECT_ROOT,
     env: buildStableTempEnv(process.env, {
@@ -13,7 +24,8 @@ const result = spawnSync(resolveProjectPython(PROJECT_ROOT), process.argv.slice(
 });
 
 if (result.error) {
-    throw result.error;
+    process.stderr.write('[CSTAR PYTHON] CSTAR_PYTHON_SPAWN_FAILED\n');
+    process.exit(2);
 }
 
 process.exit(result.status ?? 1);

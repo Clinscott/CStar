@@ -4,116 +4,89 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-import { RuntimeDispatcher } from  '../../src/node/core/runtime/dispatcher.js';
-import type { RuntimeAdapter, RuntimeContext, WeaveInvocation, WeaveResult } from  '../../src/node/core/runtime/contracts.js';
-import { registry } from  '../../src/tools/pennyone/pathRegistry.js';
-import { closeDb, getHallRepositoryRecord, saveHallMountedSpoke } from  '../../src/tools/pennyone/intel/database.js';
-import { StateRegistry } from  '../../src/node/core/state.js';
+import { RuntimeDispatcher } from '../../src/node/core/runtime/dispatcher.js';
+import type {
+    RuntimeAdapter,
+    RuntimeContext,
+    WeaveInvocation,
+    WeaveResult,
+} from '../../src/node/core/runtime/contracts.js';
 
-class EchoSpokeAdapter implements RuntimeAdapter<{ message: string }> {
+class TrapSpokeAdapter implements RuntimeAdapter<{ message: string }> {
     public readonly id = 'weave:spoke-echo';
+    public calls = 0;
 
     public async execute(
-        invocation: WeaveInvocation<{ message: string }>,
-        context: RuntimeContext,
+        _invocation: WeaveInvocation<{ message: string }>,
+        _context: RuntimeContext,
     ): Promise<WeaveResult> {
-        return {
-            weave_id: this.id,
-            status: 'SUCCESS',
-            output: invocation.payload.message,
-            metadata: {
-                workspace_root: context.workspace_root,
-                target_domain: context.target_domain,
-                spoke_name: context.spoke_name,
-                spoke_root: context.spoke_root,
-                requested_root: context.requested_root,
-            },
-        };
+        this.calls += 1;
+        throw new Error('retired spoke adapter must not execute');
     }
 }
 
-describe('Mounted spoke runtime targeting (CS-P7-04)', () => {
-    let tmpRoot: string;
-    let tmpSpoke: string;
+describe('retired mounted-spoke runtime execution', () => {
+    let root: string;
+    let previousProjectRoot: string | undefined;
 
     beforeEach(() => {
-        tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-spoke-runtime-'));
-        tmpSpoke = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-spoke-target-'));
-        fs.mkdirSync(path.join(tmpRoot, '.agents'), { recursive: true });
-        registry.setRoot(tmpRoot);
-        closeDb();
-        StateRegistry.save(StateRegistry.get());
-
-        const repo = getHallRepositoryRecord(tmpRoot);
-        if (!repo) {
-            throw new Error('Failed to materialize Hall repository for spoke runtime test.');
-        }
-
-        saveHallMountedSpoke({
-            spoke_id: 'spoke:keepos',
-            repo_id: repo.repo_id,
-            slug: 'keepos',
-            kind: 'git',
-            root_path: tmpSpoke,
-            remote_url: 'https://github.com/example/KeepOS.git',
-            default_branch: 'main',
-            mount_status: 'active',
-            trust_level: 'trusted',
-            write_policy: 'read_only',
-            projection_status: 'current',
-            created_at: Date.now(),
-            updated_at: Date.now(),
-        });
+        root = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-spoke-runtime-'));
+        fs.mkdirSync(path.join(root, '.agents'), { recursive: true });
+        fs.writeFileSync(path.join(root, '.agents', 'skill_registry.json'), JSON.stringify({
+            entries: {
+                spoke_echo: {
+                    entry_surface: 'compatibility',
+                    runtime_trigger: 'weave:spoke-echo',
+                    execution: { adapter_id: 'weave:spoke-echo' },
+                },
+            },
+        }));
+        previousProjectRoot = process.env.CSTAR_PROJECT_ROOT;
+        process.env.CSTAR_PROJECT_ROOT = root;
     });
 
     afterEach(() => {
-        closeDb();
+        if (previousProjectRoot === undefined) delete process.env.CSTAR_PROJECT_ROOT;
+        else process.env.CSTAR_PROJECT_ROOT = previousProjectRoot;
+        fs.rmSync(root, { recursive: true, force: true });
     });
 
-    it('resolves a spoke selector to the mounted estate root', async () => {
+    it('rejects registration instead of restoring a spoke adapter', () => {
         const dispatcher = RuntimeDispatcher.createIsolated();
-        dispatcher.registerAdapter(new EchoSpokeAdapter());
+        const adapter = new TrapSpokeAdapter();
 
-        const result = await dispatcher.dispatch({
-            weave_id: 'weave:spoke-echo',
-            payload: { message: 'estate ready' },
-            target: {
-                domain: 'spoke',
-                spoke: 'keepos',
-                requested_path: 'spoke://keepos/src/main.ts',
-            },
-            session: {
-                mode: 'subkernel',
-                interactive: false,
-            },
-        });
-
-        assert.equal(result.status, 'SUCCESS');
-        assert.equal(result.metadata?.workspace_root, tmpSpoke.replace(/\\/g, '/'));
-        assert.equal(result.metadata?.target_domain, 'spoke');
-        assert.equal(result.metadata?.spoke_name, 'keepos');
-        assert.equal(result.metadata?.spoke_root, tmpSpoke.replace(/\\/g, '/'));
-        assert.equal(result.metadata?.requested_root, 'spoke://keepos/src/main.ts');
+        assert.throws(
+            () => dispatcher.registerAdapter(adapter),
+            /legacy_runtime_adapter_registration_retired:weave:spoke-echo/,
+        );
+        assert.deepStrictEqual(dispatcher.listAdapterIds(), []);
+        assert.equal(adapter.calls, 0);
     });
 
-    it('fails early when a requested spoke is not mounted', async () => {
+    it('fails before resolving mounted or missing spoke targets', async () => {
         const dispatcher = RuntimeDispatcher.createIsolated();
-        dispatcher.registerAdapter(new EchoSpokeAdapter());
+        for (const spoke of ['keepos', 'missing']) {
+            const result = await dispatcher.dispatch({
+                weave_id: 'weave:spoke-echo',
+                payload: { message: 'must not execute' },
+                target: {
+                    domain: 'spoke',
+                    spoke,
+                    requested_path: `spoke://${spoke}/src/main.ts`,
+                },
+                session: { mode: 'subkernel', interactive: false },
+            });
 
-        const result = await dispatcher.dispatch({
-            weave_id: 'weave:spoke-echo',
-            payload: { message: 'estate ready' },
-            target: {
-                domain: 'spoke',
-                spoke: 'missing',
-            },
-            session: {
-                mode: 'subkernel',
-                interactive: false,
-            },
-        });
-
-        assert.equal(result.status, 'FAILURE');
-        assert.match(result.error ?? '', /requested estate target/i);
+            assert.equal(result.status, 'FAILURE');
+            assert.equal(
+                result.metadata?.failure_code,
+                'legacy_runtime_capability_retired_use_cstar_kernel',
+            );
+            assert.equal(result.metadata?.execution_dispatched, false);
+            assert.equal(result.metadata?.hall_mutation_started, false);
+            assert.equal(result.metadata?.provider_attempted, false);
+            assert.equal(result.metadata?.process_started, false);
+            assert.equal(result.metadata?.source_access_started, false);
+        }
     });
 });

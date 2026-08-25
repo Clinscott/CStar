@@ -23,11 +23,6 @@ function createProjectRoot(): string {
         'utf-8',
     );
     fs.writeFileSync(
-        path.join(root, '.agents', 'config.json'),
-        JSON.stringify({ system: { persona: 'O.D.I.N.' } }, null, 2),
-        'utf-8',
-    );
-    fs.writeFileSync(
         path.join(root, '.agents', 'skill_registry.json'),
         JSON.stringify({
             entries: {
@@ -65,12 +60,8 @@ describe('release bundle generation', () => {
             bundles[1]?.files.map((file) => file.relativePath),
             [
                 '.codex-plugin/plugin.json',
-                '.mcp.json',
-                'hooks.json',
-                path.join('scripts', 'cstar_codex_post_write.sh'),
                 'README.md',
                 path.join('skills', 'corvus-star', 'SKILL.md'),
-                path.join('.agents', 'plugins', 'marketplace.json'),
                 'INSTALL.md',
             ],
         );

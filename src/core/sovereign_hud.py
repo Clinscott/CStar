@@ -1,6 +1,5 @@
 import asyncio
 import contextlib
-import json
 import os
 import sys
 from datetime import datetime
@@ -32,7 +31,7 @@ class SovereignHUD:
     CURSOR_HIDE: str = "\033[?25l"
     CURSOR_SHOW: str = "\033[?25h"
 
-    PERSONA: str = "ALFRED"
+    PERSONA: str | None = None
     DIALOGUE: Any = None
     _INITIALIZED: bool = False
     _CACHED_THEME: dict[str, str] | None = None
@@ -50,21 +49,6 @@ class SovereignHUD:
     @classmethod
     def _ensure_persona(cls) -> None:
         try:
-            config_path = Path.cwd() / ".agents" / "config.json"
-            if config_path.exists():
-                try:
-                    data = json.loads(config_path.read_text(encoding="utf-8"))
-                except (OSError, TypeError, ValueError, json.JSONDecodeError):
-                    data = {}
-
-                if isinstance(data, dict):
-                    system = data.get("system", {})
-                    if not isinstance(system, dict):
-                        system = {}
-                    persona = system.get("persona", data.get("persona", "ALFRED"))
-                    if isinstance(persona, str) and persona.strip():
-                        cls.PERSONA = persona.upper()
-
             try:
                 width = os.get_terminal_size().columns - 4
                 cls._CACHED_WIDTH = max(40, min(100, width))
@@ -88,8 +72,17 @@ class SovereignHUD:
                     "war_title": "TRACE ANALYSIS",
                     "trace_label": "Trace",
                 },
+                "NEUTRAL": {
+                    "main": cls.CYAN,
+                    "dim": cls.CYAN_DIM,
+                    "prefix": "[CSTAR]",
+                    "title": "CSTAR DASHBOARD",
+                    "war_title": "TRACE ANALYSIS",
+                    "trace_label": "Trace",
+                },
             }
-            cls._CACHED_THEME = themes.get(cls.PERSONA, themes["ALFRED"])
+            projected = str(cls.PERSONA or "").upper()
+            cls._CACHED_THEME = themes.get(projected, themes["NEUTRAL"])
         finally:
             cls._INITIALIZED = True
 
@@ -150,7 +143,8 @@ class SovereignHUD:
     def log(cls, level: str, msg: str, detail: str = "") -> None:
         cls._initialize()
         ts = datetime.now().strftime("%H:%M:%S")
-        cls._write_line(f"[{ts}] [{level}] {cls.PERSONA} {msg} {detail}".rstrip())
+        identity = cls.PERSONA or "CSTAR"
+        cls._write_line(f"[{ts}] [{level}] {identity} {msg} {detail}".rstrip())
 
     @classmethod
     def persona_log(cls, persona: str, msg: str, detail: str = "") -> None:

@@ -5,6 +5,10 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
+import {
+    bindSharedHostSessionInvoker,
+    clearSharedHostSessionInvoker,
+} from '../../src/core/host_intelligence.js';
 import { refreshOfflineIntents, runScan } from '../../src/tools/pennyone/index.js';
 import { ChronicleIndexer } from '../../src/tools/pennyone/intel/chronicle.js';
 import { ChronosIndexer } from '../../src/tools/pennyone/intel/chronos.js';
@@ -20,6 +24,7 @@ import {
     upsertHallRepository,
 } from '../../src/tools/pennyone/intel/database.ts';
 import { registry } from '../../src/tools/pennyone/pathRegistry.js';
+import { buildPersonaProjectionMetadata } from '../../src/tools/pennyone/persona_projection.js';
 import { createGungnirMatrix } from '../../src/types/gungnir.js';
 import { buildHallRepositoryId } from '../../src/types/hall.js';
 
@@ -32,8 +37,9 @@ describe('PennyOne semantic intent hardening (CS-P1-03)', () => {
     let tmpRoot: string;
     let samplePath: string;
     let repoId: string;
+    let restoreHostSessionInvoker: (() => void) | undefined;
 
-    const seedOfflineIntentRecord = (scanId = 'scan-refresh') => {
+    const seedAuthoritativePersonaProjection = () => {
         upsertHallRepository({
             root_path: tmpRoot,
             name: path.basename(tmpRoot),
@@ -41,9 +47,23 @@ describe('PennyOne semantic intent hardening (CS-P1-03)', () => {
             active_persona: 'ODIN',
             baseline_gungnir_score: 7.4,
             intent_integrity: 41,
+            metadata: {
+                source: 'synthetic-pennyone-intent-test',
+                ...buildPersonaProjectionMetadata('ODIN'),
+            },
             created_at: 1700000000000,
             updated_at: 1700000000000,
         });
+    };
+
+    const bindSyntheticHostSession = (
+        invoker: (prompt: string) => Promise<string> | string,
+    ) => {
+        restoreHostSessionInvoker = bindSharedHostSessionInvoker(invoker);
+    };
+
+    const seedOfflineIntentRecord = (scanId = 'scan-refresh') => {
+        seedAuthoritativePersonaProjection();
         recordHallScan({
             scan_id: scanId,
             repo_id: repoId,
@@ -86,6 +106,8 @@ describe('PennyOne semantic intent hardening (CS-P1-03)', () => {
         registry.setRoot(tmpRoot);
         repoId = buildHallRepositoryId(tmpRoot.replace(/\\/g, '/'));
         closeDb();
+        clearSharedHostSessionInvoker();
+        restoreHostSessionInvoker = undefined;
 
         mock.method(ChronicleIndexer.prototype, 'index', async () => undefined);
         mock.method(ChronosIndexer.prototype, 'index', async () => undefined);
@@ -98,6 +120,8 @@ describe('PennyOne semantic intent hardening (CS-P1-03)', () => {
     });
 
     afterEach(() => {
+        restoreHostSessionInvoker?.();
+        clearSharedHostSessionInvoker();
         mock.restoreAll();
         closeDb();
         process.chdir(originalCwd);
@@ -149,24 +173,31 @@ describe('PennyOne semantic intent hardening (CS-P1-03)', () => {
         process.env.CORVUS_HOST_SESSION_ACTIVE = '1';
         process.env.CODEX_SHELL = '1';
         process.env.CODEX_THREAD_ID = 'thread-intent-hardening';
-
-        mock.method(defaultProvider, 'getBatchIntent', async () => {
-            throw new Error('Host bridge unavailable.');
-        });
+        seedAuthoritativePersonaProjection();
 
         await assert.rejects(
-            runScan('src'),
-            /semantic intent failed during an active host session/i,
+            runScan('src', false, {
+                hostTextInvoker: async () => {
+                    throw new Error('Host bridge unavailable.');
+                },
+                hostSessionActive: true,
+                ingestHistory: false,
+                throttleMs: 0,
+            }),
+            /sector analysis failed.*Host bridge unavailable/i,
         );
 
         assert.deepStrictEqual(getHallFiles(tmpRoot), []);
     });
 
     it('re-enriches Hall records that still carry the offline semantic-intent placeholder', async () => {
+        process.env.CORVUS_HOST_SESSION_ACTIVE = '1';
+        process.env.CODEX_SHELL = '1';
+        process.env.CODEX_THREAD_ID = 'thread-intent-refresh-success';
         seedOfflineIntentRecord();
 
-        mock.method(defaultProvider, 'getBatchIntent', async (items) =>
-            items.map(() => ({ intent: 'Fresh semantic intent', interaction: 'Fresh semantic protocol' })),
+        bindSyntheticHostSession(() =>
+            JSON.stringify({ intent: 'Fresh semantic intent', interaction: 'Fresh semantic protocol' }),
         );
 
         const result = await refreshOfflineIntents('src');
@@ -187,7 +218,7 @@ describe('PennyOne semantic intent hardening (CS-P1-03)', () => {
         process.env.CODEX_THREAD_ID = 'thread-intent-refresh-hardening';
         seedOfflineIntentRecord();
 
-        mock.method(defaultProvider, 'getBatchIntent', async () => {
+        bindSyntheticHostSession(async () => {
             throw new Error('Host bridge unavailable.');
         });
 
@@ -206,10 +237,6 @@ describe('PennyOne semantic intent hardening (CS-P1-03)', () => {
         delete process.env.CODEX_THREAD_ID;
         seedOfflineIntentRecord();
 
-        mock.method(defaultProvider, 'getBatchIntent', async () => {
-            throw new Error('Transient provider fault.');
-        });
-
         const result = await refreshOfflineIntents('src');
         const unchangedRecord = getHallFileByPath(samplePath, tmpRoot, 'scan-refresh');
 
@@ -222,13 +249,13 @@ describe('PennyOne semantic intent hardening (CS-P1-03)', () => {
     });
 
     it('continues refresh pass when a single record write fails', async () => {
-        process.env.CORVUS_HOST_SESSION_ACTIVE = '0';
-        delete process.env.CODEX_SHELL;
-        delete process.env.CODEX_THREAD_ID;
+        process.env.CORVUS_HOST_SESSION_ACTIVE = '1';
+        process.env.CODEX_SHELL = '1';
+        process.env.CODEX_THREAD_ID = 'thread-intent-refresh-write-failure';
         seedOfflineIntentRecord();
 
-        mock.method(defaultProvider, 'getBatchIntent', async (items) =>
-            items.map(() => ({ intent: '', interaction: 'Fresh semantic protocol' })),
+        bindSyntheticHostSession(() =>
+            JSON.stringify({ intent: '', interaction: 'Fresh semantic protocol' }),
         );
         mock.method(defaultProvider, 'getIntent', async () => {
             throw new Error('Disk write denied.');

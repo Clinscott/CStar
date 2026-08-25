@@ -1,4 +1,4 @@
-import { registry } from '../../pennyone/pathRegistry.js';
+import { CODE_ROOT } from '../contracts/runtime.js';
 import { errorResponse, mcpGuardrail, textResponse, type McpTextResponse } from '../contracts/responses.js';
 import {
     tokenize,
@@ -30,8 +30,7 @@ export async function handleIntentRoute({
                 true,
             );
         }
-        const root = registry.getRoot();
-        const manifest = loadRegistryManifest(root);
+        const manifest = loadRegistryManifest(CODE_ROOT);
         const grammarSource: 'registry' | 'fallback' = manifest?.intent_grammar ? 'registry' : 'fallback';
         const grammar = getRegistryIntentCategories(manifest);
         const tokens = tokenize(prompt);

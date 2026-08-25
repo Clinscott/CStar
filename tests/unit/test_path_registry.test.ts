@@ -1,41 +1,85 @@
-import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { afterEach, beforeEach, describe, it } from 'node:test';
 
-import { registry } from  '../../src/tools/pennyone/pathRegistry.js';
+import { PathRegistry } from '../../src/tools/pennyone/pathRegistry.js';
 
-describe('Estate path registry (CS-P7-04)', () => {
-    it('resolves spoke URIs through explicit mounted spoke roots', () => {
-        const resolved = registry.resolveEstatePath('spoke://keepos/src/main.ts', [
-            {
-                slug: 'keepos',
-                root_path: 'C:/Estate/KeepOS',
-            },
-        ]);
+const ENV_KEYS = [
+    'CSTAR_CONTROL_ROOT',
+    'CSTAR_KERNEL_MCP',
+    'CSTAR_LAUNCH_CWD',
+    'CSTAR_PROJECT_ROOT',
+    'CSTAR_WORKSPACE_ROOT',
+] as const;
 
-        assert.equal(resolved, 'C:/Estate/KeepOS/src/main.ts');
+const originalEnv = new Map<string, string | undefined>();
+let temporaryRoots: string[] = [];
+
+function resetSingleton(): void {
+    delete (globalThis as typeof globalThis & {
+        __PATH_REGISTRY_INSTANCE__?: PathRegistry;
+    }).__PATH_REGISTRY_INSTANCE__;
+}
+
+function makeTemporaryRoot(prefix: string): string {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+    temporaryRoots.push(root);
+    return root;
+}
+
+describe('PathRegistry project-root isolation', () => {
+    beforeEach(() => {
+        temporaryRoots = [];
+        for (const key of ENV_KEYS) {
+            originalEnv.set(key, process.env[key]);
+            delete process.env[key];
+        }
+        resetSingleton();
     });
 
-    it('rejects traversal outside the mounted spoke root', () => {
-        assert.throws(
-            () => registry.resolveEstatePath('spoke://keepos/../../secrets.txt', [
-                {
-                    slug: 'keepos',
-                    root_path: 'C:/Estate/KeepOS',
-                },
-            ]),
-            /outside mounted spoke root/i,
-        );
+    afterEach(() => {
+        resetSingleton();
+        for (const [key, value] of originalEnv) {
+            if (value === undefined) delete process.env[key];
+            else process.env[key] = value;
+        }
+        originalEnv.clear();
+        for (const root of temporaryRoots) {
+            fs.rmSync(root, { recursive: true, force: true });
+        }
     });
 
-    it('returns a structured failure for unknown spokes', () => {
-        assert.throws(
-            () => registry.resolveEstatePath('spoke://missing/src/main.ts', [
-                {
-                    slug: 'keepos',
-                    root_path: 'C:/Estate/KeepOS',
-                },
-            ]),
-            /not registered in the Hall estate/i,
+    it('ascends only the explicit synthetic project root and caches it', () => {
+        const root = makeTemporaryRoot('cstar-path-registry-');
+        const deepDirectory = path.join(root, 'src', 'synthetic', 'deep');
+        fs.mkdirSync(deepDirectory, { recursive: true });
+        fs.writeFileSync(path.join(root, 'package.json'), '{"name":"synthetic"}\n');
+        process.env.CSTAR_PROJECT_ROOT = deepDirectory;
+
+        const registry = PathRegistry.getInstance();
+        assert.equal(registry.getRoot(), root);
+        assert.equal(PathRegistry.getInstance(), registry);
+        assert.equal(PathRegistry.getInstance().getRoot(), root);
+    });
+
+    it('recognizes a synthetic Corvus estate root without warning', () => {
+        const estateRoot = makeTemporaryRoot('corvus-estate-root-');
+        fs.mkdirSync(path.join(estateRoot, 'CStar'), { recursive: true });
+        fs.writeFileSync(
+            path.join(estateRoot, 'CStar', 'package.json'),
+            '{"name":"synthetic-cstar"}\n',
         );
+        const warnings: unknown[][] = [];
+        const originalWarn = console.warn;
+        console.warn = (...args: unknown[]) => warnings.push(args);
+        try {
+            const registry = PathRegistry.getInstance();
+            assert.equal(registry.detectWorkspaceRoot(estateRoot), estateRoot);
+            assert.deepEqual(warnings, []);
+        } finally {
+            console.warn = originalWarn;
+        }
     });
 });

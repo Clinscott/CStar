@@ -1,24 +1,19 @@
-import test, { mock } from 'node:test';
+import test from 'node:test';
 import assert from 'node:assert';
-import path from 'node:path';
-import { indexSector } from  '../../src/tools/pennyone/index.js';
-import { defaultProvider } from  '../../src/tools/pennyone/intel/llm.js';
 
-test('Targeted Incremental Scan (indexSector)', async () => {
-    // [🛡️] STERLING MANDATE: Isolation Strike
-    // We mock the provider to avoid the "No Mocking" mandate during unit tests.
-    mock.method(defaultProvider, 'getBatchIntent', async () => {
-        return [{ intent: 'Test Intent', interaction: 'Test Protocol' }];
-    });
+import {
+    indexSector,
+    PENNYONE_SCAN_RETIRED,
+} from '../../src/tools/pennyone/index.js';
 
-    const targetFile = path.resolve('src/core/annex.py');
-    
-    // We expect indexSector to return a valid FileData object
-    const result = await indexSector(targetFile);
-    
-    assert.ok(result, 'Should return a FileData object');
-    assert.strictEqual(result?.path, targetFile, 'Path should match');
-    assert.ok(result?.matrix, 'Should have a Gungnir Matrix');
-    assert.ok(result?.hash, 'Should compute a hash');
-    assert.ok(typeof result?.matrix.overall === 'number', 'Overall score should be a number');
+test('indexSector retires before file or host-model access', async () => {
+    let invoked = false;
+    await assert.rejects(
+        indexSector('/home/synthetic/.ssh/private.ts', () => {
+            invoked = true;
+            throw new Error('must_not_run');
+        }),
+        new RegExp(PENNYONE_SCAN_RETIRED),
+    );
+    assert.strictEqual(invoked, false);
 });

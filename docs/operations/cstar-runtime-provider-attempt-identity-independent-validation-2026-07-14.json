@@ -1,0 +1,78 @@
+{
+  "schema": "cstar.independent_validation.v1",
+  "validation_id": "val:cstar-runtime-provider-fallback-elimination-2026-07-14",
+  "bead_id": "bead:repair:cstar-runtime-provider-fallback-elimination-2026-07-13",
+  "verdict": "ACCEPTED",
+  "validated_at": "2026-07-14T04:27:53-04:00",
+  "validator": {
+    "requested_profile": "gpt-5.6-sol-high",
+    "actual_identity": "unreported",
+    "independent_of_execution": true,
+    "mutations": []
+  },
+  "reviewed_manifest_sha256": "586aa093f58a22c06b023959ff427cba8ae258b6d0844db5c075d8198d8d2702",
+  "reviewed_files": [
+    {"path": "src/core/host_session.ts", "sha256": "23327b224c93ac761d486f8126c4f5533b9a04661bfa15d32ad9586aae9e0335"},
+    {"path": "src/core/mimir_client.ts", "sha256": "8d251b19fb8fe8d6f415459f2c230e1ec60533f570584f19bf817507735f0bf0"},
+    {"path": "src/core/mimir_host_transport.ts", "sha256": "9faab98f962020f0ef460dd966f8f30696174a58eb2062fd604c441c270eedb4"},
+    {"path": "src/core/host_delegation.ts", "sha256": "9b1a5e557ad30b5821f9893de12880a7e680b3e80f9b3c580b95481af0546866"},
+    {"path": "src/core/host_delegation_evidence.ts", "sha256": "e5b254da4b6ab598871fde61d3c174df02ff4ab7f14c73933b19810cc90414b4"},
+    {"path": "src/core/host_delegation_transport.ts", "sha256": "59349e199eb230eaf04885371aa27aa5e1889189e24c4e2c961ee93c921702bd"},
+    {"path": "src/node/core/runtime/host_workflows/research.ts", "sha256": "e72449547114a824be64986a9e6086cd0b19f5a42c99dd25459faaa03a82fcf7"},
+    {"path": "src/node/core/runtime/host_workflows/critique.ts", "sha256": "debc2f884eb5233e80c7811a6816771f38c14d09c509fd120fcaf20793df05ad"},
+    {"path": "src/node/core/runtime/host_workflows/delegated_attempt.ts", "sha256": "844daa7de2cc360baebc494da7ae61437c4019b9f25c8a213dcce6e6be0a173b"},
+    {"path": "tests/unit/test_host_attempt_identity.test.ts", "sha256": "032a7662f366d2fc3a06fb1bf314d76df47c3f9f98cf52328098e0568422e824"},
+    {"path": "tests/unit/test_mimir_client_bridge.test.ts", "sha256": "44f588ebf71418927213a0c182b930b6a068928115f6674810cdfbdf43a65051"},
+    {"path": "tests/unit/test_host_delegation.test.ts", "sha256": "f7ace8dab55ac7770b681b496f26731d4dbaf23c4f8b17492847a6d5b3ec8907"},
+    {"path": "tests/unit/node-runtime/weaves/test_research.test.ts", "sha256": "1532a05cf49fdf1935b15f2c9917cd5f4600a60a62ea0afe1323e495a8657db8"},
+    {"path": "tests/unit/node-runtime/weaves/test_critique_parallel.test.ts", "sha256": "9b677933ffbeced97c35dc7c405d4dd25a80153aa5b62f5e608286ce64262413"},
+    {"path": "tests/features/cstar_runtime_provider_attempt_identity.feature", "sha256": "0f7851a15dbe707e0a98249f44b7b13b77a6e99063e7f442c70547f11c88d539"},
+    {"path": "docs/integrations/host_native_skill_contract.md", "sha256": "90847629571da71e2e04c3f387be357a53c36f661af5d7997dacf33bf79bda36"},
+    {"path": "tests/unit/test_host_session_weaves.test.ts", "sha256": "04d3320d8c138a5847599fc54164f7abd24c3c33bb32f0535d1cc115e56671bf"},
+    {"path": "src/types/intelligence-contract.ts", "sha256": "0655c9bef9476a02a900346ba0462158a8a362b4379a86062386af808fc48c8f"},
+    {"path": "src/core/one_mind_bridge.ts", "sha256": "a0932e00b599caf778a1b6507de4c19b15e1626460da75ab575bf3aab762d880"}
+  ],
+  "checks": [
+    {
+      "name": "provider_focused_node",
+      "status": "pass",
+      "evidence": "65/65 tests passed across host-attempt identity, Mimir bridge, delegated transport, Research, Critique, and host-session weave suites"
+    },
+    {
+      "name": "provider_documentation_contract",
+      "status": "pass",
+      "evidence": "1/1 provider identity and timeout-ownership contract passed; 17 unrelated cases deselected"
+    },
+    {
+      "name": "mimir_late_success_probe",
+      "status": "pass",
+      "evidence": "One runner observed abort; public result waited for settlement; late success remained timeout with exact dispatched configured_host_bridge identity"
+    },
+    {
+      "name": "gemini_research_surface_probe",
+      "status": "pass",
+      "evidence": "One configured_delegate_bridge call returned SUCCESS with complete five-field identity and no ONE MIND or SUB_AGENT_DIRECTIVE text"
+    },
+    {
+      "name": "structured_error_identity_probe",
+      "status": "pass",
+      "evidence": "Complete and malformed structured errors removed unparenthesized contradictory claims and emitted exactly one authoritative tuple"
+    },
+    {
+      "name": "typescript",
+      "status": "pass",
+      "evidence": "./node_modules/.bin/tsc --noEmit exited 0 with no output"
+    },
+    {
+      "name": "diff_and_size",
+      "status": "pass",
+      "evidence": "git diff --check exited 0; 19/19 reviewed files were below 500 lines, maximum 495"
+    },
+    {
+      "name": "legacy_fallback_scan",
+      "status": "pass",
+      "evidence": "No Promise.race, SUB_AGENT_DIRECTIVE, or ONE MIND environment string appeared in the reviewed runtime paths"
+    }
+  ],
+  "prohibited_actions_observed": []
+}

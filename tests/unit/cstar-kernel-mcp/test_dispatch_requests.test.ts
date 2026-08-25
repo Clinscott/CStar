@@ -116,7 +116,8 @@ it('cstar_researcher_request returns a no-spend receipt with callback and metric
     assert.strictEqual(parsed.dispatch_kind, 'researcher');
     assert.strictEqual(parsed.bead_id, 'bead-test-dispatch');
     assert.ok(parsed.decision_id.startsWith('decision-researcher-'));
-    assert.strictEqual(parsed.owner_pmt_thread_id, '019e92ea-f551-7d50-928e-f67f6253ee36');
+    assert.strictEqual(parsed.state_update_thread_id, '019e92ea-f551-7d50-928e-f67f6253ee36');
+    assert.strictEqual(parsed.action_authority.primary_action, 'request_receipt');
     assert.strictEqual(parsed.callback_contract.expected_packet, 'TEST_DISPATCH_PACKET');
     assert.strictEqual(parsed.callback_contract.callback_thread_id, '019e9063-56e8-7831-a7ee-9241badce6c5');
     assert.strictEqual(parsed.dispatch_execution.attempted, false);
@@ -172,36 +173,29 @@ it('cstar_researcher_request marks complete live-authorized receipts as ready wi
 
 it('cstar_forge_request honors explicit decision ids and fails closed on missing dispatch surface', async () => {
     const result = await handleForgeRequest(validDispatchRequest({
-        bead_id: undefined,
         decision_id: 'decision-explicit-forge-test',
         dispatch_surface_ref: 'missing/forge/surface.md',
     }));
     assert.ok(result.content);
     const parsed = JSON.parse(result.content[0].text);
-    assert.strictEqual(parsed.status, 'dry_run_no_spend');
+    assert.strictEqual(parsed.status, 'blocked');
     assert.strictEqual(parsed.dispatch_kind, 'forge');
     assert.strictEqual(parsed.decision_id, 'decision-explicit-forge-test');
-    assert.strictEqual(parsed.bead_id, null);
-    assert.strictEqual(parsed.authorized_dispatch_surface.found, false);
-    assert.strictEqual(parsed.dispatch_execution.fail_closed_reason, 'missing_authorized_dispatch_surface');
+    assert.strictEqual(parsed.bead_id, 'bead-test-dispatch');
+    assert.strictEqual(parsed.error, 'missing_authorized_dispatch_surface');
 });
 
-it('cstar_forge_request proves the default authorized surface but blocks live dispatch without operator authorization', async () => {
-    const result = await handleForgeRequest(validDispatchRequest());
+it('cstar_forge_request proves the default surface and blocks adapter/action capability mismatch before persistence', async () => {
+    const result = await handleForgeRequest(validDispatchRequest({
+        decision_id: 'decision-forge-action-mismatch-test',
+        requested_actions: ['response_only'],
+        execution_adapter_ref: 'cstar-forge-hermes-minimax-worker-adapter',
+    }));
     assert.ok(result.content);
     const parsed = JSON.parse(result.content[0].text);
-    assert.strictEqual(parsed.status, 'dry_run_no_spend');
+    assert.strictEqual(parsed.status, 'blocked');
     assert.strictEqual(parsed.dispatch_kind, 'forge');
-    assert.strictEqual(parsed.authorized_dispatch_surface.found, true);
-    assert.match(
-        parsed.authorized_dispatch_surface.selected.ref,
-        /^docs\/operations\/corvus-forge-(skill-spec|pipeline-playbook)\.md$/,
-    );
-    assert.strictEqual(parsed.dispatch_execution.attempted, false);
-    assert.strictEqual(parsed.dispatch_execution.live_spend, false);
-    assert.strictEqual(parsed.dispatch_execution.live_source_collection, false);
-    assert.strictEqual(parsed.dispatch_execution.codex_worker_fallback_allowed, false);
-    assert.strictEqual(parsed.dispatch_execution.fail_closed_reason, 'no_live_dispatch_authority');
+    assert.strictEqual(parsed.error, 'dispatch_action_adapter_capability_mismatch');
 });
 
 it('dispatch requests reject missing required metrics', async () => {
@@ -219,18 +213,22 @@ it('dispatch requests reject prohibited or red-gated requested actions', async (
     assert.strictEqual(result.isError, true);
     const parsed = JSON.parse(result.content[0].text);
     assert.strictEqual(parsed.status, 'rejected');
-    assert.match(parsed.error, /prohibited|red-gated/);
+    assert.strictEqual(parsed.error, 'dispatch_requested_action_red_gated');
 });
 
-it('dispatch requests require live authorization before live spend or live source collection', async () => {
+it('Forge requests reject live source collection before issuing an exact authorization challenge', async () => {
     const result = await handleForgeRequest(validDispatchRequest({
-        spend_policy: { mode: 'live_authorized', max_retries: 1, live_source_allowed: true },
+        decision_id: 'decision-forge-live-source-rejected-test',
+        execution_adapter_ref: 'cstar-forge-hermes-minimax-adapter',
+        spend_policy: { mode: 'live_authorized', max_retries: 0, live_source_allowed: true },
+        retry_policy: { budget: 0, spent: 0 },
+        requested_actions: ['response_only', 'authorized_source_collection'],
         live_source_policy: 'live source collection requested',
     }));
     assert.strictEqual(result.isError, true);
     const parsed = JSON.parse(result.content[0].text);
     assert.strictEqual(parsed.status, 'rejected');
-    assert.match(parsed.error, /operator_authorization_ref/);
+    assert.match(parsed.error, /does not permit live source collection/);
 });
 
 });

@@ -1,5 +1,11 @@
 # Autobot — Build Summary
 
+> **Historical evidence only.** Public AutoBot, its queue/cron, direct Hermes
+> delegation, and the `cstar_autobot` tool are decommissioned. Nothing in this
+> chronology grants present execution or activation authority. Current builds
+> use the durable CStar Forge lane described in
+> `docs/operations/corvus-forge-pipeline-playbook.md`.
+
 **Status**: Phases 1A → 4C all shipped 2026-05-15. **33/33 autobot tests + 52/52 cstar-hub tests = 85/85 passing.** Live cron registered.
 
 ## What is autobot

@@ -1,0 +1,26 @@
+{
+  "schema": "cstar.independent_validation.v1",
+  "validation_id": "val:cstar-retired-skill-scout-authority-2026-07-14",
+  "bead_id": "bead:repair:cstar-retired-skill-scout-authority-2026-07-14",
+  "verdict": "ACCEPTED",
+  "validated_at": "2026-07-14T04:00:00-04:00",
+  "validator": {
+    "requested_profile": "gpt-5.6-sol-high",
+    "actual_identity": "unreported",
+    "independent_of_execution": true
+  },
+  "reviewed_manifest_sha256": "6aae670961f73d6f8c0db39cec0e82f2808510eb5056413665edf7aed3221a63",
+  "reviewed_files": [
+    {"path": "src/skills/local/skill-scout/SKILL.qmd", "sha256": "9a34182c672f69df11379ba3ce50949be1f1627119f6ec7375be5f19f53cd5f7"},
+    {"path": "tests/features/cstar_retired_skill_scout.feature", "sha256": "c1b50e7ebfd45d476d2b2c5b568cf1f3596b58e56d42992ed17df24309e7027a"},
+    {"path": "tests/unit/test_current_documentation_contract.py", "sha256": "f721a53888923674eb9c34d44e2e6a023735442bfda3278c9ad95d454c4fab8d"},
+    {"path": ".agents/skill_registry.json", "sha256": "768ec9f2e289c189432ac83f644da453e99a33452792111db7e42b686b3490ce"}
+  ],
+  "checks": [
+    {"name": "unregistered_fail_closed", "status": "pass", "evidence": "Skill Scout is absent from the active registry and exposes no activation or execution surface"},
+    {"name": "authority_boundary", "status": "pass", "evidence": "Pointer grants no search, network, write, installation, package, or execution authority"},
+    {"name": "governed_routing", "status": "pass", "evidence": "Evidence routes to cstar_researcher_request and implementation to the durable Forge lifecycle"},
+    {"name": "focused_validation", "status": "pass", "evidence": "Focused documentation, typecheck, diff, and file-size checks passed"}
+  ],
+  "prohibited_actions_observed": []
+}

@@ -1,5 +1,4 @@
-import asyncio
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -20,21 +19,12 @@ def project_root(tmp_path):
 
 @pytest.mark.asyncio
 async def test_muninn_refactor_calls(project_root):
-    """Verify Muninn.run still executes phases correctly."""
-    with patch("src.core.sovereign_hud.SovereignHUD.persona_log"), \
-         patch.dict("os.environ", {"GOOGLE_API_KEY": "MOCK_KEY"}):
-
-
-        muninn = Muninn(project_root)
-
-        # Mock the heart to avoid actual execution
-        muninn.heart = MagicMock()
-        muninn.heart.execute_cycle = MagicMock(return_value=asyncio.Future())
-        muninn.heart.execute_cycle.return_value.set_result(False)
-
-        result = await muninn.run_cycle()
-        assert result is False
-        muninn.heart.execute_cycle.assert_called_once()
+    """The historical Muninn facade fails before provider or cycle setup."""
+    with pytest.raises(
+        RuntimeError,
+        match="^legacy_python_ravens_engine_retired_use_cstar_kernel$",
+    ):
+        Muninn(project_root)
 
 def test_code_sanitizer_imports(project_root):
     """Verify import validation and repair still work."""
@@ -50,15 +40,12 @@ def test_code_sanitizer_imports(project_root):
     assert "import os" in repaired
 
 def test_norn_task_parsing(project_root):
-    """Verify NornWarden still parses tasks correctly."""
-    tasks_content = "# Tasks\n- [ ] Pending Task\n- [x] Completed Task"
-    (project_root / "tasks.qmd").write_text(tasks_content)
-
-    warden = NornWarden(project_root)
-    target = warden.get_next_target()
-    assert target is not None
-    assert target["action"] == "Pending Task"
-    assert target["line_index"] == 1
+    """The historical Norn path cannot parse or mutate task projections."""
+    with pytest.raises(
+        RuntimeError,
+        match="^legacy_python_autonomous_effect_surface_retired_use_cstar_kernel$",
+    ):
+        NornWarden(project_root)
 
 def test_dialogue_engine_scoring():
     """Verify DialogueEngine still scores and selects phrases."""
@@ -90,11 +77,9 @@ def test_scenario_generation_parity(project_root):
         assert len(scenario["options"]) == 4
 
 def test_install_skill_interface(project_root):
-    """Verify install_skill interface remains stable."""
-    with patch("src.skills.install_skill._get_config") as mock_config, \
-         patch("src.skills.install_skill.SovereignHUD.log"):
-
-        mock_config.return_value = ({"FrameworkRoot": str(project_root)}, None)
-        # Should fail early due to missing skills_db but test the flow
+    """Legacy installer remains importable but cannot mutate source."""
+    with pytest.raises(
+        RuntimeError,
+        match="legacy_skill_installer_retired_use_supported_skill_installation_surface",
+    ):
         install_skill("test-skill", target_root=str(project_root))
-        mock_config.assert_called_once()

@@ -48,7 +48,9 @@ def sha256_file(path: Path) -> str:
         os.close(descriptor)
     return digest.hexdigest()
 
-def verify_runtime_file(path: Path, proof: dict[str, Any], role: str) -> None:
+def verify_runtime_file(
+    path: Path, proof: dict[str, Any], role: str, *, verify_owner: bool = True,
+) -> None:
     expected_hash = str(proof.get("sha256") or "").strip().lower()
     expected_bytes = proof.get("bytes")
     expected_uid = proof.get("owner_uid")
@@ -60,7 +62,7 @@ def verify_runtime_file(path: Path, proof: dict[str, Any], role: str) -> None:
         file_stat = os.fstat(descriptor)
         if not statlib.S_ISREG(file_stat.st_mode) or file_stat.st_nlink != 1:
             raise ValueError(f"runtime dependency must be a unique regular file: {role}")
-        if file_stat.st_uid != expected_uid or file_stat.st_size != expected_bytes:
+        if (verify_owner and file_stat.st_uid != expected_uid) or file_stat.st_size != expected_bytes:
             raise ValueError(f"runtime dependency metadata drift: {role}")
         digest = hashlib.sha256()
         with os.fdopen(os.dup(descriptor), "rb") as handle:
@@ -75,8 +77,10 @@ def minimal_subprocess_environment(extra: dict[str, str] | None = None) -> dict[
     allowed = {
         "HOME", "LANG", "LC_ALL", "TZ",
         "XDG_CACHE_HOME", "XDG_CONFIG_HOME", "XDG_DATA_HOME",
-        "HERMES_BIN", "TMPDIR", "TMP", "TEMP", "NODE_OPTIONS",
+        "HERMES_BIN", "CSTAR_FORGE_HERMES_LOCATOR", "TMPDIR", "TMP", "TEMP", "NODE_OPTIONS",
         "NODE_TEST_CONTEXT", "CSTAR_FORGE_TEST_MODE",
+        "CSTAR_FORGE_REQUEST_RECEIPT_ID", "CSTAR_FORGE_EXECUTE_RECEIPT_ID",
+        "CSTAR_FORGE_EXECUTE_DECISION_ID", "CSTAR_FORGE_EXECUTE_ADAPTER_REF",
     }
     env = {key: value for key, value in os.environ.items() if key in allowed and value}
     if extra:

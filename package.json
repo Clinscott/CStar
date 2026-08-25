@@ -33,9 +33,10 @@
     "test": "tests"
   },
   "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "npm run test:node && npm run test:python",
     "test:python": "node scripts/run-python.mjs -m pytest tests/test_*.py tests/unit tests/integration tests/contracts tests/empire_tests tests/crucible",
-    "test:node": "node scripts/run-tsx.mjs --test tests/*.test.ts tests/node/*.test.ts tests/node/pennyone/*.test.ts tests/unit/*.test.ts tests/unit/war_game/*.test.ts tests/unit/spoke_discovery/*.test.ts tests/unit/node-runtime/*.test.ts tests/unit/node-runtime/adapters/*.test.ts tests/unit/node-runtime/weaves/*.test.ts tests/integration/*.test.ts tests/integration/ipc/*.test.ts tests/crucible/*.ts tests/unit/cstar-kernel-mcp/test_augury_semantic_safety.test.ts tests/unit/cstar-kernel-mcp/test_codex_request_identity.test.ts tests/unit/cstar-kernel-mcp/test_forge_adapter_fail_closed.test.ts tests/unit/cstar-kernel-mcp/test_forge_durable_execution.test.ts tests/unit/cstar-kernel-mcp/test_forge_execute_authority.test.ts tests/unit/cstar-kernel-mcp/test_forge_hermes_delegate.test.ts tests/unit/cstar-kernel-mcp/test_forge_receipt_controller.test.ts tests/unit/cstar-kernel-mcp/test_operator_authorization.test.ts tests/unit/cstar-kernel-mcp/test_path_containment.test.ts",
+    "test:node": "node scripts/run-tsx.mjs --test --test-concurrency=2 tests/*.test.ts tests/node/*.test.ts tests/node/pennyone/*.test.ts tests/unit/*.test.ts tests/unit/war_game/*.test.ts tests/unit/spoke_discovery/*.test.ts tests/unit/node-runtime/*.test.ts tests/unit/node-runtime/adapters/*.test.ts tests/unit/node-runtime/weaves/*.test.ts tests/unit/cstar-kernel-mcp/*.test.ts tests/integration/*.test.ts tests/integration/ipc/*.test.ts",
     "test:ipc": "node scripts/run-tsx.mjs --test tests/integration/ipc/*.test.ts",
     "test:empire": "node scripts/run-tsx.mjs --test tests/empire_tests/test_corvus_process_empire.ts tests/empire_tests/test_gateway_empire.ts",
     "build:distributions": "node scripts/run-tsx.mjs scripts/build_distributions.ts",

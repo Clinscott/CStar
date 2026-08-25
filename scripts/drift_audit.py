@@ -2,7 +2,6 @@ import os
 import json
 import re
 from pathlib import Path
-from typing import Any, Dict, List
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 SKILLS_DIR = PROJECT_ROOT / ".agents" / "skills"
@@ -36,7 +35,7 @@ class DriftAuditor:
                         skill_names.add(d.name.lower())
 
         # 2. Scan src/ for files without contracts
-        for root, dirs, files in os.walk(SRC_DIR):
+        for root, _dirs, files in os.walk(SRC_DIR):
             if any(d in root for d in [".venv", "__pycache__", "node_modules", "dist"]):
                 continue
             

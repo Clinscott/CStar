@@ -14,14 +14,9 @@ def mock_warden(tmp_path):
     """Creates a concrete warden for testing base logic."""
     return ConcreteWarden(tmp_path)
 
-def test_base_warden_load_config(mock_warden, tmp_path):
-    """Verifies that BaseWarden loads config from .agents/config.json."""
-    agent_dir = tmp_path / ".agents"
-    agent_dir.mkdir()
-    (agent_dir / "config.json").write_text('{"test_key": "test_val"}', encoding='utf-8')
-
-    config = mock_warden._load_config()
-    assert config["test_key"] == "test_val"
+def test_base_warden_has_no_secret_config_loader(mock_warden):
+    """Wardens receive explicit inputs and cannot read secret-bearing config."""
+    assert not hasattr(mock_warden, "_load_config")
 
 def test_base_warden_should_ignore(mock_warden):
     """Verifies the ignore logic in BaseWarden."""

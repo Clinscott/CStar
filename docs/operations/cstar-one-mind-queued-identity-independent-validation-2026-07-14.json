@@ -1,0 +1,31 @@
+{
+  "schema": "cstar.independent_validation.v1",
+  "validation_id": "val:cstar-one-mind-queued-request-identity-2026-07-14",
+  "bead_id": "bead:repair:cstar-one-mind-queued-request-identity-2026-07-13",
+  "verdict": "ACCEPTED",
+  "validated_at": "2026-07-14T04:00:00-04:00",
+  "validator": {
+    "requested_profile": "gpt-5.6-sol-high",
+    "actual_identity": "unreported",
+    "independent_of_execution": true
+  },
+  "reviewed_manifest_sha256": "664188dbbe7b3e9c863eb2ac79eabe4db0de716a7368d6668f179925bd7dd13e",
+  "reviewed_files": [
+    {"path": "src/node/core/one_mind_broker/fulfillment.ts", "sha256": "4c2c51abae95726022ee071c3111b535de9781ca5a43039444201298b9b5df76"},
+    {"path": "src/node/core/one_mind_broker/fulfillment_identity.ts", "sha256": "8bab7acf1f408f5418427bee034747e491247ea99b9e908b85397f79bc894aad"},
+    {"path": "src/node/core/one_mind_broker/fulfillment_telemetry.ts", "sha256": "4f1d4284b9502409ab3e553fbdeec95091a8a673cf7d2b33dcd25e3a18c8a70b"},
+    {"path": "tests/unit/test_one_mind_queued_identity.test.ts", "sha256": "99c05d9ab73303fe4e1b6c60931aa06f2db28a62c1329b748c31fceb3eb9b1f7"},
+    {"path": "tests/unit/test_one_mind_broker.test.ts", "sha256": "6ff376513d138ea7477e338515936b2531b63c32d8762882f6ced240074f3f38"},
+    {"path": "tests/features/cstar_one_mind_queued_identity.feature", "sha256": "a45f831d214ff2830800bf217f963c7212616169e886587daebb219285b83839"},
+    {"path": "src/core/host_delegation.ts", "sha256": "79ff2a331a856d555cf79f7fbe1938acfc410948336afef8c40b652074a685f4"}
+  ],
+  "checks": [
+    {"name": "pending_poll_alias_fails_before_dispatch", "status": "pass", "evidence": "PENDING plus handle and poll aliases failed with invoker=0, resolver=0, execution_dispatched=false"},
+    {"name": "bound_poll_executes_once", "status": "pass", "evidence": "Pre-existing CLAIMED bound handle resolved exactly once"},
+    {"name": "poll_conflict_preserves_attempt", "status": "pass", "evidence": "Contradictory result preserved poll actual/last surface and separate conflict alias/value"},
+    {"name": "focused_and_adjacent_tests", "status": "pass", "evidence": "18/18 focused and 34/34 adjacent"},
+    {"name": "typescript", "status": "pass", "evidence": "tsc --noEmit exit 0"},
+    {"name": "diff_and_size", "status": "pass", "evidence": "git diff --check clean and all seven reviewed files below 500 lines"}
+  ],
+  "prohibited_actions_observed": []
+}

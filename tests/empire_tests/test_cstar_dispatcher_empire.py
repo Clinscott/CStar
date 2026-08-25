@@ -1,18 +1,13 @@
-from src.core.cstar_dispatcher import CorvusDispatcher
+import pytest
+
+from src.core.cstar_dispatcher import (
+    LEGACY_PYTHON_CSTAR_DISPATCHER_ERROR,
+    CorvusDispatcher,
+)
 
 
-def test_dispatcher_discovery(tmp_path):
-    # Create mock script and workflow
-    script_dir = tmp_path / "scripts"
-    script_dir.mkdir()
-    (script_dir / "test_cmd.py").write_text("print('hi')", encoding='utf-8')
+def test_python_dispatcher_discovery_is_retired() -> None:
+    dispatcher = object.__new__(CorvusDispatcher)
 
-    workflow_dir = tmp_path / ".agents" / "workflows"
-    workflow_dir.mkdir(parents=True)
-    (workflow_dir / "test_flow.md").write_text("# Flow", encoding='utf-8')
-
-    dispatcher = CorvusDispatcher(root=tmp_path)
-    cmds = dispatcher._discover_all()
-
-    assert "test_cmd" in cmds
-    assert "test_flow" in cmds
+    with pytest.raises(RuntimeError, match=f"^{LEGACY_PYTHON_CSTAR_DISPATCHER_ERROR}$"):
+        dispatcher._discover_all()

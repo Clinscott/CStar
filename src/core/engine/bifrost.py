@@ -1,34 +1,32 @@
-import json
-import os
-from typing import List, Dict
-from src.core.engine.vector import SovereignVector
+"""Detached analysis compatibility for a retired direct skill-generation path."""
+
+from __future__ import annotations
+
+from typing import NoReturn
+
+
+LEGACY_SKILL_FORGE_EFFECT_ERROR = (
+    "legacy_python_skill_forge_effect_retired_use_cstar_forge"
+)
+
 
 class SkillForge:
-    def __init__(self, failure_log_path: str = 'logs/intent_failures.jsonl'):
+    """Retain inert analysis shape while rejecting source and log writes."""
+
+    def __init__(self, failure_log_path: str = "logs/intent_failures.jsonl") -> None:
         self.failure_log = failure_log_path
-        self.threshold = 3  # Minimum occurrences to trigger synthesis
+        self.threshold = 3
 
-    def record_failure(self, query: str, confidence: float):
-        with open(self.failure_log, 'a') as f:
-            f.write(json.dumps({'query': query, 'score': confidence}) + '\n')
+    def record_failure(self, query: str, confidence: float) -> NoReturn:
+        """Fail before opening or appending a legacy failure log."""
+        del query, confidence
+        raise RuntimeError(LEGACY_SKILL_FORGE_EFFECT_ERROR)
 
-    def analyze_voids(self) -> List[Dict]:
-        # Cluster failed queries to identify missing capability domains
-        voids = []
-        # Logic to group similar queries and determine if a Synthetic Bridge is needed
-        return voids
+    def analyze_voids(self) -> list[dict[str, object]]:
+        """Return the historical empty detached analysis result."""
+        return []
 
-    def synthesize_bridge(self, intent_cluster: List[str]):
-        # Draft a temporary skill file (.py) based on the cluster's common denominator
-        bridge_name = f"bridge_{hash(tuple(intent_cluster)) % 10000}.py"
-        bridge_template = f"""
-# Synthetic Bridge Skill: {bridge_name}
-# Generated to handle: {intent_cluster}
-
-def execute(context):
-    # Dynamic logic implementation
-    return {{'status': 'synthesized', 'action': 'routing_to_general_handler'}}
-"""
-        with open(f'.agents/skills/{bridge_name}', 'w') as f:
-            f.write(bridge_template)
-        return bridge_name
+    def synthesize_bridge(self, intent_cluster: list[str]) -> NoReturn:
+        """Fail before hashing a name or writing generated skill source."""
+        del intent_cluster
+        raise RuntimeError(LEGACY_SKILL_FORGE_EFFECT_ERROR)

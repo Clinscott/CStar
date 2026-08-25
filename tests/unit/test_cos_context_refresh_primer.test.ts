@@ -13,6 +13,10 @@ function read(filePath: string): string {
     return fs.readFileSync(filePath, 'utf8');
 }
 
+function normalized(filePath: string): string {
+    return read(filePath).replace(/\s+/g, ' ').trim();
+}
+
 describe('CoS context refresh primer', () => {
     it('keeps the machine-readable schema valid and bounded', () => {
         const schema = JSON.parse(read(SCHEMA_PATH));
@@ -25,11 +29,15 @@ describe('CoS context refresh primer', () => {
     });
 
     it('documents the required handoff controls for a fresh CoS thread', () => {
-        const doc = read(DOC_PATH);
+        const doc = normalized(DOC_PATH);
 
         for (const required of [
             'CStar is the axle',
-            'PMTs are durable project memory',
+            'PMTs are project-scoped information repositories only',
+            'A missing mapped PMT is a freshness gap, not an execution gate',
+            'Luna for routine retrieval, Terra for conflicting-context synthesis',
+            'Requested and actual identity are recorded separately',
+            'MM is legacy and has no active routing or relay role',
             'Corvus Forge builds implementation',
             'Researcher researches',
             'PennyOne/dashboard mirrors state',
@@ -60,7 +68,7 @@ describe('CoS context refresh primer', () => {
     });
 
     it('provides a single pasteable packet path for new CoS threads', () => {
-        const packet = read(PACKET_PATH);
+        const packet = normalized(PACKET_PATH);
 
         assert.match(packet, /Read this local handoff packet before acting/);
         assert.match(packet, /\/home\/morderith\/Corvus\/CStar\/docs\/operations\/cos-context-refresh-new-thread-packet\.md/);
@@ -68,6 +76,9 @@ describe('CoS context refresh primer', () => {
         assert.match(packet, /val-1783599069890-c0mz3/);
         assert.match(packet, /cstar_doctor/);
         assert.match(packet, /perfect_score_review_pending/);
+        assert.match(packet, /PMTs are project-scoped information repositories only/);
+        assert.match(packet, /PMT unavailability is a freshness gap/);
+        assert.match(packet, /MM is legacy and has no active routing or relay role/);
     });
 
     it('keeps a Sterling lore contract for the primer behavior', () => {
@@ -76,5 +87,9 @@ describe('CoS context refresh primer', () => {
         assert.match(feature, /Fresh CoS context is restored from durable state/);
         assert.match(feature, /perfect scores as review-pending/);
         assert.match(feature, /forbid raw transcript or log replay/);
+        assert.match(feature, /PMT unavailability as a freshness gap/);
+        assert.match(feature, /require mapped-PMT context when an in-scope mapping exists/);
+        assert.match(feature, /requested and actual mapped-PMT model identity separately/);
+        assert.match(feature, /MM as legacy with no active routing role/);
     });
 });

@@ -57,7 +57,7 @@ export function saveHallAgentPresence(
     record: HallAgentPresenceRecord,
     rootPath: string = registry.getRoot(),
 ): void {
-    const db = database.getDb(rootPath);
+    const db = database.getWritableDb(rootPath);
     db.prepare(`
         INSERT INTO hall_agent_presence (
             repo_id, agent_id, name, status, current_task, active_bead_id, session_id,
@@ -97,7 +97,7 @@ export function getHallAgentPresence(
     agentId: string,
     rootPath: string = registry.getRoot(),
 ): HallAgentPresenceRecord | null {
-    const db = database.getDb(rootPath);
+    const db = database.getReadDb(rootPath);
     const repoId = buildHallRepositoryId(normalizeHallPath(rootPath));
     const row = db.prepare(`
         SELECT repo_id, agent_id, name, status, current_task, active_bead_id, session_id,
@@ -123,7 +123,7 @@ export function listHallAgentPresence(
         traceId?: string;
     } = {},
 ): HallAgentPresenceRecord[] {
-    const db = database.getDb(rootPath);
+    const db = database.getReadDb(rootPath);
     const repoId = buildHallRepositoryId(normalizeHallPath(rootPath));
     const params: unknown[] = [repoId];
     let sql = `
@@ -159,8 +159,11 @@ export function saveHallCoordinationEvent(
     record: HallCoordinationEventRecord,
     rootPath: string = registry.getRoot(),
 ): void {
-    const db = database.getDb(rootPath);
-    db.prepare(`
+    if (record.payload?.schema === 'cstar.host_goal_resume.v1') {
+        throw new Error('goal_resume_requires_immutable_coordination_insert');
+    }
+    const db = database.getWritableDb(rootPath);
+    const outcome = db.prepare(`
         INSERT INTO hall_coordination_events (
             event_id, repo_id, thread_id, scope_kind, scope_ref, event_kind, from_agent_id,
             to_agent_id, session_id, trace_id, bead_id, target_path, rationale, summary,
@@ -182,6 +185,71 @@ export function saveHallCoordinationEvent(
             payload_json = excluded.payload_json,
             metadata_json = excluded.metadata_json,
             updated_at = excluded.updated_at
+        WHERE json_valid(hall_coordination_events.metadata_json) = 1
+          AND COALESCE(json_extract(hall_coordination_events.metadata_json, '$.immutable'), 0) != 1
+    `).run(
+        record.event_id,
+        record.repo_id,
+        record.thread_id,
+        record.scope_kind,
+        record.scope_ref,
+        record.event_kind,
+        record.from_agent_id,
+        record.to_agent_id ?? null,
+        record.session_id ?? null,
+        record.trace_id ?? null,
+        record.bead_id ?? null,
+        record.target_path ? normalizeHallPath(record.target_path) : null,
+        record.rationale,
+        record.summary,
+        stringifyJson(record.payload),
+        stringifyJson(record.metadata),
+        record.created_at,
+        record.updated_at,
+    );
+    if (outcome.changes !== 1) {
+        const existing = db.prepare(`
+            SELECT metadata_json
+            FROM hall_coordination_events
+            WHERE event_id = ?
+            LIMIT 1
+        `).get(record.event_id) as { metadata_json?: string } | undefined;
+        const existingMetadata = parseJson<Record<string, unknown>>(
+            existing?.metadata_json ?? null,
+            {},
+        );
+        if (existingMetadata.immutable === true) {
+            throw new Error('immutable_coordination_event_cannot_be_overwritten');
+        }
+        throw new Error('coordination_event_atomic_upsert_guard_rejected');
+    }
+}
+
+export function withImmediateHallCoordinationTransaction<T>(
+    rootPath: string,
+    operation: () => T,
+): T {
+    return database.getWritableDb(rootPath).transaction(operation).immediate();
+}
+
+/** Insert immutable coordination evidence; callers must handle exact replays before this boundary. */
+export function insertImmutableHallCoordinationEvent(
+    record: HallCoordinationEventRecord,
+    rootPath: string = registry.getRoot(),
+): void {
+    if (record.metadata?.immutable !== true) {
+        throw new Error('immutable_coordination_event_marker_required');
+    }
+    if (record.created_at !== record.updated_at) {
+        throw new Error('immutable_coordination_event_timestamps_must_match');
+    }
+    const db = database.getWritableDb(rootPath);
+    db.prepare(`
+        INSERT INTO hall_coordination_events (
+            event_id, repo_id, thread_id, scope_kind, scope_ref, event_kind, from_agent_id,
+            to_agent_id, session_id, trace_id, bead_id, target_path, rationale, summary,
+            payload_json, metadata_json, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
         record.event_id,
         record.repo_id,
@@ -219,7 +287,7 @@ export function listHallCoordinationEvents(
         limit?: number;
     } = {},
 ): HallCoordinationEventRecord[] {
-    const db = database.getDb(rootPath);
+    const db = database.getReadDb(rootPath);
     const repoId = buildHallRepositoryId(normalizeHallPath(rootPath));
     const params: unknown[] = [repoId];
     let sql = `

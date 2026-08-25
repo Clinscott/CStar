@@ -1,11 +1,10 @@
-import { Command } from 'commander';
-import chalk from 'chalk';
-import { join } from 'node:path';
+import type { Command } from 'commander';
 
-import { renderStandardCommandResult } from './command_context.js';
-import { RuntimeDispatcher } from  '../runtime/dispatcher.js';
-import { RuntimeDispatchPort, StartWeavePayload, WeaveInvocation } from  '../runtime/contracts.js';
-import { resolveWorkspaceRoot, withCliWorkspaceTarget, type WorkspaceRootSource } from  '../runtime/invocation.js';
+import type { RuntimeDispatchPort, StartWeavePayload, WeaveInvocation } from '../runtime/contracts.js';
+import { withCliWorkspaceTarget, type WorkspaceRootSource } from '../runtime/invocation.js';
+
+export const START_COMMAND_RETIRED_ERROR =
+    'legacy_start_command_retired_use_cstar_kernel';
 
 export function buildStartInvocation(
     target: string | undefined,
@@ -25,33 +24,17 @@ export function buildStartInvocation(
     }, workspaceRoot);
 }
 
-/**
- * [GUNGNIR] Start Command Spoke
- * Purpose: Authoritative shell for the Agent Loop and system pulse.
- */
+/** Register a tombstone that never resolves a workspace or dispatches a weave. */
 export function registerStartCommand(
     program: Command,
-    workspaceRootSource: WorkspaceRootSource = process.cwd(),
-    dispatchPort: RuntimeDispatchPort = RuntimeDispatcher.getInstance(),
-) {
+    _workspaceRootSource: WorkspaceRootSource = '',
+    _dispatchPort?: RuntimeDispatchPort,
+): void {
     program
-        .command('start [target]')
-        .description('Initiate the Agent Loop or awaken the system pulse')
-        .option('-t, --task <desc>', 'task description for the compute plane', '')
-        .option('--ledger <dir>', 'ledger context directory')
-        .option('--loki', 'Enable Loki Mode: Autonomous, high-velocity execution bypassing human-in-the-loop')
-        .option('--debug', 'enable debug mode')
-        .option('-v, --verbose', 'Enable verbose architectural logging')
-        .action(async (target: string | undefined, options: { task: string; ledger: string; loki?: boolean; debug?: boolean; verbose?: boolean }) => {
-            try {
-                const workspaceRoot = resolveWorkspaceRoot(workspaceRootSource);
-                const result = await dispatchPort.dispatch(buildStartInvocation(target, {
-                    ...options,
-                    ledger: options.ledger || join(workspaceRoot, 'ledger'),
-                }, workspaceRoot));
-                renderStandardCommandResult(result, workspaceRoot);
-            } catch (error: any) {
-                console.error(chalk.red(`\nCritical Dispatch Error: ${error.message}`));
-            }
+        .command('start [args...]')
+        .description('Retired: use typed cstar-kernel lifecycle tools')
+        .allowUnknownOption(true)
+        .action(() => {
+            throw new Error(START_COMMAND_RETIRED_ERROR);
         });
 }

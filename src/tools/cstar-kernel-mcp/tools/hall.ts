@@ -14,28 +14,24 @@ import {
     summarizeRecentMcpUsefulness,
 } from '../telemetry/usage.js';
 import { summarizeRecentTokenPathIntegration } from '../telemetry/token_path.js';
+import {
+    buildKernelRuntimeLineage,
+    evaluateKernelForgeReadiness,
+    CODE_ROOT,
+    CONTROL_ROOT,
+    KERNEL_ROOT_BINDING_MODE,
+} from '../contracts/runtime.js';
 
-export async function handleHallMaintenance({ action, limit, memory_id }: { action: 'study' | 'harvest'; limit?: number; memory_id?: string }) {
-    try {
-        if (action === 'study') {
-            if (!memory_id) return textResponse({ error: 'study action requires memory_id' }, true);
-            const result = await database.getDb().prepare('SELECT * FROM hall_episodic_memory WHERE memory_id = ?').get(memory_id);
-            if (!result) return textResponse({ error: `Engram ${memory_id} not found` }, true);
-            return textResponse({ status: 'ready_to_study', memory_id });
-        }
-        if (action === 'harvest') {
-            const unstudied = database.listUnstudiedEngrams(true);
-            const targetIds = unstudied.slice(0, limit || 5).map((e) => e.memory_id);
-            return textResponse({
-                status: 'harvest_queue_ready',
-                total_unstudied: unstudied.length,
-                queue: targetIds,
-            });
-        }
-        return textResponse({ error: 'Invalid action' }, true);
-    } catch (error: any) {
-        return textResponse({ error: error.message }, true);
-    }
+export const RETIRED_HALL_MAINTENANCE_ERROR = (
+    'legacy_hall_maintenance_retired_use_bounded_hall_search'
+);
+
+export async function handleHallMaintenance(_args: unknown) {
+    return textResponse({
+        error: RETIRED_HALL_MAINTENANCE_ERROR,
+        decommissioned: true,
+        actuated: false,
+    }, true);
 }
 
 export interface HandoffArgs {
@@ -123,7 +119,7 @@ export function buildHandoffMcpPayload(handoff: any, root: string, args: Handoff
 export async function handleHandoff(args: HandoffArgs = {}) {
     try {
         const root = registry.getRoot();
-        const handoff = resolveActiveTraceHandoffPayload(root);
+        const handoff = resolveActiveTraceHandoffPayload(root, CODE_ROOT);
         return textResponse(buildHandoffMcpPayload(handoff, root, args));
     } catch (error: any) {
         return textResponse({ error: error.message }, true);
@@ -174,10 +170,24 @@ export async function handleDoctor() {
     try {
         const root = registry.getRoot();
         const session = resolveActivePlanningSession(root);
-        const doctor = buildAuguryDoctorPayload(session, root);
-        const db = database.getDb(root);
+        const doctor = buildAuguryDoctorPayload(session, root, CODE_ROOT);
+        const db = database.getReadDb(root);
+        const runtimeLineage = buildKernelRuntimeLineage();
+        const liveRootBinding = KERNEL_ROOT_BINDING_MODE === 'live_launcher';
+        const rootBindingHealthy = liveRootBinding
+            && root === CONTROL_ROOT
+            && process.env.CSTAR_CODE_ROOT === runtimeLineage.code_root
+            && process.env.CSTAR_CONTROL_ROOT === runtimeLineage.control_root
+            && process.env.CSTAR_PROJECT_ROOT === runtimeLineage.control_root
+            && process.env.CSTAR_WORKSPACE_ROOT === runtimeLineage.control_root;
+        const dependencyLineageHealthy = runtimeLineage.dependency_lineage === 'verified_lock_match';
+        const forgeRuntimePresent = runtimeLineage.forge_runtime_manifest_present;
+        const forgeReadiness = evaluateKernelForgeReadiness(runtimeLineage);
+        const forgeReady = rootBindingHealthy && forgeReadiness.ready;
         return textResponse({
-            status: doctor.status === 'pass' ? 'healthy' : 'degraded',
+            status: doctor.status === 'pass' && (!liveRootBinding || rootBindingHealthy)
+                ? 'healthy'
+                : 'degraded',
             score: doctor.score,
             warnings: doctor.warnings,
             active: true,
@@ -185,7 +195,17 @@ export async function handleDoctor() {
                 database: db !== null,
                 registry: !!root,
                 augury: doctor.status === 'pass',
+                root_binding: rootBindingHealthy,
+                dependency_lineage: dependencyLineageHealthy,
+                forge_runtime_manifest: forgeRuntimePresent,
+                forge_readiness: forgeReady,
             },
+            readiness: {
+                kernel_root_binding: rootBindingHealthy,
+                forge: forgeReady,
+                forge_failures: forgeReadiness.failures,
+            },
+            runtime_lineage: runtimeLineage,
             telemetry: summarizeRecentMcpUsage(),
             usefulness: summarizeRecentMcpUsefulness(),
             token_path: summarizeRecentTokenPathIntegration(),
@@ -199,7 +219,7 @@ export async function handleVerifyPlan() {
     try {
         const root = registry.getRoot();
         const session = resolveActivePlanningSession(root);
-        const handoff = buildTraceAgentHandoffPayload(session, root);
+        const handoff = buildTraceAgentHandoffPayload(session, root, CODE_ROOT);
         let last_validation: { verdict: string; recorded_at: number; validation_id: string } | null = null;
         if (handoff?.lead_bead_id) {
             try {

@@ -1,4 +1,4 @@
-import { registry } from '../../pennyone/pathRegistry.js';
+import { CODE_ROOT } from '../contracts/runtime.js';
 import { textResponse } from '../contracts/responses.js';
 import { buildCapabilityManifestPayload, buildCapabilityInfoPayload } from '../../../node/core/commands/capability_discovery.js';
 import {
@@ -56,7 +56,7 @@ function extractLogicProtocolAnchor(content: string): string | null {
 
 export async function handleManifest({ scope = 'hub', spoke }: { scope?: 'hub' | 'spoke' | 'all'; spoke?: string }) {
     try {
-        const projectRoot = registry.getRoot();
+        const projectRoot = CODE_ROOT;
         const hubPayload = scope === 'hub' || scope === 'all'
             ? buildCapabilityManifestPayload(projectRoot)
             : null;
@@ -80,7 +80,7 @@ export async function handleManifest({ scope = 'hub', spoke }: { scope?: 'hub' |
 }
 export async function handleSkillInfo({ id, spoke }: { id: string; spoke?: string }) {
     try {
-        const projectRoot = registry.getRoot();
+        const projectRoot = CODE_ROOT;
 
         if (id.includes(':')) {
             // Spoke skill: namespaced as <slug>:<bare_id>.
@@ -104,7 +104,8 @@ export async function handleSkillInfo({ id, spoke }: { id: string; spoke?: strin
                 },
                 invocation: {
                     agent_hint: 'any-host-agent',
-                    working_dir: found.spoke_root,
+                    working_dir: null,
+                    working_dir_source: 'registered_spoke_root_redacted',
                     command: null,
                     logic_protocol_anchor: extractLogicProtocolAnchor(found.documentation),
                 },

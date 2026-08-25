@@ -1,37 +1,16 @@
-import fs from 'node:fs/promises';
-import { execa } from 'execa';
-import chalk from 'chalk';
+export const RETIRED_NODE_DEPLOYMENT_ERROR =
+    'legacy_node_deployment_retired_use_operator_gated_cstar_git_closure';
 
 /**
- * Overwrites a target file with the verified candidate and stages/commits it to Git.
- * @param targetFile - The original file to overwrite.
- * @param candidateFile - The newly generated and verified candidate file.
- * @param commitMessage - Git commit message.
- * @param execFunction - Dependency-injected execution function (defaults to execa).
+ * Compatibility tombstone for the former candidate overwrite and auto-commit
+ * helper. Candidate delivery, exact-file staging, commit, and push are separate
+ * operator gates and cannot be delegated through this module.
  */
 export async function deployCandidate(
-    targetFile: string,
-    candidateFile: string,
-    commitMessage: string,
-    execFunction: any = execa
-): Promise<void> {
-    console.log(chalk.magenta('ALFRED: \'Deploying candidate to mainline...\''));
-
-    try {
-        // Step 1: Overwrite target with candidate
-        await fs.rename(candidateFile, targetFile);
-    } catch (err: any) {
-        throw new Error(`Deployment Failed during Overwrite (rename). Details: ${err.message}`);
-    }
-
-    try {
-        // Step 2: Git Stage
-        await execFunction('git', ['add', targetFile]);
-
-        // Step 3: Git Commit
-        await execFunction('git', ['commit', '-m', commitMessage]);
-    } catch (err: any) {
-        throw new Error(`Deployment Failed during Git Operations. Details: ${err.message}`);
-    }
+    _targetFile: string,
+    _candidateFile: string,
+    _commitMessage: string,
+    _execFunction?: unknown,
+): Promise<never> {
+    throw new Error(RETIRED_NODE_DEPLOYMENT_ERROR);
 }
-

@@ -1,6 +1,7 @@
 import { registry } from '../../pennyone/pathRegistry.js';
 import { selectCouncilExpert } from '../../../core/council_experts.js';
-import { buildPersonaAdvice, type PersonaAdvice } from '../../../core/persona_advice.js';
+import { buildProjectedPersonaAdvice, type PersonaAdvice } from '../../../core/persona_advice.js';
+import { readHallPersonaProjection } from '../../pennyone/persona_projection.js';
 import {
     buildTraceAgentHandoffPayload,
     resolveActivePlanningSession,
@@ -13,12 +14,8 @@ import {
     resolveIntentCategoryFromGrammar,
 } from '../../../node/core/runtime/host_workflows/chant_parser.js';
 import { mcpGuardrail, textResponse } from '../contracts/responses.js';
-import { logBootstrapError } from '../contracts/runtime.js';
-import {
-    appendTokenPathAdvice,
-    runTokenPathAdvisor,
-    type TokenPathRoutingInput,
-} from '../telemetry/token_path.js';
+import { CODE_ROOT } from '../contracts/runtime.js';
+import { buildTokenPathQuarantineStatus } from '../telemetry/token_path.js';
 import {
     callerRequestedActiveSessionContinuity,
     decideAugurySessionRouting,
@@ -32,27 +29,41 @@ type KernelCouncilExpert = {
     selection_candidates?: unknown[];
 };
 
-export async function handleAugury({ prompt, inferred_intent, target_paths, scope, bead_id }: { prompt: string, inferred_intent?: string, target_paths?: string[], scope?: string, bead_id?: string }) {
+export async function handleAugury({ prompt, inferred_intent, target_paths, scope }: { prompt: string, inferred_intent?: string, target_paths?: string[], scope?: string, bead_id?: string }) {
     try {
-        let explain: ReturnType<typeof buildAuguryExplainPayload> = {
-            status: 'missing',
-            agent_next_action: 'Perform handoff to verify active state.',
-            warnings: [],
-        };
         const root = registry.getRoot();
+        let explain: ReturnType<typeof buildAuguryExplainPayload>;
         let activeSession: ReturnType<typeof resolveActivePlanningSession> = null;
         let activeHandoff: ReturnType<typeof buildTraceAgentHandoffPayload> = null;
+        let sessionFreshnessGap: 'active_session_projection_unavailable' | undefined;
         try {
             activeSession = resolveActivePlanningSession(root);
-            activeHandoff = buildTraceAgentHandoffPayload(activeSession, root);
-            explain = buildAuguryExplainPayload(activeSession, root);
-        } catch (error) {
-            logBootstrapError(error);
+            activeHandoff = buildTraceAgentHandoffPayload(activeSession, root, CODE_ROOT);
+            explain = buildAuguryExplainPayload(activeSession, root, CODE_ROOT);
+        } catch {
+            // Augury is a read surface. A degraded session projection is
+            // returned as bounded provenance instead of writing a bootstrap
+            // log from an unauthenticated request path.
+            activeSession = null;
+            activeHandoff = null;
+            sessionFreshnessGap = 'active_session_projection_unavailable';
+            explain = {
+                status: 'missing',
+                guardrail: {
+                    verdict: 'caution',
+                    action: 'recover',
+                    reason: 'Active session projection is unavailable; route only from current deterministic input.',
+                    failed_checks: [],
+                    warning_checks: ['active_session'],
+                },
+                agent_next_action: 'Use the current deterministic route and repair Hall session freshness separately.',
+                warnings: ['Active session projection is unavailable.'],
+            };
         }
 
         // Run the deterministic grammar resolver in parallel with the
         // session lookup so divergence is always visible to the caller.
-        const manifest = loadRegistryManifest(root);
+        const manifest = loadRegistryManifest(CODE_ROOT);
         const grammarSource: 'registry' | 'fallback' = manifest?.intent_grammar ? 'registry' : 'fallback';
         const grammar = getRegistryIntentCategories(manifest);
         const tokens = tokenize(`${prompt} ${inferred_intent ?? ''}`);
@@ -146,20 +157,21 @@ export async function handleAugury({ prompt, inferred_intent, target_paths, scop
                         ...targetDivergence,
                     },
                 },
+                ...(sessionFreshnessGap ? { session_freshness_gap: sessionFreshnessGap } : {}),
+                token_path: buildTokenPathQuarantineStatus(),
             });
         }
 
         let result: Record<string, unknown>;
-        let routingInput: TokenPathRoutingInput;
         let resolvedIntentCategory: string;
         let routingSource: 'session' | 'deterministic' | 'fallback';
 
-        if (routingDecision.source === 'session' && explain.status === 'available' && explain.route) {
+        if (
+            routingDecision.source === 'session'
+            && explain.status === 'available'
+            && explain.route?.intent_category
+        ) {
             const expert = explain.expert as (typeof explain.expert & KernelCouncilExpert);
-            const designation = explain.route.designation || '';
-            const colonIdx = designation.indexOf(':');
-            const selectionTier = colonIdx >= 0 ? designation.slice(0, colonIdx).trim() : designation.trim();
-            const selectionName = colonIdx >= 0 ? designation.slice(colonIdx + 1).trim() : undefined;
             resolvedIntentCategory = explain.route.intent_category;
             routingSource = 'session';
             result = {
@@ -175,17 +187,6 @@ export async function handleAugury({ prompt, inferred_intent, target_paths, scop
                 mimir_targets: explain.mimir?.targets.slice(0, 3) || (target_paths || []).slice(0, 3),
                 next_action: explain.agent_next_action || 'Perform handoff to verify active state.',
                 council_candidates: expert?.selection_candidates?.slice(0, 3) ?? [],
-                confidence: 1.0
-            };
-            routingInput = {
-                prompt,
-                inferred_intent,
-                intent_category: resolvedIntentCategory,
-                target_paths,
-                mimirs_well: explain.mimir?.targets,
-                scope: explain.scope?.value || scope,
-                selection_tier: selectionTier || undefined,
-                selection_name: selectionName,
             };
         } else if (deterministicMatch) {
             // Prefer the current prompt/target_paths route when an active
@@ -217,16 +218,6 @@ export async function handleAugury({ prompt, inferred_intent, target_paths, scop
                     ? 'Route derived from the current prompt and target_paths. Active session context was demoted to background because its targets diverge.'
                     : 'No active planning session; route derived from deterministic grammar. Run cstar_handoff to anchor a session.',
                 council_candidates: selectedExpert.selection_candidates?.slice(0, 3) ?? [],
-                confidence: 0.85
-            };
-            routingInput = {
-                prompt,
-                inferred_intent,
-                intent_category: resolvedIntentCategory,
-                target_paths,
-                scope,
-                selection_tier: selectionTier,
-                selection_name: selectionName,
             };
         } else {
             // Neither session nor grammar matched. Last-resort ORCHESTRATE fallback.
@@ -252,16 +243,6 @@ export async function handleAugury({ prompt, inferred_intent, target_paths, scop
                 mimir_targets: (target_paths || []).slice(0, 3),
                 next_action: 'No deterministic grammar match and no active session. Clarify the prompt or run cstar_handoff.',
                 council_candidates: selectedExpert.selection_candidates?.slice(0, 3) ?? [],
-                confidence: 0.6
-            };
-            routingInput = {
-                prompt,
-                inferred_intent,
-                intent_category: resolvedIntentCategory,
-                target_paths,
-                scope,
-                selection_tier: 'SKILL',
-                selection_name: 'cstar-kernel',
             };
         }
 
@@ -289,15 +270,23 @@ export async function handleAugury({ prompt, inferred_intent, target_paths, scop
                 target_paths: sessionTargetPaths,
             };
         }
-        if (routingDecision.divergence_warnings.length > 0) {
-            result.divergence_warnings = routingDecision.divergence_warnings;
+        const routingWarnings = [
+            ...routingDecision.divergence_warnings,
+            ...(sessionFreshnessGap ? ['Active session projection is unavailable.'] : []),
+        ];
+        if (routingWarnings.length > 0) {
+            result.divergence_warnings = routingWarnings;
         }
+        if (sessionFreshnessGap) result.session_freshness_gap = sessionFreshnessGap;
         result.routing_provenance = {
             source: routingSource,
             deterministic: deterministicProvenance,
             session: sessionProvenance,
             diverged,
             active_session_authority: routingDecision.use_session_as_primary ? 'primary' : 'background',
+            session_projection: sessionFreshnessGap
+                ? { status: 'unavailable', freshness_gap: sessionFreshnessGap }
+                : { status: 'available' },
             ...(intentDivergence ? {
                 intent_divergence: {
                     kind: 'intent_category',
@@ -315,14 +304,25 @@ export async function handleAugury({ prompt, inferred_intent, target_paths, scop
         };
 
         // Persona Advice — wires the active CStar persona into the Augury payload.
-        const advice: PersonaAdvice = buildPersonaAdvice(resolvedIntentCategory);
-        result.persona_advice = advice;
-
-        const tokenPath = await runTokenPathAdvisor(routingInput);
-        if (tokenPath) {
-            appendTokenPathAdvice(routingInput, tokenPath, bead_id);
-            result.token_path = tokenPath;
+        let personaProjection: ReturnType<typeof readHallPersonaProjection> | undefined;
+        try {
+            personaProjection = readHallPersonaProjection(root) ?? undefined;
+        } catch {
+            // Persona is optional projection context, never a reason for the
+            // read-only routing surface to bootstrap or fail.
+            personaProjection = undefined;
         }
+        const advice: PersonaAdvice | null = buildProjectedPersonaAdvice(
+            resolvedIntentCategory,
+            personaProjection,
+        );
+        if (advice) {
+            result.persona_advice = advice;
+        } else {
+            result.persona_freshness_gap = 'active_persona_projection_unavailable';
+        }
+
+        result.token_path = buildTokenPathQuarantineStatus();
 
         return textResponse(result);
     } catch (error: any) {

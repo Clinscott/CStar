@@ -58,6 +58,21 @@ Feature: Codex steered-turn request identity
     Then request identity fails closed with a stable failure class
     And no operator authorization is accepted
 
+  Scenario: A long-lived session uses a bounded authority projection
+    Given a safe fixed Codex session contains large assistant, reasoning, tool, or event payloads
+    When CStar scans the session for request identity and later authorization conflicts
+    Then it hashes the complete fixed file and validates every UTF-8 JSONL row
+    And it feeds only the current record into bounded selected-turn and revocation state machines
+    And it retains no raw authority-row list
+    And physical bytes, individual records, total rows, and selected-turn state remain independently capped
+    And later revocation detection and ordered raw user-record hashes remain unchanged
+
+  Scenario: Current request and historical authorization share one fixed scan
+    Given one direct-stdio authorization check carries current Codex request metadata
+    When CStar derives the latest request cohort and historical consent state
+    Then it opens and scans the session file exactly once
+    And no appended steering turn can race two identity snapshots
+
   Scenario: Selected cohort record integrity is invalid
     Given a selected record violates uniqueness, completeness, recency, or timestamp ordering
     When CStar recovers Codex request identity

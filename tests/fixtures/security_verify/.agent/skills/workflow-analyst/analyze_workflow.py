@@ -38,8 +38,6 @@ class WorkflowAnalyst:
 
             # Simple keyword frequency analysis for "pain words"
             pain_keywords = ["manual", "fix", "error", "fail", "slow", "refactor", "broken"]
-            found_pain = [word for word in pain_keywords if word in journal_content]
-
             # Count occurrences
             word_counts = Counter(re.findall(r'\b\w+\b', journal_content))
             common = word_counts.most_common(20)

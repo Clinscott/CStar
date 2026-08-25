@@ -475,7 +475,8 @@ Seed the Hall contract for the scheduler migration.`,
         assert.equal(auguryContract.trajectory_status, 'STABLE');
         assert.equal(auguryContract.trajectory_reason, 'Dispatcher synthesized the designation from the explicit weave invocation.');
         assert.deepEqual(auguryContract.mimirs_well, ['src/node/core/runtime/dispatcher.ts']);
-        assert.equal(auguryContract.confidence, 0.72);
+        assert.equal(auguryContract.confidence, undefined);
+        assert.equal(auguryContract.confidence_source, undefined);
         assert.equal(auguryContract.canonical_intent, 'Evolve bead bead-runtime-1.');
         assert.equal(auguryContract.council_expert?.label, 'CARMACK');
         assert.match(auguryContract.council_expert?.root_persona_directive ?? '', /performance pragmatist/i);

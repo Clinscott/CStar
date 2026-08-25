@@ -1,11 +1,18 @@
 ---
 title: "CStar Host Convergence Backlog"
 date: 2026-03-25
-status: proposed
+status: historical-superseded
 owner: "O.D.I.N."
 ---
 
 # CStar Host Convergence Backlog
+
+> **Historical evidence only.** This backlog predates the kernel-backed
+> lifecycle and three-skill host-native registry. Its terminal commands,
+> registry-as-authority claims, and execution tasks are not current
+> instructions. Use the nearest `AGENTS.md`, `cstar-kernel` MCP, and current
+> runbooks; registry/runtime observations are evidence and cannot grant
+> authority.
 
 > [!IMPORTANT]
 > This backlog exists to converge CStar's skills, weaves, and spells into executable authority.

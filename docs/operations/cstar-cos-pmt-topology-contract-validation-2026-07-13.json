@@ -1,0 +1,72 @@
+{
+  "schema_version": "cstar.validation.v1",
+  "validation_id": "val:cstar-cos-pmt-topology-contract-2026-07-13",
+  "bead_id": "bead:repair:cstar-cos-pmt-topology-contract-2026-07-13",
+  "verdict": "ACCEPTED",
+  "validated_at": "2026-07-14T03:09:07-04:00",
+  "validator": {
+    "identity": "codex-subagent:topology_contract_validator",
+    "independent_of_execution": true,
+    "requested_model": "gpt-5.6-terra",
+    "requested_reasoning": "high",
+    "actual_model": "unreported"
+  },
+  "scope": "Source and documentation topology contract only; not live-runtime or production proof.",
+  "checks": [
+    {
+      "name": "python_thread_architecture_contract",
+      "command": "node scripts/run-python.mjs -m pytest -q tests/contracts/test_codex_thread_architecture.py",
+      "status": "pass",
+      "result": "5 passed in 0.04s"
+    },
+    {
+      "name": "typescript_context_refresh_contract",
+      "command": "node scripts/run-tsx.mjs --test tests/unit/test_cos_context_refresh_primer.test.ts",
+      "status": "pass",
+      "result": "5 passed, 0 failed"
+    },
+    {
+      "name": "diff_hygiene",
+      "command": "git diff --check -- <seven reviewed paths>",
+      "status": "pass",
+      "result": "exit 0; no output"
+    },
+    {
+      "name": "stale_topology_contract_scan",
+      "command": "bounded scan for optional mapped-PMT reads or updates, PMT authority, and active MM routing",
+      "status": "pass",
+      "result": "no matches"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "docs/architecture/cos-pmt-thread-architecture.md",
+      "sha256": "a7b3a2032be9e94b551ca5cd060196cc2dcbf1fc9bef95f95aae51882bef6396"
+    },
+    {
+      "path": "docs/operations/cos-context-refresh-new-thread-packet.md",
+      "sha256": "d9c1c6c51b3726c961b5c3ce98bca7601e564baf2e0da24a55f4d32f7670b715"
+    },
+    {
+      "path": "docs/operations/cos-context-refresh-primer-gpt-5-6-sol.md",
+      "sha256": "cf96cf6610410490c8a8ec93ead8dc306c35f07c5994dba92163293e7d9f0526"
+    },
+    {
+      "path": "tests/contracts/test_codex_thread_architecture.py",
+      "sha256": "f70920d57d98aedc2c30b6982c28f7d191dfb0b7966629ea0831f6313a20fb84"
+    },
+    {
+      "path": "tests/features/cos_pmt_thread_architecture.feature",
+      "sha256": "148ec8a37ec9ffd4323d1b54dc06b912b04e817a540c8e3d00bb0258e9ad31b2"
+    },
+    {
+      "path": "tests/features/cos_context_refresh_primer.feature",
+      "sha256": "c20e1b5707d13de7f66b0f54e9ad90887f942524ab8673b542b747b98e7f5d45"
+    },
+    {
+      "path": "tests/unit/test_cos_context_refresh_primer.test.ts",
+      "sha256": "ac3b01485983cc0a0757a6083f2f17341cfdf39ba2b0fdfd2830d2b5a2cfa4a5"
+    }
+  ],
+  "prohibited_actions_observed": []
+}

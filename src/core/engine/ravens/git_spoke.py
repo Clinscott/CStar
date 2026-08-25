@@ -1,55 +1,36 @@
-"""
-[SPOKE] Git Spoke
-Lore: "The Keeper of the Chronology."
-Purpose: Encapsulate git operations for the sentinel layer.
-"""
+"""Retired autonomous Git spoke."""
 
-import subprocess
-from pathlib import Path
+from __future__ import annotations
+
+from typing import NoReturn
+
+
+LEGACY_PYTHON_RAVENS_ENGINE_ERROR = (
+    "legacy_python_ravens_engine_retired_use_cstar_kernel"
+)
+
+
+def _retired() -> NoReturn:
+    raise RuntimeError(LEGACY_PYTHON_RAVENS_ENGINE_ERROR)
+
 
 class GitSpoke:
-    def __init__(self, repo_path: Path):
-        self.repo_path = repo_path
+    """Fail before repository inspection or mutation."""
 
-    def run_cmd(self, args: list[str]) -> str | None:
-        """Executes a git command in the target repo."""
-        try:
-            result = subprocess.run(
-                ["git", *args],
-                cwd=str(self.repo_path),
-                capture_output=True,
-                text=True,
-                encoding='utf-8',
-                errors='replace',
-                check=True
-            )
-            return result.stdout.strip()
-        except (subprocess.CalledProcessError, FileNotFoundError):
-            return None
+    def __init__(self, *_args: object, **_kwargs: object) -> None:
+        _retired()
 
-    def is_clean(self) -> bool:
-        """Checks if the repo is clean."""
-        status = self.run_cmd(["status", "--porcelain"])
-        return status == ""
+    def run_cmd(self, *_args: object, **_kwargs: object) -> NoReturn:
+        _retired()
 
-    def ensure_branch(self, branch_name: str = "sovereign-fish-auto") -> str | None:
-        """Switches to the dedicated automation branch."""
-        current = self.run_cmd(["branch", "--show-current"])
-        branches = self.run_cmd(["branch", "--list", branch_name])
+    def is_clean(self, *_args: object, **_kwargs: object) -> NoReturn:
+        _retired()
 
-        if not branches:
-            self.run_cmd(["checkout", "-b", branch_name])
-        else:
-            self.run_cmd(["checkout", branch_name])
+    def ensure_branch(self, *_args: object, **_kwargs: object) -> NoReturn:
+        _retired()
 
-        return current
+    def restore_branch(self, *_args: object, **_kwargs: object) -> NoReturn:
+        _retired()
 
-    def restore_branch(self, original_branch: str | None) -> None:
-        """Restores the original branch."""
-        if original_branch:
-            self.run_cmd(["checkout", original_branch])
-
-    def commit_changes(self, message: str) -> None:
-        """Adds all changes and commits with the given message."""
-        self.run_cmd(["add", "-A"])
-        self.run_cmd(["commit", "-m", message])
+    def commit_changes(self, *_args: object, **_kwargs: object) -> NoReturn:
+        _retired()

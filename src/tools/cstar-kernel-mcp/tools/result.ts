@@ -1,57 +1,92 @@
-import type { HallValidationRun, HallValidationVerdict } from '../../../types/hall.js';
+import type {
+    CStarValidationRunRecord,
+    CStarValidationVerdict,
+} from '../../../types/validation_evidence.js';
 import { registry } from '../../pennyone/pathRegistry.js';
-import { database } from '../../pennyone/intel/database.js';
-import { finalizeForgeValidation } from '../../pennyone/intel/forge_validation_controller.js';
-import { mcpMutation, textResponse } from '../contracts/responses.js';
+import {
+    getForgeWritableDb,
+    openForgeReadDb,
+} from '../../pennyone/intel/forge_hall_store.js';
+import {
+    finalizeForgeValidation,
+    resolveForgeValidationSubject,
+} from '../../pennyone/intel/forge_validation_controller.js';
+import {
+    mcpErrorCode,
+    mcpMutation,
+    preAuthorizationErrorResponse,
+    textResponse,
+} from '../contracts/responses.js';
 import type { McpRequestContext } from '../contracts/request_context.js';
 import { PROJECT_ROOT, logBootstrapError } from '../contracts/runtime.js';
-import {
-    appendTokenPathObservation,
-    isMeasuredTokenPathObservation,
-    TOKEN_PATH_OBSERVATION_ACCEPTANCE_ENABLED,
-    type TokenPathObservationPayload,
-} from '../telemetry/token_path.js';
 import {
     verifyValidationEvidence,
     type ValidationEvidencePayload,
 } from './validation_evidence.js';
+import { verifyCodexRequestIdentity } from './operator_authorization.js';
+import { saveValidationRunToDb } from './validation_run_store.js';
 
 function isPositiveValidationVerdict(verdict: string): boolean {
     return verdict === 'ACCEPTED' || verdict === 'SUCCESS';
 }
 
-export async function handleRecordResult({ bead_id, verdict, notes, validation_id, forge_execution_receipt_id, validation_evidence, token_path_episode_id, token_path_observation }: {
+export async function handleRecordResult({ bead_id, verdict, notes, validation_id, forge_execution_receipt_id, validation_evidence }: {
     bead_id: string,
-    verdict: HallValidationVerdict,
+    verdict: CStarValidationVerdict,
     notes?: string,
     validation_id?: string,
     forge_execution_receipt_id?: string,
     validation_evidence?: ValidationEvidencePayload,
-    token_path_episode_id?: string,
-    token_path_observation?: TokenPathObservationPayload,
 }, requestContext?: McpRequestContext) {
+    let requestIdentityVerified = false;
     try {
+        await verifyCodexRequestIdentity(requestContext);
+        requestIdentityVerified = true;
         let root = PROJECT_ROOT;
         let repoId = 'cstar';
         const validationId = validation_id?.trim()
             || `val-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
         let validationError: string | undefined;
-        let validationAuthority: 'reported' | 'verified' = 'reported';
-        let storedVerdict: HallValidationVerdict = verdict;
+        let validationAuthority: 'reported' | 'verified_v2' = 'reported';
+        let storedVerdict: CStarValidationVerdict = verdict;
         let verifiedEvidence: Awaited<ReturnType<typeof verifyValidationEvidence>> = null;
         let beadTargetPath: string | undefined;
         let forgeValidation: ReturnType<typeof finalizeForgeValidation> | null = null;
         let forgeValidationError: string | undefined;
 
+        let releaseReadDb: (() => void) | null = null;
         try {
             root = registry.getRoot();
-            const repo = database.getHallRepository(root);
-            repoId = repo?.repo_id || repoId;
-            const bead = database.getHallBead(bead_id);
-            if (!bead || bead.repo_id !== repoId) throw new Error('validation_bead_not_found_in_repository');
+            const readHandle = openForgeReadDb(root);
+            releaseReadDb = readHandle.release;
+            const bead = readHandle.db.prepare(`
+                SELECT b.repo_id, b.target_path, r.root_path
+                FROM hall_beads b
+                JOIN hall_repositories r ON r.repo_id = b.repo_id
+                WHERE b.bead_id = ?
+            `).get(bead_id) as { repo_id?: string; target_path?: string; root_path?: string } | undefined;
+            const normalizedRoot = root.replace(/\\/g, '/').replace(/\/+$/, '');
+            const recordedRoot = String(bead?.root_path ?? '').replace(/\\/g, '/').replace(/\/+$/, '');
+            if (!bead?.repo_id || recordedRoot !== normalizedRoot) {
+                throw new Error('validation_bead_not_found_in_repository');
+            }
+            repoId = bead.repo_id;
             beadTargetPath = bead.target_path;
-            verifiedEvidence = await verifyValidationEvidence(root, validation_evidence, requestContext);
-            validationAuthority = verifiedEvidence ? 'verified' : 'reported';
+            const forgeExecutionReceiptId = forge_execution_receipt_id?.trim();
+            const forgeSubject = forgeExecutionReceiptId
+                ? resolveForgeValidationSubject(readHandle.db, {
+                    execution_receipt_id: forgeExecutionReceiptId,
+                    repository_id: repoId,
+                    bead_id,
+                }).subject
+                : undefined;
+            verifiedEvidence = await verifyValidationEvidence(
+                root,
+                validation_evidence,
+                requestContext,
+                forgeSubject,
+            );
+            validationAuthority = verifiedEvidence ? 'verified_v2' : 'reported';
             if (isPositiveValidationVerdict(verdict) && !verifiedEvidence) {
                 storedVerdict = 'INCONCLUSIVE';
             }
@@ -67,30 +102,27 @@ export async function handleRecordResult({ bead_id, verdict, notes, validation_i
                 authority_class: validationAuthority,
                 evidence_sha256: verifiedEvidence?.evidence_sha256,
                 validator_identity: verifiedEvidence?.validator_identity,
+                validator_identity_source: verifiedEvidence?.validator_identity_source,
+                evidence_manifest: verifiedEvidence?.manifest,
                 created_at: Date.now()
-            } satisfies HallValidationRun;
-            const forgeExecutionReceiptId = forge_execution_receipt_id?.trim();
+            } satisfies CStarValidationRunRecord;
+            releaseReadDb();
+            releaseReadDb = null;
+            const db = getForgeWritableDb(root);
             if (forgeExecutionReceiptId) {
-                const db = database.getDb(root);
                 const persist = db.transaction(() => {
-                    database.saveValidationRun(validationRecord);
+                    saveValidationRunToDb(db, validationRecord, verifiedEvidence ?? undefined);
                     return finalizeForgeValidation(db, {
                         execution_receipt_id: forgeExecutionReceiptId,
-                        bead_id,
                         validation_id: validationId,
-                        verdict,
-                        notes,
-                        validation_authority: validationAuthority,
-                        validation_evidence_sha256: verifiedEvidence?.evidence_sha256,
-                        validation_artifact_paths: verifiedEvidence?.artifact_paths,
-                        validation_artifact_hashes: verifiedEvidence?.artifact_hashes,
                     });
                 });
                 forgeValidation = persist.immediate();
             } else {
-                database.saveValidationRun(validationRecord);
+                saveValidationRunToDb(db, validationRecord, verifiedEvidence ?? undefined);
             }
         } catch (error) {
+            releaseReadDb?.();
             const message = error instanceof Error ? error.message : String(error);
             if (forge_execution_receipt_id?.trim()) {
                 forgeValidationError = message;
@@ -101,43 +133,11 @@ export async function handleRecordResult({ bead_id, verdict, notes, validation_i
             logBootstrapError(error);
         }
 
-        let observationId: string | null = null;
-        let observationPayload = token_path_observation;
-        let linkedTokenPathEpisodeId = token_path_episode_id;
-        let observationSource: string | undefined;
-        let observationWarning: string | undefined;
-        if (observationPayload) {
-            observationSource = 'explicit_payload';
-        } else {
-            observationWarning = 'explicit_token_path_observation_required';
-        }
-        if (observationPayload && linkedTokenPathEpisodeId && observationPayload.token_path_episode_id
-            && linkedTokenPathEpisodeId !== observationPayload.token_path_episode_id) {
-            observationWarning = 'token_path_episode_id_mismatch';
-            observationPayload = undefined;
-        } else if (observationPayload && linkedTokenPathEpisodeId && !observationPayload.token_path_episode_id) {
-            observationPayload = {
-                ...observationPayload,
-                token_path_episode_id: linkedTokenPathEpisodeId,
-            };
-        }
-        if (validationError && observationPayload) {
-            observationWarning = 'validation_not_persisted_observation_skipped';
-        } else if (isMeasuredTokenPathObservation(observationPayload) && !TOKEN_PATH_OBSERVATION_ACCEPTANCE_ENABLED) {
-            observationWarning = 'token_path_quarantined_no_promoted_episode';
-        } else if (isMeasuredTokenPathObservation(observationPayload)) {
-            observationId = appendTokenPathObservation(bead_id, observationPayload);
-            linkedTokenPathEpisodeId = observationPayload.token_path_episode_id || linkedTokenPathEpisodeId;
-            if (!observationId) observationWarning = 'token_path_observation_write_failed';
-        } else if (observationPayload) {
-            observationWarning = 'malformed_token_path_observation_skipped';
-        }
-
         const validationPersisted = !validationError;
         const response: Record<string, unknown> = {
             status: validationError || forgeValidationError
                 ? 'partial'
-                : validationAuthority === 'verified' ? 'recorded_verified' : 'recorded_unverified',
+                : validationAuthority === 'verified_v2' ? 'recorded_verified' : 'recorded_unverified',
             bead_id,
             reported_verdict: verdict,
             stored_verdict: validationPersisted ? storedVerdict : null,
@@ -145,7 +145,7 @@ export async function handleRecordResult({ bead_id, verdict, notes, validation_i
             validation_id: validationId,
             validation_persisted: validationPersisted,
             validation_authority: validationPersisted ? validationAuthority : 'not_persisted',
-            authoritative: validationPersisted && validationAuthority === 'verified',
+            authoritative: validationPersisted && validationAuthority === 'verified_v2',
             validation_evidence_sha256: verifiedEvidence?.evidence_sha256 ?? null,
             validator_identity: verifiedEvidence?.validator_identity ?? null,
             validator_identity_source: verifiedEvidence?.validator_identity_source ?? null,
@@ -156,7 +156,6 @@ export async function handleRecordResult({ bead_id, verdict, notes, validation_i
             validation_request_record_count: verifiedEvidence?.session_turn_record_count ?? null,
             validation_request_first_timestamp: verifiedEvidence?.session_turn_first_timestamp ?? null,
             validation_request_timestamp: verifiedEvidence?.session_turn_timestamp ?? null,
-            token_path_observation_status: observationId ? 'recorded' : 'not_recorded',
         };
         if (!validationError) {
             response.mutation = mcpMutation('validation_result_record', validationId, 'Validation result was persisted through the MCP write surface.');
@@ -168,6 +167,8 @@ export async function handleRecordResult({ bead_id, verdict, notes, validation_i
             response.forge_validation = {
                 execution_receipt_id: forge_execution_receipt_id,
                 accepted: forgeValidation.accepted,
+                mode: forgeValidation.mode,
+                execution_status_changed: forgeValidation.execution_status_changed,
                 attempt_id: forgeValidation.attempt.attempt_id,
                 attempt_status: forgeValidation.attempt.status,
                 request_status: forgeValidation.request.status,
@@ -176,23 +177,11 @@ export async function handleRecordResult({ bead_id, verdict, notes, validation_i
         if (forgeValidationError) {
             response.forge_validation_warning = forgeValidationError;
         }
-        if (observationId) {
-            response.token_path_observation_id = observationId;
-        }
-        if (observationSource) {
-            response.token_path_observation_source = observationSource;
-        }
-        if (!observationId && observationWarning) {
-            response.token_path_observation_warning = observationWarning;
-        }
-        if (observationId && linkedTokenPathEpisodeId) {
-            response.token_path_episode_id = linkedTokenPathEpisodeId;
-        } else if (linkedTokenPathEpisodeId) {
-            response.reported_token_path_episode_id = linkedTokenPathEpisodeId;
-        }
-
         return textResponse(response, Boolean(validationError || forgeValidationError));
     } catch (error: any) {
+        if (!requestIdentityVerified) {
+            return preAuthorizationErrorResponse(mcpErrorCode(error), error);
+        }
         return textResponse({ error: error.message }, true);
     }
 }

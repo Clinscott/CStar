@@ -1,6 +1,6 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert';
-import { getDb, savePing, getSessionsWithSummaries, getSessionPings } from '../../src/tools/pennyone/intel/database.js';
+import { savePing, getSessionsWithSummaries, getSessionPings } from '../../src/tools/pennyone/intel/database.js';
 import { analyzeFile } from '../../src/tools/pennyone/analyzer.js';
 
 /**

@@ -20,14 +20,14 @@ Feature: Well of Mimir - High Fidelity Intelligence Search
     Then the system should fallback to a heuristic search of "matrix-graph.json"
     And provide relevant structural matches.
 
-  Scenario: Trace Protocol Synchronization
-    Given an agent executes an "ask" command via the CortexLink
-    When the daemon processes the request and receives an LLM response
-    Then a mission trace should be recorded in the "mission_traces" table
-    And the trace should be accessible via "get_recent_traces" RPC call.
+  Scenario: Retired CortexLink cannot create a trace
+    Given an agent attempts an "ask" command via CortexLink
+    When the retired gateway boundary evaluates the request
+    Then "legacy_gateway_retired_use_cstar_kernel" should be returned
+    And no provider, process, Hall, or trace callback should run.
 
-  Scenario: Corvus Control MCP Access
-    Given the "corvus-control" MCP server is active
-    When an LLM client calls the "get_system_vitals" tool
-    Then it should receive a JSON payload containing tasks, traces, and suggestions.
-    And the Bifrost Gate should be confirmed as established.
+  Scenario: CStar kernel MCP access
+    Given the supported "cstar-kernel" MCP server is active
+    When an authorized client invokes a registered read-only tool
+    Then it should receive the tool's bounded response
+    And no historical Bifrost gateway should be established.

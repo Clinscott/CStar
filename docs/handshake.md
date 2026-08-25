@@ -6,6 +6,11 @@ description: >-
   Implementation
 ---
 
+> **Historical session record (2026-02-28).** Preserved verbatim as provenance.
+> Its autonomous discovery/install, persona, registry, security, and system-state
+> claims are not current authority or current-state evidence. Use `AGENTS.md`,
+> `README.qmd`, and current CStar lifecycle/validation records instead.
+
 
 # 📜 SESSION ACHIEVEMENTS
 

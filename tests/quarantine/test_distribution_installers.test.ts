@@ -28,15 +28,6 @@ function createProjectRoot(): string {
         'utf-8',
     );
     fs.writeFileSync(
-        path.join(root, '.agents', 'config.json'),
-        JSON.stringify({
-            system: {
-                persona: 'O.D.I.N.',
-            },
-        }, null, 2),
-        'utf-8',
-    );
-    fs.writeFileSync(
         path.join(root, '.agents', 'skill_registry.json'),
         JSON.stringify({
             entries: {
@@ -71,21 +62,15 @@ describe('distribution installers', () => {
         assert.equal(path.resolve(path.dirname(result.linkPath), fs.readlinkSync(result.linkPath)), projectRoot);
     });
 
-    it('installs the Codex plugin into the local marketplace with absolute MCP cwd', () => {
+    it('fails closed instead of copying Codex caches or mutating marketplace state', () => {
         const projectRoot = createProjectRoot();
         const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-home-codex-'));
 
-        const result = installCodexPlugin({ projectRoot, homeDir });
-        const pluginMcpPath = path.join(result.pluginPath, '.mcp.json');
-        const pluginMcp = JSON.parse(fs.readFileSync(pluginMcpPath, 'utf-8')) as {
-            mcpServers?: Record<string, { cwd?: string }>;
-        };
-        const marketplace = JSON.parse(fs.readFileSync(result.marketplacePath, 'utf-8')) as {
-            plugins?: Array<{ name?: string; source?: { path?: string } }>;
-        };
-
-        assert.equal(pluginMcp.mcpServers?.pennyone?.cwd, projectRoot);
-        assert.equal(marketplace.plugins?.[0]?.name, 'corvus-star');
-        assert.equal(marketplace.plugins?.[0]?.source?.path, './plugins/corvus-star');
+        assert.throws(
+            () => installCodexPlugin({ projectRoot, homeDir }),
+            /direct_codex_plugin_install_retired/,
+        );
+        assert.equal(fs.existsSync(path.join(homeDir, 'plugins')), false);
+        assert.equal(fs.existsSync(path.join(homeDir, '.agents')), false);
     });
 });

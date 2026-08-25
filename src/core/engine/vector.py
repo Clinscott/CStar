@@ -6,8 +6,6 @@ Purpose: Unified semantic router delegating to specialized spokes for intent res
 
 # Intent: Central semantic routing hub for intent resolution, managing cross-domain search and hybrid scoring.
 
-import os
-import asyncio
 from collections import OrderedDict
 from pathlib import Path
 from typing import Any
@@ -20,6 +18,11 @@ from src.core.engine.vector_calculus import VectorCalculus
 from src.core.engine.vector_router import VectorRouter
 from src.core.engine.vector_shadow import VectorShadow
 from src.core.engine.vector_ingest import VectorIngest
+
+
+LEGACY_PYTHON_AUTONOMOUS_EFFECT_ERROR = (
+    "legacy_python_autonomous_effect_surface_retired_use_cstar_kernel"
+)
 
 
 class SovereignVector:
@@ -142,62 +145,9 @@ class SovereignVector:
             self._search_cache.popitem(last=False)
 
     async def _neural_rerank(self, query: str, candidates: list[dict]) -> list[dict]:
-        """[Ω] Consult the Oracle to verify the semantic winner."""
-        temp_file = None
-        try:
-            # Prevent re-ranker recursion or infinite loops
-            if os.environ.get("CSTAR_INTERNAL_SEARCH"): return candidates
-            
-            from src.cstar.core.uplink import AntigravityUplink
-            
-            # Construct candidate list for the Oracle
-            candidate_list = "\n".join([f"- {c['trigger']}: {c['description']}" for c in candidates[:5]])
-            
-            prompt = f"""
-            Identify the single best skill trigger for the user query from the list below.
-            
-            QUERY: "{query}"
-            
-            CANDIDATES:
-            {candidate_list}
-            
-            Return ONLY the trigger (e.g. '/lets-go'). If none match well, return 'None'.
-            """
-            
-            # [🔱] SAFE PASSAGE: Write prompt to temp file to avoid WinError 206
-            import tempfile
-            with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False, encoding='utf-8') as f:
-                f.write(prompt)
-                temp_file = f.name
-
-            # [🔱] UPLINK: The One Mind decides
-            os.environ["CSTAR_INTERNAL_SEARCH"] = "1"
-            response_dict = await AntigravityUplink.query_bridge(temp_file)
-            os.environ.pop("CSTAR_INTERNAL_SEARCH")
-            
-            # Cleanup
-            if temp_file and os.path.exists(temp_file):
-                try: os.remove(temp_file)
-                except Exception: pass
-            
-            # Handle response structure correctly
-            raw_answer = ""
-            if isinstance(response_dict, dict):
-                raw_answer = response_dict.get("data", {}).get("raw", "") or response_dict.get("answer", "")
-            
-            winner_trigger = raw_answer.strip().lstrip('#').strip()
-            
-            if winner_trigger and winner_trigger != "None":
-                # Move the winner to the top
-                for c in candidates:
-                    if c["trigger"] == winner_trigger:
-                        c["_neural_boost"] = True
-                        return [c] + [other for other in candidates if other["trigger"] != winner_trigger]
-            
-            return candidates
-        except Exception:
-            if "CSTAR_INTERNAL_SEARCH" in os.environ: os.environ.pop("CSTAR_INTERNAL_SEARCH")
-            return candidates
+        """Reject the retired direct provider-backed reranking path."""
+        del query, candidates
+        raise RuntimeError(LEGACY_PYTHON_AUTONOMOUS_EFFECT_ERROR)
 
     def load_core_skills(self) -> None:
         """[Ω] Load Core Workflows from .agents/workflows."""
