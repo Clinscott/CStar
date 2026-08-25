@@ -114,14 +114,14 @@ const program = new Command();
 
     program
         .name('cstar')
-        .description('Corvus Star (C*) - The One Mind Framework (TypeScript Core)')
+        .description('Corvus Star (C*) - deterministic Corvus estate control plane')
         .version(pkg.version)
         .option('-v, --verbose', 'Enable verbose logging for deep architectural traces')
         .option('-r, --root <path>', 'Select workspace root for operator commands', selectedWorkspaceRoot)
         .addHelpText('after', `
 ◈ COMMANDS
-  start [target]   Awaken the system pulse or initiate a specific agent loop.
-  ravens           Monitor and release the Raven Wardens (Muninn/Memory).
+  start [target]   Record an explicit runtime-state transition.
+  ravens           Inspect the retired Ravens compatibility surface.
   status           Retrieve system vitals, mission traces, and perimeter reports.
   tui              Open the operator matrix shell.
   bifrost          Manage the Corvus Control & PennyOne MCP servers.
@@ -129,8 +129,8 @@ const program = new Command();
   hall [query]     Consult the Hall of Records or search the estate by intent.
   manifest         List all registered Agent Skills and runtime Weaves.
   skill-info <id>  Inspect the mandate and logic protocol of a specific skill.
-  oracle           Consult the One Mind Host Agent via direct sampling.
-  one-mind         Inspect or fulfill Hall-backed One Mind broker requests.
+  oracle           Request one non-authoritative host advisory (stdout only).
+  one-mind         Inspect the retired One Mind compatibility surface.
   trace           Show the active Hall-backed planning trace for the host CLI.
   [skill]          Directly invoke CLI-exposed skills from the registry.
 
@@ -139,17 +139,12 @@ const program = new Command();
 ${hostOnlySurfaceSummary}${legacySurfaceSummary}
 
 ◈ PERSONA PROTOCOL
-  The framework dynamically adjusts its logic and aesthetics based on the active persona
-  defined in .agents/config.json.
-
-  IF "O.D.I.N.": Focus on high-velocity creation and architectural disruption.
-  IF "ALFRED":   Focus on maintenance, safety, and steady optimization.
+  The active persona in .agents/config.json may shape tone and domain emphasis only.
+  It never changes authority, routing, execution gates, scoring, or validation.
 
 ◈ VERIFICATION MANDATE
-  All changes must satisfy the Triad of Verification: Lore, Isolation, and Audit.
-  Use 'cstar status' to verify the current Gungnir Score [Ω].
-
-> "Synergy is the blood of the Totem. Without it, the system is but clay."
+  Success requires current source/runtime evidence, the recorded lifecycle state,
+  and focused independent validation. Scalar quality claims are not authority.
 `);
 
     installWorkspaceSelectionHook(program, launchCwd);
@@ -172,178 +167,21 @@ ${hostOnlySurfaceSummary}${legacySurfaceSummary}
     registerOsCommands(program);
     registerDispatcher(program, () => registry.getRoot());
 
-    program
-        .command('broadcast <message...>')
-        .description('Post a global message to the War Room Blackboard')
-        .action(async (message: string[]) => {
-            const text = message.join(' ');
-            const state = StateRegistry.get();
-            StateRegistry.postToBlackboard({
-                from: state.framework.active_persona,
-                message: text,
-                type: 'BROADCAST'
+    for (const [command, description, successor] of [
+        ['broadcast <message...>', 'Retired local blackboard broadcast lane', 'use a host task or CStar lifecycle update'],
+        ['hand <agent> <context...>', 'Retired local agent handoff lane', 'use CStar handoff and host-native routing'],
+        ['orchestrate', 'Retired autonomous orchestration lane', 'use cstar_forge_request then cstar_forge_execute'],
+        ['evolve', 'Retired autonomous evolve lane', 'use cstar_forge_request or cstar_researcher_request'],
+        ['evolve-temporal', 'Retired automatic lesson and bead generation lane', 'use explicit CStar review and proposal lifecycle'],
+    ] as const) {
+        program
+            .command(command)
+            .description(description)
+            .action(() => {
+                console.error(chalk.red(`[CSTAR_LEGACY_COMMAND_DECOMMISSIONED] ${successor}.`));
+                process.exitCode = 2;
             });
-            console.log(chalk.green(`[BROADCAST]: ${text}`));
-        });
-
-    program
-        .command('hand <agent> <context...>')
-        .description('Pass task focus and context to a specific agent')
-        .action(async (agent: string, context: string[]) => {
-            const targetAgent = agent.toLowerCase();
-            const text = context.join(' ');
-            const state = StateRegistry.get();
-
-            if (state.agents && state.agents[targetAgent]) {
-                state.agents[targetAgent].status = 'WORKING';
-                state.agents[targetAgent].current_task = text;
-                StateRegistry.save(state);
-
-                StateRegistry.postToBlackboard({
-                    from: state.framework.active_persona,
-                    to: targetAgent,
-                    message: text,
-                    type: 'HANDOFF'
-                });
-                console.log(chalk.green(`[HANDOFF]: Context passed to ${targetAgent}.`));
-            } else {
-                console.error(chalk.red(`[FAILURE]: Unknown agent '${targetAgent}'.`));
-                process.exit(1);
-            }
-        });
-
-    program
-        .command('orchestrate')
-        .description('Initiate a sovereign execution cycle for SET beads')
-        .option('-l, --limit <n>', 'Maximum beads to process in this tick', '1')
-        .option('-p, --parallel <n>', 'Maximum concurrent workers', '1')
-        .option('-t, --timeout <n>', 'Maximum execution time for each worker in seconds', '600')
-        .option('-d, --dry-run', 'Simulate the swarm dispatch without execution')
-        .action(async (options: { limit: string, parallel: string, timeout: string, dryRun?: boolean }) => {
-            const projectRoot = registry.getRoot();
-            const dispatchPort = RuntimeDispatcher.getInstance();
-
-            console.log(chalk.cyan('\n ◤ ORCHESTRATOR: SWARM DISPATCH ◢ '));
-            console.log(chalk.dim('━'.repeat(40)));
-
-            // [Ω] SIGNAL TRAPPING: Catch Ctrl+C and reap workers
-            process.on('SIGINT', async () => {
-                console.log(chalk.yellow('\n[ORCHESTRATOR]: Interruption detected. Initiating emergency reap...'));
-                await dispatchPort.shutdown();
-                process.exit(130);
-            });
-
-            const result = await dispatchPort.dispatch({
-                weave_id: 'weave:orchestrate',
-                payload: {
-                    project_root: projectRoot,
-                    cwd: process.cwd(),
-                    max_parallel: parseInt(options.parallel),
-                    limit: parseInt(options.limit),
-                    tick_timeout: parseInt(options.timeout),
-                    dry_run: options.dryRun
-                }
-            });
-
-            if (result.status === 'SUCCESS') {
-                console.log(chalk.green(`[SUCCESS]: ${result.output}`));
-                renderOperationalContext(result, projectRoot);
-                if (result.metadata?.bead_outcomes) {
-                    const outcomes = result.metadata.bead_outcomes as any;
-                    Object.entries(outcomes).forEach(([id, data]: [string, any]) => {
-                        const statusColor = data.status === 'READY_FOR_REVIEW' ? chalk.green : chalk.red;
-                        console.log(`  • ${chalk.white(id.padEnd(25))} : ${statusColor(data.status)}`);
-                    });
-                }
-            } else {
-                console.error(chalk.red(`[FAILURE]: ${result.error}`));
-                process.exit(1);
-            }
-
-            console.log(chalk.dim('━'.repeat(40) + '\n'));
-        });
-
-    program
-        .command('evolve')
-        .description('Trigger Karpathy\'s Auto Researcher cycle for a specific bead')
-        .option('-b, --bead <id>', 'The bead ID to evolve')
-        .option('-p, --proposal <id>', 'The proposal ID to promote')
-        .option('--action <action>', 'Action: propose or promote', 'propose')
-        .option('--dry-run', 'Preview the evolution without implementing')
-        .option('--no-simulate', 'Run live instead of simulated')
-        .action(async (options: { bead?: string, proposal?: string, action: 'propose' | 'promote', dryRun?: boolean, simulate: boolean }) => {
-            const dispatchPort = RuntimeDispatcher.getInstance();
-            console.log(chalk.cyan('\n ◤ EVOLVE: AUTO RESEARCHER ◢ '));
-            console.log(chalk.dim('━'.repeat(40)));
-
-            const result = await dispatchPort.dispatch({
-                weave_id: 'weave:evolve',
-                payload: {
-                    action: options.action,
-                    bead_id: options.bead,
-                    proposal_id: options.proposal,
-                    dry_run: options.dryRun,
-                    simulate: options.simulate,
-                    project_root: registry.getRoot(),
-                    cwd: process.cwd(),
-                    source: 'cli'
-                }
-            });
-
-            if (result.status === 'SUCCESS') {
-                console.log(chalk.green(`\n[SUCCESS]: ${result.output}`));
-                renderOperationalContext(result, registry.getRoot());
-                if (result.metadata) {
-                    const meta = result.metadata as any;
-                    if (meta.proposal_path) console.log(chalk.dim(`  Proposal: ${meta.proposal_path}`));
-                    if (meta.validation_id) console.log(chalk.dim(`  Validation: ${meta.validation_id}`));
-                }
-            } else {
-                console.error(chalk.red(`\n[FAILURE]: ${result.error}`));
-                process.exit(1);
-            }
-
-            console.log(chalk.dim('━'.repeat(40) + '\n'));
-        });
-
-    program
-        .command('evolve-temporal')
-        .description('Trigger a temporal learning cycle to identify churn and seed evolutionary beads')
-        .option('--days <days>', 'Lookback window in days', '30')
-        .option('--min-churn <churn>', 'Minimum commit count to trigger a bead', '3')
-        .option('--limit <limit>', 'Maximum number of sectors to identify', '5')
-        .action(async (options: { days: string, minChurn: string, limit: string }) => {
-            const dispatchPort = RuntimeDispatcher.getInstance();
-            console.log(chalk.cyan('\n ◤ TEMPORAL LEARNING: CHURN AUDIT ◢ '));
-            console.log(chalk.dim('━'.repeat(40)));
-
-            const result = await dispatchPort.dispatch({
-                weave_id: 'weave:temporal-learning',
-                payload: {
-                    lookback_days: parseInt(options.days),
-                    min_churn: parseInt(options.minChurn),
-                    limit: parseInt(options.limit),
-                    project_root: registry.getRoot(),
-                    cwd: process.cwd(),
-                    source: 'cli'
-                }
-            });
-
-            if (result.status === 'SUCCESS') {
-                console.log(chalk.green(`\n[SUCCESS]: ${result.output}`));
-                renderOperationalContext(result, registry.getRoot());
-                if (result.metadata?.emitted_beads) {
-                    const beads = result.metadata.emitted_beads as string[];
-                    console.log(chalk.dim(`\nGenerated ${beads.length} beads for Evolve:`));
-                    beads.forEach(b => console.log(chalk.blue(`  • ${b}`)));
-                }
-            } else {
-                console.error(chalk.red(`\n[FAILURE]: ${result.error}`));
-                process.exit(1);
-            }
-
-            console.log(chalk.dim('━'.repeat(40) + '\n'));
-        });
+    }
 
     program
         .command('status')

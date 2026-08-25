@@ -2,7 +2,6 @@ import asyncio
 import json
 import sys
 import time
-import subprocess
 from pathlib import Path
 
 # Path Resolution
@@ -96,10 +95,7 @@ async def main():
     new_beads = await fetch_and_inject()
     
     if new_beads > 0:
-        print(f"\n[SYSTEM] {new_beads} new beads in the Ledger. Triggering Hermes sequential swarm...")
-        # The skill itself now triggers the 'overseer' (the CLI) to start claiming
-        # In a background swarm, we can loop this or rely on a ritual.
-        # subprocess.run(["npx", "tsx", "cstar.ts", "skill", "autobot", "--claim-next"], cwd=PROJECT_ROOT)
+        print(f"\n[SYSTEM] {new_beads} new beads recorded. Awaiting host or explicitly authorized Forge assignment.")
     else:
         print("\n[SYSTEM] Estate is current. No new beads to weave.")
 

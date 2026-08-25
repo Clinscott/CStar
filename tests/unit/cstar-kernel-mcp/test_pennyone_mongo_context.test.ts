@@ -30,17 +30,21 @@ describe('CStar MCP PennyOne and Mongo bounded data surfaces', () => {
         });
         beadStore.set('bead-b', {
             id: 'bead-b',
-            status: 'RESOLVED',
+            status: 'OPEN',
             target_kind: 'FILE',
             target_ref: 'src/b.ts',
+            target_path: 'src/b.ts',
+            checker_shell: 'node --test b',
             rationale: 'Done work',
             updated_at: 20,
         });
         const result = await handlePennyOneContext({ action: 'bead_summary', statuses: ['OPEN'], limit: 10 });
         const parsed = JSON.parse(result.content[0].text);
         assert.strictEqual(parsed.status, 'ok');
-        assert.strictEqual(parsed.count, 1);
-        assert.strictEqual(parsed.beads[0].bead_id, 'bead-a');
+        assert.strictEqual(parsed.count, 2);
+        assert.strictEqual(parsed.beads[0].bead_id, 'bead-b');
+        assert.strictEqual(parsed.beads[0].target_path, 'src/b.ts');
+        assert.strictEqual(parsed.beads[0].checker_shell, 'node --test b');
     });
 
     it('cstar_pennyone_context validation summary requires explicit bead scope', async () => {
@@ -67,12 +71,16 @@ describe('CStar MCP PennyOne and Mongo bounded data surfaces', () => {
         const originalRepos = database.listHallRepositories;
         mock.method(database, 'listHallRepositories', () => [
             { repo_id: 'repo-1', root_path: '/repo/one', name: 'Repo One', status: 'active', updated_at: 123 },
+            { repo_id: 'repo-2', root_path: '/repo/two', name: 'Repo Two', status: 'active', updated_at: 456 },
         ]);
         try {
-            const result = await handlePennyOneContext({ action: 'repository_summary' });
+            const result = await handlePennyOneContext({ action: 'repository_summary', limit: 1 });
             const parsed = JSON.parse(result.content[0].text);
             assert.strictEqual(parsed.status, 'ok');
-            assert.strictEqual(parsed.repositories[0].repo_id, 'repo-1');
+            assert.strictEqual(parsed.result_limit, 1);
+            assert.strictEqual(parsed.repository_count, 1);
+            assert.strictEqual(parsed.repository_total, 2);
+            assert.strictEqual(parsed.repositories[0].repo_id, 'repo-2');
             assert.deepStrictEqual(parsed.mounted_spokes, []);
             assert.strictEqual(parsed.guardrail.verdict, 'allow');
         } finally {
@@ -90,6 +98,11 @@ describe('CStar MCP PennyOne and Mongo bounded data surfaces', () => {
             assert.strictEqual(parsed.enabled, false);
             assert.strictEqual(parsed.arbitrary_query_allowed, false);
             assert.strictEqual(parsed.direct_secret_output_allowed, false);
+            assert.strictEqual(parsed.operator_intent_enqueue_enabled, false);
+            assert.strictEqual(
+                parsed.operator_intent_enqueue_blocker,
+                'durable_operator_intent_authority_not_implemented',
+            );
             assert.strictEqual(parsed.guardrail.verdict, 'caution');
             assert.ok(!JSON.stringify(parsed).includes('mongodb+srv://'));
         } finally {
@@ -98,15 +111,18 @@ describe('CStar MCP PennyOne and Mongo bounded data surfaces', () => {
         }
     });
 
-    it('cstar_mongo_mailbox blocks writes without operator authorization', async () => {
+    it('cstar_mongo_mailbox fail-closes writes even with a caller-supplied authorization string', async () => {
         const result = await handleMongoMailbox({
             action: 'enqueue_operator_intent',
             intent_action: 'accept',
             proposal_id: 'proposal-1',
+            operator_authorization_ref: 'caller-asserted-not-authority',
         });
         const parsed = JSON.parse(result.content[0].text);
         assert.strictEqual(result.isError, true);
-        assert.match(parsed.error, /operator_authorization_ref is required/);
+        assert.strictEqual(parsed.status, 'blocked');
+        assert.strictEqual(parsed.attempted, false);
+        assert.strictEqual(parsed.error, 'durable_operator_intent_authority_not_implemented');
         assert.strictEqual(parsed.guardrail.verdict, 'block');
     });
 });

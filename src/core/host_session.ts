@@ -3,6 +3,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 
 import { buildPersonaAdvice } from './persona_advice.js';
+import { resolveSkillRegistryEntries } from './skill_registry_contract.js';
 
 export type HostProvider = 'gemini' | 'codex' | 'claude' | 'droid';
 export type AugurySteeringMode = 'full' | 'lite';
@@ -59,27 +60,20 @@ export interface HostSkillActivationRequest {
 
 export interface AuguryLearningMetadata {
     [key: string]: unknown;
-    schema_version: 1;
+    schema_version: 2;
     steering_block_version: 2;
     steering_mode: AugurySteeringMode;
     corvus_standard_version: 1;
-    optimizer_ready: true;
-    optimizer_family: 'GEPA_DSPY';
+    optimizer_status: 'not_configured';
+    actionable: false;
     contract_hash: string;
-    confidence?: number;
-    confidence_source: 'explicit' | 'missing' | 'synthetic';
+    confidence_source: 'not_measured';
     route?: string;
     intent_category?: string;
     selection_tier?: string;
     selection_name?: string;
     expert_id?: string;
     expert_label?: string;
-    council_candidates?: Array<{
-        id: string;
-        label: string;
-        score: number;
-        reason: string;
-    }>;
     mimirs_well_count: number;
     mimirs_well_omitted_count: number;
     session_id?: string | null;
@@ -97,8 +91,8 @@ export interface AuguryLearningMetadata {
 }
 
 export interface AuguryLearningEvent {
-    schema_version: 1;
-    event_version: 1;
+    schema_version: 2;
+    event_version: 2;
     event_type: 'host_prompt';
     recorded_at: string;
     project_root: string;
@@ -106,15 +100,13 @@ export interface AuguryLearningEvent {
     prompt_surface?: string | null;
     steering_mode: AugurySteeringMode;
     contract_hash: string;
-    confidence?: number;
-    confidence_source: 'explicit' | 'missing' | 'synthetic';
+    confidence_source: 'not_measured';
     route?: string;
     intent_category?: string;
     selection_tier?: string;
     selection_name?: string;
     expert_id?: string;
     expert_label?: string;
-    council_candidates?: AuguryLearningMetadata['council_candidates'];
     mimirs_well_count: number;
     mimirs_well_omitted_count: number;
     session_id?: string | null;
@@ -276,7 +268,7 @@ export function getHostProviderBanner(provider: HostProvider | null): string {
     return ' ◤ GEMINI CLI INTEGRATION ACTIVE ◢ ';
 }
 
-export function getHostMindLabel(provider: HostProvider | null): string {
+export function getHostMindLabel(provider: HostProvider | null, actualModel?: string | null): string {
     if (provider === 'codex') {
         return 'OPENAI CODEX';
     }
@@ -287,7 +279,7 @@ export function getHostMindLabel(provider: HostProvider | null): string {
         return 'DROID-CONTROL';
     }
     if (provider === 'gemini') {
-        return 'GEMINI-3.1-PRO';
+        return actualModel?.trim() || 'GEMINI HOST (MODEL UNREPORTED)';
     }
     return 'HOST SESSION';
 }
@@ -342,21 +334,19 @@ function loadRegistryManifest(projectRoot: string): RegistryManifest | null {
         return null;
     }
 
+    let manifest: unknown;
     try {
-        return JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) as RegistryManifest;
+        manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) as unknown;
     } catch {
         return null;
     }
+
+    resolveSkillRegistryEntries<RegistryEntry>(manifest);
+    return manifest as RegistryManifest;
 }
 
 function getRegistryEntries(manifest: RegistryManifest | null): Record<string, RegistryEntry> {
-    if (manifest?.entries && typeof manifest.entries === 'object') {
-        return manifest.entries;
-    }
-    if (manifest?.skills && typeof manifest.skills === 'object') {
-        return manifest.skills;
-    }
-    return {};
+    return resolveSkillRegistryEntries<RegistryEntry>(manifest);
 }
 
 function normalizeHostSupportStatus(value: string | undefined): HostSupportStatus {
@@ -589,7 +579,7 @@ export function getHostBridgeConfigurationHint(provider: HostProvider): string {
 
 export function getDelegateBridgeConfigurationHint(provider: HostProvider): string {
     const providerEnv = getProviderDelegateBridgeEnvNames(provider);
-    return `Set ${providerEnv.command} and ${providerEnv.args}, set CORVUS_DELEGATE_BRIDGE_CMD and CORVUS_DELEGATE_BRIDGE_ARGS_JSON, or bind a provider-native delegation adapter.`;
+    return `Set ${providerEnv.command} and ${providerEnv.args}, or set CORVUS_DELEGATE_BRIDGE_CMD and CORVUS_DELEGATE_BRIDGE_ARGS_JSON for an authorized advisory bridge. Provider-native delegation is retired.`;
 }
 
 export function getDelegatePollBridgeConfigurationHint(provider: HostProvider): string {
@@ -648,22 +638,6 @@ function buildContractHash(contract: Record<string, unknown>): string {
     return createHash('sha256')
         .update(JSON.stringify(stableNormalize(contract)))
         .digest('hex');
-}
-
-function resolveConfidenceSource(
-    contract: Record<string, unknown>,
-    options: { confidence_source?: 'explicit' | 'missing' | 'synthetic'; designation_source?: string | null },
-): 'explicit' | 'missing' | 'synthetic' {
-    if (options.confidence_source) {
-        return options.confidence_source;
-    }
-    if (contract.confidence_source === 'explicit' || contract.confidence_source === 'missing' || contract.confidence_source === 'synthetic') {
-        return contract.confidence_source;
-    }
-    if (typeof contract.confidence !== 'number' || !Number.isFinite(contract.confidence)) {
-        return 'missing';
-    }
-    return options.designation_source === 'dispatcher_synthesized' ? 'synthetic' : 'explicit';
 }
 
 function findCStarRoot(projectRoot: string, env: NodeJS.ProcessEnv = process.env): string {
@@ -736,7 +710,6 @@ export function buildAuguryLearningMetadata(
         provider?: string | null;
         prompt_token_estimate?: number | null;
         steering_mode?: AugurySteeringMode;
-        confidence_source?: 'explicit' | 'missing' | 'synthetic';
         target_domain?: string | null;
         spoke_name?: string | null;
         requested_root?: string | null;
@@ -756,35 +729,21 @@ export function buildAuguryLearningMetadata(
         .filter(Boolean)
         .join(' -> ') || undefined;
     const mimirsWellCount = asStringArray(contract.mimirs_well).length;
-    const confidenceSource = resolveConfidenceSource(contract, options);
-    const councilCandidates = (Array.isArray(contract.council_candidates) ? contract.council_candidates : Array.isArray(expert?.selection_candidates) ? expert.selection_candidates : [])
-        .filter((entry): entry is Record<string, unknown> => Boolean(entry) && typeof entry === 'object' && !Array.isArray(entry))
-        .map((entry) => ({
-            id: String(entry.id ?? ''),
-            label: String(entry.label ?? ''),
-            score: Number(entry.score ?? 0),
-            reason: String(entry.reason ?? ''),
-        }))
-        .filter((entry) => entry.id && entry.label && Number.isFinite(entry.score) && entry.reason)
-        .slice(0, 3);
-
     return {
-        schema_version: 1,
+        schema_version: 2,
         steering_block_version: AUGURY_STEERING_BLOCK_VERSION,
         steering_mode: options.steering_mode ?? 'full',
         corvus_standard_version: AUGURY_CORVUS_STANDARD_VERSION,
-        optimizer_ready: true,
-        optimizer_family: 'GEPA_DSPY',
+        optimizer_status: 'not_configured',
+        actionable: false,
         contract_hash: buildContractHash(contract),
-        ...(typeof contract.confidence === 'number' && Number.isFinite(contract.confidence) ? { confidence: contract.confidence } : {}),
-        confidence_source: confidenceSource,
+        confidence_source: 'not_measured',
         ...(route ? { route } : {}),
         ...(intentCategory ? { intent_category: intentCategory } : {}),
         ...(selectionTier ? { selection_tier: selectionTier } : {}),
         ...(selectionName ? { selection_name: selectionName } : {}),
         ...(typeof expert?.id === 'string' ? { expert_id: expert.id } : {}),
         ...(typeof expert?.label === 'string' ? { expert_label: expert.label } : {}),
-        ...(councilCandidates.length > 0 ? { council_candidates: councilCandidates } : {}),
         mimirs_well_count: mimirsWellCount,
         mimirs_well_omitted_count: Math.max(0, mimirsWellCount - AUGURY_PROMPT_CONSULT_LIMIT),
         session_id: options.session_id ?? null,
@@ -881,7 +840,7 @@ export function formatAugurySteeringBlock(
         antiBehavior.length > 0 ? `Guardrails: ${antiBehavior.join(' | ')}` : '',
         'Corvus Standard: CStar is the engine; spokes are managed extensions; keep work Hall/Mimir traceable.',
         buildAuguryQualityLine(intentCategory.toUpperCase()),
-        `Persona Advice: [${personaAdvice.persona}] ${compactSingleLine(personaAdvice.direction, 240)}`,
+        `Persona Emphasis: [${personaAdvice.persona}] ${compactSingleLine(personaAdvice.domain_emphasis, 240)}`,
         `Persona Tone: ${compactSingleLine(personaAdvice.tone_directive, 200)}`,
         trajectoryStatus && trajectoryStatus !== 'STABLE'
             ? `Trajectory: ${trajectoryStatus}${trajectoryReason ? `: ${trajectoryReason}` : ''}`

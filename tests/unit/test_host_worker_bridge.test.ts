@@ -1,137 +1,42 @@
-import { describe, it } from 'node:test';
+import { describe, it, mock } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { HostWorkerWeave } from '../../src/node/core/runtime/weaves/host_worker.js';
-import type { RuntimeContext } from '../../src/node/core/runtime/contracts.js';
 
-const bead = {
-    id: 'bead-123',
-    status: 'SET',
-    target_kind: 'FILE',
-    target_path: 'src/example.ts',
-    checker_shell: 'node checker.js',
-    contract_refs: ['tests/example.test.ts'],
-    rationale: 'Implement the bounded change.',
-    acceptance_criteria: 'It works.|Tests pass.',
-} as any;
-
-function createContext(): RuntimeContext {
-    return {
-        mission_id: 'mission-host-worker',
-        bead_id: 'bead-123',
-        trace_id: 'trace-host-worker',
-        persona: 'O.D.I.N.',
-        workspace_root: '/repo',
-        operator_mode: 'cli',
-        target_domain: 'brain',
-        interactive: true,
-        env: { CODEX_SHELL: '1', CODEX_THREAD_ID: 'thread-1' },
-        timestamp: Date.now(),
-    };
-}
-
-describe('Host worker delegated execution bridge', () => {
-    it('prefers delegated subagent execution when a host bridge is available', async () => {
-        let written = '';
-        const calls: Array<{ cmd: string; args: string[]; cwd: string }> = [];
-        let delegatedRequest: any;
-
-        const weave = new HostWorkerWeave({
-            getBeads: () => [bead],
-            delegateExecution: async (request) => {
-                delegatedRequest = request;
-                return {
-                    handle_id: 'handle-1',
-                    provider: 'codex',
-                    status: 'completed',
-                    raw_text: '```ts\nexport const value = 1;\n```',
-                    summary: 'Completed through Codex subagent bridge.',
-                };
-            },
-            existsSync: (target) => target.includes('example'),
-            readFileSync: (target) => target.includes('example.test.ts') ? 'test body' : 'export const oldValue = 0;',
-            mkdirSync: () => undefined as any,
-            writeFileSync: (_target, data) => {
-                written = String(data);
-            },
-            runner: async (cmd, args, options) => {
-                calls.push({ cmd, args, cwd: options.cwd });
-                return { stdout: '', stderr: '', exitCode: 0, command: '' } as any;
-            },
+describe('Host worker compatibility tombstone', () => {
+    it('cannot delegate, infer, write, or run a checker', async () => {
+        const delegateExecution = mock.fn(async () => {
+            throw new Error('retired host worker delegated');
         });
-
-        const result = await weave.execute(
-            {
-                weave_id: 'weave:host-worker',
-                payload: { bead_id: 'bead-123', project_root: '/repo', cwd: '/repo' },
-            },
-            createContext(),
-        );
-
-        assert.equal(result.status, 'SUCCESS');
-        assert.equal(result.metadata?.context_policy, 'project');
-        assert.equal(result.metadata?.delegated, true);
-        assert.equal(result.metadata?.provider, 'codex');
-        assert.equal(result.metadata?.subagent_profile, 'tester');
-        assert.equal(delegatedRequest.boundary, 'subagent');
-        assert.equal(delegatedRequest.task_kind, 'implementation');
-        assert.equal(delegatedRequest.subagent_profile, 'tester');
-        assert.deepEqual(delegatedRequest.acceptance_criteria, ['It works.', 'Tests pass.']);
-        assert.match(written, /export const value = 1;/);
-        assert.equal(calls.length, 1);
-        assert.equal(calls[0]?.cmd, 'node');
-    });
-
-    it('falls back to direct host-session inference when delegation cannot proceed', async () => {
-        let written = '';
-        let mimirTransport = '';
-        let mimirMetadata: Record<string, unknown> | undefined;
-        let mimirPrompt = '';
-
-        const weave = new HostWorkerWeave({
-            getBeads: () => [bead],
-            delegateExecution: async () => {
-                throw new Error('Host Agent session inactive.');
-            },
-            createMimirClient: () => ({
-                request: async (request) => {
-                    mimirTransport = String((request as any).transport_mode ?? '');
-                    mimirMetadata = (request as any).metadata;
-                    mimirPrompt = String((request as any).prompt ?? '');
-                    return {
-                        status: 'success',
-                        raw_text: '```ts\nexport const fallbackValue = 2;\n```',
-                        trace: {
-                            correlation_id: 'host-worker-fallback',
-                            transport_mode: 'host_session',
-                        },
-                    } as any;
-                },
-            }),
-            existsSync: (target) => target.includes('example'),
-            readFileSync: (target) => target.includes('example.test.ts') ? 'test body' : 'export const oldValue = 0;',
-            mkdirSync: () => undefined as any,
-            writeFileSync: (_target, data) => {
-                written = String(data);
-            },
-            runner: async () => ({ stdout: '', stderr: '', exitCode: 0, command: '' } as any),
+        const writeFileSync = mock.fn(() => {
+            throw new Error('retired host worker wrote');
         });
+        const runner = mock.fn(async () => {
+            throw new Error('retired host worker ran checker');
+        });
+        const weave = new HostWorkerWeave({ delegateExecution, writeFileSync, runner });
 
-        const result = await weave.execute(
-            {
-                weave_id: 'weave:host-worker',
-                payload: { bead_id: 'bead-123', project_root: '/repo', cwd: '/repo' },
-            },
-            createContext(),
-        );
+        const result = await weave.execute({
+            weave_id: 'weave:host-worker',
+            payload: { bead_id: 'bead-123', project_root: '/repo', cwd: '/repo' },
+        }, {
+            workspace_root: '/repo',
+            env: {},
+        } as any);
 
-        assert.equal(result.status, 'SUCCESS');
-        assert.equal(result.metadata?.context_policy, 'project');
-        assert.equal(result.metadata?.delegated, false);
-        assert.equal(result.metadata?.subagent_profile, 'tester');
-        assert.equal(mimirTransport, 'host_session');
-        assert.equal(mimirMetadata?.subagent_profile, 'tester');
-        assert.match(mimirPrompt, /SPECIALIST ROLE: Verification Specialist \(tester\)/);
-        assert.match(written, /export const fallbackValue = 2;/);
+        assert.equal(result.status, 'FAILURE');
+        assert.match(result.error ?? '', /permanently decommissioned/i);
+        assert.match(result.error ?? '', /cstar_forge_request/);
+        assert.equal(delegateExecution.mock.callCount(), 0);
+        assert.equal(writeFileSync.mock.callCount(), 0);
+        assert.equal(runner.mock.callCount(), 0);
+        assert.deepEqual(result.metadata, {
+            adapter: 'compatibility:host-worker-rejected',
+            bead_id: 'bead-123',
+            delegated: false,
+            inference_attempted: false,
+            write_attempted: false,
+            checker_attempted: false,
+        });
     });
 });

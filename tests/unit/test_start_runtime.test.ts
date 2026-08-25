@@ -1,216 +1,96 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
 
-import { ANS } from  '../../src/node/core/ans.js';
-import type { HostGovernorWeavePayload, RuntimeContext, RuntimeDispatchPort, WeaveInvocation, WeaveResult } from  '../../src/node/core/runtime/contracts.js';
-import { StartAdapter } from  '../../src/node/core/runtime/adapters.js';
+import { ANS } from '../../src/node/core/ans.js';
+import type { RuntimeContext } from '../../src/node/core/runtime/contracts.js';
+import { StartAdapter } from '../../src/node/core/runtime/adapters.js';
 
-class CaptureDispatchPort implements RuntimeDispatchPort {
-    public invocation: WeaveInvocation<unknown> | null = null;
-
-    public async dispatch<T>(invocation: WeaveInvocation<T>): Promise<WeaveResult> {
-        this.invocation = invocation as WeaveInvocation<unknown>;
-        return {
-            weave_id: invocation.weave_id,
-            status: 'SUCCESS',
-            output: 'Host governor resumed the autonomous loop.',
-            metadata: {
-                promoted_bead_ids: ['bead-1'],
-            },
-        };
-    }
-}
-
-function createContext(workspaceRoot: string, env: Record<string, string | undefined> = {}): RuntimeContext {
+function createContext(workspaceRoot: string): RuntimeContext {
     return {
         mission_id: 'MISSION-START',
+        bead_id: 'bead:start-test',
         trace_id: 'TRACE-START',
         persona: 'ALFRED',
         workspace_root: workspaceRoot,
         operator_mode: 'cli',
         target_domain: 'brain',
         interactive: true,
-        env,
+        env: {},
         timestamp: Date.now(),
     };
 }
 
-describe('Start runtime adapter (CS-P4-01)', () => {
-    it('rejects target-driven start execution as non-canonical', async () => {
-        const adapter = new StartAdapter();
-
-        const result = await adapter.execute(
-            {
+describe('Start runtime adapter', () => {
+    it('rejects target-driven execution without waking or mutating', async () => {
+        const wakeMock = mock.method(ANS, 'wake', async () => undefined);
+        try {
+            const result = await new StartAdapter().execute({
                 weave_id: 'weave:start',
                 payload: {
                     target: 'src/index.ts',
                     task: 'Refactor entrypoint',
-                    ledger: 'C:\\temp\\ledger',
+                    ledger: 'ledger',
                 },
-            },
-            createContext('C:\\Users\\Craig\\Corvus\\CorvusStar'),
-        );
+            }, createContext('/tmp/cstar-start-test'));
 
-        assert.equal(result.status, 'FAILURE');
-        assert.match(result.error ?? '', /no longer canonical/i);
-        assert.match(result.error ?? '', /--bead-id/i);
-        assert.deepEqual(result.metadata, {
-            adapter: 'compatibility:start-target-rejected',
-            rejected_target: 'src/index.ts',
-        });
+            assert.equal(result.status, 'FAILURE');
+            assert.match(result.error ?? '', /authorized execution lane/i);
+            assert.equal(wakeMock.mock.callCount(), 0);
+            assert.equal(result.metadata?.adapter, 'compatibility:start-target-rejected');
+        } finally {
+            wakeMock.mock.restore();
+        }
     });
 
-    it('still wakes the kernel when no target is provided', async () => {
+    it('fails closed on the retired Loki autonomous flag', async () => {
         const wakeMock = mock.method(ANS, 'wake', async () => undefined);
-        const adapter = new StartAdapter();
-
         try {
-            const result = await adapter.execute(
-                {
-                    weave_id: 'weave:start',
-                    payload: {
-                        task: '',
-                        ledger: 'C:\\temp\\ledger',
-                    },
-                },
-                createContext('C:\\Users\\Craig\\Corvus\\CorvusStar', { CORVUS_HOST_SESSION_ACTIVE: 'false' }),
-            );
+            const result = await new StartAdapter().execute({
+                weave_id: 'weave:start',
+                payload: { task: 'resume', ledger: 'ledger', loki: true },
+            }, createContext('/tmp/cstar-start-test'));
 
-            assert.equal(wakeMock.mock.callCount(), 1);
+            assert.equal(result.status, 'FAILURE');
+            assert.match(result.error ?? '', /permanently decommissioned/i);
+            assert.match(result.error ?? '', /cannot bypass operator and CStar execution gates/i);
+            assert.equal(wakeMock.mock.callCount(), 0);
+            assert.equal(result.metadata?.resume_requested, false);
+        } finally {
+            wakeMock.mock.restore();
+        }
+    });
+
+    it('performs a deterministic wake only for a plain start', async () => {
+        const wakeMock = mock.method(ANS, 'wake', async () => undefined);
+        try {
+            const result = await new StartAdapter().execute({
+                weave_id: 'weave:start',
+                payload: { task: '', ledger: 'ledger' },
+            }, createContext('/tmp/cstar-start-test'));
+
             assert.equal(result.status, 'TRANSITIONAL');
             assert.match(result.output, /Kernel Awakening Complete/i);
-        } finally {
-            wakeMock.mock.restore();
-        }
-    });
-
-    it('routes loki start through the host-governor weave', async () => {
-        const wakeMock = mock.method(ANS, 'wake', async () => undefined);
-        const capture = new CaptureDispatchPort();
-        const adapter = new StartAdapter(capture);
-
-        try {
-            const result = await adapter.execute(
-                {
-                    weave_id: 'weave:start',
-                    payload: {
-                        task: 'Resume the host-governed mission.',
-                        ledger: 'C:\\temp\\ledger',
-                        loki: true,
-                    },
-                    session: {
-                        mode: 'cli',
-                        interactive: true,
-                    },
-                    target: {
-                        domain: 'brain',
-                        workspace_root: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
-                        requested_path: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
-                    },
-                },
-                createContext('C:\\Users\\Craig\\Corvus\\CorvusStar'),
-            );
-
             assert.equal(wakeMock.mock.callCount(), 1);
-            assert.equal(result.status, 'SUCCESS');
-            assert.equal(capture.invocation?.weave_id, 'weave:host-governor');
-            assert.deepEqual(capture.invocation?.payload, {
-                task: 'Resume the host-governed mission.',
-                ledger: 'C:\\temp\\ledger',
-                auto_execute: true,
-                auto_replan_blocked: true,
-                max_parallel: 1,
-                max_promotions: undefined,
-                dry_run: undefined,
-                project_root: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
-                cwd: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
-                source: 'runtime',
-            } satisfies HostGovernorWeavePayload);
-            assert.equal(result.metadata?.adapter, 'runtime:start-resume');
-            assert.equal(result.metadata?.resume_mode, 'explicit-loki');
-            assert.equal(result.metadata?.resume_requested, true);
-        } finally {
-            wakeMock.mock.restore();
-        }
-    });
-
-    it('uses start as a wake-and-resume trigger when a host session is active', async () => {
-        const wakeMock = mock.method(ANS, 'wake', async () => undefined);
-        const capture = new CaptureDispatchPort();
-        let capturedRequest: { metadata?: Record<string, unknown> } | undefined;
-        const adapter = new StartAdapter(capture, async (request) => {
-            capturedRequest = request;
-            return JSON.stringify({
-                action: 'resume_governor',
-                reason: 'Pending host-governed mission detected.',
-            });
-        });
-
-        try {
-            const result = await adapter.execute(
-                {
-                    weave_id: 'weave:start',
-                    payload: {
-                        task: 'Resume the host-governed mission.',
-                        ledger: 'C:\\temp\\ledger',
-                    },
-                },
-                createContext('C:\\Users\\Craig\\Corvus\\CorvusStar', { CODEX_SHELL: '1' }),
-            );
-
-            assert.equal(wakeMock.mock.callCount(), 1);
-            assert.equal(result.status, 'SUCCESS');
-            assert.equal(capture.invocation?.weave_id, 'weave:host-governor');
-            assert.equal((capture.invocation?.payload as HostGovernorWeavePayload).auto_replan_blocked, true);
-            assert.equal(result.metadata?.resume_provider, 'codex');
-            assert.equal(result.metadata?.resume_mode, 'host-session');
-            assert.equal(result.metadata?.adapter, 'runtime:start-resume');
-            assert.equal(result.metadata?.supervisor_decision_source, 'host-supervisor');
-            assert.equal(result.metadata?.supervisor_reason, 'Pending host-governed mission detected.');
-            assert.equal(capturedRequest?.metadata?.trace_critical, true);
-            assert.equal(capturedRequest?.metadata?.require_agent_harness, true);
-            assert.equal(capturedRequest?.metadata?.transport_mode, 'host_session');
-        } finally {
-            wakeMock.mock.restore();
-        }
-    });
-
-    it('can wake the kernel without resuming governor when the host supervisor says wake-only', async () => {
-        const wakeMock = mock.method(ANS, 'wake', async () => undefined);
-        const capture = new CaptureDispatchPort();
-        let capturedRequest: { metadata?: Record<string, unknown> } | undefined;
-        const adapter = new StartAdapter(capture, async (request) => {
-            capturedRequest = request;
-            return JSON.stringify({
-                action: 'wake_only',
-                reason: 'No pending host-governed work.',
-            });
-        });
-
-        try {
-            const result = await adapter.execute(
-                {
-                    weave_id: 'weave:start',
-                    payload: {
-                        task: '',
-                        ledger: 'C:\\temp\\ledger',
-                    },
-                },
-                createContext('C:\\Users\\Craig\\Corvus\\CorvusStar', { CODEX_SHELL: '1' }),
-            );
-
-            assert.equal(wakeMock.mock.callCount(), 1);
-            assert.equal(result.status, 'TRANSITIONAL');
-            assert.equal(capture.invocation, null);
-            assert.equal(result.metadata?.adapter, 'runtime:ans-kernel');
-            assert.equal(result.metadata?.supervisor_decision_source, 'host-supervisor');
-            assert.equal(result.metadata?.supervisor_reason, 'No pending host-governed work.');
+            assert.equal(result.metadata?.supervisor_decision_source, 'deterministic-wake-only');
             assert.equal(result.metadata?.resume_requested, false);
-            assert.equal(capturedRequest?.metadata?.trace_critical, true);
-            assert.equal(capturedRequest?.metadata?.require_agent_harness, true);
-            assert.equal(capturedRequest?.metadata?.transport_mode, 'host_session');
         } finally {
             wakeMock.mock.restore();
         }
+    });
+
+    it('contains no hidden git pull or host-governor auto-resume path', () => {
+        const source = fs.readFileSync(
+            path.join(import.meta.dirname, '..', '..', 'src', 'node', 'core', 'runtime', 'adapters.ts'),
+            'utf-8',
+        );
+        const startSection = source.slice(
+            source.indexOf('export class StartAdapter'),
+            source.indexOf('export class RavensAdapter'),
+        );
+
+        assert.doesNotMatch(startSection, /git["']?,?\s*["']pull|executeHostGovernorResume|hostTextInvoker/);
+        assert.match(startSection, /Loki autonomous start is permanently decommissioned/);
     });
 });

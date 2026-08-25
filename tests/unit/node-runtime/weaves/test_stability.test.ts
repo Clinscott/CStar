@@ -1,78 +1,104 @@
 import { afterEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert/strict';
-import { DistillLessonsWeave } from '../../../../src/node/core/runtime/weaves/distill_lessons.js';
-import { HarvestLessonsWeave } from '../../../../src/node/core/runtime/weaves/harvest_lessons.js';
+import fs from 'node:fs';
+import path from 'node:path';
+
+import {
+    DistillLessonsWeave,
+    LESSON_DISTILLATION_DECOMMISSIONED_ERROR,
+} from '../../../../src/node/core/runtime/weaves/distill_lessons.js';
+import {
+    HarvestLessonsWeave,
+    LESSON_HARVEST_DECOMMISSIONED_ERROR,
+} from '../../../../src/node/core/runtime/weaves/harvest_lessons.js';
 import { database } from '../../../../src/tools/pennyone/intel/database.js';
+import { handleHallMaintenance } from '../../../../src/tools/cstar-kernel-mcp/tools/hall.js';
 
-describe('LiteRT Stability & Efficiency Tests', () => {
+const PROJECT_ROOT = path.resolve(import.meta.dirname, '..', '..', '..', '..');
+
+describe('decommissioned model-written lesson paths', () => {
     afterEach(() => {
-        mock.reset();
+        mock.restoreAll();
     });
 
-    it('truncates massive engram summaries in DistillLessonsWeave to protect LiteRT', async () => {
-        // 1. Setup a massive engram (10,000 characters)
-        const massiveText = 'X'.repeat(10000);
-        const engramId = 'engram:test:massive';
-        
-        mock.method(database, 'getEpisodicMemory', () => ({
-            memory_id: engramId,
-            tactical_summary: massiveText,
-            files_touched: ['file1.ts'],
-            successes: ['success1'],
-            timestamp: Date.now(),
-        }));
+    it('fails lesson distillation before looking up an Engram or invoking a host/model', async () => {
+        const getEpisodicMemory = mock.method(database, 'getEpisodicMemory', () => {
+            throw new Error('decommissioned adapter attempted to read Hall state');
+        });
 
-        // 2. Mock the host invoker to capture the prompt
-        let capturedPrompt = '';
-        const mockInvoker = async (request: any) => {
-            capturedPrompt = request.prompt;
-            return JSON.stringify({
-                tree_nodes: [{ level: 'TREE', title: 'Test', content: 'Test content', tags: [] }]
-            });
-        };
-
-        // 3. Mock the python runner for mimir_harvester
-        const mockRunner = async () => ({ stdout: '{"status": "ok"}' });
-
-        const weave = new DistillLessonsWeave(mockInvoker as any, mockRunner as any);
-        
-        await weave.execute(
-            { weave_id: 'weave:distill-lessons', payload: { memory_id: engramId } },
-            { workspace_root: '/tmp', env: {}, timestamp: Date.now() } as any
+        const result = await new DistillLessonsWeave().execute(
+            { weave_id: 'weave:distill-lessons', payload: { memory_id: 'engram:test' } },
+            { workspace_root: '/target-that-must-not-be-read', env: {}, timestamp: Date.now() } as any,
         );
 
-        // 4. Verify truncation occurred (maxChars defaults to 8000 for summary)
-        assert.ok(capturedPrompt.length < 10000, 'Prompt should be shorter than original massive text');
-        assert.match(capturedPrompt, /\[... TRUNCATED TO PREVENT LOCAL MODEL CONTEXT OVERFLOW ...\]/);
+        assert.equal(result.status, 'FAILURE');
+        assert.equal(result.error, LESSON_DISTILLATION_DECOMMISSIONED_ERROR);
+        assert.equal(result.metadata?.decommissioned, true);
+        assert.equal(result.metadata?.actuated, false);
+        assert.equal(getEpisodicMemory.mock.callCount(), 0);
     });
 
-    it('implements delays in HarvestLessonsWeave to prevent congestion', async () => {
-        // 1. Mock finding 2 unstudied engrams
-        const mockRunner = async () => ({ stdout: JSON.stringify(['id1', 'id2']) });
-        
-        // 2. Mock dispatch port and track timing
-        const callTimes: number[] = [];
-        const mockDispatchPort = {
-            dispatch: async () => {
-                callTimes.push(Date.now());
-                return { status: 'SUCCESS' };
-            }
-        };
+    it('fails recursive lesson harvesting without Hall discovery or dispatch', async () => {
+        const listUnstudied = mock.method(database, 'listUnstudiedEngrams', () => {
+            throw new Error('decommissioned adapter attempted to scan Hall state');
+        });
 
-        const weave = new HarvestLessonsWeave(mockDispatchPort as any, mockRunner as any);
-        
-        const startTime = Date.now();
-        await weave.execute(
-            { weave_id: 'weave:harvest-lessons', payload: { project_root: '/tmp', limit: 2 } },
-            { workspace_root: '/tmp', env: {}, timestamp: Date.now() } as any
+        const result = await new HarvestLessonsWeave().execute(
+            { weave_id: 'weave:harvest-lessons', payload: { project_root: '/target-that-must-not-be-read', limit: 20 } },
+            { workspace_root: '/target-that-must-not-be-read', env: {}, timestamp: Date.now() } as any,
         );
 
-        // 3. Verify delay (should be at least 500ms between calls)
-        assert.equal(callTimes.length, 2);
-        const delay = callTimes[1] - callTimes[0];
-        assert.ok(delay >= 450, `Delay between calls should be approx 500ms, measured: ${delay}ms`);
-        
-        const totalDuration = Date.now() - startTime;
-        assert.ok(totalDuration >= 1000, `Total duration should account for 2 delays, measured: ${totalDuration}ms`);
+        assert.equal(result.status, 'FAILURE');
+        assert.equal(result.error, LESSON_HARVEST_DECOMMISSIONED_ERROR);
+        assert.equal(result.metadata?.decommissioned, true);
+        assert.equal(result.metadata?.actuated, false);
+        assert.equal(listUnstudied.mock.callCount(), 0);
+    });
+
+    it('keeps the public Hall maintenance compatibility call fail-closed and non-reading', async () => {
+        const getDb = mock.method(database, 'getDb', () => {
+            throw new Error('retired MCP tool attempted to open SQLite');
+        });
+        const listUnstudied = mock.method(database, 'listUnstudiedEngrams', () => {
+            throw new Error('retired MCP tool attempted to inspect a harvest queue');
+        });
+
+        for (const args of [
+            { action: 'study' as const, memory_id: 'engram:test' },
+            { action: 'harvest' as const, limit: 20 },
+        ]) {
+            const response = await handleHallMaintenance(args);
+            assert.equal(response.isError, true);
+            const payload = JSON.parse(response.content[0].text) as {
+                decommissioned?: boolean;
+                actuated?: boolean;
+                replacement?: string;
+            };
+            assert.equal(payload.decommissioned, true);
+            assert.equal(payload.actuated, false);
+            assert.match(payload.replacement ?? '', /cstar_hall_search/);
+        }
+
+        assert.equal(getDb.mock.callCount(), 0);
+        assert.equal(listUnstudied.mock.callCount(), 0);
+    });
+
+    it('contains no dormant execution dependency in retired source paths', () => {
+        const distillSource = fs.readFileSync(
+            path.join(PROJECT_ROOT, 'src/node/core/runtime/weaves/distill_lessons.ts'),
+            'utf-8',
+        );
+        const harvestSource = fs.readFileSync(
+            path.join(PROJECT_ROOT, 'src/node/core/runtime/weaves/harvest_lessons.ts'),
+            'utf-8',
+        );
+        const engraveSource = fs.readFileSync(
+            path.join(PROJECT_ROOT, 'scripts/engrave_sessions.ts'),
+            'utf-8',
+        );
+
+        assert.doesNotMatch(distillSource, /host_bridge|defaultHostTextInvoker|resolveRuntimeHostProvider|\bexeca\b|database\.|\.runner\(/);
+        assert.doesNotMatch(harvestSource, /\bexeca\b|dispatchPort|database\.|setTimeout|\.runner\(/);
+        assert.doesNotMatch(engraveSource, /--learn|node:child_process|detached:\s*true|\.unref\(/);
     });
 });

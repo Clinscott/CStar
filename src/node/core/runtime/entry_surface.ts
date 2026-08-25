@@ -1,6 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
+import { isPlainRecord, resolveSkillRegistryEntries } from '../../../core/skill_registry_contract.js';
+
 export type EntrySurface = 'cli' | 'host-only' | 'compatibility';
 
 export interface SurfaceRegistryEntry {
@@ -19,11 +21,6 @@ export interface SurfaceRegistryEntry {
     };
 }
 
-interface SurfaceRegistryManifest {
-    entries?: Record<string, SurfaceRegistryEntry>;
-    skills?: Record<string, SurfaceRegistryEntry>;
-}
-
 export function loadRegistryEntries(projectRoot: string): Record<string, SurfaceRegistryEntry> {
     const candidates = [
         path.join(projectRoot, '.agents', 'skill_registry.json'),
@@ -37,16 +34,22 @@ export function loadRegistryEntries(projectRoot: string): Record<string, Surface
             continue;
         }
 
+        let manifest: unknown;
         try {
-            const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) as SurfaceRegistryManifest;
-            if (manifest.entries && typeof manifest.entries === 'object') {
-                return manifest.entries;
-            }
-            if (manifest.skills && typeof manifest.skills === 'object') {
-                return manifest.skills;
-            }
+            manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) as unknown;
         } catch {
             continue;
+        }
+
+        const entries = resolveSkillRegistryEntries<SurfaceRegistryEntry>(manifest);
+        if (
+            isPlainRecord(manifest)
+            && (
+                Object.prototype.hasOwnProperty.call(manifest, 'entries')
+                || Object.prototype.hasOwnProperty.call(manifest, 'skills')
+            )
+        ) {
+            return entries;
         }
     }
 

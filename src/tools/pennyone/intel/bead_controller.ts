@@ -425,16 +425,40 @@ export function getTracesForFile(filePath: string): HallValidationRun[] {
 
 export function saveValidationRun(record: HallValidationRun): void {
     const db = database.getDb();
+    const existing = db.prepare(`
+        SELECT repo_id, bead_id, target_path, verdict, notes, authority_class,
+               evidence_sha256, validator_identity
+        FROM hall_validation_runs WHERE validation_id = ?
+    `).get(record.validation_id) as {
+        repo_id?: string;
+        bead_id?: string | null;
+        target_path?: string | null;
+        verdict?: string;
+        notes?: string | null;
+        authority_class?: string | null;
+        evidence_sha256?: string | null;
+        validator_identity?: string | null;
+    } | undefined;
+    const authorityClass = record.authority_class ?? 'internal';
+    if (existing && (
+        existing.repo_id !== record.repo_id
+        || (existing.bead_id ?? undefined) !== record.bead_id
+        || (existing.target_path ?? undefined) !== record.target_path
+        || existing.verdict !== record.verdict
+        || (existing.notes ?? undefined) !== record.notes
+        || (existing.authority_class ?? 'internal') !== authorityClass
+        || (existing.evidence_sha256 ?? undefined) !== record.evidence_sha256
+        || (existing.validator_identity ?? undefined) !== record.validator_identity
+    )) {
+        throw new Error(`validation_id_identity_conflict:${record.validation_id}`);
+    }
     const sql = `
         INSERT INTO hall_validation_runs (
             validation_id, repo_id, scan_id, bead_id, target_path, verdict,
-            sprt_verdict, pre_scores_json, post_scores_json, benchmark_json, notes, created_at, legacy_trace_id
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ON CONFLICT(validation_id) DO UPDATE SET
-            verdict = excluded.verdict,
-            sprt_verdict = excluded.sprt_verdict,
-            notes = excluded.notes,
-            post_scores_json = excluded.post_scores_json
+            sprt_verdict, pre_scores_json, post_scores_json, benchmark_json, notes,
+            authority_class, evidence_sha256, validator_identity, created_at, legacy_trace_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(validation_id) DO NOTHING
     `;
     db.prepare(sql).run(
         record.validation_id,
@@ -448,6 +472,9 @@ export function saveValidationRun(record: HallValidationRun): void {
         stringifyJson(record.post_scores),
         stringifyJson(record.benchmark),
         record.notes ?? null,
+        authorityClass,
+        record.evidence_sha256 ?? null,
+        record.validator_identity ?? null,
         record.created_at,
         record.legacy_trace_id ?? null
     );

@@ -1,18 +1,22 @@
-Feature: Global System Behaviors
+Feature: Legacy CStar route remains inactive
 
-  Scenario: Baseline execution
-    Given the Corvus Star system is active
-    Then it maintains the Pact and coordinates the Ravens
+  Scenario: Normal estate work does not select a CStar route
+    Given the parent Corvus Organism projection governs the estate
+    When an agent enters the CStar repository
+    Then CStar routes are not selected
+    And CStar state is treated as historical evidence only
+    And no Bead, SET, mission, effect, receipt, Hall transition, or worker route is created
 
-  Scenario: Intelligence Generation (The One Mind)
-    Given a system component requires semantic analysis or reasoning
-    When the request is processed
-    Then it MUST utilize the Host Agent (One Mind) exclusively
-    And it MUST NOT use local API keys or direct SDK connections
+  Scenario: Legacy source remains inspectable without activation
+    Given the operator places legacy CStar source in scope
+    When the source is inspected, tested, documented, or migrated
+    Then no CStar runtime or host integration is launched
+    And protected host configuration remains unread
+    And unrelated dirty work is preserved
 
-  Scenario: Composite Execution (The Weave Protocol)
-    Given a complex architectural mission is defined
-    When the agent implements the logic thread
-    Then it MUST be structured as a formal Weave
-    And it MUST orchestrate logic via 'dispatchPort.dispatch()'
-    And it MUST adhere to the Triad of Verification
+  Scenario: A narrow legacy diagnostic cannot restore authority
+    Given the operator explicitly authorizes one bounded legacy diagnostic
+    When that diagnostic runs
+    Then its output is evidence only
+    And CStar remains inactive after the diagnostic
+    And the Corvus Organism remains the workflow authority

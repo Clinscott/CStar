@@ -1,72 +1,69 @@
 # CStar Capability Discovery API
 
-`cstar` now exposes two registry-first discovery surfaces for operators, hosts, and tools that need to discover what exists before they invoke it.
+## Purpose
 
-Capability authority and shell authority are now explicit:
+`cstar manifest` and `cstar skill-info` provide read-only views of the current
+`.agents/skill_registry.json`. Discovery reports what the host may inspect. It
+does not grant execution, lifecycle, spend, mutation, or activation authority.
 
-- `.agents/skill_registry.json` remains the source of truth for capability identity, ownership, contracts, and runtime boundaries.
-- the live Commander command tree is the source of truth for shell invocation shape such as subcommands, aliases, options, and JSON support.
-- discovery payloads merge those two surfaces so agents can tell where to look, why it matters, and how to invoke the capability.
+The current registry contains exactly three agent-native skills:
+`corvus-forge`, `researcher`, and `cstar-closeout`. Deterministic kernel tools
+are declared by the typed `cstar-kernel` MCP catalog instead of being duplicated
+as registry entries.
 
 ## Commands
 
-`cstar manifest --json`
-- Returns the full capability catalog from `.agents/skill_registry.json`, enriched with runtime activation state and invocation hints.
+```bash
+cstar manifest --json
+cstar skill-info <id> --json
+```
 
-`cstar skill-info <id> --json`
-- Returns the per-capability contract view for one registry entry.
-- Resolution is registry-first: capability id match, then `runtime_trigger` match.
+`manifest` returns the normalized registry entries. `skill-info` returns one
+entry and its preferred local instruction/contract document.
 
-## Manifest Payload
+## Current Record Shape
 
-Each `capabilities[]` record includes:
+Each capability record may include:
 
-- `id`: canonical registry id.
-- `tier`: `PRIME`, `SKILL`, `WEAVE`, or `SPELL`.
-- `entry_surface`: `cli`, `host-only`, or `compatibility`.
-- `shell_command`: recommended shell invocation when direct CLI use is supported.
-- `invoke`: structured invocation metadata derived from the live Commander command tree when available, otherwise inferred from registry CLI hints.
-- `runtime_adapter_id`: primary runtime adapter id.
-- `runtime_aliases`: adapter ids that may appear in the live dispatcher.
-- `active_in_runtime`: whether the capability is currently registered in the runtime.
-- `execution_mode`, `ownership_model`, `owner_runtime`: execution boundary metadata.
-- `authority_path`, `instruction_path`, `entrypoint_path`, `contract_path`: authority and implementation anchors.
-- `contracts`, `tests`: supporting contract and verification references.
+- `id`, `tier`, `description`, `viability`, and `risk`;
+- `entry_surface`, `execution_mode`, `ownership_model`, and `owner_runtime`;
+- `authority_path`, `instruction_path`, `entrypoint_path`, contracts, and tests;
+- host-support declarations; and
+- normalized invocation metadata.
 
-## Skill Info Payload
+For the current three entries:
 
-`skill-info --json` returns:
+- `tier` is `SKILL`;
+- `entry_surface` is `host-only`;
+- `execution_mode` is `agent-native`;
+- `owner_runtime` is `host-agent`; and
+- shell invocation is unavailable.
 
-- `capability`: the same normalized discovery record used by `manifest`.
-- `documentation`: the preferred contract surface for humans and tools.
+`active_in_runtime: true` means the runtime recognizes the declaration and can
+enforce its boundary. It does not mean the dispatcher may execute the skill.
+`invoke.source: unavailable` is expected for these host-native skills.
 
-`capability.invoke` includes:
+## Resolution
 
-- `source`: `commander`, `inferred`, or `unavailable`.
-- `command_path`: the canonical shell command path after `cstar`.
-- `aliases`: shell aliases such as `p1`.
-- `options`: top-level options for the command family.
-- `subcommands`: nested command contracts with their own options, arguments, examples, and JSON support flags.
-- `examples`: recommended shell invocations for operators and agents.
+- Capability ids resolve against the registry object keys.
+- Skill documentation resolves to the declared `instruction_path` first.
+- Registry and document paths are project-relative and must remain contained by
+  the CStar root.
+- Unknown, retired, compatibility-only, weave, or spell ids must not be inferred
+  into active capabilities.
 
-`documentation.kind` values:
-
-- `markdown`: Markdown or QMD contract material.
-- `gherkin`: `.feature` contract material.
-- `source`: runtime or implementation authority exists, but no Markdown/Gherkin contract is registered.
-- `none`: no readable authority document was resolved.
-
-## Resolution Rules
-
-- Weaves prefer `.agents/weaves/<id>.md` when present.
-- Spells prefer `.agents/spells/<id>.md`.
-- Skills prefer their `instruction_path`.
-- Kernel-backed entries with no prose contract fall back to their source authority path.
-- `chant` is always exposed as `host-only`, even though it is runtime-backed, because its public surface is the host-native supervisor.
+Commander-derived command metadata may describe a real deterministic CLI
+command when one exists. It cannot convert a host-only skill into a shell
+command or create authority that the registry and repository policy do not
+grant.
 
 ## Operator Guidance
 
-- Use `manifest --json` for machine discovery.
-- Use `skill-info <id> --json` when you need the invocation contract, authority files, and verification anchors for one capability.
-- Treat `entry_surface=host-only` as a hard boundary: inspect it, but do not expect direct shell dispatch.
-- Prefer `invoke.source=commander` over prose examples when both are present, because it is derived from the registered CLI command tree.
+- Use `manifest --json` to confirm the exact registered skill set.
+- Use `skill-info` before activating one of those skills in the host harness.
+- Use the typed `cstar-kernel` MCP catalog for kernel tool inventory.
+- Treat public AutoBot, One Mind, Ravens, model-memory workflows, legacy weaves,
+  and recursive spells as retired even when historical source accepts their
+  names.
+- Keep source generation, local staging, installed/cache reconciliation,
+  restart, live proof, and production readiness as separate gates.

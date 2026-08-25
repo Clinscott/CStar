@@ -1,8 +1,6 @@
-from unittest.mock import patch
-
 import pytest
 
-from src.core.cstar_dispatcher import CorvusDispatcher
+from src.core.cstar_dispatcher import CorvusDispatcher, DECOMMISSIONED_ERROR
 
 
 class TestCorvusDispatcher:
@@ -21,20 +19,36 @@ class TestCorvusDispatcher:
 
     def test_discover_all(self, dispatcher):
         cmds = dispatcher._discover_all()
-        assert "test_cmd" in cmds
-        assert "test_wf" in cmds
-        assert cmds["test_cmd"].endswith(".py")
-        assert cmds["test_wf"].endswith(".md")
+        assert cmds == {}
 
-        def test_show_help_categorization(self, dispatcher):
-            # We patch inside to catch the SovereignHUD instances currently in sys.modules
-            # after CorvusDispatcher and its bootstrap have run.
-            with patch('src.core.sovereign_hud.SovereignHUD.box_row') as mock_src_box_row:
+    def test_discovery_excludes_decommissioned_files_and_skill_directories(
+        self,
+        dispatcher,
+    ):
+        tools = dispatcher.project_root / "src" / "tools"
+        tools.mkdir(parents=True)
+        retired_tool = tools / "acquire.py"
+        retired_tool.write_text("raise RuntimeError('must not dispatch')", encoding="utf-8")
+        (tools / "acquire.DECOMMISSIONED.md").write_text("# retired\n", encoding="utf-8")
 
-                dispatcher.show_help()
+        skills = dispatcher.project_root / ".agents" / "skills"
+        retired_skill = skills / "retired"
+        (retired_skill / "scripts").mkdir(parents=True)
+        (retired_skill / "scripts" / "retired.py").write_text(
+            "raise RuntimeError('must not dispatch')",
+            encoding="utf-8",
+        )
+        (retired_skill / "DECOMMISSIONED.md").write_text("# retired\n", encoding="utf-8")
 
-                # Combine calls from both potential mocks
-                calls_src = [call.args[0] for call in mock_src_box_row.call_args_list]
+        commands = dispatcher._discover_all()
 
-                assert "SCRIPTS" in calls_src
-                assert "WORKFLOWS" in calls_src
+        assert "acquire" not in commands
+        assert "retired" not in commands
+
+    def test_show_help_reports_decommission(self, dispatcher, capsys):
+        dispatcher.show_help()
+        assert DECOMMISSIONED_ERROR in capsys.readouterr().out
+
+    def test_run_refuses_without_spawning(self, dispatcher):
+        with pytest.raises(RuntimeError, match="permanently_decommissioned"):
+            dispatcher.run(["test_cmd"])

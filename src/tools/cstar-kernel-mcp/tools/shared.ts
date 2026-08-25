@@ -11,6 +11,7 @@ import { buildHallRepositoryId, normalizeHallPath } from '../../../types/hall.js
 import { registry } from '../../pennyone/pathRegistry.js';
 import { database } from '../../pennyone/intel/database.js';
 import { verifyMountToken } from '../../../node/core/spokes/spoke_authority.js';
+import { resolveExistingRelativePathInside } from '../contracts/runtime.js';
 
 export const HALL_BEAD_STATUSES: HallBeadStatus[] = [
     'OPEN',
@@ -196,15 +197,19 @@ export function resolveSpokeRelativePath(
     relativeOrAbsolute: string,
     fieldName: string,
 ): string {
-    const candidate = path.isAbsolute(relativeOrAbsolute)
-        ? relativeOrAbsolute
-        : path.join(spoke.root_path, relativeOrAbsolute);
-    if (!fs.existsSync(candidate)) {
+    try {
+        return resolveExistingRelativePathInside(spoke.root_path, relativeOrAbsolute);
+    } catch (error) {
+        if (error instanceof Error && error.message.startsWith('path_not_found:')) {
+            const candidate = path.join(spoke.root_path, relativeOrAbsolute);
+            throw new Error(
+                `${fieldName} '${relativeOrAbsolute}' does not exist under spoke '${spoke.slug}' (resolved: ${candidate}).`,
+            );
+        }
         throw new Error(
-            `${fieldName} '${relativeOrAbsolute}' does not exist under spoke '${spoke.slug}' (resolved: ${candidate}).`,
+            `${fieldName} '${relativeOrAbsolute}' must be a real, non-symlink path inside spoke '${spoke.slug}'.`,
         );
     }
-    return candidate;
 }
 
 export function beadToRecord(bead: SovereignBead): HallBeadRecord {

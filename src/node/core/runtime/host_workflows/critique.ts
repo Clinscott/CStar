@@ -7,11 +7,10 @@ import {
     WeaveResult,
 } from '../contracts.ts';
 import { defaultHostTextInvoker, extractJsonObject, resolveRuntimeHostProvider, withRuntimeAuguryMetadata, type HostTextInvoker } from  '../weaves/host_bridge.js';
-import { saveHallOneMindBranch, saveHallOneMindRequest, summarizeHallOneMindBranches } from '../../../../tools/pennyone/intel/database.js';
+import { saveHallOneMindBranch, summarizeHallOneMindBranches } from '../../../../tools/pennyone/intel/database.js';
 import { buildHallRepositoryId, normalizeHallPath, type HallOneMindBranchRecord } from '../../../../types/hall.js';
 import { requestHostDelegatedExecution } from '../../../../core/host_delegation.js';
 import type { DelegatedExecutionResult } from '../../../../core/host_delegation.js';
-import { resolveConfiguredDelegatePollBridge } from '../../../../core/host_session.js';
 import { getHostSubagentSpec, type HostSubagentProfile } from '../../../../core/host_subagents.js';
 import { formatCouncilAntiBehavior, listDefaultCouncilProtocols, type CouncilExpertProtocol } from '../../../../core/council_experts.js';
 
@@ -27,9 +26,7 @@ export interface CritiqueWeavePayload {
 export const deps = {
     requestHostDelegatedExecution,
     saveHallOneMindBranch,
-    saveHallOneMindRequest,
     summarizeHallOneMindBranches,
-    resolveConfiguredDelegatePollBridge,
 };
 
 interface CritiqueCouncilBranch {
@@ -68,7 +65,7 @@ function buildCritiquePrompt(payload: CritiqueWeavePayload, branch: CritiqueCoun
         `Expert Lens: ${spec.instruction}`,
         branch.protocol ? `Protocol: ${branch.protocol.protocol}` : '',
         branch.protocol ? `Anti-Behavior: ${formatCouncilAntiBehavior(branch.protocol)}` : '',
-        branch.protocol ? `Root Persona Overlay: ${branch.protocol.root_persona_directive}` : '',
+        branch.protocol ? `Critique Instruction: ${branch.protocol.critique_instruction}` : '',
         `FOCUS AREA: ${branch.focusArea}`,
         '',
         `PROPOSED BEAD:\n${JSON.stringify(payload.bead, null, 2)}`,
@@ -159,67 +156,6 @@ export class CritiqueHostWorkflow implements RuntimeAdapter<CritiqueWeavePayload
                 const runtimeEnv = { ...process.env, ...context.env } as NodeJS.ProcessEnv;
                 const timeoutMs = getCritiqueTimeoutMs(provider, runtimeEnv);
                 const repoId = buildHallRepositoryId(normalizeHallPath(workspaceRoot));
-                const hasDelegatePollBridge = deps.resolveConfiguredDelegatePollBridge(runtimeEnv, provider);
-
-                if (hasDelegatePollBridge) {
-                    const requestIds = branches.map((branch, index) => {
-                        const prompt = buildCritiquePrompt(payload, branch);
-                        const branchId = `${branchGroupId}:${index}`;
-                        const source = `runtime:critique:branch:${index}`;
-                        deps.saveHallOneMindRequest({
-                            request_id: `${branchId}:request`,
-                            repo_id: repoId,
-                            caller_source: source,
-                            boundary: 'subagent',
-                            request_status: 'PENDING',
-                            transport_preference: 'host_session',
-                            prompt,
-                            metadata: {
-                                mission_id: context.mission_id,
-                                trace_id: context.trace_id,
-                                session_id: context.session_id ?? null,
-                                provider,
-                                task_kind: 'critique',
-                                target_paths: [workspaceRoot],
-                                runtime_weave: this.id,
-                                activation_id: context.bead_id,
-                                branch_id: branchId,
-                                branch_group_id: branchGroupId,
-                                branch_kind: 'critique',
-                                branch_label: branch.label,
-                                branch_index: index,
-                                branch_count: branches.length,
-                                source,
-                                one_mind_boundary: 'subagent',
-                                execution_role: 'subagent',
-                                execution_boundary: 'subagent',
-                                subagent_profile: branch.profile,
-                                council_expert: branch.label,
-                            },
-                            created_at: now,
-                            updated_at: now,
-                        }, workspaceRoot);
-                        return `${branchId}:request`;
-                    });
-
-                    return {
-                        weave_id: this.id,
-                        status: 'TRANSITIONAL',
-                        output: `Queued ${branches.length} delegated critique council branch(es) for broker fulfillment.`,
-                        metadata: {
-                            context_policy: 'project',
-                            delegated: true,
-                            provider,
-                            bead_title: payload.bead.title,
-                            branch_group_id: branchGroupId,
-                            parallel: branches.length > 1,
-                            branch_count: branches.length,
-                            activation_id: context.bead_id,
-                            queued_request_ids: requestIds,
-                        },
-                    };
-                }
-
                 const parsedBranches = await Promise.all(branches.map(async (branch, index) => {
                     const prompt = buildCritiquePrompt(payload, branch);
                     const branchId = `${branchGroupId}:${index}`;
@@ -287,8 +223,8 @@ export class CritiqueHostWorkflow implements RuntimeAdapter<CritiqueWeavePayload
                                 }
                                 executionMetadata = {
                                     ...executionMetadata,
-                                    delegation_mode: delegatedResult.metadata?.delegation_mode ?? 'provider-native',
-                                    execution_surface: delegatedResult.metadata?.execution_surface ?? 'host-cli-inference',
+                                    delegation_mode: delegatedResult.metadata?.delegation_mode ?? 'configured-bridge',
+                                    execution_surface: delegatedResult.metadata?.execution_surface ?? 'configured-delegate-bridge',
                                     handle_id: delegatedResult.handle_id,
                                 };
                             } else if (delegatedResult.status === 'failed' || delegatedResult.status === 'cancelled') {

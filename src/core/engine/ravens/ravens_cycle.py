@@ -1,29 +1,33 @@
 from __future__ import annotations
 
-import asyncio
 import argparse
 import json
-import sys
-from pathlib import Path
-
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
-
-from src.core.engine.ravens.ravens_runtime import execute_ravens_cycle_contract
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--project-root",
-        default=str(PROJECT_ROOT),
-        help="Repository root to sweep with the canonical one-cycle ravens runtime.",
+        default=".",
+        help="Retired compatibility option; no repository access occurs.",
     )
     args = parser.parse_args()
 
-    result = asyncio.run(execute_ravens_cycle_contract(Path(args.project_root).resolve()))
-    print(json.dumps(result.to_dict(), indent=2))
+    print(json.dumps({
+        "status": "FAILURE",
+        "summary": (
+            "Ravens cycle execution is decommissioned. This compatibility entrypoint "
+            "cannot spawn workers, mutate repositories, run tests, change branches, or commit."
+        ),
+        "metadata": {
+            "adapter": "compatibility:ravens-cycle-rejected",
+            "requested_project_root": args.project_root,
+            "decommissioned": True,
+            "read_only": True,
+            "execution_attempted": False,
+        },
+    }, indent=2))
+    raise SystemExit(2)
 
 
 if __name__ == "__main__":

@@ -3,12 +3,17 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { neutralizeKernelMcpProcessEnv } from '../../bin/cstar-kernel-mcp-env.js';
 import { registerCoreTools } from './cstar-kernel-mcp/register_core_tools.js';
 import { PROJECT_ROOT, logBootstrapError } from './cstar-kernel-mcp/contracts/runtime.js';
 import { instrumentTool } from './cstar-kernel-mcp/telemetry/usage.js';
 import { attachSourceWatcher } from './cstar-kernel-mcp/watch.js';
 
-dotenv.config({ path: path.join(PROJECT_ROOT, '.env') });
+const KERNEL_MCP_LAUNCH_INTENT = process.env.CSTAR_KERNEL_MCP === '1' || isDirectKernelMcpLaunch();
+if (KERNEL_MCP_LAUNCH_INTENT) {
+    dotenv.config({ path: path.join(PROJECT_ROOT, '.env') });
+    neutralizeKernelMcpProcessEnv(process.env);
+}
 
 /**
  * CStar Kernel MCP entrypoint.
@@ -67,11 +72,10 @@ export { handleTelemetry } from './cstar-kernel-mcp/tools/telemetry.js';
 export {
     handleDispatchRequest,
     handleResearcherRequest,
-    handleForgeRequest,
     type DispatchRequestArgs,
 } from './cstar-kernel-mcp/tools/dispatch_request.js';
+export { handleForgeRequest, type ForgeRequestArgs } from './cstar-kernel-mcp/tools/forge_request.js';
 export { handleForgeExecute, type ForgeExecutionArgs } from './cstar-kernel-mcp/tools/forge_execute.js';
-export { handleAutobot, isAutobotMcpEnabled, type AutobotArgs } from './cstar-kernel-mcp/tools/autobot.js';
 export {
     deriveMcpUsefulnessEvent,
     summarizeUsefulnessEvents,
@@ -85,9 +89,7 @@ export {
 export {
     summarizeRecentTokenPathIntegration,
     appendTokenPathObservation,
-    appendTokenPathAdvice,
-    buildObservationFromAdvice,
-    findRecentTokenPathAdvice,
+    isMeasuredTokenPathObservation,
     runTokenPathAdvisor,
     type TokenPathObservationPayload,
 } from './cstar-kernel-mcp/telemetry/token_path.js';
@@ -119,7 +121,7 @@ function isDirectKernelMcpLaunch(): boolean {
     return entry === fileURLToPath(import.meta.url);
 }
 
-if (process.env.CSTAR_KERNEL_MCP === '1' || isDirectKernelMcpLaunch()) {
+if (KERNEL_MCP_LAUNCH_INTENT) {
     main().catch((error) => {
         logBootstrapError(error);
         console.error('Fatal error in CStar Kernel MCP:', error);

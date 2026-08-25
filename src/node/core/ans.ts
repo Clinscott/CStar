@@ -1,40 +1,18 @@
-import { CortexLink } from '../cortex_link.js';
-import { execa } from 'execa';
-import path from 'node:path';
-import { registry } from '../../tools/pennyone/pathRegistry.js';
 import chalk from 'chalk';
 import { activePersona } from '../../tools/pennyone/personaRegistry.js';
-import { getHallSummary } from  '../../tools/pennyone/intel/database.js';
-import { runScan } from  '../../tools/pennyone/index.js';
-import { isHostSessionActive } from '../../core/host_session.js';
-import { ensureOneMindBroker } from './one_mind_broker/manager.js';
-
-import { getPythonPath } from './python_utils.js';
-
-import { HUD } from './hud.js';
 import { StateRegistry } from  './state.js';
-import { EngraveWeave } from './runtime/weaves/engrave.js';
 
 /**
  * Autonomic Nervous System (ANS)
- * Purpose: Synchronize the waking and sleeping of all framework organs.
- * Mandate: Unified Consciousness (Oracle + PennyOne + Ravens)
+ * Purpose: Record explicit waking and sleeping runtime-state transitions.
+ * This boundary never starts daemons, scans repositories, invokes models,
+ * writes memory, creates beads, or dispatches implementation.
  */
 export class ANS {
     /**
      * Wakes the runtime without resident daemons.
      */
     static async wake() {
-        const link = new CortexLink();
-        await HUD.spinner('Synchronizing the kernel bridge...', 400);
-        await link.ensureDaemon();
-
-        if (isHostSessionActive(process.env)) {
-            await ensureOneMindBroker(registry.getRoot(), process.env);
-        }
-
-        await this.ensurePennyOne();
-
         StateRegistry.updateFramework({
             status: 'AWAKE',
             last_awakening: Date.now()
@@ -48,67 +26,17 @@ export class ANS {
         console.error(chalk.cyan(`
 ${activePersona.prefix}: "Initiating global dormancy protocol..."`));
         
-        // 1. Stop PennyOne
         await this.stopPennyOne();
-
-        // 2. Trigger REM Sleep / Dormancy in Python (Oracle)
-        const projectRoot = registry.getRoot();
-        const pythonPath = getPythonPath();
-        const dormancyScript = path.join(projectRoot, 'src', 'skills', 'local', 'dormancy.py');
-        
-        try {
-            await execa(pythonPath, [dormancyScript], { 
-                stdio: 'inherit',
-                env: { ...process.env, PYTHONPATH: projectRoot }
-            });
-        } catch (e) {
-            console.error(chalk.red(`[ERROR] Dormancy transition failed: ${e instanceof Error ? e.message : String(e)}`));
-        }
-
-        try {
-            const engrave = new EngraveWeave();
-            const result = await engrave.execute({
-                weave_id: 'weave:engrave',
-                payload: {
-                    project_root: projectRoot,
-                    cwd: projectRoot,
-                },
-            }, {
-                mission_id: `MISSION-DORMANCY-${Date.now()}`,
-                bead_id: `bead:dormancy:${Date.now()}`,
-                trace_id: `trace:dormancy:${Date.now()}`,
-                persona: activePersona.name,
-                workspace_root: projectRoot,
-                operator_mode: 'cli',
-                target_domain: 'brain',
-                interactive: false,
-                env: process.env,
-                timestamp: Date.now(),
-            });
-            if (result.status === 'FAILURE') {
-                console.error(chalk.red(`[ERROR] Dormancy learning engrave failed: ${result.error}`));
-            } else {
-                console.error(chalk.green(`${activePersona.prefix} '${result.output}'`));
-            }
-        } catch (e) {
-            console.error(chalk.red(`[ERROR] Dormancy learning failed: ${e instanceof Error ? e.message : String(e)}`));
-        }
-
-        // [🔱] THE STATE: Sleep Synchronized
         StateRegistry.updateFramework({
             status: 'DORMANT'
         });
     }
 
     /**
-     * Ensures PennyOne has a current Hall projection without a resident watcher.
+     * Compatibility no-op. PennyOne scans require an explicit operator action.
      */
     static async ensurePennyOne() {
-        const summary = getHallSummary(registry.getRoot());
-        if (!summary?.last_scan_id) {
-            console.error(chalk.dim(`${activePersona.prefix} 'Seeding PennyOne Hall projection...'`));
-            await runScan(registry.getRoot());
-        }
+        console.error(chalk.dim(`${activePersona.prefix} 'PennyOne remains on-demand; no scan was started.'`));
     }
 
     /**

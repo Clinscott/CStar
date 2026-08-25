@@ -6,6 +6,8 @@ import type {
     ChantWeavePayload,
 } from '../contracts.ts';
 import type { SkillBead } from '../../skills/types.js';
+import { resolveSkillRegistryEntries } from '../../../../core/skill_registry_contract.js';
+import { analyzeCanonicalIntent } from '../../../../core/intent_analysis.js';
 
 export type DirectChantResolution =
     | {
@@ -128,17 +130,18 @@ export const INTENT_CATEGORIES: Record<string, {
     default_path: string;
     tier: string;
 }> = {
-    REPAIR:      { triggers: ['fix', 'repair', 'heal', 'restore', 'broken', 'failing', 'bug'], default_path: 'restoration', tier: 'WEAVE' },
-    BUILD:       { triggers: ['build', 'create', 'scaffold', 'implement', 'new', 'add', 'feature'], default_path: 'creation_loop', tier: 'WEAVE' },
-    VERIFY:      { triggers: ['test', 'verify', 'validate', 'check', 'assert', 'spec'], default_path: 'empire', tier: 'SKILL' },
-    SCORE:       { triggers: ['score', 'grade', 'rate', 'audit', 'quality', 'gungnir'], default_path: 'calculus', tier: 'PRIME' },
-    OBSERVE:     { triggers: ['scan', 'search', 'find', 'query', 'status', 'health', 'look', 'show', 'browse', 'website', 'url', 'navigate'], default_path: 'scan', tier: 'PRIME' },
-    HARDEN:      { triggers: ['contract', 'comply', 'sterling', 'harden', 'gherkin'], default_path: 'contract_hardening', tier: 'WEAVE' },
-    EXPAND:      { triggers: ['deploy', 'link', 'mount', 'spoke', 'onboard'], default_path: 'expansion', tier: 'WEAVE' },
-    EVOLVE:      { triggers: ['optimize', 'refactor', 'evolve', 'improve'], default_path: 'evolve', tier: 'WEAVE' },
-    ORCHESTRATE: { triggers: ['plan', 'dispatch', 'autobot', 'orchestrate'], default_path: 'orchestrate', tier: 'WEAVE' },
-    GUARD:       { triggers: ['protect', 'shield', 'lock', 'guard', 'drift'], default_path: 'silver_shield', tier: 'SPELL' },
-    DOCUMENT:    { triggers: ['document', 'explain', 'chronicle', 'architecture', 'study', 'harvest', 'learn'], default_path: 'mimir-harvester', tier: 'SKILL' },
+    REPAIR:      { triggers: ['fix', 'repair', 'heal', 'restore', 'broken', 'failing', 'bug'], default_path: 'cstar_forge_request', tier: 'SKILL' },
+    BUILD:       { triggers: ['build', 'create', 'scaffold', 'implement', 'new', 'add', 'feature'], default_path: 'cstar_forge_request', tier: 'SKILL' },
+    VERIFY:      { triggers: ['test', 'verify', 'validate', 'check', 'assert', 'spec', 'audit', 'quality', 'review'], default_path: 'cstar_record_result', tier: 'PRIME' },
+    SCORE:       { triggers: ['score', 'grade', 'rate', 'gungnir'], default_path: 'cstar_record_result', tier: 'PRIME' },
+    OBSERVE:     { triggers: ['scan', 'search', 'find', 'query', 'status', 'health', 'look', 'show', 'browse', 'website', 'url', 'navigate'], default_path: 'cstar_status', tier: 'PRIME' },
+    HARDEN:      { triggers: ['contract', 'comply', 'sterling', 'harden', 'gherkin'], default_path: 'cstar_record_result', tier: 'PRIME' },
+    EXPAND:      { triggers: ['deploy', 'link', 'mount', 'spoke', 'onboard'], default_path: 'cstar_spoke', tier: 'PRIME' },
+    EVOLVE:      { triggers: ['optimize', 'refactor', 'evolve', 'improve'], default_path: 'cstar_forge_request', tier: 'SKILL' },
+    ORCHESTRATE: { triggers: ['plan', 'dispatch', 'orchestrate', 'sequence'], default_path: 'cstar_handoff', tier: 'PRIME' },
+    GUARD:       { triggers: ['protect', 'shield', 'lock', 'guard', 'drift'], default_path: 'cstar_record_result', tier: 'PRIME' },
+    DOCUMENT:    { triggers: ['document', 'explain', 'chronicle', 'architecture', 'handoff', 'wrap', 'closeout'], default_path: 'cstar-closeout', tier: 'SKILL' },
+    RESEARCH:    { triggers: ['research', 'evidence', 'sources', 'investigate external'], default_path: 'cstar_researcher_request', tier: 'SKILL' },
 };
 
 export const CORVUS_STAR_AUGURY_HEADER = '// Corvus Star Augury [Ω]';
@@ -169,24 +172,19 @@ export function loadRegistryManifest(projectRoot: string): RegistryManifest | nu
         return null;
     }
 
+    let manifest: unknown;
     try {
-        return JSON.parse(deps.fs.readFileSync(manifestPath, 'utf-8')) as RegistryManifest;
+        manifest = JSON.parse(deps.fs.readFileSync(manifestPath, 'utf-8')) as unknown;
     } catch {
         return null;
     }
+
+    resolveSkillRegistryEntries<RegistryEntry>(manifest);
+    return manifest as RegistryManifest;
 }
 
 export function getRegistryEntries(manifest: RegistryManifest | null): Record<string, RegistryEntry> {
-    if (!manifest) {
-        return {};
-    }
-    if (manifest.entries && typeof manifest.entries === 'object') {
-        return manifest.entries;
-    }
-    if (manifest.skills && typeof manifest.skills === 'object') {
-        return manifest.skills;
-    }
-    return {};
+    return resolveSkillRegistryEntries<RegistryEntry>(manifest);
 }
 
 export function getRegistryIntentCategories(
@@ -433,23 +431,11 @@ export function loadSkillTriggers(projectRoot: string): Set<string> {
 }
 
 /**
- * Classifies a query into one of the 11 Intent Categories using the closed grammar.
+ * Classifies a query into one of the registry-aligned Intent Categories using the closed grammar.
  * Returns null if no category matches (agent must ask user to clarify).
  */
 export function resolveIntentCategory(lowerTokens: string[]): IntentCategoryMatch | null {
-    for (const [category, config] of Object.entries(INTENT_CATEGORIES)) {
-        for (const trigger of config.triggers) {
-            if (lowerTokens.includes(trigger)) {
-                return {
-                    category,
-                    default_path: config.default_path,
-                    tier: config.tier,
-                    matched_trigger: trigger,
-                };
-            }
-        }
-    }
-    return null;
+    return resolveIntentCategoryFromGrammar(lowerTokens, INTENT_CATEGORIES);
 }
 
 export function resolveByIntentCategory(
@@ -493,19 +479,18 @@ export function resolveIntentCategoryFromGrammar(
     lowerTokens: string[],
     grammar: Record<string, { triggers: string[]; default_path: string; tier: string }>,
 ): IntentCategoryMatch | null {
-    for (const [category, config] of Object.entries(grammar)) {
-        for (const trigger of config.triggers) {
-            if (lowerTokens.includes(trigger)) {
-                return {
-                    category,
-                    default_path: config.default_path,
-                    tier: config.tier,
-                    matched_trigger: trigger,
-                };
-            }
+    const match = analyzeCanonicalIntent({
+        prompt: lowerTokens.join(' '),
+        grammar,
+    }).primary;
+    return match
+        ? {
+            category: match.category,
+            default_path: match.default_path,
+            tier: match.tier,
+            matched_trigger: match.matched_trigger,
         }
-    }
-    return null;
+        : null;
 }
 
 export function buildSkillBeadInvocation(
@@ -586,7 +571,22 @@ export function resolveBuiltInWeave(
         };
     }
 
-    if (head === 'scan' || (head === 'pennyone' && (second === undefined || second === 'scan'))) {
+    if (head === 'pennyone' && second === undefined) {
+        return {
+            kind: 'weave',
+            trigger: 'pennyone',
+            invocation: {
+                weave_id: 'weave:pennyone',
+                payload: {
+                    action: 'status',
+                    path: '.',
+                },
+            },
+            summary: 'Resolved chant to read-only PennyOne status.',
+        };
+    }
+
+    if (head === 'scan' || (head === 'pennyone' && second === 'scan')) {
         return {
             kind: 'weave',
             trigger: 'pennyone',

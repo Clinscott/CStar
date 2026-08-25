@@ -12,10 +12,7 @@ import { AUGURY_PROMPT_CONSULT_LIMIT } from './host_session.js';
 import { loadCascadingContext } from './context_loader.js';
 function ensureAuguryContractValidity(contract: Record<string, unknown> | undefined): Record<string, unknown> | undefined {
     if (!contract) return contract;
-    let enriched = contract as any;
-    if (!enriched.council_expert) {
-        enriched = enrichTraceContractWithCouncil(enriched);
-    }
+    let enriched = enrichTraceContractWithCouncil(contract as any);
     if (Array.isArray(enriched.mimirs_well)) {
         enriched = { ...enriched, mimirs_well: enriched.mimirs_well.slice(0, AUGURY_PROMPT_CONSULT_LIMIT) };
     }
@@ -176,8 +173,8 @@ function buildAuguryLearningEvent(input: {
     error?: string | null;
 }): AuguryLearningEvent {
     return {
-        schema_version: 1,
-        event_version: 1,
+        schema_version: 2,
+        event_version: 2,
         event_type: 'host_prompt',
         recorded_at: new Date().toISOString(),
         project_root: input.projectRoot,
@@ -185,7 +182,6 @@ function buildAuguryLearningEvent(input: {
         prompt_surface: input.metadata.prompt_surface ?? null,
         steering_mode: input.metadata.steering_mode,
         contract_hash: input.metadata.contract_hash,
-        ...(typeof input.metadata.confidence === 'number' ? { confidence: input.metadata.confidence } : {}),
         confidence_source: input.metadata.confidence_source,
         ...(input.metadata.route ? { route: input.metadata.route } : {}),
         ...(input.metadata.intent_category ? { intent_category: input.metadata.intent_category } : {}),
@@ -193,7 +189,6 @@ function buildAuguryLearningEvent(input: {
         ...(input.metadata.selection_name ? { selection_name: input.metadata.selection_name } : {}),
         ...(input.metadata.expert_id ? { expert_id: input.metadata.expert_id } : {}),
         ...(input.metadata.expert_label ? { expert_label: input.metadata.expert_label } : {}),
-        ...(input.metadata.council_candidates ? { council_candidates: input.metadata.council_candidates } : {}),
         mimirs_well_count: input.metadata.mimirs_well_count,
         mimirs_well_omitted_count: input.metadata.mimirs_well_omitted_count,
         session_id: input.metadata.session_id ?? null,
@@ -284,6 +279,8 @@ export async function requestHostText(
     }) : undefined;
     const requestMetadata: Record<string, unknown> = {
         ...(request.metadata ?? {}),
+        ...(request.metadata?.augury_contract && sanitizedContract ? { augury_contract: sanitizedContract } : {}),
+        ...(request.metadata?.trace_contract && sanitizedContract ? { trace_contract: sanitizedContract } : {}),
         ...(auguryContract && auguryLearningMetadata ? {
             augury_learning_metadata: auguryLearningMetadata,
             augury_steering_mode: auguryMode,

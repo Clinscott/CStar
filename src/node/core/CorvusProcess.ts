@@ -162,7 +162,7 @@ export class CorvusProcess extends EventEmitter {
         });
 
         if (response.status !== 'success' || !response.raw_text) {
-            throw new Error(response.error ?? 'The One Mind returned no intelligence.');
+            throw new Error(response.error ?? 'Mimir returned no intelligence.');
         }
 
         return { text: response.raw_text };

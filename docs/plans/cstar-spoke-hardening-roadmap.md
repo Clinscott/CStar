@@ -1,5 +1,11 @@
 # CStar Spoke + Kernel Hardening Roadmap
 
+> **Historical roadmap (created 2026-05-15).** Preserved for provenance, not
+> execution. Direct Hermes, legacy PMT review/routing, scalar score gates,
+> monolithic MCP assumptions, and its claimed live state are superseded by
+> current CStar/CoS/Forge/Researcher contracts. Re-register any still-useful
+> item as a current CStar bead before work.
+
 **Created**: 2026-05-15
 **Status**: Open backlog (6 items). Items #1, #2, #4, #7 already shipped (see "Already Landed" below).
 **Audience**: Downstream agent (Claude / Gemini / Codex) picking this up cold.

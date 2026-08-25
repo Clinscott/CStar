@@ -1,33 +1,35 @@
-import { describe, it, mock } from 'node:test';
-import assert from 'node:assert';
-import { runScan } from  '../../../src/tools/pennyone/index.js';
-import { defaultProvider } from  '../../../src/tools/pennyone/intel/llm.js';
-import fs from 'node:fs/promises';
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 
-/**
- * 🔱 PENNYONE SCAN LOGIC TEST (Section 13 Compliance)
- * Purpose: Verify batching and provider integration.
- */
-describe('PennyOne Scan Logic', () => {
-    it('should correctly batch intent requests and use the provider', async () => {
-        // Mock the provider to avoid real API calls during the test
-        const mockGetBatchIntent = mock.method(defaultProvider, 'getBatchIntent', async (items) => {
-            return items.map(() => ({ intent: 'Mock Intent', interaction: 'Mock Protocol' }));
-        });
+import { runScan } from '../../../src/tools/pennyone/index.js';
+import { registry } from '../../../src/tools/pennyone/pathRegistry.js';
 
-        // Target a small, known directory for the test scan
-        const testPath = 'src/tools/pennyone/intel'; 
-        
+describe('PennyOne Scan Logic', () => {
+    it('runs a bounded isolated scan with deterministic local intent', async () => {
+        const originalRoot = registry.getRoot();
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'cstar-pennyone-scan-'));
+        const sourceRoot = path.join(root, 'src');
+        fs.mkdirSync(sourceRoot, { recursive: true });
+        fs.mkdirSync(path.join(root, '.agents'), { recursive: true });
+        fs.mkdirSync(path.join(root, '.stats'), { recursive: true });
+        fs.writeFileSync(path.join(root, '.agents', 'config.json'), '{"system":{"persona":"A.L.F.R.E.D."}}');
+        fs.writeFileSync(path.join(sourceRoot, 'sample.ts'), 'export const sample = 1;\n');
+        registry.setRoot(root);
+
         try {
-            const results = await runScan(testPath, true); // Force scan
-            
-            assert.ok(results.length > 0, 'Scan should return results');
-            assert.ok(mockGetBatchIntent.mock.callCount() > 0, 'Provider should be called for intelligence');
-            
-            console.log(`[VERIFICATION]: Scan complete. Batches processed: ${mockGetBatchIntent.mock.callCount()}`);
-        } catch (error: any) {
-            assert.fail(`Scan failed during verification: ${error.message}`);
+            const results = await runScan(sourceRoot, true, {
+                include_history: false,
+                evaluate_warden: false,
+                throttle_ms: 0,
+            });
+            assert.strictEqual(results.length, 1);
+            assert.match(results[0]?.intent ?? '', /sample\.ts contains runtime or tooling logic/i);
+        } finally {
+            registry.setRoot(originalRoot);
+            fs.rmSync(root, { recursive: true, force: true });
         }
     });
 });

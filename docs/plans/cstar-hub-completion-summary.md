@@ -1,5 +1,11 @@
 # CStar Hub Hermes Research Agent — Completion Summary
 
+> **Historical delivery record (2026-05-15).** Preserved for provenance. Its
+> model version, cron topology, live/production wording, confidence gates,
+> scores, handoff lanes, and direct Hermes workflows are not current CStar
+> authority or current-state evidence. Current research routes through the
+> registered `researcher` skill and authorized CStar Researcher requests.
+
 **Status**: P1+P2 (already shipped 2026-05-15) + P3 + P4 + P5 + P6 + P7 + P8 + Hardening Pass 2 LIVE; P9 explicitly skipped per spec. Final verification 2026-05-15 19:14 UTC. **52/52 unit tests passing.**
 
 ## Hardening Pass 2 (added 2026-05-15 ~19:00 UTC)

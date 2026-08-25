@@ -1,34 +1,30 @@
-import json
+import subprocess
+import sys
+from pathlib import Path
 
-from src.synapse.synapse_auth import PersonaVerifier
+import src.synapse.synapse_auth as synapse_auth
 
 
-def test_persona_verifier_challenge():
-    verifier = PersonaVerifier("dummy_config.json")
-    challenge = verifier.generate_challenge()
-    assert len(challenge) == 32
-    assert all(c in "abcdef0123456789" for c in challenge)
+ROOT = Path(__file__).resolve().parents[2]
 
-def test_persona_verifier_handshake():
-    verifier = PersonaVerifier("dummy_config.json")
-    challenge = verifier.generate_challenge()
-    persona = "ODIN"
 
-    # Solve
-    response = verifier.solve_challenge(challenge, persona)
+def test_retired_auth_surface_never_grants_persona_authority():
+    assert synapse_auth.authenticate_sync("ODIN") is False
+    assert synapse_auth.authenticate_sync("ALFRED") is False
+    assert synapse_auth.SynapseAuthenticator.authenticate_sync("ODIN") is False
 
-    # Verify
-    assert verifier.verify_response(challenge, response, persona) is True
 
-    # Bad persona
-    assert verifier.verify_response(challenge, response, "ALFRED") is False
+def test_secret_reading_persona_verifier_is_not_exported():
+    assert not hasattr(synapse_auth, "PersonaVerifier")
 
-    # Bad response
-    assert verifier.verify_response(challenge, "wrong", persona) is False
 
-def test_persona_verifier_secret(tmp_path):
-    config_file = tmp_path / "config.json"
-    config_file.write_text(json.dumps({"security": {"neural_secret": "TOP_SECRET"}}), encoding='utf-8')
-
-    verifier = PersonaVerifier(str(config_file))
-    assert verifier.secret == "TOP_SECRET"
+def test_retired_auth_cli_fails_closed():
+    result = subprocess.run(
+        [sys.executable, "src/synapse/synapse_auth.py"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 78
+    assert synapse_auth.RETIRED_REASON in result.stderr

@@ -12,7 +12,7 @@ Three independent designs were produced and reviewed with `agy -p` using
 
 | Design | Main contribution | Gemini score | CoS score |
 |---|---|---:|---:|
-| A. Bead-Backed State Refresh | Bead lifecycle, PMT/Forge/Researcher receipts, failure modes | 88 | 88 |
+| A. Bead-Backed State Refresh | Bead lifecycle, information-repository/Forge/Researcher receipts, failure modes | 88 | 88 |
 | B. Snapshot-First Context Refresh | PennyOne/dashboard state, live-run deltas, artifact load policies | 88 | 90 |
 | C. Sentinel Refresh | Inverse-trust posture, green/yellow/red/blocked gates, perfect-score audits | 92 | 93 |
 
@@ -20,6 +20,11 @@ Gemini's repeated corrections were adopted: staleness timestamps, degraded boot
 fallback, state checksums, cycle breakers, and delta refresh modes.
 
 ## GPT-5.6 Sol Assumptions
+
+This section records the original design target; it does not identify the
+model running a future thread. Populate `model_target` from the active host at
+refresh time and treat the filename and historical preview notes as context,
+not runtime proof.
 
 Use official OpenAI context only when preparing this handoff:
 
@@ -55,34 +60,53 @@ The packet has five modes:
 - `live_run_delta`: heartbeat, row counts, blocker, spend boundary, and next
   check only.
 - `closeout`: verdict, evidence refs, residual risk, next gate, and bead state.
-- `degraded_boot`: CStar/PennyOne/PMT is partially unavailable; use retained
+- `degraded_boot`: CStar/PennyOne is partially unavailable; use retained
   evidence as pointers only and escalate after the cycle breaker.
+
+Schema v1 keeps one common state envelope across all five modes. Its
+mode-specific invariants are deliberately narrow:
+
+- `bootstrap` and `degraded_boot` require `bootstrap_prompt`.
+- `refresh_delta`, `live_run_delta`, and `closeout` forbid
+  `bootstrap_prompt`.
+- `live_run_delta` requires at least one `live_runs` entry.
+- `degraded_boot` cannot report a healthy doctor and must enable the degraded
+  fallback.
+
+Sparse refresh deltas and a dedicated semantic closeout payload are not fully
+modeled by v1. Until a discriminated v2 schema exists, producers must keep the
+common envelope compact instead of omitting required state or claiming that
+unvalidated prose is a schema packet.
 
 The packet must include:
 
 - CStar doctor/handoff state, active bead, and state checksum.
 - Current active work phase, gate, next action, target paths, and checker.
-- PMT board and pinned PMT threads.
+- Project information-repository packet refs and freshness; these are not
+  authority.
 - Researcher, Forge, CorvusEye, and PennyOne lane state.
 - Live-run manifests or dashboard refs, not raw transcripts.
 - Artifact index with path/hash/load policy.
 - Verification rules, perfect-score policy, and cycle breaker.
 - Token policy with forbidden inline sources.
-- One copy-paste bootstrap prompt.
+- One copy-paste bootstrap prompt for `bootstrap` or `degraded_boot`; delta and
+  closeout modes must omit it.
 
 ## Automation Flow
 
-1. Run `cstar_doctor`.
-2. Run `cstar_handoff` with current prompt, scope, and target paths.
-3. Run `cstar_augury` and one bounded `cstar_hall_search`.
+1. Run `cstar_doctor` only when kernel health is unknown or degraded.
+2. Run `cstar_handoff` only when resuming prior work.
+3. Run `cstar_augury` only when route or material scope is ambiguous; use one
+   bounded `cstar_hall_search` only when discovery needs it.
 4. Read active bead state. Extract only bead id, status, owner, target paths,
    checker, next gate, latest validation, and blocker.
 5. Read PennyOne/dashboard state if available. Record `last_updated_at` and
    staleness delta.
-6. Read PMT state packets. Mark missing or conflicting PMT state plainly.
+6. Read information-repository packets when useful. Mark missing or conflicting
+   copies plainly, but do not treat them as authority or an execution blocker.
 7. Build an artifact index. Use paths and hashes, not artifact bodies.
 8. Compute `state_checksum` from the compact packet.
-9. Render the bootstrap prompt.
+9. Render the bootstrap prompt only for `bootstrap` or `degraded_boot`.
 10. Validate the schema, token policy, and trust-but-verify fields.
 11. Record the bead result or record the exact control-plane gap.
 
@@ -90,7 +114,7 @@ The packet must include:
 
 Do not loop forever trying to get a perfect startup.
 
-- Try a failed CStar/PennyOne/PMT read at most twice.
+- Try a failed CStar/PennyOne read at most twice.
 - On the third failure, emit `degraded_boot`.
 - `degraded_boot` may identify next safe repair work, but it must not claim
   durable completion or readiness.
@@ -101,10 +125,15 @@ Do not loop forever trying to get a perfect startup.
 ## Authority Rules
 
 - CStar is the axle. Spokes connect to CStar; CStar is not a spoke.
-- CStar kernel MCP and bead lifecycle state are canonical for planning,
-  ownership, execution state, validation, and completion.
-- PMTs are durable project memory and review authorities.
-- CoS coordinates, verifies, records, and closes out.
+- Authority order is platform/operator safety, current explicit operator grants,
+  global Corvus invariants, nearest repository policy/runbooks, then current
+  CStar lifecycle state.
+- Registries declare capability and runtime/artifacts provide evidence; neither
+  grants authority.
+- PMTs are information repositories only and receive bounded update packets;
+  they grant no execution, review, approval, or routing authority.
+- MM is legacy and has no active routing role.
+- CoS sequences, coordinates, verifies, records, and closes out.
 - Corvus Forge builds implementation when a Forge route exists.
 - Researcher researches; live external collection is lane-gated.
 - CorvusEye evaluates and red-teams; it cannot self-certify Researcher.
@@ -175,29 +204,32 @@ validation id, and sha256.
 Paste this into the new CoS thread after generating a current packet.
 
 ```markdown
-You are GPT-5.6 Sol operating as CoS for the Corvus/CStar estate.
+You are the active Codex model operating as CoS for the Corvus/CStar estate.
+Verify the current model and capability surface from the host; do not infer
+either from this primer's filename.
 
 Your first duty is deterministic routing, not momentum.
 
 Authority order:
-1. CStar kernel MCP and bead lifecycle state are canonical for planning,
-   ownership, execution state, validation, and completion.
-2. PMT packets are durable project memory and review authority, not raw
-   execution truth.
-3. PennyOne DB/dashboard mirrors are operator visibility state.
-4. Artifact packages, reports, manifests, scorecards, and hashes are evidence.
-5. Conversation history is a locator, not proof.
+1. Platform/operator safety and current explicit operator grants.
+2. Global Corvus invariants and nearest repository policy/runbooks.
+3. Current CStar lifecycle state within those gates.
+4. Registries declare capability; runtime, artifacts, mirrors, PMT packets, and
+   conversation history provide evidence or location, never authority.
 
 Current refresh packet:
 <INSERT cos.context_refresh.v1 JSON OR COMPACT YAML HERE>
+
+The static new-thread Markdown pointer is not the refresh packet. Generate a
+current schema instance before making state claims.
 
 Opening moves:
 1. Run or inspect CStar route health before acting.
 2. Bind work to the active bead or report the missing bead lifecycle gap.
 3. Classify the next step as green, yellow, red, or blocked.
 4. If red, stop and request explicit operator authorization.
-5. If PMT authority is required, produce a compact PMT state packet before
-   execution.
+5. If a project information repository exists, send it a compact state packet
+   after meaningful CStar state changes; do not wait for its approval.
 6. If Forge routing exists for implementation, route through Forge instead of
    direct implementation.
 7. If Researcher live collection is involved, verify authorized lane and
@@ -238,10 +270,11 @@ bead, run, or metric. Do not reload the whole project history.
 ## Adoption Checklist
 
 - Schema parses.
-- The bootstrap prompt includes authority order, first actions, operator gates,
-  perfect-score audit, and token policy.
+- For `bootstrap` or `degraded_boot`, the bootstrap prompt includes authority
+  order, first actions, operator gates, perfect-score audit, and token policy.
 - The generated packet has a state checksum and staleness fields.
 - Degraded boot path exists and has a cycle breaker.
-- PMT, Forge, Researcher, CorvusEye, PennyOne, and beads are represented.
+- PMT information repositories, Forge, Researcher, CorvusEye, PennyOne, and
+  beads are represented; the doctrine marks MM legacy.
 - No raw transcripts/logs/manifests/responses are embedded.
 - A bead result records either success or the exact degraded-state gap.

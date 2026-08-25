@@ -91,7 +91,8 @@ describe('🜂 Spoke-anchored bead operations', () => {
     });
 
     it('cstar_bead create with spoke anchors the bead to the spoke repo', async () => {
-        spokeStore.set('test-spoke', makeSpoke());
+        const spokeRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'cstar-spoke-bead-root-'));
+        spokeStore.set('test-spoke', makeSpoke({ root_path: spokeRoot }));
 
         const result = await handleBead({
             action: 'create',

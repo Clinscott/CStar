@@ -5,8 +5,7 @@ from src.core.engine.wardens.scour import ScourWarden
 
 @pytest.fixture
 def warden():
-    with patch("src.core.engine.wardens.base.BraveSearch"):
-        return ScourWarden(Path("/tmp/root"))
+    return ScourWarden(Path("/tmp/root"))
 
 def test_scour_legacy_commands(warden):
     mock_content = "Please run c* start and then c* ravens."

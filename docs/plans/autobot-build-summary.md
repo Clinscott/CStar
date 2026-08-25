@@ -1,6 +1,13 @@
 # Autobot — Build Summary
 
-**Status**: Phases 1A → 4C all shipped 2026-05-15. **33/33 autobot tests + 52/52 cstar-hub tests = 85/85 passing.** Live cron registered.
+> [!WARNING]
+> Historical build record only. The public AutoBot skill, registry entry, and
+> `cstar_autobot` MCP tool were decommissioned on 2026-07-11. Do not execute the
+> commands below or treat shipped/cron claims as current state. Residual scripts
+> remain only for forensic history and separately operator-gated Forge adapter
+> compatibility.
+
+**Historical status (2026-05-15)**: Phases 1A → 4C were shipped. **33/33 autobot tests + 52/52 cstar-hub tests = 85/85 passing.** The former live-cron statement below is not a current-state claim.
 
 ## What is autobot
 

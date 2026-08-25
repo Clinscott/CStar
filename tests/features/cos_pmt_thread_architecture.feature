@@ -1,16 +1,14 @@
-Feature: CoS and PMT thread architecture
-  Scenario: CStar Console, Researcher, and Forge stay separated
+Feature: CoS and project information-repository architecture
+  Scenario: CoS owns routing while PMTs remain passive repositories
     Given CoS has a Corvus estate goal
-    When CoS routes the goal to a PMT
-    Then CStar Control Plane PMT owns only CStar and cstar-console control-plane surfaces
-    And Researcher PMT owns research and evidence production
-    And Corvus Forge PMT owns build and implementation delivery
-    And CorvusEye Review PMT owns independent review and audit
-    And MM Estate Synthesis is not a routine relay requirement
+    When CoS routes execution through CStar, Forge, or Researcher
+    Then the PMT receives only a bounded state-update packet
+    And the PMT grants no execution, review, approval, or routing authority
+    And MM has no active estate-routing role
 
-  Scenario: The User is asked only for high-order or red-gated decisions
-    Given a PMT is executing a bounded Green or Yellow repair
-    When the PMT can continue inside its domain
-    Then CoS does not ask the User for routine blocker handling
-    And CoS parks or blocks the goal until a review packet returns
-    But red gates require explicit CoS or User authorization
+  Scenario: Delivery and state updates remain distinct
+    Given Forge or Researcher returns a bounded delivery
+    When CoS records independent evidence in CStar
+    Then CoS updates the project information repository
+    And the PMT packet does not replace CStar lifecycle state
+    But red gates still require explicit operator authorization

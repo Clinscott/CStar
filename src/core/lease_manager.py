@@ -15,7 +15,7 @@ class LeaseManager:
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         return sqlite3.connect(self.db_path, timeout=10.0)
 
-    def acquire_lease(self, target_path: str, agent_id: str = "ONE_MIND", duration_ms: int = 300000) -> bool:
+    def acquire_lease(self, target_path: str, agent_id: str = "CSTAR-KERNEL", duration_ms: int = 300000) -> bool:
         """
         Attempts to acquire an exclusive task lease for a target file.
         Returns True if acquired, False if held by another agent.
@@ -59,7 +59,7 @@ class LeaseManager:
                     return True
                 return False
 
-    def release_lease(self, target_path: str, agent_id: str = "ONE_MIND") -> None:
+    def release_lease(self, target_path: str, agent_id: str = "CSTAR-KERNEL") -> None:
         """Releases a task lease."""
         normalized_path = target_path.replace("\\", "/")
         with self._get_conn() as conn:

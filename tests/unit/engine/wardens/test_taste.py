@@ -6,8 +6,7 @@ from src.core.engine.wardens.taste import TasteWarden
 
 @pytest.fixture
 def warden():
-    with patch("src.core.engine.wardens.base.BraveSearch"):
-        return TasteWarden(Path("/tmp/root"))
+    return TasteWarden(Path("/tmp/root"))
 
 def test_scan_slop_name(warden):
     mock_content = "const userName = 'John Doe';"

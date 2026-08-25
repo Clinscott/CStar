@@ -31,8 +31,8 @@ class TestSovereignBuilder:
         mock_memory_db_class.assert_called_with(str(builder.base_path))
         mock_loader_class.assert_called_with(str(builder.project_root))
         
-        # Check source added
-        mock_loader.add_source.assert_called_with(str(skills_db_path))
+        # Compatibility skill databases cannot extend instruction authority.
+        mock_loader.add_source.assert_not_called()
         
         # Check vector initialization
         thesaurus = str(builder.project_root / "src" / "data" / "thesaurus.qmd")
@@ -42,7 +42,7 @@ class TestSovereignBuilder:
         
         # Check skill loading and index building
         mock_vector.load_core_skills.assert_called_once()
-        mock_vector.load_skills_from_dir.assert_called_with(str(builder.project_root / "src" / "skills" / "local"))
+        mock_vector.load_skills_from_dir.assert_called_with(str(builder.project_root / ".agents" / "skills"))
         mock_vector.build_index.assert_called_once()
         
         assert vector == mock_vector
@@ -57,5 +57,5 @@ class TestSovereignBuilder:
         
         builder.build_vector_engine(skills_db_path)
         
-        # add_source should NOT be called
+        # add_source is never an authority path.
         mock_loader.add_source.assert_not_called()

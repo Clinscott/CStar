@@ -5,6 +5,7 @@ import {
     mcpToolDescription,
     CSTAR_KERNEL_TOOL_CLASSES,
 } from '../../../src/tools/cstar-kernel-mcp/contracts/tool_classes.js';
+import { CSTAR_KERNEL_TOOL_CATALOG } from '../../../src/tools/cstar-kernel-mcp/contracts/tool_catalog.js';
 
 describe('CStar MCP tool class contract', () => {
     it('publishes the only allowed plain-English tool classes', () => {
@@ -16,10 +17,14 @@ describe('CStar MCP tool class contract', () => {
     });
 
     it('classifies the full public tool inventory', () => {
-        assert.equal(Object.keys(CSTAR_KERNEL_TOOL_CLASSES).length, 26);
+        assert.equal(Object.keys(CSTAR_KERNEL_TOOL_CLASSES).length, 25);
+        assert.deepEqual(
+            Object.entries(CSTAR_KERNEL_TOOL_CLASSES),
+            CSTAR_KERNEL_TOOL_CATALOG.map(({ name, toolClass }) => [name, toolClass]),
+        );
         assert.equal(CSTAR_KERNEL_TOOL_CLASSES.cstar_forge_request, 'REQUEST');
         assert.equal(CSTAR_KERNEL_TOOL_CLASSES.cstar_forge_execute, 'EXECUTION');
-        assert.equal(CSTAR_KERNEL_TOOL_CLASSES.cstar_autobot, 'LEGACY');
+        assert.equal('cstar_autobot' in CSTAR_KERNEL_TOOL_CLASSES, false);
         assert.equal(CSTAR_KERNEL_TOOL_CLASSES.cstar_bead, 'MUTATION');
         assert.equal(CSTAR_KERNEL_TOOL_CLASSES.cstar_doctor, 'READ');
         assert.equal(CSTAR_KERNEL_TOOL_CLASSES.cstar_pennyone_context, 'READ');

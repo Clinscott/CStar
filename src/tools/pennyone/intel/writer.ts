@@ -9,16 +9,15 @@ import { registry } from  '../pathRegistry.js';
  * Purpose: Generate Quarto reports in a flattened .stats/ directory.
  * @param {FileData} file - The file data
  * @param {string} targetRepo - The target repository path
- * @param {string} code - The source code
  * @param {Object} [intentData] - Optional pre-generated intent and interaction
  * @returns {Promise<{ qmdPath: string, intent: string, interaction: string }>} Path, intent, and interaction
  */
 export async function writeReport(
-    file: FileData, 
-    targetRepo: string, 
-    code: string,
+    file: FileData,
+    targetRepo: string,
     intentData?: { intent: string; interaction: string }
 ): Promise<{ qmdPath: string, intent: string, interaction: string }> {
+    void targetRepo;
     const statsDir = path.join(registry.getRoot(), '.stats');
     await fs.mkdir(statsDir, { recursive: true });
 
@@ -26,7 +25,7 @@ export async function writeReport(
     let interaction = intentData?.interaction;
 
     if (!intent || !interaction) {
-        const result = await defaultProvider.getIntent(code, file);
+        const result = await defaultProvider.getIntent(file);
         intent = result.intent;
         interaction = result.interaction;
     }
@@ -80,5 +79,4 @@ ${file.exports.length > 0 ? file.exports.map(e => `- \`${e}\``).join('\n') : 'In
     await fs.writeFile(qmdPath, content, 'utf-8');
     return { qmdPath, intent, interaction };
 }
-
 

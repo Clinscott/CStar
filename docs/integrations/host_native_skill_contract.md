@@ -1,55 +1,79 @@
 # Host-Native Skill Contract
 
-This is the authoritative invocation contract for any capability marked `entry_surface: host-only` in [`.agents/skill_registry.json`](/home/morderith/Corvus/CStar/.agents/skill_registry.json).
+## Scope
 
-## Rule
+This is the invocation contract for the three current capabilities marked
+`entry_surface: host-only` in `.agents/skill_registry.json`:
 
-`chant` and every other `host-only` capability must execute inside the active agent harness. They are not public shell commands.
+- `corvus-forge`;
+- `researcher`; and
+- `cstar-closeout`.
 
-## Codex Path
+They are agent-native procedures. They are not public shell commands, runtime
+models, or dispatcher-owned executions.
 
-In Codex, host-native execution means:
+## Host Path
 
-1. The active agent reads the authoritative skill instructions and performs the work directly in-session.
-2. The session maintains continuity through the canonical `corvus-host-plan` block.
-3. The kernel records trace, Hall state, and subordinate bounded executions, but it does not become the public mind for the skill.
+The active host:
 
-For `chant`, the instruction authority is [`.agents/skills/chant/SKILL.md`](/home/morderith/Corvus/CStar/.agents/skills/chant/SKILL.md).
+1. reads the selected skill's `SKILL.md` completely;
+2. keeps current operator, global Corvus, and nearest repository policy above
+   registry instructions;
+3. uses `cstar-kernel` MCP tools for bounded health, handoff, discovery,
+   request, execution, validation, and completion state;
+4. uses host tools only within the skill's explicit scope and operator gates;
+   and
+5. returns evidence that distinguishes source, lifecycle, installed, live, and
+   production claims.
 
-## Runtime Bridge
+`entry_surface: host-only` means the procedure executes in the already active
+host conversation. It does not create a callback from CStar into the host.
+CStar must not invoke a model, `MimirClient`, One Mind broker, provider shell,
+or generic `hostSessionInvoker` to simulate skill execution.
 
-When CStar needs to catalog a host-native activation, the runtime authority chain is:
+## Kernel Boundary
 
-1. [`RuntimeDispatcher.dispatch(SkillBead)`](/home/morderith/Corvus/CStar/src/node/core/runtime/dispatcher.ts)
-2. `tryExecuteSkillBeadViaHostSession(...)`
-3. [`buildHostNativeSkillPrompt(...)`](/home/morderith/Corvus/CStar/src/core/host_session.ts)
-4. [`requestHostText(...)`](/home/morderith/Corvus/CStar/src/core/host_intelligence.ts)
-5. [`MimirClient.request(...)`](/home/morderith/Corvus/CStar/src/core/mimir_client.ts)
-6. An injected `hostSessionInvoker(prompt, provider)`
+The kernel may catalog a host-only skill and fail closed if terminal or runtime
+dispatch is attempted. Recognition in `cstar manifest`, `active_in_runtime`, or
+an adapter map is discovery evidence only.
 
-That injected `hostSessionInvoker` is the only non-shell Codex seam in the current TypeScript runtime.
+The host may call deterministic kernel primitives required by a skill. Those
+tool calls record CStar lifecycle state; they do not make the kernel the owner
+of host cognition or grant permission absent from the operator/repository
+policy.
 
-## Forbidden Fallback
+## Terminal Policy
 
-If no explicit `hostSessionInvoker` is bound, Codex can still use external shell transport in [`MimirClient.invokeHostSession(...)`](/home/morderith/Corvus/CStar/src/core/mimir_client.ts) unless the request is marked as harness-required.
+Direct terminal skill dispatch is forbidden:
 
-That fallback is compatibility transport only. It is not the authoritative way to run `host-only` skills, and it must not be used for `chant`, trace designation, start/ravens/warden supervisor routing, host-governor review, architect proposal/review, or other trace-shaping planning workflows.
+- no `cstar run-skill <id>`;
+- no dynamic registry-trigger execution;
+- no shell wrapper that turns a `SKILL.md` into a model/process callback; and
+- no legacy weave, One Mind, Ravens, AutoBot, or model-memory fallback.
 
-Trace-critical control-plane calls now mark `metadata.require_agent_harness = true` and `metadata.trace_critical = true`. For those requests, Codex must fail closed if no injected `hostSessionInvoker` is available. Neither shell transport nor `synapse_db` fallback is allowed.
+A skill may explicitly direct the host to run a bounded terminal command when
+the command itself is intrinsic to authorized work, such as a focused test or
+read-only closeout inspection. That permission is command-specific. It does not
+make the skill terminal-executable.
 
-The universal runtime adapter is registry catalog only for `agent-native` entries. It must not treat `execution.cli` as authority to execute an `agent-native` capability through the Node kernel.
+## Lane-Specific Rules
 
-## Shell Policy
+- `corvus-forge` uses only the durable request/execute/result lifecycle. The
+  private Hermes `cstar-hub` MiniMax-M3 adapter is sealed inside Forge; direct
+  Hermes and public AutoBot remain retired. Requested and actual model identity
+  are recorded separately.
+- `researcher` uses authorized Researcher source lanes. New live collection or
+  source expansion remains operator-gated.
+- `cstar-closeout` assembles evidence and handoff state first. Stage, commit,
+  push, merge, install, cache reconciliation, restart, and deploy are separate
+  actions requiring their applicable explicit grants.
 
-Shell surfaces must fail closed for `host-only` capabilities.
+PMTs may be queried only as mapped project information repositories and may
+receive a compact `STATE_UPDATE`; they grant no authority. MM is legacy.
 
-- Generic shell dispatch already blocks `entry_surface=host-only` in [`src/node/core/commands/dispatcher.ts`](/home/morderith/Corvus/CStar/src/node/core/commands/dispatcher.ts).
-- Direct skill execution must also block `host-only` capabilities in [`src/node/core/commands/run-skill.ts`](/home/morderith/Corvus/CStar/src/node/core/commands/run-skill.ts).
+## Failure Behavior
 
-## Future Work
-
-If Codex gains a first-class in-process callback from CStar into the active harness, bind that callback as `hostSessionInvoker` and keep this contract unchanged:
-
-- Host-only skills still execute in the active agent session.
-- The dispatcher still records trace and Hall lineage.
-- Shell fallback remains forbidden for host-only and harness-required trace paths.
+If the host cannot read the instruction file, the kernel surface is degraded,
+or the required gate is absent, stop the affected transition and report the
+exact failure. Do not fall back to a public model route, legacy runtime, ad hoc
+Hall/SQLite write, or untracked shell mutation.

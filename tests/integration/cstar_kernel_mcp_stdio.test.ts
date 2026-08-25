@@ -18,12 +18,16 @@ import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { once } from 'node:events';
+import {
+    CSTAR_KERNEL_TOOL_CATALOG,
+    CSTAR_KERNEL_TOOL_NAMES,
+} from '../../src/tools/cstar-kernel-mcp/contracts/tool_catalog.js';
+import { mcpToolDescription } from '../../src/tools/cstar-kernel-mcp/contracts/tool_classes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const PROJECT_ROOT = path.resolve(path.dirname(__filename), '..', '..');
 const LAUNCHER = path.join(PROJECT_ROOT, 'bin', 'cstar-kernel-mcp.js');
 const BRIDGE_LAUNCHER = path.join(PROJECT_ROOT, 'bin', 'cstar-kernel-mcp-bridge.js');
-const TCP_DAEMON = path.join(PROJECT_ROOT, 'scripts', 'cstar-mcp-tcp-daemon.js');
 
 interface JsonRpcRequest {
     jsonrpc: '2.0';
@@ -170,7 +174,7 @@ class StdioMcpClient {
 
 const validDispatchRequest = {
     bead_id: 'bead-mcp-stdio-smoke',
-    owner_pmt_thread_id: 'thread-owner',
+    state_update_thread_id: 'thread-project-state',
     source_callback_thread_id: 'thread-callback',
     objective: 'Verify the MCP request surface without live spend',
     prompt: 'Produce a no-spend receipt only',
@@ -200,9 +204,8 @@ function parseToolBody(resp: JsonRpcResponse): any {
     }
 }
 
-// The launcher uses `process.execve` on Unix (replacing the JS process with the
-// underlying TSX-loaded MCP server). Some environments (older glibc, certain
-// containers) reject execve; the test must not hang in that case.
+// The launcher retains a small parent and spawns the TSX-loaded MCP child with
+// inherited stdio. A bootstrap or child-launch failure must not hang this test.
 async function launchClient(extraEnv: Record<string, string> = {}, launcher: string = LAUNCHER): Promise<StdioMcpClient | null> {
     const client = new StdioMcpClient(extraEnv, launcher);
     // Probe with `initialize` and a generous timeout. If the launcher failed
@@ -245,37 +248,19 @@ describe('cstar-kernel-mcp stdio launcher', () => {
         const listResp = await client.request('tools/list', {});
         assert.ok(listResp.result, `tools/list returned error: ${JSON.stringify(listResp.error)}`);
         assert.ok(Array.isArray(listResp.result.tools), 'tools/list result must contain a tools array');
-        const tools = listResp.result.tools as Array<{ name: string }>;
+        const tools = listResp.result.tools as Array<{ name: string; description?: string }>;
         const actualNames = tools.map((t) => t.name).sort();
         const duplicateNames = actualNames.filter((name, index) => actualNames.indexOf(name) !== index);
-        const expectedNames = [
-            'cstar_augury',
-            'cstar_autobot',
-            'cstar_bead',
-            'cstar_doctor',
-            'cstar_engram_record',
-            'cstar_evolve',
-            'cstar_forge_execute',
-            'cstar_forge_request',
-            'cstar_hall_maintenance',
-            'cstar_hall_search',
-            'cstar_handoff',
-            'cstar_intent_route',
-            'cstar_manifest',
-            'cstar_mongo_mailbox',
-            'cstar_pennyone_context',
-            'cstar_record_result',
-            'cstar_researcher_request',
-            'cstar_skill_info',
-            'cstar_spoke',
-            'cstar_spoke_bead_import',
-            'cstar_spoke_journal',
-            'cstar_status',
-            'cstar_telemetry',
-            'cstar_verify_plan',
-            'cstar_war_game_score',
-            'cstar_warden',
-        ].sort();
+        const expectedNames = [...CSTAR_KERNEL_TOOL_NAMES].sort();
+        const actualMetadata = tools
+            .map(({ name, description }) => ({ name, description }))
+            .sort((left, right) => left.name.localeCompare(right.name));
+        const expectedMetadata = CSTAR_KERNEL_TOOL_CATALOG
+            .map((entry) => ({
+                name: entry.name,
+                description: mcpToolDescription(entry.toolClass, entry.description),
+            }))
+            .sort((left, right) => left.name.localeCompare(right.name));
 
         assert.deepStrictEqual(duplicateNames, [], `tools/list must not expose duplicate tool names: ${duplicateNames.join(', ')}`);
         assert.deepStrictEqual(
@@ -283,7 +268,8 @@ describe('cstar-kernel-mcp stdio launcher', () => {
             expectedNames,
             `tools/list drifted from the documented inventory; got: ${actualNames.join(', ')}`,
         );
-        assert.ok(actualNames.includes('cstar_autobot'), 'cstar_autobot must be registered for host agents by default');
+        assert.deepStrictEqual(actualMetadata, expectedMetadata, 'tools/list metadata must match the canonical catalog');
+        assert.ok(!actualNames.includes('cstar_autobot'), 'cstar_autobot must remain absent from public tool discovery');
     });
 
     it('keeps tool schemas independent of protocol session state for stateless MCP readiness', async () => {
@@ -346,6 +332,37 @@ describe('cstar-kernel-mcp stdio launcher', () => {
         assert.ok(body.usage);
     });
 
+    it('exposes only current hub capabilities and rejects the retired Mimir harvester', async () => {
+        if (!client) {
+            assert.fail('client was not initialized by prior test');
+        }
+
+        const manifestResp = await client.request('tools/call', {
+            name: 'cstar_manifest',
+            arguments: { scope: 'hub' },
+        });
+        assert.ok(manifestResp.result, `cstar_manifest returned error: ${JSON.stringify(manifestResp.error)}`);
+        const manifestBody = parseToolBody(manifestResp) as {
+            capabilities?: Array<{ id?: string; runtime_trigger?: string; shell_command?: string | null }>;
+        };
+        const capabilityIds = (manifestBody.capabilities ?? []).map((entry) => entry.id);
+        assert.deepStrictEqual(capabilityIds, ['corvus-forge', 'cstar-closeout', 'researcher']);
+        assert.ok(!capabilityIds.some((id) => /^\d+$/.test(String(id))), 'hub capability ids must never be array indexes');
+        assert.ok(!capabilityIds.includes('mimir-harvester'));
+
+        const infoResp = await client.request('tools/call', {
+            name: 'cstar_skill_info',
+            arguments: { id: 'mimir-harvester' },
+        });
+        assert.ok(infoResp.result, `cstar_skill_info returned error: ${JSON.stringify(infoResp.error)}`);
+        const infoBody = parseToolBody(infoResp) as {
+            capability?: { id?: string; runtime_adapter_id?: string };
+            error?: string;
+        };
+        assert.strictEqual(infoBody.capability, undefined);
+        assert.match(String(infoBody.error ?? ''), /not found/i);
+    });
+
     it('smoke-calls every non-legacy public tool with safe success or fail-closed inputs', async () => {
         if (!client) {
             assert.fail('client was not initialized by prior test');
@@ -358,9 +375,10 @@ describe('cstar-kernel-mcp stdio launcher', () => {
             forge_request_decision_id: 'decision-mcp-stdio-smoke',
             forge_request_bead_id: 'bead-mcp-stdio-smoke',
             execution_mode: 'no_op',
+            idempotency_key: 'mcp-stdio-noop-smoke',
         };
         const cases: Array<{ name: string; args: Record<string, unknown>; expectError?: boolean }> = [
-            { name: 'cstar_hall_maintenance', args: { action: 'harvest', limit: 1 } },
+            { name: 'cstar_hall_maintenance', args: { action: 'harvest', limit: 1 }, expectError: true },
             { name: 'cstar_handoff', args: {} },
             { name: 'cstar_hall_search', args: { query: 'mcp smoke', limit: 1 } },
             { name: 'cstar_augury', args: { prompt: 'Audit CStar MCP smoke contracts', target_paths: ['src/tools/cstar-kernel-mcp.ts'] } },
@@ -372,7 +390,7 @@ describe('cstar-kernel-mcp stdio launcher', () => {
             { name: 'cstar_engram_record', args: {}, expectError: true },
             { name: 'cstar_war_game_score', args: { action: 'list_contests' } },
             { name: 'cstar_manifest', args: { scope: 'hub' } },
-            { name: 'cstar_skill_info', args: { id: 'bookmark-weaver' } },
+            { name: 'cstar_skill_info', args: { id: 'mimir-harvester' }, expectError: true },
             { name: 'cstar_spoke_journal', args: { spoke: 'missing-spoke' } },
             { name: 'cstar_pennyone_context', args: { action: 'status' } },
             { name: 'cstar_mongo_mailbox', args: { action: 'status' } },
@@ -383,7 +401,7 @@ describe('cstar-kernel-mcp stdio launcher', () => {
             { name: 'cstar_warden', args: { action: 'list' } },
             { name: 'cstar_telemetry', args: { section: 'usage' } },
             { name: 'cstar_researcher_request', args: validDispatchRequest },
-            { name: 'cstar_forge_request', args: validDispatchRequest },
+            { name: 'cstar_forge_request', args: { ...validDispatchRequest, decision_id: 'decision-mcp-stdio-smoke' }, expectError: true },
             { name: 'cstar_forge_execute', args: forgeExecuteRequest },
         ];
 
@@ -402,25 +420,10 @@ describe('cstar-kernel-mcp stdio launcher', () => {
         }
     });
 
-    it('can explicitly disable cstar_autobot with CSTAR_KERNEL_ENABLE_AUTOBOT=0', async () => {
-        const testClient = await launchClient({ CSTAR_KERNEL_ENABLE_AUTOBOT: '0' });
-        if (!testClient) {
-            assert.fail('cstar-kernel-mcp launcher did not respond to initialize');
-        }
-        try {
-            const listResp = await testClient.request('tools/list', {});
-            assert.ok(listResp.result);
-            const tools = listResp.result.tools as Array<{ name: string }>;
-            const names = tools.map((t) => t.name);
-            assert.ok(!names.includes('cstar_autobot'), 'cstar_autobot must not be registered when explicitly disabled');
-        } finally {
-            await testClient.close();
-        }
-    });
-
-    it('does not register cstar_autobot when HERMES_AUTOBOT_DELEGATED=1 is set', async () => {
+    it('does not revive cstar_autobot when legacy enablement variables are supplied', async () => {
         const testClient = await launchClient({
-            HERMES_AUTOBOT_DELEGATED: '1',
+            CSTAR_KERNEL_ENABLE_AUTOBOT: '1',
+            HERMES_AUTOBOT_DELEGATED: '',
         });
         if (!testClient) {
             assert.fail('cstar-kernel-mcp launcher did not respond to initialize');
@@ -430,52 +433,34 @@ describe('cstar-kernel-mcp stdio launcher', () => {
             assert.ok(listResp.result);
             const tools = listResp.result.tools as Array<{ name: string }>;
             const names = tools.map((t) => t.name);
-            assert.ok(!names.includes('cstar_autobot'), 'cstar_autobot must not be registered when HERMES_AUTOBOT_DELEGATED=1');
+            assert.ok(!names.includes('cstar_autobot'), 'legacy environment flags must not restore cstar_autobot');
+
+            const callResp = await testClient.request('tools/call', {
+                name: 'cstar_autobot',
+                arguments: { intent: 'must not execute' },
+            });
+            assert.equal(callResp.result?.isError, true, `an unregistered cstar_autobot call must fail: ${JSON.stringify(callResp)}`);
+            assert.match(callResp.result?.content?.[0]?.text ?? '', /Tool cstar_autobot not found/);
         } finally {
             await testClient.close();
         }
     });
 
-    it('bridges through a TCP daemon and exposes tools/list', async () => {
-        const port = String(18_731 + (process.pid % 1000));
-        const daemon = spawn('node', [TCP_DAEMON], {
+    it('fails closed when the compatibility bridge is asked to use retired TCP transport', async () => {
+        const bridge = spawn('node', [BRIDGE_LAUNCHER], {
             cwd: PROJECT_ROOT,
             env: {
                 ...process.env,
-                CSTAR_KERNEL_MCP_TCP_HOST: '127.0.0.1',
-                CSTAR_KERNEL_MCP_TCP_PORT: port,
+                CSTAR_KERNEL_MCP_TRANSPORT: 'tcp',
                 CSTAR_KERNEL_DISABLE_WATCH: '1',
             },
             stdio: ['ignore', 'pipe', 'pipe'],
         });
-        daemon.stdout.setEncoding('utf-8');
-        daemon.stderr.setEncoding('utf-8');
-        const startup = Promise.race([
-            once(daemon.stdout, 'data'),
-            once(daemon, 'exit').then(([code]) => {
-                throw new Error(`TCP daemon exited before startup with code ${code}`);
-            }),
-        ]);
-        await startup;
-
-        const testClient = await launchClient({
-            CSTAR_KERNEL_MCP_TRANSPORT: 'tcp',
-            CSTAR_KERNEL_MCP_TCP_HOST: '127.0.0.1',
-            CSTAR_KERNEL_MCP_TCP_PORT: port,
-            CSTAR_KERNEL_DISABLE_WATCH: '1',
-        }, BRIDGE_LAUNCHER);
-        if (!testClient) {
-            daemon.kill('SIGTERM');
-            assert.fail('cstar-kernel-mcp bridge did not respond to initialize through TCP daemon');
-        }
-        try {
-            const listResp = await testClient.request('tools/list', {});
-            assert.ok(listResp.result, `bridge tools/list returned error: ${JSON.stringify(listResp.error)}`);
-            const tools = listResp.result.tools as Array<{ name: string }>;
-            assert.ok(tools.some((tool) => tool.name === 'cstar_bead'), 'bridge must expose cstar_bead through TCP daemon');
-        } finally {
-            await testClient.close();
-            daemon.kill('SIGTERM');
-        }
+        let stderr = '';
+        bridge.stderr.setEncoding('utf-8');
+        bridge.stderr.on('data', (chunk: string) => { stderr += chunk; });
+        const [code] = await once(bridge, 'exit');
+        assert.equal(code, 2);
+        assert.match(stderr, /retired|direct[- ]stdio|transport_disabled/i);
     });
 });

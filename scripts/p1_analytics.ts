@@ -31,7 +31,7 @@ async function runAnalytics() {
     console.log(`   ◈ Total Knowledge Nodes: ${chalk.green(totalLessons.count)}`);
     console.log(`   ◈ Unstudied Engrams: ${chalk.yellow(unstudied.count)}`);
     if (unstudied.count > 0) {
-        console.log(chalk.dim('     Run \'cstar p1 --harvest\' to study unstudied engrams.'));
+        console.log(chalk.dim('     Model-backed lesson harvesting is decommissioned; inspect Engrams read-only through CStar.'));
     }
 
     if (spokes.length === 0) {

@@ -116,7 +116,9 @@ describe('🜂 cstar_spoke_bead_import — rich spoke handoff payload', () => {
         assert.strictEqual(stored.metadata.design_doc_path, 'docs/design/SAMPLE.md');
         assert.strictEqual(stored.metadata.wireframe_ref, 'wireframe.md#sample-pane');
         assert.match(stored.metadata.threat_model_summary, /filesystem payloads/);
-        assert.match(stored.metadata.augury_block, /BUILD → SKILL: sample/);
+        assert.match(stored.metadata.reported_augury_block, /BUILD → SKILL: sample/);
+        assert.strictEqual(stored.metadata.reported_augury_block_authoritative, false);
+        assert.strictEqual(stored.checker_shell, 'cargo test --package sample');
         assert.ok(stored.contract_refs.includes('lore:tests/features/sample.feature'));
     });
 
@@ -131,6 +133,40 @@ describe('🜂 cstar_spoke_bead_import — rich spoke handoff payload', () => {
         assert.strictEqual(result.isError, true);
         const parsed = JSON.parse(result.content[0].text);
         assert.match(parsed.error, /lore_path 'tests\/features\/missing.feature' does not exist/);
+    });
+
+    it('rejects absolute, traversal, and symlinked spoke evidence paths', async () => {
+        spokeStore.set('test-spoke', makeSpoke({ root_path: tmpSpokeRoot }));
+        const outside = fs.mkdtempSync(path.join(os.tmpdir(), 'spoke-bead-outside-'));
+        const outsideLore = path.join(outside, 'outside.feature');
+        fs.writeFileSync(outsideLore, 'Feature: outside\n');
+        fs.symlinkSync(outsideLore, path.join(tmpSpokeRoot, 'linked.feature'));
+        try {
+            for (const candidate of [outsideLore, '../outside.feature', 'linked.feature']) {
+                const result = await handleSpokeBeadImport({
+                    spoke: 'test-spoke',
+                    intent: 'Contain imported evidence.',
+                    acceptance_criteria: 'Escapes are refused.',
+                    lore_path: candidate,
+                });
+                const parsed = JSON.parse(result.content[0].text);
+                assert.strictEqual(result.isError, true);
+                assert.match(parsed.error, /real, non-symlink path inside spoke/);
+            }
+
+            const targetEscape = await handleSpokeBeadImport({
+                spoke: 'test-spoke',
+                intent: 'Contain target evidence.',
+                acceptance_criteria: 'Escapes are refused.',
+                lore_path: 'tests/features/sample.feature',
+                target_paths: ['../../escaped.rs'],
+            });
+            const targetPayload = JSON.parse(targetEscape.content[0].text);
+            assert.strictEqual(targetEscape.isError, true);
+            assert.match(targetPayload.error, /path_must_be_safe_relative/);
+        } finally {
+            fs.rmSync(outside, { recursive: true, force: true });
+        }
     });
 
     it('rejects an import for an unregistered spoke', async () => {
@@ -172,6 +208,32 @@ describe('🜂 cstar_spoke_bead_import — rich spoke handoff payload', () => {
         assert.strictEqual(result.isError, true);
         const parsed = JSON.parse(result.content[0].text);
         assert.match(parsed.error, /intent is required/);
+    });
+
+    it('rejects reserved metadata, unbounded text, and executable checker injection', async () => {
+        spokeStore.set('test-spoke', makeSpoke({ root_path: tmpSpokeRoot }));
+        const cases = [
+            { metadata: { source: 'caller-override' } },
+            { metadata: { operator_authorization_ref: 'caller-claim' } },
+            { checker_shell: 'node -e require("node:fs").writeFileSync("pwn","x")' },
+            { checker_shell: 'python3 -c __import__("os").system("touch pwn")' },
+            { checker_shell: 'npx remote-package --check' },
+            { assigned_agent: 'x'.repeat(121) },
+        ];
+
+        for (const [index, override] of cases.entries()) {
+            const beadId = `bead:spoke-import:unsafe:${index}`;
+            const result = await handleSpokeBeadImport({
+                spoke: 'test-spoke',
+                bead_id: beadId,
+                intent: 'Reject unsafe imported authority.',
+                acceptance_criteria: 'No unsafe bead is persisted.',
+                lore_path: 'tests/features/sample.feature',
+                ...override,
+            });
+            assert.strictEqual(result.isError, true, JSON.stringify(override));
+            assert.strictEqual(beadStore.has(beadId), false);
+        }
     });
 });
 });

@@ -1,5 +1,10 @@
 # Agent Memory
 
+> **Legacy historical memory, not current authority.** Use `AGENTS.md`, current
+> CStar lifecycle state, and canonical runbooks. The rules and persona behavior
+> below describe older experiments and must not trigger unsolicited work,
+> authority changes, or unmeasured quality claims.
+
 ## 🧠 Application Context
 - **Name**: Corvus Star (C*)
 - **Purpose**: A self-evolving, agentic framework for standardized project initialization and skill management.
@@ -37,7 +42,7 @@
 ## 🛑 Critical Rules
 -   **Do NOT Overwrite**: When editing `tasks.qmd`, mark as complete but keep history.
 -   **Always Test**: Run `fishtest.py` before committing engine changes.
--   **SovereignFish**: Run the SovereignFish protocol EVERY session to polish the codebase.
+-   **SovereignFish**: Historical only; never auto-run or perform unsolicited fixes.
 -   **Torvalds Mandate**: Strictly enforced. No PoCs, no bare-bones. Every feature must be production-hardened and structurally sound from the first commit. Efficiency follows Excellence.
 
 ### 5. Persona Voice Guidelines (The Great Lore Alignment)

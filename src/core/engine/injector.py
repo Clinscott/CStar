@@ -5,12 +5,9 @@ Purpose: Handle JIT skill discovery from skills_db and proactive lexicon expansi
 """
 
 import re
-import logging
 from pathlib import Path
 from src.core.sovereign_hud import SovereignHUD
 from src.core.engine.vector import SovereignVector
-from src.tools.brave_search import BraveSearch
-from src.tools.gemini_search import GeminiSearch
 
 class SovereignInjector:
     def __init__(self, project_root: Path, thresholds: dict):
@@ -42,7 +39,7 @@ class SovereignInjector:
             top = results[0]
             SovereignHUD.persona_log("SUCCESS", f"SovereignEngine: Found potential skill '{top['trigger']}' in database.")
             return {
-                "trigger": "AUTO_INSTALL",
+                "trigger": "LOCAL_SKILL_CANDIDATE",
                 "score": top['score'],
                 "is_global": True,
                 "extracted_entities": {"skill_name": top['trigger']}
@@ -50,7 +47,7 @@ class SovereignInjector:
         return None
 
     def proactive_lexicon_lift(self, query: str, engine: SovereignVector) -> None:
-        """Identify unknown terms and trigger a web search to expand the lexicon."""
+        """Retained compatibility surface; never performs live research or writes."""
         words = re.findall(r'\b[a-zA-Z_]{4,}\b', query.lower())
         unknown_terms = [w for w in words if w not in engine.vocab and w not in engine.stopwords]
 
@@ -58,31 +55,8 @@ class SovereignInjector:
             return
 
         term = unknown_terms[0]
-        SovereignHUD.persona_log("INFO", f"Raven's Eye: Unknown term '{term}'. Seeking definition.")
-
-        gemini = GeminiSearch()
-        searcher = gemini if gemini.is_available() else BraveSearch()
-        results = searcher.search(f"Technical definition and synonyms for {term}")
-
-        if not results:
-            return
-
-        definition = results[0].get('description', '')
-        if not definition:
-            return
-
-        SovereignHUD.persona_log("INFO", f"Raven's Eye: Ingesting intelligence for '{term}'.")
-        engine.add_skill(f"LEXICON:{term}", definition, domain="GENERAL")
-
-        # Persistent Learning
-        try:
-            t_path = self.project_root / "src" / "data" / "thesaurus.qmd"
-            if t_path.exists():
-                content = t_path.read_text(encoding='utf-8')
-                if f"**{term}**" not in content:
-                    new_entry = f"""
-- **{term}**: {term}, {definition[:50].replace(',', ' ')}"""
-                    t_path.write_text(content + new_entry, encoding='utf-8')
-                    SovereignHUD.persona_log("SUCCESS", f"Lexicon Expanded: '{term}' added.")
-        except Exception as e:
-            SovereignHUD.persona_log("WARN", f"Thesaurus update failed: {e}")
+        SovereignHUD.persona_log(
+            "WARN",
+            f"Raven's Eye: Unknown term '{term}'. Research and lexicon updates "
+            "require an authorized Researcher receipt and reviewed source change.",
+        )

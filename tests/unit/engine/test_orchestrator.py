@@ -19,11 +19,18 @@ class TestSovereignOrchestrator:
     @patch("src.core.engine.orchestrator.SovereignHUD")
     def test_execute_search_no_query(self, mock_hud, orchestrator):
         context = MagicMock()
-        context.strategy.enforce_policy.return_value = ["Policy result"]
+        context.persona_style_context = {
+            "persona": "ODIN",
+            "tone": "direct and precise",
+        }
         
         orchestrator.execute_search("", None, None, None, None, context)
         
-        mock_hud.persona_log.assert_called_with("INFO", "Policy result")
+        mock_hud.persona_log.assert_called_once_with(
+            "INFO",
+            "Persona style active: ODIN (direct and precise); authority unchanged.",
+        )
+        context.strategy.enforce_policy.assert_not_called()
 
     @patch("src.core.engine.orchestrator.SovereignHUD")
     def test_execute_search_local_hit(self, mock_hud, orchestrator):
@@ -45,31 +52,30 @@ class TestSovereignOrchestrator:
         assert payload.target_workflow == "LOCAL_SKILL"
         assert payload.system_meta["confidence"] == 2.0
 
-    @patch("src.core.engine.orchestrator.GeminiSearch")
     @patch("src.core.engine.orchestrator.SovereignHUD")
-    def test_execute_search_fallback(self, mock_hud, mock_gemini_class, orchestrator):
+    def test_execute_search_fails_closed_without_local_match(self, mock_hud, orchestrator):
         engine = MagicMock()
         engine.search.return_value = [] # No local hit
         engine.normalize.return_value = "normalized_query"
         
         injector = MagicMock()
         injector.proactive_discovery.return_value = None
-        
-        mock_gemini = mock_gemini_class.return_value
-        mock_gemini.is_available.return_value = True
-        mock_gemini.search.return_value = [{"title": "Web result", "url": "http://example.com", "description": "desc"}]
-        
+
         executor = MagicMock()
         reporter = MagicMock()
         context = MagicMock()
 
         orchestrator.execute_search("missing skill", engine, injector, executor, reporter, context)
-        
-        mock_hud.persona_log.assert_any_call("INFO", "SovereignEngine: No matching skills found. Fallback...")
-        
+
+        mock_hud.persona_log.assert_any_call(
+            "WARN",
+            "SovereignEngine: No matching local skills found. External research requires the authorized Researcher lane.",
+        )
         args, _ = reporter.render_hud.call_args
-        payload = args[0]
-        assert payload.target_workflow == "WEB_FALLBACK"
+        assert args[0] is None
+        injector.proactive_lexicon_lift.assert_not_called()
+        executor.handle_proactive.assert_not_called()
+        executor.suggest_forge.assert_called_once_with("missing skill")
 
     def test_create_payload_with_terminal_state(self, orchestrator):
         engine = MagicMock()
@@ -87,13 +93,5 @@ class TestSovereignOrchestrator:
         assert payload.terminal_state["last_cmd"] == "exit"
         assert payload.system_meta["version"] == "1.0.0"
 
-    @patch("src.core.engine.orchestrator.GeminiSearch")
-    def test_web_fallback_gemini(self, mock_gemini_class, orchestrator):
-        mock_gemini = mock_gemini_class.return_value
-        mock_gemini.is_available.return_value = True
-        mock_gemini.search.return_value = [{"title": "T1", "url": "U1", "description": "D1"}]
-        
-        result = orchestrator.web_fallback("query")
-        assert result["trigger"] == "WEB_FALLBACK"
-        assert "T1" in result["data"]
-        assert result["web_results"][0]["title"] == "T1"
+    def test_web_fallback_is_a_non_networking_tombstone(self, orchestrator):
+        assert orchestrator.web_fallback("query") is None

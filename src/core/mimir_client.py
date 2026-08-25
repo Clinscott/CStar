@@ -70,7 +70,15 @@ class MimirClient:
 
     async def request(self, payload: IntelligenceRequest | dict[str, Any]) -> IntelligenceResponse:
         request = normalize_intelligence_request(payload, default_source="python:mimir")
-        transport_mode = self._resolve_transport_mode(request)
+        decision = self._resolve_decision(request)
+        transport_mode = decision.transport_mode
+
+        if not decision.execution_allowed:
+            return build_intelligence_error(
+                request,
+                "One Mind delegated execution is retired; route implementation through CStar Forge.",
+                transport_mode,
+            )
 
         if transport_mode == "host_session":
             return await self._request_via_host_session(request)
@@ -133,14 +141,12 @@ class MimirClient:
     async def close(self) -> None:
         return None
 
-    def _resolve_transport_mode(self, request: IntelligenceRequest) -> str:
-        broker_active = self._read_hall_broker_active()
+    def _resolve_decision(self, request: IntelligenceRequest):
         return resolve_one_mind_decision(
             request,
             self.env,
             host_session_active=self.host_session_active,
-            broker_active=broker_active,
-        ).transport_mode
+        )
 
     async def _request_via_host_session(self, request: IntelligenceRequest) -> IntelligenceResponse:
         effective_prompt = build_effective_prompt(request)
@@ -303,16 +309,7 @@ class MimirClient:
                 await result
             return
 
-        decision = resolve_one_mind_decision(
-            IntelligenceRequest(
-                prompt="",
-                caller={"source": "python:mimir:oracle-check"},
-            ),
-            self.env,
-            host_session_active=self.host_session_active,
-            broker_active=self._read_hall_broker_active(),
-        )
-        if decision.reason == "interactive-host-session-bus" or self.env.get("CORVUS_SKIP_ORACLE_INVOKE") in {"true", "1"}:
+        if self.env.get("CORVUS_SKIP_ORACLE_INVOKE") in {"true", "1"}:
             return
 
         cstar_bin = self.project_root / "bin" / "cstar.js"
@@ -335,32 +332,6 @@ class MimirClient:
         recovered, backup_path = ensure_healthy_synapse_db(self.db_path)
         if recovered:
             print(f"[MIMIR] Synapse DB was corrupt and has been rebuilt. Backup: {backup_path}")
-
-    def _read_hall_broker_active(self) -> bool:
-        hall_db_path = self.project_root / ".stats" / "pennyone.db"
-        if not hall_db_path.exists():
-            return False
-
-        repo_id = f"repo:{str(self.project_root).replace(chr(92), '/').rstrip('/')}"
-        try:
-            with sqlite3.connect(str(hall_db_path)) as conn:
-                cursor = conn.cursor()
-                cursor.execute(
-                    """
-                    SELECT status, binding_state, fulfillment_ready
-                    FROM hall_one_mind_broker
-                    WHERE repo_id = ?
-                    LIMIT 1
-                    """,
-                    (repo_id,),
-                )
-                row = cursor.fetchone()
-                if not row:
-                    return False
-                status, binding_state, fulfillment_ready = row
-                return status == "READY" and binding_state == "BOUND" and int(fulfillment_ready or 0) == 1
-        except sqlite3.Error:
-            return False
 
     def _read_cached_response(self, prompt: str) -> str | None:
         with sqlite3.connect(str(self.db_path)) as conn:
@@ -424,7 +395,7 @@ async def _main(argv: list[str]) -> int:
         print(response.raw_text)
         return 0
 
-    print(response.error or "The One Mind returned no intelligence.", file=sys.stderr)
+    print(response.error or "Mimir returned no intelligence.", file=sys.stderr)
     return 1
 
 

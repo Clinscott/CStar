@@ -9,6 +9,7 @@ import {
     type CommandOptionDescriptor,
 } from './command_catalog.js';
 import { resolveEntrySurface, type EntrySurface } from '../runtime/entry_surface.js';
+import { resolveSkillRegistryEntries } from '../../../core/skill_registry_contract.js';
 
 const TEXT_DOC_EXTENSIONS = new Set(['.md', '.qmd', '.feature', '.txt']);
 
@@ -112,13 +113,7 @@ export interface CapabilityInfoPayload {
 }
 
 function getRegistryEntries(manifest: CapabilityRegistryManifest): Record<string, CapabilityRegistryEntry> {
-    if (manifest.entries && typeof manifest.entries === 'object') {
-        return manifest.entries;
-    }
-    if (manifest.skills && typeof manifest.skills === 'object') {
-        return manifest.skills;
-    }
-    return {};
+    return resolveSkillRegistryEntries<CapabilityRegistryEntry>(manifest);
 }
 
 function toStringValue(value: unknown): string | null {
@@ -383,7 +378,9 @@ export function loadCapabilityRegistryManifest(projectRoot: string): CapabilityR
     if (!fs.existsSync(manifestPath)) {
         throw new Error(`Capability registry not found at ${manifestPath}.`);
     }
-    return JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) as CapabilityRegistryManifest;
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) as unknown;
+    resolveSkillRegistryEntries<CapabilityRegistryEntry>(manifest);
+    return manifest as CapabilityRegistryManifest;
 }
 
 export function buildCapabilityManifestPayload(

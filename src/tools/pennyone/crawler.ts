@@ -29,7 +29,7 @@ function shouldIncludeFile(filePath: string): boolean {
     return !BLOAT_PATTERNS.some((pattern) => filePath.includes(pattern));
 }
 
-function collectFilesFromFilesystem(scanRoot: string): string[] {
+function collectFilesFromFilesystem(scanRoot: string, maxFiles: number): string[] {
     const results: string[] = [];
     const queue = [scanRoot];
 
@@ -57,6 +57,7 @@ function collectFilesFromFilesystem(scanRoot: string): string[] {
 
             if (entry.isFile() && shouldIncludeFile(entryPath)) {
                 results.push(entryPath);
+                if (results.length >= maxFiles) return results;
             }
         }
     }
@@ -71,11 +72,15 @@ function collectFilesFromFilesystem(scanRoot: string): string[] {
  * @param {string} targetPath - Path to crawl
  * @returns {Promise<string[]>} File paths
  */
-export async function crawlRepository(targetPath: string): Promise<string[]> {
+export async function crawlRepository(
+    targetPath: string,
+    maxFiles = Number.MAX_SAFE_INTEGER,
+): Promise<string[]> {
     const absoluteTarget = path.resolve(targetPath);
-    const scanRoot = fsSync.existsSync(absoluteTarget) && fsSync.statSync(absoluteTarget).isFile()
-        ? path.dirname(absoluteTarget)
-        : absoluteTarget;
+    if (fsSync.existsSync(absoluteTarget) && fsSync.statSync(absoluteTarget).isFile()) {
+        return shouldIncludeFile(absoluteTarget) ? [absoluteTarget] : [];
+    }
+    const scanRoot = absoluteTarget;
 
     try {
         const { stdout } = await execa('git', [
@@ -84,18 +89,24 @@ export async function crawlRepository(targetPath: string): Promise<string[]> {
             '--others',
             '--exclude-standard',
             '.',
-        ], { cwd: scanRoot });
+        ], {
+            cwd: scanRoot,
+            maxBuffer: 4 * 1024 * 1024,
+        });
 
-        const files = stdout.split('\n')
-            .filter(f => f.trim() !== '')
-            .map(f => f.trim())
-            .map(f => path.resolve(scanRoot, f))
-            .filter(f => fsSync.existsSync(f) && shouldIncludeFile(f));
+        const files: string[] = [];
+        for (const rawFile of stdout.split('\n')) {
+            const relativeFile = rawFile.trim();
+            if (!relativeFile) continue;
+            const absoluteFile = path.resolve(scanRoot, relativeFile);
+            if (!fsSync.existsSync(absoluteFile) || !shouldIncludeFile(absoluteFile)) continue;
+            files.push(absoluteFile);
+            if (files.length >= maxFiles) break;
+        }
 
         return files;
     } catch (error) {
         console.warn('[ALFRED]: "Git integration failed. Falling back to filesystem crawl."');
-        return collectFilesFromFilesystem(scanRoot);
+        return collectFilesFromFilesystem(scanRoot, maxFiles);
     }
 }
-

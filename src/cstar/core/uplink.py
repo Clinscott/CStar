@@ -88,7 +88,7 @@ class AntigravityUplink:
 
             return {
                 "status": "error",
-                "message": response.error or "The One Mind returned no intelligence.",
+                "message": response.error or "Mimir returned no intelligence.",
                 "trace": trace,
             }
                 

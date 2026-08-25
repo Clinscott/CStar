@@ -24,7 +24,7 @@ function createContext(workspaceRoot: string): RuntimeContext {
     };
 }
 
-describe('Ravens estate sweep runtime (CS-P7-05)', () => {
+describe('Ravens estate compatibility status (CS-P7-05)', () => {
     let tmpRoot: string;
     let keepOsRoot: string;
     let astroRoot: string;
@@ -84,77 +84,37 @@ describe('Ravens estate sweep runtime (CS-P7-05)', () => {
         closeDb();
     });
 
-    it('sweeps the mounted estate and isolates target failures', async () => {
-        const adapter = new RavensAdapter({
-            id: 'weave:ravens-cycle',
-            execute: async (invocation) => {
-                const repoRoot = String((invocation.payload as { project_root: string }).project_root).replace(/\\/g, '/');
-                if (repoRoot === astroRoot.replace(/\\/g, '/')) {
-                    return {
-                        weave_id: 'weave:ravens-cycle',
-                        status: 'FAILURE',
-                        output: '',
-                        error: 'astrologer cycle failed',
-                        metadata: {},
-                    };
-                }
-
-                return {
-                    weave_id: 'weave:ravens-cycle',
-                    status: 'SUCCESS',
-                    output: `cycle:${path.basename(repoRoot)}`,
-                    metadata: {
-                        cycle_result: {
-                            status: 'SUCCESS',
-                            summary: `cycle:${path.basename(repoRoot)}`,
-                            mission_id: `ravens-cycle:${path.basename(repoRoot)}`,
-                            stages: [],
-                        },
-                    },
-                };
-            },
-        } as any);
+    it('reports the mounted estate without executing a sweep', async () => {
+        const adapter = new RavensAdapter();
 
         const result = await adapter.execute(
             {
                 weave_id: 'weave:ravens',
-                payload: { action: 'sweep' },
+                payload: { action: 'status' },
             },
             createContext(tmpRoot),
         );
 
         assert.equal(result.status, 'TRANSITIONAL');
         assert.match(result.output, /3 target\(s\)/);
-        assert.equal((result.metadata?.sweep_results as Array<unknown>).length, 3);
-        assert.equal((result.metadata?.isolated_failures as Array<unknown>).length, 1);
+        assert.equal(result.metadata?.execution_attempted, false);
+        assert.equal((result.metadata?.estate_targets as Array<unknown>).length, 3);
         assert.ok(!(result.metadata?.target_repos as Array<string>).includes(legacyRoot.replace(/\\/g, '/')));
     });
 
-    it('can target a single mounted spoke by slug', async () => {
-        const visited: string[] = [];
-        const adapter = new RavensAdapter({
-            id: 'weave:ravens-cycle',
-            execute: async (invocation) => {
-                visited.push(String((invocation.payload as { project_root: string }).project_root).replace(/\\/g, '/'));
-                return {
-                    weave_id: 'weave:ravens-cycle',
-                    status: 'SUCCESS',
-                    output: 'single target complete',
-                    metadata: {},
-                };
-            },
-        } as any);
+    it('reports a single mounted spoke by slug without executing it', async () => {
+        const adapter = new RavensAdapter();
 
         const result = await adapter.execute(
             {
                 weave_id: 'weave:ravens',
-                payload: { action: 'cycle', spoke: 'keepos' },
+                payload: { action: 'status', spoke: 'keepos' },
             },
             createContext(tmpRoot),
         );
 
-        assert.equal(result.status, 'SUCCESS');
-        assert.deepEqual(visited, [keepOsRoot.replace(/\\/g, '/')]);
-        assert.equal(result.metadata?.target_slug, 'keepos');
+        assert.equal(result.status, 'TRANSITIONAL');
+        assert.equal(result.metadata?.execution_attempted, false);
+        assert.deepEqual(result.metadata?.target_repos, [keepOsRoot.replace(/\\/g, '/')]);
     });
 });

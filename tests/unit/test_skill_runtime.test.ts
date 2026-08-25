@@ -1,8 +1,31 @@
-import { describe, it } from 'node:test';
+import { after, before, describe, it } from 'node:test';
 import assert from 'node:assert';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { SkillBead } from '../../src/node/core/skills/types.js';
 import { RuntimeDispatcher } from '../../src/node/core/runtime/dispatcher.js';
 import { UniversalAdapter } from '../../src/node/core/runtime/universal_adapter.js';
+import { database } from '../../src/tools/pennyone/intel/database.js';
+import { registry } from '../../src/tools/pennyone/pathRegistry.js';
+
+const originalRoot = registry.getRoot();
+const originalProjectRoot = process.env.CSTAR_PROJECT_ROOT;
+let isolatedRoot = '';
+
+before(() => {
+    isolatedRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'cstar-skill-runtime-'));
+    registry.setRoot(isolatedRoot);
+    process.env.CSTAR_PROJECT_ROOT = isolatedRoot;
+});
+
+after(() => {
+    database.close();
+    registry.setRoot(originalRoot);
+    if (originalProjectRoot === undefined) delete process.env.CSTAR_PROJECT_ROOT;
+    else process.env.CSTAR_PROJECT_ROOT = originalProjectRoot;
+    fs.rmSync(isolatedRoot, { recursive: true, force: true });
+});
 
 describe('Skill Runtime Contract (CS-P1-01)', () => {
     const manager = RuntimeDispatcher.createIsolated();

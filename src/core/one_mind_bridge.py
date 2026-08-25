@@ -1,6 +1,8 @@
-"""
-[Ω] Unified One Mind bridge policy for Python runtimes.
-Purpose: Centralize transport selection and delegated-boundary exclusions.
+"""Retired One Mind compatibility transport policy.
+
+Primary intelligence sampling may still select an explicit host or Synapse
+transport. Historical broker state cannot change that choice. Delegated
+subagent execution is denied before either transport can actuate.
 """
 
 from __future__ import annotations
@@ -20,21 +22,7 @@ class OneMindDecision:
     boundary: OneMindBoundary
     transport_mode: ResolvedTransportMode
     reason: str
-
-
-def _normalize_flag(value: str | None) -> bool | None:
-    if value is None:
-        return None
-    normalized = value.strip().lower()
-    if normalized in {"1", "true", "yes", "on"}:
-        return True
-    if normalized in {"0", "false", "no", "off"}:
-        return False
-    return None
-
-
-def _is_interactive_one_mind_broker_active(env: dict[str, str]) -> bool:
-    return _normalize_flag(env.get("CORVUS_ONE_MIND_BROKER_ACTIVE")) is True
+    execution_allowed: bool
 
 
 def _read_metadata_value(request: Any, key: str) -> str | None:
@@ -47,18 +35,17 @@ def _read_metadata_value(request: Any, key: str) -> str | None:
 
 def _classify_source_boundary(source: str | None) -> OneMindBoundary:
     normalized = (source or "").strip().lower()
-    if not normalized:
-        return "primary"
-
-    if (
-        "subagent" in normalized
-        or "sub-agent" in normalized
-        or "host-worker" in normalized
-        or "worker_bridge" in normalized
-        or "runtime:host-worker" in normalized
+    if any(
+        marker in normalized
+        for marker in (
+            "subagent",
+            "sub-agent",
+            "host-worker",
+            "worker_bridge",
+            "runtime:host-worker",
+        )
     ):
         return "subagent"
-
     return "primary"
 
 
@@ -83,37 +70,39 @@ def resolve_one_mind_decision(
     host_session_active: bool | None = None,
     broker_active: bool | None = None,
 ) -> OneMindDecision:
+    del broker_active  # Historical compatibility input; cannot activate a broker.
     current_env = env or {}
-    transport_mode = getattr(request, "transport_mode", "auto")
     boundary = resolve_one_mind_boundary(request)
 
+    if boundary == "subagent":
+        return OneMindDecision(
+            boundary=boundary,
+            transport_mode="synapse_db",
+            reason="retired-subagent-execution-boundary",
+            execution_allowed=False,
+        )
+
+    transport_mode = getattr(request, "transport_mode", "auto")
     if transport_mode == "host_session":
-        return OneMindDecision(boundary=boundary, transport_mode="host_session", reason="explicit-host-session")
-
+        return OneMindDecision(boundary, "host_session", "explicit-host-session", True)
     if transport_mode == "synapse_db":
-        return OneMindDecision(boundary=boundary, transport_mode="synapse_db", reason="explicit-synapse-db")
-
-    if boundary in {"subagent"}:
-        return OneMindDecision(boundary=boundary, transport_mode="synapse_db", reason=f"delegated-{boundary}-boundary")
-
-    # [🔱] BROKER OVERRIDE: Allow environment to force or disable the broker bus.
-    env_broker_active = _normalize_flag(current_env.get("CORVUS_ONE_MIND_BROKER_ACTIVE"))
-    effective_broker_active = broker_active if env_broker_active is None else env_broker_active
+        return OneMindDecision(boundary, "synapse_db", "explicit-synapse-db", True)
 
     if is_interactive_host_session(current_env):
-        if effective_broker_active is True:
-            return OneMindDecision(boundary=boundary, transport_mode="synapse_db", reason="interactive-host-session-bus")
-        return OneMindDecision(boundary=boundary, transport_mode="host_session", reason="interactive-host-session-direct")
+        return OneMindDecision(boundary, "host_session", "interactive-host-session-direct", True)
 
     if host_session_active is not None:
         return OneMindDecision(
-            boundary=boundary,
-            transport_mode="host_session" if host_session_active else "synapse_db",
-            reason="declared-host-session" if host_session_active else "declared-local-session",
+            boundary,
+            "host_session" if host_session_active else "synapse_db",
+            "declared-host-session" if host_session_active else "declared-local-session",
+            True,
         )
 
+    host_active = is_host_session_active(current_env)
     return OneMindDecision(
-        boundary=boundary,
-        transport_mode="host_session" if is_host_session_active(current_env) else "synapse_db",
-        reason="ambient-host-session" if is_host_session_active(current_env) else "local-fallback",
+        boundary,
+        "host_session" if host_active else "synapse_db",
+        "ambient-host-session" if host_active else "local-fallback",
+        True,
     )

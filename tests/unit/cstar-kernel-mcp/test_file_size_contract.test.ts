@@ -32,6 +32,10 @@ describe('CStar MCP file-size contract', () => {
         const files = [
             path.join(ROOT, 'src/tools/cstar-kernel-mcp.ts'),
             path.join(ROOT, '.agents/skills/corvus-forge/scripts/forge_worker_adapter.py'),
+            path.join(ROOT, '.agents/skills/corvus-forge/scripts/forge_worker_safety.py'),
+            path.join(ROOT, '.agents/skills/corvus-forge/scripts/hermes_minimax_delegate.mjs'),
+            path.join(ROOT, '.agents/skills/corvus-forge/scripts/hermes_runtime_lineage.mjs'),
+            path.join(ROOT, '.agents/skills/corvus-forge/scripts/forge_role_plan.mjs'),
             path.join(ROOT, 'tests/unit/test_cstar_kernel_mcp.test.ts'),
             path.join(ROOT, 'tests/unit/test_mcp_config_invariants.test.ts'),
             path.join(ROOT, 'tests/integration/cstar_kernel_mcp_stdio.test.ts'),

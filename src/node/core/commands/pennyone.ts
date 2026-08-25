@@ -2,8 +2,7 @@ import { Command } from 'commander';
 
 import { renderStandardCommandResult } from './command_context.js';
 import { RuntimeDispatcher } from  '../runtime/dispatcher.js';
-import { LessonDistillWeavePayload, PennyOneWeavePayload, RuntimeDispatchPort, WeaveInvocation } from  '../runtime/contracts.js';
-import type { HarvestLessonsWeavePayload } from '../runtime/weaves/harvest_lessons.js';
+import { PennyOneWeavePayload, RuntimeDispatchPort, WeaveInvocation } from  '../runtime/contracts.js';
 import { resolveWorkspaceRoot, withCliWorkspaceTarget, type WorkspaceRootSource } from  '../runtime/invocation.js';
 
 export function buildPennyOneInvocation(options: {
@@ -23,12 +22,10 @@ export function buildPennyOneInvocation(options: {
     clean?: boolean;
     stats?: boolean;
     search?: string;
-    learn?: string;
-    harvest?: boolean;
     import?: string;
     slug?: string;
     topology?: boolean;
-}, workspaceRoot: string): WeaveInvocation<PennyOneWeavePayload | LessonDistillWeavePayload | HarvestLessonsWeavePayload> {
+}, workspaceRoot: string): WeaveInvocation<PennyOneWeavePayload> {
     if (options.import) {
         return withCliWorkspaceTarget({
             weave_id: 'weave:pennyone',
@@ -36,27 +33,6 @@ export function buildPennyOneInvocation(options: {
                 action: 'import',
                 remote_url: options.import,
                 slug: options.slug,
-            },
-        }, workspaceRoot);
-    }
-
-    if (options.learn) {
-        return withCliWorkspaceTarget({
-            weave_id: 'weave:distill-lessons',
-            payload: {
-                memory_id: options.learn,
-                project_root: workspaceRoot,
-                cwd: process.cwd(),
-            },
-        }, workspaceRoot);
-    }
-
-    if (options.harvest) {
-        return withCliWorkspaceTarget({
-            weave_id: 'weave:harvest-lessons',
-            payload: {
-                project_root: workspaceRoot,
-                limit: options.limit ? Number.parseInt(options.limit, 10) : 5,
             },
         }, workspaceRoot);
     }
@@ -179,11 +155,26 @@ export function buildPennyOneInvocation(options: {
         }, workspaceRoot);
     }
 
+    if (options.scan !== undefined && options.scan !== false) {
+        return withCliWorkspaceTarget({
+            weave_id: 'weave:pennyone',
+            payload: {
+                action: 'scan',
+                path: typeof options.scan === 'string' ? options.scan : '.',
+            },
+        }, workspaceRoot);
+    }
+
     return withCliWorkspaceTarget({
         weave_id: 'weave:pennyone',
         payload: {
-            action: 'scan',
-            path: typeof options.scan === 'string' ? options.scan : '.',
+            action: 'status',
+            path: '.',
+            estate: false,
+            artifact_kind: options.kind,
+            limit: options.limit ? Number.parseInt(options.limit, 10) : undefined,
+            since: options.since,
+            ...(options.sinceDate ? { since_date: options.sinceDate } : {}),
         },
     }, workspaceRoot);
 }
@@ -200,8 +191,8 @@ export function registerPennyOneCommand(
     program
         .command('pennyone')
         .alias('p1')
-        .description('Operation PennyOne: 3D Neural Matrix & Repository Stats')
-        .option('-s, --scan [path]', 'Scan the repository for stats and Gungnir scores', '.')
+        .description('Read PennyOne Hall status; repository scanning requires explicit --scan')
+        .option('-s, --scan [path]', 'Explicitly scan a bounded repository path')
         .option('--refresh-intents [path]', 'Re-enrich Hall records that still carry the offline semantic-intent placeholder')
         .option('--normalize [path]', 'Backfill explicit Hall authority metadata for legacy beads, planning sessions, skill proposals, and documents')
         .option('--report [path]', 'Report recent Hall normalize receipts and current per-root Hall hygiene without mutating state')
@@ -217,8 +208,6 @@ export function registerPennyOneCommand(
         .option('-c, --clean', 'Purge the .stats/ directory and all archived sessions')
         .option('--stats', 'View long-term agent activity and logic loop analytics')
         .option('--search <query>', 'Search the Hall of Records by intent, path, or API endpoint')
-        .option('--learn <memory_id>', 'Study and distill hierarchical lessons from an episodic memory engram')
-        .option('--harvest', 'Batch study all unstudied episodic memory engrams in the Hall')
         .option('--import <source>', 'Clone and project a public or local git repository into the estate gallery')
         .option('--slug <slug>', 'Override the imported repository slug')
         .option('--topology', 'Render the current estate topology summary')
@@ -239,8 +228,6 @@ export function registerPennyOneCommand(
             clean?: boolean;
             stats?: boolean;
             search?: string;
-            learn?: string;
-            harvest?: boolean;
             import?: string;
             slug?: string;
             topology?: boolean;

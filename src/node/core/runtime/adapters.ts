@@ -1,30 +1,18 @@
 import fs from 'node:fs';
-import path, { join } from 'node:path';
-import { execa } from 'execa';
-import { spawnSync } from 'node:child_process';
+import { join } from 'node:path';
 
-import { buildResultPlanningSummary } from '../operator_resume.js';
-import { executeHostGovernorResume } from '../operator_resume.js';
 import { ANS } from  '../ans.js';
-import type { HostProvider } from '../../../core/host_session.js';
-import { resolveHostProvider } from  '../../../core/host_session.js';
-import { RavensCycleWeave } from  './weaves/ravens_cycle.js';
 import { RestorationHostWorkflow } from  './host_workflows/restoration.js';
 import { EstateExpansionHostWorkflow } from  './host_workflows/expansion.js';
 import { VigilanceHostWorkflow } from  './host_workflows/vigilance.js';
-import { defaultHostTextInvoker, extractJsonObject, withRuntimeAuguryMetadata, type HostTextInvoker } from './weaves/host_bridge.js';
-import { discoverLegacyCommands, resolvePythonPath } from  './adapters/legacy_commands.js';
-import { resolvePersonaPolicy } from '../../../tools/pennyone/personaRegistry.js';
 import {
     loadRavensSweepTargets,
     RavensSweepTarget,
 } from './adapters/ravens_utils.ts';
 import {
     DynamicCommandPayload,
-    RavensAction,
     RavensWeavePayload,
     RuntimeAdapter,
-    RuntimeDispatchPort,
     RuntimeContext,
     StartWeavePayload,
     WeaveInvocation,
@@ -36,210 +24,40 @@ export { RestorationHostWorkflow, RestorationHostWorkflow as RestorationWeave } 
 export { EstateExpansionHostWorkflow, EstateExpansionHostWorkflow as EstateExpansionWeave } from  './host_workflows/expansion.js';
 export { VigilanceHostWorkflow, VigilanceHostWorkflow as VigilanceWeave } from  './host_workflows/vigilance.js';
 
-export const runtimeAdapterDeps = {
-    resolveHostProvider,
-    extractJsonObject,
-};
-
-interface StartSupervisorDecision {
-    action: 'resume_governor' | 'wake_only';
-    reason?: string;
-}
-
-interface RavensSupervisorDecision {
-    mode: 'execute_now' | 'observe_only';
-    action?: RavensAction;
-    spoke?: string;
-    reason?: string;
-}
-
-function buildStartSupervisorPrompt(input: {
-    task: string;
-    workspaceRoot: string;
-    planningSummary?: string;
-    hostProvider: HostProvider;
-}): string {
-    return [
-        'You are supervising CStar start routing.',
-        'Decide whether the start request should resume the host governor or wake the kernel only.',
-        'Choose resume_governor when the operator likely wants host-governed continuation, planning, or pending Hall work.',
-        'Choose wake_only when the request is a plain wake/bootstrap with no need to resume host governance.',
-        'Return JSON only.',
-        JSON.stringify({
-            provider: input.hostProvider,
-            task: input.task,
-            workspace_root: input.workspaceRoot,
-            planning_summary: input.planningSummary ?? null,
-            response_schema: {
-                action: 'resume_governor | wake_only',
-                reason: 'string',
-            },
-        }, null, 2),
-    ].join('\n\n');
-}
-
-function parseStartSupervisorDecision(raw: string): StartSupervisorDecision | null {
-    try {
-        const parsed = extractJsonObject(raw);
-        const action = parsed.action === 'resume_governor' || parsed.action === 'wake_only'
-            ? parsed.action
-            : null;
-        if (!action) {
-            return null;
-        }
-        return {
-            action,
-            reason: typeof parsed.reason === 'string' ? parsed.reason.trim() : undefined,
-        };
-    } catch {
-        return null;
-    }
-}
-
-function buildRavensSupervisorPrompt(input: {
-    requestedAction: RavensAction;
-    spoke?: string;
-    shadowForge: boolean;
-    workspaceRoot: string;
-    persona: string;
-    investigationPolicy: Record<string, unknown>;
-}): string {
-    return [
-        'You are supervising CStar ravens routing.',
-        'Normalize the public ravens request before bounded kernel execution.',
-        'Choose execute_now when the sweep or cycle should run now.',
-        'Choose observe_only when the system should report posture without running the maintenance path.',
-        'You may keep or normalize the requested action to one of: start, sweep, cycle, status, stop.',
-        'Apply the active persona investigation policy to how quickly the route moves from observation to execution.',
-        'Return JSON only.',
-        JSON.stringify({
-            active_persona: input.persona,
-            persona_investigation_policy: input.investigationPolicy,
-            requested_action: input.requestedAction,
-            spoke: input.spoke ?? null,
-            shadow_forge: input.shadowForge,
-            workspace_root: input.workspaceRoot,
-            response_schema: {
-                mode: 'execute_now | observe_only',
-                action: 'start | sweep | cycle | status | stop',
-                spoke: 'string | null',
-                reason: 'string',
-            },
-        }, null, 2),
-    ].join('\n\n');
-}
-
-function parseRavensSupervisorDecision(raw: string): RavensSupervisorDecision | null {
-    try {
-        const parsed = runtimeAdapterDeps.extractJsonObject(raw);
-        const mode = parsed.mode === 'execute_now' || parsed.mode === 'observe_only'
-            ? parsed.mode
-            : null;
-        const action = parsed.action === 'start'
-            || parsed.action === 'sweep'
-            || parsed.action === 'cycle'
-            || parsed.action === 'status'
-            || parsed.action === 'stop'
-            ? parsed.action
-            : undefined;
-        const spoke = typeof parsed.spoke === 'string' && parsed.spoke.trim()
-            ? parsed.spoke.trim()
-            : undefined;
-        if (!mode) {
-            return null;
-        }
-        return {
-            mode,
-            action,
-            spoke,
-            reason: typeof parsed.reason === 'string' ? parsed.reason.trim() : undefined,
-        };
-    } catch {
-        return null;
-    }
-}
-
 export class StartAdapter implements RuntimeAdapter<StartWeavePayload> {
     public readonly id = 'weave:start';
-
-    public constructor(
-        private readonly dispatchPort?: RuntimeDispatchPort,
-        private readonly hostTextInvoker: HostTextInvoker = defaultHostTextInvoker,
-    ) {}
-
-    private async resolveStartMode(
-        payload: StartWeavePayload,
-        context: RuntimeContext,
-        hostProvider: HostProvider | null,
-    ): Promise<{
-        action: 'resume_governor' | 'wake_only';
-        reason?: string;
-        source: 'explicit-loki' | 'host-supervisor' | 'host-provider-default';
-    }> {
-        if (payload.loki) {
-            return {
-                action: 'resume_governor',
-                source: 'explicit-loki',
-                reason: 'Explicit Loki mode requests host-governor resume.',
-            };
-        }
-
-        if (!hostProvider) {
-            return {
-                action: 'wake_only',
-                source: 'host-provider-default',
-            };
-        }
-
-        const planningSummary = buildResultPlanningSummary(context.workspace_root);
-        try {
-            const raw = await this.hostTextInvoker({
-                prompt: buildStartSupervisorPrompt({
-                    task: payload.task?.trim() ?? '',
-                    workspaceRoot: context.workspace_root,
-                    planningSummary,
-                    hostProvider,
-                }),
-                systemPrompt: 'Return JSON only. Decide whether start should resume host governor or wake only.',
-                provider: hostProvider,
-                projectRoot: context.workspace_root,
-                source: 'start:supervisor',
-                env: { ...process.env, ...context.env } as NodeJS.ProcessEnv,
-                metadata: withRuntimeAuguryMetadata({
-                    runtime_weave: 'start',
-                    decision: 'start-supervisor',
-                    planning_summary: planningSummary ?? null,
-                    trace_critical: true,
-                    require_agent_harness: true,
-                    transport_mode: 'host_session',
-                }, context),
-            });
-            const decision = parseStartSupervisorDecision(raw);
-            if (decision) {
-                return {
-                    ...decision,
-                    source: 'host-supervisor',
-                };
-            }
-        } catch {
-            // Fall through to the established host-provider default.
-        }
-
-        return {
-            action: 'resume_governor',
-            source: 'host-provider-default',
-        };
-    }
 
     public async execute(
         invocation: WeaveInvocation<StartWeavePayload>,
         context: RuntimeContext,
     ): Promise<WeaveResult> {
         const payload = invocation.payload;
-        const hostProvider = resolveHostProvider({ ...process.env, ...context.env } as NodeJS.ProcessEnv);
 
-        // [🔱] THE ESTATE UPDATE HOOK
-        const updateOutput = this.performEstateUpdateHook(context.workspace_root);
+        if (payload.target) {
+            return {
+                weave_id: this.id,
+                status: 'FAILURE',
+                output: '',
+                error: `Target-driven start is no longer canonical for '${payload.target}'. Create or select a bead and use the authorized execution lane.`,
+                metadata: {
+                    adapter: 'compatibility:start-target-rejected',
+                    rejected_target: payload.target,
+                },
+            };
+        }
+
+        if (payload.loki) {
+            return {
+                weave_id: this.id,
+                status: 'FAILURE',
+                output: '',
+                error: 'Loki autonomous start is permanently decommissioned; start cannot bypass operator and CStar execution gates.',
+                metadata: {
+                    adapter: 'compatibility:start-loki-rejected',
+                    resume_requested: false,
+                },
+            };
+        }
 
         if (payload.verbose) {
             process.env.CSTAR_VERBOSE = 'true';
@@ -249,114 +67,17 @@ export class StartAdapter implements RuntimeAdapter<StartWeavePayload> {
             process.env.CSTAR_DEBUG = 'true';
         }
 
-        if (!payload.target) {
-            const startMode = await this.resolveStartMode(payload, context, hostProvider);
-
-            if (startMode.action === 'resume_governor') {
-                if (!this.dispatchPort) {
-                    return {
-                        weave_id: this.id,
-                        status: 'FAILURE',
-                        output: updateOutput,
-                        error: 'Host-governor routing is unavailable because the runtime dispatch port is not attached.',
-                    };
-                }
-
-                const resumeResult = await executeHostGovernorResume(
-                    this.dispatchPort,
-                    {
-                        workspaceRoot: context.workspace_root,
-                        cwd: context.workspace_root,
-                        task: payload.task,
-                        ledger: payload.ledger,
-                        autoExecute: true,
-                        autoReplanBlocked: true,
-                        maxParallel: 1,
-                        source: 'runtime',
-                        session: invocation.session,
-                        target: invocation.target,
-                    },
-                    hostProvider,
-                    {
-                        wakeKernel: async () => ANS.wake(),
-                    },
-                );
-                const governorResult = resumeResult.governorResult ?? {
-                    weave_id: 'weave:host-governor',
-                    status: 'FAILURE' as const,
-                    output: '',
-                    error: 'Host-governor resume did not produce a result.',
-                };
-
-                return {
-                    ...governorResult,
-                    weave_id: this.id,
-                    output: `${updateOutput}\n\n${governorResult.output || 'The system is awake and synchronized.'}`.trim(),
-                    metadata: {
-                        ...(governorResult.metadata ?? {}),
-                        adapter: 'runtime:start-resume',
-                        delegated_weave_id: 'weave:host-governor',
-                        resume_provider: resumeResult.provider,
-                        resume_mode: startMode.source === 'explicit-loki' ? 'explicit-loki' : 'host-session',
-                        supervisor_decision_source: startMode.source,
-                        supervisor_reason: startMode.reason,
-                        resume_requested: true,
-                    },
-                };
-            }
-
-            await ANS.wake();
-            return {
-                weave_id: this.id,
-                status: 'TRANSITIONAL',
-                output: `${updateOutput}\n\n[RITUAL] Kernel Awakening Complete.`.trim(),
-                metadata: {
-                    adapter: 'runtime:ans-kernel',
-                    supervisor_decision_source: startMode.source,
-                    supervisor_reason: startMode.reason,
-                    resume_requested: false,
-                },
-            };
-        }
-
+        await ANS.wake();
         return {
             weave_id: this.id,
-            status: 'FAILURE',
-            output: updateOutput,
-            error: `Target-driven start is no longer canonical for '${payload.target}'. Create or select a bead and dispatch TALIESIN with --bead-id.`,
+            status: 'TRANSITIONAL',
+            output: '[RITUAL] Kernel Awakening Complete.',
             metadata: {
-                adapter: 'compatibility:start-target-rejected',
-                rejected_target: payload.target,
+                adapter: 'runtime:ans-kernel',
+                supervisor_decision_source: 'deterministic-wake-only',
+                resume_requested: false,
             },
         };
-    }
-
-    private performEstateUpdateHook(projectRoot: string): string {
-        const outputs: string[] = ['[RITUAL] Synchronizing Estate...'];
-        
-        // Update CStar
-        const cstarUpdate = spawnSync('git', ['pull'], { cwd: projectRoot, encoding: 'utf-8' });
-        if (cstarUpdate.stdout && !cstarUpdate.stdout.includes('Already up to date')) {
-            outputs.push(' • CStar updated.');
-        }
-
-        const statePath = path.join(projectRoot, '.agents', 'sovereign_state.json');
-        if (fs.existsSync(statePath)) {
-            try {
-                const state = JSON.parse(fs.readFileSync(statePath, 'utf-8'));
-                const spokes = state.managed_spokes || [];
-                for (const spoke of spokes) {
-                    if (spoke.root_path && fs.existsSync(path.join(spoke.root_path, '.git'))) {
-                        const spokeUpdate = spawnSync('git', ['pull'], { cwd: spoke.root_path, encoding: 'utf-8' });
-                        if (spokeUpdate.stdout && !spokeUpdate.stdout.includes('Already up to date')) {
-                            outputs.push(` • Spoke '${spoke.slug}' updated.`);
-                        }
-                    }
-                }
-            } catch { /* ignore */ }
-        }
-
-        return outputs.length > 1 ? outputs.join('\n') : '[RITUAL] Estate is current.';
     }
 }
 
@@ -364,96 +85,48 @@ export class RavensAdapter implements RuntimeAdapter<RavensWeavePayload> {
     public readonly id = 'weave:ravens';
 
     public constructor(
-        private readonly cycleWeave: RuntimeAdapter<{ project_root: string; cwd: string }> = new RavensCycleWeave(),
         private readonly repoLoader: (projectRoot: string, requestedSpoke?: string) => RavensSweepTarget[] = loadRavensSweepTargets,
-        private readonly hostTextInvoker: HostTextInvoker = defaultHostTextInvoker,
     ) {}
-
-    private async executeCycleForTarget(
-        kernelRoot: string,
-        target: RavensSweepTarget,
-        context: RuntimeContext,
-    ): Promise<WeaveResult> {
-        return this.cycleWeave.execute(
-            {
-                weave_id: 'weave:ravens-cycle',
-                payload: {
-                    project_root: target.repo_root,
-                    cwd: target.repo_root,
-                },
-            },
-            {
-                ...context,
-                workspace_root: kernelRoot,
-                target_domain: target.domain === 'spoke' ? 'spoke' : 'brain',
-                spoke_name: target.domain === 'spoke' ? target.slug : undefined,
-                spoke_root: target.domain === 'spoke' ? target.repo_root : undefined,
-                requested_root: target.requested_path,
-            },
-        );
-    }
 
     public async execute(
         invocation: WeaveInvocation<RavensWeavePayload>,
         context: RuntimeContext,
     ): Promise<WeaveResult> {
         const projectRoot = context.workspace_root;
-        const wardenDir = join(projectRoot, 'src', 'sentinel', 'wardens');
         const payload = { ...invocation.payload };
-        const hostProvider = runtimeAdapterDeps.resolveHostProvider({ ...process.env, ...context.env } as NodeJS.ProcessEnv);
-        const personaPolicy = resolvePersonaPolicy(context.persona);
 
-        if (hostProvider && payload.action !== 'status' && payload.action !== 'stop') {
-            try {
-                const raw = await this.hostTextInvoker({
-                    prompt: buildRavensSupervisorPrompt({
-                        requestedAction: payload.action,
-                        spoke: payload.spoke,
-                        shadowForge: Boolean(payload.shadow_forge),
-                        workspaceRoot: projectRoot,
-                        persona: context.persona,
-                        investigationPolicy: personaPolicy.investigation,
-                    }),
-                    systemPrompt: 'Return JSON only. Normalize ravens routing before bounded kernel execution.',
-                    provider: hostProvider,
-                    projectRoot,
-                    source: 'ravens:supervisor',
-                    env: { ...process.env, ...context.env } as NodeJS.ProcessEnv,
-                    metadata: withRuntimeAuguryMetadata({
-                        runtime_weave: 'ravens',
-                        decision: 'ravens-supervisor',
-                        persona: context.persona,
-                        persona_investigation_policy: personaPolicy.investigation,
-                        trace_critical: true,
-                        require_agent_harness: true,
-                        transport_mode: 'host_session',
-                    }, context),
-                });
-                const decision = parseRavensSupervisorDecision(raw);
-                if (decision?.mode === 'observe_only') {
-                    return {
-                        weave_id: this.id,
-                        status: 'TRANSITIONAL',
-                        output: `[ALFRED]: Ravens observation only. ${decision.reason ?? 'No maintenance sweep requested.'}`.trim(),
-                        metadata: {
-                            adapter: 'runtime:ravens-host-observe',
-                            supervisor_mode: decision.mode,
-                            supervisor_reason: decision.reason,
-                            requested_action: payload.action,
-                            normalized_action: decision.action ?? payload.action,
-                            spoke: decision.spoke ?? payload.spoke ?? null,
-                        },
-                    };
-                }
-                if (decision?.mode === 'execute_now') {
-                    payload.action = decision.action ?? payload.action;
-                    payload.spoke = decision.spoke ?? payload.spoke;
-                }
-            } catch {
-                // Fall through to bounded local execution.
-            }
+        if (payload.action !== 'status' && payload.action !== 'stop') {
+            return {
+                weave_id: this.id,
+                status: 'FAILURE',
+                output: '',
+                error: `Ravens ${payload.action} execution is decommissioned. This compatibility path is read-only and cannot spawn Python, mutate repositories, run tests, change branches, or commit. Use CStar lifecycle records and the authorized Forge or CorvusEye lane.`,
+                metadata: {
+                    adapter: 'compatibility:ravens-execution-rejected',
+                    requested_action: payload.action,
+                    requested_spoke: payload.spoke ?? null,
+                    decommissioned: true,
+                    read_only: true,
+                    execution_attempted: false,
+                },
+            };
         }
 
+        if (payload.action === 'stop') {
+            return {
+                weave_id: this.id,
+                status: 'TRANSITIONAL',
+                output: 'No resident Ravens daemon is running. The execution path is decommissioned; status remains available as a read-only compatibility surface.',
+                metadata: {
+                    adapter: 'compatibility:ravens-read-only-status',
+                    decommissioned: true,
+                    read_only: true,
+                    execution_attempted: false,
+                },
+            };
+        }
+
+        const wardenDir = join(projectRoot, 'src', 'sentinel', 'wardens');
         const sweepTargets = this.repoLoader(projectRoot, payload.spoke);
 
         if (payload.spoke && sweepTargets.length === 0) {
@@ -461,30 +134,12 @@ export class RavensAdapter implements RuntimeAdapter<RavensWeavePayload> {
                 weave_id: this.id,
                 status: 'FAILURE',
                 output: '',
-                error: `Ravens cannot resolve mounted target '${payload.spoke}'. Link the spoke first or target the brain explicitly.`,
-            };
-        }
-
-        if (payload.action === 'cycle') {
-            const cycleTarget = sweepTargets[0] ?? {
-                slug: 'brain',
-                domain: 'brain' as const,
-                repo_root: projectRoot,
-                requested_path: projectRoot,
-            };
-            const cycleResult = await this.executeCycleForTarget(projectRoot, cycleTarget, context);
-
-            return {
-                ...cycleResult,
-                weave_id: this.id,
+                error: `Ravens cannot resolve mounted target '${payload.spoke}' for read-only status reporting.`,
                 metadata: {
-                    ...(cycleResult.metadata ?? {}),
-                    adapter: 'runtime:ravens-cycle-wrapper',
-                    delegated_weave_id: 'weave:ravens-cycle',
-                    supervisor_mode: hostProvider ? 'execute_now' : undefined,
-                    target_slug: cycleTarget.slug,
-                    target_domain: cycleTarget.domain,
-                    target_repo_root: cycleTarget.repo_root,
+                    adapter: 'compatibility:ravens-read-only-status',
+                    decommissioned: true,
+                    read_only: true,
+                    execution_attempted: false,
                 },
             };
         }
@@ -495,71 +150,20 @@ export class RavensAdapter implements RuntimeAdapter<RavensWeavePayload> {
                 .map((file) => file.replace('.py', ''))
             : [];
 
-        if (payload.action === 'status') {
-            const activeMountedSpokes = sweepTargets.filter((target) => target.domain === 'spoke').length;
-            return {
-                weave_id: this.id,
-                status: 'TRANSITIONAL',
-                output: `Raven runtime status: STANDBY. Estate sweep configured for ${sweepTargets.length} target(s), including ${activeMountedSpokes} mounted spoke(s). Active wardens available: ${activeWardens.length}.`,
-                metadata: {
-                    adapter: 'runtime:ravens-kernel-status',
-                    active_wardens: activeWardens,
-                    estate_targets: sweepTargets,
-                    target_repos: sweepTargets.map((target) => target.repo_root),
-                },
-            };
-        }
-
-        if (payload.action === 'stop') {
-            return {
-                weave_id: this.id,
-                status: 'TRANSITIONAL',
-                output: 'No resident Muninn daemon is running. Ravens now execute as one-shot kernel sweeps.',
-                metadata: {
-                    adapter: 'runtime:ravens-kernel-status',
-                    active_wardens: activeWardens,
-                },
-            };
-        }
-
-        const sweepResults = [];
-
-        for (const target of sweepTargets) {
-            const cycleResult = await this.executeCycleForTarget(projectRoot, target, context);
-            sweepResults.push({
-                target_slug: target.slug,
-                target_domain: target.domain,
-                repo_root: target.repo_root,
-                requested_path: target.requested_path,
-                status: cycleResult.status,
-                output: cycleResult.output,
-                error: cycleResult.error,
-                cycle_result: cycleResult.metadata?.cycle_result,
-            });
-        }
-
-        const successes = sweepResults.filter((result) => result.status === 'SUCCESS').length;
-        const failures = sweepResults.filter((result) => result.status === 'FAILURE').length;
-        const transitional = sweepResults.length - successes - failures;
-        const status = failures === sweepResults.length
-            ? 'FAILURE'
-            : failures > 0 || transitional > 0
-                ? 'TRANSITIONAL'
-                : 'SUCCESS';
+        const activeMountedSpokes = sweepTargets.filter((target) => target.domain === 'spoke').length;
 
         return {
             weave_id: this.id,
-            status,
-            output: `Ravens sweep completed across ${sweepTargets.length} target(s): ${successes} success, ${transitional} transitional, ${failures} failure.`,
+            status: 'TRANSITIONAL',
+            output: `Ravens compatibility status: DECOMMISSIONED (READ-ONLY). ${sweepTargets.length} target(s) are visible, including ${activeMountedSpokes} mounted spoke(s); ${activeWardens.length} legacy warden module(s) are present.`,
             metadata: {
-                adapter: 'runtime:ravens-sweep',
+                adapter: 'compatibility:ravens-read-only-status',
                 active_wardens: activeWardens,
-                sweep_results: sweepResults,
                 estate_targets: sweepTargets,
                 target_repos: sweepTargets.map((target) => target.repo_root),
-                shadow_forge: payload.shadow_forge ?? false,
-                supervisor_mode: hostProvider ? 'execute_now' : undefined,
-                isolated_failures: sweepResults.filter((result) => result.status === 'FAILURE'),
+                decommissioned: true,
+                read_only: true,
+                execution_attempted: false,
             },
         };
     }
@@ -572,33 +176,17 @@ export class DynamicCommandAdapter implements RuntimeAdapter<DynamicCommandPaylo
         invocation: WeaveInvocation<DynamicCommandPayload>,
         context: RuntimeContext,
     ): Promise<WeaveResult> {
-        const payload = invocation.payload;
-        const commands = discoverLegacyCommands(payload.project_root);
-        const resolvedPath = commands.get(payload.command);
-
-        if (!resolvedPath) {
-            return {
-                weave_id: this.id,
-                status: 'FAILURE',
-                output: '',
-                error: `Unknown command '${payload.command}'`,
-            };
-        }
-
-        const pythonPath = resolvePythonPath(payload.project_root);
-        const dispatcherPath = join(payload.project_root, 'src', 'core', 'cstar_dispatcher.py');
-
-        await execa(pythonPath, [dispatcherPath, payload.command, ...payload.args], {
-            stdio: 'inherit',
-            cwd: payload.cwd,
-            env: { ...context.env, PYTHONPATH: payload.project_root },
-        });
-
+        void context;
         return {
             weave_id: this.id,
-            status: 'TRANSITIONAL',
-            output: `Legacy command '${payload.command}' dispatched through the runtime adapter.`,
-            metadata: { adapter: 'legacy:python-dispatcher', resolved_path: resolvedPath },
+            status: 'FAILURE',
+            output: '',
+            error: `Legacy dynamic command '${invocation.payload.command}' is permanently decommissioned. Use a registered host skill or bounded kernel tool.`,
+            metadata: {
+                adapter: 'compatibility:dynamic-command-rejected',
+                decommissioned: true,
+                execution_attempted: false,
+            },
         };
     }
 }

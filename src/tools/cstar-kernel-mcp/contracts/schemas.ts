@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const dispatchMetricSchema = z.object({
     name: z.string().min(1).describe('Metric name, e.g. precision, pass_rate, artifact_integrity'),
     threshold: z.string().min(1).describe('Acceptance threshold, e.g. >= 0.95 or zero P1/P2 blockers'),
-    acceptance_rule: z.string().optional().describe('How PMT/CoS should judge this metric'),
+    acceptance_rule: z.string().optional().describe('How CoS or an independent validator should judge this metric'),
     unit: z.string().optional().describe('Metric unit if applicable'),
 });
 
@@ -30,14 +30,36 @@ export const dispatchRetrySchema = z.object({
     spent: z.number().int().min(0).optional().describe('Retries already spent'),
 });
 
+export const tokenPathObservationSchema = z.object({
+    token_path_episode_id: z.string().min(1).optional().describe('Explicit episode/provenance identifier; required for recording'),
+    scenario_class: z.string().min(1).optional().describe('Measured scenario class; required for recording'),
+    selected_policy: z.string().min(1).optional().describe('Policy under observation; required for recording'),
+    advised_mode: z.string().min(1).optional().describe('Advisor mode under observation; required for recording'),
+    observed_raw_tokens_episode: z.number().int().min(0).optional().describe('Measured raw token count; required for recording'),
+    observed_billable_tokens_episode: z.number().int().min(0).optional().describe('Measured billable token count; required for recording'),
+    rounds: z.number().int().positive().optional().describe('Measured execution rounds; required for recording'),
+    verification_result: z.enum(['pass', 'fail', 'not-run', 'unknown']).optional().describe('Explicit verification result; required for recording'),
+    terminal_outcome: z.enum([
+        'verified-success',
+        'completed-unverified',
+        'needs-followup',
+        'deferred',
+        'failed',
+        'unknown',
+    ]).optional().describe('Explicit terminal outcome; required for recording'),
+    notes: z.string().optional(),
+}).strict().describe('Explicit measured TokenPath observation. Sparse, contradictory, or caller-derived actual_* fields are skipped without failing the validation result.');
+
 export const dispatchRequestSchema = {
     bead_id: z.string().optional().describe('CStar bead id anchoring the request'),
     decision_id: z.string().optional().describe('Decision id; generated if absent and bead_id is present'),
-    owner_pmt_thread_id: z.string().min(1).describe('Pinned PMT thread that owns review/package state'),
+    state_update_thread_id: z.string().min(1).optional().describe('Optional project information-repository thread for bounded context reads and state-update packets; grants no authority'),
+    owner_pmt_thread_id: z.string().min(1).optional().describe('Deprecated compatibility alias for state_update_thread_id; grants no ownership or review authority'),
     source_callback_thread_id: z.string().min(1).describe('Thread that must receive the compact callback packet'),
     objective: z.string().min(1).describe('Bounded work objective'),
     prompt: z.string().optional().describe('Prompt/mission text for the authorized surface'),
     target_paths: z.array(z.string()).optional().describe('Bounded target files/repos/paths'),
+    required_output_paths: z.array(z.string()).optional().describe('Exact files the Forge worker must deliver; each must be contained by an explicit target and covered by operator authorization before project_files live execution'),
     system_under_test: z.string().optional().describe('System under test when relevant'),
     scope: z.string().min(1).describe('Scope boundary and project/spoke context'),
     authority_lane: z.enum(['green', 'yellow', 'red']).describe('Authority/risk lane'),
@@ -53,12 +75,19 @@ export const dispatchRequestSchema = {
     dispatch_surface_ref: z.string().optional().describe('Optional explicit authorized surface path; missing paths fail closed'),
 };
 
+export const forgeRequestSchema = {
+    ...dispatchRequestSchema,
+    execution_adapter_ref: z.string().optional().describe('Requested registered Forge/Hermes/MiniMax adapter; required for live authorization'),
+};
+
 export const forgeExecuteSchema = {
     ...dispatchRequestSchema,
     forge_request_receipt_id: z.string().min(1).describe('Receipt id returned by cstar_forge_request; must start with dispatch-forge-'),
     forge_request_decision_id: z.string().min(1).describe('Decision id from the cstar_forge_request receipt'),
     forge_request_bead_id: z.string().optional().describe('Bead id from the cstar_forge_request receipt; must match bead_id when both are supplied'),
-    execution_mode: z.enum(['no_op', 'live_authorized']).describe('no_op validates the execution contract without live spend; live_authorized invokes an approved adapter after all gates pass'),
+    execution_mode: z.enum(['no_op', 'live_authorized']).describe('no_op validates without live spend; live_authorized requires a durable exact request and request-bound one-shot operator attestation'),
     execution_adapter_ref: z.string().optional().describe('Explicit approved Forge/Hermes/MiniMax adapter reference; unregistered adapters fail closed'),
-    operator_authorization_ref: z.string().optional().describe('Explicit operator approval reference required for live Forge execution'),
+    operator_authorization_ref: z.string().optional().describe('Request-bound operator attestation reference; a nonempty string alone is not authority'),
+    idempotency_key: z.string().min(1).describe('Caller-stable key for this exact execution attempt; replays never invoke the adapter twice'),
+    retry_of_attempt_id: z.string().optional().describe('Required only for an authorized retry of a FAILED_RETRYABLE attempt'),
 };

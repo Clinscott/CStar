@@ -1,67 +1,49 @@
-import { StateRegistry, BlackboardEntry } from './state.js';
-import { requestHostText } from '../../core/host_intelligence.js';
-import { registry } from '../../tools/pennyone/pathRegistry.js';
+import { createHash } from 'node:crypto';
+
+import { StateRegistry, type BlackboardEntry } from './state.js';
 
 export const blackboardManagerDeps = {
     stateRegistry: StateRegistry,
-    registry,
-    requestHostText,
 };
 
-/**
- * [🔱] BLACKBOARD MANAGER
- * Purpose: Manage shared state endurance through periodic compaction.
- * Standard: Linscott Protocol (Memory Tiering).
- */
+/** Deterministic, non-model compaction for the volatile operator blackboard. */
 export class BlackboardManager {
-    /**
-     * Compacts the blackboard if it exceeds a certain threshold.
-     * Rolls up old entries into a single "Battle Summary" engram.
-     */
+    private static compacting = false;
+
     public static async compactIfNecessary(): Promise<void> {
-        const { stateRegistry, registry, requestHostText } = blackboardManagerDeps;
-        const state = stateRegistry.get();
-        const blackboard = state.blackboard || [];
+        if (this.compacting) return;
+        this.compacting = true;
 
-        // Threshold: 20 entries. If more, compact the oldest 15.
-        if (blackboard.length < 20) {
-            return;
-        }
-
-        const toCompact = blackboard.slice(0, 15);
-        const remaining = blackboard.slice(15);
-
+        const { stateRegistry } = blackboardManagerDeps;
         try {
-            const workspaceRoot = registry.getRoot();
-            const summaryPrompt = [
-                'You are the War Room Witness.',
-                'Summarize the following sequence of agent handoffs and events into a single tactical "Episodic Memory" engram.',
-                'Focus on key findings, state changes, and current blockers.',
-                '',
-                'EVENTS TO COMPACT:',
-                JSON.stringify(toCompact, null, 2)
-            ].join('\n');
+            const state = stateRegistry.get();
+            const blackboard = state.blackboard || [];
+            if (blackboard.length < 20) return;
 
-            const result = await requestHostText({
-                prompt: summaryPrompt,
-                systemPrompt: 'Keep summaries concise and tactical.',
-                projectRoot: workspaceRoot,
-                source: 'war-room:compactor'
-            });
-
+            const toCompact = blackboard.slice(0, 15);
+            const remaining = blackboard.slice(15);
+            const digest = createHash('sha256')
+                .update(JSON.stringify(toCompact))
+                .digest('hex');
+            const firstAt = toCompact.at(0)?.at ?? 0;
+            const lastAt = toCompact.at(-1)?.at ?? firstAt;
             const summaryEntry: BlackboardEntry = {
                 at: Date.now(),
-                from: 'Witness',
-                message: `[COMPACTION] Tactical Summary: ${result.text}`,
-                type: 'INFO'
+                from: 'CStar',
+                message: `[COMPACTION] Rolled up ${toCompact.length} entries; range=${firstAt}-${lastAt}; sha256=${digest}.`,
+                type: 'INFO',
             };
-
-            state.blackboard = [summaryEntry, ...remaining];
-            stateRegistry.save(state);
-
-            stateRegistry.pushTerminalLog('[Witness] Blackboard compaction complete. Old engrams archived.');
-        } catch (err: any) {
-            stateRegistry.pushTerminalLog(`[Witness:ERR] Compaction failed: ${err.message}`);
+            const nextBlackboard = [summaryEntry, ...remaining];
+            stateRegistry.save({ ...state, blackboard: nextBlackboard });
+            state.blackboard = nextBlackboard;
+            stateRegistry.pushTerminalLog(
+                '[CStar] Blackboard compacted deterministically; no model or external lane was invoked.',
+            );
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            stateRegistry.pushTerminalLog(`[CStar:ERR] Blackboard compaction failed: ${message}`);
+        } finally {
+            this.compacting = false;
         }
     }
 }

@@ -113,6 +113,9 @@ export async function handleSkillInfo({ id, spoke }: { id: string; spoke?: strin
 
         // Hub skill: delegate to the existing capability discovery path.
         const payload = buildCapabilityInfoPayload(projectRoot, id);
+        if (payload === null) {
+            return textResponse({ error: `hub capability not found: ${id}` }, true);
+        }
         return textResponse(payload);
     } catch (error: any) {
         return textResponse({ error: error.message }, true);

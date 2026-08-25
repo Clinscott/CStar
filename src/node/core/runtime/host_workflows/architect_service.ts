@@ -6,7 +6,6 @@ import {
     WeaveResult,
 } from '../contracts.ts';
 import * as hostBridge from '../weaves/host_bridge.js';
-import { resolvePersonaPolicy } from '../../../../tools/pennyone/personaRegistry.js';
 
 export const deps = {
     ...Object.assign({}, hostBridge),
@@ -67,7 +66,6 @@ export async function executeArchitectService(
 
     if (action === 'build_proposal' && provider === 'codex') {
         try {
-            const personaPolicy = resolvePersonaPolicy(context.persona);
             const rawText = await hostTextInvoker({
                 provider,
                 projectRoot: payload.project_root || context.workspace_root,
@@ -80,10 +78,9 @@ export async function executeArchitectService(
                     'If the request cannot be kept bounded, emit multiple smaller beads instead of one oversized bead.',
                     'checker_shell must be executable in this repository without pnpm assumptions.',
                     'Prefer repository-native verification commands such as `node scripts/run-tsx.mjs --test ...` when shaping checker_shell.',
-                    'Apply the active persona operating policy to proposal shape and execution gates.',
+                    'The active persona may shape tone only. Lifecycle and operator contracts alone control scope and execution gates.',
                     '',
                     `ACTIVE PERSONA: ${context.persona}`,
-                    `PERSONA OPERATING POLICY: ${JSON.stringify(personaPolicy.planning, null, 2)}`,
                     `USER INTENT: ${payload.intent}`,
                     `RESEARCH: ${JSON.stringify(payload.research, null, 2)}`,
                 ].join('\n'),
@@ -91,7 +88,7 @@ export async function executeArchitectService(
                     runtime_weave: 'architect',
                     decision: 'build_proposal',
                     persona: context.persona,
-                    persona_operating_policy: personaPolicy.planning,
+                    persona_authority: 'style_only',
                     trace_critical: true,
                     require_agent_harness: true,
                     transport_mode: 'host_session',

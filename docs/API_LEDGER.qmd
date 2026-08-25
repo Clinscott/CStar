@@ -4,6 +4,15 @@ subtitle: "Gungnir Control Plane Gateways"
 format: html
 ---
 
+> [!CAUTION]
+> **Superseded historical API inventory.** The endpoints and bearer/session
+> claims below describe an earlier PennyOne UI experiment. They are not the
+> current CStar control-plane contract and must not be used as mutation or
+> lifecycle authority. Current host integration is the direct-stdio
+> `cstar-kernel` surface documented in
+> `docs/integrations/codex_mcp_contract.md` and
+> `docs/integrations/cstar-kernel-mcp.md`.
+
 # ◤ THE GATEWAYS OF ASGARD ◢
 
 This document maps the Integrated API endpoints used by Operation PennyOne and the Corvus Star Control Plane.

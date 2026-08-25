@@ -58,15 +58,16 @@ describe('CritiqueWeave parallel focus-area behavior', () => {
         mock.reset();
     });
 
-    it('queues delegated critique requests when a poll bridge is configured', async () => {
-        const savedRequests: Array<Record<string, unknown>> = [];
+    it('fails non-terminal delegated critique instead of enqueueing One Mind work', async () => {
+        const savedBranches: Array<Record<string, unknown>> = [];
         const weave = new CritiqueWeave({} as any);
-        mock.method(deps, 'resolveConfiguredDelegatePollBridge', () => ({
-            command: 'delegate-poll',
-            args: ['--handle', '{handle_id}', '--result', '{result_path}'],
+        mock.method(deps, 'requestHostDelegatedExecution', async () => ({
+            handle_id: 'retired-async-handle',
+            provider: 'codex',
+            status: 'running',
         }));
-        mock.method(deps, 'saveHallOneMindRequest', (record: Record<string, unknown>) => {
-            savedRequests.push(record);
+        mock.method(deps, 'saveHallOneMindBranch', (record: Record<string, unknown>) => {
+            savedBranches.push(record);
         });
 
         const result = await weave.execute(
@@ -89,22 +90,29 @@ describe('CritiqueWeave parallel focus-area behavior', () => {
             } as any,
         );
 
-        assert.equal(result.status, 'TRANSITIONAL');
-        assert.equal(savedRequests.length, 2);
-        assert.equal(savedRequests[0]?.metadata?.activation_id, 'activation:critique:1');
-        assert.equal(savedRequests[0]?.metadata?.branch_group_id, 'critique:trace-critique-queued');
+        assert.equal(result.status, 'FAILURE');
+        assert.match(result.error ?? '', /non-terminal status 'running'/i);
+        assert.equal(savedBranches.length, 2);
+        assert.equal(savedBranches[0]?.status, 'FAILED');
         mock.reset();
     });
 
     it('defaults critique to named council experts', async () => {
-        const savedRequests: Array<Record<string, unknown>> = [];
+        const capturedRequests: Array<Record<string, unknown>> = [];
         const weave = new CritiqueWeave({} as any);
-        mock.method(deps, 'resolveConfiguredDelegatePollBridge', () => ({
-            command: 'delegate-poll',
-            args: ['--handle', '{handle_id}', '--result', '{result_path}'],
-        }));
-        mock.method(deps, 'saveHallOneMindRequest', (record: Record<string, unknown>) => {
-            savedRequests.push(record);
+        mock.method(deps, 'requestHostDelegatedExecution', async (request: Record<string, unknown>) => {
+            capturedRequests.push(request);
+            return {
+                handle_id: `delegate-${capturedRequests.length}`,
+                provider: 'codex',
+                status: 'completed',
+                raw_text: JSON.stringify({
+                    needs_revision: false,
+                    critique: 'Bounded critique.',
+                    evidence_source: 'repo:test',
+                    proposed_path: 'src/example.ts',
+                }),
+            };
         });
 
         const result = await weave.execute(
@@ -126,13 +134,13 @@ describe('CritiqueWeave parallel focus-area behavior', () => {
             } as any,
         );
 
-        assert.equal(result.status, 'TRANSITIONAL');
-        assert.equal(savedRequests.length, 5);
-        assert.equal(savedRequests[0]?.metadata?.branch_label, 'TORVALDS');
-        assert.equal(savedRequests[0]?.metadata?.subagent_profile, 'torvalds');
-        assert.match(String(savedRequests[1]?.prompt ?? ''), /KARPATHY/);
-        assert.match(String(savedRequests[1]?.prompt ?? ''), /Anti-Behavior:/);
-        assert.match(String(savedRequests[1]?.prompt ?? ''), /Root Persona Overlay:/);
+        assert.equal(result.status, 'SUCCESS');
+        assert.equal(capturedRequests.length, 5);
+        assert.equal(capturedRequests[0]?.subagent_profile, 'torvalds');
+        assert.match(String(capturedRequests[1]?.prompt ?? ''), /KARPATHY/);
+        assert.match(String(capturedRequests[1]?.prompt ?? ''), /Anti-Behavior:/);
+        assert.match(String(capturedRequests[1]?.prompt ?? ''), /Critique Instruction:/);
+        assert.doesNotMatch(String(capturedRequests[1]?.prompt ?? ''), /Root Persona Overlay:/);
         mock.reset();
     });
 });

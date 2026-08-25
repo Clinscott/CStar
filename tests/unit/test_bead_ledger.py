@@ -182,6 +182,40 @@ def test_bead_ledger_triages_contractless_or_synthetic_contract_beads(tmp_path):
     assert ledger.peek_next_bead() is None
 
 
+def test_concurrent_fresh_hall_bootstrap_serializes_schema_and_projection(tmp_path):
+    barrier = threading.Barrier(4, timeout=5)
+    repo_ids: list[str] = []
+    errors: list[BaseException] = []
+
+    def runner() -> None:
+        try:
+            barrier.wait()
+            repo_ids.append(HallOfRecords(tmp_path).bootstrap_repository().repo_id)
+        except BaseException as exc:
+            errors.append(exc)
+
+    threads = [threading.Thread(target=runner) for _ in range(4)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(timeout=15)
+
+    assert all(not thread.is_alive() for thread in threads), "Concurrent Hall bootstrap threads must not hang"
+    assert errors == []
+    assert len(repo_ids) == 4
+    assert len(set(repo_ids)) == 1
+
+    hall = HallOfRecords(tmp_path)
+    with hall.connect() as conn:
+        projection = conn.execute(
+            "SELECT repo_id, open_beads, validation_runs FROM hall_repository_projection"
+        ).fetchone()
+    assert projection is not None
+    assert projection["repo_id"] == repo_ids[0]
+    assert projection["open_beads"] == 0
+    assert projection["validation_runs"] == 0
+
+
 def test_claim_next_bead_is_atomic_under_concurrent_agents(tmp_path):
     seed_hall(tmp_path)
     ledger = BeadLedger(tmp_path)
@@ -224,6 +258,14 @@ def test_claim_next_bead_is_atomic_under_concurrent_agents(tmp_path):
     assert materialized is not None
     assert materialized.status == "IN_PROGRESS"
     assert materialized.assigned_agent in {"RAVEN-A", "RAVEN-B"}
+
+    with ledger.connect() as conn:
+        projection = conn.execute(
+            "SELECT open_beads FROM hall_repository_projection WHERE repo_id = ?",
+            (ledger.repository.repo_id,),
+        ).fetchone()
+    assert projection is not None
+    assert projection["open_beads"] == 1
 
 
 def test_claim_next_bead_prioritizes_set_gate_work(tmp_path):

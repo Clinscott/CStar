@@ -5,7 +5,7 @@ import {
     os,
     path,
     validForgeExecuteRequest,
-    handleForgeExecute,
+    invokeForgeAdapterForTest,
 } from './shared_test_setup.js';
 
 describe('CStar MCP Forge adapter project-root inference', () => {
@@ -33,9 +33,10 @@ describe('CStar MCP Forge adapter project-root inference', () => {
         process.env.CSTAR_FORGE_WORKER_MODEL_RESPONSE = modelResponse;
         const artifactRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'fake-forge-artifacts-'));
         process.env.CSTAR_FORGE_EXECUTION_ARTIFACT_ROOT = artifactRoot;
-        const result = await handleForgeExecute(validForgeExecuteRequest({
+        const result = await invokeForgeAdapterForTest(validForgeExecuteRequest({
             objective: 'Build bounded Python Researcher skill module through the Forge worker adapter',
             target_paths: [runnerPath, testsDir, toolsDir],
+            required_output_paths: [path.join(toolsDir, 'generated_skill_module.py')],
             requested_actions: ['build reusable Python module'],
             artifact_expectations: ['changed source file'],
             execution_adapter_ref: 'cstar-forge-edit-files',
@@ -66,7 +67,8 @@ describe('CStar MCP Forge adapter project-root inference', () => {
             status: 'success',
             summary: 'Applied explicit external target root write.',
             files: [
-                { path: generatedSkillPath, content: 'PIPELINE_VERSION = "test"\n' },
+                { path: path.relative(estateRoot, generatedSkillPath).split(path.sep).join('/'),
+                    content: 'PIPELINE_VERSION = "test"\n' },
             ],
             artifacts: {},
             validation: { mixed_roots: 'pass' },
@@ -77,9 +79,10 @@ describe('CStar MCP Forge adapter project-root inference', () => {
         process.env.CSTAR_FORGE_WORKER_MODEL_RESPONSE = modelResponse;
         const artifactRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'fake-forge-artifacts-'));
         process.env.CSTAR_FORGE_EXECUTION_ARTIFACT_ROOT = artifactRoot;
-        const result = await handleForgeExecute(validForgeExecuteRequest({
+        const result = await invokeForgeAdapterForTest(validForgeExecuteRequest({
             objective: 'Refactor Researcher skill files through the Forge worker adapter',
             target_paths: [skillModuleDir, corvusEyeRoot],
+            required_output_paths: [generatedSkillPath],
             requested_actions: ['build reusable Researcher skill module'],
             artifact_expectations: ['changed source file'],
             execution_adapter_ref: 'cstar-forge-edit-files',
@@ -96,7 +99,7 @@ describe('CStar MCP Forge adapter project-root inference', () => {
         assert.strictEqual(fs.readFileSync(generatedSkillPath, 'utf-8'), 'PIPELINE_VERSION = "test"\n');
     });
 
-    it('treats missing extensionless target paths as future directory roots', async () => {
+    it('does not guess that a missing extensionless target is a directory root', async () => {
         const estateRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-worker-estate-'));
         const futureSkillsRoot = path.join(estateRoot, 'research-vault', 'skills');
         const generatedSkillPath = path.join(futureSkillsRoot, 'researcher-metric-category-auditor', 'SKILL.md');
@@ -116,21 +119,14 @@ describe('CStar MCP Forge adapter project-root inference', () => {
         process.env.CSTAR_FORGE_WORKER_MODEL_RESPONSE = modelResponse;
         const artifactRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'fake-forge-artifacts-'));
         process.env.CSTAR_FORGE_EXECUTION_ARTIFACT_ROOT = artifactRoot;
-        const result = await handleForgeExecute(validForgeExecuteRequest({
+        await assert.rejects(() => invokeForgeAdapterForTest(validForgeExecuteRequest({
             objective: 'Build new reusable Researcher metric category audit skill through the Forge worker adapter',
-            target_paths: [futureSkillsRoot],
+            target_paths: [futureSkillsRoot], required_output_paths: [generatedSkillPath],
             requested_actions: ['build reusable skill package'],
             artifact_expectations: ['changed skill files'],
             execution_adapter_ref: 'cstar-forge-hermes-minimax-worker-adapter',
-            callback_contract: {
-                expected_packet: 'TEST_FORGE_FUTURE_ROOT_PACKET',
-                callback_required: true,
-            },
-        }));
-        assert.ok(result.content);
-        const parsed = JSON.parse(result.content[0].text);
-        assert.strictEqual(parsed.status, 'executed');
-        assert.strictEqual(parsed.forge_execution.fail_closed_reason, null);
-        assert.strictEqual(fs.readFileSync(generatedSkillPath, 'utf-8'), '# Skill\n');
+            callback_contract: { expected_packet: 'TEST_FORGE_FUTURE_ROOT_PACKET', callback_required: true },
+        })), /forge_containment_writable_path_unavailable/);
+        assert.strictEqual(fs.existsSync(generatedSkillPath), false);
     });
 });

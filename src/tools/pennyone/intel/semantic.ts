@@ -1,8 +1,13 @@
 import { getParser, TreeSitter } from  '../parser.js';
 import { crawlRepository } from  '../crawler.js';
-import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createRequire } from 'node:module';
+import {
+    preflightPennyOneFiles,
+    readBoundedPennyOneSource,
+    resolvePennyOneResourceLimits,
+    type PennyOneResourceLimits,
+} from '../resource_limits.js';
 
 const require = createRequire(import.meta.url);
 const { UndirectedGraph } = require('graphology') as { UndirectedGraph: new () => any };
@@ -31,13 +36,17 @@ export interface SemanticFileResult {
 export class SemanticIndexer {
     private root: string;
     private symbolRegistry: Map<string, Set<string>> = new Map();
+    private readonly limits: PennyOneResourceLimits;
 
-    constructor(root: string) {
+    constructor(root: string, requestedLimits: Partial<PennyOneResourceLimits> = {}) {
         this.root = path.resolve(root);
+        this.limits = resolvePennyOneResourceLimits(requestedLimits);
     }
 
     public async index(manualFiles?: string[]) {
-        const files = manualFiles || await crawlRepository(this.root);
+        const files = manualFiles || await crawlRepository(this.root, this.limits.max_files + 1);
+        await preflightPennyOneFiles(files, this.limits);
+        this.symbolRegistry.clear();
         const results: SemanticFileResult[] = [];
 
         // 1. DEFINITIONS
@@ -97,7 +106,7 @@ export class SemanticIndexer {
         const absPath = path.resolve(filepath);
         let code = '';
         try {
-            code = await fs.readFile(absPath, 'utf-8');
+            code = await readBoundedPennyOneSource(absPath, this.limits.max_file_bytes);
         } catch { return null; }
 
         const { parser, lang, languageName } = await getParser(absPath);
@@ -143,7 +152,7 @@ export class SemanticIndexer {
         const absPath = path.resolve(filepath);
         let code = '';
         try {
-            code = await fs.readFile(absPath, 'utf-8');
+            code = await readBoundedPennyOneSource(absPath, this.limits.max_file_bytes);
         } catch { return []; }
 
         const { parser, lang, languageName } = await getParser(absPath);
@@ -181,7 +190,7 @@ export class SemanticIndexer {
 
     private async analyzeSemantically(filepath: string) {
         const absPath = path.resolve(filepath);
-        const code = await fs.readFile(absPath, 'utf-8');
+        const code = await readBoundedPennyOneSource(absPath, this.limits.max_file_bytes);
         const { parser } = await getParser(absPath);
         const tree = parser.parse(code);
 

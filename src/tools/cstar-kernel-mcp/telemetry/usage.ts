@@ -4,6 +4,7 @@ import { buildHallRepositoryId, normalizeHallPath } from '../../../types/hall.js
 import { registry } from '../../pennyone/pathRegistry.js';
 import { database } from '../../pennyone/intel/database.js';
 import type { McpTextResponse } from '../contracts/responses.js';
+import type { McpRequestContext } from '../contracts/request_context.js';
 import { PROJECT_ROOT } from '../contracts/runtime.js';
 
 const MCP_USAGE_STATE_RELATIVE_PATH = path.join('.agents', 'state', 'cstar-kernel-mcp-usage.jsonl');
@@ -331,7 +332,8 @@ export function deriveMcpUsefulnessEvent(
         event.outcome_kind = payload?.error ? 'validation_error' : 'validation_recorded';
         event.bead_id = typeof payload?.bead_id === 'string' ? payload.bead_id : event.bead_id;
         event.verdict = typeof payload?.verdict === 'string' ? payload.verdict : undefined;
-        event.validation_recorded = payload?.status === 'recorded';
+        event.validation_recorded = payload?.validation_persisted === true
+            || ['recorded', 'recorded_verified', 'recorded_unverified'].includes(String(payload?.status ?? ''));
         event.token_path_observation_recorded = typeof payload?.token_path_observation_id === 'string';
         event.token_path_episode_id = typeof payload?.token_path_episode_id === 'string' ? payload.token_path_episode_id : undefined;
     } else if (base.tool === 'cstar_researcher_request' || base.tool === 'cstar_forge_request') {
@@ -344,13 +346,13 @@ export function deriveMcpUsefulnessEvent(
 
 export function instrumentTool<TArgs>(
     toolName: string,
-    handler: (args: TArgs) => Promise<McpTextResponse>,
+    handler: (args: TArgs, context?: McpRequestContext) => Promise<McpTextResponse>,
 ) {
-    return async (args: TArgs) => {
+    return async (args: TArgs, context?: McpRequestContext) => {
         const startedAt = Date.now();
         const root = resolveTelemetryRoot();
         try {
-            const result = await handler(args);
+            const result = await handler(args, context);
             const usageEvent = { ts: new Date(startedAt).toISOString(), tool: toolName, ok: result.isError !== true, duration_ms: Date.now() - startedAt, root };
             appendMcpUsageEvent(usageEvent);
             appendMcpUsefulnessEvent({

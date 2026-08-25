@@ -32,6 +32,16 @@ export interface IntelligenceTrace {
     correlation_id: string;
     transport_mode: Exclude<IntelligenceTransportMode, 'auto'>;
     cached?: boolean;
+    execution_identity?: IntelligenceExecutionIdentity;
+}
+
+export interface IntelligenceExecutionIdentity {
+    provider: string | null;
+    requested_model: string | null;
+    actual_model: string | null;
+    model_source: 'host_reported' | 'unreported';
+    adapter_version: string | null;
+    reasoning_profile: string | null;
 }
 
 export interface IntelligenceResponse {
@@ -104,6 +114,7 @@ export function buildIntelligenceSuccess(
     rawText: string,
     transportMode: Exclude<IntelligenceTransportMode, 'auto'>,
     cached = false,
+    executionIdentity?: IntelligenceExecutionIdentity,
 ): IntelligenceResponse {
     return {
         status: 'success',
@@ -113,6 +124,7 @@ export function buildIntelligenceSuccess(
             correlation_id: request.correlation_id,
             transport_mode: transportMode,
             cached,
+            ...(executionIdentity ? { execution_identity: executionIdentity } : {}),
         },
     };
 }
@@ -121,6 +133,7 @@ export function buildIntelligenceError(
     request: NormalizedIntelligenceRequest,
     error: string,
     transportMode: Exclude<IntelligenceTransportMode, 'auto'>,
+    executionIdentity?: IntelligenceExecutionIdentity,
 ): IntelligenceResponse {
     return {
         status: 'error',
@@ -128,6 +141,7 @@ export function buildIntelligenceError(
         trace: {
             correlation_id: request.correlation_id,
             transport_mode: transportMode,
+            ...(executionIdentity ? { execution_identity: executionIdentity } : {}),
         },
     };
 }

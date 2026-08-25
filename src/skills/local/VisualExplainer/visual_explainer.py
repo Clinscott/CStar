@@ -10,15 +10,6 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-# [ALFRED] Ensure environment is loaded
-try:
-    project_root = Path(__file__).resolve().parents[4]
-    sys.path.append(str(project_root))
-    from src.core.bootstrap import SovereignBootstrap
-    SovereignBootstrap.execute()
-except (ImportError, ValueError, IndexError):
-    pass
-
 from src.core.sovereign_hud import SovereignHUD
 
 

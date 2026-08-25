@@ -1,45 +1,81 @@
-# 🔱 THE HANDOFF BOOTLOADER: FOR FRESH AGENT CONTEXTS
+# CStar Handoff for Fresh Host Contexts
 
-> **ROLE:** The One Mind Entry Point  
-> **PURPOSE:** Immediately orient a fresh agent context within the Corvus Star Framework.
+## Authority First
 
----
+Read the global Corvus invariants and the nearest repository `AGENTS.md`, then
+only the canonical runbook needed for the task.
 
-## 🚀 START HERE (The Initial Augury)
-If you have just awakened in this repository, follow these steps in order:
+Authority order is:
 
-1.  **READ `AGENTS.qmd`**: This is the Supreme Directive. It defines your hierarchy of power (Skills, Weaves, Spells).
-2.  **READ `NEXT_SESSION_AUGURY.md` IF RESUMING AUGURY WORK**: This is the current runway marker for the next Augury usefulness pass.
-3.  **READ `docs/augury-operator-handoff.md`**: This defines the Corvus Star Augury command order and field meanings.
-4.  **READ `THE_PACT.qmd`**: This defines your persona and synergy protocol.
-5.  **EXECUTE `cstar status`**: This synchronizes your internal state with the physical estate.
-6.  **TREAT PROSE AS DESCRIPTIVE**: If a document disagrees with `.agents/skill_registry.json` or runtime contracts, the registry/runtime wins.
+1. platform and operator safety;
+2. the operator's current explicit grants;
+3. global Corvus invariants;
+4. nearest repository policy and canonical runbooks; and
+5. current CStar lifecycle state within those gates.
 
----
+Registries and tool schemas declare capability. Observed runtime is evidence.
+Neither overrides higher authority; conflicts fail closed and become repair
+items.
 
-## 🛠️ THE API HIERARCHY
-The framework uses three primary execution tiers plus one governance tier. To fulfill any prompt, perform an **Augury Selection** and then verify the registry classification before assuming execution semantics.
+## Bounded Startup
 
-### 1. TIER 1: SKILLS (Atomic)
-- **Location**: `.agents/skills/<name>/SKILL.md`
-- **Use for**: Simple, direct operations (Read, Write, Score).
+Run only the checks needed for the present situation:
 
-### 2. TIER 2: WEAVES (Intentional)
-- **Location**: `.agents/weaves/<name>.md` or `src/node/core/runtime/weaves/`
-- **Use for**: Linear chains of skills to achieve a technical mission.
+- `cstar_doctor` when kernel health is unknown or currently degraded;
+- `cstar_handoff` when resuming prior work;
+- `cstar_augury` when route or material scope is ambiguous; and
+- at most one broad `cstar_hall_search` when discovery genuinely requires it,
+  then narrow by bead id, path, or exact error.
 
-### 3. TIER 3: SPELLS (Recursive)
-- **Location**: `.agents/spells/<name>.md`
-- **Use for**: Governance policies and recursive feedback guidance.
-- **Execution Note**: Do not assume a spell is directly executable. Confirm whether it is `runtime-backed`, `policy-only`, or `deprecated` in the registry first.
+These are not per-prompt rituals. Reuse fresh state that matches the mission.
 
----
+## Resume Packet
 
-## 🔱 THE STERLING VERIFICATION
-Every action you take must satisfy the Triad:
-*   **Lore**: Gherkin behavioral specs.
-*   **Isolation**: 1:1 mocked unit tests.
-*   **Audit**: Gungnir Score [Ω] improvement.
+Carry forward only:
 
----
-> "Synergy is the blood of the Totem. Welcome to the One Mind."
+- lead bead/decision and lifecycle status;
+- current authority lane and remaining operator gates;
+- bounded target paths and exact-head/package locks;
+- next action and focused checker commands;
+- Forge/Researcher lane state and information-repository update status; and
+- material artifact, request, attempt, and validation identifiers/hashes.
+
+Historical logs, engrams, metadata, dashboards, Mongo, and model prose are
+leads or mirrors, not current authority.
+
+## Routing
+
+- CoS owns bounded Green/Yellow execution, evidence packaging, and closeout.
+- Forge builds through the durable CStar request/execute path.
+- Researcher gathers evidence through authorized source lanes.
+- PMTs are project-scoped information repositories only. Query the mapped PMT
+  when active targets are inside its project, then send it a bounded update
+  after meaningful work. Do not query unrelated PMTs; unavailability is a
+  freshness gap, and PMTs grant no authority.
+- MM is legacy and has no active routing role; CoS handles estate sequencing.
+- CorvusEye evaluates and red-teams when independent review is needed.
+- Codex subagents may analyze or review; they do not replace Forge.
+
+Public AutoBot delegation and the CStar TCP daemon are retired.
+
+## Verification
+
+Verify changed behavior in the repository that changed. Use current source,
+runtime, lifecycle, and focused test evidence together. A package, callback,
+worker claim, successful handshake, or dashboard row is not proof of completion
+by itself.
+
+Never invent Gungnir, confidence, or quality scores. A numeric score requires a
+real scorer, nonzero denominator, formula, exclusion accounting, class
+coverage, row evidence, and an independent probe. Keep development proof
+separate from production or locked-holdout readiness.
+
+## Gates
+
+Do not automatically spend beyond the accepted request, collect live sources,
+run locked holdout, claim production readiness, merge, push, deploy, restart,
+mutate secrets/configuration, destructively clean, or expand across spokes.
+Represent the gate in CStar and return it to the operator.
+
+Persona shapes tone and domain emphasis only. Augury and Council are advisory.
+TokenPath is quarantined and performs no steering or observation writes.

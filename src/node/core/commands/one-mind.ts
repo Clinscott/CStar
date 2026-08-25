@@ -1,11 +1,10 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 
-import { isHostSessionActive, resolveHostProvider } from '../../../core/host_session.js';
 import { listHallAgentPresence, listHallCoordinationEvents, listHallPlanningSessions } from '../../../tools/pennyone/intel/database.js';
 import { formatPlanningSessionSummary } from '../operator_resume.js';
-import { ensureOneMindBroker, getOneMindBrokerStatus, stopOneMindBroker } from '../one_mind_broker/manager.js';
-import { fulfillNextOneMindRequest, fulfillOneMindRequestById, getOneMindQueueSummary, seedHallBrokerIfMissing } from '../one_mind_broker/fulfillment.js';
+import { getOneMindBrokerStatus } from '../one_mind_broker/manager.js';
+import { fulfillNextOneMindRequest, fulfillOneMindRequestById, getOneMindQueueSummary } from '../one_mind_broker/fulfillment.js';
 import { resolveWorkspaceRoot, type WorkspaceRootSource } from '../runtime/invocation.js';
 import { type HallAgentPresenceRecord, type HallCoordinationEventRecord } from '../../../types/hall.js';
 
@@ -64,10 +63,6 @@ function renderPlanningStatus(rootPath: string): void {
         return;
     }
     console.log(chalk.dim(`planning=${summary}`));
-}
-
-function sleep(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export function buildOneMindStatusPayload(
@@ -130,7 +125,7 @@ export function registerOneMindCommand(
 ): void {
     const command = program
         .command('one-mind')
-        .description('Inspect or manage the Hall-backed One Mind broker state');
+        .description('Inspect retired One Mind Hall history (read-only)');
 
     command
         .command('agents')
@@ -190,7 +185,6 @@ export function registerOneMindCommand(
         .option('--json', 'Emit machine-readable JSON instead of formatted text')
         .action(async (options: { json?: boolean }) => {
             const rootPath = resolveWorkspaceRoot(workspaceRootSource);
-            seedHallBrokerIfMissing(rootPath, process.env);
             const status = await getOneMindBrokerStatus(rootPath);
             if (options.json) {
                 process.stdout.write(`${JSON.stringify(buildOneMindStatusPayload(status, rootPath), null, 2)}\n`);
@@ -204,34 +198,21 @@ export function registerOneMindCommand(
 
     command
         .command('start')
-        .description('Register broker readiness in Hall for the current workspace')
+        .description('Retired compatibility command; never starts or mutates One Mind')
         .option('--silent', 'Suppress command chatter')
-        .action(async (options: { silent?: boolean }) => {
-            const rootPath = resolveWorkspaceRoot(workspaceRootSource);
-            const hostActive = isHostSessionActive(process.env);
-            const provider = resolveHostProvider(process.env);
-            const status = await ensureOneMindBroker(rootPath, {
-                ...process.env,
-                CORVUS_HOST_PROVIDER: process.env.CORVUS_HOST_PROVIDER ?? provider ?? undefined,
-            });
-
+        .action((options: { silent?: boolean }) => {
             if (!options.silent) {
-                console.log(chalk.green(`[ALFRED]: "One Mind broker ${status.running ? 'active' : 'unavailable'}."`));
-                console.log(chalk.dim(`host_session=${hostActive} provider=${provider ?? 'none'} fulfillment_ready=${status.fulfillmentReady}`));
-                renderStatus(status);
+                console.error(chalk.red('[ALFRED]: "One Mind is retired and read-only; no broker was started."'));
             }
+            process.exitCode = 1;
         });
 
     command
         .command('stop')
-        .description('Mark the Hall-backed broker offline')
-        .action(async () => {
-            const stopped = await stopOneMindBroker(resolveWorkspaceRoot(workspaceRootSource), process.env);
-            if (stopped) {
-                console.log(chalk.green('[ALFRED]: "One Mind broker marked offline in Hall."'));
-                return;
-            }
-            console.log(chalk.yellow('[ALFRED]: "One Mind broker was already offline."'));
+        .description('Retired compatibility command; never mutates Hall')
+        .action(() => {
+            console.error(chalk.red('[ALFRED]: "One Mind is retired and read-only; Hall was not changed."'));
+            process.exitCode = 1;
         });
 
     command
@@ -245,102 +226,31 @@ export function registerOneMindCommand(
 
     command
         .command('fulfill-next')
-        .description('Claim and fulfill the oldest pending Hall One Mind request')
+        .description('Retired compatibility command; never claims or fulfills a request')
         .action(async () => {
             const rootPath = resolveWorkspaceRoot(workspaceRootSource);
             const result = await fulfillNextOneMindRequest(rootPath, process.env);
-            if (result.outcome === 'idle') {
-                console.log(chalk.yellow('[ALFRED]: "No pending Hall One Mind requests."'));
-                return;
-            }
-            if (result.outcome === 'deferred') {
-                console.log(chalk.yellow(`[ALFRED]: "One Mind request ${result.requestId} remains in flight."`));
-                return;
-            }
-            if (result.outcome === 'failed') {
-                const target = result.requestId ? ` for ${result.requestId}` : '';
-                console.error(chalk.red(`[ALFRED]: "One Mind fulfillment failed${target}: ${result.error}"`));
-                process.exit(1);
-            }
-            console.log(chalk.green(`[ALFRED]: "One Mind fulfilled ${result.requestId}."`));
+            console.error(chalk.red(`[ALFRED]: "${result.error}"`));
+            process.exitCode = 1;
         });
 
     command
         .command('fulfill <requestId>')
-        .description('Fulfill a specific Hall One Mind request by request id')
+        .description('Retired compatibility command; never fulfills a request')
         .action(async (requestId: string) => {
             const rootPath = resolveWorkspaceRoot(workspaceRootSource);
             const result = await fulfillOneMindRequestById(rootPath, requestId, process.env);
-            if (result.outcome === 'failed') {
-                console.error(chalk.red(`[ALFRED]: "One Mind fulfillment failed for ${requestId}: ${result.error}"`));
-                process.exit(1);
-            }
-            if (result.outcome === 'deferred') {
-                console.log(chalk.yellow(`[ALFRED]: "One Mind request ${requestId} remains in flight."`));
-                return;
-            }
-            if (result.outcome === 'idle') {
-                console.log(chalk.yellow('[ALFRED]: "No pending Hall One Mind requests."'));
-                return;
-            }
-            console.log(chalk.green(`[ALFRED]: "One Mind fulfilled ${requestId}."`));
+            console.error(chalk.red(`[ALFRED]: "${result.error}"`));
+            process.exitCode = 1;
         });
 
     command
         .command('serve')
-        .description('Continuously fulfill pending Hall One Mind requests until interrupted')
+        .description('Retired compatibility command; never polls or fulfills requests')
         .option('--poll-ms <ms>', 'Polling interval while idle', '1000')
         .option('--idle-exit-ms <ms>', 'Exit after remaining idle for this many milliseconds', '0')
-        .action(async (options: { pollMs?: string; idleExitMs?: string }) => {
-            const rootPath = resolveWorkspaceRoot(workspaceRootSource);
-            const pollMs = Math.max(50, Number(options.pollMs ?? '1000') || 1000);
-            const idleExitMs = Math.max(0, Number(options.idleExitMs ?? '0') || 0);
-            let stopping = false;
-            let lastActivityAt = Date.now();
-
-            const stop = (): void => {
-                stopping = true;
-            };
-
-            process.once('SIGINT', stop);
-            process.once('SIGTERM', stop);
-
-            try {
-                seedHallBrokerIfMissing(rootPath, process.env);
-                console.log(chalk.green('[ALFRED]: "One Mind serve loop active."'));
-
-                while (!stopping) {
-                    const result = await fulfillNextOneMindRequest(rootPath, process.env);
-
-                    if (result.outcome === 'fulfilled') {
-                        lastActivityAt = Date.now();
-                        console.log(chalk.green(`[ALFRED]: "One Mind fulfilled ${result.requestId}."`));
-                        continue;
-                    }
-
-                    if (result.outcome === 'deferred') {
-                        lastActivityAt = Date.now();
-                        console.log(chalk.dim(`[ALFRED]: "One Mind request ${result.requestId} is still running."`));
-                        await sleep(pollMs);
-                        continue;
-                    }
-
-                    if (result.outcome === 'failed') {
-                        console.error(chalk.red(`[ALFRED]: "One Mind fulfillment failed${result.requestId ? ` for ${result.requestId}` : ''}: ${result.error}"`));
-                        process.exitCode = 1;
-                        return;
-                    }
-
-                    if (idleExitMs > 0 && (Date.now() - lastActivityAt) >= idleExitMs) {
-                        console.log(chalk.dim('[ALFRED]: "One Mind serve loop exiting after idle timeout."'));
-                        return;
-                    }
-
-                    await sleep(pollMs);
-                }
-            } finally {
-                process.removeListener('SIGINT', stop);
-                process.removeListener('SIGTERM', stop);
-            }
+        .action(() => {
+            console.error(chalk.red('[ALFRED]: "One Mind is retired and read-only; no serve loop was started."'));
+            process.exitCode = 1;
         });
 }

@@ -93,8 +93,13 @@ describe('Council selection — hardening pass', () => {
                     intent_category: category,
                     intent: 'no domain keywords here',
                 });
+                const candidates = scoreCouncilExpertCandidates({
+                    intent_category: category,
+                    intent: 'no domain keywords here',
+                });
                 assert.equal(expert.id, expectedId);
-                assert.ok((expert.selection_score ?? 0) >= 10);
+                assert.ok((candidates[0]?.score ?? 0) >= 10);
+                assert.equal('selection_score' in expert, false);
             });
         }
     });
@@ -114,8 +119,13 @@ describe('Council selection — hardening pass', () => {
                     intent_category: category,
                     intent: 'no domain keywords here',
                 });
+                const candidates = scoreCouncilExpertCandidates({
+                    intent_category: category,
+                    intent: 'no domain keywords here',
+                });
                 assert.equal(expert.id, expectedId);
-                assert.equal(expert.selection_score, 6);
+                assert.equal(candidates[0]?.score, 6);
+                assert.equal('selection_score' in expert, false);
             });
         }
 
@@ -198,8 +208,13 @@ describe('Council selection — hardening pass', () => {
                 intent_category: 'SCORE',
                 intent: 'rate the bead quality',
             });
+            const candidates = scoreCouncilExpertCandidates({
+                intent_category: 'SCORE',
+                intent: 'rate the bead quality',
+            });
             assert.equal(expert.id, 'linscott');
-            assert.ok((expert.selection_score ?? 0) >= 10, `expected strong SCORE→linscott +10, got ${expert.selection_score}`);
+            assert.ok((candidates[0]?.score ?? 0) >= 10, `expected strong SCORE→linscott +10, got ${candidates[0]?.score}`);
+            assert.equal('selection_score' in expert, false);
         });
 
         it('EVOLVE + SPRT keyword still routes to karpathy (strong EVOLVE default wins over linscott specialist)', () => {
@@ -210,9 +225,14 @@ describe('Council selection — hardening pass', () => {
                 intent_category: 'EVOLVE',
                 intent: 'design the SPRT regime for the next Karpathy-loop generation',
             });
+            const candidates = scoreCouncilExpertCandidates({
+                intent_category: 'EVOLVE',
+                intent: 'design the SPRT regime for the next Karpathy-loop generation',
+            });
             assert.equal(expert.id, 'karpathy');
-            // Linscott should still appear as a top candidate.
-            assert.ok(expert.selection_candidates?.some((c) => c.id === 'linscott'));
+            // Linscott remains an internal candidate, but rankings are not published.
+            assert.ok(candidates.some((candidate) => candidate.id === 'linscott'));
+            assert.equal('selection_candidates' in expert, false);
         });
 
         it('linscott signature_question is grounded in SPRT mechanics', () => {

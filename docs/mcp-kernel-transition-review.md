@@ -1,5 +1,9 @@
 # CStar MCP Kernel Transition Review
 
+> **Status: superseded design review.** The current contract is
+> `docs/integrations/cstar-kernel-mcp.md`. This file is historical rationale and
+> grants no authority, tool inventory, startup order, or TokenPath behavior.
+
 ## Verdict
 
 Proceed only if the MCP becomes a tiny kernel server. Scrap the transition if it becomes another host-control layer.
@@ -117,11 +121,11 @@ Output:
 - `expert`
 - `mimir_targets`, max 3
 - `next_action`
-- `confidence`
-- optional `token_path` advice from the AuguryTokenPath sidecar
-- optional `token_path.episode_id` for later outcome correlation
+- `actionable: false`
+- optional TokenPath quarantine status only (`shadow-disabled`, non-actionable)
 
-This may reuse Augury contract logic, but must return compact JSON only. Token Path is intentionally attached here as routing advice, not invoked from every MCP tool.
+Current Augury returns compact typed advice without numeric confidence.
+TokenPath supplies no advice, steering, episode, or observation-write path.
 
 ### `cstar_doctor`
 

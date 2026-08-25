@@ -10,6 +10,8 @@ from typing import Any
 
 from src.core.sovereign_hud import SovereignHUD
 
+DECOMMISSION_MARKER = "DECOMMISSIONED.md"
+
 class VectorIngest:
     def __init__(self, memory_db):
         self.memory_db = memory_db
@@ -24,6 +26,25 @@ class VectorIngest:
             if "metadata" not in s: s["metadata"] = {}
             if "domain" not in s["metadata"]: s["metadata"]["domain"] = domain
         self.memory_db.batch_upsert_skills("system", skills)
+
+    @staticmethod
+    def _is_decommissioned_path(candidate: Path, root: Path) -> bool:
+        """Exclude retired or symlinked entries from semantic skill discovery."""
+        if candidate.name == DECOMMISSION_MARKER or candidate.is_symlink():
+            return True
+        try:
+            relative = candidate.relative_to(root)
+        except ValueError:
+            return True
+
+        current = root
+        if current.is_symlink() or (current / DECOMMISSION_MARKER).exists():
+            return True
+        for part in relative.parts[:-1]:
+            current = current / part
+            if current.is_symlink() or (current / DECOMMISSION_MARKER).exists():
+                return True
+        return False
 
     def load_skills_from_dir(self, directory: str | Path, prefix: str = "") -> None:
         """Walks a directory and loads all .qmd, .md, or .py skills."""
@@ -43,7 +64,11 @@ class VectorIngest:
 
         skills_to_load = []
         for f in path.glob("**/*"):
-            if f.is_file() and f.suffix in [".qmd", ".md", ".py"]:
+            if (
+                not self._is_decommissioned_path(f, path)
+                and f.is_file()
+                and f.suffix in [".qmd", ".md", ".py"]
+            ):
                 # [Ω] SKILL DISCOVERY: Ignore internal files or visualization html
                 if f.name.startswith("__") or f.name == "SKILL.qmd" or f.suffix == ".html":
                     continue

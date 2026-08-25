@@ -42,14 +42,25 @@ import {
 } from './shared_test_setup.js';
 
 describe("CStar MCP promoted spoke and telemetry surfaces", () => {
-    it('cstar_status reports hall_reachable and uptime_seconds', async () => {
+    it('cstar_status separates process uptime from historical awakening age', async () => {
         const result = await handleStatus();
         const parsed = JSON.parse(result.content[0].text);
         assert.strictEqual(typeof parsed.hall_reachable, 'boolean');
         assert.ok(parsed.framework);
-        // uptime_seconds is null when last_awakening is 0; otherwise a number.
-        const uptime = parsed.framework.uptime_seconds;
-        assert.ok(uptime === null || typeof uptime === 'number');
+        assert.strictEqual(parsed.framework.authority, 'compatibility_projection');
+        assert.strictEqual(parsed.framework.current_mission_authority, false);
+        assert.strictEqual(parsed.framework.active_task, null);
+        assert.strictEqual(parsed.framework.mission_id, null);
+        assert.strictEqual(parsed.framework.bead_id, null);
+        assert.strictEqual(parsed.framework.stale_activity_suppressed, true);
+        assert.strictEqual(parsed.framework.baseline_gungnir_score, null);
+        assert.strictEqual(parsed.framework.baseline_gungnir_measurement, 'not_run');
+        assert.strictEqual(parsed.framework.intent_integrity, null);
+        assert.strictEqual(parsed.framework.intent_integrity_measurement, 'not_run');
+        assert.ok(typeof parsed.framework.process_uptime_seconds === 'number');
+        const awakeningAge = parsed.framework.awakening_age_seconds;
+        assert.ok(awakeningAge === null || typeof awakeningAge === 'number');
+        assert.ok(parsed.current_mission === null || parsed.current_mission.authority === 'cstar_lifecycle');
     });
 
     it('cstar_evolve get_proposal rejects path-traversal proposal_id', async () => {
@@ -207,6 +218,7 @@ describe("CStar MCP promoted spoke and telemetry surfaces", () => {
             remote_url: 'https://example.com/repo.git',
             last_scan_at: 1700000000000,
             last_health_at: 1700000005000,
+            last_health_attempt_at: 1700000006000,
             metadata: { accept_beads: true },
         }));
         const result = await handleSpoke({ action: 'list' });
@@ -217,6 +229,8 @@ describe("CStar MCP promoted spoke and telemetry surfaces", () => {
         assert.strictEqual(entry.remote_url, 'https://example.com/repo.git');
         assert.strictEqual(entry.last_scan_at, 1700000000000);
         assert.strictEqual(entry.last_health_at, 1700000005000);
+        assert.strictEqual(entry.last_health_attempt_at, 1700000006000);
+        assert.strictEqual(entry.effective_projection_status, 'stale');
         assert.strictEqual(entry.accept_beads, true);
         assert.strictEqual(entry.hub_repo_id, 'repo:hub');
         assert.strictEqual(entry.spoke_repo_id, 'repo:/tmp/rich-spoke');
@@ -317,13 +331,13 @@ describe("CStar MCP promoted spoke and telemetry surfaces", () => {
         assert.ok(parsed.grammar_source === 'registry' || parsed.grammar_source === 'fallback');
     });
 
-    // ── Phase C: registry-aligned in-code grammar ───────────────
-    it('cstar_intent_route resolves the registry-only triggers (study/harvest/navigate)', async () => {
-        // These triggers were missing from the in-code fallback before Phase C
-        // and would have failed in registry-unreadable environments.
+    // ── Registry-aligned in-code grammar ───────────────────────
+    it('does not route retired lesson-harvest verbs and preserves current observation triggers', async () => {
         const study = JSON.parse((await handleIntentRoute({ prompt: 'study the last engram' })).content[0].text);
-        assert.strictEqual(study.status, 'matched');
-        assert.strictEqual(study.intent_category, 'DOCUMENT');
+        assert.strictEqual(study.status, 'unmatched');
+
+        const harvest = JSON.parse((await handleIntentRoute({ prompt: 'harvest old engrams' })).content[0].text);
+        assert.strictEqual(harvest.status, 'unmatched');
 
         const navigate = JSON.parse((await handleIntentRoute({ prompt: 'navigate to the dashboard' })).content[0].text);
         assert.strictEqual(navigate.status, 'matched');

@@ -6,8 +6,7 @@ from src.core.engine.wardens.security import SecurityWarden
 
 @pytest.fixture
 def warden():
-    with patch("src.core.engine.wardens.base.BraveSearch"):
-        return SecurityWarden(Path("/tmp/root"))
+    return SecurityWarden(Path("/tmp/root"))
 
 def test_scour_raw_env(warden):
     with patch("os.walk") as mock_walk, \

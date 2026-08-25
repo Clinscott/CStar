@@ -18,10 +18,6 @@ const geminiMemoryDir = path.join(os.homedir(), '.gemini', 'tmp', 'corvus', 'mem
 let engravedCount = 0;
 const repoId = `repo:${registry.getRoot()}`;
 
-// Use the script's own location to find the CStar directory robustly
-const __dirname = path.dirname(new URL(import.meta.url).pathname);
-const cstarDir = path.resolve(__dirname, '..');
-
 console.log(`[ALFRED] Engraving sessions for ${repoId}`);
 console.log(`[ALFRED] Using database: ${path.join(registry.getRoot(), '.stats', 'pennyone.db')}`);
 
@@ -182,27 +178,9 @@ async function engraveSessions() {
             engravedCount++;
             console.log(`Engraved Session ${file} -> ${memoryId}`);
 
-            // 1.5. Trigger Lesson Distillation (The Harvester)
-            try {
-                const projectRoot = process.env.CSTAR_LAUNCH_CWD || process.cwd();
-                
-                // We use a separate process to avoid blocking the hook too long.
-                console.log(`[ALFRED] Studying session ${memoryId} for lessons learned...`);
-                
-                // We invoke the cstar binary directly to run the learn command
-                const { spawn } = await import('node:child_process');
-                const cstarBin = path.join(cstarDir, 'bin', 'cstar.js');
-                
-                const distillProc = spawn('node', [cstarBin, 'p1', '--learn', memoryId], {
-                    cwd: projectRoot,
-                    env: { ...process.env, CSTAR_LAUNCH_CWD: projectRoot },
-                    stdio: 'ignore', // Run silently in background
-                    detached: true
-                });
-                distillProc.unref(); // Allow the parent to exit
-            } catch (distillErr) {
-                console.error(`[WARNING] Failed to distill lessons for ${memoryId}:`, distillErr);
-            }
+            // Model-backed lesson distillation is deliberately not triggered.
+            // Engrams remain source evidence until an explicit operator-reviewed
+            // CStar lifecycle records any durable knowledge derived from them.
         } catch (err) {
             console.error(`Failed to engrave session ${file}:`, err);
         }

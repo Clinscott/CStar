@@ -27,7 +27,7 @@ export function buildStartInvocation(
 
 /**
  * [GUNGNIR] Start Command Spoke
- * Purpose: Authoritative shell for the Agent Loop and system pulse.
+ * Purpose: Explicit, deterministic runtime-state transition.
  */
 export function registerStartCommand(
     program: Command,
@@ -36,12 +36,12 @@ export function registerStartCommand(
 ) {
     program
         .command('start [target]')
-        .description('Initiate the Agent Loop or awaken the system pulse')
-        .option('-t, --task <desc>', 'task description for the compute plane', '')
-        .option('--ledger <dir>', 'ledger context directory')
-        .option('--loki', 'Enable Loki Mode: Autonomous, high-velocity execution bypassing human-in-the-loop')
-        .option('--debug', 'enable debug mode')
-        .option('-v, --verbose', 'Enable verbose architectural logging')
+        .description('Record a deterministic awake runtime-state transition')
+        .option('-t, --task <desc>', 'compatibility metadata only; does not dispatch work', '')
+        .option('--ledger <dir>', 'compatibility metadata only; does not grant lifecycle authority')
+        .option('--loki', 'Retired compatibility flag; fails closed and never resumes autonomous execution')
+        .option('--debug', 'set local debug diagnostics for the current process')
+        .option('-v, --verbose', 'set local verbose diagnostics for the current process')
         .action(async (target: string | undefined, options: { task: string; ledger: string; loki?: boolean; debug?: boolean; verbose?: boolean }) => {
             try {
                 const workspaceRoot = resolveWorkspaceRoot(workspaceRootSource);

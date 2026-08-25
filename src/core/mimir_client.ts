@@ -10,12 +10,12 @@ import Database from 'better-sqlite3';
 import {
     IntelligenceRequest,
     IntelligenceResponse,
+    type IntelligenceExecutionIdentity,
     buildEffectivePrompt,
     buildIntelligenceError,
     buildIntelligenceSuccess,
     normalizeIntelligenceRequest,
 } from '../types/intelligence-contract.ts';
-import { buildHallRepositoryId, normalizeHallPath, type HallOneMindRequestRecord } from '../types/hall.js';
 import {
     HostProvider,
     expandHostBridgeArgs,
@@ -25,7 +25,6 @@ import {
 } from './host_session.ts';
 import { resolveOneMindDecision } from './one_mind_bridge.ts';
 import { ensureHealthySynapseDb } from './synapse_db.ts';
-import { getHallOneMindBroker, listHallOneMindRequests, saveHallOneMindRequest } from '../tools/pennyone/intel/database.js';
 
 const execFileAsync = promisify(execFile);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -44,6 +43,11 @@ type HostExecRunner = (
         maxBuffer?: number;
     },
 ) => Promise<{ stdout: string; stderr: string }>;
+
+type HostInvocationResult = {
+    text: string;
+    provider: HostProvider;
+};
 
 const defaultHostExecRunner: HostExecRunner = async (command, args, options) => {
     const result = await execFileAsync(command, args, {
@@ -104,6 +108,29 @@ function shouldRequireNativeCodexInvoker(
     return false;
 }
 
+function executionIdentity(
+    request: ReturnType<typeof normalizeIntelligenceRequest>,
+    provider: HostProvider | null,
+): IntelligenceExecutionIdentity {
+    const requestedModel = typeof request.metadata.requested_model === 'string'
+        ? request.metadata.requested_model.trim() || null
+        : null;
+    const reasoningProfile = typeof request.metadata.reasoning_profile === 'string'
+        ? request.metadata.reasoning_profile.trim() || null
+        : null;
+    const adapterVersion = typeof request.metadata.adapter_version === 'string'
+        ? request.metadata.adapter_version.trim() || null
+        : null;
+    return {
+        provider,
+        requested_model: requestedModel,
+        actual_model: null,
+        model_source: 'unreported',
+        adapter_version: adapterVersion,
+        reasoning_profile: reasoningProfile,
+    };
+}
+
 export interface MimirClientOptions {
     projectRoot?: string;
     dbPath?: string;
@@ -159,11 +186,20 @@ export class MimirClient {
         const decision = this.resolveDecision(normalized);
         const transportMode = decision.transportMode;
 
-        if (transportMode === 'host_session') {
-            return this.requestViaHostSession(normalized, decision);
+        if (!decision.executionAllowed) {
+            return buildIntelligenceError(
+                normalized,
+                'One Mind delegated execution is retired; route implementation through CStar Forge.',
+                transportMode,
+                executionIdentity(normalized, null),
+            );
         }
 
-        return this.requestViaSynapse(normalized, decision);
+        if (transportMode === 'host_session') {
+            return this.requestViaHostSession(normalized);
+        }
+
+        return this.requestViaSynapse(normalized);
     }
 
     public async think(query: string, systemPrompt?: string): Promise<string | null> {
@@ -221,75 +257,41 @@ export class MimirClient {
     private resolveDecision(
         request: ReturnType<typeof normalizeIntelligenceRequest>,
     ) {
-        const broker = this.readHallBrokerRecord();
         return resolveOneMindDecision(request, this.env, {
             hostSessionActive: this.hostSessionActive,
-            brokerActive: Boolean(broker?.fulfillment_ready && broker.binding_state === 'BOUND' && broker.status === 'READY'),
         });
     }
 
     private async requestViaHostSession(
         request: ReturnType<typeof normalizeIntelligenceRequest>,
-        decision: ReturnType<typeof resolveOneMindDecision>,
     ): Promise<IntelligenceResponse> {
         const effectivePrompt = buildEffectivePrompt(request);
         const provider = this.resolveHostProvider();
+        const requestedIdentity = executionIdentity(request, provider);
         const requireNativeCodexInvoker = shouldRequireNativeCodexInvoker(request, provider);
-        this.writeHallRequestRecord(request, decision, {
-            request_status: 'PENDING',
-            transport_preference: 'host_session',
-            metadata: {
-                decision_reason: decision.reason,
-                provider,
-            },
-        });
 
         try {
-            const rawText = await this.invokeHostSession(effectivePrompt, provider, {
+            const invocation = await this.invokeHostSession(effectivePrompt, provider, {
                 forbidCodexExecFallback: requireNativeCodexInvoker,
             });
-            const response = buildIntelligenceSuccess(request, rawText, 'host_session');
-            this.writeHallRequestRecord(request, decision, {
-                request_status: 'COMPLETED',
-                transport_preference: 'host_session',
-                response_text: rawText,
-                completed_at: Date.now(),
-                metadata: {
-                    decision_reason: decision.reason,
-                    provider,
-                },
-            });
-            return response;
+            const actualIdentity = executionIdentity(request, invocation.provider);
+            const rawText = invocation.text;
+            return buildIntelligenceSuccess(request, rawText, 'host_session', false, actualIdentity);
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
             const disableLocalFallback = this.env.CORVUS_DISABLE_LOCAL_LLM_FALLBACK === 'true'
                 || this.env.CORVUS_DISABLE_LOCAL_LLM_FALLBACK === '1';
 
             if (!disableLocalFallback && !requireNativeCodexInvoker) {
-                this.writeHallRequestRecord(request, decision, {
-                    request_status: 'PENDING',
-                    transport_preference: 'synapse_db',
-                    metadata: {
-                        decision_reason: decision.reason,
-                        provider,
-                        fallback_transport: 'synapse_db',
-                        host_session_error: message,
-                    },
-                });
-                return this.requestViaSynapse(request, decision);
+                return this.requestViaSynapse(request);
             }
 
-            this.writeHallRequestRecord(request, decision, {
-                request_status: 'FAILED',
-                transport_preference: 'host_session',
-                error_text: `Host session invocation failed: ${message}`,
-                completed_at: Date.now(),
-                metadata: {
-                    decision_reason: decision.reason,
-                    provider,
-                },
-            });
-            return buildIntelligenceError(request, `Host session invocation failed: ${message}`, 'host_session');
+            return buildIntelligenceError(
+                request,
+                `Host session invocation failed: ${message}`,
+                'host_session',
+                requestedIdentity,
+            );
         }
     }
 
@@ -352,12 +354,12 @@ export class MimirClient {
         prompt: string,
         provider: HostProvider,
         options: { forbidCodexExecFallback?: boolean } = {},
-    ): Promise<string> {
+    ): Promise<HostInvocationResult> {
         if (this.hostSessionInvoker) {
             const response = await this.hostSessionInvoker(prompt, provider);
             const normalized = String(response ?? '').trim();
             if (normalized) {
-                return normalized;
+                return { text: normalized, provider };
             }
             throw new Error(`Host provider ${provider} returned no output.`);
         }
@@ -370,7 +372,7 @@ export class MimirClient {
 
         const configuredBridgeResponse = await this.invokeConfiguredHostBridge(prompt, provider);
         if (configuredBridgeResponse) {
-            return configuredBridgeResponse;
+            return { text: configuredBridgeResponse, provider };
         }
 
         if (provider === 'codex') {
@@ -403,7 +405,7 @@ export class MimirClient {
                 if (!response) {
                     throw new Error('Codex returned no output.');
                 }
-                return response;
+                return { text: response, provider };
             } catch (error) {
                 if (error instanceof Error && error.name === 'AbortError') {
                     throw new Error(`Codex host session timed out after ${this.hostSessionTimeoutMs}ms.`);
@@ -442,7 +444,7 @@ export class MimirClient {
                 if (!response) {
                     throw new Error(`${cmd} returned no output.`);
                 }
-                return response;
+                return { text: response, provider };
             } catch (error) {
                 if (error instanceof Error && error.name === 'AbortError') {
                     throw new Error(`${provider} host session timed out after ${this.hostSessionTimeoutMs}ms.`);
@@ -465,89 +467,44 @@ export class MimirClient {
 
     private async requestViaSynapse(
         request: ReturnType<typeof normalizeIntelligenceRequest>,
-        decision: ReturnType<typeof resolveOneMindDecision>,
     ): Promise<IntelligenceResponse> {
         const effectivePrompt = buildEffectivePrompt(request);
+        const identity = executionIdentity(request, null);
         this.ensureDb();
 
         const cached = this.readCachedResponse(effectivePrompt);
         if (cached) {
-            this.writeHallRequestRecord(request, decision, {
-                request_status: 'COMPLETED',
-                transport_preference: 'synapse_db',
-                response_text: cached,
-                completed_at: Date.now(),
-                metadata: {
-                    decision_reason: decision.reason,
-                    cached: true,
-                },
-            });
-            return buildIntelligenceSuccess(request, cached, 'synapse_db', true);
+            return buildIntelligenceSuccess(request, cached, 'synapse_db', true, identity);
         }
 
-        this.writeHallRequestRecord(request, decision, {
-            request_status: 'PENDING',
-            transport_preference: 'synapse_db',
-            metadata: {
-                decision_reason: decision.reason,
-            },
-        });
         const synapseId = this.createPendingPrompt(effectivePrompt);
-        this.writeHallRequestRecord(request, decision, {
-            request_status: 'PENDING',
-            transport_preference: 'synapse_db',
-            metadata: {
-                decision_reason: decision.reason,
-                synapse_id: synapseId,
-            },
-        });
 
         try {
             await this.invokeOracle(synapseId);
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
-            this.writeHallRequestRecord(request, decision, {
-                request_status: 'FAILED',
-                transport_preference: 'synapse_db',
-                error_text: `Oracle invocation failed: ${message}`,
-                completed_at: Date.now(),
-                metadata: {
-                    decision_reason: decision.reason,
-                    synapse_id: synapseId,
-                },
-            });
-            return buildIntelligenceError(request, `Oracle invocation failed: ${message}`, 'synapse_db');
+            return buildIntelligenceError(
+                request,
+                `Oracle invocation failed: ${message}`,
+                'synapse_db',
+                identity,
+            );
         }
 
         for (let attempt = 0; attempt < this.pollAttempts; attempt += 1) {
             const row = this.readSynapseRow(synapseId);
             if (row?.status === 'COMPLETED' && row.response) {
-                this.writeHallRequestRecord(request, decision, {
-                    request_status: 'COMPLETED',
-                    transport_preference: 'synapse_db',
-                    response_text: row.response,
-                    completed_at: Date.now(),
-                    metadata: {
-                        decision_reason: decision.reason,
-                        synapse_id: synapseId,
-                    },
-                });
-                return buildIntelligenceSuccess(request, row.response, 'synapse_db');
+                return buildIntelligenceSuccess(request, row.response, 'synapse_db', false, identity);
             }
             await new Promise((resolve) => setTimeout(resolve, this.pollIntervalMs));
         }
 
-        this.writeHallRequestRecord(request, decision, {
-            request_status: 'FAILED',
-            transport_preference: 'synapse_db',
-            error_text: 'Timed out waiting for synapse response.',
-            completed_at: Date.now(),
-            metadata: {
-                decision_reason: decision.reason,
-                synapse_id: synapseId,
-            },
-        });
-        return buildIntelligenceError(request, 'Timed out waiting for synapse response.', 'synapse_db');
+        return buildIntelligenceError(
+            request,
+            'Timed out waiting for synapse response.',
+            'synapse_db',
+            identity,
+        );
     }
 
     private async invokeOracle(synapseId: number): Promise<void> {
@@ -556,23 +513,7 @@ export class MimirClient {
             return;
         }
 
-        // [🔱] THE ONE MIND MANDATE: If we are in an agent session, do not invoke the external CLI.
-        // The active session will fulfill the request.
-        if (resolveOneMindDecision({
-            prompt: '',
-            transport_mode: 'auto',
-            caller: { source: 'ts:mimir:oracle-check' },
-            metadata: {},
-        }, this.env, {
-            hostSessionActive: this.hostSessionActive,
-            brokerActive: Boolean(
-                this.readHallBrokerRecord()?.fulfillment_ready
-                && this.readHallBrokerRecord()?.binding_state === 'BOUND'
-                && this.readHallBrokerRecord()?.status === 'READY',
-            ),
-        }).reason === 'interactive-host-session-bus' ||
-            this.env.CORVUS_SKIP_ORACLE_INVOKE === 'true' || this.env.CORVUS_SKIP_ORACLE_INVOKE === '1') {
-            console.log(`[MIMIR] Hall-backed One Mind fulfillment is responsible for Synapse ID: ${synapseId}.`);
+        if (this.env.CORVUS_SKIP_ORACLE_INVOKE === 'true' || this.env.CORVUS_SKIP_ORACLE_INVOKE === '1') {
             return;
         }
 
@@ -632,46 +573,6 @@ export class MimirClient {
         }
     }
 
-    private readHallBrokerRecord() {
-        return getHallOneMindBroker(this.projectRoot);
-    }
-
-    private writeHallRequestRecord(
-        request: ReturnType<typeof normalizeIntelligenceRequest>,
-        decision: ReturnType<typeof resolveOneMindDecision>,
-        updates: Partial<HallOneMindRequestRecord>,
-    ): void {
-        const now = Date.now();
-        const existing = this.readHallRequestRecord(request.correlation_id);
-        const baseMetadata = existing?.metadata ?? {};
-        const nextRecord: HallOneMindRequestRecord = {
-            request_id: request.correlation_id,
-            repo_id: buildHallRepositoryId(normalizeHallPath(this.projectRoot)),
-            caller_source: request.caller.source,
-            boundary: decision.boundary,
-            request_status: updates.request_status ?? existing?.request_status ?? 'PENDING',
-            transport_preference: updates.transport_preference ?? existing?.transport_preference,
-            prompt: request.prompt,
-            system_prompt: request.system_prompt,
-            response_text: updates.response_text ?? existing?.response_text,
-            error_text: updates.error_text ?? existing?.error_text,
-            lease_owner: updates.lease_owner ?? existing?.lease_owner,
-            claimed_at: updates.claimed_at ?? existing?.claimed_at,
-            completed_at: updates.completed_at ?? existing?.completed_at,
-            metadata: {
-                ...baseMetadata,
-                ...(updates.metadata ?? {}),
-            },
-            created_at: existing?.created_at ?? now,
-            updated_at: now,
-        };
-        saveHallOneMindRequest(nextRecord, this.projectRoot);
-    }
-
-    private readHallRequestRecord(requestId: string): HallOneMindRequestRecord | null {
-        const requests = listHallOneMindRequests(this.projectRoot);
-        return requests.find((record) => record.request_id === requestId) ?? null;
-    }
 }
 
 export const mimir = new MimirClient();

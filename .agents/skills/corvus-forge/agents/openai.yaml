@@ -1,0 +1,4 @@
+interface:
+  display_name: "Corvus Forge"
+  short_description: "Route builds through verified CStar Forge"
+  default_prompt: "Use $corvus-forge to route this implementation through the verified CStar lifecycle."

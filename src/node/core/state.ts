@@ -171,7 +171,7 @@ export class StateRegistry {
                 name: 'Corvus Star (C*)',
                 tagline: 'Synergy is the blood of the Totem. Without it, the system is but clay.',
                 guiding_principles: [
-                    'The One Mind: All intelligence is unified and Host-sampled.',
+                    'CStar is the control-plane axle; model work follows its explicit authorized lane.',
                     'Skills-First: Capabilities are evolved, discrete, and self-documenting.',
                     'Neuralplastic Learning: System behavior evolves through autonomous contract mutation.',
                     'The Sterling Mandate: Lore, Isolation, and Audit verify all reality.'

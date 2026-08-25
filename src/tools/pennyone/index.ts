@@ -1,4 +1,3 @@
-import { crawlRepository } from  './crawler.js';
 import { analyzeFile } from  './analyzer.js';
 import { writeReport } from  './intel/writer.js';
 import { writeProjectedMatrixGraph } from  './intel/compiler.js';
@@ -22,18 +21,30 @@ import path from 'path';
 import crypto from 'node:crypto';
 import { registry } from  './pathRegistry.js';
 import { activePersona } from  './personaRegistry.js';
-import { ScanResult, FileData } from  './types.js';
+import { FileData } from  './types.js';
 import { defaultProvider, OFFLINE_INTENT_PLACEHOLDER } from  './intel/llm.js';
-import { requestHostText } from  '../../core/host_intelligence.js';
 import chalk from 'chalk';
 import { buildHallRepositoryId } from  '../../types/hall.js';
 import { getGungnirOverall, patchGungnirMatrix } from  '../../types/gungnir.js';
-import { isHostSessionActive } from '../../core/host_session.js';
+import {
+    buildPennyOneScanManifest,
+    PennyOneResourceLimitError,
+    preflightPennyOneFiles,
+    readBoundedPennyOneSource,
+    type PennyOneResourceLimits,
+} from './resource_limits.js';
 
 export interface IntentRefreshResult {
     refreshed: number;
     failed: number;
     total_candidates: number;
+}
+
+export interface RunScanOptions {
+    include_history?: boolean;
+    evaluate_warden?: boolean;
+    throttle_ms?: number;
+    limits?: Partial<PennyOneResourceLimits>;
 }
 
 
@@ -46,17 +57,18 @@ export interface IntentRefreshResult {
 export async function indexSector(filePath: string): Promise<FileData | null> {
     try {
         const absolutePath = path.resolve(filePath);
+        const manifest = await preflightPennyOneFiles([absolutePath]);
         const normalizedPath = registry.normalize(absolutePath);
         const targetRepoRoot = registry.detectWorkspaceRoot(absolutePath);
-        const code = await fs.readFile(absolutePath, 'utf-8');
+        const code = await readBoundedPennyOneSource(absolutePath, manifest.limits.max_file_bytes);
         const currentHash = crypto.createHash('md5').update(code).digest('hex');
 
         // 1. Local Analysis
         const data = await analyzeFile(code, absolutePath);
 
         // 2. Semantic Analysis (Targeted)
-        const indexer = new SemanticIndexer(path.dirname(absolutePath));
-        const semanticGraph = await indexer.index();
+        const indexer = new SemanticIndexer(path.dirname(absolutePath), manifest.limits);
+        const semanticGraph = await indexer.index([absolutePath]);
         const semanticData = semanticGraph.files.find(f => registry.normalize(f.path) === normalizedPath);
 
         if (semanticData) {
@@ -67,36 +79,8 @@ export async function indexSector(filePath: string): Promise<FileData | null> {
             data.cluster = semanticData.cluster;
         }
 
-        // 3. Intelligence (Intent) - Native Host Skill / Sub-Agent Delegation
-        console.error(`[ALFRED] Analyzing intelligence for sector ${normalizedPath}...`);
-
-        const systemPrompt = `You are a specialized PennyOne Sub-Agent.
-Analyze the provided code and metadata.
-Respond ONLY with a valid JSON object: {"intent": "Brief purpose (2-3 sentences)", "interaction": "Key interactions (1-2 sentences)"}`;
-        const prompt = `FILE: ${absolutePath}\n\nCODE:\n\`\`\`\n${code}\n\`\`\`\n\nMETADATA:\n${JSON.stringify({
-            imports: data.imports,
-            exports: data.exports,
-            matrix: data.matrix
-        }, null, 2)}`;
-
-        const result = await requestHostText({
-            prompt,
-            systemPrompt,
-            projectRoot: registry.getRoot(),
-            source: 'pennyone:sector:sub-agent',
-            metadata: {
-                sub_agent: 'codebase_investigator',
-                response_format: 'json'
-            }
-        });
-
-        const jsonText = result.text.includes('```json')
-            ? result.text.split('```json')[1].split('```')[0].trim()
-            : result.text.includes('```')
-                ? result.text.split('```')[1].split('```')[0].trim()
-                : result.text.trim();
-
-        const intentData = JSON.parse(jsonText);
+        // 3. Deterministic local intent projection.
+        const intentData = await defaultProvider.getIntent(data);
         data.intent = intentData.intent;
         data.interaction_protocol = intentData.interaction;
         data.hash = currentHash;
@@ -112,9 +96,10 @@ Respond ONLY with a valid JSON object: {"intent": "Brief purpose (2-3 sentences)
             status: 'AWAKE',
             active_persona: activePersona.name,
             baseline_gungnir_score: getGungnirOverall(data.matrix),
-            intent_integrity: 100,
+            intent_integrity: 0,
             metadata: {
                 source: 'pennyone_sector_index',
+                intent_integrity_measurement: 'not_run',
                 estate_projection: {
                     mounted_from: registry.getRoot(),
                 },
@@ -157,6 +142,7 @@ Respond ONLY with a valid JSON object: {"intent": "Brief purpose (2-3 sentences)
 
         return data;
     } catch (error) {
+        if (error instanceof PennyOneResourceLimitError) throw error;
         console.error(`[ERROR] Failed to index sector ${filePath}:`, error);
         return null;
     }
@@ -168,8 +154,17 @@ Respond ONLY with a valid JSON object: {"intent": "Brief purpose (2-3 sentences)
  * @param {boolean} force - Force re-analysis of all files
  * @returns {Promise<FileData[]>} Scanned files
  */
-export async function runScan(targetPath: string, force = false): Promise<FileData[]> {
-    // [Ω] Register this spoke in the central database
+export async function runScan(
+    targetPath: string,
+    force = false,
+    options: RunScanOptions = {},
+): Promise<FileData[]> {
+    void force;
+    // Resource admission is the first stateful scan boundary. A cap failure
+    // must occur before Hall registration, report writes, or heartbeat writes.
+    const manifest = await buildPennyOneScanManifest(targetPath, options.limits);
+
+    // [Ω] Register this spoke in the central database only after preflight.
     registerSpoke(targetPath);
     const targetRepoRoot = registry.detectWorkspaceRoot(targetPath);
     saveHallRepository({
@@ -178,9 +173,15 @@ export async function runScan(targetPath: string, force = false): Promise<FileDa
         status: 'AWAKE',
         active_persona: activePersona.name,
         baseline_gungnir_score: 0,
-        intent_integrity: 100,
+        intent_integrity: 0,
         metadata: {
             source: 'pennyone_scan',
+            intent_integrity_measurement: 'not_run',
+            resource_admission: {
+                file_count: manifest.files.length,
+                aggregate_bytes: manifest.aggregate_bytes,
+                limits: manifest.limits,
+            },
             estate_projection: {
                 mounted_from: registry.getRoot(),
             },
@@ -189,131 +190,65 @@ export async function runScan(targetPath: string, force = false): Promise<FileDa
         updated_at: Date.now(),
     });
 
-    // Phase 0: Chronicle Ingestion (One Mind)
-    const chronicles = new ChronicleIndexer();
-    await chronicles.index();
+    // History ingestion is separately opt-in; a source scan never silently
+    // widens into session-history ingestion.
+    if (options.include_history === true) {
+        const chronicles = new ChronicleIndexer();
+        await chronicles.index();
 
-    // Phase 0.5: Temporal History Ingestion (Chronos)
-    const chronos = new ChronosIndexer();
-    await chronos.index();
+        // Phase 0.5: Temporal History Ingestion (Chronos)
+        const chronos = new ChronosIndexer();
+        await chronos.index();
+    }
 
     // Phase 3: Semantic Pass (Global Registry)
-    const indexer = new SemanticIndexer(targetPath);
-    const semanticGraph = await indexer.index();
+    const indexer = new SemanticIndexer(targetPath, manifest.limits);
+    const semanticGraph = await indexer.index(manifest.files);
+    const semanticByPath = new Map(
+        semanticGraph.files.map((entry) => [registry.normalize(entry.path), entry]),
+    );
+    const finalResults: FileData[] = [];
 
-    const files = await crawlRepository(targetPath);
-    const analyzedFiles: { code: string, data: FileData, needsIntent: boolean }[] = [];
-    const hostSessionActive = isHostSessionActive();
-
-    // Intelligent Analysis & Change Detection
-    for (const file of files) {
+    // Analyze and finalize one bounded source at a time. Source strings never
+    // accumulate in an all-repository batch.
+    for (let index = 0; index < manifest.files.length; index += 1) {
+        const file = manifest.files[index];
         try {
-            const code = await fs.readFile(file, 'utf-8');
-            const currentHash = crypto.createHash('md5').update(code).digest('hex');
+            const code = await readBoundedPennyOneSource(file, manifest.limits.max_file_bytes);
             const normalizedPath = registry.normalize(file);
-
-            // Get semantic data for this file
-            const semanticData = semanticGraph.files.find(f => registry.normalize(f.path) === normalizedPath);
-
+            const semanticData = semanticByPath.get(normalizedPath);
             const data = await analyzeFile(code, file);
             if (semanticData) {
                 data.matrix = patchGungnirMatrix(data.matrix, {
                     logic: (data.matrix.logic + semanticData.logic) / 2,
                 });
+                data.dependencies = semanticData.dependencies;
                 data.cluster = semanticData.cluster;
             }
-            analyzedFiles.push({ code, data, needsIntent: true });
-        } catch (error: unknown) {
-            console.warn(`[WARNING] Failed to analyze ${file}:`, error instanceof Error ? error.message : String(error));
-        }
-    }
+            const intentData = await defaultProvider.getIntent(data);
+            const { intent, interaction } = await writeReport(data, targetPath, intentData);
+            data.intent = intent;
+            data.interaction_protocol = interaction;
+            updateFtsIndex(data.path, intent, interaction);
+            finalResults.push(data);
 
-    // Phase 2: High-Fidelity Intelligence (Sub-Agent Delegation)
-    const filesNeedingIntent = analyzedFiles.filter(af => af.needsIntent);
-
-    for (let i = 0; i < filesNeedingIntent.length; i++) {
-        const item = filesNeedingIntent[i];
-        const batchNum = i + 1;
-        const totalBatches = filesNeedingIntent.length;
-
-        const status = {
-            batch: batchNum,
-            total_batches: totalBatches,
-            last_update: Date.now(),
-            status: 'PROCESSING'
-        };
-        try {
-            fsSync.writeFileSync(path.join(registry.getRoot(), '.agents', 'scan_heartbeat.json'), JSON.stringify(status, null, 2));
-        } catch { /* Ignore telemetry errors */ }
-
-        console.log(chalk.cyan(` ◈ [AGENT] Analyzing Sector ${batchNum}/${totalBatches}: ${registry.normalize(item.data.path)}`));
-
-        try {
-            let intentData: { intent: string; interaction: string };
-            try {
-                const systemPrompt = `You are a specialized PennyOne Sub-Agent.
-Analyze the provided code and metadata.
-Respond ONLY with a valid JSON object: {"intent": "Brief purpose (2-3 sentences)", "interaction": "Key interactions (1-2 sentences)"}`;
-                const prompt = `FILE: ${item.data.path}\n\nCODE:\n\`\`\`\n${item.code}\n\`\`\`\n\nMETADATA:\n${JSON.stringify({
-                    imports: item.data.imports,
-                    exports: item.data.exports,
-                    matrix: item.data.matrix
-                }, null, 2)}`;
-
-                const result = await requestHostText({
-                    prompt,
-                    systemPrompt,
-                    projectRoot: registry.getRoot(),
-                    source: 'pennyone:scan:sub-agent',
-                    metadata: {
-                        sub_agent: 'codebase_investigator',
-                        response_format: 'json'
-                    }
-                });
-
-                // Extract JSON from potential markdown wrappers
-                const jsonText = result.text.includes('```json')
-                    ? result.text.split('```json')[1].split('```')[0].trim()
-                    : result.text.includes('```')
-                      ? result.text.split('```')[1].split('```')[0].trim()
-                      : result.text.trim();
-
-                intentData = JSON.parse(jsonText);
-            } catch (intentError: any) {
-                if (hostSessionActive) {
-                    throw new Error(`Sector analysis failed for ${item.data.path}: ${intentError.message}`);
-                }
-                console.warn(chalk.yellow(`[WARNING] Intelligence generation failed for ${item.data.path}: ${intentError.message}. Using fallback.`));
-                intentData = {
-                    intent: OFFLINE_INTENT_PLACEHOLDER,
-                    interaction: 'Standard'
-                };
-            }
-
-            const fileData = item.data;
-            const { intent, interaction } = await writeReport(fileData, targetPath, item.code, intentData);
-            fileData.intent = intent;
-            fileData.interaction_protocol = interaction;
-
-            updateFtsIndex(fileData.path, intent, interaction);
-            console.log(chalk.dim(` ✔ Sector ${batchNum} finalized.`));
-
-            // Update heartbeat
-            status.status = 'WAITING';
-            status.last_update = Date.now();
+            const status = {
+                batch: index + 1,
+                total_batches: manifest.files.length,
+                last_update: Date.now(),
+                status: 'WAITING',
+            };
             try {
                 fsSync.writeFileSync(path.join(registry.getRoot(), '.agents', 'scan_heartbeat.json'), JSON.stringify(status, null, 2));
             } catch { }
-
-            // Prevent host throttling
-            await new Promise(resolve => setTimeout(resolve, 500));
-        } catch (e: any) {
-            console.error(chalk.red(`[CRITICAL FAILURE] Intelligence scan aborted: ${e.message}`));
-            throw e;
+            console.log(chalk.dim(` ✔ Sector ${index + 1}/${manifest.files.length} finalized.`));
+            const throttleMs = options.throttle_ms ?? 0;
+            if (throttleMs > 0) await new Promise(resolve => setTimeout(resolve, throttleMs));
+        } catch (error: unknown) {
+            if (error instanceof PennyOneResourceLimitError) throw error;
+            console.warn(`[WARNING] Failed to analyze ${file}:`, error instanceof Error ? error.message : String(error));
         }
     }
-
-    const finalResults = analyzedFiles.map(af => af.data);
 
     if (finalResults.length > 0) {
         const scanId = `hall-scan:${Date.now()}`;
@@ -359,11 +294,13 @@ Respond ONLY with a valid JSON object: {"intent": "Brief purpose (2-3 sentences)
         await writeProjectedMatrixGraph(targetRepoRoot, scanId);
 
         // Phase 4: Active Threat Assessment (The Warden)
-        try {
-            const warden = new Warden();
-            await warden.evaluateProjection(targetRepoRoot, scanId);
-        } catch (e: unknown) {
-            console.warn(`[WARNING] Warden evaluation failed: ${e instanceof Error ? e.message : String(e)}`);
+        if (options.evaluate_warden !== false) {
+            try {
+                const warden = new Warden();
+                await warden.evaluateProjection(targetRepoRoot, scanId);
+            } catch (e: unknown) {
+                console.warn(`[WARNING] Warden evaluation failed: ${e instanceof Error ? e.message : String(e)}`);
+            }
         }
     }
 
@@ -381,7 +318,10 @@ function isPathWithinTarget(recordPath: string, targetPath: string, targetIsDire
     return normalizedRecord === normalizedTarget || normalizedRecord.startsWith(`${normalizedTarget}/`);
 }
 
-export async function refreshOfflineIntents(targetPath: string): Promise<IntentRefreshResult> {
+export async function refreshOfflineIntents(
+    targetPath: string,
+    requestedLimits: Partial<PennyOneResourceLimits> = {},
+): Promise<IntentRefreshResult> {
     const absoluteTarget = path.resolve(targetPath);
     const targetRepoRoot = registry.detectWorkspaceRoot(absoluteTarget);
     const targetStats = await fs.stat(absoluteTarget).catch(() => null);
@@ -398,79 +338,34 @@ export async function refreshOfflineIntents(targetPath: string): Promise<IntentR
         };
     }
 
-    const prepared: Array<{
-        record: Awaited<ReturnType<typeof getHallFilesByIntentSummary>>[number];
-        code: string;
-        data: FileData;
-    }> = [];
+    // Admit the complete refresh set before the first report or Hall mutation.
+    const manifest = await preflightPennyOneFiles(
+        candidates.map((record) => record.path),
+        requestedLimits,
+    );
     let failed = 0;
-    const hostSessionActive = isHostSessionActive();
-
-    for (const record of candidates) {
-        try {
-            const code = await fs.readFile(record.path, 'utf-8');
-            const data = await analyzeFile(code, record.path);
-            data.hash = crypto.createHash('md5').update(code).digest('hex');
-            prepared.push({ record, code, data });
-        } catch (error: unknown) {
-            failed += 1;
-            console.warn(`[WARNING] Failed to prepare ${record.path} for intent refresh: ${error instanceof Error ? error.message : String(error)}`);
-        }
-    }
-
-    if (prepared.length === 0) {
-        return {
-            refreshed: 0,
-            failed,
-            total_candidates: candidates.length,
-        };
-    }
-
-    let batchIntents: Array<{ intent: string; interaction: string }> = [];
-    try {
-        for (const item of prepared) {
-            const systemPrompt = `You are a specialized PennyOne Sub-Agent. Respond ONLY with JSON: {"intent": "...", "interaction": "..."}`;
-            const prompt = `FILE: ${item.record.path}\nCODE:\n${item.code}`;
-            const result = await requestHostText({
-                prompt,
-                systemPrompt,
-                projectRoot: registry.getRoot(),
-                source: 'pennyone:refresh:sub-agent'
-            });
-            const jsonText = result.text.includes('```json') ? result.text.split('```json')[1].split('```')[0].trim() : result.text.trim();
-            batchIntents.push(JSON.parse(jsonText));
-        }
-    } catch (intentError: unknown) {
-        const message = intentError instanceof Error ? intentError.message : String(intentError);
-        if (hostSessionActive) {
-            throw new Error(`Intent refresh failed during an active host session: ${message}`);
-        }
-        console.warn(`[WARNING] Intent refresh intelligence generation failed: ${message}`);
-        return {
-            refreshed: 0,
-            failed: failed + prepared.length,
-            total_candidates: candidates.length,
-        };
-    }
 
     let refreshed = 0;
-    for (let index = 0; index < prepared.length; index += 1) {
+    for (const record of candidates) {
         try {
-            const item = prepared[index];
-            const intentData = batchIntents[index];
-            const { intent, interaction } = await writeReport(item.data, targetRepoRoot, item.code, intentData);
+            const code = await readBoundedPennyOneSource(record.path, manifest.limits.max_file_bytes);
+            const data = await analyzeFile(code, record.path);
+            data.hash = crypto.createHash('md5').update(code).digest('hex');
+            const intentData = await defaultProvider.getIntent(data);
+            const { intent, interaction } = await writeReport(data, targetRepoRoot, intentData);
             updateHallFileIntent({
                 repo_id: repoId,
-                scan_id: item.record.scan_id,
-                path: item.record.path,
+                scan_id: record.scan_id,
+                path: record.path,
                 intent_summary: intent,
                 interaction_summary: interaction,
             });
-            updateFtsIndex(item.record.path, intent, interaction);
+            updateFtsIndex(record.path, intent, interaction);
             refreshed += 1;
         } catch (error: unknown) {
+            if (error instanceof PennyOneResourceLimitError) throw error;
             failed += 1;
-            console.warn(`[WARNING] Failed to apply refreshed intent for ${prepared[index]?.record.path}: ${error instanceof Error ? error.message : String(error)}`);
+            console.warn(`[WARNING] Failed to apply refreshed intent for ${record.path}: ${error instanceof Error ? error.message : String(error)}`);
         }
     }
 

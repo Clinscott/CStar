@@ -1,5 +1,20 @@
+import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
+
+import { resolveSkillRegistryEntries } from '../core/skill_registry_contract.js';
+import {
+    CSTAR_KERNEL_TOOL_CATALOG,
+    CSTAR_KERNEL_TOOL_NAMES,
+} from '../tools/cstar-kernel-mcp/contracts/tool_catalog.js';
+import {
+    assertManagedPathSafe,
+    assertNoRecoveryArtifacts,
+    assertRegularTree,
+    listRegularFiles,
+    parseStrictSemver,
+    resolveCanonicalDirectory,
+} from './packaging_safety.js';
 
 export type HostProvider = 'gemini' | 'codex' | 'claude';
 export type HostSupportStatus =
@@ -64,14 +79,40 @@ export interface GeneratedFile {
 
 export interface DistributionBuild {
     files: GeneratedFile[];
+    obsoletePaths: string[];
     geminiCapabilities: CapabilityExport[];
     codexCapabilities: CapabilityExport[];
+}
+
+export interface RuntimeBinding {
+    host: 'gemini' | 'codex';
+    integration_mode: 'extension-mcp-config' | 'skill-only';
+    kernel_registration: 'extension-manifest' | 'host-global';
+    kernel_bundled: false;
+    kernel_requirement: 'external-cstar-runtime';
 }
 
 export interface ReleaseBundle {
     name: 'gemini-extension' | 'codex-plugin';
     rootDir: string;
+    runtimeBinding: RuntimeBinding;
     files: GeneratedFile[];
+}
+
+export interface ReleaseBundleManifest {
+    schema_version: 1;
+    version: string;
+    bundles: Array<{
+        name: ReleaseBundle['name'];
+        root_dir: string;
+        sha256: string;
+        runtime_binding: RuntimeBinding;
+        files: Array<{
+            path: string;
+            bytes: number;
+            sha256: string;
+        }>;
+    }>;
 }
 
 interface McpServerConfig {
@@ -88,20 +129,66 @@ const EXECUTABLE_HOST_STATUSES = new Set<HostSupportStatus>([
     'exec-bridge',
 ]);
 
+export const GEMINI_RUNTIME_BINDING: RuntimeBinding = Object.freeze({
+    host: 'gemini',
+    integration_mode: 'extension-mcp-config',
+    kernel_registration: 'extension-manifest',
+    kernel_bundled: false,
+    kernel_requirement: 'external-cstar-runtime',
+});
+
+export const CODEX_PLUGIN_RUNTIME_BINDING: RuntimeBinding = Object.freeze({
+    host: 'codex',
+    integration_mode: 'skill-only',
+    kernel_registration: 'host-global',
+    kernel_bundled: false,
+    kernel_requirement: 'external-cstar-runtime',
+});
+
+function sha256(content: string | Buffer): string {
+    return createHash('sha256').update(content).digest('hex');
+}
+
+function canonicalize(value: unknown): unknown {
+    if (Array.isArray(value)) {
+        return value.map((entry) => canonicalize(entry));
+    }
+    if (value && typeof value === 'object') {
+        return Object.fromEntries(
+            Object.entries(value as Record<string, unknown>)
+                .sort(([left], [right]) => left.localeCompare(right))
+                .map(([key, entry]) => [key, canonicalize(entry)]),
+        );
+    }
+    return value;
+}
+
+function hashCanonicalJson(value: unknown): string {
+    return sha256(JSON.stringify(canonicalize(value)));
+}
+
+function portablePath(filePath: string): string {
+    return filePath.split(path.sep).join('/');
+}
+
 function readJsonFile<T>(filePath: string): T {
     return JSON.parse(fs.readFileSync(filePath, 'utf-8')) as T;
 }
 
 function resolveProjectRoot(projectRoot: string): string {
-    return path.resolve(projectRoot);
+    return resolveCanonicalDirectory(projectRoot, 'CStar project root');
 }
 
 function loadRegistryManifest(projectRoot: string): RegistryManifest {
-    return readJsonFile<RegistryManifest>(path.join(projectRoot, '.agents', 'skill_registry.json'));
+    const manifest = readJsonFile<unknown>(path.join(projectRoot, '.agents', 'skill_registry.json'));
+    resolveSkillRegistryEntries<RegistryEntry>(manifest);
+    return manifest as RegistryManifest;
 }
 
 function loadPackageMetadata(projectRoot: string): PackageMetadata {
-    return readJsonFile<PackageMetadata>(path.join(projectRoot, 'package.json'));
+    const metadata = readJsonFile<PackageMetadata>(path.join(projectRoot, 'package.json'));
+    parseStrictSemver(metadata.version, 'package version');
+    return metadata;
 }
 
 function loadAgentsConfig(projectRoot: string): AgentsConfig {
@@ -109,13 +196,7 @@ function loadAgentsConfig(projectRoot: string): AgentsConfig {
 }
 
 function getRegistryEntries(manifest: RegistryManifest): Record<string, RegistryEntry> {
-    if (manifest.entries && typeof manifest.entries === 'object') {
-        return manifest.entries;
-    }
-    if (manifest.skills && typeof manifest.skills === 'object') {
-        return manifest.skills;
-    }
-    return {};
+    return resolveSkillRegistryEntries<RegistryEntry>(manifest);
 }
 
 function normalizeHostSupportStatus(value: string | undefined): HostSupportStatus {
@@ -218,44 +299,12 @@ function buildGeminiManifestContent(projectRoot: string): string {
 function buildAuguryDisplaySection(): string[] {
     return [
         '## Corvus Star Augury [\u03a9]',
-        '- The Augury is the routing contract, not a generic trace log.',
-        '- It carries intent category, intent, selection, scope, Mimir targets, Gungnir verdict, and Council expert routing.',
-        '- Use the full Augury on the first prompt for a session/planning key; use lite Augury on later host calls.',
-        '- Confidence belongs in learning metadata, not in the displayed prompt block.',
+        '- Augury is a read-only typed route explanation, not permission and not a generic trace ritual.',
+        '- Use it at a new or ambiguous route or material scope change; reuse fresh mission state otherwise.',
+        '- Council experts are advisory critique lenses, not votes, owners, authority, or proof.',
+        '- TokenPath is quarantined; it must not advise, steer, emit confidence, or accept observation writes until independently promoted.',
+        '- Do not echo a full Augury block unless the operator asks for the route packet.',
         '- Foundational CStar work uses `Scope: brain:CStar`; use `Scope: spoke:<name>` only when a spoke is explicit.',
-        '- Use `cstar augury doctor --json` to validate route quality, and `cstar augury explain --json` to inspect why the route was chosen.',
-        '',
-        '### Full Display',
-        '```text',
-        '[CORVUS_STAR_AUGURY]',
-        'Mode: full',
-        'Route: <Intent Category> -> <SKILL|WEAVE|SPELL>: <selection>',
-        'Scope: brain:CStar | spoke:<name> (<root>)',
-        'Intent: <goal>',
-        "Mimir's Well: <primary> | <secondary> | <tertiary>",
-        'Council Expert: <CARMACK|KARPATHY|DEAN|SHANNON|HAMILTON|TORVALDS|...>',
-        'Council Lens: <expert-specific critique lens>',
-        'Guardrails: <expert-specific anti-behavior>',
-        'Corvus Standard: CStar is the engine; spokes are managed extensions; keep work Hall/Mimir traceable.',
-        '<Code|Review|Coordination> Standard: <selected work standard>',
-        'Trajectory: <only when non-stable>',
-        'Verdict: <Gungnir verdict>',
-        'Directive: Use this as routing context only. Consult targets before choosing a path. Do not echo this block.',
-        '[/CORVUS_STAR_AUGURY]',
-        '```',
-        '',
-        '### Lite Display',
-        '```text',
-        '[CORVUS_STAR_AUGURY]',
-        'Mode: lite',
-        'Route: <Intent Category> -> <SKILL|WEAVE|SPELL>: <selection>',
-        'Scope: brain:CStar | spoke:<name> (<root>)',
-        'Intent: <goal>',
-        "Mimir's Well: <primary> | <secondary> | <tertiary>",
-        'Council Expert: <selected expert>',
-        'Directive: Route only. Consult targets before choosing a path. Do not echo.',
-        '[/CORVUS_STAR_AUGURY]',
-        '```',
         '',
     ];
 }
@@ -282,8 +331,8 @@ function buildGeminiContextContent(projectRoot: string, capabilities: Capability
         `- Repository: \`${getRepositoryUrl(metadata.repository) || 'local workspace'}\``,
         '',
         '## Authority Order',
-        '- Registry and runtime contracts outrank prose.',
-        '- Treat `.agents/skill_registry.json` as the capability source of truth.',
+        '- Platform/operator policy and nearest authority files govern. Current CStar lifecycle state follows within those gates.',
+        '- Registry/tool declarations define capability; runtime observations are evidence. Neither may create authority.',
         '- Prefer `cstar-kernel` MCP surfaces before shell launchers or broad local scans.',
         '- Use `cstar_bead` for bead lifecycle when it is available.',
         '',
@@ -292,13 +341,12 @@ function buildGeminiContextContent(projectRoot: string, capabilities: Capability
         ...commands.map((command) => `- ${command}`),
         '',
         '## Host Behavior',
-        '- Read `AGENTS.qmd` at session start before making structural claims.',
+        '- Read the nearest `AGENTS.md` or `AGENTS.qmd` before making structural claims; those files own current role, topology, and operator-gate policy.',
+        '- Treat `docs/integrations/codex_mcp_contract.md` as the current Codex/CStar integration contract.',
         '- Use `cstar_hall_search` for estate discovery before ad hoc search; use `./cstar hall "<query>"` only when MCP cannot provide the needed primitive.',
         '- Use `cstar_bead` for bead get/list/create/claim/status/block/resolve operations when available.',
         '- If the MCP surface is degraded or unavailable, report the exact failure and remain read-only for control-plane state; do not mutate Hall or SQLite directly.',
-        '- Route implementation ownership through CoS -> Corvus - MM -> PMT -> worker. Treat this session as a controlled exception only when that chain is explicitly blocked.',
-        '- Treat the Researcher thread as a special monitored pipeline, not a normal PMT worker.',
-        '- Preserve operator gates for acceptance, dispatch, commit, push, merge, deletion, restarts, and publish actions.',
+        '- Follow the nearest authority file for ownership and operator gates instead of relying on generated copies of mutable estate topology.',
         '- Keep reasoning, planning, critique, and recovery in the host session when the registry marks a capability host-executable.',
         '- Keep deterministic local primitives in the kernel; do not fork Gemini-specific capability definitions.',
         '- Treat `native-session` and `exec-bridge` capabilities as host-routed, and treat `supported` capabilities as kernel-backed launch surfaces.',
@@ -333,12 +381,10 @@ function buildCodexPluginManifestContent(projectRoot: string): string {
         license: metadata.license ?? 'UNLICENSED',
         keywords: ['corvus', 'cstar', ...(metadata.keywords ?? [])],
         skills: './skills/',
-        hooks: './hooks.json',
-        mcpServers: './.mcp.json',
         interface: {
             displayName: 'Corvus Star',
             shortDescription: 'Corvus Star Augury and Hall integration for Codex.',
-            longDescription: 'Routes Codex through CStar with full-first/lite-after Augury steering, Hall/Mimir discovery, Council expert assignment, and explicit host/kernel boundaries.',
+            longDescription: 'Routes Codex through CStar with bounded Augury explanation, Hall/Mimir discovery, advisory Council lenses, and explicit host/kernel boundaries.',
             developerName: author.name,
             category: 'Developer Tools',
             capabilities: ['Interactive', 'Write'],
@@ -346,9 +392,9 @@ function buildCodexPluginManifestContent(projectRoot: string): string {
             privacyPolicyURL: metadata.homepage ?? repositoryUrl,
             termsOfServiceURL: metadata.homepage ?? repositoryUrl,
             defaultPrompt: [
-                'Route CStar work through Corvus Star Augury [\u03a9].',
+                'Use Corvus Star Augury when CStar route or scope is ambiguous.',
                 'Use Hall/Mimir discovery before broad local scans.',
-                'Keep confidence in Augury learning metadata.',
+                'Treat Augury as advisory and confidence as not measured unless an independent scorer ran.',
             ],
             brandColor: '#0F6E5B',
         },
@@ -391,9 +437,11 @@ function buildCodexPluginSkillContent(capabilities: CapabilityExport[]): string 
         '## When to Use',
         '- Use when the workspace is the Corvus estate or a Corvus spoke.',
         '- Use when Codex should route discovery and execution through CStar instead of ad hoc scripts.',
+        '- Authoritative integration contract: `docs/integrations/codex_mcp_contract.md`.',
         '',
         '## Required Behavior',
-        '- Read only the specific CStar authority files needed for the task. Start with `AGENTS.qmd` and `.agents/skill_registry.json` before architectural claims.',
+        '- Read only the specific CStar authority files needed for the task. Start with the nearest `AGENTS.md` or `AGENTS.qmd`, then `.agents/skill_registry.json`, before architectural claims.',
+        '- Current role, topology, ownership, and operator-gate policy come from the nearest authority file; this generated skill deliberately does not duplicate that mutable policy.',
         '- CStar is canonical for Corvus planning, proposals, execution state, validation, and completion; do not use direct Hall/SQLite writes when kernel primitives exist.',
         '- Prefer `cstar-kernel` MCP tools first for CStar control-plane work: `cstar_doctor`, `cstar_handoff`, `cstar_augury`, `cstar_hall_search`, `cstar_verify_plan`, `cstar_bead`, and `cstar_record_result` where exposed.',
         '- Use `cstar_hall_search` before broad local scans, and quote only the relevant Hall hits back into context.',
@@ -401,16 +449,11 @@ function buildCodexPluginSkillContent(capabilities: CapabilityExport[]): string 
         '- If MCP is degraded or unavailable, report the exact failure and remain read-only for control-plane state; do not mutate Hall or SQLite directly.',
         '- Use `./cstar <command>` from the CStar root or `node bin/cstar.js <command>` only when MCP cannot provide the needed primitive or the capability is explicitly terminal-required.',
         '- Use `cstar_handoff` when resuming active planning/runtime state, then carry forward only the lead bead, gate, next action, target paths, and checker commands.',
-        '- Use `cstar_doctor` before acting when scope, route, expert, or Mimir targets look unclear.',
-        '- Use `cstar_augury` when you need the reason behind the selected route, scope, expert, and Mimir targets.',
+        '- Use `cstar_doctor` when kernel health is unknown or a current probe reports degradation.',
+        '- Use `cstar_augury` only when route or material scope is ambiguous; it explains a route but grants no authority.',
         '- Use direct Codex thread tools for read/list/send when exposed; session JSONL fallback is read-only degraded mode, not an execution or assignment surface.',
-        '- CoS is CEO-facing coordination: visibility, priorities, risks, and approval asks. CoS does not directly implement project work by default.',
-        '- Route execution through CoS -> Corvus - MM -> one pinned PMT per project -> fresh workers.',
-        '- PMT owns worker assignment and project execution tracking; MM owns thread architecture and routing.',
-        '- Treat the Researcher thread as a special monitored pipeline, not a normal PMT worker.',
-        '- Preserve operator gates for acceptance, dispatch, implementation bypass, commit, push, merge, post, deletion, restarts, deploys, and secret/config mutation.',
         '- Keep high-volume collectors outside beads; collectors write receipts or artifacts, then bounded proposals/results enter CStar.',
-        '- Avoid active AutoBot/Hermes routing language unless explicitly marked historical or decommissioned.',
+        '- Public AutoBot routing is decommissioned. Refer to Hermes/MiniMax only for the private durable Forge request/execute adapter; direct Hermes and Codex-subagent implementation routes are forbidden.',
         '- Keep host-specific packaging separate from kernel logic.',
         '- Treat `native-session` and `exec-bridge` capabilities as host-routed work, and `supported` capabilities as kernel-backed launch surfaces.',
         '- Treat `host-workflow` entries as host-owned cognition/workflow surfaces and `kernel-primitive` entries as deterministic kernel control-plane primitives.',
@@ -421,20 +464,17 @@ function buildCodexPluginSkillContent(capabilities: CapabilityExport[]): string 
         ...buildKernelMcpToolsSection(),
         '## Context Budget',
         '- Never preload Hall memory, logs, full registry dumps, or complete bead ledgers.',
-        '- Prefer one Hall query per mission, then narrower follow-up queries by bead id, target path, or error text.',
+        '- Use at most one broad Hall query when discovery genuinely needs it, then narrow by bead id, target path, or error text.',
         '- Summarize Hall results as current instructions only when they are OPEN/SET/PLAN_READY or explicitly match the user request. Treat logs and archived results as leads.',
         '- Keep retrieved snippets to the minimum needed to choose files, commands, verification, and next action.',
         '',
         '## Bead Workflow',
-        '1. Identify the mission and run a targeted `cstar_hall_search` query.',
+        '1. Resume a known bead with `cstar_handoff`; use bounded Hall discovery only when its identity is unknown.',
         '2. If an OPEN or SET bead matches, anchor work to that bead and inspect only its target paths plus directly adjacent files.',
-        '3. If no bead matches and the task is structural, use host-native planning in-session and record the intended Hall path in the response.',
-        '4. Before edits, state the bead/Augury anchor and the files you will touch.',
+        '3. If no bead matches and the task changes Corvus state, create or propose the bounded lifecycle record before implementation.',
+        '4. Use Augury only for ambiguous route or material scope; do not make it a per-edit ritual.',
         '5. After edits, run the checker from the bead when present; otherwise run the focused CStar or spoke test that matches the touched surface.',
-        '6. If CStar reports a live planning/runtime failure, triage it before returning to spoke work unless the user explicitly defers it.',
-        '',
-        '## Silent Hook',
-        '- The plugin includes a PostToolUse hook that only refreshes a local stamp and captures a tiny Augury handoff compatibility payload in `/tmp`; it must stay silent and must not inject Hall payloads into Codex context.',
+        '6. Record meaningful validation and closeout through CStar; a package, callback, or model claim is evidence rather than lifecycle state.',
         '',
         '## Registry-Exported Codex Capabilities',
         '- This list is generated from `.agents/skill_registry.json` and may be empty when no Codex executable capabilities are registered.',
@@ -442,87 +482,6 @@ function buildCodexPluginSkillContent(capabilities: CapabilityExport[]): string 
         '',
     ].join('\n');
 }
-
-function buildCodexHooksContent(): string {
-    return `${JSON.stringify({
-        hooks: {
-            PostToolUse: [
-                {
-                    matcher: 'Write|Edit|MultiEdit|apply_patch',
-                    hooks: [
-                        {
-                            type: 'command',
-                            command: 'bash ./scripts/cstar_codex_post_write.sh',
-                        },
-                    ],
-                },
-            ],
-        },
-    }, null, 2)}\n`;
-}
-
-function buildCodexPostWriteHookContent(projectRoot: string): string {
-    return [
-        '#!/usr/bin/env bash',
-        'set -u',
-        '',
-        `CSTAR_ROOT="${projectRoot.replace(/"/g, '\\"')}"`,
-        'if [ ! -x "$CSTAR_ROOT/cstar" ]; then',
-        '  exit 0',
-        'fi',
-        '',
-        'case "${PWD:-}" in',
-        '  "$CSTAR_ROOT"|"$CSTAR_ROOT"/*|/home/morderith/Corvus|/home/morderith/Corvus/*) ;;',
-        '  *) exit 0 ;;',
-        'esac',
-        '',
-        'STAMP_DIR="${TMPDIR:-/tmp}/corvus-codex"',
-        'mkdir -p "$STAMP_DIR" 2>/dev/null || exit 0',
-        'date -u +"%Y-%m-%dT%H:%M:%SZ" > "$STAMP_DIR/last-post-write" 2>/dev/null || true',
-        '',
-        '# Keep this hook context-neutral: capture a tiny handoff for manual inspection, never print Hall payloads.',
-        '( cd "$CSTAR_ROOT" && ./cstar augury handoff --json > "$STAMP_DIR/last-augury-handoff.json" 2>/dev/null ) || true',
-        'exit 0',
-        '',
-    ].join('\n');
-}
-
-/**
- * The cstar-kernel MCP tool inventory, in registration order.
- * Source of truth: `src/tools/cstar-kernel-mcp.ts#server.tool(...)` calls.
- * Update this list when a tool is added, renamed, or removed.
- * Drift is caught by `npm run validate:distributions` (this content is
- * embedded in GEMINI.md and the Codex SKILL.md, so a stale list will fail
- * the validate-distributions check).
- */
-const KERNEL_MCP_TOOLS: ReadonlyArray<{ name: string; purpose: string }> = [
-    { name: 'cstar_handoff', purpose: 'Compact active state from Augury/handoff logic.' },
-    { name: 'cstar_hall_search', purpose: 'FTS5 search across CODE / DOC / ENGRAM / BEAD / SESSION / LESSON.' },
-    { name: 'cstar_hall_maintenance', purpose: 'Engram lesson study / harvest queue.' },
-    { name: 'cstar_augury', purpose: 'Route one mission and return routing advice + token_path hints.' },
-    { name: 'cstar_researcher_request', purpose: 'No-spend request receipt for Researcher routing with metric and callback contracts.' },
-    { name: 'cstar_forge_request', purpose: 'No-spend request receipt for Corvus Forge routing with metric and callback contracts.' },
-    { name: 'cstar_forge_execute', purpose: 'Forge execution gate that links a request receipt to approved no-op or live-authorized adapter execution.' },
-    { name: 'cstar_autobot', purpose: 'Legacy AutoBot/Hermes delegation surface; disabled for new Corvus routing unless explicitly reactivated.' },
-    { name: 'cstar_doctor', purpose: 'Kernel diagnostics: registry, augury, database checks + telemetry summary.' },
-    { name: 'cstar_verify_plan', purpose: 'Recommended checker shells + last validation verdict for the active bead.' },
-    { name: 'cstar_bead', purpose: 'Bead lifecycle: get / list / create / update_status / claim / resolve / block.' },
-    { name: 'cstar_spoke_bead_import', purpose: 'Import a rich bead from a registered spoke into the hub Hall.' },
-    { name: 'cstar_record_result', purpose: 'Record a bead result / verdict; auto-link recent token-path advice.' },
-    { name: 'cstar_engram_record', purpose: 'Record an episodic memory entry.' },
-    { name: 'cstar_war_game_score', purpose: 'War-game scoring: register / tally / recent / by_scenario / get_score.' },
-    { name: 'cstar_manifest', purpose: 'Capability discovery (hub registry + spoke-local manifests, announce-only).' },
-    { name: 'cstar_skill_info', purpose: 'Per-capability contract: <slug>:<id> for spoke skills, bare id for hub.' },
-    { name: 'cstar_spoke_journal', purpose: 'Four-file journal state for a registered spoke (memory/tasks/wireframe/DEV_JOURNAL).' },
-    { name: 'cstar_pennyone_context', purpose: 'Bounded PennyOne/Hall summaries for bead, validation, repository, and project-state context.' },
-    { name: 'cstar_mongo_mailbox', purpose: 'Mongo mailbox/cache status, mirror counts, and bounded operator-intent enqueue.' },
-    { name: 'cstar_status', purpose: 'Deterministic framework snapshot: status, persona, gungnir score, spokes, agents, hall_reachable.' },
-    { name: 'cstar_evolve', purpose: 'Read-only inspection of evolve proposals + SPRT history (no LLM-driven propose/promote).' },
-    { name: 'cstar_spoke', purpose: 'Mounted-spoke lifecycle: list / link / unlink / inspect.' },
-    { name: 'cstar_intent_route', purpose: 'Resolve a prompt against the intent grammar; action=match (first hit) or explain (all hits).' },
-    { name: 'cstar_warden', purpose: 'Sentinel Wardens: list / bounties (tech_debt_ledger) / scan (Python warden on demand).' },
-    { name: 'cstar_telemetry', purpose: 'MCP telemetry summaries: usage counts, outcome rates, token-path integration.' },
-];
 
 function buildMcpServers(rootCwd: string | undefined): Record<string, McpServerConfig> {
     return {
@@ -534,18 +493,18 @@ function buildMcpServers(rootCwd: string | undefined): Record<string, McpServerC
                 GEMINI_CLI_ACTIVE: 'true',
                 CSTAR_KERNEL_DISABLE_WATCH: '1',
             },
-            note: `CStar kernel MCP — ${KERNEL_MCP_TOOLS.length}-tool surface. See docs/integrations/cstar-kernel-mcp.md for the full API reference.`,
+            note: `CStar kernel MCP — ${CSTAR_KERNEL_TOOL_NAMES.length}-tool surface. See docs/integrations/cstar-kernel-mcp.md for the full API reference.`,
         },
     };
 }
 
 function buildKernelMcpToolsSection(): string[] {
     return [
-        `## Kernel MCP Tools (${KERNEL_MCP_TOOLS.length})`,
+        `## Kernel MCP Tools (${CSTAR_KERNEL_TOOL_NAMES.length})`,
         '',
-        'The `cstar-kernel` MCP server is the authoritative kernel surface — invoke these tools directly via MCP rather than shelling out to `./cstar` whenever the needed primitive exists. Every handler is deterministic; no LLM inference in the tool execution path. Full API reference: `docs/integrations/cstar-kernel-mcp.md`.',
+        'The `cstar-kernel` MCP server is the authoritative kernel surface — invoke these tools directly via MCP rather than shelling out to `./cstar` whenever the needed primitive exists. Live Forge uses durable request/attempt rows, one-shot operator attestation, atomic reservation, exact request/package/output locks, and idempotent replay. Adapter delivery remains pending until independent validation. Tool classification, request shape, or a caller-supplied reference is not authority proof. An already-running host must reload repaired source before changes are live. Full API reference: `docs/integrations/cstar-kernel-mcp.md`.',
         '',
-        ...KERNEL_MCP_TOOLS.map(({ name, purpose }) => `- \`${name}\` — ${purpose}`),
+        ...CSTAR_KERNEL_TOOL_CATALOG.map(({ name, toolClass, description }) => `- \`${name}\` (${toolClass}) — ${description}`),
         '',
     ];
 }
@@ -554,37 +513,31 @@ function buildGeminiMcpServers(): Record<string, McpServerConfig> {
     return buildMcpServers('.');
 }
 
-function buildCodexPluginMcpContent(): string {
-    return `${JSON.stringify({
-        mcpServers: buildMcpServers('../..'),
-    }, null, 2)}\n`;
-}
-
 function buildDistributionReadmeContent(geminiCapabilities: CapabilityExport[], codexCapabilities: CapabilityExport[]): string {
     return [
-        '# Corvus Star Install Surfaces',
+        '# Corvus Star Source and Release Surfaces',
         '',
-        'This repository generates host install artifacts from the authoritative registry and runtime contracts.',
+        'This repository generates host source-staging and external-runtime release artifacts from the authoritative registry and runtime contracts.',
         '',
         '## Gemini CLI',
         '- Install from the repository root so `gemini-extension.json` and `GEMINI.md` are available.',
         '- The extension exposes registry-filtered capabilities and MCP server wiring from the kernel root.',
         '- Gemini context is generated around the host-native supervisor model: host cognition, kernel primitives.',
-        '- The Gemini context teaches the full-first/lite-after Corvus Star Augury display and routing contract.',
+        '- The Gemini context teaches bounded, on-demand Corvus Star Augury routing.',
         '- Public host fronts marked as no-fallback are expected to fail closed when the host session is unavailable.',
-        '- Local bootstrap: `npm run install:gemini-local`',
+        '- Local source-link staging: `npm run install:gemini-local`; new-session pickup and live proof remain separate.',
         '',
         '## Codex',
         '- The repo-local plugin lives under `plugins/corvus-star/`.',
         '- The marketplace entry lives under `.agents/plugins/marketplace.json`.',
-        '- The plugin points back to the same kernel root through `.mcp.json`.',
-        '- Codex install surfaces are generated from the same registry-backed host/kernel split as Gemini.',
-        '- Codex skill context teaches the full-first/lite-after Corvus Star Augury display and routing contract.',
+        '- The plugin is skill-only and intentionally contains no hooks, `.mcp.json`, or bundled kernel.',
+        '- Codex reaches CStar through the single host-global `cstar-kernel` registration defined by the current integration contract.',
+        '- `plugins/corvus-star/lineage.json` binds the immutable plugin version to its tool catalog, exported capabilities, runtime mode, and per-file hashes.',
+        '- Codex source-staging surfaces are generated from the same registry-backed host/kernel split as Gemini.',
+        '- Codex skill context teaches bounded, on-demand Corvus Star Augury routing.',
         '- Public host fronts marked as no-fallback are expected to fail closed when the host session is unavailable.',
-        '- Local bootstrap: `npm run install:codex-local`',
-        '',
-        '## Combined Local Bootstrap',
-        '- `npm run install:hosts-local`',
+        '- Source staging only: `npm run install:codex-local` verifies and stages the plugin under `~/plugins/corvus-star`; it does not run `codex plugin add`, refresh Codex cache, restart Desktop, or prove live activation.',
+        '- Marketplace reconciliation, `codex plugin add`, restart/new-task pickup, and live MCP proof are a separate operator-gated activation flow.',
         '',
         `## Export Summary`,
         `- Gemini executable capabilities: ${geminiCapabilities.length}`,
@@ -598,9 +551,121 @@ function buildDistributionReadmeContent(geminiCapabilities: CapabilityExport[], 
         '- `npm run release:prepare`',
         '',
         '## CI',
-        '- Pull requests and pushes should fail if generated install artifacts drift from the registry-backed source.',
-        '- Tagged pushes and manual runs can publish host-ready bundle artifacts from `dist/host-distributions/`.',
-        '- Sync local `~/.gemini` and `~/.codex` installs from these generated artifacts instead of hand-editing host surfaces.',
+        '- Pull requests and pushes should fail if generated host artifacts drift from the registry-backed source.',
+        '- Tagged pushes and manual runs can publish external-runtime-dependent host overlays from `dist/host-distributions/`; the archives do not bundle CStar itself.',
+        '- Stage source from generated artifacts, then use the separately operator-gated supported host activation flow instead of hand-editing host surfaces.',
+        '',
+    ].join('\n');
+}
+
+function buildCodexBundleInstallContent(): string {
+    return [
+        '# Corvus Star Codex Plugin Bundle',
+        '',
+        'This archive is a self-contained local Codex marketplace root. Keep its directory layout intact.',
+        '',
+        '## Prerequisites',
+        '- Install and validate the external CStar runtime separately; this plugin intentionally bundles no kernel.',
+        '- Configure the single host-global `cstar-kernel` entry to use the supported `cstar-kernel-mcp-wrapper` bridge. Do not add a plugin-local MCP registration.',
+        '- Treat marketplace activation, cache refresh, restart, and live proof as operator-gated actions.',
+        '',
+        '## Operator-Gated Activation',
+        '1. Extract the archive without flattening it; the extracted directory is `<bundle-root>`.',
+        '2. Register the extracted marketplace with `codex plugin marketplace add <bundle-root>`.',
+        '3. Install from that marketplace with `codex plugin add corvus-star@corvus-star`.',
+        '4. Start a new Codex task so the updated plugin is discovered.',
+        '5. Prove activation through the live global wrapper path with `cstar_doctor`, `cstar_handoff`, `cstar_augury`, and `cstar_hall_search`.',
+        '',
+        'The bundled marketplace resolves `./plugins/corvus-star` inside this archive. Source staging or archive extraction alone is not activation proof.',
+        '',
+    ].join('\n');
+}
+
+function buildGeminiBundleManifestContent(projectRoot: string): string {
+    const manifest = JSON.parse(buildGeminiManifestContent(projectRoot)) as Record<string, unknown>;
+    manifest.description = 'Corvus Star Gemini extension overlay for an external CStar runtime.';
+    manifest.mcpServers = {
+        'cstar-kernel': {
+            command: 'node',
+            args: ['scripts/cstar_external_runtime_mcp.mjs'],
+            cwd: '.',
+            env: {
+                CSTAR_KERNEL_DISABLE_WATCH: '1',
+            },
+            note: 'External-runtime launcher. CSTAR_ROOT must identify a validated CStar source root.',
+        },
+    };
+    return `${JSON.stringify(manifest, null, 2)}\n`;
+}
+
+function buildGeminiExternalRuntimeLauncherContent(): string {
+    return [
+        "import fs from 'node:fs';",
+        "import path from 'node:path';",
+        "import { spawn } from 'node:child_process';",
+        '',
+        "const configuredRoot = process.env.CSTAR_ROOT || process.env.CORVUS_CSTAR_ROOT || '';",
+        "if (!configuredRoot || !path.isAbsolute(configuredRoot)) {",
+        "  console.error('[corvus:gemini] CSTAR_ROOT must be an absolute path to the external CStar runtime.');",
+        '  process.exit(78);',
+        '}',
+        'const cstarRoot = fs.realpathSync(configuredRoot);',
+        "const launcher = path.join(cstarRoot, 'bin', 'cstar-kernel-mcp.js');",
+        'const stat = fs.lstatSync(launcher);',
+        'if (stat.isSymbolicLink() || !stat.isFile()) {',
+        "  console.error(`[corvus:gemini] External CStar launcher is not a regular file: ${launcher}`);",
+        '  process.exit(78);',
+        '}',
+        'const child = spawn(process.execPath, [launcher], {',
+        '  cwd: cstarRoot,',
+        "  env: { ...process.env, CSTAR_KERNEL_DISABLE_WATCH: '1' },",
+        "  stdio: 'inherit',",
+        '});',
+        "const signalExitCodes = { SIGINT: 130, SIGTERM: 143, SIGKILL: 137 };",
+        "const forwardedSignals = ['SIGINT', 'SIGTERM'];",
+        'let forceTimer = null;',
+        'let forwarding = false;',
+        'const handlers = new Map();',
+        'for (const signal of forwardedSignals) {',
+        '  const handler = () => {',
+        '    if (forwarding || child.exitCode !== null || child.signalCode !== null) return;',
+        '    forwarding = true;',
+        '    child.kill(signal);',
+        '    forceTimer = setTimeout(() => {',
+        "      if (child.exitCode === null && child.signalCode === null) child.kill('SIGKILL');",
+        '    }, 1500);',
+        '    forceTimer.unref?.();',
+        '  };',
+        '  handlers.set(signal, handler);',
+        '  process.on(signal, handler);',
+        '}',
+        'const cleanup = () => {',
+        '  if (forceTimer !== null) clearTimeout(forceTimer);',
+        '  for (const [signal, handler] of handlers) process.removeListener(signal, handler);',
+        '};',
+        "child.on('error', (error) => { cleanup(); console.error(error); process.exit(1); });",
+        "child.on('exit', (code, signal) => {",
+        '  cleanup();',
+        '  process.exit(typeof code === \'number\' ? code : (signalExitCodes[signal] ?? 1));',
+        '});',
+        '',
+    ].join('\n');
+}
+
+function buildGeminiBundleInstallContent(): string {
+    return [
+        '# Corvus Star Gemini Extension Overlay',
+        '',
+        'This archive is not a standalone CStar runtime. It is a Gemini extension overlay that launches an external, validated CStar source root.',
+        '',
+        '## Operator-Gated Activation',
+        '1. Install and validate CStar separately.',
+        '2. Set `CSTAR_ROOT` to the absolute external CStar root containing `bin/cstar-kernel-mcp.js`.',
+        '3. Extract this archive without flattening it and install the extracted root through the supported Gemini extension workflow.',
+        '4. Start a new Gemini session.',
+        '5. Prove the live MCP path before claiming activation.',
+        '',
+        'The bundled manifest resolves its launcher inside this archive; that launcher fails closed unless `CSTAR_ROOT` identifies the external runtime.',
         '',
     ].join('\n');
 }
@@ -628,14 +693,92 @@ function buildMarketplaceContent(): string {
     }, null, 2)}\n`;
 }
 
+function buildCodexPluginLineageContent(
+    version: string,
+    pluginFiles: GeneratedFile[],
+    geminiCapabilities: CapabilityExport[],
+    codexCapabilities: CapabilityExport[],
+): string {
+    const pluginRoot = path.join('plugins', 'corvus-star');
+    const files = Object.fromEntries(
+        pluginFiles
+            .map((file) => ({
+                relativePath: portablePath(path.relative(pluginRoot, file.relativePath)),
+                content: file.content,
+            }))
+            .sort((left, right) => left.relativePath.localeCompare(right.relativePath))
+            .map(({ relativePath, content }) => [
+                relativePath,
+                {
+                    bytes: Buffer.byteLength(content, 'utf-8'),
+                    sha256: sha256(content),
+                },
+            ]),
+    );
+    const capabilityExports = {
+        codex: codexCapabilities,
+        gemini: geminiCapabilities,
+    };
+
+    return `${JSON.stringify({
+        schema_version: 1,
+        plugin: {
+            name: 'corvus-star',
+            version,
+        },
+        runtime_binding: CODEX_PLUGIN_RUNTIME_BINDING,
+        tool_catalog: {
+            count: CSTAR_KERNEL_TOOL_NAMES.length,
+            sha256: hashCanonicalJson(CSTAR_KERNEL_TOOL_CATALOG),
+        },
+        capability_exports: {
+            codex_count: codexCapabilities.length,
+            gemini_count: geminiCapabilities.length,
+            sha256: hashCanonicalJson(capabilityExports),
+        },
+        files,
+    }, null, 2)}\n`;
+}
+
 export function buildDistributions(projectRoot: string): DistributionBuild {
     const resolvedRoot = resolveProjectRoot(projectRoot);
+    const metadata = loadPackageMetadata(resolvedRoot);
     const geminiCapabilities = getCapabilitiesForHost(resolvedRoot, 'gemini');
     const codexCapabilities = getCapabilitiesForHost(resolvedRoot, 'codex');
+    const pluginRoot = path.join('plugins', 'corvus-star');
+    const pluginFiles: GeneratedFile[] = [
+        {
+            relativePath: path.join(pluginRoot, '.codex-plugin', 'plugin.json'),
+            content: buildCodexPluginManifestContent(resolvedRoot),
+        },
+        {
+            relativePath: path.join(pluginRoot, 'skills', 'corvus-star', 'SKILL.md'),
+            content: buildCodexPluginSkillContent(codexCapabilities),
+        },
+        {
+            relativePath: path.join(pluginRoot, 'README.md'),
+            content: buildDistributionReadmeContent(geminiCapabilities, codexCapabilities),
+        },
+    ];
+    const lineageFile: GeneratedFile = {
+        relativePath: path.join(pluginRoot, 'lineage.json'),
+        content: buildCodexPluginLineageContent(
+            metadata.version ?? '0.0.0',
+            pluginFiles,
+            geminiCapabilities,
+            codexCapabilities,
+        ),
+    };
 
     return {
         geminiCapabilities,
         codexCapabilities,
+        obsoletePaths: [
+            path.join(pluginRoot, '.mcp.json'),
+            path.join(pluginRoot, 'hooks.json'),
+            path.join(pluginRoot, 'hooks'),
+            path.join(pluginRoot, 'scripts', 'cstar_codex_post_write.sh'),
+        ],
         files: [
             {
                 relativePath: 'gemini-extension.json',
@@ -645,30 +788,8 @@ export function buildDistributions(projectRoot: string): DistributionBuild {
                 relativePath: 'GEMINI.md',
                 content: buildGeminiContextContent(resolvedRoot, geminiCapabilities),
             },
-            {
-                relativePath: path.join('plugins', 'corvus-star', '.codex-plugin', 'plugin.json'),
-                content: buildCodexPluginManifestContent(resolvedRoot),
-            },
-            {
-                relativePath: path.join('plugins', 'corvus-star', '.mcp.json'),
-                content: buildCodexPluginMcpContent(),
-            },
-            {
-                relativePath: path.join('plugins', 'corvus-star', 'hooks.json'),
-                content: buildCodexHooksContent(),
-            },
-            {
-                relativePath: path.join('plugins', 'corvus-star', 'scripts', 'cstar_codex_post_write.sh'),
-                content: buildCodexPostWriteHookContent(resolvedRoot),
-            },
-            {
-                relativePath: path.join('plugins', 'corvus-star', 'skills', 'corvus-star', 'SKILL.md'),
-                content: buildCodexPluginSkillContent(codexCapabilities),
-            },
-            {
-                relativePath: path.join('plugins', 'corvus-star', 'README.md'),
-                content: buildDistributionReadmeContent(geminiCapabilities, codexCapabilities),
-            },
+            ...pluginFiles,
+            lineageFile,
             {
                 relativePath: path.join('.agents', 'plugins', 'marketplace.json'),
                 content: buildMarketplaceContent(),
@@ -681,24 +802,133 @@ export function buildDistributions(projectRoot: string): DistributionBuild {
     };
 }
 
-export function writeDistributions(projectRoot: string): GeneratedFile[] {
-    const build = buildDistributions(projectRoot);
+interface DistributionPromotionUnit {
+    relativePath: string;
+    kind: 'file' | 'directory';
+}
 
-    for (const file of build.files) {
-        const absolutePath = path.join(projectRoot, file.relativePath);
-        fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
-        fs.writeFileSync(absolutePath, file.content, 'utf-8');
+function distributionPromotionUnits(build: DistributionBuild): DistributionPromotionUnit[] {
+    const pluginRoot = path.join('plugins', 'corvus-star');
+    return [
+        { relativePath: pluginRoot, kind: 'directory' },
+        ...build.files
+            .filter((file) => !file.relativePath.startsWith(`${pluginRoot}${path.sep}`))
+            .map((file) => ({ relativePath: file.relativePath, kind: 'file' as const })),
+    ];
+}
+
+function expectedPluginFiles(build: DistributionBuild): string[] {
+    const pluginRoot = path.join('plugins', 'corvus-star');
+    return build.files
+        .filter((file) => file.relativePath.startsWith(`${pluginRoot}${path.sep}`))
+        .map((file) => portablePath(path.relative(pluginRoot, file.relativePath)))
+        .sort((left, right) => left.localeCompare(right));
+}
+
+function preflightDistributionTargets(projectRoot: string, build: DistributionBuild): void {
+    assertNoRecoveryArtifacts(
+        projectRoot,
+        ['.cstar-distributions.stage-', '.cstar-distributions.rollback-'],
+        'generated distribution',
+    );
+    for (const unit of distributionPromotionUnits(build)) {
+        const target = path.join(projectRoot, unit.relativePath);
+        assertManagedPathSafe(projectRoot, target, `Generated distribution target ${unit.relativePath}`);
+        if (!fs.existsSync(target)) continue;
+        const stat = fs.lstatSync(target);
+        if (unit.kind === 'directory') {
+            assertRegularTree(target, `Generated distribution tree ${unit.relativePath}`);
+        } else if (!stat.isFile()) {
+            throw new Error(`Generated distribution target must be a regular file: ${target}`);
+        }
+    }
+}
+
+export function writeDistributions(projectRoot: string): GeneratedFile[] {
+    const resolvedRoot = resolveProjectRoot(projectRoot);
+    const build = buildDistributions(resolvedRoot);
+    const units = distributionPromotionUnits(build);
+    preflightDistributionTargets(resolvedRoot, build);
+
+    const stagingRoot = fs.mkdtempSync(path.join(resolvedRoot, '.cstar-distributions.stage-'));
+    const rollbackRoot = fs.mkdtempSync(path.join(resolvedRoot, '.cstar-distributions.rollback-'));
+    const backedUp: DistributionPromotionUnit[] = [];
+    const promoted: DistributionPromotionUnit[] = [];
+    let preserveRollback = false;
+
+    try {
+        for (const file of build.files) {
+            const stagedPath = path.join(stagingRoot, file.relativePath);
+            fs.mkdirSync(path.dirname(stagedPath), { recursive: true });
+            fs.writeFileSync(stagedPath, file.content, 'utf-8');
+        }
+
+        const stagedPluginRoot = path.join(stagingRoot, 'plugins', 'corvus-star');
+        if (JSON.stringify(listRegularFiles(stagedPluginRoot)) !== JSON.stringify(expectedPluginFiles(build))) {
+            throw new Error('Staged Corvus Star plugin file set is incomplete or contains unexpected files.');
+        }
+
+        for (const unit of units) {
+            const target = path.join(resolvedRoot, unit.relativePath);
+            if (!fs.existsSync(target)) continue;
+            const backup = path.join(rollbackRoot, unit.relativePath);
+            fs.mkdirSync(path.dirname(backup), { recursive: true });
+            fs.renameSync(target, backup);
+            backedUp.push(unit);
+        }
+
+        for (const unit of units) {
+            const staged = path.join(stagingRoot, unit.relativePath);
+            const target = path.join(resolvedRoot, unit.relativePath);
+            fs.mkdirSync(path.dirname(target), { recursive: true });
+            fs.renameSync(staged, target);
+            promoted.push(unit);
+        }
+    } catch (error) {
+        const recoveryErrors: unknown[] = [];
+        for (const unit of [...promoted].reverse()) {
+            try {
+                fs.rmSync(path.join(resolvedRoot, unit.relativePath), { recursive: true, force: true });
+            } catch (recoveryError) {
+                recoveryErrors.push(recoveryError);
+            }
+        }
+        for (const unit of [...backedUp].reverse()) {
+            const backup = path.join(rollbackRoot, unit.relativePath);
+            const target = path.join(resolvedRoot, unit.relativePath);
+            try {
+                fs.mkdirSync(path.dirname(target), { recursive: true });
+                fs.renameSync(backup, target);
+            } catch (recoveryError) {
+                recoveryErrors.push(recoveryError);
+            }
+        }
+        if (recoveryErrors.length > 0) {
+            preserveRollback = true;
+            throw new Error(
+                `Generated distribution promotion failed and rollback was incomplete. Recovery tree preserved at ${rollbackRoot}`,
+                { cause: new AggregateError([error, ...recoveryErrors]) },
+            );
+        }
+        throw error;
+    } finally {
+        fs.rmSync(stagingRoot, { recursive: true, force: true });
+        if (!preserveRollback) {
+            fs.rmSync(rollbackRoot, { recursive: true, force: true });
+        }
     }
 
     return build.files;
 }
 
 export function validateDistributions(projectRoot: string): string[] {
-    const build = buildDistributions(projectRoot);
+    const resolvedRoot = resolveProjectRoot(projectRoot);
+    const build = buildDistributions(resolvedRoot);
     const mismatches: string[] = [];
+    preflightDistributionTargets(resolvedRoot, build);
 
     for (const file of build.files) {
-        const absolutePath = path.join(projectRoot, file.relativePath);
+        const absolutePath = path.join(resolvedRoot, file.relativePath);
         if (!fs.existsSync(absolutePath)) {
             mismatches.push(`${file.relativePath}: missing`);
             continue;
@@ -710,34 +940,58 @@ export function validateDistributions(projectRoot: string): string[] {
         }
     }
 
+    const pluginRoot = path.join(resolvedRoot, 'plugins', 'corvus-star');
+    if (fs.existsSync(pluginRoot)) {
+        const expected = new Set(expectedPluginFiles(build));
+        for (const actual of listRegularFiles(pluginRoot)) {
+            if (!expected.has(actual)) {
+                mismatches.push(`${path.join('plugins', 'corvus-star', actual)}: unexpected`);
+            }
+        }
+    }
+
+    for (const obsoletePath of build.obsoletePaths) {
+        if (
+            fs.existsSync(path.join(resolvedRoot, obsoletePath))
+            && !mismatches.includes(`${obsoletePath}: unexpected`)
+        ) {
+            mismatches.push(`${obsoletePath}: unexpected`);
+        }
+    }
+
     return mismatches;
 }
 
 export function buildReleaseBundles(projectRoot: string): ReleaseBundle[] {
-    const build = buildDistributions(projectRoot);
+    const resolvedRoot = resolveProjectRoot(projectRoot);
+    const build = buildDistributions(resolvedRoot);
     const fileMap = new Map(build.files.map((file) => [file.relativePath, file]));
 
-    const geminiFiles = [
-        'gemini-extension.json',
-        'GEMINI.md',
-        path.join('distributions', 'README.md'),
-    ].map((relativePath) => {
-        const file = fileMap.get(relativePath);
-        if (!file) {
-            throw new Error(`Missing generated distribution file: ${relativePath}`);
-        }
-        return file;
-    });
+    const geminiContext = fileMap.get('GEMINI.md');
+    if (!geminiContext) {
+        throw new Error('Missing generated Gemini context file.');
+    }
+    const geminiFiles: GeneratedFile[] = [
+        {
+            relativePath: 'gemini-extension.json',
+            content: buildGeminiBundleManifestContent(resolvedRoot),
+        },
+        geminiContext,
+        {
+            relativePath: path.join('scripts', 'cstar_external_runtime_mcp.mjs'),
+            content: buildGeminiExternalRuntimeLauncherContent(),
+        },
+        {
+            relativePath: 'INSTALL.md',
+            content: buildGeminiBundleInstallContent(),
+        },
+    ];
 
-    const codexFiles = [
+    const codexPluginFiles = [
         path.join('plugins', 'corvus-star', '.codex-plugin', 'plugin.json'),
-        path.join('plugins', 'corvus-star', '.mcp.json'),
-        path.join('plugins', 'corvus-star', 'hooks.json'),
-        path.join('plugins', 'corvus-star', 'scripts', 'cstar_codex_post_write.sh'),
         path.join('plugins', 'corvus-star', 'README.md'),
         path.join('plugins', 'corvus-star', 'skills', 'corvus-star', 'SKILL.md'),
-        path.join('.agents', 'plugins', 'marketplace.json'),
-        path.join('distributions', 'README.md'),
+        path.join('plugins', 'corvus-star', 'lineage.json'),
     ].map((relativePath) => {
         const file = fileMap.get(relativePath);
         if (!file) {
@@ -745,48 +999,141 @@ export function buildReleaseBundles(projectRoot: string): ReleaseBundle[] {
         }
         return file;
     });
+    const codexMarketplace = fileMap.get(path.join('.agents', 'plugins', 'marketplace.json'));
+    if (!codexMarketplace) {
+        throw new Error('Missing generated Codex marketplace file.');
+    }
 
     return [
         {
             name: 'gemini-extension',
             rootDir: path.join('dist', 'host-distributions', 'gemini-extension'),
-            files: geminiFiles.map((file) => ({
-                relativePath: file.relativePath === path.join('distributions', 'README.md')
-                    ? 'INSTALL.md'
-                    : path.basename(file.relativePath),
-                content: file.content,
-            })),
+            runtimeBinding: GEMINI_RUNTIME_BINDING,
+            files: geminiFiles,
         },
         {
             name: 'codex-plugin',
             rootDir: path.join('dist', 'host-distributions', 'codex-plugin'),
-            files: codexFiles.map((file) => ({
-                relativePath: file.relativePath === path.join('.agents', 'plugins', 'marketplace.json')
-                    ? path.join('.agents', 'plugins', 'marketplace.json')
-                    : file.relativePath === path.join('distributions', 'README.md')
-                        ? 'INSTALL.md'
-                    : file.relativePath.startsWith(path.join('plugins', 'corvus-star'))
-                        ? path.relative(path.join('plugins', 'corvus-star'), file.relativePath)
-                        : path.basename(file.relativePath),
-                content: file.content,
-            })),
+            runtimeBinding: CODEX_PLUGIN_RUNTIME_BINDING,
+            files: [
+                ...codexPluginFiles,
+                codexMarketplace,
+                {
+                    relativePath: 'INSTALL.md',
+                    content: buildCodexBundleInstallContent(),
+                },
+            ],
         },
     ];
+}
+
+export function buildReleaseBundleManifest(
+    projectRoot: string,
+    bundles: ReleaseBundle[] = buildReleaseBundles(projectRoot),
+): ReleaseBundleManifest {
+    const metadata = loadPackageMetadata(resolveProjectRoot(projectRoot));
+
+    return {
+        schema_version: 1,
+        version: metadata.version ?? '0.0.0',
+        bundles: bundles.map((bundle) => {
+            const files = bundle.files
+                .map((file) => ({
+                    path: portablePath(file.relativePath),
+                    bytes: Buffer.byteLength(file.content, 'utf-8'),
+                    sha256: sha256(file.content),
+                }))
+                .sort((left, right) => left.path.localeCompare(right.path));
+            return {
+                name: bundle.name,
+                root_dir: portablePath(bundle.rootDir),
+                sha256: hashCanonicalJson({
+                    files,
+                    runtime_binding: bundle.runtimeBinding,
+                }),
+                runtime_binding: bundle.runtimeBinding,
+                files,
+            };
+        }),
+    };
 }
 
 export function writeReleaseBundles(projectRoot: string): ReleaseBundle[] {
     const resolvedRoot = resolveProjectRoot(projectRoot);
     const bundles = buildReleaseBundles(resolvedRoot);
+    const distRoot = path.join(resolvedRoot, 'dist');
+    const hostDistributionsRoot = path.join(distRoot, 'host-distributions');
+    assertManagedPathSafe(resolvedRoot, distRoot, 'Distribution output root');
+    assertManagedPathSafe(resolvedRoot, hostDistributionsRoot, 'Host-distribution output root');
+    if (fs.existsSync(distRoot) && !fs.lstatSync(distRoot).isDirectory()) {
+        throw new Error(`Distribution output root must be a real directory: ${distRoot}`);
+    }
+    assertRegularTree(hostDistributionsRoot, 'Existing host-distribution tree');
+    assertNoRecoveryArtifacts(
+        distRoot,
+        ['.host-distributions.stage-', '.host-distributions.rollback-'],
+        'host-distribution',
+    );
 
-    for (const bundle of bundles) {
-        const bundleRoot = path.join(resolvedRoot, bundle.rootDir);
-        fs.rmSync(bundleRoot, { recursive: true, force: true });
-        fs.mkdirSync(bundleRoot, { recursive: true });
+    fs.mkdirSync(distRoot, { recursive: true });
+    const stagingRoot = fs.mkdtempSync(path.join(distRoot, '.host-distributions.stage-'));
+    const rollbackRoot = fs.mkdtempSync(path.join(distRoot, '.host-distributions.rollback-'));
+    const rollbackTree = path.join(rollbackRoot, 'host-distributions');
+    let previousMoved = false;
+    let stagedPromoted = false;
+    let preserveRollback = false;
 
-        for (const file of bundle.files) {
-            const absolutePath = path.join(bundleRoot, file.relativePath);
-            fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
-            fs.writeFileSync(absolutePath, file.content, 'utf-8');
+    try {
+        for (const bundle of bundles) {
+            const bundleRoot = path.join(stagingRoot, bundle.name);
+            fs.mkdirSync(bundleRoot, { recursive: true });
+            for (const file of bundle.files) {
+                const absolutePath = path.join(bundleRoot, file.relativePath);
+                fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
+                fs.writeFileSync(absolutePath, file.content, 'utf-8');
+            }
+        }
+        fs.writeFileSync(
+            path.join(stagingRoot, 'manifest.json'),
+            `${JSON.stringify(buildReleaseBundleManifest(resolvedRoot, bundles), null, 2)}\n`,
+            'utf-8',
+        );
+        assertRegularTree(stagingRoot, 'Staged host-distribution tree');
+
+        if (fs.existsSync(hostDistributionsRoot)) {
+            fs.renameSync(hostDistributionsRoot, rollbackTree);
+            previousMoved = true;
+        }
+        fs.renameSync(stagingRoot, hostDistributionsRoot);
+        stagedPromoted = true;
+    } catch (error) {
+        const recoveryErrors: unknown[] = [];
+        if (stagedPromoted) {
+            try {
+                fs.rmSync(hostDistributionsRoot, { recursive: true, force: true });
+            } catch (recoveryError) {
+                recoveryErrors.push(recoveryError);
+            }
+        }
+        if (previousMoved) {
+            try {
+                fs.renameSync(rollbackTree, hostDistributionsRoot);
+            } catch (recoveryError) {
+                recoveryErrors.push(recoveryError);
+            }
+        }
+        if (recoveryErrors.length > 0) {
+            preserveRollback = true;
+            throw new Error(
+                `Host-distribution promotion failed and rollback was incomplete. Recovery tree preserved at ${rollbackRoot}`,
+                { cause: new AggregateError([error, ...recoveryErrors]) },
+            );
+        }
+        throw error;
+    } finally {
+        fs.rmSync(stagingRoot, { recursive: true, force: true });
+        if (!preserveRollback) {
+            fs.rmSync(rollbackRoot, { recursive: true, force: true });
         }
     }
 

@@ -27,6 +27,27 @@ export function buildStableTempEnv(baseEnv = process.env, options = {}) {
     return env;
 }
 
+export function withBoundedNodeTestConcurrency(args = [], env = process.env) {
+    const launchArgs = [...args];
+    const testIndex = launchArgs.indexOf('--test');
+    if (testIndex === -1) return launchArgs;
+    if (launchArgs.some((arg) => arg === '--test-concurrency' || arg.startsWith('--test-concurrency='))) {
+        return launchArgs;
+    }
+
+    const rawConcurrency = String(env.CSTAR_NODE_TEST_CONCURRENCY ?? '2').trim();
+    if (!/^\d+$/.test(rawConcurrency)) {
+        throw new Error('CSTAR_NODE_TEST_CONCURRENCY must be an integer from 1 through 8.');
+    }
+    const concurrency = Number(rawConcurrency);
+    if (concurrency < 1 || concurrency > 8) {
+        throw new Error('CSTAR_NODE_TEST_CONCURRENCY must be an integer from 1 through 8.');
+    }
+
+    launchArgs.splice(testIndex + 1, 0, `--test-concurrency=${concurrency}`);
+    return launchArgs;
+}
+
 export function resolveTsxLaunch(projectRoot = PROJECT_ROOT, args = []) {
     const localTsxLoader = path.join(projectRoot, 'node_modules', 'tsx', 'dist', 'loader.mjs');
     if (fs.existsSync(localTsxLoader)) {

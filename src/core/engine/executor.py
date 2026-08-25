@@ -4,10 +4,7 @@ Lore: "The Spear of Odin."
 Purpose: Handle proactive actions like auto-installation and forge suggestions.
 """
 
-import sys
-import subprocess
 from pathlib import Path
-from src.core.engine.bead_ledger import BeadLedger
 from src.core.sovereign_hud import SovereignHUD
 from src.core.engine.cortex import Cortex
 
@@ -17,33 +14,22 @@ class SovereignExecutor:
         self.base_path = base_path
 
     def handle_proactive(self, payload) -> None:
-        """Executes automated tasks based on payload triggers."""
-        if payload.target_workflow == "AUTO_INSTALL":
-            skill_name = payload.extracted_entities.get("skill_name")
-            if skill_name:
-                clean_name = skill_name.replace("GLOBAL:", "")
-                install_script = self.project_root / "src" / "skills" / "install_skill.py"
-                command = f"{sys.executable} {install_script} {clean_name} {self.base_path}"
-                subprocess.run(command, shell=True, cwd=str(self.project_root))  # noqa: S602
+        """Retained compatibility hook that never installs or executes."""
+        if payload.target_workflow in {"AUTO_INSTALL", "LOCAL_SKILL_CANDIDATE"}:
+            SovereignHUD.persona_log(
+                "WARN",
+                "Automatic skill installation is retired. Review and install through "
+                "an explicit operator-approved capability workflow.",
+            )
 
     def suggest_forge(self, query: str) -> None:
-        """Capture low-confidence forge intent as triage instead of generating code directly."""
+        """Reject untracked Forge suggestions without writing legacy lifecycle state."""
         if len(query.split()) < 2:
             return
-
-        ledger = BeadLedger(self.project_root)
-        bead = ledger.upsert_bead(
-            rationale=f"Review low-confidence forge intent: {query}",
-            status="NEEDS_TRIAGE",
-            source_kind="SYSTEM",
-            triage_reason=(
-                "Freeform forge bypass retired. Add an explicit target path, contract refs, and acceptance criteria "
-                "before invoking TALIESIN."
-            ),
-        )
         SovereignHUD.persona_log(
             "WARN",
-            f"Forge bypass retired. Captured '{query}' as triage bead {bead.id}.",
+            f"Forge bypass retired for '{query}'. Create a CStar request with explicit "
+            "targets, outputs, validation, evidence, spend, and operator authorization.",
         )
 
     def handle_cortex_query(self, query: str) -> None:

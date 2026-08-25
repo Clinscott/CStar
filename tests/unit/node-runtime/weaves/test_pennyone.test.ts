@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 
 import { PennyOneAdapter } from '../../../../src/node/core/runtime/weaves/pennyone.js';
 import { database } from '../../../../src/tools/pennyone/intel/database.js';
+import { pennyOneReadOnlyStatus } from '../../../../src/tools/pennyone/intel/read_only_status.js';
 
 describe('PennyOneAdapter Unit Tests', () => {
     afterEach(() => {
@@ -135,7 +136,7 @@ describe('PennyOneAdapter Unit Tests', () => {
             status: 'AWAKE',
             active_persona: 'ALFRED',
             baseline_gungnir_score: 0,
-            intent_integrity: 100,
+            intent_integrity: 0,
             open_beads: rootPath === '/tmp/cstar' ? 2 : rootPath === '/tmp/archive' ? 5 : 1,
             validation_runs: rootPath === '/tmp/cstar' ? 4 : rootPath === '/tmp/archive' ? 1 : 3,
         }));
@@ -459,49 +460,76 @@ describe('PennyOneAdapter Unit Tests', () => {
     it('returns combined PennyOne maintenance status in one result', async () => {
         const now = 1_775_055_900_000;
         mock.method(Date, 'now', () => now);
-        mock.method(database, 'listHallRepositories', () => ([
-            { root_path: '/tmp/cstar' },
-            { root_path: '/tmp/xo' },
-        ] as Array<{ root_path: string }>));
-        mock.method(database, 'getHallSummary', (rootPath: string) => ({
-            repo_id: `repo:${rootPath}`,
-            root_path: rootPath,
-            name: rootPath.split('/').at(-1) ?? rootPath,
-            status: rootPath === '/tmp/cstar' ? 'AGENT_LOOP' : 'AWAKE',
-            active_persona: 'ALFRED',
-            baseline_gungnir_score: 0,
-            intent_integrity: 100,
-            open_beads: rootPath === '/tmp/cstar' ? 3 : 0,
-            validation_runs: rootPath === '/tmp/cstar' ? 2 : 5,
+        mock.method(pennyOneReadOnlyStatus, 'read', () => ({
+            roots: ['/tmp/cstar', '/tmp/xo'],
+            database_present: true,
+            entries: [
+                {
+                    root_path: '/tmp/cstar',
+                    summary: {
+                        repo_id: 'repo:/tmp/cstar',
+                        root_path: '/tmp/cstar',
+                        name: 'cstar',
+                        status: 'AGENT_LOOP',
+                        active_persona: 'ALFRED',
+                        baseline_gungnir_score: 0,
+                        intent_integrity: 0,
+                        open_beads: 3,
+                        validation_runs: 2,
+                    },
+                    documents: [
+                        {
+                            document_id: 'doc:report',
+                            repo_id: 'repo:/tmp/cstar',
+                            root_path: '/tmp/cstar',
+                            title: 'Report',
+                            status: 'ACTIVE',
+                            latest_version_id: 'v:report',
+                            latest_content_hash: 'hash:report',
+                            created_at: now - 1000,
+                            path: 'docs/reports/hall/hygiene-reports/2.json',
+                            doc_kind: 'maintenance',
+                            updated_at: now - 1000,
+                            latest_summary: 'Reported CStar hygiene',
+                            metadata: { report_kind: 'pennyone-hall-hygiene' },
+                        },
+                        {
+                            document_id: 'doc:normalize',
+                            repo_id: 'repo:/tmp/cstar',
+                            root_path: '/tmp/cstar',
+                            title: 'Normalize',
+                            status: 'ACTIVE',
+                            latest_version_id: 'v:normalize',
+                            latest_content_hash: 'hash:normalize',
+                            created_at: now - 2000,
+                            path: 'docs/reports/hall/normalize-receipts/1.json',
+                            doc_kind: 'maintenance',
+                            updated_at: now - 2000,
+                            latest_summary: 'Normalized CStar',
+                            metadata: { receipt_kind: 'pennyone-normalize' },
+                        },
+                    ],
+                },
+                {
+                    root_path: '/tmp/xo',
+                    summary: {
+                        repo_id: 'repo:/tmp/xo',
+                        root_path: '/tmp/xo',
+                        name: 'xo',
+                        status: 'AWAKE',
+                        active_persona: 'ALFRED',
+                        baseline_gungnir_score: 0,
+                        intent_integrity: 0,
+                        open_beads: 0,
+                        validation_runs: 5,
+                    },
+                    documents: [],
+                },
+            ],
         }));
-        mock.method(database, 'listHallDocuments', (rootPath: string) => rootPath === '/tmp/cstar'
-            ? [
-                {
-                    path: 'docs/reports/hall/hygiene-reports/2.json',
-                    doc_kind: 'maintenance',
-                    updated_at: now - 1000,
-                    latest_summary: 'Reported CStar hygiene',
-                    metadata: { report_kind: 'pennyone-hall-hygiene' },
-                },
-                {
-                    path: 'docs/reports/hall/normalize-receipts/1.json',
-                    doc_kind: 'maintenance',
-                    updated_at: now - 2000,
-                    latest_summary: 'Normalized CStar',
-                    metadata: { receipt_kind: 'pennyone-normalize' },
-                },
-            ]
-            : []);
-        const saveStatus = mock.method(database, 'saveHallDocumentSnapshot', () => ({
-            document: {
-                path: 'docs/reports/hall/status-reports/1.json',
-                document_id: 'doc:status:1',
-            },
-            version: {
-                version_id: 'docv:status:1',
-            },
-            changed: true,
-        } as unknown as ReturnType<typeof database.saveHallDocumentSnapshot>));
+        const saveStatus = mock.method(database, 'saveHallDocumentSnapshot', () => {
+            throw new Error('read-only status attempted to write');
+        });
 
         const adapter = new PennyOneAdapter();
         const result = await adapter.execute(
@@ -529,7 +557,7 @@ describe('PennyOneAdapter Unit Tests', () => {
             },
         );
 
-        assert.equal(result.status, 'TRANSITIONAL');
+        assert.equal(result.status, 'SUCCESS');
         assert.equal(result.metadata?.adapter, 'runtime:pennyone-status');
         assert.equal(result.metadata?.receipt_count, 1);
         assert.equal(result.metadata?.report_count, 1);
@@ -537,10 +565,9 @@ describe('PennyOneAdapter Unit Tests', () => {
         assert.equal(result.metadata?.stale_receipt_count, 0);
         assert.equal(result.metadata?.total_open_beads, 3);
         assert.equal(result.metadata?.total_validation_runs, 7);
-        assert.equal(result.metadata?.status_document_path, 'docs/reports/hall/status-reports/1.json');
-        assert.equal(result.metadata?.status_document_id, 'doc:status:1');
-        assert.equal(result.metadata?.status_version_id, 'docv:status:1');
-        assert.equal(saveStatus.mock.callCount(), 1);
+        assert.equal(result.metadata?.read_only, true);
+        assert.equal(result.metadata?.status_document_path, undefined);
+        assert.equal(saveStatus.mock.callCount(), 0);
         assert.deepStrictEqual(result.metadata?.per_root, [
             {
                 root_path: '/tmp/xo',

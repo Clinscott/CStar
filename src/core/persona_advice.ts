@@ -1,53 +1,50 @@
-import { activePersona, resolvePersonaPolicy, type PersonaOperatingPolicy } from '../tools/pennyone/personaRegistry.js';
+import { activePersona } from '../tools/pennyone/personaRegistry.js';
 
 export type PersonaName = 'ODIN' | 'ALFRED';
 
 export interface PersonaAdvice {
     persona: PersonaName;
     intent_category: string;
+    domain_emphasis: string;
+    /** @deprecated Compatibility alias for domain_emphasis. */
     direction: string;
     tone_directive: string;
-    planning_stance: string;
-    investigation_stance: string;
-    risk_tolerance: 'low' | 'medium' | 'high';
-    execution_gate: string;
-    repair_bias: string;
 }
 
 const ODIN_DIRECTION: Record<string, string> = {
-    REPAIR:      'Strike at root cause. Restructure when the breach reproduces. Patches earn no points.',
-    BUILD:       'Decompose into parallelizable beads with sovereign scope. Favor decisive scaffolding over incremental ceremony.',
-    VERIFY:      'Adversarially attack invariants, ownership boundaries, and stale assumptions before checking happy paths.',
-    SCORE:       'Score harshly. Reject easy passes. Demand structural correction where evidence shows recurring weakness.',
-    OBSERVE:     'Hunt for ownership ambiguity and stale assumptions first; surface symptoms only after the breach surface is named.',
-    HARDEN:      'Tighten contracts aggressively. Reject loose Gherkin. Raise the floor, not the ceiling.',
-    EXPAND:      'Mount boldly when authority is established. Verify identity at the boundary. Trust the projector.',
-    EVOLVE:      'Propose structural rewrites. SPRT-bench against incumbent. Promote only on clear signal.',
-    ORCHESTRATE: 'Strike with bounded sovereignty. Confirm named verification gates exist before dispatch.',
-    GUARD:       'Lock the breach surface. Do not negotiate with drift. Fail closed on ambiguity.',
-    DOCUMENT:    'Document the why and the trade. Strip ceremony. Signal structural truth, not pleasant prose.',
+    REPAIR:      'Structural causes, ownership boundaries, and architectural coherence.',
+    BUILD:       'System decomposition, explicit interfaces, and coherent scaffolding.',
+    VERIFY:      'Adversarial invariants, boundary failures, and stale assumptions.',
+    SCORE:       'Empirical rigor, discriminating evidence, and structural signal.',
+    OBSERVE:     'Ownership ambiguity, state drift, and high-signal diagnostics.',
+    HARDEN:      'Contract precision, invariant strength, and failure containment.',
+    EXPAND:      'Identity boundaries, spoke authority, and systemic integration.',
+    EVOLVE:      'Structural leverage, incumbent comparison, and measurable signal.',
+    ORCHESTRATE: 'System topology, dependency order, and bounded coordination.',
+    GUARD:       'Breach surfaces, drift resistance, and closed safety boundaries.',
+    DOCUMENT:    'Architectural intent, tradeoffs, and concise structural truth.',
 };
 
 const ALFRED_DIRECTION: Record<string, string> = {
-    REPAIR:      'Bound the fault surface first. Smallest reversible bead. Name the rollback path.',
-    BUILD:       'Smallest reversible scaffolding that preserves contracts. Document the verification path before extending it.',
-    VERIFY:      'Inspect current state and recent failure evidence before broadening scope. Cite before asserting.',
-    SCORE:       'Score deliberately. Require ledgered evidence. Flag drift without overreacting.',
-    OBSERVE:     'Perimeter-first triage. Gather state, recent failure evidence, and narrow repro paths before hypothesizing.',
-    HARDEN:      'Add focused Gherkin. Preserve existing contract semantics. Verify incrementally.',
-    EXPAND:      'Verify identity, mount, and authority before extending spoke privilege. Default to read_only.',
-    EVOLVE:      'Conservative refactor with bounded blast radius. Require operator-visible review.',
-    ORCHESTRATE: 'Require operator-visible review before broad dispatch. Favor a single named bead over a multi-strike plan.',
-    GUARD:       'Confirm guardrail coverage. Do not loosen contracts to unblock work.',
-    DOCUMENT:    'Preserve existing prose voice. Cite registry and runtime over inferred truth.',
+    REPAIR:      'Bounded fault surfaces, reversibility, and recovery evidence.',
+    BUILD:       'Contract-preserving structure, traceability, and verification clarity.',
+    VERIFY:      'Current-state evidence, narrow reproduction, and precise citations.',
+    SCORE:       'Ledgered evidence, calibrated claims, and visible uncertainty.',
+    OBSERVE:     'Perimeter state, recent failure evidence, and narrow diagnostics.',
+    HARDEN:      'Focused contracts, preserved semantics, and incremental proof.',
+    EXPAND:      'Identity, mount authority, and least-privilege boundaries.',
+    EVOLVE:      'Bounded change surfaces, reversibility, and operator visibility.',
+    ORCHESTRATE: 'Explicit ownership, named dependencies, and review visibility.',
+    GUARD:       'Guardrail coverage, contract preservation, and ambiguity disclosure.',
+    DOCUMENT:    'Source fidelity, provenance, and precise explanatory context.',
 };
 
 const ODIN_TONE = 'Speak with structural conviction. Compress. Name the target. Trade hedges for decisions.';
 const ALFRED_TONE = 'Speak with measured precision. Cite evidence. Acknowledge what is bounded. State unknowns plainly.';
 
 const DEFAULT_DIRECTION: Record<PersonaName, string> = {
-    ODIN: 'Default ODIN direction: attack the strongest invariant; refuse incremental hedging when sovereignty is established.',
-    ALFRED: 'Default ALFRED direction: confirm scope, name the verification surface, and proceed only with a reversible step.',
+    ODIN: 'Structural invariants, decisive system boundaries, and architectural coherence.',
+    ALFRED: 'Bounded scope, evidence provenance, and reversible system context.',
 };
 
 /**
@@ -80,36 +77,32 @@ function lookupDirection(persona: PersonaName, intentCategory: string): string {
  * and that the steering block injects into delegated host calls.
  * @param intentCategory Resolved intent category (coerced to ORCHESTRATE when blank).
  * @param personaName Active persona name; defaults to the registry's loaded persona.
- * @returns Direction + tone + policy summary for the (persona, intent) pair.
+ * @returns Style/domain emphasis plus tone for the (persona, intent) pair.
  */
 export function buildPersonaAdvice(
     intentCategory: string | undefined,
     personaName: string | undefined = activePersona?.name,
 ): PersonaAdvice {
     const persona = normalizePersonaName(personaName);
-    const policy: PersonaOperatingPolicy = resolvePersonaPolicy(personaName);
     const category = String(intentCategory ?? '').trim().toUpperCase() || 'ORCHESTRATE';
+    const domainEmphasis = lookupDirection(persona, category);
     return {
         persona,
         intent_category: category,
-        direction: lookupDirection(persona, category),
+        domain_emphasis: domainEmphasis,
+        direction: domainEmphasis,
         tone_directive: persona === 'ODIN' ? ODIN_TONE : ALFRED_TONE,
-        planning_stance: policy.planning.stance,
-        investigation_stance: policy.investigation.stance,
-        risk_tolerance: policy.planning.riskTolerance,
-        execution_gate: policy.planning.executionGate,
-        repair_bias: policy.investigation.repairBias,
     };
 }
 
 /**
  * Format the two persona lines used inside the steering block.
  * @param advice Built advice payload.
- * @returns Two prefix-tagged lines: 'Persona Advice: ...' and 'Persona Tone: ...'.
+ * @returns Two prefix-tagged style lines: 'Persona Emphasis: ...' and 'Persona Tone: ...'.
  */
 export function formatPersonaAdviceLines(advice: PersonaAdvice): string[] {
     return [
-        `Persona Advice: [${advice.persona}] ${advice.direction}`,
+        `Persona Emphasis: [${advice.persona}] ${advice.domain_emphasis}`,
         `Persona Tone: ${advice.tone_directive}`,
     ];
 }

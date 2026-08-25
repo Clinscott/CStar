@@ -7,6 +7,7 @@ import { refreshOfflineIntents, runScan } from  '../../../../tools/pennyone/inde
 import { buildEstateTopology, writeProjectedMatrixGraph } from  '../../../../tools/pennyone/intel/compiler.js';
 import { database } from  '../../../../tools/pennyone/intel/database.js';
 import { importRepositoryIntoEstate } from  '../../../../tools/pennyone/intel/importer.js';
+import { pennyOneReadOnlyStatus } from '../../../../tools/pennyone/intel/read_only_status.js';
 import { searchMatrix } from  '../../../../tools/pennyone/live/search.js';
 import { registry } from  '../../../../tools/pennyone/pathRegistry.js';
 import { resolveTargetPath } from  '../adapters/ravens_utils.js';
@@ -27,10 +28,6 @@ function buildNormalizeReceiptPath(createdAt: number): string {
 
 function buildReportReceiptPath(createdAt: number): string {
     return `docs/reports/hall/hygiene-reports/${createdAt}.json`;
-}
-
-function buildStatusReceiptPath(createdAt: number): string {
-    return `docs/reports/hall/status-reports/${createdAt}.json`;
 }
 
 function classifyMaintenanceArtifact(document: { metadata?: Record<string, unknown> }): 'normalize_receipt' | 'hygiene_report' | 'maintenance_document' {
@@ -270,41 +267,6 @@ function formatPennyOneStatusOutput(input: {
         `${entry.root_path} | status=${entry.status} | receipt_state=${entry.receipt_state} | latest_receipt=${entry.latest_receipt_path ?? 'none'} | latest_report=${entry.latest_report_path ?? 'none'} | artifacts=${entry.artifact_count}`
     );
     return [header, ...lines].join('\n');
-}
-
-function buildPennyOneStatusContent(input: {
-    reported_at: number;
-    estate: boolean;
-    roots: string[];
-    artifact_kind?: PennyOneWeavePayload['artifact_kind'];
-    since?: string;
-    since_date?: string;
-    receipt_count: number;
-    stale_receipt_count: number;
-    report_count: number;
-    artifact_count: number;
-    total_open_beads: number;
-    total_validation_runs: number;
-    per_root: Array<Record<string, unknown>>;
-}): string {
-    return JSON.stringify({
-        status_kind: 'pennyone-maintenance-status',
-        reported_at: input.reported_at,
-        estate: input.estate,
-        roots: input.roots,
-        artifact_kind: input.artifact_kind,
-        since: input.since,
-        since_date: input.since_date,
-        totals: {
-            receipt_count: input.receipt_count,
-            stale_receipt_count: input.stale_receipt_count,
-            report_count: input.report_count,
-            artifact_count: input.artifact_count,
-            total_open_beads: input.total_open_beads,
-            total_validation_runs: input.total_validation_runs,
-        },
-        per_root: input.per_root,
-    }, null, 2);
 }
 
 export class PennyOneAdapter implements RuntimeAdapter<PennyOneWeavePayload> {
@@ -632,7 +594,6 @@ export class PennyOneAdapter implements RuntimeAdapter<PennyOneWeavePayload> {
         if (payload.action === 'status') {
             const statusRoot = resolveTargetPath(projectRoot, payload.path);
             const now = Date.now();
-            const roots = resolvePennyOneRoots(statusRoot, payload.estate);
             const artifactKind = payload.artifact_kind;
             const limit = typeof payload.limit === 'number' && Number.isFinite(payload.limit)
                 ? Math.max(1, Math.floor(payload.limit))
@@ -648,9 +609,15 @@ export class PennyOneAdapter implements RuntimeAdapter<PennyOneWeavePayload> {
                     error: error.message,
                 };
             }
-            const per_root = roots.map((rootPath) => {
-                const summary = database.getHallSummary(rootPath);
-                const documents = database.listHallDocuments(rootPath)
+            const snapshot = pennyOneReadOnlyStatus.read(
+                registry.getRoot(),
+                statusRoot,
+                payload.estate ?? false,
+            );
+            const roots = snapshot.roots;
+            const per_root = snapshot.entries.map((entry) => {
+                const summary = entry.summary;
+                const documents = entry.documents
                     .filter((document) => document.doc_kind === 'maintenance')
                     .sort((left, right) => right.updated_at - left.updated_at);
                 const latestReceipt = documents.find((document) => document.metadata?.receipt_kind === 'pennyone-normalize');
@@ -669,7 +636,7 @@ export class PennyOneAdapter implements RuntimeAdapter<PennyOneWeavePayload> {
                     }))
                     .slice(0, limit);
                 return {
-                    root_path: rootPath,
+                    root_path: entry.root_path,
                     repo_id: summary?.repo_id,
                     status: summary?.status ?? 'DORMANT',
                     open_beads: summary?.open_beads ?? 0,
@@ -703,44 +670,9 @@ export class PennyOneAdapter implements RuntimeAdapter<PennyOneWeavePayload> {
             const artifact_count = per_root.reduce((sum, entry) => sum + entry.artifact_count, 0);
             const total_open_beads = per_root.reduce((sum, entry) => sum + Number(entry.open_beads ?? 0), 0);
             const total_validation_runs = per_root.reduce((sum, entry) => sum + Number(entry.validation_runs ?? 0), 0);
-            const statusPath = buildStatusReceiptPath(now);
-            const statusReceipt = database.saveHallDocumentSnapshot({
-                root_path: statusRoot,
-                document_path: statusPath,
-                content: buildPennyOneStatusContent({
-                    reported_at: now,
-                    estate: payload.estate ?? false,
-                    roots,
-                    artifact_kind: artifactKind,
-                    since: payload.since,
-                    since_date: payload.since_date,
-                    receipt_count,
-                    stale_receipt_count,
-                    report_count,
-                    artifact_count,
-                    total_open_beads,
-                    total_validation_runs,
-                    per_root,
-                }),
-                title: 'PennyOne Hall Maintenance Status',
-                summary: `Status captured for ${roots.length} root(s) with ${receipt_count} normalize receipt(s), ${report_count} hygiene report(s), ${artifact_count} maintenance artifact(s), ${total_open_beads} open bead(s), and ${total_validation_runs} validation run(s).`,
-                doc_kind: 'maintenance',
-                source_label: 'pennyone-status',
-                metadata: {
-                    source: 'pennyone-status',
-                    status_kind: 'pennyone-maintenance-status',
-                    estate: payload.estate ?? false,
-                    roots,
-                    artifact_kind: artifactKind,
-                    since: payload.since,
-                    since_date: payload.since_date,
-                },
-                created_at: now,
-            });
-
             return {
                 weave_id: this.id,
-                status: 'TRANSITIONAL',
+                status: 'SUCCESS',
                 output: formatPennyOneStatusOutput({
                     roots,
                     receipt_count,
@@ -767,9 +699,8 @@ export class PennyOneAdapter implements RuntimeAdapter<PennyOneWeavePayload> {
                     artifact_count,
                     total_open_beads,
                     total_validation_runs,
-                    status_document_path: statusReceipt.document.path,
-                    status_document_id: statusReceipt.document.document_id,
-                    status_version_id: statusReceipt.version.version_id,
+                    read_only: true,
+                    database_present: snapshot.database_present,
                 },
             };
         }
@@ -835,6 +766,15 @@ export class PennyOneAdapter implements RuntimeAdapter<PennyOneWeavePayload> {
                 status: 'TRANSITIONAL',
                 output: 'PennyOne surgical clean complete. Long-term memory preserved.',
                 metadata: { adapter: 'legacy:pennyone', action: payload.action, ghosts: payload.ghosts ?? true },
+            };
+        }
+
+        if (payload.action !== 'scan') {
+            return {
+                weave_id: this.id,
+                status: 'FAILURE',
+                output: '',
+                error: `Unsupported PennyOne action '${String(payload.action)}'; repository scanning requires explicit action=scan.`,
             };
         }
 

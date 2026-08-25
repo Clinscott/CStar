@@ -214,7 +214,8 @@ describe('Chant collaborative planning (CS-P7-03)', () => {
         assert.ok(session);
         assert.equal(session?.status, 'PROPOSAL_REVIEW');
         assert.equal(session?.metadata?.active_persona, 'ALFRED');
-        assert.deepEqual((session?.metadata?.persona_operating_policy as any)?.planning?.riskTolerance, 'low');
+        assert.equal(session?.metadata?.persona_authority, 'style_only');
+        assert.equal(session?.metadata?.persona_operating_policy, undefined);
     });
 
     it('maintains a multi-turn planning session across follow-up prompts', async () => {
@@ -360,10 +361,14 @@ Seed the Hall contract for the scheduler migration.`,
         assert.equal(contract.selection_name, 'orchestrate');
         assert.equal(contract.trajectory_status, 'STABLE');
         assert.deepEqual(contract.mimirs_well, ['CStar/AGENTS.qmd', 'src/node/core/runtime/dispatcher.ts']);
-        assert.equal(contract.confidence, 0.94);
-        assert.equal(contract.confidence_source, 'explicit');
+        assert.equal(contract.confidence, undefined);
+        assert.equal(contract.confidence_source, undefined);
+        assert.equal(contract.gungnir_verdict, undefined);
         assert.equal(contract.council_expert?.id, 'dean');
-        assert.equal(contract.council_candidates?.[0]?.id, 'dean');
+        assert.equal(contract.council_candidates, undefined);
+        assert.equal(contract.council_expert?.selection_score, undefined);
+        assert.equal(contract.council_expert?.selection_candidates, undefined);
+        assert.equal(contract.council_expert?.root_persona_directive, undefined);
         assert.equal(contract.canonical_intent, 'Seed the Hall contract for the scheduler migration.');
         assert.deepEqual(session?.metadata?.trace_contract, session?.metadata?.augury_contract);
         assert.equal(session?.metadata?.augury_contract_version, 1);
@@ -433,8 +438,8 @@ Seed the Hall contract for the scheduler migration.`,
         assert.equal(contract.selection_tier, 'WEAVE');
         assert.equal(contract.selection_name, 'chant');
         assert.deepEqual(contract.mimirs_well, ['src/node/core/runtime/dispatcher.ts']);
-        assert.equal(contract.confidence, 0.72);
-        assert.equal(contract.confidence_source, 'synthetic');
+        assert.equal(contract.confidence, undefined);
+        assert.equal(contract.confidence_source, undefined);
         assert.equal(contract.council_expert?.id, 'dean');
         assert.deepEqual(session?.metadata?.trace_contract, session?.metadata?.augury_contract);
     });

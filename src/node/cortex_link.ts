@@ -1,8 +1,6 @@
 import { execa } from 'execa';
-import chalk from 'chalk';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { Project } from 'ts-morph';
 
 import { getPythonPath } from './core/python_utils.js';
 
@@ -10,6 +8,7 @@ const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const PROJECT_ROOT = path.resolve(__dirname, '../../');
 const KERNEL_BRIDGE_ENTRYPOINT = path.join(PROJECT_ROOT, 'src', 'core', 'kernel_bridge.py');
 const KERNEL_MARKER = '__CORVUS_KERNEL__';
+const SAFE_KERNEL_COMMANDS = new Set(['ping', 'shutdown', 'MATRIX_UPDATED', 'HEIMDALL_ALERT']);
 
 export interface CortexResponse {
     type?: string;
@@ -68,90 +67,18 @@ export class CortexLink {
         private readonly executor: KernelCommandExecutor = defaultKernelExecutor,
     ) {}
 
-    /**
-     * Handles the Two-Phase Commit for moving physical files and updating AST.
-     * @param sourcePath Original file path relative to root
-     * @param targetPath Target file path relative to root
-     */
+    /** Retired compatibility method; physical moves require an authorized workflow. */
     async handleArchitectMove(sourcePath: string, targetPath: string): Promise<boolean> {
-        console.log(chalk.cyan(`[CORTEX] Initiating AST Two-Phase Commit: ${sourcePath} -> ${targetPath}`));
-
-        const project = new Project({
-            tsConfigFilePath: path.join(PROJECT_ROOT, 'tsconfig.json'),
-            skipAddingFilesFromTsConfig: false,
-        });
-
-        const absSource = path.join(PROJECT_ROOT, sourcePath);
-        const absTarget = path.join(PROJECT_ROOT, targetPath);
-
-        const sourceFile = project.getSourceFile(absSource);
-        if (sourceFile) {
-            sourceFile.move(absTarget);
-            console.log(chalk.dim(`[CORTEX] AST mutations staged for ${sourcePath}.`));
-        } else {
-            console.warn(chalk.yellow(`[CORTEX] File not found in AST: ${sourcePath}. Proceeding with physical move only.`));
-        }
-
-        try {
-            const response = await this.sendCommand('PHYSICAL_MOVE_REQUEST', [sourcePath, targetPath]);
-
-            if (response.status === 'success' && (response.data as { status?: string } | undefined)?.status === 'MOVE_SUCCESS') {
-                console.log(chalk.green('[CORTEX] Kernel bridge confirmed physical move. Flushing AST...'));
-                try {
-                    await project.save();
-                    console.log(chalk.green('[CORTEX] AST flush complete. Sync locked.'));
-                    return true;
-                } catch {
-                    console.error(chalk.red('[CORTEX] AST flush failed. Triggering FATAL_ROLLBACK.'));
-                    await this.sendCommand('FATAL_ROLLBACK', [sourcePath, targetPath]);
-                    return false;
-                }
-            }
-
-            console.warn(chalk.yellow('[CORTEX] Kernel bridge rejected move. Discarding AST mutations.'));
-            return false;
-        } catch (error: any) {
-            console.error(chalk.red(`[CORTEX] Physical move request failed: ${error.message}`));
-            return false;
-        }
+        void sourcePath;
+        void targetPath;
+        return false;
     }
 
-    /**
-     * Intercepts a file write intent and performs pre-disk adjudication via the Ghost Warden.
-     * @param filePath Target file path
-     * @param content Proposed content string
-     * @returns Promise resolving to the verified content if cleared
-     * @throws Error if Ghost Warden issues a PRECOGNITIVE_WARNING
-     */
+    /** Retired compatibility method; never fail open on a write request. */
     async interceptWrite(filePath: string, content: string): Promise<string> {
-        console.log(chalk.cyan(`[CORTEX] Ghost Pulse Emission: Adjudicating mutation for ${filePath}...`));
-
-        try {
-            const response = await this.sendCommand('GHOST_PULSE', [filePath, content]);
-
-            if (response.status === 'success') {
-                const result = response.data as { status: string; score: number; reasons: string[] };
-
-                if (result.status === 'PULSE_CLEARED') {
-                    console.log(chalk.green(`[CORTEX] Ghost Pulse Cleared (Score: ${result.score}). Allowing write.`));
-                    return content;
-                }
-
-                const reasonStr = result.reasons.join(' | ');
-                console.error(chalk.bgRed.white.bold(' [PRECOGNITIVE WARNING] '));
-                console.error(chalk.red(`Ghost Warden Rejected Mutation: ${reasonStr} (Score: ${result.score})`));
-                throw new Error(`[PRECOGNITIVE_WARNING] ${reasonStr}`);
-            }
-
-            console.warn(chalk.yellow('[CORTEX] Ghost Warden communication failure. Falling back to optimistic write.'));
-            return content;
-        } catch (error: any) {
-            if (error.message.includes('[PRECOGNITIVE_WARNING]')) {
-                throw error;
-            }
-            console.warn(chalk.yellow(`[CORTEX] Ghost Pulse failed: ${error.message}. Proceeding cautiously.`));
-            return content;
-        }
+        void filePath;
+        void content;
+        throw new Error('cortex_write_path_decommissioned: use an authorized Forge or repository workflow');
     }
 
     /**
@@ -171,6 +98,9 @@ export class CortexLink {
      * @param cwd
      */
     async sendCommand(command: string, args: unknown = [], cwd = process.cwd()): Promise<CortexResponse> {
+        if (!SAFE_KERNEL_COMMANDS.has(command)) {
+            throw new Error(`kernel_bridge_command_decommissioned:${command}`);
+        }
         return this.executor({ command, args, cwd });
     }
 

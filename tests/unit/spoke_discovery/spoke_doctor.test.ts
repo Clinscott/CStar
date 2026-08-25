@@ -2,11 +2,15 @@ import test from 'node:test';
 import assert from 'node:assert';
 
 import {
+    SPOKE_HEALTH_FRESHNESS_MS,
+    SPOKE_SCAN_FRESHNESS_MS,
+    healthCheckSpoke,
     surveySpokesForRecords,
     type SpokeSurveyReport,
     type SpokeBucket,
 } from '../../../src/node/core/spokes/spoke_doctor.ts';
 import type { HallMountedSpokeRecord } from '../../../src/types/hall.js';
+import { database } from '../../../src/tools/pennyone/intel/database.js';
 
 const HUB = 'repo:/home/me/Corvus/CStar';
 
@@ -21,8 +25,9 @@ function row(overrides: Partial<HallMountedSpokeRecord> & { slug: string; root_p
         trust_level: overrides.trust_level ?? 'trusted',
         write_policy: overrides.write_policy ?? 'read_write',
         projection_status: overrides.projection_status ?? 'missing',
-        last_scan_at: overrides.last_scan_at,
-        last_health_at: overrides.last_health_at,
+        last_scan_at: overrides.last_scan_at ?? Date.now(),
+        last_health_at: overrides.last_health_at ?? Date.now(),
+        last_health_attempt_at: overrides.last_health_attempt_at,
         metadata: overrides.metadata,
         created_at: overrides.created_at ?? 0,
         updated_at: overrides.updated_at ?? 0,
@@ -104,6 +109,26 @@ test('STALE bucket — exists on disk but no current projection', () => {
     assert.match(r.spokes[0].reason, /no current projection/);
 });
 
+test('STALE bucket — recorded current cannot outrank expired health and scan proof', () => {
+    const now = new Date('2026-07-12T12:00:00.000Z');
+    const rows = [row({
+        slug: 'expired-current',
+        root_path: process.cwd(),
+        projection_status: 'current',
+        last_scan_at: now.getTime() - SPOKE_SCAN_FRESHNESS_MS - 1,
+        last_health_at: now.getTime() - SPOKE_HEALTH_FRESHNESS_MS - 1,
+        metadata: { authority: { mount_token: 't' } },
+    })];
+    const report = surveySpokesForRecords(rows, HUB, now);
+    const entry = report.spokes[0];
+
+    assert.strictEqual(entry.bucket, 'stale');
+    assert.strictEqual(entry.effective_projection_status, 'stale');
+    assert.strictEqual(entry.scan_fresh, false);
+    assert.strictEqual(entry.health_fresh, false);
+    assert.match(entry.reason, /freshness expired/);
+});
+
 test('STALE bucket — foreign repo_id but path exists, no duplicate', () => {
     const rows = [row({ slug: 'foreign-only', repo_id: 'repo:/foreign', root_path: process.cwd() })];
     const r = surveySpokesForRecords(rows, HUB);
@@ -139,4 +164,30 @@ test('Mount token surfaces from metadata.authority.mount_token only', () => {
     assert.strictEqual(byPath.get('no-auth-meta')?.mount_token, null);
     // no-auth-meta has projection_status=current but no token => stale, not live.
     assert.strictEqual(byPath.get('no-auth-meta')?.bucket, 'stale');
+});
+
+test('failed health attempts do not advance last successful health proof', (t) => {
+    const previousHealthyAt = 1_700_000_000_000;
+    const fixture = row({
+        slug: 'unhealthy',
+        root_path: '/tmp/cstar-definitely-missing-spoke-health',
+        last_health_at: previousHealthyAt,
+    });
+    let recordedHealthy: boolean | undefined;
+    t.mock.method(database, 'getHallMountedSpoke', () => fixture);
+    t.mock.method(database, 'touchSpokeHeartbeat', (
+        _slug: string,
+        _repoId: string,
+        _timestamp: number,
+        healthy: boolean,
+    ) => {
+        recordedHealthy = healthy;
+        return true;
+    });
+
+    const result = healthCheckSpoke('unhealthy');
+    assert.strictEqual(result.verdict, 'unhealthy');
+    assert.strictEqual(recordedHealthy, false);
+    assert.strictEqual(result.last_health_at, previousHealthyAt);
+    assert.ok(result.last_health_attempt_at > previousHealthyAt);
 });

@@ -19,7 +19,7 @@ Do not invent a fourth coordination channel.
 Existing surfaces already had partial truth:
 
 - `hall_planning_sessions` tracks planner state
-- `hall_one_mind_*` tracks host delegation and branch work
+- `hall_one_mind_*` preserves historical delegation and branch records
 - `sovereign_state.blackboard` tracks UI-visible handoffs and broadcasts
 
 This API unifies runtime communication around two Hall-native records:
@@ -188,12 +188,23 @@ saveHallCoordinationEvent({
 
 Use [one-mind.ts](/home/morderith/Corvus/CStar/src/node/core/commands/one-mind.ts).
 
+`one-mind` is now a read-only compatibility name for historical Hall
+visibility. It is not a broker, model host, claim worker, implementation lane,
+or workflow reconciler. `start`, `stop`, `fulfill`, `fulfill-next`, and `serve`
+remain only as fail-closed compatibility commands and never spawn a provider or
+mutate Hall/Synapse. Implementation uses the durable CStar Forge lifecycle.
+Historical broker flags no longer steer Mimir, and Mimir no longer creates or
+updates `hall_one_mind_requests`. A delegated/subagent Mimir request is rejected
+before host or Synapse actuation.
+
 Commands:
 
 - `cstar one-mind agents`
 - `cstar one-mind agents --json`
 - `cstar one-mind events --bead <id>`
 - `cstar one-mind events --thread <thread-id> --json`
+- `cstar one-mind status --json`
+- `cstar one-mind queue`
 
 Recommended operator workflow:
 
@@ -226,4 +237,8 @@ This protocol does not replace:
 - `hall_one_mind_requests`
 - `hall_one_mind_branches`
 
-Those remain domain-specific ledgers. The coordination API is the shared cross-agent surface that tells every participant where to look next.
+Those remain historical/domain-specific ledgers. No active worker may claim or
+execute `hall_one_mind_requests`; their presence is operator-visible context,
+not authority or an invitation to resume the retired lane. The coordination API
+is the shared cross-agent surface that tells every participant where to look
+next.

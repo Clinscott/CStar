@@ -30,52 +30,6 @@ function summarizeCallbackPacket(value: unknown): { callback_packet: string | nu
     return null;
 }
 
-function callbackPacketId(value: Record<string, unknown>): string | null {
-    for (const key of ['callback_id', 'packet_name', 'name']) {
-        if (typeof value[key] === 'string' && value[key].trim()) {
-            return value[key].trim();
-        }
-    }
-    return null;
-}
-
-function coerceCallbackOnlyReportPacket(
-    obj: Record<string, unknown>,
-    expectedCallbackPacket?: string,
-): Record<string, unknown> | null {
-    if (typeof obj.status === 'string') {
-        return null;
-    }
-    const packetId = callbackPacketId(obj);
-    if (!expectedCallbackPacket || packetId !== expectedCallbackPacket) {
-        return null;
-    }
-    const summary = typeof obj.summary === 'string' && obj.summary.trim()
-        ? obj.summary.trim()
-        : typeof obj.headline === 'string' && obj.headline.trim()
-            ? obj.headline.trim()
-            : typeof obj.root_cause_summary === 'string' && obj.root_cause_summary.trim()
-                ? obj.root_cause_summary.trim()
-                : null;
-    if (!summary) {
-        return null;
-    }
-    return {
-        status: 'pass',
-        summary,
-        files_changed: [],
-        artifacts: { callback_packet: obj },
-        validation: { callback_only_report_coerced: 'pass' },
-        metrics: { callback_packet_contract: 'pass' },
-        boundaries: {
-            codex_worker_fallback_allowed: false,
-            live_source_collection: false,
-            report_only: true,
-        },
-        callback_packet: obj,
-    };
-}
-
 function isSuccessAdapterStatus(status: string): boolean {
     return ['accepted', 'ok', 'pass', 'passed', 'success', 'succeeded'].includes(status.trim().toLowerCase());
 }
@@ -101,13 +55,34 @@ function collectArtifactPathClaims(value: unknown): string[] {
     return [];
 }
 
+function isInside(candidate: string, root: string): boolean {
+    const relative = path.relative(root, candidate);
+    return relative === '' || (
+        relative !== '..'
+        && !relative.startsWith(`..${path.sep}`)
+        && !path.isAbsolute(relative)
+    );
+}
+
 function claimedPathExists(claim: string, evidenceRoots: string[]): boolean {
+    const roots = evidenceRoots.flatMap((root) => {
+        try {
+            return [fs.realpathSync(root)];
+        } catch {
+            return [];
+        }
+    });
     const candidates = path.isAbsolute(claim)
-        ? [claim]
-        : evidenceRoots.map((root) => path.resolve(root, claim));
+        ? [path.resolve(claim)]
+        : roots.map((root) => path.resolve(root, claim));
     return candidates.some((candidate) => {
         try {
-            return fs.existsSync(candidate);
+            const containingRoot = roots.find((root) => isInside(candidate, root));
+            if (!containingRoot) return false;
+            const lexical = fs.lstatSync(candidate);
+            if (lexical.isSymbolicLink() || !lexical.isFile() || lexical.nlink !== 1) return false;
+            const canonical = fs.realpathSync(candidate);
+            return canonical === candidate && isInside(canonical, containingRoot);
         } catch {
             return false;
         }
@@ -128,9 +103,7 @@ export function validateForgeAdapterResponseContract(
     if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
         return { ok: false, error: 'adapter_response_not_object', summary: null };
     }
-    const originalObj = parsed as Record<string, unknown>;
-    const obj = coerceCallbackOnlyReportPacket(originalObj, expectedCallbackPacket) ?? originalObj;
-    const coercedFromCallback = obj !== originalObj;
+    const obj = parsed as Record<string, unknown>;
     if (typeof obj.status !== 'string' || !obj.status.trim()) {
         return { ok: false, error: 'adapter_response_missing_status', summary: null };
     }
@@ -149,27 +122,38 @@ export function validateForgeAdapterResponseContract(
     if (!callbackPacket) {
         return { ok: false, error: 'adapter_response_invalid_callback_packet', summary: null };
     }
+    if (expectedCallbackPacket && callbackPacket.callback_packet_kind === 'absent') {
+        return { ok: false, error: 'adapter_response_callback_packet_missing', summary: null };
+    }
+    if (expectedCallbackPacket && callbackPacket.callback_packet !== expectedCallbackPacket) {
+        return { ok: false, error: 'adapter_response_callback_packet_mismatch', summary: null };
+    }
     const filesChanged = obj.files_changed as unknown[];
     if (!filesChanged.every((entry) => typeof entry === 'string')) {
         return { ok: false, error: 'adapter_response_invalid_files_changed', summary: null };
     }
-    if (isSuccessAdapterStatus(obj.status)) {
-        const claimedPaths = [
-            ...filesChanged,
-            ...collectArtifactPathClaims(obj.artifacts),
-        ].map((entry) => String(entry).trim()).filter(Boolean);
-        const missingClaims = claimedPaths.filter((claim) => !claimedPathExists(claim, evidenceRoots));
-        if (missingClaims.length > 0) {
-            return {
-                ok: false,
-                error: 'adapter_response_missing_claimed_path',
-                summary: {
-                    status: obj.status,
-                    missing_claimed_paths: missingClaims.slice(0, 10),
-                    missing_claimed_path_count: missingClaims.length,
-                },
-            };
-        }
+    if (!isSuccessAdapterStatus(obj.status)) {
+        return {
+            ok: false,
+            error: 'adapter_response_reported_failure',
+            summary: { status: obj.status, ...callbackPacket },
+        };
+    }
+    const claimedPaths = [
+        ...filesChanged,
+        ...collectArtifactPathClaims(obj.artifacts),
+    ].map((entry) => String(entry).trim()).filter(Boolean);
+    const missingClaims = claimedPaths.filter((claim) => !claimedPathExists(claim, evidenceRoots));
+    if (missingClaims.length > 0) {
+        return {
+            ok: false,
+            error: 'adapter_response_missing_claimed_path',
+            summary: {
+                status: obj.status,
+                missing_claimed_paths: missingClaims.slice(0, 10),
+                missing_claimed_path_count: missingClaims.length,
+            },
+        };
     }
     const artifacts = obj.artifacts as Record<string, unknown> | unknown[];
     const validation = obj.validation as Record<string, unknown> | unknown[];
@@ -185,7 +169,6 @@ export function validateForgeAdapterResponseContract(
             validation_count: structuredEvidenceCount(validation),
             metrics_count: structuredEvidenceCount(metrics),
             boundaries_count: structuredEvidenceCount(boundaries),
-            coerced_from_callback_packet: coercedFromCallback,
             ...callbackPacket,
         },
     };

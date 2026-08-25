@@ -9,30 +9,13 @@ export interface OneMindDecision {
     boundary: OneMindBoundary;
     transportMode: ResolvedIntelligenceTransport;
     reason: string;
+    executionAllowed: boolean;
 }
 
 interface OneMindOptions {
     hostSessionActive?: boolean;
+    /** @deprecated Historical compatibility input. It cannot activate a broker. */
     brokerActive?: boolean;
-}
-
-function normalizeFlag(value: string | undefined): boolean | undefined {
-    if (value === undefined) {
-        return undefined;
-    }
-    const normalized = value.trim().toLowerCase();
-    if (['1', 'true', 'yes', 'on'].includes(normalized)) {
-        return true;
-    }
-    if (['0', 'false', 'no', 'off'].includes(normalized)) {
-        return false;
-    }
-    return undefined;
-}
-
-function isLegacyInteractiveOneMindBrokerActive(env: NodeJS.ProcessEnv): boolean {
-    const brokerFlag = normalizeFlag(env.CORVUS_ONE_MIND_BROKER_ACTIVE);
-    return brokerFlag === true;
 }
 
 function readMetadataValue(
@@ -45,10 +28,6 @@ function readMetadataValue(
 
 function classifySourceBoundary(source: string | undefined): OneMindBoundary {
     const normalized = String(source ?? '').trim().toLowerCase();
-    if (!normalized) {
-        return 'primary';
-    }
-
     if (
         normalized.includes('subagent')
         || normalized.includes('sub-agent')
@@ -58,7 +37,6 @@ function classifySourceBoundary(source: string | undefined): OneMindBoundary {
     ) {
         return 'subagent';
     }
-
     return 'primary';
 }
 
@@ -78,52 +56,50 @@ export function resolveOneMindBoundary(
     return classifySourceBoundary(request.caller?.source);
 }
 
+/**
+ * Compatibility transport decision for primary intelligence sampling. The
+ * retired One Mind broker can no longer alter routing. Delegated/subagent
+ * execution is denied before either host or Synapse invocation.
+ */
 export function resolveOneMindDecision(
     request: IntelligenceRequest | NormalizedIntelligenceRequest,
     env: NodeJS.ProcessEnv = process.env,
     options: OneMindOptions = {},
 ): OneMindDecision {
-    if (request.transport_mode === 'host_session') {
-        return {
-            boundary: resolveOneMindBoundary(request),
-            transportMode: 'host_session',
-            reason: 'explicit-host-session',
-        };
-    }
-
-    if (request.transport_mode === 'synapse_db') {
-        return {
-            boundary: resolveOneMindBoundary(request),
-            transportMode: 'synapse_db',
-            reason: 'explicit-synapse-db',
-        };
-    }
-
     const boundary = resolveOneMindBoundary(request);
     if (boundary === 'subagent') {
         return {
             boundary,
             transportMode: 'synapse_db',
-            reason: `delegated-${boundary}-boundary`,
+            reason: 'retired-subagent-execution-boundary',
+            executionAllowed: false,
         };
     }
 
-    // [🔱] BROKER OVERRIDE: Allow environment to force or disable the broker bus.
-    const envBrokerActive = normalizeFlag(env.CORVUS_ONE_MIND_BROKER_ACTIVE);
-    const effectiveBrokerActive = envBrokerActive !== undefined ? envBrokerActive : options.brokerActive;
+    if (request.transport_mode === 'host_session') {
+        return {
+            boundary,
+            transportMode: 'host_session',
+            reason: 'explicit-host-session',
+            executionAllowed: true,
+        };
+    }
+
+    if (request.transport_mode === 'synapse_db') {
+        return {
+            boundary,
+            transportMode: 'synapse_db',
+            reason: 'explicit-synapse-db',
+            executionAllowed: true,
+        };
+    }
 
     if (isInteractiveHostSession(env)) {
-        if (effectiveBrokerActive === true) {
-            return {
-                boundary,
-                transportMode: 'synapse_db',
-                reason: 'interactive-host-session-bus',
-            };
-        }
         return {
             boundary,
             transportMode: 'host_session',
             reason: 'interactive-host-session-direct',
+            executionAllowed: true,
         };
     }
 
@@ -132,12 +108,15 @@ export function resolveOneMindDecision(
             boundary,
             transportMode: options.hostSessionActive ? 'host_session' : 'synapse_db',
             reason: options.hostSessionActive ? 'declared-host-session' : 'declared-local-session',
+            executionAllowed: true,
         };
     }
 
+    const hostActive = isHostSessionActive(env);
     return {
         boundary,
-        transportMode: isHostSessionActive(env) ? 'host_session' : 'synapse_db',
-        reason: isHostSessionActive(env) ? 'ambient-host-session' : 'local-fallback',
+        transportMode: hostActive ? 'host_session' : 'synapse_db',
+        reason: hostActive ? 'ambient-host-session' : 'local-fallback',
+        executionAllowed: true,
     };
 }

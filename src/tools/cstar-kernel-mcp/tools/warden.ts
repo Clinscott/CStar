@@ -3,7 +3,7 @@ import path from 'node:path';
 import { execa } from 'execa';
 import { registry } from '../../pennyone/pathRegistry.js';
 import { errorResponse, textResponse, type McpTextResponse } from '../contracts/responses.js';
-import { isPathInside } from '../contracts/runtime.js';
+import { resolveExistingPathInside } from '../contracts/runtime.js';
 
 // cstar_warden — on-demand Sentinel Warden invocations.
 // Python wardens are deterministic (AST/text scans). The handler shells
@@ -157,17 +157,23 @@ export async function handleWarden({
             let targetIsDir = false;
             if (target) {
                 const abs = path.resolve(root, target);
-                if (!isPathInside(abs, root) && abs !== path.resolve(root)) {
+                let safeTarget: string;
+                try {
+                    safeTarget = resolveExistingPathInside(root, abs);
+                } catch {
+                    const relative = path.relative(path.resolve(root), abs);
+                    const lexicallyInside = relative === ''
+                        || (relative !== '..' && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative));
+                    if (lexicallyInside && !fs.existsSync(abs)) {
+                        return textResponse({ error: `target does not exist: ${target}` }, true);
+                    }
                     return textResponse(
                         { error: 'target must resolve to a path inside the project root' },
                         true,
                     );
                 }
-                if (!fs.existsSync(abs)) {
-                    return textResponse({ error: `target does not exist: ${target}` }, true);
-                }
-                resolvedTarget = abs;
-                targetIsDir = fs.statSync(abs).isDirectory();
+                resolvedTarget = safeTarget;
+                targetIsDir = fs.lstatSync(safeTarget).isDirectory();
             }
 
             const py = resolveWardenPython(root);

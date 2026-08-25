@@ -1,9 +1,13 @@
 # SovereignFish: The Protocol of Incremental Excellence
 
+> **Historical campaign ledger, not current instructions.** Do not run this
+> protocol automatically, make unsolicited changes, or treat its scores as
+> current evidence. Current scope and authority come from `AGENTS.md` and CStar.
+
 > "Complexity is the enemy of execution. Excellence is the habit of small corrections."
 
 ## 🐟 The Mission
-**SovereignFish** is an autonomous, incremental improvement protocol designed to run **EVERY SESSION**.
+**SovereignFish** was an experimental incremental-improvement protocol.
 Its goal is not to rewrite the application, but to polish it relentlessly.
 
 > [!TIP]
@@ -12,7 +16,7 @@ Its goal is not to rewrite the application, but to polish it relentlessly.
 
 **The Golden Rule:**
 > **"Leave the campsite cleaner than you found it."**
-> In every session, you must identify and execute **FIVE (5)** small improvements that are NOT strictly part of the user's main request, but contribute to the overall health, beauty, or efficiency of the system.
+> Historical rule (superseded): identify five out-of-scope improvements.
 > 
 > **The Torvalds Mandate:**
 > Excellence is not a goal; it is the starting line. We do not tolerate mediocrity.
@@ -32,7 +36,7 @@ The Standard demands more than just "working code." It demands **Thorough Verifi
 
 ---
 
-## 🔄 The Workflow (Run Every Session)
+## 🔄 Historical Workflow (Do Not Auto-Run)
 
 1.  **SCAN**: Briefly review `tasks.qmd`, `dev_journal.qmd`, `thesaurus.qmd`, and `wireframe.qmd`.
 2.  **HUNT**: Identify 2 targets for improvement.

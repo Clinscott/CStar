@@ -132,8 +132,8 @@ export function saveHallMountedSpoke(record: HallMountedSpokeRecord): void {
         INSERT INTO hall_mounted_spokes (
             spoke_id, repo_id, slug, kind, root_path, remote_url, default_branch,
             mount_status, trust_level, write_policy, projection_status,
-            last_scan_at, last_health_at, metadata_json, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            last_scan_at, last_health_at, last_health_attempt_at, metadata_json, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(spoke_id) DO UPDATE SET
             slug = excluded.slug,
             kind = excluded.kind,
@@ -146,6 +146,7 @@ export function saveHallMountedSpoke(record: HallMountedSpokeRecord): void {
             projection_status = excluded.projection_status,
             last_scan_at = excluded.last_scan_at,
             last_health_at = excluded.last_health_at,
+            last_health_attempt_at = excluded.last_health_attempt_at,
             metadata_json = excluded.metadata_json,
             updated_at = excluded.updated_at
     `).run(
@@ -162,6 +163,7 @@ export function saveHallMountedSpoke(record: HallMountedSpokeRecord): void {
         record.projection_status,
         record.last_scan_at ?? null,
         record.last_health_at ?? null,
+        record.last_health_attempt_at ?? null,
         stringifyJson(record.metadata),
         record.created_at,
         record.updated_at,
@@ -177,7 +179,7 @@ export function getHallMountedSpoke(
     const row = db.prepare(`
         SELECT spoke_id, repo_id, slug, kind, root_path, remote_url, default_branch,
                mount_status, trust_level, write_policy, projection_status,
-               last_scan_at, last_health_at, metadata_json, created_at, updated_at
+               last_scan_at, last_health_at, last_health_attempt_at, metadata_json, created_at, updated_at
         FROM hall_mounted_spokes
         WHERE repo_id = ? AND (slug = ? OR spoke_id = ?)
         LIMIT 1
@@ -201,6 +203,7 @@ export function getHallMountedSpoke(
         projection_status: row.projection_status as HallMountedSpokeRecord['projection_status'],
         last_scan_at: row.last_scan_at ? Number(row.last_scan_at) : undefined,
         last_health_at: row.last_health_at ? Number(row.last_health_at) : undefined,
+        last_health_attempt_at: row.last_health_attempt_at ? Number(row.last_health_attempt_at) : undefined,
         metadata: parseJson<Record<string, unknown>>(row.metadata_json as string | null, {}),
         created_at: Number(row.created_at ?? 0),
         updated_at: Number(row.updated_at ?? 0),
@@ -213,7 +216,7 @@ export function listHallMountedSpokes(rootPath: string = registry.getRoot()): Ha
     const rows = db.prepare(`
         SELECT spoke_id, repo_id, slug, kind, root_path, remote_url, default_branch,
                mount_status, trust_level, write_policy, projection_status,
-               last_scan_at, last_health_at, metadata_json, created_at, updated_at
+               last_scan_at, last_health_at, last_health_attempt_at, metadata_json, created_at, updated_at
         FROM hall_mounted_spokes
         WHERE repo_id = ?
         ORDER BY slug ASC
@@ -233,6 +236,7 @@ export function listHallMountedSpokes(rootPath: string = registry.getRoot()): Ha
         projection_status: row.projection_status as HallMountedSpokeRecord['projection_status'],
         last_scan_at: row.last_scan_at ? Number(row.last_scan_at) : undefined,
         last_health_at: row.last_health_at ? Number(row.last_health_at) : undefined,
+        last_health_attempt_at: row.last_health_attempt_at ? Number(row.last_health_attempt_at) : undefined,
         metadata: parseJson<Record<string, unknown>>(row.metadata_json as string | null, {}),
         created_at: Number(row.created_at ?? 0),
         updated_at: Number(row.updated_at ?? 0),
@@ -253,7 +257,7 @@ export function listAllHallMountedSpokes(): HallMountedSpokeRecord[] {
     const rows = db.prepare(`
         SELECT spoke_id, repo_id, slug, kind, root_path, remote_url, default_branch,
                mount_status, trust_level, write_policy, projection_status,
-               last_scan_at, last_health_at, metadata_json, created_at, updated_at
+               last_scan_at, last_health_at, last_health_attempt_at, metadata_json, created_at, updated_at
         FROM hall_mounted_spokes
         ORDER BY repo_id ASC, slug ASC
     `).all() as Array<Record<string, unknown>>;
@@ -271,6 +275,7 @@ export function listAllHallMountedSpokes(): HallMountedSpokeRecord[] {
         projection_status: row.projection_status as HallMountedSpokeProjectionStatus,
         last_scan_at: row.last_scan_at ? Number(row.last_scan_at) : undefined,
         last_health_at: row.last_health_at ? Number(row.last_health_at) : undefined,
+        last_health_attempt_at: row.last_health_attempt_at ? Number(row.last_health_attempt_at) : undefined,
         metadata: parseJson<Record<string, unknown>>(row.metadata_json as string | null, {}),
         created_at: Number(row.created_at ?? 0),
         updated_at: Number(row.updated_at ?? 0),
@@ -303,13 +308,20 @@ export function removeHallMountedSpoke(slugOrId: string, rootPath: string = regi
  * @param timestampMs epoch milliseconds; defaults to now
  * @returns true if a row was updated
  */
-export function touchSpokeHeartbeat(slug: string, repoId: string, timestampMs: number = Date.now()): boolean {
+export function touchSpokeHeartbeat(
+    slug: string,
+    repoId: string,
+    timestampMs: number = Date.now(),
+    healthy = true,
+): boolean {
     const db = database.getDb();
     const result = db.prepare(`
         UPDATE hall_mounted_spokes
-        SET last_health_at = ?, updated_at = ?
+        SET last_health_attempt_at = ?,
+            last_health_at = CASE WHEN ? = 1 THEN ? ELSE last_health_at END,
+            updated_at = ?
         WHERE slug = ? AND repo_id = ?
-    `).run(timestampMs, timestampMs, slug, repoId);
+    `).run(timestampMs, healthy ? 1 : 0, timestampMs, timestampMs, slug, repoId);
     return result.changes > 0;
 }
 

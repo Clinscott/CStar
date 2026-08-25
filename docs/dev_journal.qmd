@@ -1,5 +1,11 @@
 # Developer Journal Instructions
 
+> **Historical provenance, not current authority.** Entries record what earlier
+> sessions believed or attempted. Claims about One Mind, Ravens, AutoBot,
+> autonomous repair/learning, personas, scores, test state, installation, or
+> production readiness must be re-verified against current policy, lifecycle,
+> source, installed state, and live runtime before use.
+
 The `dev_journal.qmd` file records the chronological evolution of the project, focusing on architectural decisions, breakthrough, and persistent challenges.
 
 ## Goal

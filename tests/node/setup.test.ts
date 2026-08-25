@@ -23,6 +23,11 @@ describe('Genesis Bootstrapper (Native Installation)', () => {
             // Uses specific hardcoded unix slash paths ignoring runner OS translation
             assert.equal(pipPath.replace(/\\/g, '/'), '/test/root/.venv/bin/pip');
         });
+
+        test('Resolves macOS pip path correctly', () => {
+            const pipPath = getVenvBinaryPath('darwin', '/test/root', 'pip');
+            assert.equal(pipPath.replace(/\\/g, '/'), '/test/root/.venv/bin/pip');
+        });
     });
 
     describe('Execution Engine', () => {

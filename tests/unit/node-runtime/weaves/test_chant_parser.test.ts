@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
+import { SkillRegistryContractError } from '../../../../src/core/skill_registry_contract.ts';
 import {
     parseTraceSelectionGate,
     tokenize,
@@ -17,8 +18,11 @@ import {
     resolveIntentCategory,
     resolveIntentCategoryFromGrammar,
     resolveByIntentCategory,
+    INTENT_CATEGORIES,
     deps,
 } from '../../../../src/node/core/runtime/host_workflows/chant_parser.ts';
+
+const PROJECT_ROOT = path.resolve(import.meta.dirname, '..', '..', '..', '..');
 
 describe('Chant Parser Unit Tests', () => {
     afterEach(() => {
@@ -34,7 +38,7 @@ describe('Chant Parser Unit Tests', () => {
     }
 
     function assertResolvedSkill(
-        resolution: ReturnType<typeof resolveSkillInvocation> | ReturnType<typeof resolveRegistryInvocation>,
+        resolution: ReturnType<typeof resolveSkillInvocation> | ReturnType<typeof resolveRegistryInvocation> | ReturnType<typeof resolveByIntentCategory>,
     ) {
         assert.ok(resolution);
         assert.equal(resolution.kind, 'skill');
@@ -180,6 +184,17 @@ Confidence: 1.8`;
         assert.equal(manifest?.entries?.chant?.tier, 'WEAVE');
     });
 
+    it('loadRegistryManifest rejects an array-form entries field', () => {
+        mock.method(deps.fs, 'existsSync', () => true);
+        mock.method(deps.fs, 'readFileSync', () => '{"entries":[{"id":"mimir-harvester"}]}');
+
+        assert.throws(
+            () => loadRegistryManifest('/fake/root'),
+            (error: unknown) => error instanceof SkillRegistryContractError
+                && error.message === '[skill-registry] entries must be a plain object.',
+        );
+    });
+
     it('resolveBuiltInWeave handles ravens commands', () => {
         const payload = { query: 'ravens status', project_root: '.', cwd: '.' };
         const res = assertResolvedWeave(resolveBuiltInWeave(['ravens', 'status'], payload, 'ravens status'));
@@ -192,6 +207,13 @@ Confidence: 1.8`;
         const res = assertResolvedWeave(resolveBuiltInWeave(['scan'], payload, 'scan'));
         assert.equal(res.trigger, 'pennyone');
         assert.equal((res.invocation.payload as any).action, 'scan');
+    });
+
+    it('resolveBuiltInWeave treats plain pennyone as read-only status', () => {
+        const payload = { query: 'pennyone', project_root: '.', cwd: '.' };
+        const res = assertResolvedWeave(resolveBuiltInWeave(['pennyone'], payload, 'pennyone'));
+        assert.equal(res.trigger, 'pennyone');
+        assert.equal((res.invocation.payload as any).action, 'status');
     });
 
     it('resolveBuiltInWeave handles start commands', () => {
@@ -293,17 +315,24 @@ Confidence: 1.8`;
     it('resolveIntentCategory maps triggers to correct grammatical categories', () => {
         const repairMatch = resolveIntentCategory(['fix', 'the', 'bug']);
         assert.equal(repairMatch?.category, 'REPAIR');
-        assert.equal(repairMatch?.default_path, 'restoration');
-        assert.equal(repairMatch?.tier, 'WEAVE');
+        assert.equal(repairMatch?.default_path, 'cstar_forge_request');
+        assert.equal(repairMatch?.tier, 'SKILL');
 
         const scoreMatch = resolveIntentCategory(['score', 'the', 'code']);
         assert.equal(scoreMatch?.category, 'SCORE');
-        assert.equal(scoreMatch?.default_path, 'calculus');
+        assert.equal(scoreMatch?.default_path, 'cstar_record_result');
         assert.equal(scoreMatch?.tier, 'PRIME');
 
         const buildMatch = resolveIntentCategory(['build', 'a', 'feature']);
         assert.equal(buildMatch?.category, 'BUILD');
-        assert.equal(buildMatch?.default_path, 'creation_loop');
+        assert.equal(buildMatch?.default_path, 'cstar_forge_request');
+
+        const researchMatch = resolveIntentCategory(['research', 'external', 'sources']);
+        assert.equal(researchMatch?.category, 'RESEARCH');
+        assert.equal(researchMatch?.default_path, 'cstar_researcher_request');
+
+        const decommissionedAutobotMatch = resolveIntentCategory(['autobot']);
+        assert.equal(decommissionedAutobotMatch, null);
 
         const noMatch = resolveIntentCategory(['do', 'something', 'random']);
         assert.equal(noMatch, null);
@@ -324,11 +353,18 @@ Confidence: 1.8`;
         assert.equal(match?.matched_trigger, 'repair');
     });
 
-    it('resolveByIntentCategory returns a valid weave invocation for a matched category', () => {
+    it('keeps the fallback grammar byte-for-byte aligned with the authoritative registry grammar', () => {
+        const registry = JSON.parse(
+            fs.readFileSync(path.join(PROJECT_ROOT, '.agents', 'skill_registry.json'), 'utf-8'),
+        ) as { intent_grammar?: unknown };
+        assert.deepEqual(INTENT_CATEGORIES, registry.intent_grammar);
+    });
+
+    it('routes a fallback repair match to the current no-spend Forge request surface', () => {
         const payload = { query: 'fix it', project_root: '/tmp/test', cwd: '/tmp/test' };
-        const res = assertResolvedWeave(resolveByIntentCategory(['fix', 'it'], payload));
-        assert.equal(res.trigger, 'restoration');
-        assert.equal(res.invocation.weave_id, 'weave:restoration');
-        assert.equal(res.invocation.payload !== undefined, true);
+        const res = assertResolvedSkill(resolveByIntentCategory(['fix', 'it'], payload));
+        assert.equal(res.trigger, 'cstar_forge_request');
+        assert.equal(res.invocation.skill_id, 'cstar_forge_request');
+        assert.equal((res.invocation.params as any).source, 'chant');
     });
 });

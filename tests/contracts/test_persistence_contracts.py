@@ -3,6 +3,7 @@ import json
 import os
 import sys
 import unittest
+from pathlib import Path
 from unittest.mock import mock_open, patch
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
@@ -52,7 +53,7 @@ class TestPersistence_contracts(unittest.TestCase):
         # >>> CONTRACT 2: LOAD CORRUPT <<<
         # GIVEN Save file is corrupt
         # WHEN Load is requested
-        with patch("os.path.exists", return_value=True):
+        with patch.object(Path, "exists", return_value=True):
             with patch("builtins.open", mock_open(read_data="{ CORRUPT JSON ")):
                 with patch("json.load", side_effect=json.JSONDecodeError("Expecting value", "", 0)):
                     with patch("logging.error") as mock_log:

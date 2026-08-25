@@ -1,70 +1,25 @@
 #!/usr/bin/env python3
-"""
-Synapse Auth: The Neural Handshake
-[Ω] BYFROST GATEKEEPER / [A] SECURITY CLEARANCE PRIMARY
+"""Fail-closed tombstone for the retired local Synapse handshake."""
 
-Handles zero-knowledge-proof persona verification for Knowledge Core operations.
-"""
+from __future__ import annotations
 
-import hashlib
-import json
-import os
-import random
+import sys
 
 
-class PersonaVerifier:
-    """[ALFRED] Secure persona verification using hashed challenge-response."""
+RETIRED_REASON = "legacy_synapse_auth_retired_no_remote_verifier"
 
-    def __init__(self, config_path: str) -> None:
-        self.config_path = config_path
-        self.secret = self._load_secret()
 
-    def _load_secret(self) -> str:
-        if os.path.exists(self.config_path):
-            with open(self.config_path) as f:
-                config = json.load(f)
-                secret = config.get("security", {}).get("neural_secret")
-                return secret or config.get("NeuralSecret", "CORVUS_DEFAULT_SIGNAL")
-        return "CORVUS_DEFAULT_SIGNAL"
+def authenticate_sync(_persona: str) -> bool:
+    """No local challenge can authorize a remote knowledge mutation."""
+    return False
 
-    def generate_challenge(self) -> str:
-        """Generate a random 32-char challenge string."""
-        chars = "abcdef0123456789"
-        return "".join(random.choice(chars) for _ in range(32))
-
-    def solve_challenge(self, challenge: str, persona: str) -> str:
-        """Solve challenge: SHA256(challenge + secret + persona)."""
-        payload = f"{challenge}{self.secret}{persona.upper()}"
-        return hashlib.sha256(payload.encode()).hexdigest()
-
-    def verify_response(self, challenge: str, response: str, persona: str) -> bool:
-        """Verify the client's solution to the challenge."""
-        expected = self.solve_challenge(challenge, persona)
-        return response == expected
 
 class SynapseAuthenticator:
-    """[ALFRED] Orchestration logic for neural authentication handshakes."""
+    """Compatibility facade that always rejects the retired handshake."""
 
-    @staticmethod
-    def authenticate_sync(persona: str) -> bool:
-        """[ALFRED] High-level authentication helper for synapse_sync."""
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        config_path = os.path.join(os.path.dirname(script_dir), "config.json")
+    authenticate_sync = staticmethod(authenticate_sync)
 
-        verifier = PersonaVerifier(config_path)
-        challenge = verifier.generate_challenge()
-        # In a real federated system, the challenge would come from the remote server.
-        # Here, we simulate a 'local handshake' for security hardening.
-        response = verifier.solve_challenge(challenge, persona)
-
-        return verifier.verify_response(challenge, response, persona)
 
 if __name__ == "__main__":
-    import sys
-    p = sys.argv[1] if len(sys.argv) > 1 else "ALFRED"
-    if SynapseAuthenticator.authenticate_sync(p):
-        print(f"AUTHENTICATED: {p}")
-        sys.exit(0)
-
-    print(f"REJECTED: {p}")
-    sys.exit(1)
+    print(RETIRED_REASON, file=sys.stderr)
+    raise SystemExit(78)

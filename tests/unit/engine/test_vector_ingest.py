@@ -21,9 +21,11 @@ class TestVectorIngest(unittest.TestCase):
     @patch("src.core.engine.vector_ingest.Path.glob")
     @patch("src.core.engine.vector_ingest.Path.exists")
     @patch("src.core.engine.vector_ingest.Path.is_file")
+    @patch("src.core.engine.vector_ingest.VectorIngest._is_decommissioned_path")
     @patch("src.core.engine.vector_ingest.VectorIngest._read_intent")
-    def test_load_skills_from_dir(self, mock_read, mock_is_file, mock_exists, mock_glob):
+    def test_load_skills_from_dir(self, mock_read, mock_retired, mock_is_file, mock_exists, mock_glob):
         mock_exists.return_value = True
+        mock_retired.return_value = False
         
         mock_file = MagicMock(spec=Path)
         mock_file.is_file.return_value = True
@@ -42,6 +44,24 @@ class TestVectorIngest(unittest.TestCase):
         args, kwargs = self.mock_memory_db.batch_upsert_skills.call_args
         self.assertEqual(args[1][0]["trigger"], "/test_skill")
         self.assertEqual(args[1][0]["metadata"]["domain"], "CORE")
+
+    def test_load_skills_excludes_decommissioned_directories(self):
+        from tempfile import TemporaryDirectory
+
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            active = root / "active"
+            retired = root / "retired"
+            active.mkdir()
+            retired.mkdir()
+            (active / "safe.py").write_text("# Intent: safe local helper\n", encoding="utf-8")
+            (retired / "DECOMMISSIONED.md").write_text("# retired\n", encoding="utf-8")
+            (retired / "unsafe.py").write_text("# Intent: acquire remote code\n", encoding="utf-8")
+
+            self.ingest.load_skills_from_dir(root)
+
+        skills = self.mock_memory_db.batch_upsert_skills.call_args.args[1]
+        self.assertEqual([skill["trigger"] for skill in skills], ["/safe"])
 
     def test_read_intent_explicit(self):
         mock_file = MagicMock(spec=Path)

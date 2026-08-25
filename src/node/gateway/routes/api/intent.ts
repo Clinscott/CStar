@@ -38,22 +38,10 @@ export default async function (fastify: FastifyInstance) {
                 return reply.code(503).send({ error: 'Kernel bridge offline' });
             }
 
-            try {
-                const { CognitiveRouter } = await import('../../../core/CognitiveRouter.js');
-                const router = CognitiveRouter.getInstance();
-
-                // [TIERED ROUTING] Pass intent to the controller for cognitive evaluation
-                await router.routeIntent(request.body as any, corvus);
-
-                return reply.code(202).send({
-                    status: 'accepted',
-                    message: `Intent ${request.body.intent_normalized} routed via CognitiveRouter.`
-                });
-            } catch (err: any) {
-                fastify.log.error(`[IntentRoute] Routing Error: ${err.message}`);
-                return reply.code(500).send({ error: err.message });
-            }
+            void request;
+            return reply.code(503).send({
+                error: 'Legacy CognitiveRouter intent execution is decommissioned; use cstar_intent_route and an authorized CStar lifecycle.',
+            });
         }
     );
 }
-

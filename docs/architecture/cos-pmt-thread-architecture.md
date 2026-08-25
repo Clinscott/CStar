@@ -1,119 +1,144 @@
-# CoS and PMT Thread Architecture
-
-This document defines the Corvus Codex-thread operating architecture. Thread topology is part of the system architecture. Refactoring thread ownership follows the same separation-of-concerns rules as refactoring source code.
+# CoS and Project Information-Repository Architecture
 
 ## Control Principle
 
-CStar remains the canonical control plane for Corvus estate work. Planning state, proposal lifecycle, task ownership, validation, and completion should be represented through CStar proposals, beads, receipts, or bounded artifacts whenever a kernel-backed path exists.
+The operator sets direction and grants gates. CoS owns estate sequencing,
+converts direction into bounded CStar lifecycle state, routes work through the
+correct execution or research lane, packages evidence, and closes accepted
+Green/Yellow work. CStar is the estate axle and canonical state plane; it is not
+authority above the operator or platform.
 
-The User authorizes high-order direction and red-gated instructions. CoS converts that direction into bounded routing, decision packets, gates, and review outcomes. PMTs own their bounded domains. Workers and tools perform narrow execution under the PMT that owns the domain.
+PMT is retained as a project information-repository concept only. MM is legacy
+and has no active role.
 
-## Required Thread Boundaries
+## CoS
 
-### CoS Thread
+CoS is the operator-facing coordinator and owns:
 
-CoS is the estate overseer and operator-facing decision surface.
+- estate and cross-project sequencing;
+- bounded Green/Yellow execution and closeout;
+- bead/decision anchoring, evidence packaging, and lifecycle updates;
+- routing builds to Forge and research to Researcher;
+- deciding when independent CorvusEye or other validation is required;
+- returning red gates, spend/scope expansion, and authority conflicts to the
+  operator; and
+- compact state-update packets to project information repositories after
+  meaningful work.
 
-CoS owns:
+CoS does not bypass CStar with direct Hall/SQLite writes, replace Forge with a
+Codex subagent, replace Researcher with ad hoc browsing, or infer authority from
+a registry, callback, runtime observation, PMT record, or model claim.
 
-- translating User intent into CStar-tracked goals, proposals, gates, and routing decisions;
-- accepting, rejecting, parking, or escalating PMT packets;
-- detecting cross-domain conflicts, authority disputes, stale ownership, and red-gate conditions;
-- maintaining goal continuity while external PMTs are running, blocked, or waiting for review;
-- asking the User only for high-order choices, red-gated authorization, or unresolved policy conflicts.
+## PMT Information Repositories
 
-CoS does not own routine implementation, repeated shoulder-surfacing of PMTs, worker execution, or direct bypass of CStar state when a kernel-backed route exists.
+PMTs are passive project information repositories. When active targets are
+inside a project with a mapped PMT, CoS queries that PMT once for the bounded
+context relevant to the mission. Unrelated PMTs are not queried. The repository
+retains decisions, constraints, material evidence, and unresolved gates so a
+later CoS context does not need the full estate history.
 
-### CStar Control Plane PMT
+PMTs do not:
 
-The CStar Control Plane PMT owns CStar and cstar-console control-plane surfaces.
+- own execution, review, approval, routing, monitoring, or operator contact;
+- assign workers or invoke Forge/Researcher;
+- accept or reject a delivery;
+- create or weaken an authority gate;
+- act as a required relay; or
+- replace CStar lifecycle state.
 
-It owns:
+After meaningful work, CoS sends a bounded `STATE_UPDATE` packet containing:
 
-- CStar kernel, bead, proposal, Augury, Hall, routing, and receipt mechanics;
-- cstar-console UI and operator control-room behavior;
-- control-plane schema, status, review queues, and acceptance workflows;
-- integration contracts that let PMTs report into CStar.
+- bead/decision and current status;
+- changed or reviewed paths;
+- validation identifiers and material evidence hashes;
+- decisions made, residual risks, and remaining gates; and
+- the next safe action.
 
-It must not also own Researcher execution or Corvus Forge implementation work. If a CStar Console thread is carrying Researcher or Forge delivery responsibility, that is architectural drift and must be split.
+The repository stores the packet. It does not answer with an authoritative
+verdict. If repository state conflicts with CStar or current operator policy,
+CoS fails closed, repairs the record, and treats the PMT copy as stale.
+If the repository is unavailable, CoS records a freshness gap and continues
+from current CStar and repository evidence when otherwise authorized.
 
-### Researcher PMT
+Run the query in the PMT thread with an enforceable current GPT-5.6 selector:
+Luna for routine bounded retrieval, Terra for conflicting-context synthesis,
+and Sol for high-stakes architecture, security, or incident forensics. Record
+requested versus actual model identity. If selection is unavailable, do not
+claim control over it.
 
-The Researcher PMT owns research and evidence production.
+## MM Legacy Status
 
-It owns:
+MM is retired from active estate routing. Do not send work, decisions,
+cross-project synthesis, or status packets through MM. CoS directly handles
+estate sequencing and resolves cross-project conflicts under the applicable
+operator gates. Historical MM threads and records are archival leads only.
 
-- source discovery, source weighting, source receipts, and evidence packages;
-- Researcher v2 behavior, Hermes Researcher profile diagnostics, and truth/lie evaluation surfaces;
-- source-adapter readiness, source-collection gates, and model/tool telemetry for research runs;
-- research package integrity, hidden-boundary safety, and development-vs-holdout separation.
+## Corvus Forge
 
-It does not own CStar control-plane implementation, Forge builds, PR packaging for unrelated repositories, or production rollout authority.
+Corvus Forge is the implementation lane. Live builds use only:
 
-### Corvus Forge PMT
+`cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute -> private Hermes cstar-hub /
+minimax MiniMax-M3 -> delivered_unverified -> independent cstar_record_result`
 
-The Corvus Forge PMT owns build and implementation delivery.
+The Forge request may name a `state_update_thread_id` for the passive project
+repository and names a CoS callback destination. Its absence cannot block an
+otherwise authorized execution. The deprecated
+`owner_pmt_thread_id` alias may be accepted for transport compatibility but
+grants no ownership or review authority.
 
-It owns:
+## Researcher
 
-- repository implementation plans, worker assignment, local repair, tests, package validation, and PR packaging;
-- build-lane validation for Corvus projects and spokes;
-- implementation receipts, dirty-root accounting, and merge-readiness packets.
+Researcher gathers evidence through authorized source lanes and writes bounded
+receipts or artifacts. Live external collection is separately gated. Researcher
+does not implement spoke code, mutate CStar lifecycle state outside its request
+contract, or self-certify a consequential truth/production claim.
 
-It does not own research truth gates, Researcher source collection, CStar kernel authority, or independent acceptance of its own production rollout.
+## CorvusEye
 
-### CorvusEye Review PMT
+CorvusEye is an independent evaluation and red-team lane. Use it when the gate
+requires producer/reviewer separation, adversarial testing, or a truth/lie
+assessment. Its evidence informs CoS and CStar; CorvusEye does not replace the
+operator's authority.
 
-The CorvusEye Review PMT is an independent review and audit lane.
+## PennyOne and Console
 
-It owns:
-
-- schema review, hidden-boundary review, acceptance-package review, and safety regressions;
-- independent review of Researcher and Forge outputs when the gate requires separation from the producer PMT.
-
-It does not perform the originating implementation or research run that it reviews.
-
-### MM Estate Synthesis
-
-MM is an estate synthesis and coordination lane, not a relay requirement for every packet.
-
-It owns:
-
-- cross-PMT synthesis, dependency compression, conflict detection, and estate-wide status summaries;
-- escalation support when a goal spans multiple PMTs or when CoS asks for synthesis.
-
-It should not become a routine message relay for simple single-domain gates. Direct CoS-to-pinned-PMT routing is valid when one domain owns the work and no cross-PMT dependency exists.
+PennyOne/Hall and the console mirror bounded operator-visible state. Hall bead,
+proposal, request, attempt, and validation records are canonical lifecycle
+evidence. Mongo, dashboards, PMTs, and legacy MM are mirrors or archives, not
+lifecycle authority.
 
 ## Goal Lifecycle
 
-1. CoS receives User intent and records the goal as a bounded CStar-tracked decision, proposal, or bead.
-2. CoS selects the owning PMT by bounded context.
-3. The PMT accepts or rejects domain ownership before execution.
-4. The PMT may perform bounded Green or Yellow repair inside its domain without returning every simple blocker to CoS.
-5. Red gates return to CoS for explicit User authorization when required.
-6. While a PMT is running, CoS keeps the goal parked or blocked rather than polling continuously.
-7. When a PMT returns a packet, CoS reviews the packet, records the decision, and either closes, routes the next gate, or escalates.
+1. CoS records or resumes the bounded CStar bead/decision.
+2. CoS selects Forge, Researcher, independent review, or an operator gate.
+3. Green/Yellow work proceeds through the proper lane inside the accepted
+   envelope; red or expanded work returns to the operator.
+4. Delivery artifacts remain evidence until independent validation is recorded.
+5. CoS records the result, updates or resolves the bead, writes the bounded PMT
+   information packet, and closes the operator-facing loop.
+6. When waiting on an external lane, CoS pauses rather than continuously polls.
 
-## Red Gates
+## Operator Gates
 
-Red gates require explicit CoS/User authorization before execution:
+Explicit operator authorization remains required for:
 
-- secrets, credentials, token inspection, token output, or credential mutation;
-- production deploys, restarts, broad rollout, or external irreversible effects;
-- destructive cleanup, history rewrite, deletion, reset, or stash operations outside a narrow explicit request;
-- main/master push, merge, release, or acceptance of production readiness;
-- locked-holdout evaluation, hidden-label access, or tuning against sealed evaluation data;
-- authority-model changes, ownership-boundary changes, or PMT responsibility merges;
-- direct Hall or SQLite bypass when a CStar kernel-backed path exists;
-- source/model budget expansion outside the accepted envelope.
+- spend beyond the recorded request or any retry not already authorized;
+- live source collection or a new source lane;
+- locked holdout or production-readiness claims;
+- merge, push, deploy, restart, secrets, credentials, or host configuration;
+- destructive cleanup or broad cross-spoke mutation;
+- authority-model or persistent-role changes; and
+- scope expansion beyond the accepted bead/decision.
 
 ## Separation Tests
 
-Any future architecture change fails review if it makes one thread routinely responsible for more than one bounded PMT domain. In particular:
+An architecture change fails review when it:
 
-- CStar Control Plane PMT plus Researcher PMT is a violation;
-- CStar Control Plane PMT plus Corvus Forge PMT is a violation;
-- Researcher PMT plus Corvus Forge PMT is a violation;
-- producer PMT plus independent review PMT is a violation for gates requiring independent review.
-
-Temporary emergency exception paths must be recorded as exceptions, bounded by one goal, and followed by a restoration task that returns ownership to the split architecture.
+- gives a PMT or legacy MM any authority;
+- lets a producer supply the only consequential validation of its own output;
+- lets a Codex subagent or direct model call replace Forge;
+- lets Researcher both collect and self-certify a high-stakes claim;
+- lets persona, Council, Augury, TokenPath, registry, or runtime metadata grant
+  execution authority; or
+- records a lifecycle transition only in a callback, artifact, dashboard,
+  Mongo queue, PMT packet, MM archive, or ad hoc state file instead of CStar.

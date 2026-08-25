@@ -1,6 +1,6 @@
 ---
 name: researcher
-description: Govern CStar Researcher and Hermes Researcher evidence requests, truth-verification gates, and PMT-owned review packets without authorizing live execution by default.
+description: Govern CStar Researcher and Hermes Researcher evidence requests, truth-verification gates, and CoS state packets without authorizing live execution by default.
 tier: SKILL
 risk: medium
 intent_category: VERIFY
@@ -15,8 +15,8 @@ It finds or evaluates bounded evidence, grades outputs against explicit metrics,
 and routes decision packets into CStar. This file is also the default authorized
 dispatch surface checked by `cstar_researcher_request`.
 
-This surface is a request and authority contract. It is not a live execution
-adapter. A valid request receipt proves that PMT/CoS routing, metrics,
+This surface is a request contract. It is not a live execution adapter. A valid
+request receipt proves that CoS routing, metrics,
 artifacts, prohibited actions, callback, and package locks are present. It does
 not itself run Hermes, MiniMax, source adapters, browser collection, GitHub
 mutation, or model spend.
@@ -27,7 +27,8 @@ mutation, or model spend.
 surface when all request fields pass validation. The request must include:
 
 - `bead_id` or explicit `decision_id`
-- owner PMT thread id and CoS/source callback thread id
+- optional project information-repository thread id and required CoS/source
+  callback thread id
 - bounded objective, prompt, scope, authority lane, target paths, and system
   under test when relevant
 - required metrics with thresholds and acceptance rules
@@ -50,15 +51,16 @@ Live Hermes/MiniMax or source-adapter work requires all of the following:
 
 - `spend_policy.mode = live_authorized`
 - explicit `operator_authorization_ref`
-- owner PMT goal with source callback contract
+- CStar bead/decision with source callback contract
 - accepted package/hash locks for the code, corpus, runner, retry policy, and
   scorecard surfaces under test
 - one-line prohibited-action confirmation in the callback packet
 - compact artifact-first final report back to CoS
 
 Even with live authorization, `cstar_researcher_request` remains a receipt
-surface. Execution must happen only through the approved Researcher/Hermes PMT
-lane for the exact bead and decision.
+surface. Execution must happen only through the separately approved
+Researcher/Hermes lane for the exact bead and decision. PMTs are information
+repositories and do not authorize or run the work.
 
 ## Active Scope
 
@@ -127,7 +129,8 @@ requests must prohibit:
 
 ## Required Flow
 
-1. Confirm CStar health and Augury route when the MCP transport is available.
+1. Confirm CStar health only when unknown/degraded and use Augury only when
+   route or material scope is ambiguous.
 2. If MCP transport is closed, use source-backed validation only and report the
    transport blocker explicitly.
 3. Confirm active scope and exact system under test.
@@ -155,7 +158,7 @@ Researcher reports should distinguish:
 - visible prompt contract versus hidden evaluator data
 - scoreable-only metrics versus malformed-output accounting
 - development-set evidence versus locked-holdout evidence
-- PMT-owned result versus CoS/operator decision
+- information-repository packet versus CoS/operator decision
 - whether live dispatch, model spend, source collection, secret access, repo
   mutation, or PR action was requested
 

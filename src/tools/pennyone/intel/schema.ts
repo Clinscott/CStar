@@ -238,6 +238,85 @@ export function ensureHallSchema(database: Database.Database, rootPath: string):
 
         CREATE INDEX IF NOT EXISTS idx_hall_beads_repo_status ON hall_beads(repo_id, status);
 
+        CREATE TABLE IF NOT EXISTS hall_forge_requests (
+            request_id TEXT PRIMARY KEY,
+            repo_id TEXT NOT NULL,
+            bead_id TEXT NOT NULL,
+            decision_id TEXT NOT NULL,
+            operator_authorization_ref TEXT,
+            operator_thread_id TEXT,
+            operator_turn_id TEXT,
+            operator_message_sha256 TEXT,
+            operator_record_sha256 TEXT,
+            operator_record_set_sha256 TEXT,
+            operator_record_count INTEGER CHECK(operator_record_count IS NULL OR operator_record_count >= 1),
+            request_sha256 TEXT NOT NULL,
+            request_summary_json TEXT NOT NULL,
+            adapter_ref TEXT,
+            write_capability TEXT CHECK(write_capability IN ('response_only', 'project_files')),
+            target_paths_sha256 TEXT NOT NULL,
+            live_source_allowed INTEGER NOT NULL CHECK(live_source_allowed IN (0, 1)),
+            max_attempts INTEGER NOT NULL CHECK(max_attempts >= 1 AND max_attempts <= 10),
+            status TEXT NOT NULL CHECK(status IN ('PENDING_AUTH', 'AUTHORIZED', 'SUCCEEDED', 'FAILED_FINAL', 'EXHAUSTED', 'AMBIGUOUS', 'REVOKED')),
+            active_attempt_id TEXT,
+            authorized_at INTEGER,
+            expires_at INTEGER,
+            created_at INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL,
+            completed_at INTEGER,
+            UNIQUE(bead_id, decision_id),
+            UNIQUE(operator_authorization_ref),
+            FOREIGN KEY(repo_id) REFERENCES hall_repositories(repo_id),
+            FOREIGN KEY(bead_id) REFERENCES hall_beads(bead_id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_hall_forge_requests_bead_status
+        ON hall_forge_requests(bead_id, status, created_at);
+
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_hall_forge_requests_one_shot_authorization
+        ON hall_forge_requests(operator_authorization_ref);
+
+        CREATE TABLE IF NOT EXISTS hall_forge_attempts (
+            attempt_id TEXT PRIMARY KEY,
+            request_id TEXT NOT NULL,
+            ordinal INTEGER NOT NULL CHECK(ordinal >= 1),
+            idempotency_key TEXT NOT NULL,
+            execution_receipt_id TEXT NOT NULL UNIQUE,
+            adapter_ref TEXT NOT NULL,
+            provider TEXT,
+            requested_model TEXT,
+            actual_model TEXT,
+            model_source TEXT,
+            reasoning_profile TEXT,
+            adapter_version TEXT,
+            status TEXT NOT NULL CHECK(status IN ('RESERVED', 'STARTED', 'SUCCEEDED', 'FAILED_RETRYABLE', 'FAILED_FINAL', 'UNKNOWN')),
+            retry_of_attempt_id TEXT,
+            external_execution_id TEXT,
+            result_status TEXT,
+            result_artifact_sha256 TEXT,
+            error_code TEXT,
+            validation_id TEXT,
+            validation_verdict TEXT,
+            validation_notes_sha256 TEXT,
+            reserved_at INTEGER NOT NULL,
+            spawn_started_at INTEGER,
+            completed_at INTEGER,
+            updated_at INTEGER NOT NULL,
+            UNIQUE(request_id, ordinal),
+            UNIQUE(request_id, idempotency_key),
+            UNIQUE(request_id, attempt_id),
+            FOREIGN KEY(request_id) REFERENCES hall_forge_requests(request_id),
+            FOREIGN KEY(request_id, retry_of_attempt_id) REFERENCES hall_forge_attempts(request_id, attempt_id)
+        );
+
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_hall_forge_attempts_one_active
+        ON hall_forge_attempts(request_id)
+        WHERE status IN ('RESERVED', 'STARTED', 'UNKNOWN');
+
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_hall_forge_attempts_external_execution
+        ON hall_forge_attempts(adapter_ref, external_execution_id)
+        WHERE external_execution_id IS NOT NULL;
+
         CREATE TABLE IF NOT EXISTS hall_bead_critiques (
             critique_id TEXT PRIMARY KEY,
             bead_id TEXT NOT NULL,
@@ -268,6 +347,9 @@ export function ensureHallSchema(database: Database.Database, rootPath: string):
             post_scores_json TEXT,
             benchmark_json TEXT,
             notes TEXT,
+            authority_class TEXT NOT NULL DEFAULT 'legacy_unverified',
+            evidence_sha256 TEXT,
+            validator_identity TEXT,
             created_at INTEGER NOT NULL,
             legacy_trace_id INTEGER,
             UNIQUE(repo_id, legacy_trace_id),
@@ -564,6 +646,7 @@ export function ensureHallSchema(database: Database.Database, rootPath: string):
             projection_status TEXT NOT NULL,
             last_scan_at INTEGER,
             last_health_at INTEGER,
+            last_health_attempt_at INTEGER,
             metadata_json TEXT,
             created_at INTEGER NOT NULL,
             updated_at INTEGER NOT NULL,
@@ -728,6 +811,23 @@ export function ensureHallSchema(database: Database.Database, rootPath: string):
     ensureColumn(database, 'hall_beads', 'architect_opinion', 'TEXT');
     ensureColumn(database, 'hall_beads', 'critique_payload_json', 'TEXT');
     ensureColumn(database, 'hall_beads', 'metadata_json', 'TEXT');
+    ensureColumn(database, 'hall_forge_attempts', 'validation_id', 'TEXT');
+    ensureColumn(database, 'hall_forge_attempts', 'validation_verdict', 'TEXT');
+    ensureColumn(database, 'hall_forge_attempts', 'validation_notes_sha256', 'TEXT');
+    ensureColumn(database, 'hall_forge_attempts', 'validation_authority', 'TEXT');
+    ensureColumn(database, 'hall_forge_attempts', 'validation_evidence_sha256', 'TEXT');
+    ensureColumn(database, 'hall_forge_attempts', 'provider', 'TEXT');
+    ensureColumn(database, 'hall_forge_attempts', 'requested_model', 'TEXT');
+    ensureColumn(database, 'hall_forge_attempts', 'actual_model', 'TEXT');
+    ensureColumn(database, 'hall_forge_attempts', 'model_source', 'TEXT');
+    ensureColumn(database, 'hall_forge_attempts', 'reasoning_profile', 'TEXT');
+    ensureColumn(database, 'hall_forge_attempts', 'adapter_version', 'TEXT');
+    ensureColumn(database, 'hall_forge_requests', 'operator_record_set_sha256', 'TEXT');
+    ensureColumn(database, 'hall_forge_requests', 'operator_record_count', 'INTEGER');
+    ensureColumn(database, 'hall_mounted_spokes', 'last_health_attempt_at', 'INTEGER');
+    ensureColumn(database, 'hall_validation_runs', 'authority_class', "TEXT NOT NULL DEFAULT 'legacy_unverified'");
+    ensureColumn(database, 'hall_validation_runs', 'evidence_sha256', 'TEXT');
+    ensureColumn(database, 'hall_validation_runs', 'validator_identity', 'TEXT');
 
     ensureVirtualTable(
         database,

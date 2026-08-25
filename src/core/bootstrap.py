@@ -4,10 +4,12 @@ Lore: "The Awakening of the Ravens."
 Purpose: Shared bootstrap for Sentinel modules.
 Centralizes environment loading and sys.path configuration.
 """
+import os
 import sys
 from pathlib import Path
 from dotenv import load_dotenv
 
+from src.core.mcp_environment import neutralize_kernel_mcp_environment
 from src.core.sovereign_hud import SovereignHUD
 from src.core.utils import SovereignUtils
 
@@ -15,6 +17,18 @@ from src.core.utils import SovereignUtils
 PROJECT_ROOT: Path = Path(__file__).parent.parent.parent.resolve()
 
 _BOOTSTRAPPED: bool = False
+
+
+def load_bootstrap_environment(project_root: Path = PROJECT_ROOT) -> None:
+    """Load project dotenv files and reassert bounded MCP host neutrality."""
+    env_files = [project_root / ".env.local", project_root / ".env"]
+    for env_path in env_files:
+        if env_path.exists():
+            load_dotenv(dotenv_path=env_path)
+
+    if os.environ.get("CSTAR_KERNEL_MCP") == "1":
+        neutralize_kernel_mcp_environment()
+
 
 class SovereignBootstrap:
     """[O.D.I.N.] Orchestration logic for Corvus Star environment awakening."""
@@ -33,11 +47,8 @@ class SovereignBootstrap:
         if str(PROJECT_ROOT) not in sys.path:
             sys.path.insert(0, str(PROJECT_ROOT))
 
-        # Environment Loading: Prioritize .env.local, then .env
-        env_files = [PROJECT_ROOT / ".env.local", PROJECT_ROOT / ".env"]
-        for env_path in env_files:
-            if env_path.exists():
-                load_dotenv(dotenv_path=env_path)
+        # Environment Loading: Prioritize .env.local, then .env.
+        load_bootstrap_environment(PROJECT_ROOT)
 
         # [Ω] OPERATION IRONCLAD: Automated Hardening
         try:
@@ -45,20 +56,6 @@ class SovereignBootstrap:
             vault = SovereignVault()
             vault.auto_shield()
         except Exception: pass
-
-        # [🔱] ONE MIND ANCHOR: Ensure host-session state is immutable across spokes
-        import os
-        for env_name in (
-            "GEMINI_CLI_ACTIVE",
-            "GEMINI_CLI",
-            "CODEX_SHELL",
-            "CODEX_THREAD_ID",
-            "CORVUS_HOST_PROVIDER",
-            "CORVUS_HOST_SESSION_ACTIVE",
-        ):
-            env_value = os.getenv(env_name)
-            if env_value:
-                os.environ[env_name] = env_value
 
         _BOOTSTRAPPED = True
 

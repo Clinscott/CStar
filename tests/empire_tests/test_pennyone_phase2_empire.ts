@@ -59,7 +59,7 @@ describe('PennyOne Phase 2: Intel Generation', async () => {
         await fs.mkdir(targetDir, { recursive: true });
 
         try {
-            const { qmdPath } = await writeReport(mockFile as any, targetDir, 'const test = 1;');
+            const { qmdPath } = await writeReport(mockFile as any, targetDir);
             assert.ok(qmdPath.includes('src-tools-test-ts.qmd'), 'Should flatten path with hyphens');
 
             // Writer uses the central registry for the stats dir, so we check registry.getRoot() + '.stats'

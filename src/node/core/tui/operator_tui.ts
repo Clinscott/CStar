@@ -24,8 +24,6 @@ import type { RuntimeDispatchPort } from  '../runtime/contracts.js';
 import {
     compactPlanningHandle,
     formatPlanningDigestBadge,
-    resumeHostGovernorIfAvailable,
-    type OperatorResumeResult,
 } from  '../operator_resume.js';
 
 type OperatorEventLevel = 'INFO' | 'WARN' | 'FAIL' | 'PASS';
@@ -52,13 +50,9 @@ export interface OperatorSnapshot {
 
 const KNOWN_DIRECT_COMMANDS = new Set([
     'chant',
-    'evolve',
-    'forge',
     'pennyone',
     'ravens',
     'start',
-    'hand',
-    'broadcast',
 ]);
 
 function pushEvent(
@@ -68,35 +62,6 @@ function pushEvent(
     detail?: string,
 ): OperatorEvent[] {
     return [...events, { at: Date.now(), level, message, detail }].slice(-10);
-}
-
-function appendResumeEvents(events: OperatorEvent[], resumeResult: OperatorResumeResult): OperatorEvent[] {
-    if (!resumeResult.resumed) {
-        return events;
-    }
-
-    if (resumeResult.governorResult?.status === 'FAILURE') {
-        return pushEvent(
-            events,
-            'FAIL',
-            'Host governor resume failed.',
-            resumeResult.governorResult.error ?? resumeResult.provider ?? 'unknown',
-        );
-    }
-
-    let next = pushEvent(
-        events,
-        'PASS',
-        'Host governor synchronized.',
-        resumeResult.provider ?? 'host',
-    );
-    if (resumeResult.planningSummary) {
-        next = pushEvent(next, 'INFO', 'Planning trace.', resumeResult.planningSummary);
-    }
-    if (resumeResult.governorResult?.output?.trim()) {
-        next = pushEvent(next, 'INFO', 'Governor summary.', resumeResult.governorResult.output.trim());
-    }
-    return next;
 }
 
 function truncate(value: string, length: number): string {
@@ -294,8 +259,8 @@ export function renderOperatorShell(snapshot: OperatorSnapshot): string {
         out.push(HUD.boxRow('WORKSPACE', snapshot.workspaceRoot, chalk.cyanBright));
         out.push(HUD.boxRow('STATUS', state.status, chalk.greenBright));
         out.push(HUD.boxRow('PERSONA', state.active_persona, chalk.magentaBright));
-        out.push(HUD.boxRow('GUNGNIR', state.gungnir_score.toFixed(2), chalk.yellowBright));
-        out.push(HUD.boxRow('INTEGRITY', `${state.intent_integrity.toFixed(1)}%`, chalk.greenBright));
+        out.push(HUD.boxRow('GUNGNIR', 'not measured', chalk.yellowBright));
+        out.push(HUD.boxRow('INTEGRITY', 'not measured', chalk.greenBright));
         out.push(HUD.boxSeparator());
 
         if (snapshot.beads.length === 0) {
@@ -391,59 +356,27 @@ async function dispatchOperatorInput(
     if (lower === '4' || lower === 'terminals') return { events: pushEvent(events, 'INFO', 'Tab: TERMINALS'), activeTab: 'TERMINALS', planningSessionId: activePlanningSessionId };
 
     if (lower === 'status' || lower === 'hall') {
-        if (lower === 'status') {
-            const resumeResult = await resumeHostGovernorIfAvailable(dispatchPort, {
-                workspaceRoot,
-                cwd: workspaceRoot,
-                env: process.env,
-                task: 'Resume host-governed operator status review.',
-                source: 'cli',
-            });
-            events = appendResumeEvents(events, resumeResult);
-        }
         events = pushEvent(events, 'PASS', 'Operator state refreshed.', lower);
         return { events, planningSessionId: activePlanningSessionId, activeTab };
     }
 
     if (head.toLowerCase() === 'hand') {
-        const targetAgent = rest[0]?.toLowerCase();
-        const handoffContext = rest.slice(1).join(' ');
-        if (!targetAgent) {
-            events = pushEvent(events, 'FAIL', 'Handoff target required.', 'Usage: hand <agent> <context>');
-            return { events, planningSessionId: activePlanningSessionId, activeTab };
-        }
-
-        const state = StateRegistry.get();
-        if (state.agents && state.agents[targetAgent]) {
-            state.agents[targetAgent].status = 'WORKING';
-            state.agents[targetAgent].current_task = handoffContext;
-            StateRegistry.save(state);
-
-            StateRegistry.postToBlackboard({
-                from: state.framework.active_persona,
-                to: targetAgent,
-                message: handoffContext,
-                type: 'HANDOFF'
-            });
-
-            events = pushEvent(events, 'PASS', `Handoff to ${targetAgent} initiated.`, handoffContext);
-        } else {
-            events = pushEvent(events, 'FAIL', 'Unknown agent target.', targetAgent);
-        }
+        events = pushEvent(
+            events,
+            'FAIL',
+            'Local handoff is decommissioned.',
+            'Use CStar handoff and host-native routing; no state was mutated.',
+        );
         return { events, planningSessionId: activePlanningSessionId, activeTab };
     }
 
     if (head.toLowerCase() === 'broadcast') {
-        const message = rest.join(' ');
-        const state = StateRegistry.get();
-
-        StateRegistry.postToBlackboard({
-            from: state.framework.active_persona,
-            message: message,
-            type: 'BROADCAST'
-        });
-
-        events = pushEvent(events, 'INFO', 'BROADCAST', message);
+        events = pushEvent(
+            events,
+            'FAIL',
+            'Local broadcast is decommissioned.',
+            'Use a host task or CStar lifecycle update; no state was mutated.',
+        );
         return { events, planningSessionId: activePlanningSessionId, activeTab };
     }
 
@@ -508,16 +441,8 @@ async function dispatchOperatorInput(
 
 export async function runOperatorTui(dispatchPort: RuntimeDispatchPort): Promise<void> {
     const workspaceRoot = registry.getRoot();
-    const resumeResult = await resumeHostGovernorIfAvailable(dispatchPort, {
-        workspaceRoot,
-        cwd: workspaceRoot,
-        env: process.env,
-        task: 'Resume host-governed operator matrix.',
-        source: 'cli',
-    });
     const initialSummary = getHallSummary(workspaceRoot);
     let events = buildSeedEvents(workspaceRoot, initialSummary);
-    events = appendResumeEvents(events, resumeResult);
     let activePlanningSessionId: string | undefined;
     let activeTab: OperatorTab = 'OVERVIEW';
 
@@ -544,9 +469,16 @@ export async function runOperatorTui(dispatchPort: RuntimeDispatchPort): Promise
 
     // --- WAR ROOM HEARTBEAT ---
     // Pulse every 5 seconds to sync background agent state and blackboard updates.
+    let heartbeatInFlight = false;
     const heartbeat = setInterval(async () => {
-        await BlackboardManager.compactIfNecessary();
-        redraw();
+        if (heartbeatInFlight) return;
+        heartbeatInFlight = true;
+        try {
+            await BlackboardManager.compactIfNecessary();
+            redraw();
+        } finally {
+            heartbeatInFlight = false;
+        }
     }, 5000);
 
     try {

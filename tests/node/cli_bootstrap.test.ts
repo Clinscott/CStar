@@ -43,7 +43,7 @@ describe('Gungnir Control Plane Bootstrap', () => {
             reject: false,
         });
         assert.equal(result.exitCode, 0);
-        assert.equal(pkg.version, '1.0.0');
+        assert.equal(result.stdout.trim(), pkg.version);
     });
 
     it('Verify cstar --help resolves through the local TypeScript bootstrap without failing', async () => {
@@ -84,18 +84,24 @@ describe('Gungnir Control Plane Bootstrap', () => {
         fs.mkdirSync(path.join(controlRoot, '.stats'), { recursive: true });
         fs.copyFileSync(join(PROJECT_ROOT, '.agents', 'config.json'), join(controlRoot, '.agents', 'config.json'));
 
-        const launch = getLaunchArgs('hall', 'host governor');
-        const result = await execa(launch.command, launch.args, {
-            cwd: estateRoot,
-            reject: false,
-            env: {
-                ...process.env,
-                CSTAR_CONTROL_ROOT: controlRoot,
-            },
-        });
+        try {
+            const launch = getLaunchArgs('--root', controlRoot, 'hall', 'host governor');
+            const result = await execa(launch.command, launch.args, {
+                cwd: estateRoot,
+                reject: false,
+                env: {
+                    ...process.env,
+                    CSTAR_CONTROL_ROOT: controlRoot,
+                    CSTAR_PROJECT_ROOT: controlRoot,
+                },
+            });
 
-        assert.equal(result.exitCode, 0);
-        assert.equal(fs.existsSync(path.join(estateRoot, '.agents', 'sovereign_state.json')), false);
-        assert.equal(fs.existsSync(path.join(controlRoot, '.agents', 'sovereign_state.json')), true);
+            assert.equal(result.exitCode, 0);
+            assert.equal(fs.existsSync(path.join(estateRoot, '.agents', 'sovereign_state.json')), false);
+            assert.equal(fs.existsSync(path.join(controlRoot, '.agents', 'sovereign_state.json')), true);
+        } finally {
+            fs.rmSync(estateRoot, { recursive: true, force: true });
+            fs.rmSync(controlRoot, { recursive: true, force: true });
+        }
     });
 });

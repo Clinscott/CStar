@@ -5,9 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import Database from 'better-sqlite3';
 
-import { buildHallRepositoryId, normalizeHallPath } from '../../src/types/hall.js';
 import { MimirClient } from  '../../src/core/mimir_client.js';
-import { listHallOneMindRequests, saveHallOneMindBroker } from '../../src/tools/pennyone/intel/database.js';
 
 describe('TypeScript Mimir client bridge (CS-P1-02)', () => {
     it('uses a configured Gemini host bridge when the provider bridge is explicitly configured', async () => {
@@ -30,11 +28,23 @@ describe('TypeScript Mimir client bridge (CS-P1-02)', () => {
         const response = await client.request({
             prompt: 'Explain the current bridge.',
             caller: { source: 'test-suite' },
+            metadata: {
+                requested_model: 'gemini-3.1-pro',
+                reasoning_profile: 'high',
+            },
         });
 
         assert.strictEqual(response.status, 'success');
         assert.strictEqual(response.trace.transport_mode, 'host_session');
         assert.strictEqual(response.raw_text, 'Gemini host response');
+        assert.deepStrictEqual(response.trace.execution_identity, {
+            provider: 'gemini',
+            requested_model: 'gemini-3.1-pro',
+            actual_model: null,
+            model_source: 'unreported',
+            adapter_version: null,
+            reasoning_profile: 'high',
+        });
         assert.strictEqual(calls.length, 1);
         assert.strictEqual(calls[0]?.command, 'gemini');
         assert.deepStrictEqual(calls[0]?.args, ['-p', 'Explain the current bridge.', '--cwd', tmpRoot]);
@@ -309,36 +319,17 @@ describe('TypeScript Mimir client bridge (CS-P1-02)', () => {
         assert.strictEqual(response.raw_text, 'Codex interactive direct response');
     });
 
-    it('prefers synapse_db in auto mode when running inside an interactive Codex session with an explicit broker', async () => {
+    it('ignores the retired broker activation flag and keeps interactive Codex transport direct', async () => {
         const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-mimir-codex-auto-broker-'));
-        const dbPath = path.join(tmpRoot, '.stats', 'synapse.db');
-        fs.mkdirSync(path.dirname(dbPath), { recursive: true });
-        const now = Date.now();
-        saveHallOneMindBroker({
-            repo_id: buildHallRepositoryId(normalizeHallPath(tmpRoot)),
-            status: 'READY',
-            binding_state: 'BOUND',
-            fulfillment_ready: true,
-            provider: 'codex',
-            session_id: 'thread-1',
-            control_plane: 'hall',
-            metadata: { source: 'unit-test' },
-            created_at: now,
-            updated_at: now,
-        }, tmpRoot);
 
         const client = new MimirClient({
             projectRoot: tmpRoot,
-            env: { CODEX_SHELL: '1', CODEX_THREAD_ID: 'thread-1' },
-            oracleInvoker: async (synapseId) => {
-                const db = new Database(dbPath);
-                try {
-                    db.prepare('UPDATE synapse SET response = ?, status = ? WHERE id = ?')
-                        .run('Codex interactive synapse response', 'COMPLETED', synapseId);
-                } finally {
-                    db.close();
-                }
+            env: {
+                CODEX_SHELL: '1',
+                CODEX_THREAD_ID: 'thread-1',
+                CORVUS_ONE_MIND_BROKER_ACTIVE: '1',
             },
+            hostSessionInvoker: async () => 'Codex interactive direct response',
         });
 
         const response = await client.request({
@@ -347,28 +338,13 @@ describe('TypeScript Mimir client bridge (CS-P1-02)', () => {
         });
 
         assert.strictEqual(response.status, 'success');
-        assert.strictEqual(response.trace.transport_mode, 'synapse_db');
-        assert.strictEqual(response.raw_text, 'Codex interactive synapse response');
-        const hallRequests = listHallOneMindRequests(tmpRoot);
-        assert.strictEqual(hallRequests[0]?.request_status, 'COMPLETED');
-        assert.strictEqual(hallRequests[0]?.metadata?.synapse_id !== undefined, true);
+        assert.strictEqual(response.trace.transport_mode, 'host_session');
+        assert.strictEqual(response.raw_text, 'Codex interactive direct response');
+        assert.strictEqual(fs.existsSync(path.join(tmpRoot, '.stats', 'pennyone.db')), false);
     });
 
-    it('keeps thread-only Codex sessions on direct host transport even when a broker record exists', async () => {
+    it('keeps thread-only Codex sessions on direct host transport without writing One Mind records', async () => {
         const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-mimir-codex-thread-only-'));
-        const now = Date.now();
-        saveHallOneMindBroker({
-            repo_id: buildHallRepositoryId(normalizeHallPath(tmpRoot)),
-            status: 'READY',
-            binding_state: 'BOUND',
-            fulfillment_ready: true,
-            provider: 'codex',
-            session_id: 'thread-1',
-            control_plane: 'hall',
-            metadata: { source: 'unit-test' },
-            created_at: now,
-            updated_at: now,
-        }, tmpRoot);
 
         const client = new MimirClient({
             projectRoot: tmpRoot,
@@ -381,14 +357,10 @@ describe('TypeScript Mimir client bridge (CS-P1-02)', () => {
             caller: { source: 'test-suite' },
         });
 
-        const hallRequests = listHallOneMindRequests(tmpRoot);
         assert.strictEqual(response.status, 'success');
         assert.strictEqual(response.trace.transport_mode, 'host_session');
         assert.strictEqual(response.raw_text, 'Codex thread-only direct response');
-        assert.strictEqual(hallRequests.length, 1);
-        assert.strictEqual(hallRequests[0]?.request_status, 'COMPLETED');
-        assert.strictEqual(hallRequests[0]?.transport_preference, 'host_session');
-        assert.strictEqual(hallRequests[0]?.metadata?.synapse_id, undefined);
+        assert.strictEqual(fs.existsSync(path.join(tmpRoot, '.stats', 'pennyone.db')), false);
     });
 
     it('uses the env-detected Codex provider before the Gemini fallback when hostSessionActive is true', async () => {
@@ -466,12 +438,11 @@ describe('TypeScript Mimir client bridge (CS-P1-02)', () => {
             },
         });
 
-        const hallRequests = listHallOneMindRequests(tmpRoot);
         assert.strictEqual(response.status, 'error');
         assert.strictEqual(response.trace.transport_mode, 'host_session');
         assert.match(response.error ?? '', /requires an injected hostSessionInvoker/i);
         assert.strictEqual(calls.length, 0);
-        assert.strictEqual(hallRequests.at(-1)?.request_status, 'FAILED');
+        assert.strictEqual(fs.existsSync(path.join(tmpRoot, '.stats', 'pennyone.db')), false);
     });
 
     it('fails closed for trace-critical Codex work without falling back to synapse_db', async () => {
@@ -502,13 +473,45 @@ describe('TypeScript Mimir client bridge (CS-P1-02)', () => {
             },
         });
 
-        const hallRequests = listHallOneMindRequests(tmpRoot);
         assert.strictEqual(response.status, 'error');
         assert.strictEqual(response.trace.transport_mode, 'host_session');
         assert.match(response.error ?? '', /agent-harness-required work/i);
         assert.strictEqual(calls.length, 0);
         assert.strictEqual(oracleCalls, 0);
-        assert.strictEqual(hallRequests.at(-1)?.request_status, 'FAILED');
+        assert.strictEqual(fs.existsSync(path.join(tmpRoot, '.stats', 'pennyone.db')), false);
+    });
+
+    it('rejects delegated subagent execution before host, Synapse, or Hall actuation', async () => {
+        const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-mimir-retired-subagent-'));
+        let hostCalls = 0;
+        let oracleCalls = 0;
+        const client = new MimirClient({
+            projectRoot: tmpRoot,
+            env: { CODEX_SHELL: '1', CODEX_THREAD_ID: 'thread-1' },
+            hostSessionInvoker: async () => {
+                hostCalls += 1;
+                return 'unexpected';
+            },
+            oracleInvoker: async () => {
+                oracleCalls += 1;
+            },
+        });
+
+        const response = await client.request({
+            prompt: 'Implement through the retired subagent lane.',
+            transport_mode: 'host_session',
+            caller: { source: 'runtime:host-worker' },
+            metadata: {
+                one_mind_boundary: 'subagent',
+                execution_role: 'subagent',
+            },
+        });
+
+        assert.strictEqual(response.status, 'error');
+        assert.match(response.error ?? '', /delegated execution is retired/i);
+        assert.strictEqual(hostCalls, 0);
+        assert.strictEqual(oracleCalls, 0);
+        assert.strictEqual(fs.existsSync(path.join(tmpRoot, '.stats')), false);
     });
 
     it('uses the synapse database contract and returns a completed response', async () => {

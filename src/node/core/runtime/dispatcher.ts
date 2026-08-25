@@ -20,6 +20,7 @@ import {
     getCapabilityOwnershipModel,
     resolveHostProvider,
 } from '../../../core/host_session.js';
+import { resolveSkillRegistryEntries } from '../../../core/skill_registry_contract.js';
 import { StateRegistry } from  '../state.js';
 import { activePersona } from  '../../../tools/pennyone/personaRegistry.js';
 import { registry } from  '../../../tools/pennyone/pathRegistry.js';
@@ -44,13 +45,16 @@ function resolveSkillAdapterAlias(workspaceRoot: string, skillId: string): strin
         return skillId;
     }
 
+    let manifest: unknown;
     try {
-        const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) as { entries?: Record<string, { execution?: { adapter_id?: string } }> };
-        const entry = manifest.entries?.[skillId];
-        return entry?.execution?.adapter_id?.trim() || skillId;
+        manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) as unknown;
     } catch {
         return skillId;
     }
+
+    const entries = resolveSkillRegistryEntries<{ execution?: { adapter_id?: string } }>(manifest);
+    const entry = entries[skillId];
+    return entry?.execution?.adapter_id?.trim() || skillId;
 }
 
 type HostRecoveryAction = 'retry' | 'replan' | 'abandon';
@@ -133,7 +137,8 @@ function normalizeAuguryContract(value: unknown): RuntimeAuguryContract | null {
     const mimirsWell = Array.isArray(normalized.mimirs_well)
         ? normalized.mimirs_well
             .map((entry) => compactTraceText(entry))
-            .filter((entry): entry is string => Boolean(entry))
+            .filter((entry): entry is string => Boolean(entry) && entry!.length <= 512 && /^[A-Za-z0-9_./:@+-]+$/.test(entry!))
+            .slice(0, 20)
         : [];
     const contract: RuntimeAuguryContract = {
         mimirs_well: mimirsWell,
@@ -146,7 +151,6 @@ function normalizeAuguryContract(value: unknown): RuntimeAuguryContract | null {
         | 'selection_name'
         | 'trajectory_status'
         | 'trajectory_reason'
-        | 'gungnir_verdict'
         | 'body'
         | 'canonical_intent'
     > = [
@@ -156,7 +160,6 @@ function normalizeAuguryContract(value: unknown): RuntimeAuguryContract | null {
         'selection_name',
         'trajectory_status',
         'trajectory_reason',
-        'gungnir_verdict',
         'body',
         'canonical_intent',
     ];
@@ -167,23 +170,18 @@ function normalizeAuguryContract(value: unknown): RuntimeAuguryContract | null {
         }
     }
 
-    if (typeof normalized.confidence === 'number' && Number.isFinite(normalized.confidence)) {
-        contract.confidence = normalized.confidence;
-    }
-    if (normalized.confidence_source === 'explicit' || normalized.confidence_source === 'missing' || normalized.confidence_source === 'synthetic') {
-        contract.confidence_source = normalized.confidence_source;
-    }
-    const councilExpert = normalized.council_expert;
-    if (councilExpert && typeof councilExpert === 'object' && !Array.isArray(councilExpert)) {
-        contract.council_expert = councilExpert as RuntimeAuguryContract['council_expert'];
-    }
-    if (Array.isArray(normalized.council_candidates)) {
-        contract.council_candidates = normalized.council_candidates.filter((entry): entry is NonNullable<RuntimeAuguryContract['council_candidates']>[number] => Boolean(entry) && typeof entry === 'object' && !Array.isArray(entry));
-    }
-
-    if (!contract.selection_tier || !contract.selection_name) {
+    if (!contract.intent_category || !contract.selection_tier || !contract.selection_name) {
         return null;
     }
+    const grammar = getRegistryIntentCategories(loadRegistryManifest(registry.getRoot()));
+    const category = Object.keys(grammar).find((entry) => entry.toUpperCase() === contract.intent_category!.toUpperCase());
+    const config = category ? grammar[category] : undefined;
+    if (!config || config.tier.toUpperCase() !== contract.selection_tier.toUpperCase() || config.default_path !== contract.selection_name) {
+        return null;
+    }
+    contract.intent_category = category;
+    contract.selection_tier = config.tier;
+    contract.selection_name = config.default_path;
 
     return enrichTraceContractWithCouncil(contract);
 }
@@ -268,19 +266,19 @@ function summarizeInvocationIntent(
                     ? `Evolve bead ${beadId}.`
                     : `Run ${action ?? 'propose'} on the evolve surface.`;
         case 'weave:start':
-            return 'Start the Corvus Star runtime loop.';
+            return 'Record an explicit awake runtime-state transition.';
         case 'weave:host-governor':
             return 'Govern and release the active Hall execution plan.';
         case 'weave:restoration':
             return 'Repair a broken Corvus Star surface through restoration.';
         case 'weave:host-worker':
             return beadId
-                ? `Execute host-native implementation work for ${beadId}.`
-                : 'Execute host-native implementation work.';
+                ? `Reject retired host-worker implementation for ${beadId}; use Forge.`
+                : 'Reject retired host-worker implementation; use Forge.';
         case 'weave:ravens':
             return `Run ravens action ${action ?? 'status'}.`;
         case 'weave:pennyone':
-            return `Run PennyOne action ${action ?? 'scan'}.`;
+            return `Run PennyOne action ${action ?? 'status'}.`;
         case 'weave:chant':
             return 'Plan and designate bounded Corvus Star work.';
         default:
@@ -316,7 +314,10 @@ function inferTraceIntentCategory(
     if (weaveId === 'weave:ravens') {
         return action === 'status' ? 'OBSERVE' : 'ORCHESTRATE';
     }
-    if (['chant', 'orchestrate', 'host-governor', 'start', 'creation_loop'].includes(normalizedSelection)) {
+    if (normalizedSelection === 'creation_loop') {
+        return 'BUILD';
+    }
+    if (['chant', 'orchestrate', 'host-governor', 'start'].includes(normalizedSelection)) {
         return 'ORCHESTRATE';
     }
     if (['restoration'].includes(normalizedSelection)) {
@@ -375,8 +376,6 @@ function buildSyntheticTraceContract(input: {
         trajectory_status: 'STABLE',
         trajectory_reason: `Dispatcher synthesized the designation from the explicit ${input.selectionTier.toLowerCase()} invocation.`,
         mimirs_well: Array.from(new Set(mimirsWell)),
-        confidence: 0.72,
-        confidence_source: 'synthetic',
         canonical_intent: summary,
     });
 }
@@ -404,8 +403,7 @@ function resolveInvocationTraceContract(input: {
                 errors: validation.errors,
             };
         }
-        return {
-            contract: enrichTraceContractWithCouncil({
+        const normalizedExplicit = normalizeAuguryContract({
                 intent_category: validation.trace.intent_category,
                 intent: validation.trace.intent,
                 selection_tier: validation.trace.selection_tier,
@@ -413,12 +411,14 @@ function resolveInvocationTraceContract(input: {
                 trajectory_status: validation.trace.trajectory_status,
                 trajectory_reason: validation.trace.trajectory_reason,
                 mimirs_well: validation.trace.mimirs_well,
-                gungnir_verdict: validation.trace.gungnir_verdict,
-                confidence: validation.trace.confidence,
-                confidence_source: validation.trace.confidence_source,
                 body: validation.trace.body,
                 canonical_intent: validation.trace.canonical_intent,
-            }),
+            });
+        if (!normalizedExplicit) {
+            return { contract: null, source: null, explicit: true, errors: ['Explicit Augury route does not match the canonical registry tuple.'] };
+        }
+        return {
+            contract: normalizedExplicit,
             source: 'explicit_augury_block',
             explicit: true,
             errors: [],
@@ -529,7 +529,6 @@ function mergeRuntimeAuguryMetadata(input: {
         });
         if (input.auguryContract.council_expert) {
             metadata.council_expert = input.auguryContract.council_expert;
-            metadata.root_persona_directive = input.auguryContract.council_expert.root_persona_directive;
         }
     }
 
@@ -598,11 +597,12 @@ function buildKernelRecoveryPrompt(input: {
 }): string {
     return [
         'You are supervising a failed CStar kernel execution.',
-        'Decide the next bounded recovery action and return strict JSON only.',
+        'Recommend the next bounded recovery action and return strict JSON only.',
+        'This is advisory. The runtime will not retry, replan, or execute from your response; an operator must authorize any next action.',
         'Allowed actions: retry, replan, abandon.',
         'Choose retry only for transient or obviously recoverable execution faults.',
         'Choose replan when the failure implies the current bead or execution route is wrong.',
-        'Choose abandon when no safe automatic correction is justified.',
+        'Choose abandon when no safe correction is justified.',
         'Format:',
         '{ "action": "retry|replan|abandon", "summary": "...", "operator_message": "...", "recovery_task": "..." }',
         '',
@@ -747,7 +747,6 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
             trace_contract: traceResolution.contract ?? undefined,
             trace_designation_source: traceResolution.source ?? undefined,
             council_expert: traceResolution.contract?.council_expert,
-            root_persona_directive: traceResolution.contract?.council_expert?.root_persona_directive,
             env: process.env,
             timestamp: Date.now()
         };
@@ -771,7 +770,7 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
 
         // [🔱] THE FRACTAL STRIKE: Create a Child Bead for this specific execution
         const childBeadId = `${context.bead_id}:exec:${weaveId}:${Date.now()}`;
-        const assignedAgent = context.persona === 'O.D.I.N.' ? 'ONE-MIND' : 'ALFRED';
+        const assignedAgent = 'CSTAR-KERNEL';
         this.upsertExecutionBead({
             beadId: childBeadId,
             repoId,
@@ -1095,7 +1094,7 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
         initialResult: WeaveResult;
         skillId?: string;
     }): Promise<WeaveResult | null> {
-        const { adapter, invocationToPass, context, workspaceRoot, weaveId, payload, initialResult, skillId } = args;
+        const { context, workspaceRoot, weaveId, payload, initialResult, skillId } = args;
         if (weaveId === 'weave:host-governor') {
             return null;
         }
@@ -1163,59 +1162,6 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
             const operatorMessage = typeof decision.operator_message === 'string' ? decision.operator_message.trim() : '';
             const recoveryTask = typeof decision.recovery_task === 'string' ? decision.recovery_task.trim() : '';
 
-            if (action === 'retry') {
-                const retryResult = await adapter.execute(invocationToPass, context);
-                return {
-                    ...retryResult,
-                    metadata: {
-                        ...(retryResult.metadata ?? {}),
-                        host_recovery: {
-                            action,
-                            provider,
-                            summary,
-                            operator_message: operatorMessage,
-                            attempted: true,
-                            succeeded: retryResult.status !== 'FAILURE',
-                        },
-                    },
-                };
-            }
-
-            if (action === 'replan') {
-                const governorResult = await this.dispatch(inheritTraceInvocation({
-                    weave_id: 'weave:host-governor',
-                    payload: {
-                        task: recoveryTask || operatorMessage || summary || `Recover from failed kernel execution: ${weaveId}`,
-                        auto_execute: true,
-                        auto_replan_blocked: true,
-                        max_parallel: 1,
-                        project_root: workspaceRoot,
-                        cwd: workspaceRoot,
-                        source: 'runtime',
-                    },
-                    session: {
-                        mode: 'subkernel',
-                        interactive: false,
-                        session_id: context.session_id,
-                    },
-                }, context));
-                return {
-                    ...governorResult,
-                    metadata: {
-                        ...(governorResult.metadata ?? {}),
-                        host_recovery: {
-                            action,
-                            provider,
-                            summary,
-                            operator_message: operatorMessage,
-                            attempted: true,
-                            failed_weave_id: weaveId,
-                            failed_skill_id: skillId ?? null,
-                        },
-                    },
-                };
-            }
-
             return {
                 ...initialResult,
                 metadata: {
@@ -1225,7 +1171,10 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
                         provider,
                         summary,
                         operator_message: operatorMessage,
-                        attempted: true,
+                        recovery_task: recoveryTask,
+                        model_consulted: true,
+                        execution_attempted: false,
+                        operator_action_required: action === 'retry' || action === 'replan',
                         failed_weave_id: weaveId,
                         failed_skill_id: skillId ?? null,
                     },
@@ -1240,7 +1189,9 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
                     host_recovery: {
                         action: 'abandon',
                         provider,
-                        attempted: true,
+                        model_consulted: true,
+                        execution_attempted: false,
+                        operator_action_required: false,
                         failed_weave_id: weaveId,
                         failed_skill_id: skillId ?? null,
                         recovery_error: message,

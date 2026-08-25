@@ -1,38 +1,20 @@
 ---
-name: Radon Complexity Analysis
-description: Analyzes code complexity (Cyclomatic Complexity) using the radon library.
+name: radon-complexity-reference
+description: Explicit read-only cyclomatic-complexity diagnostic reference.
+status: reference-only
 ---
 
-# Radon Complexity Analysis
+# Radon complexity analysis (reference only)
 
-**Activation Words**: radon, complexity, technical debt, cc, maintainability
+Run only on an operator-specified path when complexity evidence is requested.
+The diagnostic may read source and print Radon metrics. It must not install
+Radon, modify code, generate a score with authority, or trigger implicitly from
+generic quality language.
 
-## Protocol
+Example:
 
-1.  **Trigger**: 
-    -   Explicit: "Check complexity of X", "Run radon on Y", "Show technical debt".
-    -   Implicit: User asks about code quality or performance bottlenecks.
-
-2.  **Action**:
-    -   **Scan**: Use `radon cc <path>` to get Cyclomatic Complexity scores.
-    -   **Summarize**: Provide a list of the most complex functions or classes.
-    -   **Visualize**: Use `debt_viz.py` for a full SovereignHUD-styled report.
-
-3.  **Metrics**:
-    -   **A (1-5)**: Low complexity, easy to test.
-    -   **B (6-10)**: Moderate complexity.
-    -   **C (11-20)**: High complexity, should consider refactoring.
-    -   **D (21-30)**: Very high complexity.
-    -   **F (31+)**: Extreme complexity, "War Zone".
-
-## Usage Examples
-
-### Terminal Command
-```powershell
-radon cc . -a -s
+```bash
+python -m radon cc path/to/target.py -a -s
 ```
 
-### Script Execution
-```powershell
-python .agents/scripts/debt_viz.py
-```
+Treat the output as a diagnostic input, not a CStar lifecycle decision.

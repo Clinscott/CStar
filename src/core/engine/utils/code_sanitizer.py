@@ -17,7 +17,6 @@ class QuarantineFailure(Exception):
     """Raised when a code snippet fails security sanitization."""
     pass
 
-from src.tools.brave_search import BraveSearch
 
 # ==============================================================================
 # 📚 KNOWLEDGE BASE
@@ -240,54 +239,9 @@ class BifrostGate:
         return self._can_import(top_module)
 
     def scan_and_enrich_imports(self, code: str) -> str:
-        """Fetch live documentation for invalid imports."""
-        try:
-            tree = ast.parse(code)
-        except SyntaxError:
-            return ""
-
-        bad_modules = set()
-        for node in ast.walk(tree):
-            if isinstance(node, ast.Import):
-                for alias in node.names:
-                    top = alias.name.split(".")[0]
-                    if not self._is_valid_import(top):
-                        bad_modules.add(top)
-            elif isinstance(node, ast.ImportFrom) and node.module:
-                top = node.module.split(".")[0]
-                if not self._is_valid_import(top):
-                    bad_modules.add(top)
-
-        if not bad_modules:
-            return ""
-
-        searcher = BraveSearch()
-        if not searcher.is_quota_available():
-            return ""
-
-        from src.core.sovereign_hud import SovereignHUD
-        context_snippets = []
-        processed = set()
-
-        for module in bad_modules:
-            if module in processed: continue
-            processed.add(module)
-
-            query = f"{module} latest documentation python"
-            SovereignHUD.persona_log("INFO", f"Injecting live docs for unknown module: {module}")
-
-            results = searcher.search(query)
-            if results:
-                snippets = []
-                for res in results[:2]:
-                    snippets.append(f"- {res.get('title')}: {res.get('description')} ({res.get('url')})")
-                if snippets:
-                    context_snippets.append(f"Documentation for `{module}`:\n" + "\n".join(snippets))
-
-        if not context_snippets:
-            return ""
-
-        return "\n\n[LIVE WEB DOCUMENTATION INJECTED]\n" + "\n\n".join(context_snippets)
+        """Retained compatibility surface; never performs live enrichment."""
+        del code
+        return ""
 
     def perform_quarantine_scan(self, code: str, whitelist: list[str] | None = None) -> tuple[bool, str]:
         """Strict AST analysis for new skills."""

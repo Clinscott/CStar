@@ -1,8 +1,8 @@
 import { registry } from '../../pennyone/pathRegistry.js';
 import { database } from '../../pennyone/intel/database.js';
-import { activePersona, resolvePersonaPolicy } from '../../pennyone/personaRegistry.js';
 import { StateRegistry } from '../../../node/core/state.js';
 import { errorResponse, textResponse, type McpTextResponse } from '../contracts/responses.js';
+import { resolveActiveTraceStatusPayload } from '../../../node/core/commands/trace.js';
 
 // cstar_status — deterministic vitals snapshot from StateRegistry.
 export async function handleStatus(): Promise<McpTextResponse> {
@@ -19,31 +19,46 @@ export async function handleStatus(): Promise<McpTextResponse> {
             hallReachable = false;
         }
 
-        const uptimeSeconds = fw.last_awakening > 0
+        const awakeningAgeSeconds = fw.last_awakening > 0
             ? Math.max(0, Math.floor((Date.now() - fw.last_awakening) / 1000))
             : null;
-
-        const personaPolicy = resolvePersonaPolicy(fw.active_persona ?? activePersona?.name);
+        const currentMission = resolveActiveTraceStatusPayload(root);
 
         return textResponse({
             framework: {
+                authority: 'compatibility_projection',
+                source: 'state_registry_projection',
+                current_mission_authority: false,
                 status: fw.status,
                 active_persona: fw.active_persona,
                 last_awakening: fw.last_awakening,
-                uptime_seconds: uptimeSeconds,
-                active_task: fw.active_task,
-                mission_id: fw.mission_id,
-                bead_id: fw.bead_id,
-                gungnir_score: fw.gungnir_score,
-                intent_integrity: fw.intent_integrity,
+                process_uptime_seconds: Math.floor(process.uptime()),
+                awakening_age_seconds: awakeningAgeSeconds,
+                active_task: null,
+                mission_id: null,
+                bead_id: null,
+                stale_activity_suppressed: true,
+                baseline_gungnir_score: null,
+                baseline_gungnir_measurement: 'not_run',
+                intent_integrity: null,
+                intent_integrity_measurement: 'not_run',
             },
+            current_mission: currentMission ? {
+                authority: 'cstar_lifecycle',
+                origin: currentMission.origin,
+                session_id: currentMission.session_id ?? null,
+                status: currentMission.status,
+                updated_at: currentMission.updated_at,
+                focus: currentMission.focus,
+                current_bead_id: currentMission.current_bead_id ?? null,
+                target_paths: currentMission.agent_handoff?.target_paths ?? [],
+                execution_gate: currentMission.agent_handoff?.execution_gate ?? null,
+            } : null,
             persona: {
                 name: fw.active_persona,
-                planning_stance: personaPolicy.planning.stance,
-                risk_tolerance: personaPolicy.planning.riskTolerance,
-                execution_gate: personaPolicy.planning.executionGate,
-                investigation_stance: personaPolicy.investigation.stance,
-                repair_bias: personaPolicy.investigation.repairBias,
+                authority: 'style_only',
+                affects: ['tone', 'domain_emphasis'],
+                does_not_affect: ['execution_authority', 'risk_gate', 'operator_gate', 'lifecycle_state'],
             },
             workspace: root,
             hall_reachable: hallReachable,
@@ -57,7 +72,9 @@ export async function handleStatus(): Promise<McpTextResponse> {
             agents: Object.values(snapshot.agents).map((a) => ({
                 id: a.id,
                 name: a.name,
-                status: a.status,
+                status: /autobot/i.test(`${a.id} ${a.name}`) ? 'retired' : a.status,
+                current_authority: false,
+                source: 'compatibility_projection',
                 last_seen: a.last_seen || null,
             })),
         });

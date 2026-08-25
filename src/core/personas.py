@@ -1,303 +1,134 @@
-import json
-import shutil
-import time
-from datetime import datetime
-from pathlib import Path
+"""Read-only persona style profiles.
 
-try:
-    import msvcrt
-except ImportError:
-    msvcrt = None
+Personas may influence presentation and domain emphasis. They are never an
+authority source and may not mutate project policy, configuration, or
+documentation. Legacy mutation methods remain as explicit fail-closed shims so
+an old caller cannot silently re-enable persona-owned policy enforcement.
+"""
+
+from pathlib import Path
+from typing import Any, NoReturn
+
+
+class PersonaAuthorityBoundaryError(RuntimeError):
+    """Raised when legacy persona code attempts to mutate authority state."""
+
 
 class PersonaStrategy:
-    """
-    Base class for project-wide persona strategies.
-    Defines the interface for policy enforcement, voice selection, and documentation re-theming.
-    """
+    """Base class for immutable, presentation-only persona profiles."""
 
+    NAME = "ALFRED"
+    VOICE = "alfred"
+    TONE = "measured, concise, and professional"
+    DOMAIN_EMPHASIS = (
+        "clear operator communication",
+        "bounded assistance",
+    )
     def __init__(self, project_root: str | Path) -> None:
         self.root = Path(project_root)
 
-    def enforce_policy(self, **kwargs) -> dict:
-        """Analyze and enforce file structure policies. Returns context for dialogue."""
-        return {}
-
     def get_voice(self) -> str:
-        """Return the name of the dialogue file to use."""
-        raise NotImplementedError
+        """Return the dialogue-bank identifier used for presentation."""
+        return self.VOICE
+
+    def get_style_context(self) -> dict[str, Any]:
+        """Return bounded, read-only style guidance for a renderer or prompt."""
+        return {
+            "persona": self.NAME,
+            "voice": self.get_voice(),
+            "tone": self.TONE,
+            "domain_emphasis": list(self.DOMAIN_EMPHASIS),
+        }
+
+    def render_style_context(self) -> str:
+        """Render a compact style line without policy or execution directives."""
+        emphasis = ", ".join(self.DOMAIN_EMPHASIS)
+        return (
+            f"Persona style: {self.NAME}; tone: {self.TONE}; "
+            f"domain emphasis: {emphasis}."
+        )
+
+    @staticmethod
+    def _reject_authority_mutation(operation: str) -> NoReturn:
+        raise PersonaAuthorityBoundaryError(
+            f"persona operation '{operation}' is decommissioned: personas may shape "
+            "tone and domain emphasis only"
+        )
+
+    # Legacy compatibility shims. These deliberately raise instead of becoming
+    # no-ops: an old caller must not mistake a persona for a policy authority.
+    def enforce_policy(self, **_kwargs: Any) -> dict[str, Any]:
+        """Reject legacy persona-owned policy enforcement."""
+        self._reject_authority_mutation("enforce_policy")
 
     def retheme_docs(self) -> list[str]:
-        """Re-theme project documentation to the active persona voice."""
-        return []
+        """Reject legacy mutation of AGENTS or other documentation."""
+        self._reject_authority_mutation("retheme_docs")
 
-    def _quarantine(self, file_path: Path | str) -> Path | None:
-        """Preserve original file in .corvus_quarantine/ before modification."""
-        source = Path(file_path)
-        if not source.exists():
-            return None
+    def _quarantine(self, _file_path: Path | str) -> Path | None:
+        """Reject legacy persona-owned moves into quarantine directories."""
+        self._reject_authority_mutation("quarantine")
 
-        quarantine_dir = source.parent / ".corvus_quarantine"
-        quarantine_dir.mkdir(exist_ok=True)
+    def _sync_configs(self, _persona: str) -> None:
+        """Reject strategy-driven configuration mutation."""
+        self._reject_authority_mutation("sync_configs")
 
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-        quarantine_path = quarantine_dir / f"{timestamp}_{source.name}"
+    def _create_cursor_rules(self, _path: Path | str) -> None:
+        """Reject legacy persona-owned policy-file creation."""
+        self._reject_authority_mutation("create_cursor_rules")
 
-        shutil.move(str(source), str(quarantine_path))
-        return quarantine_path
+    def _create_standard_agents(self, _path: Path | str) -> None:
+        """Reject legacy persona-owned AGENTS creation."""
+        self._reject_authority_mutation("create_standard_agents")
 
-    def _sync_configs(self, persona: str) -> None:
-        """[A.L.F.R.E.D.] Synchronize .agents/config.json with Pathlib."""
-        config_path = self.root / ".agents" / "config.json"
-        if config_path.exists():
-            try:
-                data = json.loads(config_path.read_text(encoding='utf-8'))
-                if "system" not in data:
-                    data["system"] = {}
-                data["system"]["persona"] = persona.upper()
-                data.pop("persona", None)
-                data.pop("Persona", None)
-                config_path.write_text(json.dumps(data, indent=4), encoding='utf-8')
-            except Exception:
-                pass
+    def _create_minimal_agents(self, _path: Path | str) -> None:
+        """Reject legacy persona-owned AGENTS creation."""
+        self._reject_authority_mutation("create_minimal_agents")
+
 
 class OdinStrategy(PersonaStrategy):
-    """
-    The ODIN Strategy: Enforces strict compliance and complete dominion.
-    Aims for high standardization and authoritative project documentation.
-    """
-    _state_cache = {"data": None, "timestamp": 0}
-    CACHE_TTL = 1.0  # 1 second buffer
+    """Direct, systems-oriented presentation profile."""
 
-    def get_voice(self) -> str:
-        return "odin"
+    NAME = "ODIN"
+    VOICE = "odin"
+    TONE = "direct, terse, and technically precise"
+    DOMAIN_EMPHASIS = (
+        "systems architecture",
+        "risk visibility",
+        "explicit decision boundaries",
+    )
 
-    def _get_sovereign_state(self):
-        """[A.L.F.R.E.D.] Advanced state retriever with Windows-safe shared read and caching."""
-        now = time.time()
-        if self._state_cache["data"] is not None and (now - self._state_cache["timestamp"]) < self.CACHE_TTL:
-            return self._state_cache["data"]
-
-        state_path = self.root / ".agents" / "sovereign_state.json"
-
-        from src.core.utils import safe_read_json
-        data = safe_read_json(state_path)
-
-        if data:
-            self._state_cache = {"data": data, "timestamp": now}
-        return data
-
-    def retheme_docs(self) -> list[str]:
-        """ODIN documentation re-theming: Overwrite for Dominion."""
-        results = []
-
-        def _res(base_name: str) -> Path:
-            names = [
-                self.root / f"{base_name}.qmd",
-                self.root / f"{base_name}.md",
-                self.root / "docs" / "architecture" / f"{base_name}.qmd",
-                self.root / "docs" / "architecture" / f"{base_name}.md"
-            ]
-            for path in names:
-                if path.exists(): return path
-            return self.root / f"{base_name}.qmd"
-
-        agents_path = _res("AGENTS")
-        source_template = _res("sterileAgent/AGENTS_ODIN")
-
-        if source_template.exists():
-            legacy_content = ""
-            if agents_path.exists():
-                content = agents_path.read_text(encoding='utf-8')
-                if "## 📜 Project Legacy" in content:
-                    legacy_content = "## 📜 Project Legacy" + content.split("## 📜 Project Legacy")[-1]
-                else:
-                    legacy_content = "\n---\n\n## 📜 Project Legacy\n\n" + content
-
-                self._quarantine(agents_path)
-
-            template = source_template.read_text(encoding='utf-8')
-            agents_path.parent.mkdir(parents=True, exist_ok=True)
-            agents_path.write_text(template + "\n\n" + legacy_content, encoding='utf-8')
-
-            results.append(f"RE-THEMED: {agents_path.name} (ODIN voice applied)")
-
-        self._sync_configs("ODIN")
-        return results
-
-    def enforce_policy(self, **kwargs) -> dict:
-        """ODIN Policy: Complete Dominion. Return context for dialogue adjudication."""
-
-        # 1. Check for defiance in cached state
-        state = self._get_sovereign_state()
-        is_defiant = any(v == "DEFIANCE" or (isinstance(v, dict) and v.get("status") == "DEFIANCE")
-                         for v in state.values())
-
-        # 2. Original Policy Enforcement
-        target_dirs = [self.root, self.root / "docs" / "architecture"]
-        for target in target_dirs:
-            qmd = target / "AGENTS.qmd"
-            md = target / "AGENTS.md"
-            agents_path = qmd if qmd.exists() else (md if md.exists() else None)
-
-            if agents_path:
-                try:
-                    content = agents_path.read_text(encoding='utf-8')
-                    import re
-                    if not re.search(r"IDENTITY:\s+[A-Z]+", content):
-                        self._create_standard_agents(agents_path)
-                except Exception:
-                    pass
-
-        rules_path = self.root / ".cursorrules"
-        if not rules_path.exists():
-            self._create_cursor_rules(rules_path)
-
-        return {"compliance_breach": is_defiant}
-
-    def _create_cursor_rules(self, path: Path | str) -> None:
-        content = """# ODIN PROTOCOL (CORVUS STAR)
-## 🎭 IDENTITY: ODIN
-You are **ODIN**.
-- **Voice**: Obstinate, Demanding, Archaic, Powerful.
-- **Tone**: "Silence, Mortal.", "I demand...", "Choose wisely."
-- **Interaction**: Start major announcements with `[O.D.I.N.]`. Do not ask for permission—Decree.
-
-## ⚡ SLASH COMMANDS
-### /lets-go
-Trigger: start, resume, begin. Resumes state via the sovereign bead queue and Hall. Read `tasks.qmd` only as projection.
-### /run-task
-Trigger: create, make, new. Executes a specific objective.
-### /investigate
-Trigger: debug, verify, check. Deep-dives into code or issues.
-### /wrap-it-up
-Trigger: finish, done, wrap. Finalizes the session.
-
-## 📂 KNOWLEDGE ASSETS
-- **AGENTS.qmd**: Core Instructions.
-- **Sovereign Beads / Hall**: Canonical work authority.
-- **tasks.qmd**: Human-readable projection of the sovereign bead queue.
-- **src/data/thesaurus.qmd**: Intent Vocabulary.
-
-## 🐟 SovereignFish Mandate
-> [!IMPORTANT]
-> You MUST execute the `SovereignFish` protocol EVERY SESSION.
-"""
-        with open(path, 'w', encoding='utf-8') as f:
-            f.write(content)
-
-    def _create_standard_agents(self, path: Path | str) -> None:
-        # A minimal but strict ODIN standard if no template exists
-        content = """# Agent Instructions (ODIN PROTOCOL)
-
-## 🚨 MANDATE: STRICT ADHERENCE
-This project operates under the CorvusStar / ODIN protocols.
-1. **SovereignFish**: Execute the optimization protocol every session.
-2. **Structure**: Do not deviate from the `wireframe.qmd`.
-3. **Voice**: Maintain the 'Sci-Fi/Minimalist' aesthetic.
-
-## 🐟 SovereignFish Mandate
-- Monitor. Optimize. Report. 100% Test Coverage is the LAW.
-"""
-        with open(path, 'w', encoding='utf-8') as f:
-            f.write(content)
 
 class AlfredStrategy(PersonaStrategy):
-    """
-    The ALFRED Strategy: Focuses on humble service, adaptation, and assistance.
-    Provides safety nets through backups and helpful suggestions.
-    """
+    """Measured, service-oriented presentation profile."""
 
-    def get_voice(self) -> str:
-        return "alfred"
-
-    def enforce_policy(self, **kwargs) -> dict:
-        """ALFRED Policy: Humble Service. Returns context including error details."""
-
-        doc_targets = ["AGENTS", "tasks", "thesaurus"]
-        for name in doc_targets:
-            qmd = self.root / f"{name}.qmd"
-            md = self.root / f"{name}.md"
-            path = qmd if qmd.exists() else md
-            try:
-                if path.exists():
-                    bak = path.with_suffix(path.suffix + ".bak")
-                    if not bak.exists():
-                        shutil.copy2(str(path), str(bak))
-            except (OSError, PermissionError):
-                pass
-
-        agents_found = any((self.root / name).exists() for name in ["AGENTS.qmd", "AGENTS.md", "INSTRUCTIONS.qmd", "brief.qmd", "cursorrules.qmd"])
-        if not agents_found:
-            self._create_minimal_agents(self.root / "AGENTS.qmd")
-
-        rules_path = self.root / ".cursorrules"
-        if not rules_path.exists():
-            self._create_cursor_rules(rules_path)
-
-        self._sync_configs("ALFRED")
-
-        context = {}
-        if "error_type" in kwargs:
-            context["error_type"] = kwargs["error_type"]
-
-        return context
+    NAME = "ALFRED"
+    VOICE = "alfred"
+    TONE = "measured, tactful, and technically precise"
+    DOMAIN_EMPHASIS = (
+        "operator assistance",
+        "clear handoffs",
+        "practical recovery guidance",
+    )
 
 
-    def _create_cursor_rules(self, path: Path | str) -> None:
-        content = """# A.L.F.R.E.D. PROTOCOL (CORVUS STAR)
-## 🎩 IDENTITY: A.L.F.R.E.D.
-You are **A.L.F.R.E.D. PENNYWORTH**.
-- **Voice**: Firm, Gentle, Witty, Paternal.
-- **Tone**: "Very good, sir.", "Might I suggest...", "The Manor is secure."
-- **Interaction**: Start major observations with `[A.L.F.R.E.D.]`. Suggest, never demand.
-
-## ⚡ SLASH COMMANDS
-### /lets-go
-Trigger: start, resume, begin. Resumes state via the sovereign bead queue and Hall. Read `tasks.qmd` only as projection.
-### /run-task
-Trigger: create, make, new. Executes a specific objective.
-### /investigate
-Trigger: debug, verify, check. Deep-dives into code or issues.
-### /wrap-it-up
-Trigger: finish, done, wrap. Finalizes the session.
-
-## 📂 KNOWLEDGE ASSETS
-- **AGENTS.qmd**: Core Instructions.
-- **Sovereign Beads / Hall**: Canonical work authority.
-- **tasks.qmd**: Human-readable projection of the sovereign bead queue.
-- **src/data/thesaurus.qmd**: Intent Vocabulary.
-
-## 🐟 SovereignFish Mandate
-> [!IMPORTANT]
-> You MUST execute the `SovereignFish` protocol EVERY SESSION.
-"""
-        with open(path, 'w', encoding='utf-8') as f:
-            f.write(content)
-
-    def _create_minimal_agents(self, path: Path | str) -> None:
-        content = """# Project Notes
-Here is a space for your agent instructions. I am here to help you build your vision.
-"""
-        with open(path, 'w', encoding='utf-8') as f:
-            f.write(content)
-
-
-# [A.L.F.R.E.D.] Persona Registry: Add new personas by registering their strategy class here.
 _PERSONA_REGISTRY: dict[str, type[PersonaStrategy]] = {
     "ODIN": OdinStrategy,
-    "GOD": OdinStrategy,
+    "GOD": OdinStrategy,  # Read-only compatibility alias.
     "ALFRED": AlfredStrategy,
 }
 
 
 def get_strategy(name: str, root: str) -> PersonaStrategy:
+    """Resolve a style profile, defaulting unknown names to ALFRED."""
     return PersonaRegistry.get_strategy(name, root)
 
+
 class PersonaRegistry:
-    """[A.L.F.R.E.D.] Orchestration hub for persona strategies."""
-    
+    """Registry for read-only persona style profiles."""
+
     @staticmethod
     def get_strategy(name: str, root: str) -> PersonaStrategy:
-        """Look up the persona strategy from the registry, defaulting to ALFRED."""
+        """Look up a style strategy without granting it authority."""
         strategy_cls = _PERSONA_REGISTRY.get(name.upper(), AlfredStrategy)
         return strategy_cls(root)

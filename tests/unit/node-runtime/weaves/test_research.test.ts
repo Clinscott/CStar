@@ -45,7 +45,8 @@ describe('ResearchWeave Unit Tests', () => {
         assert.equal(capturedRequests[0]?.boundary, 'subagent');
         assert.equal(capturedRequests[0]?.task_kind, 'research');
         assert.match(String(capturedRequests[0]?.prompt ?? ''), /Anti-Behavior:/);
-        assert.match(String(capturedRequests[0]?.prompt ?? ''), /Root Persona Overlay:/);
+        assert.match(String(capturedRequests[0]?.prompt ?? ''), /Critique Instruction:/);
+        assert.doesNotMatch(String(capturedRequests[0]?.prompt ?? ''), /Root Persona Overlay:/);
         assert.deepEqual(capturedRequests[0]?.metadata, {
             mission_id: undefined,
             trace_id: undefined,
@@ -181,18 +182,19 @@ describe('ResearchWeave Unit Tests', () => {
         mock.reset();
     });
 
-    it('queues delegated research requests when a poll bridge is configured', async () => {
+    it('fails non-terminal delegated research instead of enqueueing One Mind work', async () => {
         const dispatchPort: any = {};
-        const savedRequests: Array<Record<string, unknown>> = [];
+        const savedBranches: Array<Record<string, unknown>> = [];
         const weave = new ResearchWeave(dispatchPort);
 
         mock.method(deps, 'resolveRuntimeHostProvider', () => 'codex');
-        mock.method(deps, 'resolveConfiguredDelegatePollBridge', () => ({
-            command: 'delegate-poll',
-            args: ['--handle', '{handle_id}', '--result', '{result_path}'],
+        mock.method(deps, 'requestHostDelegatedExecution', async () => ({
+            handle_id: 'retired-async-handle',
+            provider: 'codex',
+            status: 'running',
         }));
-        mock.method(deps, 'saveHallOneMindRequest', (record: Record<string, unknown>) => {
-            savedRequests.push(record);
+        mock.method(deps, 'saveHallOneMindBranch', (record: Record<string, unknown>) => {
+            savedBranches.push(record);
         });
 
         const result = await weave.execute({
@@ -206,12 +208,10 @@ describe('ResearchWeave Unit Tests', () => {
             mission_id: 'mission-research-queued',
         } as any);
 
-        assert.equal(result.status, 'TRANSITIONAL');
-        assert.equal(savedRequests.length, 2);
-        assert.equal(savedRequests[0]?.boundary, 'subagent');
-        assert.equal(savedRequests[0]?.request_status, 'PENDING');
-        assert.equal(savedRequests[0]?.metadata?.activation_id, 'activation:research:1');
-        assert.equal(savedRequests[0]?.metadata?.branch_group_id, 'research:trace-research-queued:test');
+        assert.equal(result.status, 'FAILURE');
+        assert.match(result.error ?? '', /non-terminal status 'running'/i);
+        assert.equal(savedBranches.length, 2);
+        assert.equal(savedBranches[0]?.status, 'FAILED');
         mock.reset();
     });
 });

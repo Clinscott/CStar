@@ -2,7 +2,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { registry } from '../../pennyone/pathRegistry.js';
 import { errorResponse, textResponse, type McpTextResponse } from '../contracts/responses.js';
-import { MCP_PROPOSAL_MAX_BYTES, MCP_SAFE_PROPOSAL_ID, isPathInside } from '../contracts/runtime.js';
+import {
+    MCP_PROPOSAL_MAX_BYTES,
+    MCP_SAFE_PROPOSAL_ID,
+    readBoundedUtf8FileInside,
+    resolveExistingPathInside,
+} from '../contracts/runtime.js';
 
 // cstar_evolve — read-only deterministic ops over proposals and SPRT ledger.
 // Proposal generation and adversarial critique are LLM-driven and stay
@@ -26,18 +31,14 @@ export async function handleEvolve({
             if (!fs.existsSync(proposalDir)) {
                 return textResponse({ status: 'ok', count: 0, proposals: [] });
             }
+            const safeProposalDir = resolveExistingPathInside(root, proposalDir, 'directory');
             const all = fs
-                .readdirSync(proposalDir)
-                .filter((f) => f.endsWith('.json'))
-                .map((file) => {
-                    const full = path.join(proposalDir, file);
-                    let mtime = 0;
-                    try {
-                        mtime = fs.statSync(full).mtimeMs;
-                    } catch {
-                        // Unstatable — fall through with mtime 0.
-                    }
-                    return { file, full, mtime };
+                .readdirSync(safeProposalDir, { withFileTypes: true })
+                .filter((entry) => entry.isFile() && entry.name.endsWith('.json'))
+                .map((entry) => {
+                    const full = path.join(safeProposalDir, entry.name);
+                    const mtime = fs.lstatSync(full).mtimeMs;
+                    return { file: entry.name, full, mtime };
                 })
                 .sort((a, b) => b.mtime - a.mtime); // newest first
 
@@ -47,15 +48,11 @@ export async function handleEvolve({
                 let bead_id: string | undefined;
                 let created_at: number | undefined;
                 try {
-                    const stat = fs.statSync(full);
-                    if (stat.size <= MCP_PROPOSAL_MAX_BYTES) {
-                        const raw = JSON.parse(fs.readFileSync(full, 'utf-8')) as Record<string, unknown>;
-                        summary = String(raw.summary ?? raw.rationale ?? '').slice(0, 240);
-                        bead_id = typeof raw.bead_id === 'string' ? raw.bead_id : undefined;
-                        created_at = typeof raw.created_at === 'number' ? raw.created_at : undefined;
-                    } else {
-                        summary = `[oversized proposal — ${stat.size} bytes]`;
-                    }
+                    const safe = readBoundedUtf8FileInside(safeProposalDir, full, MCP_PROPOSAL_MAX_BYTES);
+                    const raw = JSON.parse(safe.content) as Record<string, unknown>;
+                    summary = String(raw.summary ?? raw.rationale ?? '').slice(0, 240);
+                    bead_id = typeof raw.bead_id === 'string' ? raw.bead_id : undefined;
+                    created_at = typeof raw.created_at === 'number' ? raw.created_at : undefined;
                 } catch {
                     // Malformed / unreadable — file-only entry.
                 }
@@ -82,24 +79,15 @@ export async function handleEvolve({
                 );
             }
             const full = path.join(proposalDir, `${bare}.json`);
-            if (!isPathInside(full, proposalDir)) {
-                return textResponse({ error: 'proposal_id resolves outside the proposals directory' }, true);
-            }
             if (!fs.existsSync(full)) {
                 return textResponse({ error: `proposal not found: ${bare}` }, true);
             }
-            const stat = fs.statSync(full);
-            if (stat.size > MCP_PROPOSAL_MAX_BYTES) {
-                return textResponse(
-                    { error: `proposal ${bare} exceeds size cap (${stat.size} > ${MCP_PROPOSAL_MAX_BYTES} bytes)` },
-                    true,
-                );
-            }
-            const raw = JSON.parse(fs.readFileSync(full, 'utf-8')) as Record<string, unknown>;
+            const safe = readBoundedUtf8FileInside(proposalDir, full, MCP_PROPOSAL_MAX_BYTES);
+            const raw = JSON.parse(safe.content) as Record<string, unknown>;
             return textResponse({
                 status: 'ok',
                 proposal_id: bare,
-                size_bytes: stat.size,
+                size_bytes: safe.size,
                 proposal: raw,
             });
         }
@@ -109,7 +97,8 @@ export async function handleEvolve({
             if (!fs.existsSync(ledgerPath)) {
                 return textResponse({ status: 'ok', count: 0, history: [] });
             }
-            const raw = JSON.parse(fs.readFileSync(ledgerPath, 'utf-8')) as { history?: unknown[] };
+            const safe = readBoundedUtf8FileInside(root, ledgerPath, MCP_PROPOSAL_MAX_BYTES);
+            const raw = JSON.parse(safe.content) as { history?: unknown[] };
             const history = Array.isArray(raw.history) ? raw.history : [];
             const cap = Math.min(limit ?? 20, 100);
             return textResponse({

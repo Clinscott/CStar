@@ -1,8 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { createHash } from 'node:crypto';
 import { registry } from '../../pennyone/pathRegistry.js';
 import { errorResponse, mcpGuardrail, textResponse, type McpTextResponse } from '../contracts/responses.js';
-import { isPathInside } from '../contracts/runtime.js';
+import { readBoundedFileInside, resolveExistingPathInside } from '../contracts/runtime.js';
 
 export type DispatchRequestKind = 'researcher' | 'forge';
 export type DispatchSpendMode = 'no_spend' | 'dry_run' | 'live_authorized';
@@ -35,11 +36,13 @@ export interface DispatchCallbackContract {
 export interface DispatchRequestArgs {
     bead_id?: string;
     decision_id?: string;
-    owner_pmt_thread_id: string;
+    state_update_thread_id?: string;
+    owner_pmt_thread_id?: string;
     source_callback_thread_id: string;
     objective: string;
     prompt?: string;
     target_paths?: string[];
+    required_output_paths?: string[];
     system_under_test?: string;
     scope: string;
     authority_lane: 'green' | 'yellow' | 'red';
@@ -71,6 +74,12 @@ const DISPATCH_RED_ACTION_PATTERNS = [
     /\bsqlite\b/i,
     /\bdelete\b/i,
     /\bdestructive\b/i,
+    /\bhook\b/i,
+    /\bcredential\b/i,
+    /\btoken\b/i,
+    /\bchmod\b/i,
+    /\bservice\b/i,
+    /\bkill\b/i,
 ];
 
 export function makeDispatchDecisionId(kind: DispatchRequestKind, args: DispatchRequestArgs): string {
@@ -91,12 +100,13 @@ export function normalizeActionList(values: string[] | undefined): string[] {
         .filter(Boolean);
 }
 
+export function resolveStateUpdateThreadId(args: DispatchRequestArgs): string {
+    return args.state_update_thread_id?.trim() || args.owner_pmt_thread_id?.trim() || '';
+}
+
 export function findDispatchValidationError(args: DispatchRequestArgs): string | null {
     if (!args.bead_id?.trim() && !args.decision_id?.trim()) {
         return 'bead_id or decision_id is required';
-    }
-    if (!args.owner_pmt_thread_id?.trim()) {
-        return 'owner_pmt_thread_id is required';
     }
     if (!args.source_callback_thread_id?.trim()) {
         return 'source_callback_thread_id is required';
@@ -138,6 +148,20 @@ export function findDispatchValidationError(args: DispatchRequestArgs): string |
     if (conflictingAction) {
         return `requested action is prohibited or red-gated: ${conflictingAction}`;
     }
+    const latentRedText = [
+        args.objective,
+        args.prompt ?? '',
+        args.system_under_test ?? '',
+        args.scope,
+        ...normalizeActionList(args.target_paths),
+        ...normalizeActionList(args.required_output_paths),
+        ...normalizeActionList(args.artifact_expectations),
+        ...requested,
+    ].join('\n');
+    const latentRedPattern = DISPATCH_RED_ACTION_PATTERNS.find((pattern) => pattern.test(latentRedText));
+    if (latentRedPattern) {
+        return 'dispatch objective, prompt, target, or artifact scope contains a red-gated action; use a separately authorized non-Forge gate';
+    }
     const liveRequested = args.spend_policy.mode === 'live_authorized'
         || args.spend_policy.live_source_allowed === true;
     if (liveRequested && !args.spend_policy.operator_authorization_ref?.trim()) {
@@ -157,11 +181,19 @@ export function resolveDispatchSurface(kind: DispatchRequestKind, args: Dispatch
             ];
     const proofs = candidates.map((candidate) => {
         const absolute = path.resolve(root, candidate);
+        let resolvedPath: string | null = null;
+        let containmentError: string | null = null;
+        try {
+            resolvedPath = resolveExistingPathInside(root, absolute, 'file');
+        } catch (error) {
+            containmentError = error instanceof Error ? error.message : String(error);
+        }
         return {
             ref: candidate,
-            path: absolute,
+            path: resolvedPath ?? absolute,
             exists: fs.existsSync(absolute),
-            inside_project: isPathInside(absolute, root) || absolute === path.resolve(root),
+            inside_project: resolvedPath !== null,
+            containment_error: containmentError,
         };
     });
     const found = proofs.find((proof) => proof.exists && proof.inside_project) ?? null;
@@ -185,6 +217,26 @@ export function hasDuplicatePackageLockMismatch(locks: DispatchPackageLock[] | u
         seen.set(key, value);
     }
     return false;
+}
+
+export function verifyDispatchPackageLocks(
+    locks: DispatchPackageLock[] | undefined,
+    root: string,
+): Array<{ path: string; sha256: string; bytes: number }> {
+    return (locks ?? []).map((lock) => {
+        if (!/^[a-f0-9]{64}$/i.test(lock.sha256.trim())) {
+            throw new Error(`dispatch_package_lock_sha256_invalid:${lock.path}`);
+        }
+        const absolute = path.isAbsolute(lock.path)
+            ? path.resolve(lock.path)
+            : path.resolve(root, lock.path);
+        const locked = readBoundedFileInside(root, absolute, 64 * 1024 * 1024);
+        const actual = createHash('sha256').update(locked.content).digest('hex');
+        if (actual !== lock.sha256.trim().toLowerCase()) {
+            throw new Error(`dispatch_package_lock_hash_mismatch:${lock.path}`);
+        }
+        return { path: locked.path, sha256: actual, bytes: locked.content.byteLength };
+    });
 }
 
 export async function handleDispatchRequest(
@@ -229,7 +281,9 @@ export async function handleDispatchRequest(
             decision_id: decisionId,
             receipt_id: receiptId,
             bead_id: args.bead_id ?? null,
-            owner_pmt_thread_id: args.owner_pmt_thread_id,
+            state_update_thread_id: resolveStateUpdateThreadId(args) || null,
+            legacy_owner_pmt_thread_id_accepted: !args.state_update_thread_id?.trim()
+                && Boolean(args.owner_pmt_thread_id?.trim()),
             source_callback_thread_id: args.source_callback_thread_id,
             objective: args.objective,
             prompt: args.prompt ?? null,
@@ -271,7 +325,7 @@ export async function handleDispatchRequest(
                 ['dispatch_authority'],
             ),
             next_action: failClosedReason
-                ? 'Route this receipt to PMT/MM/CoS; do not substitute a Codex worker or ad hoc shell path.'
+                ? 'Return this receipt to CoS and send its bounded state packet to the configured information repository; do not substitute a Codex worker or ad hoc shell path.'
                 : `Dispatch through the authorized ${kind} surface only, then record CStar validation/result evidence.`,
         });
     } catch (error) {

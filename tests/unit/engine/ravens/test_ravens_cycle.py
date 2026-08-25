@@ -1,29 +1,45 @@
-import pytest
-import sys
+import inspect
 import json
-from unittest.mock import MagicMock, patch, AsyncMock
-from pathlib import Path
-from src.core.engine.ravens.ravens_cycle import main
-from src.core.engine.ravens_stage import RavensCycleResult
+from types import SimpleNamespace
+from unittest.mock import patch
 
-def test_ravens_cycle_main():
-    mock_result = RavensCycleResult(status="SUCCESS", summary="test", mission_id="test-001", metadata={"test": 1.0})
-    
-    with patch("argparse.ArgumentParser.parse_args") as mock_args, \
-         patch("src.core.engine.ravens.ravens_cycle.execute_ravens_cycle_contract", new_callable=AsyncMock) as mock_execute, \
-         patch("src.core.engine.ravens.ravens_cycle.asyncio.run") as mock_async_run, \
-         patch("builtins.print") as mock_print:
-        
-        mock_args.return_value = MagicMock(project_root="/tmp/root")
-        mock_async_run.return_value = mock_result
-        
-        main()
-        
-        mock_async_run.assert_called_once()
-        mock_print.assert_called_once()
-        
-        # Verify printed JSON contains expected status
-        printed_arg = mock_print.call_args[0][0]
-        printed_data = json.loads(printed_arg)
-        assert printed_data["status"] == "SUCCESS"
-        assert printed_data["metadata"]["test"] == 1.0
+import pytest
+
+from src.core.engine.ravens import ravens_cycle
+
+
+def test_ravens_cycle_main_fails_closed_without_execution() -> None:
+    with (
+        patch("argparse.ArgumentParser.parse_args", return_value=SimpleNamespace(project_root="/tmp/untrusted")),
+        patch("builtins.print") as mock_print,
+        pytest.raises(SystemExit) as exit_info,
+    ):
+        ravens_cycle.main()
+
+    assert exit_info.value.code == 2
+    mock_print.assert_called_once()
+    payload = json.loads(mock_print.call_args.args[0])
+    assert payload["status"] == "FAILURE"
+    assert payload["metadata"] == {
+        "adapter": "compatibility:ravens-cycle-rejected",
+        "requested_project_root": "/tmp/untrusted",
+        "decommissioned": True,
+        "read_only": True,
+        "execution_attempted": False,
+    }
+
+
+def test_ravens_cycle_entrypoint_has_no_runner_or_mutation_imports() -> None:
+    source = inspect.getsource(ravens_cycle)
+
+    forbidden = (
+        "asyncio",
+        "subprocess",
+        "execute_ravens_cycle_contract",
+        "MuninnHeart",
+        "write_text",
+        "commit_changes",
+        "checkout",
+    )
+    for token in forbidden:
+        assert token not in source

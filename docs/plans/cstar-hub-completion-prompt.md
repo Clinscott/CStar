@@ -1,5 +1,9 @@
 # Goal prompt — finalize the CStar Hub Hermes research agent
 
+> **Historical prompt; do not execute.** Its direct Hermes workflow, model
+> version, live collection, cron, and autonomous completion instructions are
+> superseded by current CoS/CStar/Researcher authority and operator gates.
+
 Paste this into a fresh Claude Code session in `/home/morderith/Corvus/CStar` to complete H1-P3 through H1-P9 from the hardening roadmap. The agent should be able to pick this up cold and execute to a verified, demonstrated finish without further direction.
 
 ---

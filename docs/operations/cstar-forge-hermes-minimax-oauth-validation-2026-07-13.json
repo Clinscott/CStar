@@ -1,0 +1,143 @@
+{
+  "schema": "cstar.forge_hermes_minimax_oauth_validation.v1",
+  "bead_id": "bead:repair:cstar-forge-hermes-minimax-oauth-2026-07-13",
+  "validated_at": "2026-07-13T19:21:10-04:00",
+  "revalidated_at": "2026-07-13T22:06:00-04:00",
+  "verdict": "ACCEPTED",
+  "claim_scope": "Source and live redacted pre-reservation OAuth readiness are accepted. No Forge execution, provider inference, installation, restart, deployment, activation, or production-readiness claim is made.",
+  "boundary": {
+    "profile": "cstar-hub",
+    "provider": "minimax-oauth",
+    "auth_mode": "oauth",
+    "model": "minimax/MiniMax-M3",
+    "minimum_token_ttl_seconds": 2100,
+    "profile_provider_precedes_global_fallback": true,
+    "cstar_receives_bearer": false,
+    "oauth_refresh": false,
+    "auth_store_write": false,
+    "provider_inference_calls": 0,
+    "forge_attempts_reserved": 0,
+    "live_source_collection": false,
+    "secret_or_config_mutation": false
+  },
+  "live_redacted_preflight": {
+    "schema": "cstar.forge_hermes_preflight.v1",
+    "status": "ok",
+    "auth_provider": "minimax-oauth",
+    "auth_mode": "oauth",
+    "oauth_profile": "cstar-hub",
+    "oauth_status": "ready",
+    "oauth_refresh_required": false,
+    "oauth_min_ttl_seconds": 2100,
+    "live_spend": false,
+    "live_spend_unknown": false,
+    "live_source_collection": false,
+    "runtime_content_sha256": "1a046418fe3d703977c5703febd888012dfaaef3f5292ba70d3ed77419db7f24",
+    "redacted_fields_only": true
+  },
+  "post_restart_live_proof": {
+    "schema": "cstar.forge_hermes_preflight.v1",
+    "status": "ok",
+    "runtime_content_sha256": "1a046418fe3d703977c5703febd888012dfaaef3f5292ba70d3ed77419db7f24",
+    "oauth_status": "ready",
+    "oauth_refresh_required": false,
+    "oauth_min_ttl_seconds": 2100,
+    "live_spend": false,
+    "live_spend_unknown": false,
+    "live_source_collection": false,
+    "help_and_required_flag_checks": "pass",
+    "redacted_fields_only": true
+  },
+  "checks": [
+    {
+      "name": "hermes_focused_oauth_and_entrypoint",
+      "command": "scripts/run_tests.sh tests/hermes_cli/test_forge_minimax_oauth.py tests/hermes_cli/test_forge_entrypoint.py tests/hermes_cli/test_forge_entrypoint_roles.py -q",
+      "result": "58 passed; 0 failed"
+    },
+    {
+      "name": "hermes_forge_and_safe_runtime_regression",
+      "command": "scripts/run_tests.sh tests/hermes_cli/test_forge_entrypoint.py tests/hermes_cli/test_forge_entrypoint_roles.py tests/hermes_cli/test_forge_ephemeral_e2e.py tests/hermes_cli/test_forge_ephemeral_worker.py tests/hermes_cli/test_forge_minimax_oauth.py tests/hermes_cli/test_safe_mode_runtime_credentials.py tests/hermes_cli/test_safe_mode_startup_isolation.py -q",
+      "result": "122 passed; 0 failed"
+    },
+    {
+      "name": "cstar_forge_contract_regression",
+      "command": "node scripts/run-tsx.mjs --test <11 focused CStar Forge suites>",
+      "result": "54 passed; 0 failed"
+    },
+    {
+      "name": "cstar_worker_and_documentation_contracts",
+      "command": "node scripts/run-python.mjs -m pytest -q tests/unit/cstar-kernel-mcp/test_forge_rejected_manifest_evidence.py tests/unit/cstar-kernel-mcp/test_forge_worker_required_output_prompt.py tests/unit/test_current_documentation_contract.py",
+      "result": "31 passed; 0 failed"
+    },
+    {
+      "name": "documentation_contract",
+      "command": "node scripts/run-python.mjs -m pytest -q tests/unit/test_current_documentation_contract.py",
+      "result": "9 passed; 0 failed"
+    },
+    {
+      "name": "typescript",
+      "command": "./node_modules/.bin/tsc --noEmit",
+      "result": "pass"
+    },
+    {
+      "name": "sterling",
+      "command": "node scripts/run-tsx.mjs --test tests/unit/sterling_mandate.test.ts",
+      "result": "20 passed; 0 failed"
+    },
+    {
+      "name": "focused_file_size",
+      "command": "wc -l <focused production and test files>",
+      "result": "pass; all enforced files below 500 lines; maximum 499"
+    }
+  ],
+  "independent_review": {
+    "validator_identity": "codex-subagent:oauth_transport_architecture",
+    "independent_of_execution": true,
+    "verdict": "ACCEPTED",
+    "findings": [
+      "A missing profile auth store is treated as provider absence and falls back to the global store.",
+      "Malformed profile provider containers or entries fail closed before global fallback.",
+      "A valid profile provider prevents the global store from being opened.",
+      "Both stores enforce owner, mode, symlink, hardlink, size, identity-stability, and O_NOFOLLOW checks.",
+      "The readiness surface remains read-only, redacted, non-refreshing, network-free, and sealed into the exact four-file Hermes runtime."
+    ],
+    "requested_model_identity": "unreported",
+    "actual_model_identity": "unreported"
+  },
+  "source_sha256": {
+    "/home/morderith/Corvus/AutoBot/hermes-agent/hermes_cli/__init__.py": "58b0e216b05a3db1ec84e6eff8087a611261b78f0d3004c31cd83d93c257bbc3",
+    "/home/morderith/Corvus/AutoBot/hermes-agent/hermes_cli/forge_entrypoint.py": "d9f2cbd1c2794909d1a99a2b1fb60f455a278fa2d10459bcdb7306fff63cd101",
+    "/home/morderith/Corvus/AutoBot/hermes-agent/hermes_cli/forge_minimax_oauth.py": "214e9e843fa01eb34e13d491bf93dfbc00246350664697ff9fc9133b8df69059",
+    "/home/morderith/Corvus/AutoBot/hermes-agent/hermes_cli/forge_mode.py": "5b0f3c7fc69f00b5f645572bef7ffb66221efa0895603df1dad925e93a74ca7b",
+    "/home/morderith/Corvus/CStar/.agents/skills/corvus-forge/scripts/hermes_minimax_delegate.mjs": "d050e819b7ef7596aadce9c37bc1b09489196f108496cc9f0ec7a3388d697e27",
+    "/home/morderith/Corvus/CStar/.agents/skills/corvus-forge/scripts/hermes_runtime_lineage.mjs": "e99074021f968f815d26ef13b8f4d5aedee7dbc48aa38d654c7b1e9676f2db4e",
+    "/home/morderith/Corvus/CStar/.agents/skills/corvus-forge/scripts/forge_worker_adapter.py": "2e3f9afdf932c7cf646ef4407e15fb56adb1a4fa5a06d54ab583dcd7a279504f",
+    "/home/morderith/Corvus/CStar/src/tools/cstar-kernel-mcp/tools/forge_hermes_oauth_contract.ts": "4c511b57aae59853e521c63f1f342f83b2acdf20432c5bd463146f7f05a35860",
+    "/home/morderith/Corvus/CStar/src/tools/cstar-kernel-mcp/tools/forge_adapter_invocation.ts": "78e29a059b32d871434237cdbbebaf3bdc71f7c6519033691b988983ff9272df",
+    "/home/morderith/Corvus/CStar/src/tools/cstar-kernel-mcp/tools/forge_adapters.ts": "97b934f86074844112d678c25ccf11c103896db79cbd24237ff5a129783d4dc5",
+    "/home/morderith/Corvus/CStar/src/tools/cstar-kernel-mcp/tools/forge_execute.ts": "a398feeaa043536e3af38ebf9ec6efc108ff23747565e9b77be7789680e7b659",
+    "/home/morderith/Corvus/CStar/src/tools/pennyone/intel/forge_receipt_controller.ts": "6eb0f7057f1b64986af4c160165e97b9069b434fe4f6a1710bd309ced2edf007"
+  },
+  "test_sha256": {
+    "/home/morderith/Corvus/AutoBot/hermes-agent/tests/hermes_cli/test_forge_minimax_oauth.py": "7d91580aa201c354fb211192740df22260b2eca3206b289ff354f8a34746529e",
+    "tests/unit/cstar-kernel-mcp/test_forge_hermes_oauth_contract.test.ts": "d09f3806033f78c267dbbb16f704e9bf8259cf7ec1b3cab0b2628ec9143256b4",
+    "tests/unit/cstar-kernel-mcp/test_forge_hermes_delegate.test.ts": "14729c438e1e120ddd4b52865586c3b43619a61a7f116745aee02aac0fbf8ebb",
+    "tests/unit/cstar-kernel-mcp/test_forge_hermes_runtime_evidence.test.ts": "6d4e552aeeef93b33c3b70e996a84afbefe259f8b0bda50f059cdfe2436300b4",
+    "tests/unit/cstar-kernel-mcp/test_forge_execute_traces.test.ts": "747002031b3106caa0d4078578b8970e25dad76a6ea25e5fa2e143cc40b2692b",
+    "tests/unit/cstar-kernel-mcp/test_forge_receipt_controller.test.ts": "40f20ce7f5ecde128c7111c391af80f45d89a3eaf9be8abfb49dc3539aa9c15d",
+    "tests/features/forge_bounded_six_role_manifest.feature": "b3219f0303af04fc9209d63dfeec33467c8c672288c53ec9d01b3e3caa47efcb",
+    "tests/unit/test_current_documentation_contract.py": "672ab831865c4de9ea9319e0f96513f4b9f9abc202fac5beb5565706b8440f67"
+  },
+  "documentation_sha256": {
+    "docs/operations/corvus-forge-pipeline-playbook.md": "662959f53a6ba74c6b567310f80acc7255ca5df31126021277f89eea530e033a",
+    "docs/operations/corvus-forge-skill-spec.md": "d8bea8a8d593db02fc1e296e5d320bf842232d54f2e519282c20d9a89cb8c1d0",
+    "docs/integrations/cstar-kernel-mcp.md": "a298df30cf8bedc33a99f522d6437fe301b5b1b30b8fda9ec41d6d9e94af15dd"
+  },
+  "residuals": [
+    "The bounded six-role adapter is not genuine upstream SwarmForge role orchestration and must not be represented as such.",
+    "The legacy general-Hermes FD3/API-key compatibility path remains cryptographically excluded from this sealed runtime and is tracked by bead:cleanup:hermes-retired-forge-fd3-transport-2026-07-13.",
+    "The scalable request-identity repair is source-accepted and live-proven after the supported restart; its authoritative validation is recorded separately.",
+    "The stale AutoBot skill and concurrent Hall bootstrap findings are source-repaired and independently accepted; their authoritative validation results are recorded separately.",
+    "The old TokenPath request embeds stale runtime lineage and requires sanctioned lifecycle supersession plus a fresh exact operator grant before any attempt may be spent."
+  ]
+}

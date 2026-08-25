@@ -28,15 +28,16 @@ class SovereignBuilder:
         memory_db = MemoryDB(str(self.base_path))
         instruction_loader = InstructionLoader(str(self.project_root))
 
-        if skills_db_path.exists():
-            instruction_loader.add_source(str(skills_db_path))
+        # The compatibility argument cannot grant instruction authority.
+        # InstructionLoader admits only entries in .agents/skill_registry.json.
+        del skills_db_path
 
         vector = SovereignVector(str(thesaurus), str(corrections), str(stopwords))
         vector.memory_db = memory_db
         vector.loader = instruction_loader
 
         vector.load_core_skills()
-        vector.load_skills_from_dir(str(self.project_root / "src" / "skills" / "local"))
+        vector.load_skills_from_dir(str(self.project_root / ".agents" / "skills"))
         vector.build_index()
 
         return vector

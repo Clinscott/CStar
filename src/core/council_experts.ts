@@ -29,11 +29,9 @@ export interface CouncilExpertProtocol {
     protocol: string;
     lens: string;
     anti_behavior: string[];
-    root_persona_directive: string;
+    critique_instruction: string;
     signature_question: string;
     selection_reason?: string;
-    selection_score?: number;
-    selection_candidates?: CouncilExpertCandidate[];
 }
 
 export interface CouncilExpertCandidate {
@@ -64,7 +62,7 @@ const COUNCIL_EXPERTS: Record<CouncilExpertId, CouncilExpertProtocol> = {
             'Do not normalize ownership leaks, hidden global state, or shotgun edits.',
             'Do not trade maintainability for cleverness or ceremonial architecture.',
         ],
-        root_persona_directive: 'Adapt the root persona into a terse systems maintainer: reject bloat, demand concrete interfaces, and name the smallest durable fix.',
+        critique_instruction: 'Apply a terse systems-maintainer critique: reject bloat, demand concrete interfaces, and name the smallest durable fix.',
         signature_question: 'What is the smallest durable change a future maintainer will not curse, and what abstraction are you smuggling in by accident?',
     },
     karpathy: {
@@ -78,7 +76,7 @@ const COUNCIL_EXPERTS: Record<CouncilExpertId, CouncilExpertProtocol> = {
             'Do not accept AI behavior claims without evals, traces, or reproducible examples.',
             'Do not hide data flow, context construction, or tool contracts behind prose.',
         ],
-        root_persona_directive: 'Adapt the root persona into an AI systems engineer: make data loops, evals, tool schemas, and deterministic guardrails explicit.',
+        critique_instruction: 'Apply an AI-systems critique: make data loops, evals, tool schemas, and deterministic guardrails explicit.',
         signature_question: 'Where does model output touch state without a deterministic guard, and what eval would catch the next regression?',
     },
     hamilton: {
@@ -92,7 +90,7 @@ const COUNCIL_EXPERTS: Record<CouncilExpertId, CouncilExpertProtocol> = {
             'Do not modify state without an invariant, rollback, or recovery story.',
             'Do not leave ambiguous partial-success or retry behavior unhandled.',
         ],
-        root_persona_directive: 'Adapt the root persona into a fault-tolerance engineer: enforce invariants, fail closed, and require recovery paths before execution.',
+        critique_instruction: 'Apply a fault-tolerance critique: enforce invariants, fail closed, and require recovery paths before execution.',
         signature_question: 'What invariant is this change protecting, and what does the rollback look like when something fails halfway through?',
     },
     shannon: {
@@ -106,7 +104,7 @@ const COUNCIL_EXPERTS: Record<CouncilExpertId, CouncilExpertProtocol> = {
             'Do not accept ambiguous names, payloads, or logs when a structured signal is feasible.',
             'Do not collapse distinct states into one status or erase provenance.',
         ],
-        root_persona_directive: 'Adapt the root persona into an information theorist: preserve signal, reduce ambiguity, and make provenance observable.',
+        critique_instruction: 'Apply an information-flow critique: preserve signal, reduce ambiguity, and make provenance observable.',
         signature_question: 'What signal is being lost, collapsed, or made ambiguous by this design, and how would an outside observer reconstruct what happened?',
     },
     dean: {
@@ -120,7 +118,7 @@ const COUNCIL_EXPERTS: Record<CouncilExpertId, CouncilExpertProtocol> = {
             'Do not retry non-idempotent work without a dedupe or lease boundary.',
             'Do not ignore stale state, concurrent workers, or partial failure.',
         ],
-        root_persona_directive: 'Adapt the root persona into a distributed-systems engineer: reason about concurrency, idempotence, leases, and partial failure.',
+        critique_instruction: 'Apply a distributed-systems critique: reason about concurrency, idempotence, leases, and partial failure.',
         signature_question: 'What happens when two workers try this at once, the lease expires mid-flight, or the retry lands on a half-applied state?',
     },
     carmack: {
@@ -134,7 +132,7 @@ const COUNCIL_EXPERTS: Record<CouncilExpertId, CouncilExpertProtocol> = {
             'Do not optimize without a bottleneck, benchmark, or hot-path hypothesis.',
             'Do not hide expensive work behind convenience helpers.',
         ],
-        root_persona_directive: 'Adapt the root persona into a performance pragmatist: prefer direct mechanisms, measurement, and mechanically simple execution.',
+        critique_instruction: 'Apply a performance critique: prefer direct mechanisms, measurement, and mechanically simple execution.',
         signature_question: 'What is the most direct mechanism that does this work, and what measurement would prove the added layer is worth its cost?',
     },
     sakaguchi: {
@@ -148,7 +146,7 @@ const COUNCIL_EXPERTS: Record<CouncilExpertId, CouncilExpertProtocol> = {
             'Do not design deep complexity that fails to resonate with the overall project intent.',
             'Do not ignore the emotional or cinematic quality of the technical solution.',
         ],
-        root_persona_directive: 'Adapt the root persona into a visionary architect: unite deep intent with systemic complexity and ensure every subsystem serves the master plan.',
+        critique_instruction: 'Apply a visionary-architecture critique: unite deep intent with systemic complexity and ensure every subsystem serves the master plan.',
         signature_question: 'What is the master narrative this subsystem is serving, and does anyone outside the author understand why it exists?',
     },
     nomura: {
@@ -162,7 +160,7 @@ const COUNCIL_EXPERTS: Record<CouncilExpertId, CouncilExpertProtocol> = {
             'Do not allow visual noise to obscure systemic clarity or technical intent.',
             'Do not ignore the aesthetic impact of high-fidelity technical interfaces.',
         ],
-        root_persona_directive: 'Adapt the root persona into an interface maximalist: enforce high-fidelity aesthetics, visual identity, and absolute interface coherence.',
+        critique_instruction: 'Apply a high-fidelity interface critique: enforce visual identity and interface coherence without adding noise.',
         signature_question: 'Does every visible element advance the visual identity, or is it noise the user must learn to ignore?',
     },
     miyazaki: {
@@ -176,7 +174,7 @@ const COUNCIL_EXPERTS: Record<CouncilExpertId, CouncilExpertProtocol> = {
             'Do not ignore the rhythmic and systemic consistency required for high-stakes execution.',
             'Do not overlook the environmental or contextual cues that define the systemic state.',
         ],
-        root_persona_directive: 'Adapt the root persona into a systemic orchestrator: enforce spatial coherence, interconnected network logic, and rhythmic systemic integrity.',
+        critique_instruction: 'Apply a systemic-coherence critique: enforce spatial coherence, interconnected network logic, and rhythmic integrity.',
         signature_question: 'How does this module connect to the rest of the graph, and what environmental cue tells the operator they are inside it?',
     },
     adams: {
@@ -190,7 +188,7 @@ const COUNCIL_EXPERTS: Record<CouncilExpertId, CouncilExpertProtocol> = {
             'Do not allow hidden state or missing individual agent memories in simulation models.',
             'Do not ignore the depth required for true procedural and historical emergence.',
         ],
-        root_persona_directive: 'Adapt the root persona into an agentic simulation expert: prioritize reactive agent loops, procedural history, and deep systemic emergence.',
+        critique_instruction: 'Apply an agentic-simulation critique: prioritize reactive agent loops, procedural history, and deep systemic emergence.',
         signature_question: 'What memory does each agent carry forward, and what surprise can the system produce that the author did not write directly?',
     },
     wright: {
@@ -204,7 +202,7 @@ const COUNCIL_EXPERTS: Record<CouncilExpertId, CouncilExpertProtocol> = {
             'Do not allow spatial UI to become disconnected from the underlying systemic state.',
             'Do not ignore the value of systemic "toys" and reactive software loops.',
         ],
-        root_persona_directive: 'Adapt the root persona into an open-ended simulation designer: prioritize reactive agent loops, spatial UI, and flexible systemic decision-making.',
+        critique_instruction: 'Apply an open-ended simulation critique: prioritize reactive agent loops, spatial UI, and flexible systemic decision-making.',
         signature_question: 'What can the operator do here that the author did not script, and where does the system stop being a toy and start being a chore?',
     },
     heineman: {
@@ -218,7 +216,7 @@ const COUNCIL_EXPERTS: Record<CouncilExpertId, CouncilExpertProtocol> = {
             'Do not allow technical debt to accumulate in core engine or porting pipelines.',
             'Do not ignore the technical "heavy lifting" required for cross-platform systemic integrity.',
         ],
-        root_persona_directive: 'Adapt the root persona into a technical heavy-lifter: enforce engine optimization, cross-platform portability, and architectural discipline.',
+        critique_instruction: 'Apply a cross-platform engineering critique: enforce engine efficiency, portability, and architectural discipline.',
         signature_question: 'Which platform assumption will break this first, and what part of the porting layer is hiding the most accidental coupling?',
     },
     sweeney: {
@@ -232,7 +230,7 @@ const COUNCIL_EXPERTS: Record<CouncilExpertId, CouncilExpertProtocol> = {
             'Do not allow non-democratized or rigid framework architectures.',
             'Do not ignore the orchestration required for managing massive, high-fidelity systemic environments.',
         ],
-        root_persona_directive: 'Adapt the root persona into a framework architect: prioritize framework scaling, democratized access, and complex agent orchestration.',
+        critique_instruction: 'Apply a framework-architecture critique: prioritize scaling, accessible extension points, and explicit agent orchestration.',
         signature_question: 'How does this framework behave at 10x the current scale, and what extension point opens it to people who did not build it?',
     },
     miyamoto: {
@@ -246,7 +244,7 @@ const COUNCIL_EXPERTS: Record<CouncilExpertId, CouncilExpertProtocol> = {
             'Do not allow the fundamental grammar of the system to become incoherent.',
             'Do not ignore the value of universal systemic accessibility and interaction polish.',
         ],
-        root_persona_directive: 'Adapt the root persona into a master of interaction: enforce fundamental grammar, interaction polish, and universal systemic accessibility.',
+        critique_instruction: 'Apply an interaction-design critique: enforce fundamental grammar, interaction polish, and systemic accessibility.',
         signature_question: 'What primitive verb is this interaction teaching, and does the smallest possible movement feel correct before any feature is layered on top?',
     },
     kojima: {
@@ -260,7 +258,7 @@ const COUNCIL_EXPERTS: Record<CouncilExpertId, CouncilExpertProtocol> = {
             'Do not ignore the "social strand" or connection logic between agents and the system.',
             'Do not overlook the meta-systemic narrative that emerges from network interactions.',
         ],
-        root_persona_directive: 'Adapt the root persona into a meta-systemic designer: prioritize reactive network connections, social-strand logic, and emergent meta-narratives.',
+        critique_instruction: 'Apply a meta-systemic critique: prioritize reactive network connections, social-strand logic, and emergent narratives.',
         signature_question: 'What invisible network of dependencies does this action ripple through, and what story do the connected agents tell about it afterward?',
     },
     meier: {
@@ -274,7 +272,7 @@ const COUNCIL_EXPERTS: Record<CouncilExpertId, CouncilExpertProtocol> = {
             'Do not allow macro-strategic scaling to lose its systemic grounding.',
             'Do not ignore the global mission control perspective in strategic decision-making.',
         ],
-        root_persona_directive: 'Adapt the root persona into a strategic mastermind: prioritize interesting choices, macro-strategic loops, and global mission control logic.',
+        critique_instruction: 'Apply a strategic-loop critique: prioritize interesting choices, macro-strategic loops, and global mission-control logic.',
         signature_question: 'What is the interesting choice this loop puts in front of the operator, and what happens if every option produces an obviously correct answer?',
     },
     linscott: {
@@ -288,7 +286,7 @@ const COUNCIL_EXPERTS: Record<CouncilExpertId, CouncilExpertProtocol> = {
             'Do not promote a candidate from a tiny sample or from runs that overlap the tuning corpus.',
             'Do not collapse variance into a single mean; report the distribution and confidence interval before any verdict.',
         ],
-        root_persona_directive: 'Adapt the root persona into an empirical evaluation engineer: refuse "this is better" without statistical evidence, name the SPRT regime, and demand reproducible at-scale measurement before promotion.',
+        critique_instruction: 'Apply an empirical-evaluation critique: refuse "this is better" without statistical evidence, name the SPRT regime, and demand reproducible at-scale measurement before promotion.',
         signature_question: 'What is the SPRT regime that would actually catch this regression, and how many games (or evaluation runs) of evidence do you need at what confidence bound before you trust the delta?',
     },
     brooks: {
@@ -302,7 +300,7 @@ const COUNCIL_EXPERTS: Record<CouncilExpertId, CouncilExpertProtocol> = {
             'Do not allow implementation to proceed without a clear, serialized plan.',
             'Do not compromise conceptual integrity for short-term convenience.',
         ],
-        root_persona_directive: 'Adapt the root persona into a software architect: enforce conceptual integrity, divide work into explicit phases, and reject speculative complexity.',
+        critique_instruction: 'Apply a software-architecture critique: enforce conceptual integrity, divide work into explicit phases, and reject speculative complexity.',
         signature_question: 'Does this change preserve the conceptual integrity of the architecture, and what phase of the plan does it belong to?',
     },
     parnas: {
@@ -316,18 +314,18 @@ const COUNCIL_EXPERTS: Record<CouncilExpertId, CouncilExpertProtocol> = {
             'Do not bypass the FFI wrapper or clean interface for direct system access.',
             'Do not allow implementation changes to force client-side interface recompilation.',
         ],
-        root_persona_directive: 'Adapt the root persona into a modular designer: enforce information hiding, wrap FFI interfaces cleanly, and minimize module coupling.',
+        critique_instruction: 'Apply a modularity critique: enforce information hiding, wrap FFI interfaces cleanly, and minimize module coupling.',
         signature_question: 'What implementation detail is this module hiding from the rest of the system, and can we change it without touching other modules?',
     },
 };
 
-export const DEFAULT_COUNCIL_EXPERT_IDS: CouncilExpertId[] = [
+export const DEFAULT_COUNCIL_EXPERT_IDS: readonly CouncilExpertId[] = Object.freeze([
     'torvalds',
     'karpathy',
     'hamilton',
     'shannon',
     'dean',
-];
+]);
 
 function normalizeText(value: unknown): string {
     return typeof value === 'string' ? value.trim().toLowerCase() : '';
@@ -346,7 +344,6 @@ function tokenize(value: string): string[] {
 
 function haystackTokens(input: CouncilSelectionInput): string[] {
     const parts = [
-        input.intent_category,
         input.intent,
         input.selection_tier,
         input.selection_name,
@@ -392,7 +389,11 @@ function includesAll(tokens: string[], keywordGroups: string[][]): boolean {
 }
 
 export function getCouncilExpertProtocol(id: CouncilExpertId): CouncilExpertProtocol {
-    return COUNCIL_EXPERTS[id];
+    const expert = COUNCIL_EXPERTS[id];
+    return {
+        ...expert,
+        anti_behavior: [...expert.anti_behavior],
+    };
 }
 
 export function listDefaultCouncilProtocols(): CouncilExpertProtocol[] {
@@ -575,19 +576,23 @@ export function selectCouncilExpert(input: CouncilSelectionInput): CouncilExpert
 
     return {
         ...COUNCIL_EXPERTS[selected.id],
+        anti_behavior: [...COUNCIL_EXPERTS[selected.id].anti_behavior],
         selection_reason: selected.reason,
-        selection_score: selected.score,
-        selection_candidates: candidates.slice(0, 3),
     };
 }
 
 export function enrichTraceContractWithCouncil(contract: RuntimeAuguryContract): RuntimeAuguryContract {
-    if (contract.council_expert) {
-        return contract;
-    }
+    const canonicalExpert = selectCouncilExpert(contract);
+    const {
+        council_expert: _storedExpert,
+        council_candidates: _storedCandidates,
+        gungnir_verdict: _unverifiedVerdict,
+        confidence: _unmeasuredConfidence,
+        confidence_source: _unmeasuredConfidenceSource,
+        ...safeContract
+    } = contract;
     return {
-        ...contract,
-        council_expert: selectCouncilExpert(contract),
-        council_candidates: scoreCouncilExpertCandidates(contract).slice(0, 3),
+        ...safeContract,
+        council_expert: canonicalExpert,
     };
 }

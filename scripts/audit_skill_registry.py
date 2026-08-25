@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import json
 import re
 import time
@@ -13,13 +14,12 @@ LOCAL_ROOT = PROJECT_ROOT / "src" / "skills" / "local"
 MANIFEST_PATH = PROJECT_ROOT / ".agents" / "skill_registry.json"
 REPORT_PATH = PROJECT_ROOT / "docs" / "reports" / "SKILL_AUTHORITY_REPORT.qmd"
 TEST_ROOT = PROJECT_ROOT / "tests"
+DECOMMISSION_MARKER = "DECOMMISSIONED.md"
 
 ALIAS_MAP = {
     "cachebro": "cachebro",
-    "knowledgehunter": "hunt",
     "oracle": "oracle",
     "personaaudit": "persona",
-    "skilllearning": "evolve",
     "visualexplainer": "visual-explainer",
 }
 
@@ -47,6 +47,10 @@ TEST_ALIAS_MAP = {
     "orchestrate": ["operator_resume", "host_governor"],
     "start": ["start_runtime", "operator_resume"],
 }
+
+
+class SkillRegistrySchemaError(ValueError):
+    """Raised when an existing skill registry violates its keyed-entry contract."""
 
 
 def normalize_skill_name(name: str) -> str:
@@ -112,9 +116,39 @@ def load_existing_registry() -> dict[str, Any]:
             "entries": {},
         }
     data = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
-    # Normalize malformed entries (list) to entries (dict)
-    if isinstance(data.get("entries"), list):
-        data["entries"] = {}
+    if not isinstance(data, dict):
+        raise SkillRegistrySchemaError(
+            "skill registry root must be a JSON object"
+        )
+    if "entries" not in data:
+        raise SkillRegistrySchemaError(
+            "skill registry entries field is required and must be a JSON object "
+            "keyed by capability id"
+        )
+
+    entries = data["entries"]
+    if not isinstance(entries, dict):
+        raise SkillRegistrySchemaError(
+            "skill registry entries must be a non-null JSON object keyed by "
+            f"capability id; got {type(entries).__name__}"
+        )
+
+    for entry_name, entry in entries.items():
+        if not isinstance(entry_name, str) or not entry_name.strip():
+            raise SkillRegistrySchemaError(
+                "skill registry entry keys must be non-blank strings"
+            )
+        if not isinstance(entry, dict):
+            raise SkillRegistrySchemaError(
+                f"skill registry entry {entry_name!r} must be a JSON object; "
+                f"got {type(entry).__name__}"
+            )
+        embedded_id = entry.get("id")
+        if "id" in entry and embedded_id != entry_name:
+            raise SkillRegistrySchemaError(
+                f"skill registry entry {entry_name!r} has mismatched embedded "
+                f"id {embedded_id!r}"
+            )
     return data
 
 
@@ -123,7 +157,13 @@ def load_authoritative_skills() -> dict[str, dict[str, Any]]:
     if not AUTHORITY_ROOT.exists():
         return authority
 
-    for skill_dir in sorted(path for path in AUTHORITY_ROOT.iterdir() if path.is_dir() and not path.name.startswith(".")):
+    for skill_dir in sorted(
+        path
+        for path in AUTHORITY_ROOT.iterdir()
+        if path.is_dir()
+        and not path.name.startswith(".")
+        and not (path / DECOMMISSION_MARKER).exists()
+    ):
         normalized = normalize_skill_name(skill_dir.name)
         authority[normalized] = {
             "name": skill_dir.name,
@@ -136,6 +176,16 @@ def load_authoritative_skills() -> dict[str, dict[str, Any]]:
             "source": ".agents/skills",
         }
     return authority
+
+
+def load_decommissioned_skill_names() -> set[str]:
+    if not AUTHORITY_ROOT.exists():
+        return set()
+    return {
+        normalize_skill_name(skill_dir.name)
+        for skill_dir in AUTHORITY_ROOT.iterdir()
+        if skill_dir.is_dir() and (skill_dir / DECOMMISSION_MARKER).exists()
+    }
 
 
 def _local_entrypoint(path: Path) -> Path:
@@ -167,6 +217,8 @@ def load_local_skills(authority: dict[str, dict[str, Any]]) -> list[dict[str, An
 
     for entry in sorted(LOCAL_ROOT.iterdir(), key=lambda item: item.name.lower()):
         if entry.name.startswith(".") or entry.name == "__pycache__":
+            continue
+        if entry.is_dir() and (entry / DECOMMISSION_MARKER).exists():
             continue
         if entry.is_dir() or entry.suffix == ".py":
             name = entry.stem if entry.is_file() else entry.name
@@ -313,7 +365,7 @@ def infer_recursion_policy(entry_name: str, entry: dict[str, Any]) -> str:
     tier = str(entry.get("tier") or "").strip().upper()
     if tier == "SPELL":
         return "policy-only"
-    if entry_name in {"autobot", "chant", "evolve", "orchestrate", "ravens", "start"}:
+    if entry_name in {"chant", "evolve", "orchestrate", "ravens", "start"}:
         return "bounded-orchestrator"
     if tier == "WEAVE":
         return "bounded-composite"
@@ -525,32 +577,25 @@ def collect_authority_issues(entries: dict[str, dict[str, Any]]) -> list[dict[st
 def build_registry_manifest() -> dict[str, Any]:
     existing = load_existing_registry()
     authority = load_authoritative_skills()
+    decommissioned = load_decommissioned_skill_names()
     local_entries = load_local_skills(authority)
 
-    entries: dict[str, dict[str, Any]] = {}
+    entries: dict[str, dict[str, Any]] = {
+        entry_name: dict(existing_entry)
+        for entry_name, existing_entry in existing.get("entries", {}).items()
+    }
     duplicates: list[dict[str, Any]] = []
 
-    for entry_name, existing_entry in existing.get("entries", {}).items():
-        if isinstance(existing_entry, dict):
-            entries[entry_name] = enrich_entry(entry_name, existing_entry)
-
-    for authority_entry in authority.values():
-        trigger = authority_entry["runtime_trigger"]
-        if trigger not in entries:
-            entries[trigger] = enrich_entry(
-                trigger,
-                {
-                    "tier": "SKILL",
-                    "description": "",
-                    "instruction_path": f"{authority_entry['authority_path']}/SKILL.md" if authority_entry["authority_path"] else None,
-                    "execution": {
-                        "mode": "agent-native",
-                        "ownership_model": "host-workflow",
-                    },
-                    "viability": "ACTIVE",
-                    "risk": "safe",
-                },
-            )
+    stale_decommissioned = sorted(
+        entry_name
+        for entry_name in entries
+        if normalize_skill_name(entry_name) in decommissioned
+    )
+    if stale_decommissioned:
+        raise SkillRegistrySchemaError(
+            "decommissioned skills remain in the authoritative registry: "
+            + ", ".join(stale_decommissioned)
+        )
 
     for local in local_entries:
         key = local["authority_alias"] or local["runtime_trigger"]
@@ -570,12 +615,16 @@ def build_registry_manifest() -> dict[str, Any]:
         "authoritative_root": relative_to_project(AUTHORITY_ROOT),
         "duplicates": duplicates,
         "local_candidates": local_entries,
+        "unregistered_authority_candidates": sorted(
+            authority_entry["runtime_trigger"]
+            for authority_entry in authority.values()
+            if authority_entry["runtime_trigger"] not in entries
+        ),
         "authority_issues": collect_authority_issues(entries),
     }
 
     manifest = {
         **existing,
-        "generated_at": audit["generated_at"],
         "entries": entries,
         "authority_audit": audit,
     }
@@ -668,24 +717,39 @@ def render_report(manifest: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def write_outputs(manifest: dict[str, Any]) -> None:
-    MANIFEST_PATH.parent.mkdir(parents=True, exist_ok=True)
-    MANIFEST_PATH.write_text(json.dumps(manifest, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
-
+def write_report(manifest: dict[str, Any]) -> None:
     REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
     REPORT_PATH.write_text(render_report(manifest), encoding="utf-8")
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Validate the authoritative keyed skill registry without promoting filesystem skills.",
+    )
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Validate and print the audit summary without writing any file (default).",
+    )
+    parser.add_argument(
+        "--write-report",
+        action="store_true",
+        help="Write only the derived authority report; never rewrite the registry.",
+    )
+    args = parser.parse_args()
     manifest = build_registry_manifest()
-    write_outputs(manifest)
     audit = manifest["authority_audit"]
+    if args.write_report:
+        write_report(manifest)
     print(f"Authoritative skills: {sum(1 for entry in manifest['entries'].values() if str(entry.get('instruction_path') or '').startswith('.agents/skills/'))}")
     print(f"Transitional local entries: {len(audit['local_candidates'])}")
+    print(f"Unregistered authority candidates: {len(audit['unregistered_authority_candidates'])}")
     print(f"Duplicate definitions: {len(audit['duplicates'])}")
     print(f"Active capability authority issues: {len(audit['authority_issues'])}")
-    print(f"Manifest: {MANIFEST_PATH}")
-    print(f"Report: {REPORT_PATH}")
+    print(f"Manifest validated and preserved: {MANIFEST_PATH}")
+    print(f"Report: {REPORT_PATH if args.write_report else 'not written (use --write-report)'}")
+    if audit["authority_issues"]:
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":

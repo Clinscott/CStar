@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "validated_at": "2026-07-13",
+  "bead_id": "bead:repair:cstar-safe-persona-reader-2026-07-13",
+  "decision_id": "decision:safe-persona-reader:2026-07-13",
+  "forge_request_receipt_id": "dispatch-forge-b71fb340a9697abd5af3ee03efe37075",
+  "forge_execution_receipt_id": "forge-execute-2e6a3a6adf122c02fbb6aea2c3220109",
+  "forge_attempt_id": "forge-attempt-b71fb340a9697abd5af3ee03efe37075-1",
+  "independent_verdict": "REJECTED",
+  "attempt_status": "FAILED_FINAL",
+  "request_status": "FAILED_FINAL",
+  "live_spend": true,
+  "live_source_collection": false,
+  "retry_budget": 0,
+  "retry_performed": false,
+  "requested_model_identity": "unreported",
+  "actual_model_identity": "unreported",
+  "adapter_result": {
+    "status": "degraded",
+    "exit_status": 1,
+    "reason": "model manifest did not report success: missing"
+  },
+  "required_outputs": [
+    {
+      "path": "scripts/read_active_persona.py",
+      "status": "missing"
+    },
+    {
+      "path": "tests/unit/test_safe_persona_reader.py",
+      "status": "missing"
+    },
+    {
+      "path": "tests/unit/test_safe_persona_documentation.py",
+      "status": "missing"
+    },
+    {
+      "path": "tests/features/safe_persona_reader.feature",
+      "status": "missing"
+    },
+    {
+      "path": "docs/integrations/safe_persona_reader.md",
+      "status": "missing"
+    }
+  ],
+  "accepted_delivery_count": 0,
+  "focused_tests_run": false,
+  "canary_exclusion_proven": false,
+  "execution_trace": {
+    "path": "work/forge-executions/forge-execute-2e6a3a6adf122c02fbb6aea2c3220109/adapter-execution-envelope.json",
+    "sha256": "3cdf5ae0b573e2d739f4dcf3406b8cd83a5bf95ef557b4ab36614f4032d913f5"
+  },
+  "containment": {
+    "live_persona_file_read_by_forge": false,
+    "git_actions": false,
+    "installation": false,
+    "restart": false,
+    "deployment": false,
+    "production_claim": false
+  }
+}

@@ -26,8 +26,7 @@ export function buildRavensInvocation(
 }
 
 /**
- * [GUNGNIR] Raven Command Spoke
- * Purpose: Authoritative shell for Raven Warden orchestration.
+ * Read-only Ravens compatibility command.
  */
 export function registerRavenCommand(
     program: Command,
@@ -36,13 +35,13 @@ export function registerRavenCommand(
 ) {
     const ravens = program
         .command('ravens')
-        .description('Monitor and Orchestrate the Raven Wardens');
+        .description('Inspect retired Ravens compatibility status');
 
     ravens
         .command('start')
-        .description('Run a one-shot Ravens sweep across configured repos')
-        .option('--shadow-forge', 'Execute in sandboxed Docker container')
-        .option('--spoke <slug>', 'Sweep only a specific mounted spoke')
+        .description('Reject retired Ravens execution (compatibility command)')
+        .option('--shadow-forge', 'Retired compatibility option; no execution occurs')
+        .option('--spoke <slug>', 'Record the requested spoke in the rejection receipt')
         .action(async (options: { shadowForge?: boolean; spoke?: string }) => {
             const workspaceRoot = resolveWorkspaceRoot(workspaceRootSource);
             const result = await dispatchPort.dispatch(buildRavensInvocation('start', options, workspaceRoot));
@@ -51,9 +50,9 @@ export function registerRavenCommand(
 
     ravens
         .command('sweep')
-        .description('Run a one-shot Ravens sweep across configured repos')
-        .option('--shadow-forge', 'Execute in sandboxed Docker container')
-        .option('--spoke <slug>', 'Sweep only a specific mounted spoke')
+        .description('Reject retired Ravens execution (compatibility command)')
+        .option('--shadow-forge', 'Retired compatibility option; no execution occurs')
+        .option('--spoke <slug>', 'Record the requested spoke in the rejection receipt')
         .action(async (options: { shadowForge?: boolean; spoke?: string }) => {
             const workspaceRoot = resolveWorkspaceRoot(workspaceRootSource);
             const result = await dispatchPort.dispatch(buildRavensInvocation('sweep', options, workspaceRoot));
@@ -62,8 +61,8 @@ export function registerRavenCommand(
 
     ravens
         .command('cycle')
-        .description('Execute one ravens cycle through the stage-composed runtime')
-        .option('--spoke <slug>', 'Run one cycle against a specific mounted spoke')
+        .description('Reject retired Ravens execution (compatibility command)')
+        .option('--spoke <slug>', 'Record the requested spoke in the rejection receipt')
         .action(async (options: { spoke?: string }) => {
             const workspaceRoot = resolveWorkspaceRoot(workspaceRootSource);
             const result = await dispatchPort.dispatch(buildRavensInvocation('cycle', options, workspaceRoot));
@@ -72,7 +71,7 @@ export function registerRavenCommand(
 
     ravens
         .command('stop')
-        .description('Show that no resident Ravens daemon is active in kernel mode')
+        .description('Report that no resident Ravens daemon is active')
         .action(async () => {
             const workspaceRoot = resolveWorkspaceRoot(workspaceRootSource);
             const result = await dispatchPort.dispatch(buildRavensInvocation('stop', {}, workspaceRoot));
@@ -81,8 +80,8 @@ export function registerRavenCommand(
 
     ravens
         .command('status')
-        .description('Display Raven health and quota isolation')
-        .option('--spoke <slug>', 'Show target information for a specific mounted spoke')
+        .description('Display read-only retired Ravens compatibility status')
+        .option('--spoke <slug>', 'Show read-only target information for a specific mounted spoke')
         .action(async (options: { spoke?: string }) => {
             const workspaceRoot = resolveWorkspaceRoot(workspaceRootSource);
             const result = await dispatchPort.dispatch(buildRavensInvocation('status', options, workspaceRoot));

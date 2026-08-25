@@ -9,13 +9,12 @@ import {
     WeaveResult,
 } from '../contracts.ts';
 import * as hostBridge from  '../weaves/host_bridge.js';
-import { saveHallOneMindBranch, saveHallOneMindRequest, summarizeHallOneMindBranches } from '../../../../tools/pennyone/intel/database.js';
+import { saveHallOneMindBranch, summarizeHallOneMindBranches } from '../../../../tools/pennyone/intel/database.js';
 import { buildHallRepositoryId, normalizeHallPath } from '../../../../types/hall.js';
 import type { HallOneMindBranchRecord } from '../../../../types/hall.js';
 import { requestHostDelegatedExecution } from '../../../../core/host_delegation.js';
 import type { DelegatedExecutionResult } from '../../../../core/host_delegation.js';
 import { getHostSubagentSpec, type HostSubagentProfile } from '../../../../core/host_subagents.js';
-import { resolveConfiguredDelegatePollBridge } from '../../../../core/host_session.js';
 import { formatCouncilAntiBehavior, listDefaultCouncilProtocols, type CouncilExpertProtocol } from '../../../../core/council_experts.js';
 
 /**
@@ -25,10 +24,8 @@ import { formatCouncilAntiBehavior, listDefaultCouncilProtocols, type CouncilExp
 export const deps = {
     ...Object.assign({}, hostBridge),
     saveHallOneMindBranch,
-    saveHallOneMindRequest,
     summarizeHallOneMindBranches,
     requestHostDelegatedExecution,
-    resolveConfiguredDelegatePollBridge,
 };
 
 const RESEARCH_SUBAGENT_PROFILES = new Set<HostSubagentProfile>([
@@ -94,14 +91,16 @@ function buildResearchPrompt(intent: string, workspaceRoot: string, branch?: Res
         spec ? `Expert Lens: ${spec.instruction}` : '',
         branch?.protocol ? `Protocol: ${branch.protocol.protocol}` : '',
         branch?.protocol ? `Anti-Behavior: ${formatCouncilAntiBehavior(branch.protocol)}` : '',
-        branch?.protocol ? `Root Persona Overlay: ${branch.protocol.root_persona_directive}` : '',
+        branch?.protocol ? `Critique Instruction: ${branch.protocol.critique_instruction}` : '',
         branch?.question ? `Subquestion: ${branch.question}` : '',
         `Workspace root: ${workspaceRoot}`,
         'Instructions:',
         '1. Inspect the repository first.',
-        '2. Use web search only if your host environment supports it and the intent needs external context.',
-        '3. Use the named expert lens to attack assumptions and surface concrete mutations, not generic advice.',
-        '4. Return strict JSON only in this format:',
+        '2. Do not clone, install, execute, or promote external repositories.',
+        '3. Use the current host skill-first workflow and CStar lifecycle.',
+        '4. Use web search only if your host environment supports it and the intent needs external context.',
+        '5. Use the named expert lens to attack assumptions and surface concrete mutations, not generic advice.',
+        '6. Return strict JSON only in this format:',
         '{ "summary": "...", "research_artifacts": ["artifact-1", "artifact-2"] }',
     ].filter(Boolean).join('\n');
 }
@@ -208,7 +207,7 @@ export class ResearchHostWorkflow implements RuntimeAdapter<ResearchWeavePayload
 
         const provider = deps.resolveRuntimeHostProvider(context);
 
-        if (provider && provider !== 'gemini') {
+        if (provider) {
             try {
                 const workspaceRoot = payload.project_root || context.workspace_root;
                 const councilBranches = buildResearchCouncilBranches(payload);
@@ -218,64 +217,6 @@ export class ResearchHostWorkflow implements RuntimeAdapter<ResearchWeavePayload
                 const timeoutMs = getResearchTimeoutMs(provider, runtimeEnv);
                 const repoId = buildHallRepositoryId(normalizeHallPath(workspaceRoot));
                 const metadataBase = buildResearchBranchMetadata(payload, context, councilBranches.length);
-                const hasDelegatePollBridge = deps.resolveConfiguredDelegatePollBridge(runtimeEnv, provider);
-
-                if (hasDelegatePollBridge) {
-                    const requestIds = councilBranches.map((branch, index) => {
-                        const branchId = `${branchGroupId}:${index}`;
-                        const requestId = `${branchId}:request`;
-                        const source = `runtime:research:branch:${index}`;
-                        deps.saveHallOneMindRequest({
-                            request_id: requestId,
-                            repo_id: repoId,
-                            caller_source: source,
-                            boundary: 'subagent',
-                            request_status: 'PENDING',
-                            transport_preference: 'host_session',
-                            prompt: buildResearchPrompt(payload.intent, workspaceRoot, branch),
-                            metadata: {
-                                ...metadataBase,
-                                provider,
-                                task_kind: 'research',
-                                target_paths: [workspaceRoot],
-                                runtime_weave: this.id,
-                                activation_id: context.bead_id,
-                                branch_id: branchId,
-                                branch_group_id: branchGroupId,
-                                branch_kind: 'research',
-                                branch_label: branch.label,
-                                branch_index: index,
-                                source,
-                                one_mind_boundary: 'subagent',
-                                execution_role: 'subagent',
-                                execution_boundary: 'subagent',
-                                subagent_profile: branch.profile,
-                                council_expert: branch.label,
-                            },
-                            created_at: now,
-                            updated_at: now,
-                        }, workspaceRoot);
-                        return requestId;
-                    });
-
-                    return {
-                        weave_id: this.id,
-                        status: 'TRANSITIONAL',
-                        output: `Queued ${councilBranches.length} delegated research council branch(es) for broker fulfillment.`,
-                        metadata: {
-                            context_policy: 'project',
-                            delegated: true,
-                            parallel: councilBranches.length > 1,
-                            branch_count: councilBranches.length,
-                            provider,
-                            intent: payload.intent,
-                            branch_group_id: branchGroupId,
-                            activation_id: context.bead_id,
-                            queued_request_ids: requestIds,
-                        },
-                    };
-                }
-
                 const branchStates = await Promise.all(councilBranches.map(async (branch, index) => {
                     const branchId = `${branchGroupId}:${index}`;
                     const source = `runtime:research:branch:${index}`;
@@ -338,8 +279,8 @@ export class ResearchHostWorkflow implements RuntimeAdapter<ResearchWeavePayload
                                 }
                                 executionMetadata = {
                                     ...executionMetadata,
-                                    delegation_mode: delegatedResult.metadata?.delegation_mode ?? 'provider-native',
-                                    execution_surface: delegatedResult.metadata?.execution_surface ?? 'host-cli-inference',
+                                    delegation_mode: delegatedResult.metadata?.delegation_mode ?? 'configured-bridge',
+                                    execution_surface: delegatedResult.metadata?.execution_surface ?? 'configured-delegate-bridge',
                                     handle_id: delegatedResult.handle_id,
                                 };
                             } else if (delegatedResult.status === 'failed' || delegatedResult.status === 'cancelled') {
@@ -493,42 +434,11 @@ export class ResearchHostWorkflow implements RuntimeAdapter<ResearchWeavePayload
             }
         }
 
-        if (provider === 'gemini') {
-            const directive = `
-[SUB_AGENT_DIRECTIVE]
-Task: You are the Corvus Star Council of Experts working through the Augury Gate.
-Model Hint: gemini-2.5-flash-lite
-Intent: "${payload.intent}"
-Council:
-- TORVALDS: first-principles systems critique; attack bloat, weak interfaces, and maintenance risk.
-- KARPATHY: AI-systems critique; attack model/tool boundaries, eval gaps, and deterministic guards.
-- HAMILTON: fault-tolerance critique; attack safety invariants and rollback gaps.
-- SHANNON: information-theory critique; attack noisy channels, compression loss, and observability gaps.
-- DEAN: distributed-systems critique; attack partitions, stale state, leases, and coordination bottlenecks.
-Instructions: 
-1. Inspect the repository first.
-2. Use google_web_search only if external context is required.
-3. If you find a relevant github repo, use your terminal tools to invoke 'python src/skills/local/WildHunt/wild_hunt.py --ingest <url> --name <alias>' to ingest it into Corvus Star.
-4. Synthesize the named council findings into a strict JSON object containing a comprehensive summary and a list of artifacts. Do NOT propose beads.
-   Format: { "summary": "...", "research_artifacts": ["url1", "url2", "skill:ref-alias"] }
-[/SUB_AGENT_DIRECTIVE]
-`;
-            return {
-                weave_id: this.id,
-                status: 'TRANSITIONAL',
-                output: `Delegating research to native ONE MIND environment.\n${directive}`,
-                metadata: {
-                    delegated: true,
-                    intent: payload.intent
-                }
-            };
-        }
-
         return {
             weave_id: this.id,
             status: 'FAILURE',
             output: '',
-            error: 'The Research Agent requires an active host session (Gemini or Codex).',
+            error: 'The Research Agent requires an active host session and an authorized advisory delegate bridge.',
         };
     }
 }

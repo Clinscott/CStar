@@ -43,6 +43,13 @@ export interface SpokeSurveyEntry {
     write_policy: string;
     projection_status: string;
     last_scan_at: number | null;
+    last_health_at: number | null;
+    last_health_attempt_at: number | null;
+    scan_age_ms: number | null;
+    health_age_ms: number | null;
+    scan_fresh: boolean;
+    health_fresh: boolean;
+    effective_projection_status: 'current' | 'stale' | 'missing';
     updated_at: number | null;
     mount_token: string | null;
     bucket: SpokeBucket;
@@ -93,6 +100,27 @@ export interface PruneResult {
 }
 
 const PLATFORM_WIN_PATH_RE = /^[A-Z]:[\\/]/;
+export const SPOKE_SCAN_FRESHNESS_MS = 7 * 24 * 60 * 60 * 1000;
+export const SPOKE_HEALTH_FRESHNESS_MS = 24 * 60 * 60 * 1000;
+
+export function evaluateSpokeFreshness(row: HallMountedSpokeRecord, now = Date.now()) {
+    const scanAgeMs = row.last_scan_at === undefined ? null : Math.max(0, now - row.last_scan_at);
+    const healthAgeMs = row.last_health_at === undefined ? null : Math.max(0, now - row.last_health_at);
+    const scanFresh = scanAgeMs !== null && scanAgeMs <= SPOKE_SCAN_FRESHNESS_MS;
+    const healthFresh = healthAgeMs !== null && healthAgeMs <= SPOKE_HEALTH_FRESHNESS_MS;
+    const effectiveProjectionStatus: 'current' | 'stale' | 'missing' = row.projection_status === 'missing'
+        ? 'missing'
+        : row.projection_status === 'current' && scanFresh && healthFresh
+            ? 'current'
+            : 'stale';
+    return {
+        scan_age_ms: scanAgeMs,
+        health_age_ms: healthAgeMs,
+        scan_fresh: scanFresh,
+        health_fresh: healthFresh,
+        effective_projection_status: effectiveProjectionStatus,
+    };
+}
 
 function pathExistsAsDir(p: string): boolean {
     try {
@@ -124,6 +152,7 @@ export function surveySpokesForRecords(
     }
 
     const entries: SpokeSurveyEntry[] = [];
+    const surveyedAt = (now ?? new Date()).getTime();
     const byRepoId: Record<string, number> = {};
     for (const row of rows) {
         const exists = pathExistsAsDir(row.root_path);
@@ -132,6 +161,7 @@ export function surveySpokesForRecords(
         const isHub = row.repo_id === hubRepoId;
         const tokenRaw = (row.metadata?.authority as Record<string, unknown> | undefined)?.mount_token;
         const mountToken = typeof tokenRaw === 'string' ? tokenRaw : null;
+        const freshness = evaluateSpokeFreshness(row, surveyedAt);
 
         let bucket: SpokeBucket;
         let reason: string;
@@ -150,9 +180,13 @@ export function surveySpokesForRecords(
         } else if (!isHub) {
             bucket = 'stale';
             reason = 'foreign repo_id (not current hub)';
-        } else if (row.projection_status === 'current' && mountToken !== null) {
+        } else if (row.projection_status === 'current' && mountToken !== null
+            && freshness.effective_projection_status === 'current') {
             bucket = 'live';
-            reason = 'current projection on existing path';
+            reason = 'current projection with fresh scan and health proof';
+        } else if (row.projection_status === 'current' && mountToken !== null) {
+            bucket = 'stale';
+            reason = `recorded current but freshness expired (scan_fresh=${freshness.scan_fresh}, health_fresh=${freshness.health_fresh})`;
         } else {
             bucket = 'stale';
             reason = 'on-hub but no current projection';
@@ -170,6 +204,9 @@ export function surveySpokesForRecords(
             write_policy: row.write_policy,
             projection_status: row.projection_status,
             last_scan_at: row.last_scan_at ?? null,
+            last_health_at: row.last_health_at ?? null,
+            last_health_attempt_at: row.last_health_attempt_at ?? null,
+            ...freshness,
             updated_at: row.updated_at ?? null,
             mount_token: mountToken,
             bucket,
@@ -191,7 +228,7 @@ export function surveySpokesForRecords(
     for (const e of entries) counts[e.bucket]++;
 
     return {
-        surveyed_at: (now ?? new Date()).getTime(),
+        surveyed_at: surveyedAt,
         hub_repo_id: hubRepoId,
         counts,
         by_repo_id: byRepoId,
@@ -279,6 +316,7 @@ export interface SpokeHealthReport {
     };
     notes: string[];
     last_health_at: number | null;
+    last_health_attempt_at: number;
     heartbeat_written: boolean;
 }
 
@@ -339,7 +377,12 @@ export function healthCheckSpoke(slug: string): SpokeHealthReport {
     else if (!gitDirPresent) verdict = 'degraded';
 
     const heartbeatTimestamp = Date.now();
-    const heartbeatWritten = database.touchSpokeHeartbeat(slug, spoke.repo_id, heartbeatTimestamp);
+    const heartbeatWritten = database.touchSpokeHeartbeat(
+        slug,
+        spoke.repo_id,
+        heartbeatTimestamp,
+        verdict === 'healthy',
+    );
 
     return {
         slug,
@@ -354,7 +397,12 @@ export function healthCheckSpoke(slug: string): SpokeHealthReport {
             mount_token_ok: mountTokenOk,
         },
         notes,
-        last_health_at: heartbeatWritten ? heartbeatTimestamp : (spoke.last_health_at ?? null),
+        last_health_at: heartbeatWritten && verdict === 'healthy'
+            ? heartbeatTimestamp
+            : (spoke.last_health_at ?? null),
+        last_health_attempt_at: heartbeatWritten
+            ? heartbeatTimestamp
+            : (spoke.last_health_attempt_at ?? heartbeatTimestamp),
         heartbeat_written: heartbeatWritten,
     };
 }

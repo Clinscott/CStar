@@ -1,4 +1,4 @@
-import { describe, it } from 'node:test';
+import { after, before, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -8,6 +8,25 @@ import { bootstrapRuntime } from  '../../src/node/core/runtime/bootstrap.js';
 import { RuntimeDispatcher } from  '../../src/node/core/runtime/dispatcher.js';
 import { RuntimeAdapter, RuntimeContext, WeaveInvocation, WeaveResult } from  '../../src/node/core/runtime/contracts.js';
 import { registry } from '../../src/tools/pennyone/pathRegistry.js';
+import { database } from '../../src/tools/pennyone/intel/database.js';
+
+const originalRoot = registry.getRoot();
+const originalProjectRoot = process.env.CSTAR_PROJECT_ROOT;
+let isolatedRoot = '';
+
+before(() => {
+    isolatedRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'cstar-runtime-dispatch-'));
+    registry.setRoot(isolatedRoot);
+    process.env.CSTAR_PROJECT_ROOT = isolatedRoot;
+});
+
+after(() => {
+    database.close();
+    registry.setRoot(originalRoot);
+    if (originalProjectRoot === undefined) delete process.env.CSTAR_PROJECT_ROOT;
+    else process.env.CSTAR_PROJECT_ROOT = originalProjectRoot;
+    fs.rmSync(isolatedRoot, { recursive: true, force: true });
+});
 
 class EchoAdapter implements RuntimeAdapter<{ message: string }> {
     public readonly id = 'weave:echo';
@@ -72,8 +91,8 @@ describe('Canonical Runtime Dispatcher (CS-P1-01)', () => {
             payload: { message: 'echo complete' },
             target: {
                 domain: 'brain',
-                workspace_root: process.cwd(),
-                requested_path: process.cwd(),
+                workspace_root: isolatedRoot,
+                requested_path: isolatedRoot,
             },
             session: {
                 mode: 'subkernel',
@@ -119,8 +138,9 @@ describe('Canonical Runtime Dispatcher (CS-P1-01)', () => {
                 },
             }),
         );
-        registry.setRoot(tmpRoot);
         const previousProjectRoot = process.env.CSTAR_PROJECT_ROOT;
+        const previousRegistryRoot = registry.getRoot();
+        registry.setRoot(tmpRoot);
         process.env.CSTAR_PROJECT_ROOT = tmpRoot;
 
         try {
@@ -143,6 +163,9 @@ describe('Canonical Runtime Dispatcher (CS-P1-01)', () => {
             } else {
                 process.env.CSTAR_PROJECT_ROOT = previousProjectRoot;
             }
+            registry.setRoot(previousRegistryRoot);
+            database.close();
+            fs.rmSync(tmpRoot, { recursive: true, force: true });
         }
     });
 });

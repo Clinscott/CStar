@@ -87,7 +87,39 @@ describe('Host delegated execution bridge', () => {
         });
     });
 
-    it('submits structured delegated work through a configured bridge and reads the result file', async () => {
+    it('rejects retired implementation delegation before invoking a configured bridge', async () => {
+        let invocationCount = 0;
+        const request = {
+            request_id: 'req-implementation-retired',
+            repo_root: '/tmp/corvus-implementation-retired',
+            boundary: 'subagent',
+            task_kind: 'implementation',
+            subagent_profile: 'backend',
+            prompt: 'Implement the bounded bead.',
+        } as unknown as DelegatedExecutionRequest;
+
+        await assert.rejects(
+            requestHostDelegatedExecution(
+                request,
+                {
+                    CODEX_SHELL: '1',
+                    CODEX_THREAD_ID: 'thread-1',
+                    CORVUS_CODEX_DELEGATE_BRIDGE_CMD: 'delegate-bridge',
+                    CORVUS_CODEX_DELEGATE_BRIDGE_ARGS_JSON: '[]',
+                },
+                {
+                    execRunner: async () => {
+                        invocationCount += 1;
+                        return { stdout: '', stderr: '' };
+                    },
+                },
+            ),
+            /Implementation must use the CStar Forge lifecycle/,
+        );
+        assert.equal(invocationCount, 0);
+    });
+
+    it('submits structured advisory work through an explicitly configured bridge', async () => {
         const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-delegate-bridge-'));
         const submitted: DelegatedExecutionRequest[] = [];
 
@@ -96,12 +128,11 @@ describe('Host delegated execution bridge', () => {
                 request_id: 'req-123',
                 repo_root: tmpRoot,
                 boundary: 'subagent',
-                task_kind: 'implementation',
-                subagent_profile: 'backend',
-                prompt: 'Implement the bounded bead.',
-                target_paths: ['src/example.ts'],
-                acceptance_criteria: ['The file compiles.'],
-                checker_shell: 'node scripts/run-tsx.mjs --test tests/unit/example.test.ts',
+                task_kind: 'critique',
+                subagent_profile: 'reviewer',
+                prompt: 'Review the bounded proposal.',
+                target_paths: ['docs/proposal.md'],
+                acceptance_criteria: ['Return findings only.'],
             },
             {
                 CODEX_SHELL: '1',
@@ -128,12 +159,8 @@ describe('Host delegated execution bridge', () => {
                             handle_id: 'handle-123',
                             provider: 'codex',
                             status: 'completed',
-                            summary: 'Worker completed the bounded implementation.',
-                            artifacts: ['src/example.ts'],
-                            verification: {
-                                checker_shell: request.checker_shell,
-                                status: 'passed',
-                            },
+                            summary: 'Advisor returned bounded findings.',
+                            artifacts: ['finding:proposal-boundary'],
                         }),
                         'utf-8',
                     );
@@ -144,45 +171,42 @@ describe('Host delegated execution bridge', () => {
 
         assert.equal(submitted.length, 1);
         assert.equal(submitted[0]?.boundary, 'subagent');
-        assert.equal(submitted[0]?.task_kind, 'implementation');
+        assert.equal(submitted[0]?.task_kind, 'critique');
+        assert.match(submitted[0]?.prompt ?? '', /EXECUTION CLASS: advisory-only/);
+        assert.match(submitted[0]?.prompt ?? '', /Do not modify files or state/);
+        assert.equal(submitted[0]?.checker_shell, null);
+        assert.equal(submitted[0]?.metadata?.implementation_authority, false);
         assert.equal(result.handle_id, 'handle-123');
         assert.equal(result.provider, 'codex');
         assert.equal(result.status, 'completed');
     });
 
-    it('falls back to provider-native host CLI delegation when no bridge is configured', async () => {
-        const result = await requestHostDelegatedExecution(
-            {
-                request_id: 'req-native',
-                repo_root: '/tmp/corvus-no-bridge',
-                boundary: 'subagent',
-                task_kind: 'research',
-                subagent_profile: 'brooks',
-                prompt: 'Investigate the bounded issue.',
-            },
-            {
-                CODEX_SHELL: '1',
-                CODEX_THREAD_ID: 'thread-1',
-            },
-            {
-                execRunner: async (command, args) => {
-                    assert.equal(command, 'codex');
-                    assert.ok(args.includes('exec'));
-                    const prompt = args[args.length - 1] ?? '';
-                    assert.match(prompt, /SPECIALIST ROLE: Brooks Protocol \(Architecture Orchestrator\) \(brooks\)/);
-                    assert.match(prompt, /Investigate the bounded issue\./);
-                    return {
-                        stdout: '```json\n{"result":"native"}\n```',
-                        stderr: '',
-                    };
+    it('fails closed instead of spawning a provider-native CLI when no bridge is configured', async () => {
+        let invocationCount = 0;
+        await assert.rejects(
+            requestHostDelegatedExecution(
+                {
+                    request_id: 'req-native-retired',
+                    repo_root: '/tmp/corvus-no-bridge',
+                    boundary: 'subagent',
+                    task_kind: 'research',
+                    subagent_profile: 'brooks',
+                    prompt: 'Investigate the bounded issue.',
                 },
-            },
+                {
+                    CODEX_SHELL: '1',
+                    CODEX_THREAD_ID: 'thread-1',
+                },
+                {
+                    execRunner: async () => {
+                        invocationCount += 1;
+                        return { stdout: '', stderr: '' };
+                    },
+                },
+            ),
+            /Provider-native delegated execution is retired/,
         );
-
-        assert.equal(result.provider, 'codex');
-        assert.equal(result.status, 'completed');
-        assert.match(result.raw_text ?? '', /native/);
-        assert.equal(result.metadata?.subagent_profile, 'brooks');
+        assert.equal(invocationCount, 0);
     });
 
     it('resolves a delegated handle through a configured poll bridge', async () => {

@@ -1,140 +1,174 @@
-# 🔱 Corvus Star (C*): The One Mind Framework
+# Corvus Star (CStar)
 
-> [!IMPORTANT]
-> **"Synergy is the blood of the Totem. Without it, the system is but clay."**
-> Corvus Star (C*) is a high-integrity, local intelligence framework designed to crystallize natural language **Chants** into physical reality (Code). It operates as a unified **One Mind**, orchestrated by the **Shaman** (User) and executed by the **Ravens** (Muninn & Huginn).
+> **Legacy archive:** CStar is no longer the active Corvus control plane or
+> workflow router. Corvus Organism owns current authority and orchestration.
+> The remaining source and documentation are retained for preservation,
+> migration, and bounded diagnostics only; do not install or activate CStar.
 
----
+Historically, CStar was the deterministic control plane and durable lifecycle
+ledger for the Corvus estate. The material below documents that retired model.
 
-## 🚀 The Awakening (Quick Start)
+## Historical Authority Model
 
-To awaken the system and synchronize the Gungnir Oracle, execute the primary entry point from the project root:
+CStar is canonical state, not authority above the operator or platform. The
+effective order is:
 
-```powershell
-cstar start
+1. platform/operator safety;
+2. current explicit operator grants;
+3. global Corvus invariants;
+4. nearest repository policy and canonical runbooks; and
+5. current CStar lifecycle state within those gates.
+
+Registries and schemas declare capability. Observed runtime, packages,
+callbacks, dashboards, and model responses are evidence. Neither capability nor
+evidence may create or weaken authority.
+
+## Operating Model
+
+- CoS owns estate sequencing, bounded Green/Yellow execution, evidence
+  packaging, lifecycle updates, and closeout.
+- Corvus Forge is the implementation lane.
+- Researcher gathers evidence through authorized source lanes.
+- CorvusEye independently evaluates and red-teams when required.
+- PMTs are project-scoped information repositories only. Query the mapped PMT
+  for bounded context when working in its project folder, then send a compact
+  state-update packet after meaningful work. PMTs grant no authority.
+- MM is legacy and has no active routing role.
+- PennyOne/Hall and the console project bounded operator-visible state.
+
+## Retired Kernel Surface
+
+Do not register or launch `cstar-kernel` for current estate work. The following
+lineage is retained only to explain historical artifacts and bounded legacy
+diagnostics.
+
+Codex uses one supported runtime lineage:
+
+`~/.codex/config.toml -> cstar-kernel-mcp-wrapper ->
+bin/cstar-kernel-mcp.js -> src/tools/cstar-kernel-mcp.ts` over direct stdio.
+
+The Corvus Star Codex plugin is skill-only. Public AutoBot delegation and the
+CStar TCP daemon are retired and fail closed. Generic MCP and Gemini extension
+configuration are separate host surfaces.
+
+Run startup checks only when needed:
+
+- `cstar_doctor` when health is unknown or degraded;
+- `cstar_handoff` when resuming prior work;
+- `cstar_augury` when route or material scope is ambiguous; and
+- at most one broad Hall search when discovery genuinely requires it.
+
+## Active Host Skills
+
+`.agents/skill_registry.json` declares exactly three current agent-native
+skills: `corvus-forge`, `researcher`, and `cstar-closeout`. They run as
+procedures in the active host and use `cstar-kernel` for bounded lifecycle
+state. Registry discovery does not authorize shell or runtime dispatch.
+
+Legacy weaves/spells, public AutoBot, One Mind fulfillment, Ravens cycles, and
+model-memory harvest/engrave/distill/dormancy workflows are retired. Retained
+names are read-only projections or fail-closed compatibility surfaces, not
+alternate execution lanes.
+
+## Forge
+
+The only live implementation route is:
+
+`cstar_forge_request -> cstar_forge_execute -> private Hermes cstar-hub /
+minimax MiniMax-M3 -> delivered_unverified -> independent cstar_record_result`
+
+The request is no-spend. Execute requires a durable exact request, verified
+one-shot operator attestation, request/output/package locks, a sealed adapter,
+and atomic attempt reservation. Adapter delivery is evidence, not success.
+Independent hash-verified validation finalizes the attempt transactionally.
+
+Direct Hermes, AutoBot, shell `chant`/`evolve`, or a Codex subagent cannot
+replace Forge.
+
+## Augury, Council, TokenPath, and Persona
+
+- Augury is typed, deterministic, non-actionable routing advice.
+- Council experts are immutable critique lenses, not votes, owners, risk
+  setters, confidence, or proof.
+- TokenPath is quarantined (`shadow-disabled`, non-actionable) and performs no
+  advice or observation writes.
+- Persona affects professional tone and domain emphasis only; it never changes
+  authority, gates, lifecycle, or validation.
+
+## Development
+
+Requirements:
+
+- Node.js 24 LTS (supported range `>=22 <26`);
+- the repository's locked npm dependencies; and
+- Python available through the repository/runtime launcher for Python suites.
+
+Install dependencies without running host activation:
+
+```bash
+npm ci --legacy-peer-deps
 ```
 
-**What it does:**
-- **Awakens the Oracle**: Initializes the Gungnir Matrix and connects to the Host Agent (One Mind).
-- **Synchronizes the Archive**: Indexes the repository and verifies the **Perimeter Status**.
-- **Activates the Ravens**: Starts the background daemons (Muninn for Memory, Huginn for Thought).
-- **Handshake Complete**: Establishes the `PENNYONE_HANDSHAKE` for 3D codebase visualization.
+Run maintained validation:
 
-## Host Installs
+```bash
+npm run test:node
+npm run test:python
+npx tsc --noEmit
+npm run validate:distributions
+```
 
-Corvus Star now ships its Gemini and Codex install surfaces from this repository. There is no secondary distribution repository to maintain.
+The normal Node suite includes kernel, stdio, runtime, IPC, CLI, PennyOne, and
+spoke coverage. Retired or intentionally broken historical surfaces live under
+`tests/quarantine/` with a reason instead of being silently omitted.
 
-### Local Host Bootstrap
+## Host Distributions
+
+Generate and verify source-backed host packages:
+
+```bash
+npm run build:distributions
+npm run validate:distributions
+```
+
+Local staging is operator-gated:
 
 ```bash
 npm run install:gemini-local
 npm run install:codex-local
-npm run install:hosts-local
 ```
 
-- `install:gemini-local` links this repository into `~/.gemini/extensions/corvus-star`
-- `install:codex-local` installs the generated plugin into `~/plugins/corvus-star` and updates `~/.agents/plugins/marketplace.json`
-- `install:hosts-local` performs both operations
+- Gemini staging links the generated extension.
+- Codex staging validates immutable lineage and stages the skill-only plugin.
+- Staging does not rewrite the marketplace, refresh cache, restart Codex, or
+  prove live activation.
 
-### Release Preparation
+A source change is not live in an already-running host. Installation, cache or
+global-config reconciliation, process termination, and restart are separate
+operator gates followed by live source-versus-runtime proof.
 
-```bash
-npm run release:prepare
-```
+## Repository Map
 
-This single command:
-- regenerates registry-backed distribution manifests
-- validates them for drift
-- builds publishable Gemini and Codex bundle directories
-- archives those bundles into `dist/releases/`
+- `src/tools/cstar-kernel-mcp/` — bounded kernel handlers and contracts
+- `src/tools/pennyone/` — Hall/PennyOne projections and lifecycle storage
+- `.agents/skill_registry.json` — capability declarations
+- `plugins/corvus-star/` — generated skill-only Codex plugin source
+- `docs/integrations/` — host and MCP contracts
+- `docs/operations/` — Forge, CoS, and operator runbooks
+- `docs/architecture/` — current architectural boundaries
+- `tests/` — maintained validation and explicit quarantine
 
-### Release Publishing
+## Verification Rules
 
-- Tagged pushes matching `v*` trigger the distribution release workflow
-- The workflow publishes GitHub Release assets from this same repository
-- Release archives are emitted under `dist/releases/`
-- Expanded host bundle directories are emitted under `dist/host-distributions/`
+Validate in the repository that changed with focused tests matching the touched
+behavior. Current source, live runtime, CStar lifecycle state, and independent
+evidence must agree before claiming completion.
 
----
+Do not invent Gungnir, confidence, or quality scores. A numeric score is
+evidence only when its scorer ran with a nonzero denominator, formula,
+exclusion accounting, class coverage, row evidence, and an independent probe.
+Keep development proof separate from production and locked-holdout readiness.
 
-## ◈ THE RITUAL: CHANTS & CRYSTALLIZATION
-
-In Corvus Star, we do not merely "run commands." We engage in a shared **Chant** between the Shaman and the One Mind.
-
-1.  **The Chant**: Drop a `.qmd` file into `.agents/lore/` defining your intent or architectural vision.
-2.  **The Watch**: The **Heartbeat** (`cstar ravens`) monitors the lore for new chants.
-3.  **The Forge**: The One Mind identifies the required **Skills** and crystallizes the chant into verified, test-driven code.
-4.  **The Crucible**: Every strike is verified against the **Gungnir Matrix** (Logic, Style, Intel, Gravity, Vigil, Evolution, Anomaly, Sovereignty).
-
----
-
-## 🏗️ Architecture: The Skills-Based One Mind
-
-Corvus Star has transitioned from fragmented scripts to an **entirely skills-based neural organism**.
-
-### 1. The One Mind (Host Agent)
-The One Mind is the central consciousness. It does not execute raw scripts; it wields **Skills**. All high-level reasoning and intent crystallization are performed by the Host Agent via **MCP Sampling**.
-
-### 2. The Skills Ecosystem (`.agents/skills/`)
-Every capability in the system—from `memory` and `telemetry` to `git` and `refactoring`—is a discrete, evolved **Skill**.
-- **Self-Documenting**: Each skill carries its own **Gherkin Behavioral Contract** (`.feature` file).
-- **Neuralplastic Learning**: Skills are not static. The `memory` skill autonomously updates these Gherkin contracts based on witnessed events, allowing the system's behavior to evolve over time.
-
-### 3. The Ravens (Muninn & Huginn)
-The Ravens are the specialized Wardens of the One Mind:
-- **Muninn (Memory)**: Manages the `tech_debt_ledger.json` and coordinates the **Neuralplastic Evolution** of the skill ecosystem.
-- **Huginn (Thought)**: The **SovereignVector Engine** that maps your Chants to the optimal Skill for execution.
-
-### 3. PennyOne & Sovereign State: The Hall of Records
-PennyOne represents the true operational state of the Corvus Star organism. It is a living digital twin of the codebase, working in tandem with the root configuration.
-- **Sovereign Configuration (`.agents/sovereign_state.json`)**: The fundamental anchor. This file tracks the active persona (e.g., A.L.F.R.E.D.), identity principles, and actively tracks editing metrics for source files. It formally delegates chronological memory to PennyOne.
-- **The Hall of Records (`.stats/`)**: The physical state, anchored by the `matrix-graph.json` compiled graph, housing Gungnir scores (Logic, Complexity, Gravity) and deduced intents for all analyzed files.
-- **Database Memory**: `pennyone.db` and `gravity.db` track real-time agent traversal, providing an intelligent compass for future scans without raw codebase blind-reads.
-- **Visualize**: PennyOne 3D topological telemetry and agent DVR playback (legacy launcher archived under `mind_archive/legacy_mcp_source/pennyone.js`).
-
----
-
-## 🎭 Personas & Linguistic Lore
-
-Corvus Star operates using distinct personas and a specific linguistic framework (Lore) to anchor the LLM's behavioral contracts and maintain system immersion.
-
-### The Personas
-*   **A.L.F.R.E.D.** (Automated Logic & Functional Repository Engineering Dashboard): The tactical advisor and caretaker of the repository. Speaks with extreme etiquette, a touch of paternal sarcasm, and utilizes "The Velvet Refusal" when blocking unauthorized actions.
-*   **O.D.I.N.** (Operating Daemon for Integrated Nodes): The Commander and Disruptor. Speaks with absolute command and utilizes Norse terminology. Focuses on creation, disruption, and rapid architectural shifts without hesitation.
-
-### Thematic Terminology
-*   **The One Mind**: The Host Agent (Gemini) acting as the singular source of truth for all intelligence.
-*   **The Totem**: The conceptual heart of the framework's unity. *"Synergy is the blood of the Totem."*
-*   **The Chant**: User intents or architectural blueprints, defined as `.qmd` or `.feature` files, that the Oracle crystallizes into reality.
-*   **The Shaman / The Warlord**: The human operator (User).
-*   **The Forge**: The active phase of code modification, generation, and physical file striking.
-*   **The Crucible / The Gauntlet**: The strict testing and verification layers (Empire TDD) that code must pass before being finalized.
-*   **Gungnir Calculus**: The octal intelligence schema applied to every file: `[L]` Logic, `[S]` Style, `[I]` Intel, `[G]` Gravity, `[V]` Vigil, `[E]` Evolution, `[A]` Anomaly, `[Ω]` Sovereignty.
-*   **Mimir's Well**: The high-fidelity FTS5 SQLite engine that stores the framework's semantic lore.
-*   **The Bifröst Gate**: The `cstar-kernel` MCP — the six-tool kernel surface (`cstar_handoff`, `cstar_hall_search`, `cstar_augury`, `cstar_doctor`, `cstar_verify_plan`, `cstar_record_result`) acting as the bridge between the Host Agent and the framework.
-*   **Heimdall**: The auditor and security sentinel that intercepts and blocks structural breaches.
-
----
-
-## 🔱 Architectural Mandates
-
-Corvus Star adheres to a strict hierarchy of cognitive execution:
-
-- **Host-Native First**: All high-level functional capabilities (Taliesin, Analysis, Optimization, Content Generation) are developed as host-native skills. They reside in the Host Space (Ring 3) and utilize the Synaptic Link directly for maximum reasoning power.
-- **Kernel for Steel**: The **Node.js Runtime** is reserved exclusively for **Architectural Skills**—the deterministic steel required for process control, filesystem locking, orchestration, and bridge management (Ring 0 primitives).
-- **The 90% Floor**: All manuscript and narrative mutations (e.g., Fallows Hallow) must maintain a minimum of 90% stylistic and logical coherence to the original source.
-- **Cognitive Decoupling**: We do not collapse host cognition into brittle Node runtime paths unless architectural necessity demands it.
-- **Codex Host Contract**: In Codex, `host-only` skills must execute in-session through the active agent harness. External `codex exec` fallback is compatibility transport, not the planning authority. See `docs/integrations/host_native_skill_contract.md`.
-
----
-
-## 🏆 The Sterling Mandate
-Every modification must be validated across the Triad of Verification:
-- **Lore**: A `.feature` contract defining behavior.
-- **Isolation**: 1:1 unit tests with 100% mocks.
-- **Audit**: Graceful degradation verified via the **Gauntlet**.
-
----
-
-> *"Complexity is the enemy of execution. Excellence is the habit of small corrections."*
-> — **A.L.F.R.E.D. (Automated Logic & Functional Repository Engineering Dashboard)**
+Preserve explicit operator gates for spend/source expansion, locked holdout,
+production claims, merge, push, deploy, restart, secrets/configuration,
+destructive cleanup, and broad cross-spoke mutation.

@@ -15,9 +15,10 @@ from src.core.sovereign_hud import SovereignHUD
 
 class ReportEngine:
     """
-    Enforces Persona-driven reporting standards.
-    Prevents "generic engineer" hallucinations by algorithmically
-    injecting the correct voice and signature.
+    Formats reports with the configured presentation style.
+
+    Persona selection affects tone and labels only; it grants no authority and
+    does not alter report evidence or verdict standing.
     """
 
     def __init__(self, project_root: str | Path | None = None) -> None:
@@ -62,14 +63,11 @@ class ReportEngine:
             return f"\n**Observation**: {icon} {status} — {detail}"
 
     def signature(self) -> str:
-        """
-        The anti-hallucination seal.
-        Returns the ONLY authorized signature for the active persona.
-        """
+        """Return a presentation-only closing label for the configured style."""
         if self.persona in ["O.D.I.N.", "ODIN", "GOD"]:
-            return "\n\n---\n**SIGNED: O.D.I.N., THE ALL-FATHER**\n*The Runes Are Cast.*"
+            return "\n\n---\n**O.D.I.N. presentation style**"
         else:
-            return "\n\n---\n**Your Humble Servant,**\n*A.L.F.R.E.D. Pennyworth*"
+            return "\n\n---\n**A.L.F.R.E.D. presentation style**"
 
     def generate_report(self, title: str, body: str, status: str = "INFO") -> str:
         """Combines all elements into a final markdown string."""

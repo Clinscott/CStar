@@ -38,7 +38,7 @@ describe('Gateway: Empire Boundary Validation', async () => {
         assert.strictEqual(response.statusCode, 400);
     });
 
-    it('should accept valid Intent payloads', async () => {
+    it('should reject valid payloads on the retired intent-execution route', async () => {
         const payload = {
             system_meta: {},
             intent_raw: 'test',
@@ -52,8 +52,8 @@ describe('Gateway: Empire Boundary Validation', async () => {
             payload
         });
 
-        assert.strictEqual(response.statusCode, 202);
-        assert.strictEqual(JSON.parse(response.body).status, 'accepted');
+        assert.strictEqual(response.statusCode, 503);
+        assert.match(JSON.parse(response.body).error, /decommissioned/);
     });
 
     it('should return 503 if daemon is offline', async () => {

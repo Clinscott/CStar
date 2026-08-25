@@ -20,6 +20,7 @@ import {
     pruneSpokes,
     verifySpoke,
     healthCheckSpoke,
+    evaluateSpokeFreshness,
     type PruneTarget,
 } from '../../../node/core/spokes/spoke_doctor.js';
 import { HUB_KERNEL_VERSION } from '../contracts/runtime.js';
@@ -65,6 +66,7 @@ function enrichSpokeForMcp(spoke: HallMountedSpokeRecord): HallMountedSpokeRecor
 } {
     return {
         ...spoke,
+        ...evaluateSpokeFreshness(spoke),
         hub_repo_id: spoke.repo_id,
         spoke_repo_id: buildHallRepositoryId(normalizeHallPath(spoke.root_path)),
         repo_id_semantics: 'hub-scoped mounted-spoke owner; use spoke_repo_id for the spoke root repository identity',
@@ -116,6 +118,7 @@ export async function handleSpoke({
                     trust_level: s.trust_level,
                     write_policy: s.write_policy,
                     projection_status: s.projection_status,
+                    ...evaluateSpokeFreshness(s),
                     default_branch: s.default_branch ?? null,
                     remote_url: s.remote_url ?? null,
                     hub_repo_id: s.repo_id,
@@ -123,6 +126,7 @@ export async function handleSpoke({
                     repo_id_semantics: 'hub-scoped mounted-spoke owner; use spoke_repo_id for the spoke root repository identity',
                     last_scan_at: s.last_scan_at ?? null,
                     last_health_at: s.last_health_at ?? null,
+                    last_health_attempt_at: s.last_health_attempt_at ?? null,
                     accept_beads:
                         typeof s.metadata?.accept_beads === 'boolean'
                             ? s.metadata.accept_beads
@@ -216,7 +220,8 @@ export async function handleSpoke({
                 write_policy: resolvedWritePolicy,
                 projection_status: projectionResult !== null ? 'current' : (existing?.projection_status ?? 'missing'),
                 last_scan_at: projectionResult !== null ? projectionResult.projection.projected_at : existing?.last_scan_at,
-                last_health_at: now,
+                last_health_at: existing?.last_health_at,
+                last_health_attempt_at: existing?.last_health_attempt_at,
                 created_at: existing?.created_at ?? now,
                 updated_at: now,
                 metadata: {
@@ -299,7 +304,8 @@ export async function handleSpoke({
                 default_branch: refreshedDefaultBranch,
                 projection_status: 'current',
                 last_scan_at: projection.projection.projected_at,
-                last_health_at: now,
+                last_health_at: found.last_health_at,
+                last_health_attempt_at: found.last_health_attempt_at,
                 updated_at: now,
                 metadata: {
                     ...existingMetadata,

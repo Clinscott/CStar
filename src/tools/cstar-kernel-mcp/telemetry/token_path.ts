@@ -1,10 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { pathToFileURL } from 'node:url';
-import { PROJECT_ROOT, logBootstrapError } from '../contracts/runtime.js';
-import { rate } from './usage.js';
+import { PROJECT_ROOT, logBootstrapError, readBoundedUtf8FileInside } from '../contracts/runtime.js';
 
 const MCP_USAGE_LOOKBACK_MS = 24 * 60 * 60 * 1000;
+export const TOKEN_PATH_OBSERVATION_ACCEPTANCE_ENABLED = false;
 
 export interface TokenPathRoutingInput {
     prompt?: string;
@@ -24,19 +23,11 @@ export interface TokenPathRoutingInput {
 export interface TokenPathRecommendation {
     advisor: 'augury-token-path';
     schema_version: number;
-    mode: string;
-    selected_policy: string;
-    scenario_class: string;
-    context_strategy: unknown;
-    budget: unknown;
-    decision_reason: string;
-    confidence: number;
-    rationale: string[];
-    expected_billable_tokens: number;
-    expected_raw_tokens: number;
-    requires_followup: boolean;
-    execution_deferred: boolean;
-    episode_id?: string;
+    status: 'quarantined';
+    mode: 'shadow-disabled';
+    reason: string;
+    shadow_only?: boolean;
+    actionable?: boolean;
 }
 
 export interface TokenPathObservationPayload {
@@ -44,16 +35,11 @@ export interface TokenPathObservationPayload {
     scenario_class: string;
     selected_policy: string;
     advised_mode: string;
-    observed_raw_tokens_episode?: number;
-    observed_billable_tokens_episode?: number;
-    rounds?: number;
-    verification_result?: string;
-    terminal_outcome?: string;
-    actual_success?: boolean;
-    actual_completion?: boolean;
-    actual_verification_passed?: boolean;
-    actual_requires_followup?: boolean;
-    actual_deferred?: boolean;
+    observed_raw_tokens_episode: number;
+    observed_billable_tokens_episode: number;
+    rounds: number;
+    verification_result: string;
+    terminal_outcome: string;
     notes?: string;
 }
 
@@ -77,10 +63,43 @@ export interface TokenPathAdviceRecord {
     confidence?: number;
 }
 
-export interface TokenPathAdviceLookup {
-    episodeId?: string;
-    beadId?: string;
-    targetPaths?: string[];
+export function isMeasuredTokenPathObservation(value: unknown): value is TokenPathObservationPayload {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+    const candidate = value as Record<string, unknown>;
+    const nonempty = (field: string): boolean => (
+        typeof candidate[field] === 'string' && (candidate[field] as string).trim().length > 0
+    );
+    const nonnegativeInteger = (field: string): boolean => (
+        typeof candidate[field] === 'number'
+        && Number.isSafeInteger(candidate[field])
+        && (candidate[field] as number) >= 0
+    );
+    const terminalOutcome = candidate.terminal_outcome;
+    const verificationResult = candidate.verification_result;
+    const allowedOutcomes = new Set([
+        'verified-success',
+        'completed-unverified',
+        'needs-followup',
+        'deferred',
+        'failed',
+        'unknown',
+    ]);
+    const allowedVerification = new Set(['pass', 'fail', 'not-run', 'unknown']);
+    if (!allowedOutcomes.has(terminalOutcome as string)
+        || !allowedVerification.has(verificationResult as string)) return false;
+    const verificationPassed = verificationResult === 'pass';
+    if ((terminalOutcome === 'verified-success') !== verificationPassed) return false;
+    if (Object.keys(candidate).some((key) => key.startsWith('actual_'))) return false;
+    return nonempty('token_path_episode_id')
+        && nonempty('scenario_class')
+        && nonempty('selected_policy')
+        && nonempty('advised_mode')
+        && nonempty('terminal_outcome')
+        && nonempty('verification_result')
+        && nonnegativeInteger('observed_raw_tokens_episode')
+        && nonnegativeInteger('observed_billable_tokens_episode')
+        && nonnegativeInteger('rounds')
+        && (candidate.rounds as number) > 0;
 }
 
 const TOKEN_PATH_OBSERVATIONS_RELATIVE_PATH = path.join(
@@ -90,19 +109,6 @@ const TOKEN_PATH_ADVICE_RELATIVE_PATH = path.join(
     '.agents', 'state', 'augury-token-path-mcp-advice.jsonl',
 );
 
-function stableHash(input: string): string {
-    let hash = 2166136261;
-    for (let idx = 0; idx < input.length; idx += 1) {
-        hash ^= input.charCodeAt(idx);
-        hash = Math.imul(hash, 16777619);
-    }
-    return (hash >>> 0).toString(16).padStart(8, '0');
-}
-
-function generateTokenPathEpisodeId(): string {
-    return `mcp-tp-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 8)}`;
-}
-
 function resolveAuguryTokenPathRoot(): string {
     const envRoot = process.env.AUGURY_TOKEN_PATH_ROOT;
     if (envRoot && envRoot.trim().length > 0) {
@@ -111,12 +117,17 @@ function resolveAuguryTokenPathRoot(): string {
     return path.resolve(PROJECT_ROOT, '..', 'AuguryTokenPath');
 }
 
+function resolveTokenPathStateRoot(): string {
+    const configured = process.env.CSTAR_TOKEN_PATH_STATE_ROOT?.trim();
+    return configured ? path.resolve(configured) : PROJECT_ROOT;
+}
+
 function readRecentProjectJsonl<T>(relativePath: string, lookbackMs: number): T[] {
     try {
-        const filePath = path.join(PROJECT_ROOT, relativePath);
+        const filePath = path.join(resolveTokenPathStateRoot(), relativePath);
         if (!fs.existsSync(filePath)) return [];
         const now = Date.now();
-        return fs.readFileSync(filePath, 'utf-8')
+        return readBoundedUtf8FileInside(resolveTokenPathStateRoot(), filePath, 4 * 1024 * 1024).content
             .split('\n')
             .filter((line) => line.trim().length > 0)
             .flatMap((line) => {
@@ -139,26 +150,19 @@ function readRecentProjectJsonl<T>(relativePath: string, lookbackMs: number): T[
 }
 
 export async function runTokenPathAdvisor(input: TokenPathRoutingInput): Promise<TokenPathRecommendation | null> {
-    try {
-        const sidecarRoot = resolveAuguryTokenPathRoot();
-        const entryPath = [
-            path.join(sidecarRoot, 'src', 'core', 'advisor_entry.ts'),
-            path.join(sidecarRoot, 'src', 'core', 'advisor_entry.js'),
-        ].find((candidate) => fs.existsSync(candidate));
-        if (!entryPath) return null;
-        const entryUrl = pathToFileURL(entryPath).href;
-        const mod = await import(entryUrl) as {
-            getTokenPathAdviceForRouting?: (i: TokenPathRoutingInput) => TokenPathRecommendation;
-        };
-        if (typeof mod.getTokenPathAdviceForRouting !== 'function') return null;
-        return mod.getTokenPathAdviceForRouting(input);
-    } catch (error) {
-        logBootstrapError(error);
-        return null;
-    }
+    void input;
+    return {
+        advisor: 'augury-token-path',
+        schema_version: 3,
+        status: 'quarantined',
+        mode: 'shadow-disabled',
+        reason: 'No promoted causal episode pipeline exists; historical ledgers are non-authoritative.',
+        shadow_only: true,
+        actionable: false,
+    };
 }
 
-function deriveObservationOutcome(payload: TokenPathObservationPayload, verdict?: string): {
+function deriveObservationOutcome(payload: TokenPathObservationPayload): {
     actual_success: boolean;
     actual_completion: boolean;
     actual_verification_passed: boolean;
@@ -166,16 +170,12 @@ function deriveObservationOutcome(payload: TokenPathObservationPayload, verdict?
     actual_deferred: boolean;
 } {
     const terminal = payload.terminal_outcome;
-    const normalizedVerdict = verdict?.toUpperCase();
-    const successByVerdict = normalizedVerdict === 'SUCCESS' || normalizedVerdict === 'ACCEPTED';
-    const actualSuccess = payload.actual_success ?? (terminal === 'verified-success' || successByVerdict);
-    const actualCompletion = payload.actual_completion
-        ?? (terminal === 'verified-success' || terminal === 'completed-unverified' || actualSuccess);
-    const actualVerificationPassed = payload.actual_verification_passed
-        ?? (terminal === 'verified-success' || successByVerdict);
-    const actualRequiresFollowup = payload.actual_requires_followup
-        ?? (terminal === 'needs-followup' || normalizedVerdict === 'INCONCLUSIVE');
-    const actualDeferred = payload.actual_deferred ?? (terminal === 'deferred');
+    const explicitVerificationPassed = payload.verification_result?.trim().toLowerCase() === 'pass';
+    const actualSuccess = terminal === 'verified-success';
+    const actualCompletion = terminal === 'verified-success' || terminal === 'completed-unverified';
+    const actualVerificationPassed = terminal === 'verified-success' || explicitVerificationPassed;
+    const actualRequiresFollowup = terminal === 'needs-followup';
+    const actualDeferred = terminal === 'deferred';
 
     return {
         actual_success: actualSuccess,
@@ -183,117 +183,6 @@ function deriveObservationOutcome(payload: TokenPathObservationPayload, verdict?
         actual_verification_passed: actualVerificationPassed,
         actual_requires_followup: actualRequiresFollowup,
         actual_deferred: actualDeferred,
-    };
-}
-
-export function appendTokenPathAdvice(
-    input: TokenPathRoutingInput,
-    recommendation: TokenPathRecommendation,
-    beadId?: string,
-): string | null {
-    const episodeId = recommendation.episode_id || generateTokenPathEpisodeId();
-    recommendation.episode_id = episodeId;
-    const record: TokenPathAdviceRecord = {
-        schema_version: '1.0.0',
-        ts: new Date().toISOString(),
-        episode_id: episodeId,
-        occurred_at: new Date().toISOString(),
-        tool: 'cstar_augury',
-        prompt_hash: stableHash(`${input.prompt || ''}\n${input.inferred_intent || ''}`),
-        bead_id: beadId,
-        target_paths: input.target_paths?.slice(0, 10),
-        intent_category: input.intent_category,
-        selected_policy: recommendation.selected_policy,
-        advised_mode: recommendation.mode,
-        scenario_class: recommendation.scenario_class,
-        expected_raw_tokens: recommendation.expected_raw_tokens,
-        expected_billable_tokens: recommendation.expected_billable_tokens,
-        requires_followup: recommendation.requires_followup,
-        execution_deferred: recommendation.execution_deferred,
-        confidence: recommendation.confidence,
-    };
-    const appendRecord = (root: string): void => {
-        const advicePath = path.join(root, TOKEN_PATH_ADVICE_RELATIVE_PATH);
-        fs.mkdirSync(path.dirname(advicePath), { recursive: true });
-        fs.appendFileSync(advicePath, `${JSON.stringify(record)}\n`, 'utf-8');
-    };
-    try {
-        appendRecord(PROJECT_ROOT);
-        return episodeId;
-    } catch (error) {
-        logBootstrapError(error);
-        try {
-            appendRecord(path.join('/tmp', 'cstar-kernel-mcp'));
-            return episodeId;
-        } catch (fallbackError) {
-            logBootstrapError(fallbackError);
-            return null;
-        }
-    }
-}
-
-function normalizeTokenPathTarget(candidate: string): string | null {
-    const value = candidate.trim();
-    if (!value) return null;
-    const slashNormalized = value.replace(/\\/g, '/');
-    const resolved = path.isAbsolute(slashNormalized)
-        ? slashNormalized
-        : path.resolve(PROJECT_ROOT, slashNormalized);
-    return resolved.replace(/\/+$/, '');
-}
-
-function tokenTargetsOverlap(left: string, right: string): boolean {
-    const normalizedLeft = normalizeTokenPathTarget(left);
-    const normalizedRight = normalizeTokenPathTarget(right);
-    if (!normalizedLeft || !normalizedRight) return false;
-    if (normalizedLeft === normalizedRight) return true;
-    const projectRoot = normalizeTokenPathTarget(PROJECT_ROOT);
-    if (normalizedLeft === projectRoot || normalizedRight === projectRoot) return false;
-    return normalizedLeft.startsWith(`${normalizedRight}/`) || normalizedRight.startsWith(`${normalizedLeft}/`);
-}
-
-function recordTargetsMatch(record: TokenPathAdviceRecord, targetPaths?: string[]): boolean {
-    if (!targetPaths || targetPaths.length === 0 || !record.target_paths || record.target_paths.length === 0) {
-        return false;
-    }
-    return targetPaths.some((targetPath) => record.target_paths?.some((recordPath) => tokenTargetsOverlap(targetPath, recordPath)));
-}
-
-export function findRecentTokenPathAdvice(
-    episodeOrLookup?: string | TokenPathAdviceLookup,
-    beadId?: string,
-): TokenPathAdviceRecord | null {
-    const lookup: TokenPathAdviceLookup = typeof episodeOrLookup === 'object'
-        ? episodeOrLookup
-        : { episodeId: episodeOrLookup, beadId };
-    const advice = readRecentProjectJsonl<TokenPathAdviceRecord>(TOKEN_PATH_ADVICE_RELATIVE_PATH, MCP_USAGE_LOOKBACK_MS);
-    const sorted = [...advice].sort((a, b) => Date.parse(b.occurred_at) - Date.parse(a.occurred_at));
-    if (lookup.episodeId) {
-        const byEpisode = sorted.find((record) => record.episode_id === lookup.episodeId);
-        if (byEpisode) return byEpisode;
-    }
-    if (lookup.beadId) {
-        const byBead = sorted.find((record) => record.bead_id === lookup.beadId);
-        if (byBead) return byBead;
-    }
-    const byTarget = sorted.find((record) => recordTargetsMatch(record, lookup.targetPaths));
-    if (byTarget) return byTarget;
-    return null;
-}
-
-export function buildObservationFromAdvice(
-    advice: TokenPathAdviceRecord,
-    notes?: string,
-): TokenPathObservationPayload {
-    return {
-        token_path_episode_id: advice.episode_id,
-        scenario_class: advice.scenario_class,
-        selected_policy: advice.selected_policy,
-        advised_mode: advice.advised_mode,
-        observed_raw_tokens_episode: advice.expected_raw_tokens,
-        observed_billable_tokens_episode: advice.expected_billable_tokens,
-        terminal_outcome: 'completed-unverified',
-        notes,
     };
 }
 
@@ -308,33 +197,42 @@ export function summarizeRecentTokenPathIntegration(): Record<string, unknown> {
         .map((record) => typeof record.occurred_at === 'string' ? record.occurred_at : undefined)
         .filter((ts): ts is string => !!ts)
         .sort();
-    const observedEpisodes = new Set(
-        observations
-            .map((record) => typeof record.token_path_episode_id === 'string' ? record.token_path_episode_id : undefined)
-            .filter((episodeId): episodeId is string => !!episodeId),
-    );
-    const successes = observations.filter((record) => record.actual_success === true).length;
+    const measuredObservations = observations.filter((record) => record.schema_version === '2.0.0');
     return {
-        advisor_available: fs.existsSync(path.join(resolveAuguryTokenPathRoot(), 'src', 'core', 'advisor_entry.ts'))
+        advisor_available: false,
+        legacy_sidecar_present: fs.existsSync(path.join(resolveAuguryTokenPathRoot(), 'src', 'core', 'advisor_entry.ts'))
             || fs.existsSync(path.join(resolveAuguryTokenPathRoot(), 'src', 'core', 'advisor_entry.js')),
-        advice_count_24h: advice.length,
-        observation_count_24h: observations.length,
-        advice_observation_rate: rate(observedEpisodes.size, advice.length),
-        observed_success_rate: rate(successes, observations.length),
-        last_advice_at: adviceTimes.length > 0 ? adviceTimes[adviceTimes.length - 1] : null,
-        last_observation_at: observationTimes.length > 0 ? observationTimes[observationTimes.length - 1] : null,
+        advisor_mode: 'shadow-disabled',
+        advisor_actionable: false,
+        causal_calibration_ready: false,
+        historical_ledger_trusted: false,
+        historical_advice_count_24h: advice.length,
+        historical_observation_count_24h: observations.length,
+        historical_measured_observation_count_24h: measuredObservations.length,
+        advice_count_24h: 0,
+        observation_count_24h: 0,
+        advice_observation_rate: null,
+        observed_success_rate: null,
+        last_advice_at: null,
+        last_observation_at: null,
+        historical_last_advice_at: adviceTimes.length > 0 ? adviceTimes[adviceTimes.length - 1] : null,
+        historical_last_observation_at: observationTimes.length > 0 ? observationTimes[observationTimes.length - 1] : null,
     };
 }
 
 export function appendTokenPathObservation(
     beadId: string,
     payload: TokenPathObservationPayload,
-    verdict?: string,
 ): string | null {
+    // TokenPath emits no promoted episode ids while shadow-disabled. Accepting
+    // caller-invented ids would turn uncorrelated assertions into calibration
+    // evidence, so writes remain quarantined with the advisor.
+    if (!TOKEN_PATH_OBSERVATION_ACCEPTANCE_ENABLED) return null;
+    if (!isMeasuredTokenPathObservation(payload)) return null;
     const observationId = `mcp-obs-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
-    const outcome = deriveObservationOutcome(payload, verdict);
+    const outcome = deriveObservationOutcome(payload);
     const record = {
-        schema_version: '1.0.0',
+        schema_version: '2.0.0',
         ts: new Date().toISOString(),
         observation_id: observationId,
         token_path_episode_id: payload.token_path_episode_id,
@@ -357,16 +255,10 @@ export function appendTokenPathObservation(
         fs.appendFileSync(obsPath, `${JSON.stringify(record)}\n`, 'utf-8');
     };
     try {
-        appendRecord(PROJECT_ROOT);
+        appendRecord(resolveTokenPathStateRoot());
         return observationId;
     } catch (error) {
         logBootstrapError(error);
-        try {
-            appendRecord(path.join('/tmp', 'cstar-kernel-mcp'));
-            return observationId;
-        } catch (fallbackError) {
-            logBootstrapError(fallbackError);
-            return null;
-        }
+        return null;
     }
 }

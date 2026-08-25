@@ -1,0 +1,63 @@
+{
+  "schema": "cstar.node_focused_suite_discovery_validation.v1",
+  "bead_id": "bead:repair:cstar-node-focused-suite-discovery-2026-07-13",
+  "validated_at": "2026-07-13T22:08:00-04:00",
+  "verdict": "ACCEPTED_WITH_P2_FOLLOWUP",
+  "claim_scope": "The maintained cstar-kernel Node focused suites are currently covered exactly once and the ten repaired Forge/Hermes suites execute successfully. This is source/test-discovery proof only and makes no installation, deployment, activation, Forge execution, or production claim.",
+  "checks": [
+    {
+      "name": "node_test_discovery_contract",
+      "command": "node scripts/run-tsx.mjs --test tests/unit/test_node_test_discovery.test.ts",
+      "result": "4 passed; 0 failed"
+    },
+    {
+      "name": "independent_raw_occurrence_reconciliation",
+      "result": "41 focused suites = 21 aggregator imports + 20 isolated test:node entries; zero missing, duplicate, overlapping, or unknown suites"
+    },
+    {
+      "name": "ten_repaired_forge_hermes_suites",
+      "result": "10 suites; 38 passed; 0 failed; each suite occurs exactly once in package.json and zero times in the aggregator"
+    },
+    {
+      "name": "default_node_suite",
+      "command": "npm run test:node",
+      "result": "1053 passed; 0 failed"
+    }
+  ],
+  "repaired_suites": [
+    "test_forge_bound_preflight.test.ts",
+    "test_forge_hermes_oauth_contract.test.ts",
+    "test_forge_hermes_runtime_evidence.test.ts",
+    "test_forge_process_containment.test.ts",
+    "test_forge_provider_envelope.test.ts",
+    "test_forge_receipt_controller.test.ts",
+    "test_forge_role_evidence.test.ts",
+    "test_forge_role_plan.test.ts",
+    "test_forge_six_role_delegate.test.ts",
+    "test_hermes_runtime_lineage.test.ts"
+  ],
+  "independent_review": {
+    "validator_identity": "codex-subagent:node_discovery_validation",
+    "independent_of_execution": true,
+    "requested_model_identity": "gpt-5.6-luna/medium",
+    "actual_model_identity": "unreported",
+    "p0_findings": 0,
+    "p1_findings": 0,
+    "p2_findings": [
+      "test_node_test_discovery.test.ts converts occurrence lists to Set before checking coverage, so a future duplicate within one lane could be masked; compare raw and unique counts or assert one raw occurrence per suite."
+    ]
+  },
+  "source_sha256": {
+    "package.json": "3cc644e2724f0307f49d4e948ac6984bdaba0ebfcf736f34774613dfebf28ecc",
+    "tests/unit/test_node_test_discovery.test.ts": "14de4aba456d8a78510f3b294c3081c2cf69aceec9bc6d28eb3dbaa2a872d8a3",
+    "tests/unit/test_cstar_kernel_mcp.test.ts": "37ebdfd9f520447bbf419b85da2dd2480f9af4ea268796ce6d082a90ac7cc5f2"
+  },
+  "follow_up": {
+    "bead_id": "bead:repair:cstar-node-discovery-lore-and-duplicate-hardening-2026-07-13",
+    "required_paths": [
+      "tests/unit/test_node_test_discovery.test.ts",
+      "tests/features/cstar_node_test_discovery.feature"
+    ],
+    "reason": "Close the truthful Sterling lore leg and make duplicate detection fail closed without changing the accepted current-state verdict."
+  }
+}

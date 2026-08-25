@@ -1,51 +1,20 @@
 # Host-Native Skill Bridge
 
-Skills are harness skills, not shell commands.
+> Current invocation authority is
+> `docs/integrations/host_native_skill_contract.md`. This short document keeps
+> the older filename as a compatibility pointer.
 
-## Rule
+The current host-native surface consists only of `corvus-forge`, `researcher`,
+and `cstar-closeout`. The active host reads each skill's `SKILL.md` and performs
+the bounded procedure in-session while using `cstar-kernel` for deterministic
+lifecycle transitions.
 
-Agents must activate CStar skills through the host harness, not through terminal dispatch.
+There is no reverse model bridge from CStar into the active host. Do not use
+`cstar run-skill`, dynamic registry dispatch, `MimirClient`, One Mind, public
+AutoBot, Ravens, a legacy weave, or a model-memory loop to simulate activation.
 
-Forbidden by default:
-- `cstar run-skill <skill>`
-- dynamic terminal fallback from registry triggers
-- shell wrappers around `.agents/skills/*/scripts/*`
-- ad hoc terminal smoke tests for host-only or agent-native skills
-
-Allowed only with an explicit terminal-required contract:
-- `terminal_required: true`
-- `execution.requires_terminal: true`
-- `execution.terminal_contract: "required"`
-
-`entry_surface: "cli"` is a discovery surface, not permission to execute a skill through the terminal.
-
-## Harness Activation Shape
-
-Host-native skill activation must carry structured intent and payload:
-
-```json
-{
-  "skill_id": "chant",
-  "intent": "Plan bounded Corvus Star work through the Augury Gate.",
-  "project_root": "/home/morderith/Corvus/CStar",
-  "target_paths": [],
-  "payload": {
-    "source": "host-harness",
-    "query": "..."
-  }
-}
-```
-
-The runtime may record, trace, and audit the activation, but it must not convert host-native work into shell execution unless the registry says the terminal is intrinsic to the capability.
-
-## Migration Rule
-
-Existing script entrypoints under `.agents/skills/*/scripts/*` are compatibility artifacts. Each must be classified as one of:
-
-- `host-native`: remove terminal dispatch and document the harness flow in `SKILL.md`.
-- `compatibility-only`: keep for legacy users, but block agent workflow routing.
-- `terminal-required`: add an explicit terminal-required contract and a short reason.
-
-New skills should be `SKILL.md` plus host workflow/runtime adapter first. Do not add a script shim to make a skill callable from the terminal.
-
-Migration ledger: `docs/terminal-skill-migration.md`.
+A skill may instruct the active host to run a specific bounded terminal command
+when the command is intrinsic to authorized work. This does not make the skill
+itself terminal-executable. Registry discovery, local source generation,
+installed/cache state, restart, live activation, and production evidence remain
+separate boundaries.

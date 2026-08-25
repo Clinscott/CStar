@@ -6,12 +6,10 @@ import path from 'node:path';
 
 import type { RuntimeContext, RuntimeDispatchPort, WeaveInvocation, WeaveResult } from  '../../src/node/core/runtime/contracts.js';
 import { ArchitectCompatibilityAdapter } from  '../../src/node/core/runtime/compat/architect.js';
-import { DistillWeave } from  '../../src/node/core/runtime/weaves/distill.js';
 import { CritiqueWeave, deps as critiqueDeps } from  '../../src/node/core/runtime/host_workflows/critique.js';
 import { ResearchWeave, deps as researchDeps } from  '../../src/node/core/runtime/host_workflows/research.js';
-import { closeDb, getHallEpisodicMemory, upsertHallBead, upsertHallRepository } from  '../../src/tools/pennyone/intel/database.js';
+import { closeDb } from  '../../src/tools/pennyone/intel/database.js';
 import { registry } from  '../../src/tools/pennyone/pathRegistry.js';
-import { buildHallRepositoryId } from  '../../src/types/hall.js';
 
 class NoopDispatchPort implements RuntimeDispatchPort {
     public async dispatch<T>(invocation: WeaveInvocation<T>): Promise<WeaveResult> {
@@ -326,60 +324,4 @@ describe('Host-session runtime weaves', () => {
         assert.match(capturedPrompt, /emit multiple smaller beads/i);
     });
 
-    it('lets distill execute through the Codex host session and persist memory', async () => {
-        const repoId = buildHallRepositoryId(tmpRoot.replace(/\\/g, '/'));
-        upsertHallRepository({
-            root_path: tmpRoot,
-            name: path.basename(tmpRoot),
-            status: 'AWAKE',
-            active_persona: 'ALFRED',
-            baseline_gungnir_score: 7.8,
-            intent_integrity: 95,
-            metadata: { source: 'unit-test' },
-            created_at: 1700000000000,
-            updated_at: 1700000000000,
-        });
-        upsertHallBead({
-            bead_id: 'bead-codex',
-            repo_id: repoId,
-            rationale: 'Capture the tactical thread summary.',
-            status: 'RESOLVED',
-            created_at: 1700000000000,
-            updated_at: 1700000000000,
-        });
-
-        const weave = new DistillWeave(async () =>
-            JSON.stringify({
-                tactical_summary: 'Codex compressed the successful tactical changes.',
-                files_touched: ['src/node/core/runtime/host_workflows/chant.ts'],
-                successes: ['Bounded the worker brief'],
-                bead_id: 'bead-codex',
-            }),
-        );
-
-        const result = await weave.execute(
-            {
-                weave_id: 'weave:distill',
-                payload: {
-                    bead_id: 'bead-codex',
-                    bead_intent: 'Capture the tactical summary.',
-                    project_root: tmpRoot,
-                    cwd: tmpRoot,
-                    git_diff: 'diff --git a/file b/file\n+change\n',
-                    source: 'runtime',
-                },
-            },
-            createContext(tmpRoot, { CODEX_SHELL: '1' }),
-        );
-
-        assert.equal(result.status, 'SUCCESS');
-        assert.equal(result.metadata?.persisted, true);
-
-        const memory = getHallEpisodicMemory(String(result.metadata?.memory_id), tmpRoot);
-        assert.ok(memory);
-        assert.equal(memory?.tactical_summary, 'Codex compressed the successful tactical changes.');
-        assert.deepStrictEqual(memory?.files_touched, ['src/node/core/runtime/host_workflows/chant.ts']);
-        assert.deepStrictEqual(memory?.successes, ['Bounded the worker brief']);
-        assert.equal(memory?.metadata?.provider, 'codex');
-    });
 });

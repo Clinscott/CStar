@@ -21,8 +21,7 @@
     "live_runs",
     "artifact_index",
     "verification",
-    "token_policy",
-    "bootstrap_prompt"
+    "token_policy"
   ],
   "additionalProperties": false,
   "properties": {
@@ -39,8 +38,8 @@
       "additionalProperties": false,
       "properties": {
         "name": { "type": "string" },
-        "expected_capabilities": { "type": "array", "items": { "type": "string" } },
-        "risk_posture": { "type": "array", "items": { "type": "string" } }
+        "expected_capabilities": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "risk_posture": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
       }
     },
     "authority": {
@@ -49,8 +48,8 @@
       "additionalProperties": false,
       "properties": {
         "canonical_plane": { "const": "CStar kernel MCP and bead lifecycle" },
-        "operator_gates": { "type": "array", "items": { "type": "string" } },
-        "prohibited_shortcuts": { "type": "array", "items": { "type": "string" } }
+        "operator_gates": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "prohibited_shortcuts": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
       }
     },
     "control_plane": {
@@ -61,7 +60,7 @@
         "doctor_status": { "type": "string", "enum": ["healthy", "degraded", "failed", "unavailable"] },
         "handoff_status": { "type": "string" },
         "active_bead": { "$ref": "#/$defs/bead_ref" },
-        "state_checksum": { "type": "string" },
+        "state_checksum": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
         "degraded_fallback": { "$ref": "#/$defs/degraded_fallback" }
       }
     },
@@ -74,7 +73,11 @@
         "gate": { "type": "string", "enum": ["green", "yellow", "red", "blocked", "unknown"] },
         "next_action": { "type": "string" },
         "target_paths": { "type": "array", "items": { "type": "string" } },
-        "checker_shells": { "type": "array", "items": { "type": "string" } }
+        "checker_shells": {
+          "type": "array",
+          "description": "Deterministic terminal checks only; never use this field to dispatch a host-native skill.",
+          "items": { "type": "string" }
+        }
       }
     },
     "project_state": {
@@ -93,7 +96,10 @@
         }
       }
     },
-    "pmt_board": { "$ref": "#/$defs/board" },
+    "pmt_board": {
+      "description": "Legacy-compatible project information-repository freshness board. PMT entries grant no authority.",
+      "$ref": "#/$defs/board"
+    },
     "researcher": { "$ref": "#/$defs/lane_summary" },
     "forge": { "$ref": "#/$defs/lane_summary" },
     "corvuseye": { "$ref": "#/$defs/lane_summary" },
@@ -140,9 +146,9 @@
       "required": ["before_action", "before_success_claim", "perfect_score_policy", "cycle_breaker"],
       "additionalProperties": false,
       "properties": {
-        "before_action": { "type": "array", "items": { "type": "string" } },
-        "before_success_claim": { "type": "array", "items": { "type": "string" } },
-        "perfect_score_policy": { "type": "array", "items": { "type": "string" } },
+        "before_action": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "before_success_claim": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "perfect_score_policy": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
         "cycle_breaker": { "$ref": "#/$defs/cycle_breaker" }
       }
     },
@@ -151,14 +157,72 @@
       "required": ["bootstrap_target_tokens", "refresh_target_tokens", "live_delta_target_tokens", "forbidden_inline_sources"],
       "additionalProperties": false,
       "properties": {
-        "bootstrap_target_tokens": { "type": "integer", "maximum": 4000 },
-        "refresh_target_tokens": { "type": "integer", "maximum": 1500 },
-        "live_delta_target_tokens": { "type": "integer", "maximum": 800 },
-        "forbidden_inline_sources": { "type": "array", "items": { "type": "string" } }
+        "bootstrap_target_tokens": { "type": "integer", "minimum": 1, "maximum": 4000 },
+        "refresh_target_tokens": { "type": "integer", "minimum": 1, "maximum": 1500 },
+        "live_delta_target_tokens": { "type": "integer", "minimum": 1, "maximum": 800 },
+        "forbidden_inline_sources": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
       }
     },
     "bootstrap_prompt": { "type": "string", "minLength": 500 }
   },
+  "allOf": [
+    {
+      "if": {
+        "type": "object",
+        "properties": { "mode": { "enum": ["bootstrap", "degraded_boot"] } },
+        "required": ["mode"]
+      },
+      "then": {
+        "type": "object",
+        "properties": { "bootstrap_prompt": { "type": "string", "minLength": 500 } },
+        "required": ["bootstrap_prompt"]
+      }
+    },
+    {
+      "if": {
+        "type": "object",
+        "properties": { "mode": { "enum": ["refresh_delta", "live_run_delta", "closeout"] } },
+        "required": ["mode"]
+      },
+      "then": {
+        "type": "object",
+        "properties": { "bootstrap_prompt": false }
+      }
+    },
+    {
+      "if": {
+        "type": "object",
+        "properties": { "mode": { "const": "live_run_delta" } },
+        "required": ["mode"]
+      },
+      "then": {
+        "type": "object",
+        "properties": { "live_runs": { "type": "array", "minItems": 1 } }
+      }
+    },
+    {
+      "if": {
+        "type": "object",
+        "properties": { "mode": { "const": "degraded_boot" } },
+        "required": ["mode"]
+      },
+      "then": {
+        "type": "object",
+        "properties": {
+          "control_plane": {
+            "type": "object",
+            "properties": {
+              "doctor_status": { "enum": ["degraded", "failed", "unavailable"] },
+              "degraded_fallback": {
+                "type": "object",
+                "properties": { "enabled": { "const": true } }
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
   "$defs": {
     "artifact_ref": {
       "type": "object",
@@ -167,7 +231,12 @@
       "properties": {
         "kind": { "type": "string" },
         "path_or_uri": { "type": "string" },
-        "sha256": { "type": ["string", "null"] },
+        "sha256": {
+          "anyOf": [
+            { "type": "null" },
+            { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+          ]
+        },
         "summary": { "type": "string" },
         "load_policy": { "type": "string", "enum": ["cite_only", "summarize_head", "query_by_script", "forbidden_inline"] }
       }
@@ -185,12 +254,13 @@
     },
     "board": {
       "type": "object",
+      "description": "Passive information-repository locations and freshness conflicts; never an execution, review, approval, or routing surface.",
       "required": ["active_threads", "pinned_pmts", "conflicts"],
       "additionalProperties": false,
       "properties": {
-        "active_threads": { "type": "array", "items": { "type": "string" } },
-        "pinned_pmts": { "type": "array", "items": { "type": "string" } },
-        "conflicts": { "type": "array", "items": { "type": "string" } }
+        "active_threads": { "type": "array", "description": "Information repositories available for state updates.", "items": { "type": "string" } },
+        "pinned_pmts": { "type": "array", "description": "Legacy field name for project information-repository thread ids.", "items": { "type": "string" } },
+        "conflicts": { "type": "array", "description": "Stale or conflicting repository copies that CoS must reconcile against CStar.", "items": { "type": "string" } }
       }
     },
     "lane_summary": {

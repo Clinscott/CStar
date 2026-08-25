@@ -58,14 +58,16 @@ describe('host-native Augury lineage', () => {
         const traceContract = {
             intent_category: 'ORCHESTRATE',
             intent: 'Carry planning lineage through host-native hall execution.',
-            selection_tier: 'WEAVE',
-            selection_name: 'orchestrate',
+            selection_tier: 'PRIME',
+            selection_name: 'cstar_handoff',
             trajectory_status: 'STABLE',
             trajectory_reason: 'Inherited designation must survive nested dispatch.',
             mimirs_well: ['src/node/core/runtime/dispatcher.ts'],
             confidence: 0.91,
             canonical_intent: 'Carry planning lineage through host-native hall execution.',
         };
+        const { confidence: _unverifiedConfidence, ...expectedTraceContract } = traceContract;
+        void _unverifiedConfidence;
 
         try {
             const result = await dispatcher.dispatch({
@@ -90,28 +92,29 @@ describe('host-native Augury lineage', () => {
             assert.strictEqual(result.metadata?.planning_session_id, 'chant-session:TRACE-LINEAGE');
             assert.strictEqual(result.metadata?.augury_designation_source, 'dispatcher_synthesized');
             assert.strictEqual(result.metadata?.trace_designation_source, 'dispatcher_synthesized');
-            assertAuguryContractIncludesCoreFields(result.metadata?.augury_contract, traceContract);
-            assertAuguryContractIncludesCoreFields(result.metadata?.trace_contract, traceContract);
+            assertAuguryContractIncludesCoreFields(result.metadata?.augury_contract, expectedTraceContract);
+            assertAuguryContractIncludesCoreFields(result.metadata?.trace_contract, expectedTraceContract);
 
             const executionBead = getHallBead(String(result.metadata?.execution_bead_id));
             assert.equal(executionBead?.metadata?.planning_session_id, 'chant-session:TRACE-LINEAGE');
             assert.equal(executionBead?.metadata?.augury_designation_source, 'dispatcher_synthesized');
             assert.equal(executionBead?.metadata?.trace_designation_source, 'dispatcher_synthesized');
-            assertAuguryContractIncludesCoreFields(executionBead?.metadata?.augury_contract, traceContract);
-            assertAuguryContractIncludesCoreFields(executionBead?.metadata?.trace_contract, traceContract);
+            assertAuguryContractIncludesCoreFields(executionBead?.metadata?.augury_contract, expectedTraceContract);
+            assertAuguryContractIncludesCoreFields(executionBead?.metadata?.trace_contract, expectedTraceContract);
             assert.strictEqual(hostTextInvoker.mock.callCount(), 1);
             const hostPrompt = String(hostTextInvoker.mock.calls[0]?.arguments[0]?.prompt ?? '');
             // Augury now renders in block-tag format; verify key fields are present
             assert.match(hostPrompt, /\[CORVUS_STAR_AUGURY\]/);
-            assert.match(hostPrompt, /Route:.*ORCHESTRATE.*WEAVE: orchestrate/);
+            assert.match(hostPrompt, /Route:.*ORCHESTRATE.*PRIME: cstar_handoff/);
             assert.match(hostPrompt, /Council Expert: DEAN/);
             assert.match(hostPrompt, /Mimir's Well: src\/node\/core\/runtime\/dispatcher\.ts/);
             assert.match(hostPrompt, /Directive: Route only/i);
             assert.doesNotMatch(hostPrompt, /Corvus Standard:/);
             assert.doesNotMatch(hostPrompt, /Confidence:/);
-            assertAuguryContractIncludesCoreFields(hostTextInvoker.mock.calls[0]?.arguments[0]?.metadata?.augury_contract, traceContract);
+            assertAuguryContractIncludesCoreFields(hostTextInvoker.mock.calls[0]?.arguments[0]?.metadata?.augury_contract, expectedTraceContract);
             assert.equal(hostTextInvoker.mock.calls[0]?.arguments[0]?.metadata?.augury_designation_source, 'dispatcher_synthesized');
-            assert.equal(hostTextInvoker.mock.calls[0]?.arguments[0]?.metadata?.augury_learning_metadata?.confidence, 0.91);
+            assert.equal(hostTextInvoker.mock.calls[0]?.arguments[0]?.metadata?.augury_learning_metadata?.confidence, undefined);
+            assert.equal(hostTextInvoker.mock.calls[0]?.arguments[0]?.metadata?.augury_learning_metadata?.confidence_source, 'not_measured');
             assert.equal(hostTextInvoker.mock.calls[0]?.arguments[0]?.metadata?.augury_learning_metadata?.steering_mode, 'lite');
             assert.equal(hostTextInvoker.mock.calls[0]?.arguments[0]?.metadata?.augury_learning_metadata?.session_id, 'chant-session:TRACE-LINEAGE');
         } finally {

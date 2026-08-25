@@ -19,13 +19,11 @@ import {
     type ChantWeavePayload,
     type EvolveWeavePayload,
     type ArtifactForgeWeavePayload as ForgeWeavePayload,
-    type LessonDistillWeavePayload,
     type PennyOneWeavePayload,
     type RavensWeavePayload,
     type StartWeavePayload,
     type RuntimeDispatchPort,
 } from '../runtime/contracts.js';
-import type { HarvestLessonsWeavePayload } from '../runtime/weaves/harvest_lessons.js';
 import { resolveWorkspaceRoot, withCliWorkspaceTarget, type WorkspaceRootSource } from '../runtime/invocation.js';
 import type { SkillBead } from '../skills/types.js';
 const ACTIVE_CHANT_STATUSES: HallPlanningSessionStatus[] = [
@@ -97,7 +95,7 @@ export function buildDynamicCommandInvocation(
     args: string[],
     projectRoot: string,
     cwd: string = process.cwd(),
-): WeaveInvocation<StartWeavePayload | RavensWeavePayload | PennyOneWeavePayload | LessonDistillWeavePayload | HarvestLessonsWeavePayload | ChantWeavePayload | EvolveWeavePayload | ForgeWeavePayload> {
+): WeaveInvocation<StartWeavePayload | RavensWeavePayload | PennyOneWeavePayload | ChantWeavePayload | EvolveWeavePayload | ForgeWeavePayload> {
     if (command.toLowerCase() === 'start') {
         const taskIndex = args.findIndex((arg) => arg === '--task');
         const ledgerIndex = args.findIndex((arg) => arg === '--ledger');
@@ -163,7 +161,13 @@ export function buildDynamicCommandInvocation(
         if (lowered === 'refresh-intents') {
             return buildPennyOneInvocation({ refreshIntents: '.' }, projectRoot);
         }
-        return buildPennyOneInvocation({ scan: '.' }, projectRoot);
+        if (lowered === 'scan' || lowered === '--scan' || lowered === '-s') {
+            return buildPennyOneInvocation({ scan: tail[0] ?? '.' }, projectRoot);
+        }
+        if (lowered === undefined) {
+            return buildPennyOneInvocation({}, projectRoot);
+        }
+        throw new Error(`Unsupported PennyOne action '${head}'. Repository scanning requires explicit 'scan'.`);
     }
 
     if (command.toLowerCase() === 'evolve') {
@@ -382,8 +386,6 @@ export function registerDispatcher(
         let invocation: SkillBead<unknown> | WeaveInvocation<unknown> | null = null;
         if (activation.kind === 'skill') {
             invocation = activation.bead;
-        } else if (['evolve', 'forge'].includes(cmd.toLowerCase())) {
-            invocation = buildDynamicCommandInvocation(cmd, rawArgs, projectRoot, process.cwd());
         }
 
         if (!invocation) {

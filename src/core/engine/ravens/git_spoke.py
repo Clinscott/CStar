@@ -1,55 +1,34 @@
-"""
-[SPOKE] Git Spoke
-Lore: "The Keeper of the Chronology."
-Purpose: Encapsulate git operations for the sentinel layer.
-"""
+"""Fail-closed compatibility facade for the retired Ravens Git spoke."""
 
-import subprocess
+from __future__ import annotations
+
 from pathlib import Path
 
+from src.core.engine.ravens.retired import reject_ravens_operation
+
+
 class GitSpoke:
-    def __init__(self, repo_path: Path):
+    def __init__(self, repo_path: Path | str) -> None:
         self.repo_path = repo_path
 
     def run_cmd(self, args: list[str]) -> str | None:
-        """Executes a git command in the target repo."""
-        try:
-            result = subprocess.run(
-                ["git", *args],
-                cwd=str(self.repo_path),
-                capture_output=True,
-                text=True,
-                encoding='utf-8',
-                errors='replace',
-                check=True
-            )
-            return result.stdout.strip()
-        except (subprocess.CalledProcessError, FileNotFoundError):
-            return None
+        del args
+        reject_ravens_operation("GitSpoke.run_cmd")
 
     def is_clean(self) -> bool:
-        """Checks if the repo is clean."""
-        status = self.run_cmd(["status", "--porcelain"])
-        return status == ""
+        reject_ravens_operation("GitSpoke.is_clean")
 
     def ensure_branch(self, branch_name: str = "sovereign-fish-auto") -> str | None:
-        """Switches to the dedicated automation branch."""
-        current = self.run_cmd(["branch", "--show-current"])
-        branches = self.run_cmd(["branch", "--list", branch_name])
-
-        if not branches:
-            self.run_cmd(["checkout", "-b", branch_name])
-        else:
-            self.run_cmd(["checkout", branch_name])
-
-        return current
+        del branch_name
+        reject_ravens_operation("GitSpoke.ensure_branch")
 
     def restore_branch(self, original_branch: str | None) -> None:
-        """Restores the original branch."""
-        if original_branch:
-            self.run_cmd(["checkout", original_branch])
+        del original_branch
+        reject_ravens_operation("GitSpoke.restore_branch")
 
     def commit_changes(self, message: str) -> None:
-        """Adds all changes and commits with the given message."""
-        self.run_cmd(["add", "-A"])
-        self.run_cmd(["commit", "-m", message])
+        del message
+        reject_ravens_operation("GitSpoke.commit_changes")
+
+
+__all__ = ["GitSpoke"]

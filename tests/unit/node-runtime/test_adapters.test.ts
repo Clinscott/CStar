@@ -29,7 +29,7 @@ describe('Runtime Adapters', () => {
             assert.ok(result.output?.includes('Kernel Awakening Complete'));
         });
 
-        it('should delegate to host-governor if loki is true', async () => {
+        it('should fail closed instead of delegating when loki is true', async () => {
             const mockDispatchPort = {
                 dispatch: mock.fn(async () => ({
                     status: 'SUCCESS',
@@ -40,11 +40,7 @@ describe('Runtime Adapters', () => {
             const wakeMock = mock.method(ANS, 'wake', async () => undefined);
             
             try {
-                // @ts-ignore
-                const adapter = new StartAdapter(mockDispatchPort, async () => JSON.stringify({
-                    action: 'resume_governor',
-                    reason: 'Explicit resume path.',
-                }));
+                const adapter = new StartAdapter();
                 const invocation: WeaveInvocation<any> = {
                     weave_id: 'weave:start',
                     payload: { loki: true }
@@ -56,10 +52,10 @@ describe('Runtime Adapters', () => {
                 } as any;
 
                 const result = await adapter.execute(invocation, context);
-                assert.strictEqual(wakeMock.mock.callCount(), 1);
-                assert.strictEqual(mockDispatchPort.dispatch.mock.callCount(), 1);
-                assert.strictEqual(result.status, 'SUCCESS');
-                assert.ok(result.output?.includes('governor-output'));
+                assert.strictEqual(wakeMock.mock.callCount(), 0);
+                assert.strictEqual(mockDispatchPort.dispatch.mock.callCount(), 0);
+                assert.strictEqual(result.status, 'FAILURE');
+                assert.match(result.error ?? '', /permanently decommissioned/i);
             } finally {
                 wakeMock.mock.restore();
             }
@@ -67,7 +63,7 @@ describe('Runtime Adapters', () => {
     });
 
     describe('DynamicCommandAdapter', () => {
-        it('should return failure for unknown command', async () => {
+        it('should fail closed for every legacy dynamic command', async () => {
             const adapter = new DynamicCommandAdapter();
             const invocation: WeaveInvocation<any> = {
                 weave_id: 'weave:dynamic-command',
@@ -77,7 +73,8 @@ describe('Runtime Adapters', () => {
 
             const result = await adapter.execute(invocation, context);
             assert.strictEqual(result.status, 'FAILURE');
-            assert.ok(result.error?.includes("Unknown command 'unknown-cmd'"));
+            assert.match(result.error ?? '', /permanently decommissioned/i);
+            assert.strictEqual(result.metadata?.execution_attempted, false);
         });
     });
 });

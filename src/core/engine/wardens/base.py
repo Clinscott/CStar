@@ -10,7 +10,6 @@ from pathlib import Path
 from typing import Any
 
 from src.core.sovereign_hud import SovereignHUD
-from src.tools.brave_search import BraveSearch
 
 
 class BaseWarden(ABC):
@@ -28,7 +27,6 @@ class BaseWarden(ABC):
         """
         self.root = root
         self.config: dict[str, Any] = self._load_config()
-        self.brave: BraveSearch = BraveSearch()
 
     def _load_config(self) -> dict[str, Any]:
         """
@@ -64,21 +62,13 @@ class BaseWarden(ABC):
         return False
 
     def research_topic(self, topic: str) -> list[dict[str, str]]:
-        """
-        Utilizes Brave Search to find info on a topic.
-
-        Args:
-            topic: The search query or topic to research.
-
-        Returns:
-            A list of search results.
-        """
-        if self.brave.is_quota_available():
-            SovereignHUD.persona_log("INFO", f"Researching: {topic}...")
-            return self.brave.search(topic)
-        else:
-            SovereignHUD.persona_log("WARN", "Brave Search Quota Exhausted. Skipping research.")
-            return []
+        """Reject direct research; wardens submit findings through authorized lanes."""
+        del topic
+        SovereignHUD.persona_log(
+            "WARN",
+            "Warden direct research is decommissioned. Use an authorized Researcher request.",
+        )
+        return []
 
     @abstractmethod
     def scan(self) -> list[dict[str, Any]]:

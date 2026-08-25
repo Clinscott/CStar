@@ -35,6 +35,7 @@ import {
     handleResearcherRequest,
     handleForgeRequest,
     handleForgeExecute,
+    invokeForgeAdapterForTest,
     detectAuguryTargetDivergence,
     decideAugurySessionRouting,
     callerRequestedActiveSessionContinuity,
@@ -192,11 +193,11 @@ it('cstar_forge_execute rejects inconsistent package locks', async () => {
     assert.match(parsed.error, /package_locks/);
 });
 
-it('cstar_forge_execute invokes the approved adapter under live authorization without Codex fallback', async () => {
+it('Forge adapter internals invoke the approved adapter without Codex fallback', async () => {
     process.env.CSTAR_FORGE_HERMES_MINIMAX_ADAPTER_SCRIPT = writeFakeForgeAdapter();
     const artifactRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'fake-forge-artifacts-'));
     process.env.CSTAR_FORGE_EXECUTION_ARTIFACT_ROOT = artifactRoot;
-    const result = await handleForgeExecute(validForgeExecuteRequest());
+    const result = await invokeForgeAdapterForTest(validForgeExecuteRequest());
     assert.ok(result.content);
     const parsed = JSON.parse(result.content[0].text);
     assert.strictEqual(parsed.status, 'executed');
@@ -221,11 +222,11 @@ it('cstar_forge_execute invokes the approved adapter under live authorization wi
     assert.strictEqual(parsed.forge_execution.adapter_result.envelope.response_contract.validation_count, 1);
 });
 
-it('cstar_forge_execute gives report-only adapters an exact execution-packet template', async () => {
+it('Forge adapter internals give report-only adapters an exact execution-packet template', async () => {
     process.env.CSTAR_FORGE_HERMES_MINIMAX_ADAPTER_SCRIPT = writeInspectingResponseOnlyForgeAdapter();
     const artifactRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'fake-forge-artifacts-'));
     process.env.CSTAR_FORGE_EXECUTION_ARTIFACT_ROOT = artifactRoot;
-    const result = await handleForgeExecute(validForgeExecuteRequest({
+    const result = await invokeForgeAdapterForTest(validForgeExecuteRequest({
         objective: 'Analyze retained artifacts and return report-only decision packet',
         requested_actions: ['report-only analysis'],
         artifact_expectations: ['compact callback packet'],
@@ -248,11 +249,11 @@ it('cstar_forge_execute gives report-only adapters an exact execution-packet tem
     assert.strictEqual(parsed.forge_execution.adapter_result.envelope.response_contract.callback_packet_kind, 'object');
 });
 
-it('cstar_forge_execute normalizes matching callback-only report packets', async () => {
+it('Forge adapter internals reject matching callback-only report packets', async () => {
     process.env.CSTAR_FORGE_HERMES_MINIMAX_ADAPTER_SCRIPT = writeCallbackOnlyReportForgeAdapter();
     const artifactRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'fake-forge-artifacts-'));
     process.env.CSTAR_FORGE_EXECUTION_ARTIFACT_ROOT = artifactRoot;
-    const result = await handleForgeExecute(validForgeExecuteRequest({
+    const result = await invokeForgeAdapterForTest(validForgeExecuteRequest({
         objective: 'Analyze retained artifacts and return report-only decision packet',
         requested_actions: ['report-only analysis'],
         artifact_expectations: ['compact callback packet'],
@@ -264,18 +265,15 @@ it('cstar_forge_execute normalizes matching callback-only report packets', async
     }));
     assert.ok(result.content);
     const parsed = JSON.parse(result.content[0].text);
-    const contract = parsed.forge_execution.adapter_result.envelope.response_contract;
-    assert.strictEqual(parsed.status, 'executed');
-    assert.strictEqual(parsed.forge_execution.adapter_result.status, 'ok');
-    assert.strictEqual(contract.status, 'pass');
-    assert.strictEqual(contract.coerced_from_callback_packet, true);
-    assert.strictEqual(contract.callback_packet, 'TEST_FORGE_CALLBACK_ONLY_PACKET');
-    assert.strictEqual(contract.callback_packet_kind, 'object');
+    assert.strictEqual(parsed.status, 'adapter_degraded');
+    assert.strictEqual(parsed.forge_execution.adapter_result.status, 'degraded');
+    assert.strictEqual(parsed.forge_execution.adapter_result.error, 'adapter_response_missing_status');
+    assert.strictEqual(parsed.forge_execution.adapter_result.envelope.response_contract, null);
 });
 
-it('cstar_forge_execute blocks response-only adapters before spend for implementation builds', async () => {
+it('Forge adapter internals block response-only adapters before implementation work', async () => {
     process.env.CSTAR_FORGE_HERMES_MINIMAX_ADAPTER_SCRIPT = writeFakeForgeAdapter();
-    const result = await handleForgeExecute(validForgeExecuteRequest({
+    const result = await invokeForgeAdapterForTest(validForgeExecuteRequest({
         objective: 'Build the CorvusEye deterministic truth-verification red-team suite',
         requested_actions: ['build deterministic suite files', 'package validation artifacts'],
         artifact_expectations: ['changed source files', 'tarball package', 'dashboard artifacts'],
@@ -292,9 +290,9 @@ it('cstar_forge_execute blocks response-only adapters before spend for implement
     assert.strictEqual(parsed.forge_execution.fail_closed_reason, 'adapter_lacks_implementation_write_capability');
 });
 
-it('cstar_forge_execute treats repair/update/refactor language as implementation work', async () => {
+it('Forge adapter internals treat repair/update/refactor language as implementation work', async () => {
     process.env.CSTAR_FORGE_HERMES_MINIMAX_ADAPTER_SCRIPT = writeFakeForgeAdapter();
-    const result = await handleForgeExecute(validForgeExecuteRequest({
+    const result = await invokeForgeAdapterForTest(validForgeExecuteRequest({
         objective: 'Repair the dashboard workflow and update the reusable skill surface',
         requested_actions: ['refactor the implementation path'],
         artifact_expectations: ['source patch'],
@@ -308,11 +306,11 @@ it('cstar_forge_execute treats repair/update/refactor language as implementation
     assert.strictEqual(parsed.forge_execution.fail_closed_reason, 'adapter_lacks_implementation_write_capability');
 });
 
-it('cstar_forge_execute invokes the write-capable Forge worker adapter on bounded target roots', async () => {
+it('Forge adapter internals invoke the write-capable worker on bounded target roots', async () => {
     const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-worker-project-'));
     const suiteRoot = path.join(projectRoot, 'tests', 'truth-verification-red-team');
     fs.mkdirSync(suiteRoot, { recursive: true });
-    const modelResponse = path.join(projectRoot, 'model-response.json');
+    const modelResponse = path.join(suiteRoot, 'model-response.json');
     fs.writeFileSync(modelResponse, JSON.stringify({
         status: 'success',
         summary: 'Applied bounded test fixture.',
@@ -329,9 +327,10 @@ it('cstar_forge_execute invokes the write-capable Forge worker adapter on bounde
     process.env.CSTAR_FORGE_HERMES_MINIMAX_ADAPTER_SCRIPT = writeFakeForgeAdapter();
     const artifactRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'fake-forge-artifacts-'));
     process.env.CSTAR_FORGE_EXECUTION_ARTIFACT_ROOT = artifactRoot;
-    const result = await handleForgeExecute(validForgeExecuteRequest({
+    const result = await invokeForgeAdapterForTest(validForgeExecuteRequest({
         objective: 'Build bounded test fixture through the Forge worker adapter',
         target_paths: [suiteRoot],
+        required_output_paths: [path.join(suiteRoot, 'generated-fixture.json')],
         requested_actions: ['build deterministic suite files'],
         artifact_expectations: ['changed source files'],
         execution_adapter_ref: 'cstar-forge-hermes-minimax-worker-adapter',
@@ -352,7 +351,45 @@ it('cstar_forge_execute invokes the write-capable Forge worker adapter on bounde
     assert.strictEqual(fs.readFileSync(generatedPath, 'utf-8'), '{"ok":true}\n');
 });
 
-it('cstar_forge_execute worker adapter does not let a file target authorize sibling writes', async () => {
+it('Forge worker rejects incomplete required output manifests before writing any file', async () => {
+    const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-worker-incomplete-'));
+    const suiteRoot = path.join(projectRoot, 'src');
+    fs.mkdirSync(suiteRoot, { recursive: true });
+    const firstPath = path.join(suiteRoot, 'first.ts');
+    const missingPath = path.join(suiteRoot, 'second.ts');
+    const modelResponse = path.join(suiteRoot, 'model-response.json');
+    fs.writeFileSync(modelResponse, JSON.stringify({
+        status: 'success',
+        summary: 'Incorrectly claims a complete implementation.',
+        files: [{ path: 'first.ts', content: 'export const first = true;\n' }],
+        artifacts: {},
+        validation: { claimed: 'pass' },
+        metrics: { files_written: 1 },
+        boundaries: {},
+        callback_packet: 'TEST_FORGE_WORKER_PACKET',
+    }));
+    process.env.CSTAR_FORGE_WORKER_MODEL_RESPONSE = modelResponse;
+    process.env.CSTAR_FORGE_EXECUTION_ARTIFACT_ROOT = fs.mkdtempSync(
+        path.join(os.tmpdir(), 'fake-forge-artifacts-'),
+    );
+    const result = await invokeForgeAdapterForTest(validForgeExecuteRequest({
+        objective: 'Build both required implementation files',
+        target_paths: [suiteRoot],
+        required_output_paths: [firstPath, missingPath],
+        requested_actions: ['build both files'],
+        artifact_expectations: ['two changed source files'],
+        execution_adapter_ref: 'cstar-forge-hermes-minimax-worker-adapter',
+    }));
+    const parsed = JSON.parse(result.content[0].text);
+
+    assert.strictEqual(result.isError, true);
+    assert.strictEqual(parsed.status, 'adapter_degraded');
+    assert.match(parsed.forge_execution.adapter_result.envelope.degraded_reason, /missing_required_output/);
+    assert.strictEqual(fs.existsSync(firstPath), false);
+    assert.strictEqual(fs.existsSync(missingPath), false);
+});
+
+it('Forge adapter internals do not let a file target authorize sibling writes', async () => {
     const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-worker-project-'));
     const exactTarget = path.join(projectRoot, 'package.json');
     fs.writeFileSync(exactTarget, '{}\n');
@@ -367,13 +404,15 @@ it('cstar_forge_execute worker adapter does not let a file target authorize sibl
         validation: {},
         metrics: {},
         boundaries: {},
+        callback_packet: 'TEST_FORGE_WORKER_PACKET',
     }));
     process.env.CSTAR_FORGE_WORKER_MODEL_RESPONSE = modelResponse;
     const artifactRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'fake-forge-artifacts-'));
     process.env.CSTAR_FORGE_EXECUTION_ARTIFACT_ROOT = artifactRoot;
-    const result = await handleForgeExecute(validForgeExecuteRequest({
+    const result = await invokeForgeAdapterForTest(validForgeExecuteRequest({
         objective: 'Build bounded package update through the Forge worker adapter',
         target_paths: [exactTarget],
+        required_output_paths: [exactTarget],
         requested_actions: ['build package update'],
         artifact_expectations: ['changed source file'],
         execution_adapter_ref: 'cstar-forge-hermes-minimax-worker-adapter',
@@ -383,20 +422,21 @@ it('cstar_forge_execute worker adapter does not let a file target authorize sibl
     assert.strictEqual(parsed.status, 'adapter_degraded');
     assert.strictEqual(parsed.forge_execution.adapter_invoked, true);
     assert.strictEqual(parsed.forge_execution.live_spend, false);
-    assert.match(parsed.forge_execution.adapter_result.envelope.degraded_reason, /outside authorized target roots/);
+    assert.match(parsed.forge_execution.adapter_result.envelope.degraded_reason, /undeclared_output/);
     assert.strictEqual(fs.existsSync(path.join(projectRoot, 'not-package.json')), false);
 });
 
-it('cstar_forge_execute worker adapter asks delegates for files manifests, not files_changed packets', async () => {
+it('Forge adapter internals ask delegates for files manifests, not files_changed packets', async () => {
     const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-worker-project-'));
     const suiteRoot = path.join(projectRoot, 'tests', 'truth-verification-red-team');
     fs.mkdirSync(suiteRoot, { recursive: true });
-    process.env.CSTAR_FORGE_WORKER_DELEGATE_SCRIPT = writeInspectingForgeWorkerDelegate();
+    process.env.CSTAR_FORGE_HERMES_DELEGATE_SCRIPT = writeInspectingForgeWorkerDelegate();
     const artifactRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'fake-forge-artifacts-'));
     process.env.CSTAR_FORGE_EXECUTION_ARTIFACT_ROOT = artifactRoot;
-    const result = await handleForgeExecute(validForgeExecuteRequest({
+    const result = await invokeForgeAdapterForTest(validForgeExecuteRequest({
         objective: 'Build bounded test fixture through the Forge worker adapter',
         target_paths: [suiteRoot],
+        required_output_paths: [path.join(suiteRoot, 'generated-by-delegate.json')],
         requested_actions: ['build deterministic suite files'],
         artifact_expectations: ['changed source files'],
         execution_adapter_ref: 'cstar-forge-edit-files',
@@ -413,11 +453,11 @@ it('cstar_forge_execute worker adapter asks delegates for files manifests, not f
     assert.strictEqual(fs.readFileSync(generatedPath, 'utf-8'), '{"ok":true}\n');
 });
 
-it('cstar_forge_execute worker adapter explains files_changed manifest mistakes', async () => {
+it('Forge adapter internals explain files_changed manifest mistakes', async () => {
     const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-worker-project-'));
     const suiteRoot = path.join(projectRoot, 'tests', 'truth-verification-red-team');
     fs.mkdirSync(suiteRoot, { recursive: true });
-    const modelResponse = path.join(projectRoot, 'model-response.json');
+    const modelResponse = path.join(suiteRoot, 'model-response.json');
     fs.writeFileSync(modelResponse, JSON.stringify({
         status: 'success',
         summary: 'Wrong packet shape.',
@@ -430,9 +470,10 @@ it('cstar_forge_execute worker adapter explains files_changed manifest mistakes'
     process.env.CSTAR_FORGE_WORKER_MODEL_RESPONSE = modelResponse;
     const artifactRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'fake-forge-artifacts-'));
     process.env.CSTAR_FORGE_EXECUTION_ARTIFACT_ROOT = artifactRoot;
-    const result = await handleForgeExecute(validForgeExecuteRequest({
+    const result = await invokeForgeAdapterForTest(validForgeExecuteRequest({
         objective: 'Build bounded test fixture through the Forge worker adapter',
         target_paths: [suiteRoot],
+        required_output_paths: [path.join(suiteRoot, 'generated-fixture.json')],
         requested_actions: ['build deterministic suite files'],
         artifact_expectations: ['changed source files'],
         execution_adapter_ref: 'cstar-forge-hermes-minimax-worker-adapter',
@@ -443,58 +484,9 @@ it('cstar_forge_execute worker adapter explains files_changed manifest mistakes'
     assert.strictEqual(parsed.forge_execution.adapter_invoked, true);
     assert.match(
         parsed.forge_execution.adapter_result.envelope.degraded_reason,
-        /used files_changed; expected files array/,
+        /files_changed_legacy/,
     );
     assert.strictEqual(fs.existsSync(path.join(suiteRoot, 'generated-fixture.json')), false);
-});
-
-it('cstar_forge_execute fails closed when the adapter returns only an advisory packet', async () => {
-    process.env.CSTAR_FORGE_HERMES_MINIMAX_ADAPTER_SCRIPT = writeAdvisoryOnlyForgeAdapter();
-    const artifactRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'fake-forge-artifacts-'));
-    process.env.CSTAR_FORGE_EXECUTION_ARTIFACT_ROOT = artifactRoot;
-    const result = await handleForgeExecute(validForgeExecuteRequest());
-    assert.strictEqual(result.isError, true);
-    const parsed = JSON.parse(result.content[0].text);
-    assert.strictEqual(parsed.status, 'adapter_degraded');
-    assert.strictEqual(parsed.forge_execution.attempted, true);
-    assert.strictEqual(parsed.forge_execution.adapter_invoked, true);
-    assert.strictEqual(parsed.forge_execution.codex_worker_fallback_allowed, false);
-    assert.strictEqual(parsed.forge_execution.fail_closed_reason, 'adapter_degraded');
-    assert.strictEqual(parsed.forge_execution.adapter_result.status, 'degraded');
-    assert.strictEqual(parsed.forge_execution.adapter_result.error, 'adapter_response_missing_status');
-    assert.match(parsed.forge_execution.adapter_result.envelope.response_artifact.sha256, /^[a-f0-9]{64}$/);
-    assert.strictEqual(parsed.forge_execution.adapter_result.envelope.response_contract, null);
-});
-
-it('cstar_forge_execute fails closed when a success packet claims missing artifacts', async () => {
-    process.env.CSTAR_FORGE_HERMES_MINIMAX_ADAPTER_SCRIPT = writeMissingClaimForgeAdapter();
-    const artifactRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'fake-forge-artifacts-'));
-    process.env.CSTAR_FORGE_EXECUTION_ARTIFACT_ROOT = artifactRoot;
-    const result = await handleForgeExecute(validForgeExecuteRequest());
-    assert.strictEqual(result.isError, true);
-    const parsed = JSON.parse(result.content[0].text);
-    assert.strictEqual(parsed.status, 'adapter_degraded');
-    assert.strictEqual(parsed.forge_execution.fail_closed_reason, 'adapter_degraded');
-    assert.strictEqual(parsed.forge_execution.adapter_result.status, 'degraded');
-    assert.strictEqual(parsed.forge_execution.adapter_result.error, 'adapter_response_missing_claimed_path');
-    assert.match(parsed.forge_execution.adapter_result.envelope.response_artifact.sha256, /^[a-f0-9]{64}$/);
-    assert.strictEqual(parsed.forge_execution.adapter_result.envelope.response_contract, null);
-});
-
-it('cstar_forge_execute fails closed when an unknown execution adapter is requested', async () => {
-    const result = await handleForgeExecute(validForgeExecuteRequest({
-        execution_adapter_ref: 'unknown-forge-adapter',
-    }));
-    assert.strictEqual(result.isError, true);
-    const parsed = JSON.parse(result.content[0].text);
-    assert.strictEqual(parsed.status, 'blocked');
-    assert.strictEqual(parsed.authorized_dispatch_surface.found, true);
-    assert.strictEqual(parsed.authorized_execution_adapter.found, false);
-    assert.strictEqual(parsed.forge_execution.attempted, false);
-    assert.strictEqual(parsed.forge_execution.live_spend, false);
-    assert.strictEqual(parsed.forge_execution.adapter_invoked, false);
-    assert.strictEqual(parsed.forge_execution.codex_worker_fallback_allowed, false);
-    assert.strictEqual(parsed.forge_execution.fail_closed_reason, 'missing_authorized_execution_adapter');
 });
 
 });

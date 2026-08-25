@@ -16,10 +16,10 @@ describe('CortexLink kernel bridge', () => {
             },
         );
 
-        const response = await link.sendCommand('test_cmd', ['arg1'], '/my/cwd');
+        const response = await link.sendCommand('MATRIX_UPDATED', ['arg1'], '/my/cwd');
 
         assert.deepEqual(captured, {
-            command: 'test_cmd',
+            command: 'MATRIX_UPDATED',
             args: ['arg1'],
             cwd: '/my/cwd',
         });
@@ -71,5 +71,24 @@ describe('CortexLink kernel bridge', () => {
         );
 
         await assert.rejects(() => link.sendCommand('ping'), /Kernel bridge unavailable/);
+    });
+
+    it('rejects retired mutation commands before calling the executor', async () => {
+        let calls = 0;
+        const link = new CortexLink(50051, '127.0.0.1', undefined, async () => {
+            calls += 1;
+            return { status: 'success' };
+        });
+
+        await assert.rejects(
+            () => link.sendCommand('PHYSICAL_MOVE_REQUEST', ['a', 'b']),
+            /kernel_bridge_command_decommissioned/,
+        );
+        assert.equal(calls, 0);
+        assert.equal(await link.handleArchitectMove('a.ts', 'b.ts'), false);
+        await assert.rejects(
+            () => link.interceptWrite('a.ts', 'content'),
+            /cortex_write_path_decommissioned/,
+        );
     });
 });

@@ -27,9 +27,15 @@ const ACTIVE_PLANNING_STATUSES: HallPlanningSessionStatus[] = [
     'ROUTED',
 ];
 const FAILED_PLANNING_STATUSES: HallPlanningSessionStatus[] = ['FAILED'];
+const ACTIVE_PLANNING_SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1_000;
+const ACTIVE_LIFECYCLE_BEAD_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1_000;
+const ACTIVE_STATE_MAX_CLOCK_SKEW_MS = 5 * 60 * 1_000;
+
+type TraceOrigin = 'planning_session' | 'runtime_execution' | 'lifecycle_bead';
 
 export type TraceExecutionGate =
     | 'planning_active'
+    | 'work_active'
     | 'review_required'
     | 'worker_review_required'
     | 'operator_release_required'
@@ -73,17 +79,19 @@ export interface TraceContractPayload {
         protocol?: string;
         lens?: string;
         anti_behavior?: string[];
-        root_persona_directive?: string;
+        critique_instruction?: string;
         selection_reason?: string;
+        signature_question?: string;
     };
 }
 
 export interface TraceLineagePayload {
-    origin: 'planning_session' | 'runtime_execution';
+    origin: TraceOrigin;
     planning_session_id?: string;
     mission_id?: string;
     mission_bead_id?: string;
     runtime_bead_id?: string;
+    lifecycle_bead_id?: string;
     trace_scope?: string;
     trace_weave_id?: string;
     target_domain?: string;
@@ -120,10 +128,11 @@ export interface TraceAgentHandoffPayload {
 }
 
 export interface TraceStatusPayload {
-    origin?: 'planning_session' | 'runtime_execution';
+    origin?: TraceOrigin;
     trace_id?: string;
     session_id?: string;
     runtime_bead_id?: string;
+    lifecycle_bead_id?: string;
     mission_bead_id?: string;
     handle?: string;
     status: string;
@@ -190,17 +199,19 @@ export interface AuguryGuardrailPayload {
 
 export interface AuguryDoctorPayload {
     status: AuguryDiagnosticStatus;
-    score: number;
+    score: null;
+    score_source: 'not_measured';
     scope_ok: boolean;
     route_ok: boolean;
     expert_ok: boolean;
     mimir_ok: boolean;
-    noise_score: number;
+    noise_score: null;
+    noise_status: AuguryDiagnosticStatus;
     guardrail: AuguryGuardrailPayload;
     agent_next_action: string;
     warnings: string[];
     active?: {
-        origin?: 'planning_session' | 'runtime_execution';
+        origin?: TraceOrigin;
         handle?: string;
         status?: string;
         route?: string;
@@ -239,6 +250,8 @@ export interface AuguryExplainPayload {
         id?: string;
         label?: string;
         lens?: string;
+        signature_question?: string;
+        anti_behavior?: string[];
         selection_reason?: string;
         basis: string;
     };
@@ -253,8 +266,8 @@ export interface AuguryExplainPayload {
         basis: string;
     };
     confidence?: {
-        value?: number;
-        source: 'explicit_or_stored' | 'missing';
+        value: null;
+        source: 'not_measured';
         basis: string;
     };
     guardrail: AuguryGuardrailPayload;
@@ -423,8 +436,8 @@ function getTraceContractFromMetadata(metadata: Record<string, unknown> | undefi
             protocol: typeof expert.protocol === 'string' && expert.protocol.trim() ? expert.protocol.trim() : undefined,
             lens: typeof expert.lens === 'string' && expert.lens.trim() ? expert.lens.trim() : undefined,
             anti_behavior: antiBehavior.length > 0 ? antiBehavior : undefined,
-            root_persona_directive: typeof expert.root_persona_directive === 'string' && expert.root_persona_directive.trim()
-                ? expert.root_persona_directive.trim()
+            critique_instruction: typeof expert.critique_instruction === 'string' && expert.critique_instruction.trim()
+                ? expert.critique_instruction.trim()
                 : undefined,
             selection_reason: typeof expert.selection_reason === 'string' && expert.selection_reason.trim()
                 ? expert.selection_reason.trim()
@@ -437,7 +450,7 @@ function getTraceContractFromMetadata(metadata: Record<string, unknown> | undefi
 
 function getTraceLineageFromMetadata(
     metadata: Record<string, unknown> | undefined,
-    origin: 'planning_session' | 'runtime_execution',
+    origin: TraceOrigin,
     extras: Partial<TraceLineagePayload> = {},
 ): TraceLineagePayload | undefined {
     const planningSessionId = typeof extras.planning_session_id === 'string' && extras.planning_session_id.trim()
@@ -458,6 +471,9 @@ function getTraceLineageFromMetadata(
         : typeof metadata?.execution_bead_id === 'string' && metadata.execution_bead_id.trim()
             ? metadata.execution_bead_id.trim()
             : undefined;
+    const lifecycleBeadId = typeof extras.lifecycle_bead_id === 'string' && extras.lifecycle_bead_id.trim()
+        ? extras.lifecycle_bead_id.trim()
+        : undefined;
     const traceScope = typeof metadata?.trace_scope === 'string' && metadata.trace_scope.trim()
         ? metadata.trace_scope.trim()
         : undefined;
@@ -482,7 +498,7 @@ function getTraceLineageFromMetadata(
         ? metadata.trace_designation_source.trim()
         : undefined;
 
-    if (!planningSessionId && !missionId && !missionBeadId && !runtimeBeadId && !traceScope && !traceWeaveId && !targetDomain && !spokeName && !requestedRoot && !auguryDesignationSource && !traceDesignationSource) {
+    if (!planningSessionId && !missionId && !missionBeadId && !runtimeBeadId && !lifecycleBeadId && !traceScope && !traceWeaveId && !targetDomain && !spokeName && !requestedRoot && !auguryDesignationSource && !traceDesignationSource) {
         return undefined;
     }
 
@@ -492,6 +508,7 @@ function getTraceLineageFromMetadata(
         mission_id: missionId,
         mission_bead_id: missionBeadId,
         runtime_bead_id: runtimeBeadId,
+        lifecycle_bead_id: lifecycleBeadId,
         trace_scope: traceScope,
         trace_weave_id: traceWeaveId,
         target_domain: targetDomain,
@@ -549,10 +566,33 @@ function normalizeAuguryContractForActiveState(
     if (!contract) {
         return undefined;
     }
-    const intentCategory = inferIntentCategoryFromContract(contract, rootPath);
-    return intentCategory && !contract.intent_category
-        ? { ...contract, intent_category: intentCategory }
-        : contract;
+    const grammar = getRegistryIntentCategories(loadRegistryManifest(rootPath));
+    const inferredCategory = inferIntentCategoryFromContract(contract, rootPath);
+    const intentCategory = Object.keys(grammar).find(
+        (category) => category.toUpperCase() === inferredCategory?.trim().toUpperCase(),
+    );
+    if (!intentCategory) return undefined;
+    const config = grammar[intentCategory];
+    if (
+        (contract.selection_name && contract.selection_name.trim() !== config.default_path)
+        || (contract.selection_tier && contract.selection_tier.trim().toUpperCase() !== config.tier.toUpperCase())
+    ) {
+        return undefined;
+    }
+    const safeMimirTargets = (contract.mimirs_well ?? [])
+        .map((target) => target.trim())
+        .filter((target) => target.length > 0 && target.length <= 512 && /^[A-Za-z0-9_./:@+-]+$/.test(target))
+        .slice(0, 20);
+    return {
+        ...contract,
+        intent_category: intentCategory,
+        selection_tier: config.tier,
+        selection_name: config.default_path,
+        mimirs_well: safeMimirTargets,
+        confidence: undefined,
+        gungnir_verdict: undefined,
+        council_expert: undefined,
+    };
 }
 
 function attachCouncilExpertToAuguryContract(
@@ -562,26 +602,25 @@ function attachCouncilExpertToAuguryContract(
         return undefined;
     }
     const normalized: TraceContractPayload = { ...contract };
-    if (!normalized.council_expert?.label && !normalized.council_expert?.id) {
-        const expert = selectCouncilExpert({
-            intent_category: normalized.intent_category,
-            intent: normalized.intent,
-            selection_tier: normalized.selection_tier,
-            selection_name: normalized.selection_name,
-            canonical_intent: normalized.canonical_intent,
-            mimirs_well: normalized.mimirs_well,
-        });
-        normalized.council_expert = {
-            id: expert.id,
-            label: expert.label,
-            profile: expert.profile,
-            protocol: expert.protocol,
-            lens: expert.lens,
-            anti_behavior: expert.anti_behavior,
-            root_persona_directive: expert.root_persona_directive,
-            selection_reason: expert.selection_reason,
-        };
-    }
+    const expert = selectCouncilExpert({
+        intent_category: normalized.intent_category,
+        intent: normalized.intent,
+        selection_tier: normalized.selection_tier,
+        selection_name: normalized.selection_name,
+        canonical_intent: normalized.canonical_intent,
+        mimirs_well: normalized.mimirs_well,
+    });
+    normalized.council_expert = {
+        id: expert.id,
+        label: expert.label,
+        profile: expert.profile,
+        protocol: expert.protocol,
+        lens: expert.lens,
+        anti_behavior: [...expert.anti_behavior],
+        critique_instruction: expert.critique_instruction,
+        selection_reason: expert.selection_reason,
+        signature_question: expert.signature_question,
+    };
     return normalized;
 }
 
@@ -598,7 +637,7 @@ function isUsableActiveAuguryContract(
 
 function resolveSelectionTierForAugury(tier: string | undefined): string {
     const normalized = tier?.trim().toUpperCase();
-    return normalized === 'WEAVE' || normalized === 'SPELL' ? normalized : 'SKILL';
+    return ['PRIME', 'WEAVE', 'SPELL', 'SKILL'].includes(normalized ?? '') ? normalized! : 'SKILL';
 }
 
 function synthesizePlanningAuguryContract(
@@ -629,7 +668,6 @@ function synthesizePlanningAuguryContract(
         trajectory_status: 'STABLE',
         trajectory_reason: 'Active planning state synthesized a typed Augury route from registry intent grammar.',
         mimirs_well: mimirsWell.length > 0 ? mimirsWell : ['AGENTS.qmd'],
-        confidence: 0.68,
         canonical_intent: session.normalized_intent || session.user_intent,
     };
 }
@@ -656,7 +694,9 @@ export function hydratePlanningSession(
 
 export function resolveActivePlanningSession(rootPath: string): HallPlanningSessionRecord | null {
     const active = database.listHallPlanningSessions(rootPath, { statuses: ACTIVE_PLANNING_STATUSES });
-    return hydratePlanningSession(active[0] ?? database.listHallPlanningSessions(rootPath)[0] ?? null, rootPath);
+    const now = Date.now();
+    const current = active.find((session) => isFreshActiveState(session.updated_at, now, ACTIVE_PLANNING_SESSION_MAX_AGE_MS));
+    return hydratePlanningSession(current ?? null, rootPath);
 }
 
 function resolveFailedPlanningSessions(rootPath: string, limit: number): HallPlanningSessionRecord[] {
@@ -665,7 +705,14 @@ function resolveFailedPlanningSessions(rootPath: string, limit: number): HallPla
         .map((session) => hydratePlanningSession(session, rootPath) ?? session);
 }
 
-function rankRuntimeTraceBead(bead: SovereignBead): number {
+function isFreshActiveState(updatedAt: number, now: number, maxAgeMs: number): boolean {
+    return Number.isFinite(updatedAt)
+        && updatedAt > 0
+        && updatedAt >= now - maxAgeMs
+        && updatedAt <= now + ACTIVE_STATE_MAX_CLOCK_SKEW_MS;
+}
+
+function rankLifecycleBead(bead: SovereignBead): number {
     switch (bead.status) {
         case 'IN_PROGRESS':
             return 0;
@@ -681,21 +728,22 @@ function rankRuntimeTraceBead(bead: SovereignBead): number {
     }
 }
 
-function resolveLatestRuntimeTraceBead(rootPath: string): SovereignBead | null {
+function resolveLatestLifecycleBead(rootPath: string): SovereignBead | null {
+    const now = Date.now();
     const beads = database.getHallBeads(rootPath)
-        .filter((bead) => bead.id.includes(':exec:'))
-        .filter((bead) => bead.status !== 'ARCHIVED' && bead.status !== 'SUPERSEDED')
+        .filter((bead) => !['RESOLVED', 'ARCHIVED', 'SUPERSEDED'].includes(bead.status))
+        // SET/SET-PENDING are authorized backlog, not proof of an active mission.
+        // A bead becomes current only after claim/execution or when it reaches an
+        // operator-visible review/blocker state.
+        .filter((bead) => ['IN_PROGRESS', 'READY_FOR_REVIEW', 'BLOCKED', 'NEEDS_TRIAGE'].includes(bead.status))
         .filter((bead) => (bead.metadata as Record<string, unknown> | undefined)?.archived !== true)
-        .filter((bead) => isUsableActiveAuguryContract(
-            getTraceContractFromMetadata(bead.metadata as Record<string, unknown> | undefined),
-            rootPath,
-        ))
+        .filter((bead) => isFreshActiveState(bead.updated_at, now, ACTIVE_LIFECYCLE_BEAD_MAX_AGE_MS))
         .sort((left, right) => {
             const updatedDiff = Number(right.updated_at ?? 0) - Number(left.updated_at ?? 0);
             if (updatedDiff !== 0) {
                 return updatedDiff;
             }
-            const rankDiff = rankRuntimeTraceBead(left) - rankRuntimeTraceBead(right);
+            const rankDiff = rankLifecycleBead(left) - rankLifecycleBead(right);
             if (rankDiff !== 0) {
                 return rankDiff;
             }
@@ -704,10 +752,23 @@ function resolveLatestRuntimeTraceBead(rootPath: string): SovereignBead | null {
     return beads[0] ?? null;
 }
 
-function deriveRuntimeExecutionGate(status: SovereignBead['status']): TraceExecutionGate {
+function isTrustedRuntimeExecutionBead(bead: SovereignBead): boolean {
+    const metadata = bead.metadata as Record<string, unknown> | undefined;
+    return bead.source_kind === 'SYSTEM'
+        && (bead.target_kind === 'SKILL' || bead.target_kind === 'WEAVE')
+        && metadata?.trace_scope === 'runtime'
+        && typeof metadata.execution_bead_id === 'string'
+        && metadata.execution_bead_id.trim() === bead.id
+        && typeof metadata.mission_bead_id === 'string'
+        && metadata.mission_bead_id.trim().length > 0
+        && typeof metadata.trace_id === 'string'
+        && metadata.trace_id.trim().length > 0;
+}
+
+function deriveLifecycleExecutionGate(status: SovereignBead['status'], runtimeExecution: boolean): TraceExecutionGate {
     switch (status) {
         case 'IN_PROGRESS':
-            return 'execution_guarded';
+            return runtimeExecution ? 'execution_guarded' : 'work_active';
         case 'READY_FOR_REVIEW':
             return 'review_required';
         case 'BLOCKED':
@@ -720,41 +781,46 @@ function deriveRuntimeExecutionGate(status: SovereignBead['status']): TraceExecu
     }
 }
 
-function buildRuntimeNextAction(bead: SovereignBead, hostContext: TraceHostContextPayload | undefined): string {
-    if (hostContext?.note) {
-        return hostContext.note;
-    }
-
+function buildLifecycleNextAction(bead: SovereignBead, runtimeExecution: boolean): string {
     switch (bead.status) {
         case 'IN_PROGRESS':
-            return 'Inspect the live execution bead and wait for the bounded command to complete before issuing follow-on work.';
+            return runtimeExecution
+                ? 'Inspect the live execution bead and wait for the bounded command to complete before issuing follow-on work.'
+                : 'Continue the claimed lifecycle work within its bead scope; this is active work state, not proof of a running command.';
         case 'READY_FOR_REVIEW':
-            return 'Review the finished execution bead, validate the touched target, and only then promote or supersede follow-up work.';
+            return runtimeExecution
+                ? 'Review the finished execution bead, validate the touched target, and only then promote or supersede follow-up work.'
+                : 'Review the lifecycle bead evidence and record an authoritative validation before resolution.';
         case 'BLOCKED':
         case 'NEEDS_TRIAGE':
-            return 'Inspect the failed execution bead, identify the broken boundary, and recast the work instead of retrying blindly.';
+            return runtimeExecution
+                ? 'Inspect the failed execution bead, identify the broken boundary, and recast the work instead of retrying blindly.'
+                : 'Repair or triage the blocked lifecycle bead before treating it as current execution authority.';
         case 'RESOLVED':
             return 'Review the completed execution bead and seed any follow-up Hall work explicitly.';
         default:
-            return 'Inspect the runtime execution bead and determine the next bounded action.';
+            return runtimeExecution
+                ? 'Inspect the runtime execution bead and determine the next bounded action.'
+                : 'Inspect the lifecycle bead and choose the next bounded action.';
     }
 }
 
-function buildRuntimeTraceHandoffPayload(bead: SovereignBead, rootPath: string): TraceAgentHandoffPayload {
+function buildLifecycleBeadHandoffPayload(bead: SovereignBead, rootPath: string): TraceAgentHandoffPayload {
     const metadata = bead.metadata as Record<string, unknown> | undefined;
     const hostContext = getHostContextFromMetadata(metadata);
-    const traceContract = normalizeAuguryContractForActiveState(
+    const runtimeExecution = isTrustedRuntimeExecutionBead(bead);
+    const traceContract = attachCouncilExpertToAuguryContract(normalizeAuguryContractForActiveState(
         getTraceContractFromMetadata(metadata),
         rootPath,
-    );
+    ));
     const missionBeadId = typeof metadata?.mission_bead_id === 'string' && metadata.mission_bead_id.trim()
         ? metadata.mission_bead_id.trim()
         : undefined;
-    const gate = deriveRuntimeExecutionGate(bead.status);
+    const gate = deriveLifecycleExecutionGate(bead.status, runtimeExecution);
     return {
         execution_gate: gate,
         phase: bead.status,
-        next_action: buildRuntimeNextAction(bead, hostContext),
+        next_action: buildLifecycleNextAction(bead, runtimeExecution),
         resume_command: `cstar hall "${missionBeadId ?? bead.id}"`,
         lead_bead_id: bead.id,
         target_paths: bead.target_path ? [bead.target_path] : [],
@@ -776,28 +842,27 @@ function buildRuntimeTraceHandoffPayload(bead: SovereignBead, rootPath: string):
     };
 }
 
-function buildRuntimeTraceStatusPayload(bead: SovereignBead, rootPath: string): TraceStatusPayload {
+function buildLifecycleBeadStatusPayload(bead: SovereignBead, rootPath: string): TraceStatusPayload {
     const metadata = bead.metadata as Record<string, unknown> | undefined;
-    const handoff = buildRuntimeTraceHandoffPayload(bead, rootPath);
-    const traceContract = normalizeAuguryContractForActiveState(
-        getTraceContractFromMetadata(metadata),
-        rootPath,
-    );
+    const handoff = buildLifecycleBeadHandoffPayload(bead, rootPath);
+    const traceContract = handoff.designation;
     const failureError = typeof metadata?.execution_error === 'string' && metadata.execution_error.trim()
         ? metadata.execution_error.trim()
         : undefined;
     const missionBeadId = typeof metadata?.mission_bead_id === 'string' && metadata.mission_bead_id.trim()
         ? metadata.mission_bead_id.trim()
         : undefined;
-    const lineage = getTraceLineageFromMetadata(metadata, 'runtime_execution', {
+    const runtimeExecution = isTrustedRuntimeExecutionBead(bead);
+    const origin: TraceOrigin = runtimeExecution ? 'runtime_execution' : 'lifecycle_bead';
+    const lineage = getTraceLineageFromMetadata(metadata, origin, {
         mission_bead_id: missionBeadId,
-        runtime_bead_id: bead.id,
+        ...(runtimeExecution ? { runtime_bead_id: bead.id } : { lifecycle_bead_id: bead.id }),
     });
 
     return {
-        origin: 'runtime_execution',
+        origin,
         trace_id: typeof metadata?.trace_id === 'string' && metadata.trace_id.trim() ? metadata.trace_id.trim() : undefined,
-        runtime_bead_id: bead.id,
+        ...(runtimeExecution ? { runtime_bead_id: bead.id } : { lifecycle_bead_id: bead.id }),
         mission_bead_id: missionBeadId,
         handle: bead.id,
         status: bead.status,
@@ -974,8 +1039,8 @@ export function buildTraceAgentHandoffPayload(
 ): TraceAgentHandoffPayload | null {
     const hydrated = hydratePlanningSession(session, rootPath);
     if (!hydrated) {
-        const runtimeBead = resolveLatestRuntimeTraceBead(rootPath);
-        return runtimeBead ? buildRuntimeTraceHandoffPayload(runtimeBead, rootPath) : null;
+        const lifecycleBead = resolveLatestLifecycleBead(rootPath);
+        return lifecycleBead ? buildLifecycleBeadHandoffPayload(lifecycleBead, rootPath) : null;
     }
 
     const digest = getPlanningBranchDigest(hydrated);
@@ -988,11 +1053,14 @@ export function buildTraceAgentHandoffPayload(
     const leadBeadId = hydrated.current_bead_id?.trim() || beadIds[0];
     const gate = deriveExecutionGate(hydrated.status);
     const checkerShells = uniqueStrings(workItems.map((item) => item.checker_shell ?? '').filter(Boolean));
-    const nextAction = hostContext?.note || buildDefaultNextAction(hydrated, gate, failure);
+    const nextAction = buildDefaultNextAction(hydrated, gate, failure);
     const validationCommand = checkerShells[0];
     const targetPaths = collectTargetPaths(rootPath, beads, digest);
-    const traceContract = normalizeAuguryContractForActiveState(getTraceContract(hydrated), rootPath)
-        ?? synthesizePlanningAuguryContract(hydrated, rootPath, targetPaths);
+    const storedTraceContract = getTraceContract(hydrated);
+    const normalizedStoredTraceContract = normalizeAuguryContractForActiveState(storedTraceContract, rootPath);
+    const traceContract = attachCouncilExpertToAuguryContract(storedTraceContract
+        ? normalizedStoredTraceContract
+        : synthesizePlanningAuguryContract(hydrated, rootPath, targetPaths));
 
     return {
         execution_gate: gate,
@@ -1178,7 +1246,7 @@ function buildScopeCheck(payload: TraceStatusPayload | null, rootPath: string): 
 }
 
 function buildRouteCheck(contract: TraceContractPayload | undefined): AuguryDiagnosticCheck {
-    const allowedTiers = new Set(['SKILL', 'WEAVE', 'SPELL']);
+    const allowedTiers = new Set(['PRIME', 'SKILL', 'WEAVE', 'SPELL']);
     const missing = [
         contract?.intent_category ? '' : 'intent_category',
         contract?.intent ? '' : 'intent',
@@ -1248,28 +1316,19 @@ function buildNoiseCheck(
     checks: Array<AuguryDiagnosticCheck>,
     payload: TraceStatusPayload | null,
     contract: TraceContractPayload | undefined,
-): { check: AuguryDiagnosticCheck; noiseScore: number } {
-    const warningPenalty = checks.filter((check) => check.status === 'warn').length * 15;
-    const failurePenalty = checks.filter((check) => check.status === 'fail').length * 35;
-    const mimirPenalty = Math.max(0, (contract?.mimirs_well.length ?? 0) - 3) * 10;
-    const targetPenalty = Math.max(0, (payload?.agent_handoff.target_paths.length ?? 0) - 5) * 5;
-    const noiseScore = Math.min(100, warningPenalty + failurePenalty + mimirPenalty + targetPenalty);
-    if (noiseScore >= 70) {
-        return {
-            noiseScore,
-            check: makeAuguryCheck('fail', 'Augury has too much diagnostic risk for safe agent routing.', { noise_score: noiseScore }),
-        };
+): { check: AuguryDiagnosticCheck; noiseStatus: AuguryDiagnosticStatus } {
+    const failureCount = checks.filter((check) => check.status === 'fail').length;
+    const warningCount = checks.filter((check) => check.status === 'warn').length;
+    const excessiveMimirTargets = (contract?.mimirs_well.length ?? 0) > 3;
+    const excessiveHandoffTargets = (payload?.agent_handoff.target_paths.length ?? 0) > 5;
+    const details = { failure_count: failureCount, warning_count: warningCount, excessive_mimir_targets: excessiveMimirTargets, excessive_handoff_targets: excessiveHandoffTargets };
+    if (failureCount > 0) {
+        return { noiseStatus: 'fail', check: makeAuguryCheck('fail', 'Augury has failed routing checks.', details) };
     }
-    if (noiseScore > 25) {
-        return {
-            noiseScore,
-            check: makeAuguryCheck('warn', 'Augury is usable but has avoidable routing noise.', { noise_score: noiseScore }),
-        };
+    if (warningCount > 0 || excessiveMimirTargets || excessiveHandoffTargets) {
+        return { noiseStatus: 'warn', check: makeAuguryCheck('warn', 'Augury has explicit bounded routing warnings.', details) };
     }
-    return {
-        noiseScore,
-        check: makeAuguryCheck('pass', 'Augury is compact enough for agent use.', { noise_score: noiseScore }),
-    };
+    return { noiseStatus: 'pass', check: makeAuguryCheck('pass', 'Augury routing checks are compact and explicit.', details) };
 }
 
 function getAuguryWarnings(checks: Record<string, AuguryDiagnosticCheck>): string[] {
@@ -1343,18 +1402,19 @@ function buildAuguryDoctorFromStatus(payload: TraceStatusPayload | null, rootPat
     const status: AuguryDiagnosticStatus = statuses.includes('fail')
         ? 'fail'
         : statuses.includes('warn') ? 'warn' : 'pass';
-    const score = Math.max(0, 100 - noise.noiseScore);
     const inferredScope = inferAuguryScope(payload, rootPath);
     const guardrail = buildAuguryGuardrail(checks, status);
 
     return {
         status,
-        score,
+        score: null,
+        score_source: 'not_measured',
         scope_ok: scope.status === 'pass',
         route_ok: route.status === 'pass',
         expert_ok: expert.status === 'pass',
         mimir_ok: mimir.status === 'pass',
-        noise_score: noise.noiseScore,
+        noise_score: null,
+        noise_status: noise.noiseStatus,
         guardrail,
         agent_next_action: status === 'fail'
             ? 'Repair the Augury contract before editing or dispatching work.'
@@ -1423,6 +1483,8 @@ function buildAuguryExplainFromStatus(payload: TraceStatusPayload | null, rootPa
             id: contract.council_expert?.id,
             label: contract.council_expert?.label,
             lens: contract.council_expert?.lens ?? contract.council_expert?.protocol,
+            signature_question: contract.council_expert?.signature_question,
+            anti_behavior: contract.council_expert?.anti_behavior?.slice(0, 3),
             selection_reason: contract.council_expert?.selection_reason,
             basis: contract.council_expert?.selection_reason
                 ? 'council expert selection reason'
@@ -1439,9 +1501,9 @@ function buildAuguryExplainFromStatus(payload: TraceStatusPayload | null, rootPa
             basis: 'Host prompts use full Augury once per session/planning key, then lite Augury for subsequent calls.',
         },
         confidence: {
-            value: contract.confidence,
-            source: typeof contract.confidence === 'number' ? 'explicit_or_stored' : 'missing',
-            basis: 'Confidence is retained for learning metadata and is not displayed in Augury prompt blocks.',
+            value: null,
+            source: 'not_measured',
+            basis: 'No calibrated route-confidence scorer ran; deterministic provenance is reported instead.',
         },
         guardrail: doctor.guardrail,
         agent_next_action: payload.agent_handoff.next_action,
@@ -1458,7 +1520,7 @@ export function buildAuguryExplainPayload(
 
 function renderAuguryDoctorLines(payload: AuguryDoctorPayload): string[] {
     const lines = [
-        chalk.cyan(`[AUGURY_DOCTOR] status=${payload.status} score=${payload.score} noise=${payload.noise_score}`),
+        chalk.cyan(`[AUGURY_DOCTOR] status=${payload.status} score=not_measured noise=${payload.noise_status}`),
         chalk.dim(`next=${payload.agent_next_action}`),
     ];
     for (const [name, check] of Object.entries(payload.checks)) {
@@ -1490,8 +1552,8 @@ function renderAuguryExplainLines(payload: AuguryExplainPayload): string[] {
 export function buildTraceStatusPayload(session: HallPlanningSessionRecord | null, rootPath: string): TraceStatusPayload | null {
     const hydrated = hydratePlanningSession(session, rootPath);
     if (!hydrated) {
-        const runtimeBead = resolveLatestRuntimeTraceBead(rootPath);
-        return runtimeBead ? buildRuntimeTraceStatusPayload(runtimeBead, rootPath) : null;
+        const lifecycleBead = resolveLatestLifecycleBead(rootPath);
+        return lifecycleBead ? buildLifecycleBeadStatusPayload(lifecycleBead, rootPath) : null;
     }
 
     const digest = getPlanningBranchDigest(hydrated);
@@ -1540,24 +1602,32 @@ export function buildTraceStatusPayload(session: HallPlanningSessionRecord | nul
     };
 }
 
-function resolveActiveTraceStatusPayload(rootPath: string): TraceStatusPayload | null {
+export function resolveActiveTraceStatusPayload(rootPath: string): TraceStatusPayload | null {
     const planningPayload = buildTraceStatusPayload(resolveActivePlanningSession(rootPath), rootPath);
-    const runtimeBead = resolveLatestRuntimeTraceBead(rootPath);
-    const runtimePayload = runtimeBead ? buildRuntimeTraceStatusPayload(runtimeBead, rootPath) : null;
+    const lifecycleBead = resolveLatestLifecycleBead(rootPath);
+    const lifecyclePayload = lifecycleBead ? buildLifecycleBeadStatusPayload(lifecycleBead, rootPath) : null;
 
     if (!planningPayload) {
-        return runtimePayload;
+        return lifecyclePayload;
     }
-    if (!runtimePayload) {
+    if (!lifecyclePayload) {
         return planningPayload;
     }
-    return runtimePayload.updated_at > planningPayload.updated_at
-        ? runtimePayload
+    return lifecyclePayload.updated_at > planningPayload.updated_at
+        ? lifecyclePayload
         : planningPayload;
 }
 
 export function resolveActiveTraceHandoffPayload(rootPath: string): TraceAgentHandoffPayload | null {
     return resolveActiveTraceStatusPayload(rootPath)?.agent_handoff ?? null;
+}
+
+export function buildActiveAuguryDoctorPayload(rootPath: string): AuguryDoctorPayload {
+    return buildAuguryDoctorFromStatus(resolveActiveTraceStatusPayload(rootPath), rootPath);
+}
+
+export function buildActiveAuguryExplainPayload(rootPath: string): AuguryExplainPayload {
+    return buildAuguryExplainFromStatus(resolveActiveTraceStatusPayload(rootPath), rootPath);
 }
 
 export function renderTraceStatusLines(session: HallPlanningSessionRecord | null, rootPath: string): string[] {

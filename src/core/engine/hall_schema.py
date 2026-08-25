@@ -3,6 +3,7 @@ from __future__ import annotations
 import contextlib
 import json
 import sqlite3
+import time
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Literal
@@ -263,16 +264,34 @@ class HallOfRecords:
         conn = sqlite3.connect(self.db_path, timeout=self.BUSY_TIMEOUT_MS / 1000)
         conn.row_factory = sqlite3.Row
         # Configure SQLite for concurrent read/write workloads on the Hall DB.
-        conn.execute("PRAGMA journal_mode=WAL")
         conn.execute(f"PRAGMA busy_timeout={self.BUSY_TIMEOUT_MS}")
-        conn.execute("PRAGMA synchronous=NORMAL")
-        conn.execute("PRAGMA foreign_keys=ON")
+        deadline = time.monotonic() + (self.BUSY_TIMEOUT_MS / 1000)
+        try:
+            while True:
+                try:
+                    current_mode = str(conn.execute("PRAGMA journal_mode").fetchone()[0]).lower()
+                    if current_mode != "wal":
+                        selected_mode = str(conn.execute("PRAGMA journal_mode=WAL").fetchone()[0]).lower()
+                        if selected_mode != "wal":
+                            raise RuntimeError("Hall database refused WAL journal mode")
+                    break
+                except sqlite3.OperationalError as exc:
+                    if "locked" not in str(exc).lower() or time.monotonic() >= deadline:
+                        raise
+                    time.sleep(min(0.01, max(0.0, deadline - time.monotonic())))
+            conn.execute("PRAGMA synchronous=NORMAL")
+            conn.execute("PRAGMA foreign_keys=ON")
+        except BaseException:
+            conn.close()
+            raise
         return conn
 
     def ensure_schema(self) -> None:
         with self.connect() as conn:
             conn.executescript(
                 """
+                BEGIN IMMEDIATE;
+
                 CREATE TABLE IF NOT EXISTS hall_repositories (
                     repo_id TEXT PRIMARY KEY,
                     root_path TEXT UNIQUE NOT NULL,
@@ -447,55 +466,6 @@ class HallOfRecords:
 
                 CREATE INDEX IF NOT EXISTS idx_hall_planning_repo
                 ON hall_planning_sessions(repo_id, updated_at);
-
-                DROP VIEW IF EXISTS hall_repository_projection;
-                CREATE VIEW hall_repository_projection AS
-                SELECT
-                    r.repo_id,
-                    r.root_path,
-                    r.name,
-                    r.status,
-                    r.active_persona,
-                    r.baseline_gungnir_score,
-                    r.intent_integrity,
-                    (
-                        SELECT s.scan_id
-                        FROM hall_scans s
-                        WHERE s.repo_id = r.repo_id
-                        ORDER BY COALESCE(s.completed_at, s.started_at) DESC
-                        LIMIT 1
-                    ) AS last_scan_id,
-                    (
-                        SELECT s.status
-                        FROM hall_scans s
-                        WHERE s.repo_id = r.repo_id
-                        ORDER BY COALESCE(s.completed_at, s.started_at) DESC
-                        LIMIT 1
-                    ) AS last_scan_status,
-                    (
-                        SELECT COALESCE(s.completed_at, s.started_at)
-                        FROM hall_scans s
-                        WHERE s.repo_id = r.repo_id
-                        ORDER BY COALESCE(s.completed_at, s.started_at) DESC
-                        LIMIT 1
-                    ) AS last_scan_at,
-                    (
-                        SELECT COUNT(*)
-                        FROM hall_beads b
-                        WHERE b.repo_id = r.repo_id
-                          AND b.status IN ('OPEN', 'SET-PENDING', 'SET', 'IN_PROGRESS', 'READY_FOR_REVIEW')
-                    ) AS open_beads,
-                    (
-                        SELECT COUNT(*)
-                        FROM hall_validation_runs v
-                        WHERE v.repo_id = r.repo_id
-                    ) AS validation_runs,
-                    (
-                        SELECT MAX(v.created_at)
-                        FROM hall_validation_runs v
-                        WHERE v.repo_id = r.repo_id
-                    ) AS last_validation_at
-                FROM hall_repositories r;
                 """
             )
             self._ensure_column(conn, "hall_beads", "target_kind", "TEXT NOT NULL DEFAULT 'FILE'")
@@ -518,9 +488,9 @@ class HallOfRecords:
             self._ensure_column(conn, "hall_planning_sessions", "architect_opinion", "TEXT")
             self._ensure_column(conn, "hall_planning_sessions", "current_bead_id", "TEXT")
             self._ensure_column(conn, "hall_planning_sessions", "metadata_json", "TEXT")
-            conn.executescript(
+            conn.execute("DROP VIEW IF EXISTS hall_repository_projection")
+            conn.execute(
                 """
-                DROP VIEW IF EXISTS hall_repository_projection;
                 CREATE VIEW hall_repository_projection AS
                 SELECT
                     r.repo_id,

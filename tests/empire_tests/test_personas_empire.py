@@ -1,7 +1,6 @@
 
 import sys
 from pathlib import Path
-from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -10,7 +9,12 @@ PROJECT_ROOT = Path(__file__).parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.core.personas import AlfredStrategy, OdinStrategy, PersonaStrategy, get_strategy
+from src.core.personas import (
+    AlfredStrategy,
+    OdinStrategy,
+    PersonaAuthorityBoundaryError,
+    get_strategy,
+)
 
 
 class TestPersonasEmpire:
@@ -25,37 +29,25 @@ class TestPersonasEmpire:
         strategy = get_strategy("UNKNOWN", ".")
         assert isinstance(strategy, AlfredStrategy) # Default
 
-    @patch("src.core.personas.Path.exists")
-    @patch("src.core.personas.shutil.move")
-    def test_quarantine_logic(self, mock_move, mock_exists):
-        strategy = PersonaStrategy("dummy_root")
+    @pytest.mark.parametrize(
+        ("method_name", "args"),
+        [
+            ("enforce_policy", ()),
+            ("retheme_docs", ()),
+            ("_quarantine", ("AGENTS.md",)),
+            ("_sync_configs", ("ODIN",)),
+            ("_create_cursor_rules", (".cursorrules",)),
+            ("_create_standard_agents", ("AGENTS.md",)),
+            ("_create_minimal_agents", ("AGENTS.md",)),
+        ],
+    )
+    def test_legacy_authority_mutation_methods_fail_closed(self, tmp_path, method_name, args):
+        strategy = OdinStrategy(tmp_path)
 
-        # File exists
-        mock_exists.return_value = True
+        with pytest.raises(PersonaAuthorityBoundaryError):
+            getattr(strategy, method_name)(*args)
 
-        with patch("src.core.personas.Path.mkdir") as mock_mkdir:
-            result = strategy._quarantine("some_file.txt")
-
-            assert result is not None
-            assert ".corvus_quarantine" in str(result)
-            mock_mkdir.assert_called()
-            mock_move.assert_called()
-
-    @patch("src.core.personas.OdinStrategy._get_sovereign_state")
-    @patch("builtins.open", new_callable=MagicMock)
-    @patch("src.core.personas.Path.exists", return_value=True) # Avoid trying to create files if we say they exist
-    def test_odin_policy_defiance(self, mock_exists, mock_open, mock_state):
-        strategy = OdinStrategy("dummy_root")
-
-        # Case 1: Defiance detected
-        mock_state.return_value = {"some_module": "DEFIANCE"}
-        context = strategy.enforce_policy()
-        assert context["compliance_breach"] is True
-
-        # Case 2: Compliance
-        mock_state.return_value = {"some_module": "COMPLIANT"}
-        context = strategy.enforce_policy()
-        assert context["compliance_breach"] is False
+        assert list(tmp_path.iterdir()) == []
 
     def test_voices(self):
         odin = OdinStrategy(".")
@@ -64,21 +56,13 @@ class TestPersonasEmpire:
         assert odin.get_voice() == "odin"
         assert alfred.get_voice() == "alfred"
 
-    @patch("src.core.personas.Path.read_text")
-    def test_sync_configs_alfred(self, mock_read):
-        # Odin and Alfred usually share _sync_configs from base, but check implementation
-        strategy = AlfredStrategy("dummy_root")
+    def test_style_context_is_advisory_and_contains_no_policy_directive(self):
+        context = OdinStrategy(".").get_style_context()
 
-        mock_read.return_value = '{"persona": "OLD"}'
-
-        with patch("src.core.personas.Path.write_text") as mock_write:
-            with patch("src.core.personas.Path.exists", return_value=True):
-                strategy._sync_configs("ALFRED")
-
-                mock_write.assert_called()
-                args, _ = mock_write.call_args
-                content = args[0]
-                assert '"persona": "ALFRED"' in content
+        assert context["persona"] == "ODIN"
+        assert context["voice"] == "odin"
+        assert context["domain_emphasis"]
+        assert set(context) == {"persona", "voice", "tone", "domain_emphasis"}
 
 if __name__ == "__main__":
     pytest.main([__file__])

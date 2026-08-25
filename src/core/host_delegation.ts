@@ -16,10 +16,9 @@ import {
 
 const execFileAsync = promisify(execFile);
 const DEFAULT_DELEGATE_MAX_BUFFER = 10 * 1024 * 1024;
-const DEFAULT_DELEGATE_REASONING_EFFORT = 'medium';
 
 export type DelegatedExecutionBoundary = 'subagent';
-export type DelegatedExecutionTaskKind = 'research' | 'implementation' | 'verification' | 'critique';
+export type DelegatedExecutionTaskKind = 'research' | 'verification' | 'critique';
 export type DelegatedExecutionStatus = 'queued' | 'running' | 'completed' | 'failed' | 'cancelled';
 
 export interface DelegatedExecutionRequest {
@@ -131,95 +130,13 @@ function parseBridgeResult(raw: string): DelegatedExecutionHandle | DelegatedExe
     return parsed as DelegatedExecutionHandle | DelegatedExecutionResult;
 }
 
-async function invokeProviderNativeDelegation(
-    provider: HostProvider,
-    request: DelegatedExecutionRequest,
-    env: NodeJS.ProcessEnv,
-    execRunner: NonNullable<HostDelegationDependencies['execRunner']>,
-): Promise<DelegatedExecutionResult> {
-    const delegatedPrompt = buildHostSubagentPrompt(
-        request.subagent_profile ?? 'backend',
-        request.prompt,
-        request,
+function assertAdvisoryTaskKind(taskKind: unknown): asserts taskKind is DelegatedExecutionTaskKind {
+    if (taskKind === 'research' || taskKind === 'verification' || taskKind === 'critique') {
+        return;
+    }
+    throw new Error(
+        `Delegated execution task kind '${String(taskKind)}' is retired. Implementation must use the CStar Forge lifecycle.`,
     );
-
-    if (provider === 'codex') {
-        const scratchDir = await mkdtemp(path.join(os.tmpdir(), 'corvus-delegate-native-'));
-        const outputPath = path.join(scratchDir, 'last-message.txt');
-        try {
-            const { stdout, stderr } = await execRunner(
-                'codex',
-                [
-                    'exec',
-                    '--skip-git-repo-check',
-                    '--cd', request.repo_root,
-                    '-c', `model_reasoning_effort="${DEFAULT_DELEGATE_REASONING_EFFORT}"`,
-                    '--output-last-message', outputPath,
-                    delegatedPrompt,
-                ],
-                {
-                    cwd: request.repo_root,
-                    env: { ...env },
-                    maxBuffer: DEFAULT_DELEGATE_MAX_BUFFER,
-                },
-            );
-
-            const filePayload = await readFile(outputPath, 'utf-8').catch(() => '');
-            const rawText = filePayload.trim() || stdout.trim() || stderr.trim();
-            if (!rawText) {
-                throw new Error('Codex native delegation returned no output.');
-            }
-
-            return {
-                handle_id: request.request_id,
-                provider,
-                status: 'completed',
-                raw_text: rawText,
-                summary: 'provider-native-codex-cli',
-                metadata: {
-                    execution_surface: 'host-cli-inference',
-                    delegation_mode: 'provider-native',
-                    subagent_profile: request.subagent_profile ?? 'backend',
-                },
-            };
-        } finally {
-            await rm(scratchDir, { recursive: true, force: true }).catch(() => undefined);
-        }
-    }
-
-    if (provider === 'gemini' || provider === 'claude') {
-        const args = provider === 'gemini'
-            ? ['--approval-mode', 'plan', '-p', delegatedPrompt]
-            : ['-p', delegatedPrompt];
-        const { stdout, stderr } = await execRunner(
-            provider,
-            args,
-            {
-                cwd: request.repo_root,
-                env: { ...env },
-                maxBuffer: DEFAULT_DELEGATE_MAX_BUFFER,
-            },
-        );
-        const rawText = stdout.trim() || stderr.trim();
-        if (!rawText) {
-            throw new Error(`${provider} native delegation returned no output.`);
-        }
-
-        return {
-            handle_id: request.request_id,
-            provider,
-            status: 'completed',
-            raw_text: rawText,
-            summary: `provider-native-${provider}-cli`,
-            metadata: {
-                execution_surface: 'host-cli-inference',
-                delegation_mode: 'provider-native',
-                subagent_profile: request.subagent_profile ?? 'backend',
-            },
-        };
-    }
-
-    throw new Error(`Provider ${provider} does not support native delegated execution.`);
 }
 
 export async function requestHostDelegatedExecution(
@@ -227,6 +144,7 @@ export async function requestHostDelegatedExecution(
     env: NodeJS.ProcessEnv = process.env,
     dependencies: HostDelegationDependencies = {},
 ): Promise<DelegatedExecutionHandle | DelegatedExecutionResult> {
+    assertAdvisoryTaskKind(request.task_kind);
     const provider = resolveHostProvider(env);
     if (!provider) {
         throw new Error('Host Agent session inactive.');
@@ -235,21 +153,38 @@ export async function requestHostDelegatedExecution(
     const bridge = resolveConfiguredDelegateBridge(env, provider);
     const execRunner = dependencies.execRunner ?? defaultExecRunner;
     if (!bridge) {
-        return invokeProviderNativeDelegation(provider, request, env, execRunner);
+        throw new Error(
+            `Provider-native delegated execution is retired for ${provider}; configure an authorized advisory delegate bridge.`,
+        );
     }
 
+    const advisoryRequest: DelegatedExecutionRequest = {
+        ...request,
+        subagent_profile: request.subagent_profile ?? 'reviewer',
+        prompt: buildHostSubagentPrompt(
+            request.subagent_profile ?? 'reviewer',
+            request.prompt,
+            request,
+        ),
+        checker_shell: null,
+        metadata: {
+            ...(request.metadata ?? {}),
+            execution_class: 'advisory-only',
+            implementation_authority: false,
+        },
+    };
     const scratchDir = await mkdtemp(path.join(os.tmpdir(), 'corvus-delegate-'));
     const requestPath = path.join(scratchDir, 'request.json');
     const resultPath = path.join(scratchDir, 'result.json');
 
     try {
-        await writeFile(requestPath, JSON.stringify(request, null, 2), 'utf-8');
+        await writeFile(requestPath, JSON.stringify(advisoryRequest, null, 2), 'utf-8');
         const args = expandDelegateBridgeArgs(bridge.args, {
             request_path: requestPath,
             result_path: resultPath,
             project_root: request.repo_root,
             provider,
-            subagent_profile: request.subagent_profile ?? 'backend',
+            subagent_profile: advisoryRequest.subagent_profile ?? 'reviewer',
         });
 
         const { stdout, stderr } = await execRunner(bridge.command, args, {
@@ -292,7 +227,7 @@ export async function resolveHostDelegatedExecution(
             result_path: resultPath,
             project_root: request.repo_root,
             provider: request.provider,
-            subagent_profile: request.subagent_profile ?? 'backend',
+            subagent_profile: request.subagent_profile ?? 'reviewer',
             request_id: request.request_id,
             handle_id: request.handle_id,
         });

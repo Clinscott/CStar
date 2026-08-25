@@ -27,8 +27,8 @@ function resolveMcpArg(configPath: string, arg: string): string {
 }
 
 describe('MCP config invariants', () => {
-    for (const configPath of ['.mcp.json', 'gemini-extension.json', 'plugins/corvus-star/.mcp.json']) {
-        it(`${configPath} registers only cstar-kernel`, () => {
+    for (const configPath of ['.mcp.json', 'gemini-extension.json']) {
+        it(`${configPath} keeps its non-Codex host surface source-backed`, () => {
             const config = readJson(configPath);
             const servers = config.mcpServers ?? {};
             assert.deepEqual(Object.keys(servers), ['cstar-kernel']);
@@ -53,6 +53,60 @@ describe('MCP config invariants', () => {
             );
         });
     }
+
+    const estateProjectConfigPath = path.resolve(PROJECT_ROOT, '..', '.codex', 'config.toml');
+
+    it('Corvus project config preserves Vercel without overriding the global Codex CStar registration', {
+        skip: !fs.existsSync(estateProjectConfigPath) && 'standalone CStar checkout has no estate project config',
+    }, () => {
+        const configPath = estateProjectConfigPath;
+        const config = fs.readFileSync(configPath, 'utf-8');
+
+        assert.match(config, /^\[mcp_servers\.vercel\]$/m);
+        assert.doesNotMatch(config, /^\[mcp_servers\.cstar-kernel(?:\.env)?\]$/m);
+        assert.doesNotMatch(config, /GEMINI_CLI_ACTIVE/);
+    });
+
+    it('Corvus Star Codex plugin is skill-only', () => {
+        const manifest = readJson('plugins/corvus-star/.codex-plugin/plugin.json');
+        const pluginMcpPath = path.join(PROJECT_ROOT, 'plugins', 'corvus-star', '.mcp.json');
+        const pluginHooksPath = path.join(PROJECT_ROOT, 'plugins', 'corvus-star', 'hooks');
+        const legacyPluginHooksPath = path.join(PROJECT_ROOT, 'plugins', 'corvus-star', 'hooks.json');
+        const hookScriptPath = path.join(PROJECT_ROOT, 'plugins', 'corvus-star', 'scripts', 'cstar_codex_post_write.sh');
+
+        assert.equal(manifest.skills, './skills/');
+        assert.equal('hooks' in manifest, false);
+        assert.equal(fs.existsSync(pluginHooksPath), false);
+        assert.equal(fs.existsSync(legacyPluginHooksPath), false);
+        assert.equal(fs.existsSync(hookScriptPath), false);
+        assert.equal('mcpServers' in manifest, false);
+        assert.equal(fs.existsSync(pluginMcpPath), false);
+    });
+
+    it('Codex contract names the wrapper lineage and keeps source proof separate from activation', () => {
+        const contract = fs.readFileSync(
+            path.join(PROJECT_ROOT, 'docs', 'integrations', 'codex_mcp_contract.md'),
+            'utf-8',
+        );
+        assert.match(contract, /global `cstar-kernel` entry in `~\/\.codex\/config\.toml`/);
+        assert.match(contract, /cstar-kernel-mcp-wrapper/);
+        assert.match(contract, /source-verified, not activated/);
+        assert.match(contract, /direct stdio only/);
+        assert.match(contract, /TCP mode and\s+`scripts\/cstar-mcp-tcp-daemon\.js` are retired and fail closed/);
+        assert.match(contract, /no loopback\s+listener is an authorized CStar transport/);
+        assert.match(contract, /newly spawned direct-stdio children are host-neutral/);
+        assert.match(contract, /escalate after a bounded grace period/);
+        assert.match(contract, /seed known Gemini, Codex, Claude, Droid,/);
+        assert.match(contract, /TypeScript MCP entry reapplies that\s+neutralization after its dotenv load/);
+        assert.match(contract, /explicit inactive sentinel resolves to `HEADLESS`/);
+        assert.match(contract, /audited explicit key\s+set, not a `CODEX_\*` wildcard/);
+        assert.match(contract, /unknown Codex variables may carry sandbox/);
+        assert.match(contract, /`cstar_doctor` when kernel health is unknown/);
+        assert.match(contract, /`cstar_handoff` when resuming prior/);
+        assert.match(contract, /`cstar_augury` when route or material scope is ambiguous/);
+        assert.match(contract, /None of these is a per-prompt ritual/);
+        assert.doesNotMatch(contract, /npm run codex:(?:self-heal|smoke)/);
+    });
 
     it('bin/cstar-kernel-mcp.js launches the TypeScript source surface through tsx', () => {
         const launcherPath = path.join(PROJECT_ROOT, 'bin', 'cstar-kernel-mcp.js');

@@ -13,7 +13,7 @@ import {
     resolveRegistryCommandActivation,
     shouldAutoResumeChantSession,
 } from '../../src/node/core/commands/dispatcher.ts';
-import { RuntimeDispatchPort, WeaveInvocation, WeaveResult } from  '../../src/node/core/runtime/contracts.js';
+import { PennyOneWeavePayload, RuntimeDispatchPort, WeaveInvocation, WeaveResult } from  '../../src/node/core/runtime/contracts.js';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -83,7 +83,7 @@ class StatusResultDispatchPort implements RuntimeDispatchPort {
     public async dispatch<T>(_invocation: WeaveInvocation<T> | SkillBead<T>): Promise<WeaveResult> {
         return {
             weave_id: 'weave:pennyone',
-            status: 'TRANSITIONAL',
+            status: 'SUCCESS',
             output: 'PennyOne Hall maintenance status (1 root(s), 1 normalize receipt(s), 1 hygiene report(s), 0 stale receipt(s), 2 maintenance artifact(s), 3 open bead(s), 2 validation run(s)).',
             metadata: {
                 adapter: 'runtime:pennyone-status',
@@ -193,6 +193,58 @@ describe('Command shells convert CLI args into runtime invocations (CS-P1-01)', 
                 mode: 'cli',
                 interactive: true,
             },
+        });
+    });
+
+    it('pennyone command defaults to read-only status and never implies a scan', async () => {
+        const capture = new CaptureDispatchPort();
+        const program = new Command();
+        registerPennyOneCommand(program, 'C:\\Users\\Craig\\Corvus\\CorvusStar', capture);
+
+        await program.parseAsync([
+            'node',
+            'test',
+            'pennyone',
+        ]);
+
+        assert.deepStrictEqual(capture.invocation, {
+            weave_id: 'weave:pennyone',
+            payload: {
+                action: 'status',
+                path: '.',
+                estate: false,
+                artifact_kind: undefined,
+                limit: undefined,
+                since: undefined,
+            },
+            target: {
+                domain: 'brain',
+                workspace_root: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
+                requested_path: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
+            },
+            session: {
+                mode: 'cli',
+                interactive: true,
+            },
+        });
+    });
+
+    it('pennyone command scans only when --scan is explicit', async () => {
+        const capture = new CaptureDispatchPort();
+        const program = new Command();
+        registerPennyOneCommand(program, 'C:\\Users\\Craig\\Corvus\\CorvusStar', capture);
+
+        await program.parseAsync([
+            'node',
+            'test',
+            'pennyone',
+            '--scan',
+            'src',
+        ]);
+
+        assert.deepStrictEqual((capture.invocation as WeaveInvocation<PennyOneWeavePayload>).payload, {
+            action: 'scan',
+            path: 'src',
         });
     });
 
@@ -622,7 +674,7 @@ describe('Command shells convert CLI args into runtime invocations (CS-P1-01)', 
         const payload = JSON.parse(stdout);
         assert.deepStrictEqual(payload, {
             weave_id: 'weave:pennyone',
-            status: 'TRANSITIONAL',
+            status: 'SUCCESS',
             output: 'PennyOne Hall maintenance status (1 root(s), 1 normalize receipt(s), 1 hygiene report(s), 0 stale receipt(s), 2 maintenance artifact(s), 3 open bead(s), 2 validation run(s)).',
             metadata: {
                 adapter: 'runtime:pennyone-status',

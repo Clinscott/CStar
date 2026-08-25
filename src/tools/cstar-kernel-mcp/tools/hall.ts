@@ -5,7 +5,7 @@ import {
     buildTraceAgentHandoffPayload,
     resolveActivePlanningSession,
     resolveActiveTraceHandoffPayload,
-    buildAuguryDoctorPayload,
+    buildActiveAuguryDoctorPayload,
 } from '../../../node/core/commands/trace.js';
 import { mcpGuardrail, textResponse } from '../contracts/responses.js';
 import { detectAuguryTargetDivergence } from './augury_routing.js';
@@ -15,27 +15,14 @@ import {
 } from '../telemetry/usage.js';
 import { summarizeRecentTokenPathIntegration } from '../telemetry/token_path.js';
 
-export async function handleHallMaintenance({ action, limit, memory_id }: { action: 'study' | 'harvest'; limit?: number; memory_id?: string }) {
-    try {
-        if (action === 'study') {
-            if (!memory_id) return textResponse({ error: 'study action requires memory_id' }, true);
-            const result = await database.getDb().prepare('SELECT * FROM hall_episodic_memory WHERE memory_id = ?').get(memory_id);
-            if (!result) return textResponse({ error: `Engram ${memory_id} not found` }, true);
-            return textResponse({ status: 'ready_to_study', memory_id });
-        }
-        if (action === 'harvest') {
-            const unstudied = database.listUnstudiedEngrams(true);
-            const targetIds = unstudied.slice(0, limit || 5).map((e) => e.memory_id);
-            return textResponse({
-                status: 'harvest_queue_ready',
-                total_unstudied: unstudied.length,
-                queue: targetIds,
-            });
-        }
-        return textResponse({ error: 'Invalid action' }, true);
-    } catch (error: any) {
-        return textResponse({ error: error.message }, true);
-    }
+export async function handleHallMaintenance(args: { action: 'study' | 'harvest'; limit?: number; memory_id?: string }) {
+    void args;
+    return textResponse({
+        error: 'Hall lesson study and harvesting are decommissioned; model output cannot write or promote canonical CStar memory.',
+        decommissioned: true,
+        actuated: false,
+        replacement: 'Use cstar_hall_search for bounded read-only inspection of existing ENGRAM or LESSON records.',
+    }, true);
 }
 
 export interface HandoffArgs {
@@ -65,6 +52,72 @@ function compactHandoffSession(handoff: any) {
     };
 }
 
+function guardrailForActiveHandoff(executionGate: string) {
+    switch (executionGate) {
+        case 'execution_guarded':
+            return mcpGuardrail(
+                'caution',
+                'verify',
+                'Execution is staged; operator release and verification evidence are required before follow-on work.',
+                [],
+                ['execution_gate'],
+            );
+        case 'review_required':
+        case 'worker_review_required':
+            return mcpGuardrail(
+                'caution',
+                'verify',
+                'Review is required before this handoff can authorize follow-on execution.',
+                [],
+                ['review_gate'],
+            );
+        case 'input_required':
+            return mcpGuardrail(
+                'block',
+                'recover',
+                'Required input is unresolved; do not execute from this handoff.',
+                ['input_gate'],
+            );
+        case 'operator_release_required':
+            return mcpGuardrail(
+                'block',
+                'refuse',
+                'Explicit operator release is required before execution.',
+                ['operator_release_gate'],
+            );
+        case 'failure_recovery':
+            return mcpGuardrail(
+                'block',
+                'repair',
+                'The active lifecycle state is blocked or failed; repair or recast it before execution.',
+                ['failure_recovery_gate'],
+            );
+        case 'planning_active':
+            return mcpGuardrail(
+                'caution',
+                'verify',
+                'Planning state is active, but it is not execution authority.',
+                [],
+                ['planning_gate'],
+            );
+        case 'work_active':
+            return mcpGuardrail(
+                'caution',
+                'verify',
+                'A lifecycle bead is claimed and active, but it does not prove a runtime command is executing.',
+                [],
+                ['lifecycle_work_gate'],
+            );
+        default:
+            return mcpGuardrail(
+                'block',
+                'repair',
+                `Unknown handoff execution gate '${executionGate}' cannot authorize work.`,
+                ['unknown_execution_gate'],
+            );
+    }
+}
+
 export function buildHandoffMcpPayload(handoff: any, root: string, args: HandoffArgs = {}) {
     if (!handoff) {
         return {
@@ -77,6 +130,23 @@ export function buildHandoffMcpPayload(handoff: any, root: string, args: Handoff
                 ['handoff'],
             ),
             next_action: 'Run cstar_augury with a bounded mission or create a Hall bead before execution.',
+        };
+    }
+
+    if (handoff.execution_gate === 'completed' || handoff.phase === 'COMPLETED') {
+        return {
+            status: 'historical_handoff',
+            authoritative: false,
+            active_session_authority: 'historical',
+            guardrail: mcpGuardrail(
+                'caution',
+                'recover',
+                'Completed handoff state is historical context and cannot authorize the current mission.',
+                [],
+                ['terminal_handoff'],
+            ),
+            next_action: 'Route the current mission through Augury or create/claim a nonterminal bead.',
+            historical_session: compactHandoffSession(handoff),
         };
     }
 
@@ -108,15 +178,7 @@ export function buildHandoffMcpPayload(handoff: any, root: string, args: Handoff
         status: 'active',
         authoritative: true,
         ...compactHandoffSession(handoff),
-        guardrail: handoff.execution_gate === 'execution_guarded'
-            ? mcpGuardrail(
-                'caution',
-                'verify',
-                'Execution is staged; operator release and verification evidence are required before follow-on work.',
-                [],
-                ['execution_gate'],
-            )
-            : mcpGuardrail('allow', 'continue', 'Active handoff is available.'),
+        guardrail: guardrailForActiveHandoff(handoff.execution_gate),
     };
 }
 
@@ -173,18 +235,24 @@ export async function handleHallSearch({ query, limit, types }: { query: string;
 export async function handleDoctor() {
     try {
         const root = registry.getRoot();
-        const session = resolveActivePlanningSession(root);
-        const doctor = buildAuguryDoctorPayload(session, root);
+        const doctor = buildActiveAuguryDoctorPayload(root);
         const db = database.getDb(root);
+        const databaseHealthy = db !== null;
+        const registryHealthy = Boolean(root);
+        const kernelHealthy = databaseHealthy && registryHealthy;
         return textResponse({
-            status: doctor.status === 'pass' ? 'healthy' : 'degraded',
-            score: doctor.score,
-            warnings: doctor.warnings,
+            status: kernelHealthy ? 'healthy' : 'degraded',
+            score: null,
+            score_source: 'not_measured',
+            warnings: kernelHealthy ? [] : ['Kernel database or registry health check failed.'],
+            advisory_warnings: doctor.warnings,
             active: true,
             checks: {
-                database: db !== null,
-                registry: !!root,
+                database: databaseHealthy,
+                registry: registryHealthy,
                 augury: doctor.status === 'pass',
+                augury_required: false,
+                augury_status: doctor.status,
             },
             telemetry: summarizeRecentMcpUsage(),
             usefulness: summarizeRecentMcpUsefulness(),
@@ -200,7 +268,7 @@ export async function handleVerifyPlan() {
         const root = registry.getRoot();
         const session = resolveActivePlanningSession(root);
         const handoff = buildTraceAgentHandoffPayload(session, root);
-        let last_validation: { verdict: string; recorded_at: number; validation_id: string } | null = null;
+        let last_validation: { verdict: string; recorded_at: number; validation_id: string; authority_class: string } | null = null;
         if (handoff?.lead_bead_id) {
             try {
                 const runs = database.getValidationRuns(handoff.lead_bead_id);
@@ -211,6 +279,7 @@ export async function handleVerifyPlan() {
                         verdict: String(latest.verdict ?? 'INCONCLUSIVE'),
                         recorded_at: Number(latest.created_at ?? 0),
                         validation_id: String(latest.validation_id ?? ''),
+                        authority_class: String(latest.authority_class ?? 'legacy_unverified'),
                     };
                 }
             } catch {
@@ -218,15 +287,19 @@ export async function handleVerifyPlan() {
             }
         }
         const commandCount = handoff?.checker_shells.length ?? 0;
+        const authoritativeValidation = last_validation?.authority_class === 'verified' || last_validation?.authority_class === 'internal';
         return textResponse({
-            status: commandCount > 0 || last_validation ? 'ready' : 'empty',
+            status: authoritativeValidation ? 'evidence_available' : commandCount > 0 ? 'declared_unexecuted' : 'empty',
             recommended_commands: (handoff?.checker_shells || []).slice(0, 3),
-            reason: commandCount > 0 ? 'Verified from active bead checker shells.' : 'No checker_shell is attached to the active bead.',
+            command_authority: commandCount > 0 ? 'bead_declared_unexecuted' : 'none',
+            reason: commandCount > 0 ? 'The active bead declares focused checker text; CStar has not executed or verified it.' : 'No checker_shell is attached to the active bead.',
             bead_id: handoff?.lead_bead_id,
             target_paths: handoff?.target_paths || [],
             last_validation,
-            guardrail: commandCount > 0 || last_validation
-                ? mcpGuardrail('allow', 'verify', 'Verification path is available.')
+            guardrail: authoritativeValidation
+                ? mcpGuardrail('allow', 'continue', 'An authoritative validation record is available.')
+                : commandCount > 0
+                    ? mcpGuardrail('caution', 'verify', 'Checker text is unexecuted bead metadata and cannot prove validation.')
                 : mcpGuardrail(
                     'caution',
                     'repair',
@@ -235,7 +308,7 @@ export async function handleVerifyPlan() {
                     ['verification'],
                 ),
             next_action: commandCount > 0
-                ? 'Run the recommended checker command before recording the result.'
+                ? 'Inspect the declared command, run it only through an authorized harness, and bind its transcript hash before recording the result.'
                 : 'Add checker_shell evidence to the bead or record a validation result before resolving work.',
         });
     } catch (error: any) {

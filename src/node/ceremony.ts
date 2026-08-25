@@ -3,8 +3,7 @@ import fs from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { activePersona } from '../tools/pennyone/personaRegistry.js';
-import { getHallOneMindBroker, getHallSummary } from  '../tools/pennyone/intel/database.js';
-import { registry } from '../tools/pennyone/pathRegistry.js';
+import { getHallSummary } from  '../tools/pennyone/intel/database.js';
 import { ANS } from './core/ans.js';
 import { HUD } from './core/hud.js';
 import { StateRegistry } from  './core/state.js';
@@ -177,14 +176,7 @@ function getVaultStatus(): string {
 }
 
 function getOneMindBrokerStatus(): string {
-    const state = getHallOneMindBroker(registry.getRoot());
-    if (!state) {
-        return 'OFFLINE';
-    }
-    if (!state.fulfillment_ready) {
-        return 'UNBOUND';
-    }
-    return state.binding_state === 'BOUND' ? 'BOUND' : 'UNBOUND';
+    return 'RETIRED/READ-ONLY';
 }
 
 /**

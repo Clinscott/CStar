@@ -1,4 +1,4 @@
-import { errorResponse, mcpGuardrail, mcpMutation, textResponse } from '../contracts/responses.js';
+import { errorResponse, mcpGuardrail, textResponse } from '../contracts/responses.js';
 
 type MongoMailboxAction = 'status' | 'mirror_counts' | 'enqueue_operator_intent';
 type MongoIntentAction = 'accept' | 'decline' | 'refine' | 'dispatch' | 'edit';
@@ -12,7 +12,7 @@ export interface MongoMailboxArgs {
     operator_authorization_ref?: string;
 }
 
-const INTENT_ACTIONS = ['accept', 'decline', 'refine', 'dispatch', 'edit'] as const;
+const DURABLE_OPERATOR_INTENT_BLOCKER = 'durable_operator_intent_authority_not_implemented';
 const DEFAULT_COLLECTIONS = {
     proposal_mirror: 'proposal_mirror',
     intent_queue: 'intent_queue',
@@ -49,27 +49,6 @@ async function getMongoDb() {
     return { client, db: client.db(envValue('CSTAR_MONGO_DB', 'cstar_console')) };
 }
 
-function buildIntent(action: MongoIntentAction, proposalId: string, args: MongoMailboxArgs) {
-    if (!INTENT_ACTIONS.includes(action)) {
-        throw new Error(`Unsupported Mongo intent action: ${action}`);
-    }
-    if (!proposalId.trim()) {
-        throw new Error('proposal_id is required for enqueue_operator_intent.');
-    }
-    const now = new Date();
-    return {
-        schema: 'cstar.mongo_mailbox.intent.v1',
-        action,
-        proposal_id: proposalId,
-        payload: args.payload ?? null,
-        actor: args.actor ?? 'cstar-kernel-mcp',
-        operator_authorization_ref: args.operator_authorization_ref,
-        status: 'pending',
-        created_at: now,
-        updated_at: now,
-    };
-}
-
 export async function handleMongoMailbox(args: MongoMailboxArgs = {}) {
     const action = args.action ?? 'status';
     const names = collectionNames();
@@ -92,6 +71,8 @@ export async function handleMongoMailbox(args: MongoMailboxArgs = {}) {
                 enabled,
                 arbitrary_query_allowed: false,
                 direct_secret_output_allowed: false,
+                operator_intent_enqueue_enabled: false,
+                operator_intent_enqueue_blocker: DURABLE_OPERATOR_INTENT_BLOCKER,
                 db_name: envValue('CSTAR_MONGO_DB', 'cstar_console'),
                 collections: names,
                 guardrail,
@@ -111,29 +92,27 @@ export async function handleMongoMailbox(args: MongoMailboxArgs = {}) {
         }
 
         if (action === 'enqueue_operator_intent') {
-            if (!args.operator_authorization_ref?.trim()) {
-                return textResponse({
-                    error: 'operator_authorization_ref is required to enqueue Mongo mailbox intents.',
-                    guardrail: mcpGuardrail('block', 'refuse', 'Mongo mailbox writes must be human-authorized and auditable.', ['missing_operator_authorization_ref']),
-                }, true);
-            }
-            const intentAction = args.intent_action ?? (() => { throw new Error('intent_action is required.'); })();
-            const proposalId = args.proposal_id ?? (() => { throw new Error('proposal_id is required.'); })();
-            const doc = buildIntent(intentAction, proposalId, args);
-            const { client, db } = await getMongoDb();
-            try {
-                const result = await db.collection(names.intent_queue).insertOne(doc);
-                return textResponse({
-                    status: 'queued',
-                    action,
-                    intent_action: intentAction,
-                    proposal_id: proposalId,
-                    mutation: mcpMutation('mongo_mailbox_intent_enqueue', String(result.insertedId), 'Bounded Mongo mailbox intent was enqueued.'),
-                    guardrail: mcpGuardrail('allow', 'continue', 'Intent queued for host worker application; PennyOne remains the source of truth.'),
-                });
-            } finally {
-                await client.close();
-            }
+            // The console host worker actively drains this queue and can apply
+            // proposal/GitHub/CStar lifecycle mutations. A caller-supplied
+            // string is therefore evidence, not operator authority. Keep the
+            // public enqueue path closed until producer and consumer both
+            // verify the same durable, request-bound grant with replay guards.
+            return textResponse({
+                status: 'blocked',
+                action,
+                intent_action: args.intent_action ?? null,
+                proposal_id: args.proposal_id ?? null,
+                attempted: false,
+                error: DURABLE_OPERATOR_INTENT_BLOCKER,
+                guardrail: mcpGuardrail(
+                    'block',
+                    'refuse',
+                    'Mongo operator-intent enqueue is runtime fail-closed until durable request-bound authority is verified by both CStar and the queue consumer.',
+                    [DURABLE_OPERATOR_INTENT_BLOCKER],
+                    ['operator_intent_authority', 'operator_intent_consumer_verification'],
+                ),
+                next_action: 'Use read-only mailbox status/counts. Do not insert directly into Mongo or bypass the consumer authority repair.',
+            }, true);
         }
 
         return textResponse({ error: `Unsupported Mongo mailbox action: ${action}` }, true);

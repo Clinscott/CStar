@@ -1,0 +1,154 @@
+{
+  "schema": "cstar.codex_scalable_session_request_identity_validation.v1",
+  "bead_id": "bead:repair:cstar-scalable-codex-session-identity-2026-07-13",
+  "validated_at": "2026-07-13T22:05:19-04:00",
+  "verdict": "ACCEPTED_SOURCE_AND_LIVE",
+  "claim_scope": "The bounded one-pass source repair is independently accepted and loaded by the restarted Codex runtime. An authenticated cstar_record_result mutation projected and persisted the current request identity from the active CoS session after that session exceeded the prior 64 MiB ceiling. This proves live request-identity activation only; it makes no Forge execution, provider inference, installation, deployment, production-readiness, or TokenPath claim.",
+  "repair_write_manifest": [
+    "src/tools/cstar-kernel-mcp/tools/codex_session_authority_projection.ts",
+    "src/tools/cstar-kernel-mcp/tools/codex_request_identity.ts",
+    "src/tools/cstar-kernel-mcp/tools/operator_authorization.ts",
+    "tests/unit/cstar-kernel-mcp/test_codex_session_authority_projection.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_codex_request_identity.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_operator_authorization.test.ts",
+    "tests/features/codex_request_identity_steered_turns.feature",
+    "docs/integrations/cstar-kernel-mcp.md",
+    "tests/unit/test_current_documentation_contract.py"
+  ],
+  "boundary": {
+    "synthetic_fixtures_only": true,
+    "live_session_contents_read_or_emitted": false,
+    "live_session_metadata_observed": {
+      "file_size_bytes": 71589399,
+      "purpose": "confirm the current legitimate root CoS session exceeds the pre-repair 64 MiB cap"
+    },
+    "model_calls": 0,
+    "forge_attempts_reserved": 0,
+    "provider_inference_calls": 0,
+    "oauth_refresh": false,
+    "live_source_collection": false,
+    "git_actions": false,
+    "installation": false,
+    "restart": true,
+    "deployment": false,
+    "secret_or_config_mutation": false,
+    "production_claim": false
+  },
+  "live_proof": {
+    "codex_package_version": "26.707.8479.0",
+    "wsl_launcher_version": "codex-cli 0.144.3",
+    "desktop_app_server_version": "codex-cli 0.144.3",
+    "version_lineage_match": true,
+    "post_restart_cstar_doctor_status": "healthy",
+    "request_identity_probe": {
+      "tool": "cstar_record_result",
+      "validation_id": "val-cstar-retired-autobot-skill-discovery-20260713",
+      "status": "recorded_verified",
+      "authoritative": true,
+      "identity_source": "codex_request_meta",
+      "thread_id": "019f5390-a2db-7b91-bc89-e1392960fb3a",
+      "turn_id": "15220f57-9403-42e9-99ff-05e5673abc56",
+      "request_record_count": 1
+    },
+    "session_content_read_or_emitted": false,
+    "additional_restart_consumed": false
+  },
+  "invariants_proved": [
+    "One O_NOFOLLOW descriptor scan validates and hashes the complete fixed session file without retaining unrelated rows.",
+    "Pre-open, descriptor, post-read descriptor, and path device, inode, owner, group, mode, link-count, size, mtime, and ctime checks reject replacement or mutation races.",
+    "Every accepted JSONL row is decoded with fatal UTF-8, parsed as JSON, and required to be a top-level object; only the first-file BOM and one CR before LF receive the documented raw-line treatment.",
+    "Physical limits remain finite at 512 MiB per session file, 64 MiB per row, and 1000000 rows; selected-turn limits remain 256 records and 4 MiB.",
+    "Current request identity, historical authorization, and later revocation derive from exactly one fixed descriptor scan.",
+    "A tagged noncanonical user-like row for the selected turn fails immediately; after a selected canonical turn begins, a tagged noncanonical different turn closes the segment so stale identity cannot be accepted as latest.",
+    "Untagged host-event duplicates remain ignored and non-authoritative; canonical A, canonical B, canonical A remains noncontiguous and rejected.",
+    "Ordered raw-record hashes, record-set hashes, lineage, recency, timestamp ordering, duplicate detection, and durable Forge drift rejection remain fail-closed."
+  ],
+  "checks": [
+    {
+      "name": "identity_projection_authorization_and_durable_forge",
+      "command": "node scripts/run-tsx.mjs --test tests/unit/cstar-kernel-mcp/test_codex_request_identity.test.ts tests/unit/cstar-kernel-mcp/test_codex_session_authority_projection.test.ts tests/unit/cstar-kernel-mcp/test_operator_authorization.test.ts tests/unit/cstar-kernel-mcp/test_forge_durable_execution.test.ts tests/unit/cstar-kernel-mcp/test_forge_receipt_controller.test.ts",
+      "result": "47 passed; 0 failed"
+    },
+    {
+      "name": "latest_tagged_noncanonical_turn_independent_probe",
+      "command": "independent focused identity review after exact A to tagged-noncanonical-B repair",
+      "result": "18 passed; 0 failed; no P0-P2 findings"
+    },
+    {
+      "name": "documentation_contract",
+      "command": "python3 -m pytest -q -s tests/unit/test_current_documentation_contract.py",
+      "result": "9 passed; 0 failed"
+    },
+    {
+      "name": "typescript",
+      "command": "npx tsc --noEmit",
+      "result": "pass"
+    },
+    {
+      "name": "file_size_and_sterling",
+      "command": "node scripts/run-tsx.mjs --test tests/unit/cstar-kernel-mcp/test_file_size_contract.test.ts tests/unit/sterling_mandate.test.ts",
+      "result": "21 passed; 0 failed; maximum focused file length 492"
+    },
+    {
+      "name": "node_default_suite",
+      "command": "npm run test:node",
+      "result": "1053 passed; 0 failed after the separately authorized AutoBot decommission repair"
+    },
+    {
+      "name": "python_default_suite",
+      "command": "npm run test:python",
+      "result": "478 passed; 2 skipped; 0 failed after the separately authorized Hall bootstrap concurrency repair"
+    }
+  ],
+  "independent_review": [
+    {
+      "validator_identity": "codex-subagent:identity_streaming_security",
+      "independent_of_execution": true,
+      "scope": "one-pass scanner, raw-line compatibility, strict decoding and parsing, resource bounds, single-descriptor authority projection, TOCTOU, revocation, and bounded memory",
+      "verdict": "ACCEPTED; no P0-P2 findings",
+      "nonblocking_coverage_debt": "Add explicit per-row and row-count boundary tests plus more deterministic truncate, replace, and chmod race tests.",
+      "requested_model_identity": "sol/high",
+      "actual_model_identity": "unreported"
+    },
+    {
+      "validator_identity": "codex-subagent:cstar_oauth_contract_impact",
+      "independent_of_execution": true,
+      "scope": "latest-turn authority semantics and OAuth/Forge contract impact",
+      "initial_verdict": "REJECTED because a later tagged noncanonical turn could leave an earlier canonical turn appearing latest",
+      "repair": "Close a started segment on any tagged noncanonical user-like row with a defined different turn id and add the exact A to tagged-noncanonical-B regression.",
+      "final_verdict": "ACCEPTED; 18 of 18 independent focused tests passed; no P0-P2 findings",
+      "requested_model_identity": "sol/high",
+      "actual_model_identity": "unreported"
+    }
+  ],
+  "source_sha256": {
+    "src/tools/cstar-kernel-mcp/tools/codex_session_authority_projection.ts": "f40581c3d1fd749674859567c400f7ee295b8bf38f60200b3467ce05d8ecf2b0",
+    "src/tools/cstar-kernel-mcp/tools/codex_request_identity.ts": "35fb6744c9e4706f0625e7e01f535f31ba37fdbbfbf6bb17c2aa8fa5af0f3e1f",
+    "src/tools/cstar-kernel-mcp/tools/operator_authorization.ts": "b56f5d27291502833b8241e18054794c9086749c217892e0008e68bad0212cf5",
+    "tests/unit/cstar-kernel-mcp/test_codex_session_authority_projection.test.ts": "680d305a882e4edbb6a4b4d94af54e4d91b2479d6cae0d5d3e9247ae668ca8bd",
+    "tests/unit/cstar-kernel-mcp/test_codex_request_identity.test.ts": "de19209d52cbe1d7d066d8916de8b2803a00b97f6a89a8ea5f22e05f6467d448",
+    "tests/unit/cstar-kernel-mcp/test_operator_authorization.test.ts": "733a746fb8a57ca642d2f55a9ef85599fd513efc5f41871e11740927c65fdbbe",
+    "tests/features/codex_request_identity_steered_turns.feature": "500facb7e37291eda8c0ac7d0b23b96d290d49b766e26b1c0434f9a448945ffc",
+    "docs/integrations/cstar-kernel-mcp.md": "a298df30cf8bedc33a99f522d6437fe301b5b1b30b8fda9ec41d6d9e94af15dd",
+    "tests/unit/test_current_documentation_contract.py": "672ab831865c4de9ea9319e0f96513f4b9f9abc202fac5beb5565706b8440f67"
+  },
+  "validation_dependency_sha256": {
+    "tests/unit/cstar-kernel-mcp/test_forge_durable_execution.test.ts": "cd750a088571caad89a78e0c0b501ba34d03c187589409631b1bff84de10b192",
+    "tests/unit/cstar-kernel-mcp/test_forge_receipt_controller.test.ts": "40f20ce7f5ecde128c7111c391af80f45d89a3eaf9be8abfb49dc3539aa9c15d",
+    "tests/unit/cstar-kernel-mcp/test_file_size_contract.test.ts": "875079540cc727e7ec03135461681800407f012cbdf1a7c59adb48f3f8cccc5b",
+    "tests/unit/sterling_mandate.test.ts": "cb81842af93208bdbeaded51e6739cd0ed7559f47612e90fb265bb69450c280e",
+    "package.json": "3cc644e2724f0307f49d4e948ac6984bdaba0ebfcf736f34774613dfebf28ecc"
+  },
+  "preserved_lineage": {
+    "path": "docs/operations/codex-active-turn-request-identity-validation-2026-07-13.json",
+    "sha256": "80846c3bb79b9758706dfc82fd6dd6a7192e6397946ff52c3bbd0c6b6e64797d",
+    "status": "preserved unchanged as evidence for the earlier activated source; it is not proof that this scalable repair is live"
+  },
+  "separately_tracked_residuals": [
+    "bead:repair:cstar-retired-autobot-skill-discovery-2026-07-13 is source-repaired, independently accepted, and recorded authoritatively as val-cstar-retired-autobot-skill-discovery-20260713.",
+    "bead:repair:cstar-hall-schema-concurrent-bootstrap-2026-07-13 remains source-repaired and independently accepted; its authoritative validation result is recorded separately.",
+    "The restarted MCP runtime accepted an authenticated mutation from the 71589399-byte active CoS session, proving the prior 64 MiB runtime ceiling is no longer active.",
+    "The old TokenPath Forge request remains unspent and immutable but carries stale runtime lineage; lifecycle supersession and a fresh exact grant remain mandatory."
+  ],
+  "next_gate": "Persist this live validation and the OAuth validation through cstar_record_result, then reconcile the stale TokenPath request through sanctioned CStar lifecycle surfaces before seeking a fresh exact execution grant."
+}

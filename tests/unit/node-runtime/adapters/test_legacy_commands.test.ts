@@ -58,7 +58,7 @@ describe('legacy_commands', () => {
     });
 
     describe('discoverLegacyCommands', () => {
-        test('should discover python scripts in various directories', () => {
+        test('should not discover python scripts in various directories', () => {
             deps.fs.existsSync = (p: string) => p.includes('scripts');
             deps.fs.readdirSync = (p: string) => {
                 if (p.includes('scripts')) {
@@ -71,10 +71,10 @@ describe('legacy_commands', () => {
                 return [];
             };
             const result = discoverLegacyCommands('/root');
-            assert.strictEqual(result.get('my_script'), '/root/scripts/my_script.py');
+            assert.strictEqual(result.size, 0);
         });
 
-        test('should discover scripts in subdirectories with scripts/ folder', () => {
+        test('should not discover scripts in subdirectories with scripts/ folder', () => {
             const existingPaths = new Set([
                 '/root/src/tools',
                 '/root/src/tools/my_tool/scripts/my_tool.py'
@@ -91,10 +91,33 @@ describe('legacy_commands', () => {
                 return [];
             };
             const result = discoverLegacyCommands('/root');
-            assert.strictEqual(result.get('my_tool'), '/root/src/tools/my_tool/scripts/my_tool.py');
+            assert.strictEqual(result.size, 0);
         });
 
-        test('should discover workflows', () => {
+        test('should not rediscover commands from decommissioned directories', () => {
+            const existingPaths = new Set([
+                '/root/.agents/skills',
+                '/root/.agents/skills/autobot/DECOMMISSIONED.md',
+                '/root/.agents/skills/autobot/scripts/autobot.py',
+            ]);
+            deps.fs.existsSync = (p: string) => existingPaths.has(p.replace(/\\/g, '/'));
+            deps.fs.readdirSync = (p: string) => {
+                if (p.replace(/\\/g, '/') === '/root/.agents/skills') {
+                    return [{
+                        isFile: () => false,
+                        isDirectory: () => true,
+                        name: 'autobot',
+                    }] as any;
+                }
+                return [];
+            };
+
+            const result = discoverLegacyCommands('/root');
+
+            assert.strictEqual(result.has('autobot'), false);
+        });
+
+        test('should not discover workflows', () => {
              deps.fs.existsSync = (p: string) => p.includes('workflows');
              deps.fs.readdirSync = (p: string) => {
                  if (p.includes('workflows')) {
@@ -103,7 +126,7 @@ describe('legacy_commands', () => {
                  return [];
              };
              const result = discoverLegacyCommands('/root');
-             assert.strictEqual(result.get('my_flow'), '/root/.agents/workflows/my_flow.md');
+             assert.strictEqual(result.size, 0);
         });
     });
 });

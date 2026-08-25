@@ -1,10 +1,12 @@
 ---
-name: The Oracle
-description: The Primary Loop. Analyzes project state, identifies stalled tasks, and suggests the next move using the Workflow Analyst.
+name: oracle-primary-loop-retired
+description: Historical marker for the retired Oracle control loop.
+status: decommissioned
 ---
-# The Oracle Protocol
 
-Activation Words: oracle prophecy future next-move analyst
+# Oracle primary loop (decommissioned)
 
-## Usage
-`python .agents/skills/workflow-analyst/analyze_workflow.py`
+This surface no longer chooses the next move, routes work, or grants execution
+authority. Use CStar lifecycle state and CoS sequencing. The adjacent workflow
+analyst remains an explicit read-only parser for legacy `tasks.md` and
+`dev_journal.md` files; its output is evidence only.

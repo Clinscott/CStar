@@ -8,6 +8,7 @@ import {
     database,
     spokeStore,
     beadStore,
+    seedValidationBead,
     makeSpoke,
     validDispatchRequest,
     validForgeExecuteRequest,
@@ -18,7 +19,6 @@ import {
     handleHandoff,
     handleHallSearch,
     handleAugury,
-    handleDoctor,
     handleVerifyPlan,
     handleBead,
     handleRecordResult,
@@ -43,9 +43,6 @@ import {
 
 describe("CStar MCP Augury, bead, telemetry, and result tools", () => {
 it('cstar_augury tool handler should return routing advice', async () => {
-    // Prompt with the 'test' trigger word should resolve VERIFY via the
-    // deterministic grammar resolver (no session active), not the legacy
-    // blind ORCHESTRATE fallback.
     const result = await handleAugury({ prompt: 'test mission' });
     assert.ok(result.content);
     const parsed = JSON.parse(result.content[0].text);
@@ -73,17 +70,20 @@ it('cstar_augury tool handler should return routing advice', async () => {
     assert.ok(typeof parsed.persona_advice.direction === 'string');
     assert.ok(parsed.persona_advice.direction.length > 0);
     assert.ok(typeof parsed.persona_advice.tone_directive === 'string');
-    assert.ok(['low', 'medium', 'high'].includes(parsed.persona_advice.risk_tolerance));
+    assert.strictEqual(parsed.persona_advice.risk_tolerance, undefined);
+    assert.ok(typeof parsed.persona_advice.domain_emphasis === 'string');
 });
 
-it('cstar_augury falls back to ORCHESTRATE when no grammar trigger and no session exist', async () => {
+it('cstar_augury stays unresolved when no grammar trigger and no session exist', async () => {
     // 'xyzzy noise' contains no grammar trigger word, so the deterministic
     // resolver returns null and the handler should use the ORCHESTRATE
     // fallback path (source='fallback', confidence=0.6).
     const result = await handleAugury({ prompt: 'xyzzy noise' });
     const parsed = JSON.parse(result.content[0].text);
-    assert.strictEqual(parsed.intent_category, 'ORCHESTRATE');
-    assert.strictEqual(parsed.routing_provenance.source, 'fallback');
+    assert.strictEqual(parsed.intent_category, 'UNRESOLVED');
+    assert.strictEqual(parsed.routing_provenance.source, 'unresolved');
+    assert.strictEqual(parsed.status, 'unresolved');
+    assert.strictEqual(parsed.guardrail.verdict, 'block');
     assert.strictEqual(parsed.routing_provenance.deterministic, null);
     assert.strictEqual(parsed.routing_provenance.session, null);
     assert.ok(parsed.persona_advice);
@@ -106,6 +106,14 @@ it('detects stale Augury session target divergence', () => {
         '/home/morderith/Corvus/CStar',
     );
     assert.strictEqual(overlap.diverged, false);
+
+    const unboundedSession = detectAuguryTargetDivergence(
+        ['/home/morderith/Corvus/CStar/src/tools/cstar-kernel-mcp.ts'],
+        [],
+        '/home/morderith/Corvus/CStar',
+    );
+    assert.strictEqual(unboundedSession.diverged, true);
+    assert.match(unboundedSession.reason ?? '', /no bounded targets/);
 });
 
 it('routes explicit prompt targets instead of stale active session context', () => {
@@ -212,20 +220,6 @@ it('blocks stale session divergence only when no safe current route exists', () 
     assert.match(decision.required_operator_decision ?? '', /Clarify/);
 });
 
-it('cstar_doctor tool handler should return health status', async () => {
-    const result = await handleDoctor();
-    assert.ok(result.content);
-    const parsed = JSON.parse(result.content[0].text);
-    if (parsed.error) console.error('Doctor Error:', parsed.error);
-    assert.ok(parsed.status === 'healthy' || parsed.status === 'degraded');
-    assert.ok(parsed.checks);
-    assert.ok(parsed.usefulness);
-    assert.strictEqual(typeof parsed.usefulness.total_calls_24h, 'number');
-    assert.ok(parsed.token_path);
-    assert.strictEqual(typeof parsed.token_path.advisor_available, 'boolean');
-    assert.strictEqual(typeof parsed.token_path.advice_count_24h, 'number');
-});
-
 it('cstar_verify_plan tool handler should return verification advice', async () => {
     const result = await handleVerifyPlan();
     assert.ok(result.content);
@@ -276,6 +270,17 @@ it('cstar_bead claims, blocks, and resolves existing beads', async () => {
     assert.strictEqual(claimParsed.status, 'claimed');
     assert.strictEqual(claimParsed.bead.status, 'IN_PROGRESS');
     assert.strictEqual(claimParsed.bead.assigned_agent, 'codex');
+
+    const checkerUpdate = await handleBead({
+        action: 'update_status',
+        bead_id: 'bead:mcp:test-transition',
+        status: 'IN_PROGRESS',
+        checker_shell: 'node --test focused-check',
+        target_path: 'src/focused.ts',
+    });
+    const checkerParsed = JSON.parse(checkerUpdate.content[0].text);
+    assert.strictEqual(checkerParsed.bead.checker_shell, 'node --test focused-check');
+    assert.strictEqual(checkerParsed.bead.target_path, path.join('/home/morderith/Corvus/CStar', 'src/focused.ts'));
 
     const blockResult = await handleBead({
         action: 'block',
@@ -336,7 +341,7 @@ it('derives usefulness data for all MCP tool families', () => {
     const validationEvent = deriveMcpUsefulnessEvent(
         { ts: new Date().toISOString(), tool: 'cstar_record_result', ok: true, duration_ms: 5, root: '/tmp/cstar' },
         { bead_id: 'bead:mcp:1' },
-        { content: [{ type: 'text', text: JSON.stringify({ status: 'recorded', bead_id: 'bead:mcp:1', verdict: 'SUCCESS' }) }] },
+        { content: [{ type: 'text', text: JSON.stringify({ status: 'recorded_verified', validation_persisted: true, bead_id: 'bead:mcp:1', verdict: 'SUCCESS' }) }] },
     );
     assert.strictEqual(validationEvent.validation_recorded, true);
     assert.strictEqual(validationEvent.verdict, 'SUCCESS');
@@ -362,20 +367,24 @@ it('summarizes usefulness data and flags low-outcome search patterns', () => {
 });
 
 it('cstar_record_result tool handler should record a result', async () => {
+    seedValidationBead('test-bead');
     const result = await handleRecordResult({ bead_id: 'test-bead', verdict: 'SUCCESS' });
     assert.ok(result.content);
     const parsed = JSON.parse(result.content[0].text);
     if (parsed.error) console.error('Record Result Error:', parsed.error);
-    assert.strictEqual(parsed.status, 'recorded');
+    assert.strictEqual(parsed.status, 'recorded_unverified');
+    assert.strictEqual(parsed.reported_verdict, 'SUCCESS');
+    assert.strictEqual(parsed.stored_verdict, 'INCONCLUSIVE');
+    assert.strictEqual(parsed.authoritative, false);
     assert.strictEqual(parsed.token_path_observation_id, undefined,
         'no observation_id when token_path_observation is absent');
     assert.strictEqual(parsed.token_path_observation_status, 'not_recorded');
-    assert.strictEqual(parsed.token_path_observation_warning, 'no_recent_token_path_advice_linked');
+    assert.strictEqual(parsed.token_path_observation_warning, 'explicit_token_path_observation_required');
     assert.strictEqual(parsed.mutation.kind, 'validation_result_record');
     assert.strictEqual(parsed.mutation.persisted, true);
 });
 
-it('cstar_augury includes a token_path block when the sidecar is reachable', async () => {
+it('cstar_augury exposes TokenPath only as non-actionable shadow state', async () => {
     const result = await handleAugury({
         prompt: 'Add a quiet flag to the simulation runner.',
         inferred_intent: 'BUILD',
@@ -383,21 +392,18 @@ it('cstar_augury includes a token_path block when the sidecar is reachable', asy
     });
     assert.ok(result.content);
     const parsed = JSON.parse(result.content[0].text);
-    assert.ok(parsed.token_path, 'token_path should be present when the sidecar is reachable');
+    assert.ok(parsed.token_path, 'token_path shadow state should be present');
     assert.strictEqual(parsed.token_path.advisor, 'augury-token-path');
-    assert.strictEqual(parsed.token_path.schema_version, 1);
-    assert.ok(typeof parsed.token_path.scenario_class === 'string');
-    assert.ok(typeof parsed.token_path.mode === 'string');
-    assert.ok(typeof parsed.token_path.selected_policy === 'string');
-    assert.ok(typeof parsed.token_path.expected_billable_tokens === 'number');
-    assert.ok(typeof parsed.token_path.expected_raw_tokens === 'number');
-    assert.ok(parsed.token_path.budget && typeof parsed.token_path.budget === 'object');
-    assert.ok(parsed.token_path.context_strategy && typeof parsed.token_path.context_strategy === 'object');
-    assert.ok(typeof parsed.token_path.episode_id === 'string');
-    assert.match(parsed.token_path.episode_id, /^mcp-tp-/);
+    assert.strictEqual(parsed.token_path.schema_version, 3);
+    assert.strictEqual(parsed.token_path.status, 'quarantined');
+    assert.strictEqual(parsed.token_path.mode, 'shadow-disabled');
+    assert.strictEqual(parsed.token_path.selected_policy, undefined);
+    assert.strictEqual(parsed.token_path.confidence, undefined);
+    assert.strictEqual(parsed.token_path.shadow_only, true);
+    assert.strictEqual(parsed.token_path.actionable, false);
 });
 
-it('cstar_augury escalates ambiguous prompts toward ask-first or defer-escalate', async () => {
+it('cstar_augury does not let ambiguity reactivate TokenPath steering', async () => {
     const result = await handleAugury({
         prompt: 'Maybe figure out something better here?',
         inferred_intent: 'REPAIR',
@@ -405,74 +411,72 @@ it('cstar_augury escalates ambiguous prompts toward ask-first or defer-escalate'
     assert.ok(result.content);
     const parsed = JSON.parse(result.content[0].text);
     assert.ok(parsed.token_path, 'token_path should be present');
-    assert.ok(
-        parsed.token_path.mode === 'ask-first' || parsed.token_path.mode === 'defer-escalate',
-        `expected ask-first/defer-escalate for ambiguous prompt, got ${parsed.token_path.mode}`
-    );
+    assert.strictEqual(parsed.token_path.mode, 'shadow-disabled');
+    assert.strictEqual(parsed.token_path.actionable, false);
 });
 
-it('cstar_record_result can auto-link a token_path_episode_id from recent advice', async () => {
-    const auguryResult = await handleAugury({
-        prompt: 'Patch one MCP tool and run a focused unit test.',
-        inferred_intent: 'BUILD',
-        target_paths: ['src/tools/cstar-kernel-mcp.ts'],
-    });
-    const auguryParsed = JSON.parse(auguryResult.content[0].text);
-    if (!auguryParsed.token_path?.episode_id) {
-        return;
-    }
-
+it('cstar_record_result never auto-links a token_path_episode_id', async () => {
+    seedValidationBead('test-bead-auto-tp');
     const result = await handleRecordResult({
         bead_id: 'test-bead-auto-tp',
         verdict: 'SUCCESS',
-        token_path_episode_id: auguryParsed.token_path.episode_id,
-        notes: 'Auto-linked from recent cstar_augury advice.',
+        token_path_episode_id: 'mcp-tp-untrusted-link',
+        notes: 'A correlation id alone is not a measured observation.',
     });
     const parsed = JSON.parse(result.content[0].text);
-    assert.strictEqual(parsed.status, 'recorded');
-    assert.strictEqual(parsed.token_path_episode_id, auguryParsed.token_path.episode_id);
-    assert.strictEqual(parsed.token_path_observation_status, 'recorded');
-    assert.strictEqual(parsed.token_path_observation_source, 'auto_linked_recent_advice');
-    assert.ok(typeof parsed.token_path_observation_id === 'string');
-    assert.match(parsed.token_path_observation_id, /^mcp-obs-/);
+    assert.strictEqual(parsed.status, 'recorded_unverified');
+    assert.strictEqual(parsed.token_path_episode_id, undefined);
+    assert.strictEqual(parsed.reported_token_path_episode_id, 'mcp-tp-untrusted-link');
+    assert.strictEqual(parsed.token_path_observation_status, 'not_recorded');
+    assert.strictEqual(parsed.token_path_observation_warning, 'explicit_token_path_observation_required');
+    assert.strictEqual(parsed.token_path_observation_id, undefined);
 });
 
-it('cstar_record_result accepts an optional token_path_observation payload', async () => {
-    const result = await handleRecordResult({
-        bead_id: 'test-bead-with-tp',
-        verdict: 'SUCCESS',
-        token_path_observation: {
-            scenario_class: 'BUILD|ambiguity:low|context:medium|targets:single|verification:yes|route:complete|recovery:no|external-research:no|memory:none',
-            selected_policy: 'lite-only',
-            advised_mode: 'lite',
-            token_path_episode_id: 'mcp-tp-test-explicit',
-            observed_raw_tokens_episode: 1480,
-            observed_billable_tokens_episode: 1340,
-            rounds: 1,
-            verification_result: 'verified-success',
-            terminal_outcome: 'verified-success',
-        },
-    });
-    assert.ok(result.content);
-    const parsed = JSON.parse(result.content[0].text);
-    if (parsed.error) console.error('Record Result+Observation Error:', parsed.error);
-    assert.strictEqual(parsed.status, 'recorded');
-    assert.strictEqual(parsed.token_path_observation_status, 'recorded');
-    assert.strictEqual(parsed.token_path_observation_source, 'explicit_payload');
-    assert.ok(typeof parsed.token_path_observation_id === 'string',
-        `expected token_path_observation_id string, got ${parsed.token_path_observation_id}`);
-    assert.match(parsed.token_path_observation_id, /^mcp-obs-/);
-    assert.strictEqual(parsed.token_path_episode_id, 'mcp-tp-test-explicit');
+it('cstar_record_result quarantines token-path observations without a promoted episode source', async () => {
+    const stateRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'cstar-token-path-explicit-'));
+    process.env.CSTAR_TOKEN_PATH_STATE_ROOT = stateRoot;
+    try {
+        seedValidationBead('test-bead-with-tp');
+        const result = await handleRecordResult({
+            bead_id: 'test-bead-with-tp',
+            verdict: 'SUCCESS',
+            token_path_observation: {
+                scenario_class: 'BUILD|ambiguity:low|context:medium|targets:single|verification:yes|route:complete|recovery:no|external-research:no|memory:none',
+                selected_policy: 'lite-only',
+                advised_mode: 'lite',
+                token_path_episode_id: 'mcp-tp-test-explicit',
+                observed_raw_tokens_episode: 1480,
+                observed_billable_tokens_episode: 1340,
+                rounds: 1,
+                verification_result: 'pass',
+                terminal_outcome: 'verified-success',
+            },
+        });
+        assert.ok(result.content);
+        const parsed = JSON.parse(result.content[0].text);
+        if (parsed.error) console.error('Record Result+Observation Error:', parsed.error);
+        assert.strictEqual(parsed.status, 'recorded_unverified');
+        assert.strictEqual(parsed.token_path_observation_status, 'not_recorded');
+        assert.strictEqual(parsed.token_path_observation_source, 'explicit_payload');
+        assert.strictEqual(parsed.token_path_observation_id, undefined);
+        assert.strictEqual(parsed.token_path_observation_warning, 'token_path_quarantined_no_promoted_episode');
+        assert.strictEqual(parsed.token_path_episode_id, undefined,
+            'quarantined caller-invented episode ids must not be promoted into response linkage');
+    } finally {
+        delete process.env.CSTAR_TOKEN_PATH_STATE_ROOT;
+        fs.rmSync(stateRoot, { recursive: true, force: true });
+    }
 });
 
 it('cstar_record_result ignores malformed token_path_observation without failing the verdict', async () => {
+    seedValidationBead('test-bead-bad-tp');
     const result = await handleRecordResult({
         bead_id: 'test-bead-bad-tp',
         verdict: 'SUCCESS',
         token_path_observation: { scenario_class: 'partial' } as any,
     });
     const parsed = JSON.parse(result.content[0].text);
-    assert.strictEqual(parsed.status, 'recorded');
+    assert.strictEqual(parsed.status, 'recorded_unverified');
     assert.strictEqual(parsed.token_path_observation_id, undefined,
         'malformed observation must be skipped, verdict still recorded');
     assert.strictEqual(parsed.token_path_observation_status, 'not_recorded');

@@ -7,7 +7,7 @@
 import type { ForgeCandidateResult, ForgeValidationRequest } from  '../../../types/forge-candidate.js';
 import type { GungnirMatrix } from  '../../../types/gungnir.js';
 import type { RavensCycleResult, RavensStageResult, RavensTargetIdentity } from  '../../../types/ravens-stage.js';
-import type { CouncilExpertCandidate, CouncilExpertProtocol } from '../../../core/council_experts.js';
+import type { CouncilExpertProtocol } from '../../../core/council_experts.js';
 
 export type WeaveStatus = 'SUCCESS' | 'FAILURE' | 'TRANSITIONAL';
 export type OperatorMode = 'cli' | 'tui' | 'automation' | 'subkernel';
@@ -48,7 +48,6 @@ export interface RuntimeAuguryContract {
     body?: string;
     canonical_intent?: string;
     council_expert?: CouncilExpertProtocol;
-    council_candidates?: CouncilExpertCandidate[];
 }
 
 /** @deprecated Use RuntimeAuguryContract. */
@@ -81,7 +80,6 @@ export interface RuntimeContext {
     /** @deprecated Use augury_designation_source. */
     trace_designation_source?: RuntimeAuguryDesignationSource | 'explicit_trace_block' | 'payload_trace_contract';
     council_expert?: CouncilExpertProtocol;
-    root_persona_directive?: string;
     env: Record<string, string | undefined>;
     timestamp: number;
 }

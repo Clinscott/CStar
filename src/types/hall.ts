@@ -13,7 +13,7 @@ export type HallBeadStatus =
     | 'RESOLVED'
     | 'ARCHIVED'
     | 'SUPERSEDED';
-export type HallBeadTargetKind = 'FILE' | 'SECTOR' | 'REPOSITORY' | 'CONTRACT' | 'SPOKE' | 'WORKFLOW' | 'VALIDATION' | 'OTHER';
+export type HallBeadTargetKind = 'FILE' | 'SECTOR' | 'REPOSITORY' | 'CONTRACT' | 'SPOKE' | 'WORKFLOW' | 'SKILL' | 'WEAVE' | 'VALIDATION' | 'OTHER';
 export type HallValidationVerdict =
     | 'ACCEPTED'
     | 'REJECTED'
@@ -178,6 +178,9 @@ export interface HallValidationRun {
     post_scores?: Record<string, unknown>;
     benchmark?: Record<string, unknown>;
     notes?: string;
+    authority_class?: 'reported' | 'verified' | 'internal' | 'legacy_unverified';
+    evidence_sha256?: string;
+    validator_identity?: string;
     created_at: number;
     legacy_trace_id?: number;
 }
@@ -273,6 +276,7 @@ export interface HallMountedSpokeRecord {
     projection_status: HallMountedSpokeProjectionStatus;
     last_scan_at?: number;
     last_health_at?: number;
+    last_health_attempt_at?: number;
     metadata?: Record<string, unknown>;
     created_at: number;
     updated_at: number;

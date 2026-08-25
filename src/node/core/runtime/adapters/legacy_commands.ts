@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import { join, parse } from 'node:path';
+import { join } from 'node:path';
 import { getPythonPath } from  '../../python_utils.js';
 
 export const deps = {
@@ -45,62 +45,6 @@ export function loadSkillRegistryManifest(projectRoot: string): Map<string, stri
 }
 
 export function discoverLegacyCommands(projectRoot: string): Map<string, string> {
-    const commands = loadSkillRegistryManifest(projectRoot);
-    const scriptDirs = [
-        join(projectRoot, '.agents', 'skills'),
-        join(projectRoot, 'src', 'tools'),
-        join(projectRoot, 'src', 'skills', 'local'),
-        join(projectRoot, 'skills_db'),
-        join(projectRoot, 'src', 'sentinel'),
-        join(projectRoot, 'scripts'),
-    ];
-
-    for (const dir of scriptDirs) {
-        if (!deps.fs.existsSync(dir)) {
-            continue;
-        }
-
-        const entries = deps.fs.readdirSync(dir, { withFileTypes: true }) as fs.Dirent[];
-        for (const entry of entries) {
-            if (entry.isFile() && entry.name.endsWith('.py') && !entry.name.startsWith('_')) {
-                const key = parse(entry.name).name.toLowerCase();
-                if (!commands.has(key)) {
-                    commands.set(key, join(dir, entry.name));
-                }
-                continue;
-            }
-
-            if (!entry.isDirectory() || entry.name.startsWith('.')) {
-                continue;
-            }
-
-            const scriptsDir = join(dir, entry.name, 'scripts');
-            const mainScript = join(scriptsDir, `${entry.name}.py`);
-            const altScript = join(dir, entry.name, `${entry.name}.py`);
-
-            if (deps.fs.existsSync(mainScript)) {
-                if (!commands.has(entry.name.toLowerCase())) {
-                    commands.set(entry.name.toLowerCase(), mainScript);
-                }
-            } else if (deps.fs.existsSync(altScript)) {
-                if (!commands.has(entry.name.toLowerCase())) {
-                    commands.set(entry.name.toLowerCase(), altScript);
-                }
-            }
-        }
-    }
-
-    const workflowDir = join(projectRoot, '.agents', 'workflows');
-    if (deps.fs.existsSync(workflowDir)) {
-        for (const file of deps.fs.readdirSync(workflowDir) as string[]) {
-            if ((file.endsWith('.md') || file.endsWith('.qmd')) && !file.startsWith('_')) {
-                const key = parse(file).name.toLowerCase();
-                if (!commands.has(key)) {
-                    commands.set(key, join(workflowDir, file));
-                }
-            }
-        }
-    }
-
-    return commands;
+    void projectRoot;
+    return new Map();
 }
