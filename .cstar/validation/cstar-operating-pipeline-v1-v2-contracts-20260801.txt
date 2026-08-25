@@ -1,0 +1,7 @@
+schema=cstar.validation_check.v1
+bead_id=bead:cstar:operating-pipeline-v1-batch-1
+validation_id=validation:cstar-operating-pipeline-v1:independent-20260801-v2
+typecheck=npm run typecheck exit 0
+diff_check=git diff --check exit 0
+line_audit=host_workflow_validation.ts 476; validation_evidence.ts 346; test_host_workflow_validation.test.ts 421; all <=500
+focused_boundary=19/19

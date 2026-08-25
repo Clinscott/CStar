@@ -5,6 +5,8 @@ import {
     getForgeAuthorizationByRequest,
 } from '../../pennyone/intel/forge_receipt_controller.js';
 import { getPendingForgeContinuation } from '../../pennyone/intel/forge_continuation_controller.js';
+import { getForgeMissionGrantByRequest }
+    from '../../pennyone/intel/forge_mission_grant_controller.js';
 import type {
     HallForgeAuthorizationRecord,
     HallForgeRequestRecord,
@@ -17,13 +19,23 @@ import {
 import { verifyForgeContinuationCaller } from './forge_continuation_authority.js';
 import {
     parseForgeStructuralCaller,
+    verifyPersistedForgeMissionGrantAuthority,
     verifyPersistedForgeSetManifestAuthority,
     type ForgeStructuralCaller,
 } from './forge_set_manifest_autonomous_authority.js';
+import {
+    FORGE_SET_REQUEST_AUTHORITY_REF_PREFIX,
+    verifyPersistedForgeSetRequestAuthority,
+} from './forge_set_request_authority.js';
+import {
+    isForgeAutonomousPolicyCandidate,
+    verifyPersistedForgeAutonomousPolicyAuthority,
+} from './forge_autonomous_policy_authority.js';
 
 type ForgeReplayAuthority =
     | { authorization: HallForgeAuthorizationRecord; caller: VerifiedCodexRequestIdentity; mode: 'full' }
-    | { authorization: HallForgeAuthorizationRecord; caller: ForgeStructuralCaller; mode: 'autonomous_set_manifest_v1' };
+    | { authorization: HallForgeAuthorizationRecord; caller: ForgeStructuralCaller;
+        mode: 'autonomous_set_manifest_v1' | 'autonomous_dispatch_policy_v1' };
 
 type ForgeExecutionCaller = VerifiedCodexRequestIdentity | ForgeStructuralCaller;
 
@@ -46,7 +58,23 @@ export function forgeExecutionAuthorityMatches(
 
 function isSetAuthorization(authorization: HallForgeAuthorizationRecord): boolean {
     return authorization.authorization_profile === 'root_user_forge_intent_v1'
-        && authorization.operator_authorization_ref.startsWith('cstar-forge-set-manifest:');
+        && (authorization.operator_authorization_ref.startsWith('cstar-forge-set-manifest:')
+            || authorization.operator_authorization_ref.startsWith(
+                FORGE_SET_REQUEST_AUTHORITY_REF_PREFIX,
+            ));
+}
+
+function verifyPersistedSetAuthority(
+    db: Database.Database,
+    request: HallForgeRequestRecord,
+    authorization: HallForgeAuthorizationRecord,
+    caller: ForgeStructuralCaller,
+): void {
+    if (authorization.operator_authorization_ref.startsWith(FORGE_SET_REQUEST_AUTHORITY_REF_PREFIX)) {
+        verifyPersistedForgeSetRequestAuthority({ db, request, authorization, caller });
+        return;
+    }
+    verifyPersistedForgeSetManifestAuthority({ db, request, authorization, caller });
 }
 
 export async function verifyForgeReplayAuthorization(
@@ -64,12 +92,23 @@ export async function verifyForgeReplayAuthorization(
         throw new Error('forge_replay_authorization_receipt_mismatch');
     }
     const structuralCaller = parseForgeStructuralCaller(requestContext);
+    const missionGrant = getForgeMissionGrantByRequest(db, request.request_id);
+    if (missionGrant) {
+        if (isForgeAutonomousPolicyCandidate(db, request)) {
+            verifyPersistedForgeAutonomousPolicyAuthority({
+                db, request, authorization, grant: missionGrant, caller: structuralCaller,
+            });
+            return { authorization, caller: structuralCaller, mode: 'autonomous_dispatch_policy_v1' };
+        }
+        verifyPersistedForgeMissionGrantAuthority({
+            db, request, authorization, caller: structuralCaller,
+        });
+        return { authorization, caller: structuralCaller, mode: 'autonomous_set_manifest_v1' };
+    }
     const continuation = getPendingForgeContinuation(db, request.request_id);
     if (isSetAuthorization(authorization) && !continuation
         && structuralCaller.turn_id !== authorization.operator_turn_id) {
-        verifyPersistedForgeSetManifestAuthority({
-            db, request, authorization, caller: structuralCaller,
-        });
+        verifyPersistedSetAuthority(db, request, authorization, structuralCaller);
         return { authorization, caller: structuralCaller, mode: 'autonomous_set_manifest_v1' };
     }
     const caller = await verifyCodexRequestIdentity(requestContext);
@@ -85,7 +124,8 @@ export async function verifyForgeExecutionAuthorization(
 ): Promise<{
     authorization: HallForgeAuthorizationRecord;
     executor: ForgeExecutionCaller;
-    mode: 'authorizing_turn' | 'autonomous_set_manifest_v1' | 'pre_provider_continuation';
+    mode: 'authorizing_turn' | 'autonomous_set_manifest_v1' | 'autonomous_dispatch_policy_v1'
+        | 'pre_provider_continuation';
     continuation_fingerprint: string | null;
 }> {
     const authorization = getForgeAuthorizationByRequest(db, request.request_id);
@@ -101,11 +141,41 @@ export async function verifyForgeExecutionAuthorization(
 
     const structuralCaller = parseForgeStructuralCaller(requestContext);
     const continuation = getPendingForgeContinuation(db, request.request_id);
-    if (isSetAuthorization(authorization) && !continuation
-        && structuralCaller.turn_id !== authorization.operator_turn_id) {
-        verifyPersistedForgeSetManifestAuthority({
+    const missionGrant = getForgeMissionGrantByRequest(db, request.request_id);
+    if (missionGrant) {
+        if (isForgeAutonomousPolicyCandidate(db, request)) {
+            if (continuation) throw new Error('forge_autonomous_policy_continuation_forbidden');
+            verifyPersistedForgeAutonomousPolicyAuthority({
+                db, request, authorization, grant: missionGrant, caller: structuralCaller, now,
+            });
+            return {
+                authorization,
+                executor: structuralCaller,
+                mode: 'autonomous_dispatch_policy_v1',
+                continuation_fingerprint: null,
+            };
+        }
+        verifyPersistedForgeMissionGrantAuthority({
             db, request, authorization, caller: structuralCaller, now,
         });
+        if (!continuation) {
+            return {
+                authorization,
+                executor: structuralCaller,
+                mode: 'autonomous_set_manifest_v1',
+                continuation_fingerprint: null,
+            };
+        }
+    }
+    if (isSetAuthorization(authorization) && !continuation
+        && structuralCaller.turn_id !== authorization.operator_turn_id) {
+        if (authorization.operator_authorization_ref.startsWith(FORGE_SET_REQUEST_AUTHORITY_REF_PREFIX)) {
+            verifyPersistedForgeSetRequestAuthority({ db, request, authorization, caller: structuralCaller, now });
+        } else {
+            verifyPersistedForgeSetManifestAuthority({
+                db, request, authorization, caller: structuralCaller, now,
+            });
+        }
         return {
             authorization,
             executor: structuralCaller,

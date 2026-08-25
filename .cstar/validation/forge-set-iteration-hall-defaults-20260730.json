@@ -1,0 +1,43 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:cstar:operating-pipeline-v1-batch-1",
+  "validation_id": "validation:cstar-set-iteration-hall-defaults:20260730",
+  "reported_verdict": "ACCEPTED",
+  "artifacts": [
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_iteration_authority.ts",
+      "sha256": "fb651cf4d1889f1659bfd143595e534178571f013fe53d948fbf6b428c89b803",
+      "bytes": 16442
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_set_manifest_iteration_authorization.test.ts",
+      "sha256": "7ea3350fcce561a7a19944e1e80da6cc1558fc4bc23c8cfba28f7bab18834c37",
+      "bytes": 21496
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_set_manifest_iteration_controller_guard.test.ts",
+      "sha256": "63df40bd63d313e79bc1560d2ba9f3cfba20487b2fbbbce107b97578de62f11a",
+      "bytes": 14906
+    }
+  ],
+  "checks": [
+    {
+      "name": "real cstar bead creation stores exact Hall iteration defaults",
+      "status": "pass",
+      "evidence_path": "tests/unit/cstar-kernel-mcp/test_forge_set_manifest_iteration_authorization.test.ts",
+      "sha256": "7ea3350fcce561a7a19944e1e80da6cc1558fc4bc23c8cfba28f7bab18834c37"
+    },
+    {
+      "name": "Hall-default adversarial controller guards",
+      "status": "pass",
+      "evidence_path": "tests/unit/cstar-kernel-mcp/test_forge_set_manifest_iteration_controller_guard.test.ts",
+      "sha256": "63df40bd63d313e79bc1560d2ba9f3cfba20487b2fbbbce107b97578de62f11a"
+    },
+    {
+      "name": "seven focused suites 102 of 102 and typecheck",
+      "status": "pass",
+      "evidence_path": "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_iteration_authority.ts",
+      "sha256": "fb651cf4d1889f1659bfd143595e534178571f013fe53d948fbf6b428c89b803"
+    }
+  ]
+}

@@ -27,6 +27,7 @@ describe('CStar MCP tool class contract', () => {
         assert.equal('cstar_autobot' in CSTAR_KERNEL_TOOL_CLASSES, false);
         assert.equal(CSTAR_KERNEL_TOOL_CLASSES.cstar_bead, 'MUTATION');
         assert.equal(CSTAR_KERNEL_TOOL_CLASSES.cstar_persona_set, 'MUTATION');
+        assert.equal(CSTAR_KERNEL_TOOL_CLASSES.cstar_augury, 'MUTATION');
         assert.equal(CSTAR_KERNEL_TOOL_CLASSES.cstar_doctor, 'READ');
         assert.equal(CSTAR_KERNEL_TOOL_CLASSES.cstar_pennyone_context, 'READ');
         assert.equal(CSTAR_KERNEL_TOOL_CLASSES.cstar_hall_maintenance, 'LEGACY');

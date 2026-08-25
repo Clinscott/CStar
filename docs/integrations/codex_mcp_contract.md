@@ -11,38 +11,58 @@ Corvus Star supports exactly one Codex runtime integration surface:
 1. `cstar-kernel`
    The only supported Codex MCP server for Corvus Star.
    Scope: bounded kernel primitives only.
-   Tools:
-   - `cstar_doctor`
+   Default operator profile (exactly 16 tools):
    - `cstar_handoff`
    - `cstar_hall_search`
-   - `cstar_hall_maintenance`
    - `cstar_augury`
+   - `cstar_doctor`
    - `cstar_verify_plan`
    - `cstar_bead`
    - `cstar_goal_resume`
-   - `cstar_spoke_bead_import`
    - `cstar_record_result`
-   - `cstar_engram_record`
-   - `cstar_war_game_score`
    - `cstar_manifest`
    - `cstar_skill_info`
-   - `cstar_spoke_journal`
-   - `cstar_pennyone_context`
-   - `cstar_mongo_mailbox`
    - `cstar_status`
-   - `cstar_evolve`
-   - `cstar_spoke`
-   - `cstar_intent_route`
-   - `cstar_warden`
-   - `cstar_telemetry`
+   - `cstar_persona_set`
    - `cstar_researcher_request`
    - `cstar_forge_request`
    - `cstar_forge_authorize`
    - `cstar_forge_execute`
 
+   The advanced profile adds exactly nine tools:
+   `cstar_spoke_bead_import`, `cstar_engram_record`,
+   `cstar_war_game_score`, `cstar_spoke_journal`,
+   `cstar_pennyone_context`, `cstar_evolve`, `cstar_spoke`, `cstar_warden`,
+   and `cstar_telemetry`.
+
+   The three compatibility-only tools are `cstar_hall_maintenance`,
+   `cstar_mongo_mailbox`, and `cstar_intent_route`. The explicit full
+   compatibility profile registers all 28 tools. Its discovery delta contains
+   the 12 non-default tools: the nine advanced tools plus these three
+   compatibility surfaces.
+
 The exhaustive API reference is `docs/integrations/cstar-kernel-mcp.md`. If a
 tool inventory test and this list disagree, fix the prose; runtime registration
 and the integration test are the authoritative inventory.
+
+## Canonical SET and Forge Flow
+
+`cstar_augury` is mode-dependent. Omitting `mission_boundary` is advisory and
+read-only. A new current exact `SET`/design supplies exactly one strict
+`mission_boundary`, preferring v2 while retaining v1 compatibility. That
+materializes the ordered mission and immutable child request templates.
+
+The active implementation flow is:
+
+`one cstar_augury mission_boundary -> cstar_forge_request ->
+cstar_forge_authorize -> cstar_forge_execute -> independent
+cstar_record_result -> automatic next-child advancement`
+
+For an eligible child, `cstar_forge_request` may derive request-scoped evidence
+from the exact SET mission grant. The default operator still calls
+`cstar_forge_authorize` as the explicit no-spend authorization gate; the tool
+also retains compatibility behavior for unchanged eligible legacy requests.
+`cstar_intent_route`, One Mind, and Weave are not active routing surfaces.
 
 ## MCP 2026-07-28 Readiness Rule
 

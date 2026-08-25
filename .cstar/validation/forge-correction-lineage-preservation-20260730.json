@@ -1,0 +1,58 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:cstar:operating-pipeline-v1-batch-2",
+  "validation_id": "validation:cstar-forge-correction-lineage-preservation:20260730",
+  "reported_verdict": "ACCEPTED",
+  "artifacts": [
+    {
+      "path": "src/tools/pennyone/intel/forge_request_preauthorization_correction.ts",
+      "sha256": "1a9496a7cbb4c88773987d109e04f1e0fb00a81ac1f3e47eaee627aec8936503",
+      "bytes": 8508
+    },
+    {
+      "path": "src/tools/pennyone/intel/forge_request_authorization_controller.ts",
+      "sha256": "43e65d0a257bc6977c704b5f3aae110b71bf4542fe1b2d0a606d7e1f884b7da3",
+      "bytes": 23049
+    },
+    {
+      "path": "src/tools/pennyone/intel/forge_request_correction_schema.ts",
+      "sha256": "52d85eec6e671bfe504fd63e23c78b7c47ed367ba7e9211622b361bd3e111ae9",
+      "bytes": 10517
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_set_manifest_request_correction.test.ts",
+      "sha256": "8c7071e3068ffbb559d8ea9b9553ad1dfa00a42618149f79ade1b74b4ca132c2",
+      "bytes": 13795
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_request_correction_schema.test.ts",
+      "sha256": "700bf2a2e55cdb3da85e090b7f454fedf39f176e4822b840d2a4c17ef30029ca",
+      "bytes": 14066
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_request_authorization_controller.test.ts",
+      "sha256": "e836c80f21605a7e7bf499abb7eb97099ab15b981dd2b76ba57e5fd86a89dbfd",
+      "bytes": 22299
+    }
+  ],
+  "checks": [
+    {
+      "name": "faithful Hall snapshot correction and authorization preserves immutable requester lineage",
+      "status": "pass",
+      "evidence_path": "tests/unit/cstar-kernel-mcp/test_forge_set_manifest_request_correction.test.ts",
+      "sha256": "8c7071e3068ffbb559d8ea9b9553ad1dfa00a42618149f79ade1b74b4ca132c2"
+    },
+    {
+      "name": "deterministic replay preserves evidence and different root rejects",
+      "status": "pass",
+      "evidence_path": "src/tools/pennyone/intel/forge_request_preauthorization_correction.ts",
+      "sha256": "1a9496a7cbb4c88773987d109e04f1e0fb00a81ac1f3e47eaee627aec8936503"
+    },
+    {
+      "name": "eighteen suites 153 of 153 focused 25 of 25 typecheck diff and line audit",
+      "status": "pass",
+      "evidence_path": "src/tools/pennyone/intel/forge_request_authorization_controller.ts",
+      "sha256": "43e65d0a257bc6977c704b5f3aae110b71bf4542fe1b2d0a606d7e1f884b7da3"
+    }
+  ]
+}

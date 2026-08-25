@@ -1,0 +1,68 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:cstar:augury-host-schema-import-20260731",
+  "validation_id": "validation:cstar-augury-host-schema-import-resolution:20260731",
+  "reported_verdict": "ACCEPTED",
+  "artifacts": [
+    {
+      "path": "tests/features/cstar_augury_set_mission_boundary.feature",
+      "sha256": "668e10471ff0d54eb7be74aec0ff696f1fc70e48514b0bf825317c0a36544a99"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_augury_set_mission_boundary.test.ts",
+      "sha256": "3c9625db2a24bd0697635aaed859900613f0d8593bbf40d4eb3ab9e61e492a78"
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/contracts/augury_mission_schema.ts",
+      "sha256": "405a709d34c485621d278822b22d420ab63a02e26c300d6f289f337eef26fa5d"
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/register_core_tools.ts",
+      "sha256": "52bd033f7fdf9fb2ff3321feece808297e3fb651a3586834c83f1b7742e37643"
+    },
+    {
+      "path": "tests/integration/cstar_kernel_mcp_stdio.test.ts",
+      "sha256": "91f3ef6cdc87c7c0f141f43d6ccd3392f971153b59f38c573cb83abe877f1f99"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_tool_catalog.test.ts",
+      "sha256": "5d0621c23f5c1261fc4a2c1ed98bb8e153a492ef45a0007d08b18f65419da64a"
+    },
+    {
+      "path": "docs/integrations/cstar-kernel-mcp.md",
+      "sha256": "d61fe4043ac99fe5034887d45d4c0393a9ee212fca51344af0b3d3cd801da373"
+    }
+  ],
+  "checks": [
+    {
+      "name": "focused Augury host-schema matrix 30 of 30",
+      "status": "pass",
+      "evidence_path": "tests/unit/cstar-kernel-mcp/test_augury_set_mission_boundary.test.ts",
+      "sha256": "3c9625db2a24bd0697635aaed859900613f0d8593bbf40d4eb3ab9e61e492a78"
+    },
+    {
+      "name": "full kernel plus stdio matrix 778 of 778",
+      "status": "pass",
+      "evidence_path": "tests/integration/cstar_kernel_mcp_stdio.test.ts",
+      "sha256": "91f3ef6cdc87c7c0f141f43d6ccd3392f971153b59f38c573cb83abe877f1f99"
+    },
+    {
+      "name": "compact transport schema under 4096 bytes with strict runtime reparse",
+      "status": "pass",
+      "evidence_path": "src/tools/cstar-kernel-mcp/contracts/augury_mission_schema.ts",
+      "sha256": "405a709d34c485621d278822b22d420ab63a02e26c300d6f289f337eef26fa5d"
+    },
+    {
+      "name": "default catalog exactly 15 including Augury with compatibility tools hidden",
+      "status": "pass",
+      "evidence_path": "tests/unit/cstar-kernel-mcp/test_tool_catalog.test.ts",
+      "sha256": "5d0621c23f5c1261fc4a2c1ed98bb8e153a492ef45a0007d08b18f65419da64a"
+    },
+    {
+      "name": "typecheck distributions and diff check",
+      "status": "pass",
+      "evidence_path": "src/tools/cstar-kernel-mcp/register_core_tools.ts",
+      "sha256": "52bd033f7fdf9fb2ff3321feece808297e3fb651a3586834c83f1b7742e37643"
+    }
+  ]
+}

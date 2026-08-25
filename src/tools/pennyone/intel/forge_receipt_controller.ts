@@ -1,68 +1,53 @@
 import type Database from 'better-sqlite3';
-import type {
-    HallForgeAttemptRecord,
-    HallForgeAttemptStatus,
-    HallForgeAuthorizationRecord,
-    HallForgeRequestRecord,
-    HallForgeRequestStatus,
-} from '../../../types/forge.js';
+import type { HallForgeAttemptRecord, HallForgeAttemptStatus, HallForgeAuthorizationRecord,
+    HallForgeRequestRecord, HallForgeRequestStatus } from '../../../types/forge.js';
+import { forgeAuthorizationLineageMatchesRequest, isForgeAuthorizationProfile,
+    LEGACY_EXACT_FORGE_CHALLENGE_PROFILE } from './forge_authorization_policy.js';
+import { countForgeProviderAttempts, isForgePreProviderRetryParent,
+    markForgeContinuationResumed } from './forge_continuation_controller.js';
+import { transitionForgeAttemptStarted, type ForgeProviderStartOptions }
+    from './forge_attempt_start_controller.js';
+import { assertForgeMissionGrantReservation, blockForgeMissionGrantForAmbiguity }
+    from './forge_mission_grant_controller.js';
 import {
-    forgeAuthorizationLineageMatchesRequest,
-    isForgeAuthorizationProfile,
-    LEGACY_EXACT_FORGE_CHALLENGE_PROFILE,
-} from './forge_authorization_policy.js';
+    blockForgeOwningBeadForAmbiguity,
+    type ForgeTerminalBeadTransition,
+} from './forge_terminal_lifecycle.js';
 import {
-    countForgeProviderAttempts,
-    isForgePreProviderRetryParent,
-    markForgeContinuationResumed,
-} from './forge_continuation_controller.js';
+    persistForgeMissionGrantReservation,
+    revalidateForgeMissionGrantReservation,
+    type ForgeMissionGrantReservationGuard,
+} from './forge_mission_grant_reservation_guard.js';
 export { forgeAuthorizationLineageMatchesRequest };
 export interface ReserveForgeAttemptInput {
-    request_id: string;
-    authorization_id: string;
-    idempotency_key: string;
-    execution_receipt_id: string;
-    adapter_ref: string;
-    provider?: string;
-    requested_model?: string;
-    actual_model?: string;
-    model_source?: string;
-    reasoning_profile?: string;
-    adapter_version?: string;
-    retry_of_attempt_id?: string;
-    continuation_runtime_sha256?: string;
+    request_id: string; authorization_id: string; idempotency_key: string;
+    execution_receipt_id: string; adapter_ref: string;
+    provider?: string; requested_model?: string; actual_model?: string;
+    model_source?: string; reasoning_profile?: string; adapter_version?: string;
+    retry_of_attempt_id?: string; continuation_runtime_sha256?: string;
+    mission_grant_reservation?: ForgeMissionGrantReservationGuard;
     now?: number;
 }
 export interface FinalizeForgeAttemptInput {
     attempt_id: string;
     status: Extract<HallForgeAttemptStatus, 'SUCCEEDED' | 'FAILED_RETRYABLE' | 'FAILED_FINAL' | 'UNKNOWN'>;
-    external_execution_id?: string;
-    result_status?: string;
-    result_artifact_sha256?: string;
-    error_code?: string;
-    provider?: string;
-    requested_model?: string;
-    actual_model?: string;
-    model_source?: string;
-    reasoning_profile?: string;
-    adapter_version?: string;
+    external_execution_id?: string; result_status?: string;
+    result_artifact_sha256?: string; error_code?: string; provider?: string;
+    requested_model?: string; actual_model?: string; model_source?: string;
+    reasoning_profile?: string; adapter_version?: string;
     now?: number;
 }
-
 function optionalString(value: unknown): string | undefined {
     return typeof value === 'string' && value.length > 0 ? value : undefined;
 }
-
 function optionalNumber(value: unknown): number | undefined {
     return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
 }
-
 function optionalAuthorizationProfile(value: unknown): HallForgeRequestRecord['authorization_profile'] {
     if (value === null || value === undefined || value === '') return undefined;
     if (!isForgeAuthorizationProfile(value)) throw new Error('forge_authorization_profile_invalid');
     return value;
 }
-
 function mapForgeRequest(row: Record<string, unknown>): HallForgeRequestRecord {
     return {
         request_id: String(row.request_id),
@@ -96,9 +81,10 @@ function mapForgeRequest(row: Record<string, unknown>): HallForgeRequestRecord {
         created_at: Number(row.created_at),
         updated_at: Number(row.updated_at),
         completed_at: optionalNumber(row.completed_at),
+        superseded_by: optionalString(row.superseded_by),
+        supersedes_request_id: optionalString(row.supersedes_request_id),
     };
 }
-
 function mapForgeAuthorization(row: Record<string, unknown>): HallForgeAuthorizationRecord {
     if (!isForgeAuthorizationProfile(row.authorization_profile)) {
         throw new Error('forge_authorization_profile_invalid');
@@ -127,7 +113,6 @@ function mapForgeAuthorization(row: Record<string, unknown>): HallForgeAuthoriza
         created_at: Number(row.created_at),
     };
 }
-
 function mapForgeAttempt(row: Record<string, unknown>): HallForgeAttemptRecord {
     return {
         attempt_id: String(row.attempt_id),
@@ -178,28 +163,25 @@ function mapForgeAttempt(row: Record<string, unknown>): HallForgeAttemptRecord {
         updated_at: Number(row.updated_at),
     };
 }
-
 export function getForgeRequest(db: Database.Database, requestId: string): HallForgeRequestRecord | null {
     const row = db.prepare('SELECT * FROM hall_forge_requests WHERE request_id = ?').get(requestId) as Record<string, unknown> | undefined;
     return row ? mapForgeRequest(row) : null;
 }
-
 export function getForgeRequestByDecision(
     db: Database.Database,
     beadId: string,
     decisionId: string,
 ): HallForgeRequestRecord | null {
     const row = db.prepare(
-        'SELECT * FROM hall_forge_requests WHERE bead_id = ? AND decision_id = ?',
+        `SELECT * FROM hall_forge_requests
+         WHERE bead_id = ? AND decision_id = ? AND status <> 'SUPERSEDED'`,
     ).get(beadId, decisionId) as Record<string, unknown> | undefined;
     return row ? mapForgeRequest(row) : null;
 }
-
 export function getForgeAttempt(db: Database.Database, attemptId: string): HallForgeAttemptRecord | null {
     const row = db.prepare('SELECT * FROM hall_forge_attempts WHERE attempt_id = ?').get(attemptId) as Record<string, unknown> | undefined;
     return row ? mapForgeAttempt(row) : null;
 }
-
 export function getForgeAttemptByExecutionReceipt(
     db: Database.Database,
     executionReceiptId: string,
@@ -209,7 +191,6 @@ export function getForgeAttemptByExecutionReceipt(
     ).get(executionReceiptId) as Record<string, unknown> | undefined;
     return row ? mapForgeAttempt(row) : null;
 }
-
 export function getForgeAuthorizationByRequest(
     db: Database.Database,
     requestId: string,
@@ -285,6 +266,9 @@ export function reserveForgeAttempt(
         throw new Error('forge_attempt_idempotency_key_required');
     }
     const reserve = db.transaction(() => {
+        const missionSnapshot = input.mission_grant_reservation
+            ? revalidateForgeMissionGrantReservation(input.mission_grant_reservation)
+            : null;
         const existing = db.prepare(
             'SELECT * FROM hall_forge_attempts WHERE request_id = ? AND idempotency_key = ?',
         ).get(input.request_id, input.idempotency_key) as Record<string, unknown> | undefined;
@@ -307,6 +291,7 @@ export function reserveForgeAttempt(
         if (request.status !== 'AUTHORIZED') {
             throw new Error(`forge_request_not_authorized:${request.status}`);
         }
+        assertForgeMissionGrantReservation(db, request, now);
         assertExactForgeAuthorization(
             request,
             getForgeAuthorizationByRequest(db, request.request_id),
@@ -384,6 +369,9 @@ export function reserveForgeAttempt(
             now,
             now,
         );
+        if (missionSnapshot) {
+            persistForgeMissionGrantReservation(db, attemptId, missionSnapshot, now);
+        }
         if (input.retry_of_attempt_id) {
             markForgeContinuationResumed(
                 db,
@@ -401,6 +389,9 @@ export function reserveForgeAttempt(
         if (Number(claimed.changes) !== 1) {
             throw new Error('forge_request_attempt_reservation_race');
         }
+        if (input.mission_grant_reservation) {
+            revalidateForgeMissionGrantReservation(input.mission_grant_reservation);
+        }
         return {
             attempt: getForgeAttempt(db, attemptId)!,
             request: getForgeRequest(db, request.request_id)!,
@@ -413,16 +404,9 @@ export function reserveForgeAttempt(
 export function markForgeAttemptStarted(
     db: Database.Database,
     attemptId: string,
-    now = Date.now(),
+    nowOrOptions: number | ForgeProviderStartOptions = Date.now(),
 ): HallForgeAttemptRecord {
-    const changed = db.prepare(`
-        UPDATE hall_forge_attempts
-        SET status = 'STARTED', spawn_started_at = ?, updated_at = ?
-        WHERE attempt_id = ? AND status = 'RESERVED'
-    `).run(now, now, attemptId);
-    if (Number(changed.changes) !== 1) {
-        throw new Error('forge_attempt_start_transition_invalid');
-    }
+    transitionForgeAttemptStarted(db, attemptId, nowOrOptions);
     return getForgeAttempt(db, attemptId)!;
 }
 
@@ -490,9 +474,26 @@ export function finalizeForgeAttempt(
             request.request_id,
             attempt.attempt_id,
         );
+        if (input.status === 'UNKNOWN') {
+            blockForgeMissionGrantForAmbiguity(
+                db,
+                request.request_id,
+                input.error_code ?? 'forge_attempt_spend_ambiguous',
+                now,
+            );
+        }
+        const beadTransition: ForgeTerminalBeadTransition | null = input.status === 'UNKNOWN'
+            ? blockForgeOwningBeadForAmbiguity(db, {
+                request_id: request.request_id,
+                attempt_id: attempt.attempt_id,
+                error_code: input.error_code,
+                now,
+            })
+            : null;
         return {
             attempt: getForgeAttempt(db, attempt.attempt_id)!,
             request: getForgeRequest(db, request.request_id)!,
+            bead_transition: beadTransition,
         };
     });
     return finish.immediate();

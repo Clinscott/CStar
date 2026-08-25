@@ -169,6 +169,23 @@ export function classifyBoundForgeIntent(
     return { action, normalizedText, workReferenceText: binding.bead_id };
 }
 
+function exactSingletonForgeBindingMode(
+    text: string,
+    binding: StableForgeInstructionBinding,
+): 'exact_request_receipt' | 'exact_mission_record' | null {
+    for (const mode of ['exact_request_receipt', 'exact_mission_record'] as const) {
+        try {
+            classifyBoundForgeIntent(text, binding, mode);
+            return mode;
+        } catch (error) {
+            if (error instanceof Error && error.message === 'forge_operator_intent_unsafe_text') {
+                throw error;
+            }
+        }
+    }
+    return null;
+}
+
 function classifyForgeIntent(text: string): {
     action: ForgeOperatorIntentAction;
     normalizedText: string;
@@ -285,7 +302,10 @@ export async function verifyCurrentForgeOperatorIntent(
     let classified: ReturnType<typeof classifyForgeIntent>;
     let bindingMode: VerifiedForgeOperatorIntent['binding_mode'];
     let matchingRecords: IntentRecord[];
-    if (turn.recordCount === 1) {
+    const singletonExactMode = turn.recordCount === 1 && stableBinding
+        ? exactSingletonForgeBindingMode(intentRecords[0]!.text, stableBinding)
+        : null;
+    if (turn.recordCount === 1 && singletonExactMode === null) {
         currentRecord = intentRecords[0]!;
         classified = classifyForgeIntent(currentRecord.text);
         bindingMode = 'ordinary_language';

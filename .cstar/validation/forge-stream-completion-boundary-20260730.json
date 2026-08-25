@@ -1,0 +1,48 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:cstar:operating-pipeline-v1-batch-2",
+  "validation_id": "validation:cstar-forge-stream-completion-boundary:20260730",
+  "reported_verdict": "ACCEPTED",
+  "artifacts": [
+    {
+      "path": ".agents/skills/corvus-forge/runtime/hermes_cli/forge_entrypoint.py",
+      "sha256": "3c6a93a9682c9fe27b586936e73ccdee30abf90f3b3f3625c60f05588ad2bab7",
+      "bytes": 16700
+    },
+    {
+      "path": ".agents/skills/corvus-forge/runtime/hermes_cli/forge_entrypoint_support.py",
+      "sha256": "f50b4c763ad9855b5fd87c9636139ae5d31544ff1fb39bf16f18452dfdee2773",
+      "bytes": 7565
+    },
+    {
+      "path": "tests/unit/corvus-forge/test_private_hermes_runtime.py",
+      "sha256": "6f3ed79c843fcc43cc599e21ffa207a6e992b90157917f7a5423a7a507e1d508",
+      "bytes": 9604
+    },
+    {
+      "path": "tests/unit/corvus-forge/test_private_hermes_streaming.py",
+      "sha256": "f6bb95309b71d4782c00956c7b89fb8edc8d9499c6fc2770cf02a7ffa22ce2ea",
+      "bytes": 7916
+    }
+  ],
+  "checks": [
+    {
+      "name": "private runtime stream state machine 11 of 11",
+      "status": "pass",
+      "evidence_path": "tests/unit/corvus-forge/test_private_hermes_streaming.py",
+      "sha256": "f6bb95309b71d4782c00956c7b89fb8edc8d9499c6fc2770cf02a7ffa22ce2ea"
+    },
+    {
+      "name": "delegate evidence and readiness 62 of 62 across seven suites",
+      "status": "pass",
+      "evidence_path": "tests/unit/corvus-forge/test_private_hermes_runtime.py",
+      "sha256": "6f3ed79c843fcc43cc599e21ffa207a6e992b90157917f7a5423a7a507e1d508"
+    },
+    {
+      "name": "typecheck diff whitespace line and runtime lineage audit",
+      "status": "pass",
+      "evidence_path": ".agents/skills/corvus-forge/runtime/hermes_cli/forge_entrypoint_support.py",
+      "sha256": "f50b4c763ad9855b5fd87c9636139ae5d31544ff1fb39bf16f18452dfdee2773"
+    }
+  ]
+}

@@ -34,6 +34,7 @@ export function forgeAuthorizationRecordCountIsValid(
 ): boolean {
     const multiRecord = intent.goalProjection
         || ['explicit_request_receipt_binding', 'explicit_mission_record_binding']
+            .concat('stored_set_manifest')
             .includes(intent.naturalProjection?.requester_lineage_mode ?? '');
     return multiRecord
         ? Number.isSafeInteger(input.operator_record_count) && input.operator_record_count >= 1
@@ -58,6 +59,10 @@ export function resolveForgeRequestAuthorizationBinding(args: {
             || request.requester_turn_id !== input.operator_turn_id
             || request.requester_record_set_sha256 !== input.operator_record_set_sha256
         ) throw new Error('forge_operator_intent_requester_lineage_mismatch');
+    } else if (naturalProjection?.requester_lineage_mode === 'stored_set_manifest') {
+        if (request.requester_thread_id !== input.operator_thread_id) {
+            throw new Error('forge_operator_intent_requester_lineage_mismatch');
+        }
     } else if (naturalProjection?.requester_lineage_mode === 'explicit_legacy_request_upgrade') {
         const exactPendingUpgrade = request.status === 'PENDING_AUTH'
             && request.authorization_profile === LEGACY_EXACT_FORGE_CHALLENGE_PROFILE;

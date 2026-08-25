@@ -51,7 +51,7 @@ function request(): DispatchRequestArgs {
 }
 
 describe('CStar code/control root separation', () => {
-    it('routes host-validation source evidence through code root while Hall remains control-root state', () => {
+    it('routes validation evidence through resolved roots while Hall remains control-root state', () => {
         const resultSource = fs.readFileSync(
             path.join(PROJECT_ROOT, 'src/tools/cstar-kernel-mcp/tools/result.ts'),
             'utf-8',
@@ -62,13 +62,25 @@ describe('CStar code/control root separation', () => {
         );
         assert.match(
             resultSource,
-            /verifyHostWorkflowValidationEvidence\(\s*CODE_ROOT,/,
+            /verifyHostWorkflowValidationEvidence\(\s*validationRoots\.v3Root,/,
         );
-        assert.match(beadSource, /target_path:\s*bead\.target_path/);
         assert.match(
-            beadSource,
-            /evidence_manifest\?\.schema === 'cstar\.validation-evidence\.v3'\s*\? CODE_ROOT : hubRoot/,
+            resultSource,
+            /verifyValidationEvidence\(\s*validationRoots\.v2Root,/,
         );
+        assert.match(resultSource, /getForgeWritableDb\(root\)/);
+        assert.match(beadSource, /target_path:\s*bead\.target_path/);
+        assert.match(beadSource, /resolveBeadValidationEvidenceRoots\(\{/);
+        assert.match(beadSource, /\? evidenceRoots\?\.v3Root : evidenceRoots\?\.v2Root/);
+        assert.doesNotMatch(beadSource, /\? CODE_ROOT : hubRoot/);
+        assert.equal((beadSource.match(/mergeCallerMetadataPreservingSpokeAnchor\(/g) ?? []).length, 4);
+        assert.doesNotMatch(beadSource, /\.\.\.\(args\.metadata \|\| \{\}\)/);
+        assert.match(resultSource, /forgeExecutionReceiptId && host_validation_receipt/);
+        assert.ok(resultSource.indexOf('forgeExecutionReceiptId && host_validation_receipt')
+            < resultSource.indexOf('openForgeReadDb(root)'));
+        assert.doesNotMatch(resultSource, /finalizeForgeHostValidation/);
+        assert.match(resultSource,
+            /db\.transaction\(\(\) => \{\s*saveValidationRunToDb[\s\S]*?return finalizeForgeValidation/);
     });
 
     it('resolves dispatch contracts and the private Forge adapter from code root only', () => {

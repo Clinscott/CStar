@@ -13,7 +13,7 @@
   },
   "tool_catalog": {
     "count": 28,
-    "sha256": "00e013d3b825106bfb2e948e0b3c456af52d22cfaa575c44b6f15d04a7e7af6a"
+    "sha256": "58062ba05776dc5b2867419f9a39e4cfb31cedeadb7e6c1ffeb683562f172d61"
   },
   "capability_exports": {
     "codex_count": 3,
@@ -30,8 +30,8 @@
       "sha256": "576652223fd036fd9c2db2342da8a8f1ceccef631a4fb4ea0436980316e563fc"
     },
     "skills/corvus-star/SKILL.md": {
-      "bytes": 11841,
-      "sha256": "3a19b3b5bc132b5bf90d11ae1b3b72988ef67f1b6def7d0d6551e452683c779e"
+      "bytes": 15774,
+      "sha256": "f876955d6a4186dff02a41dd1eba41bac8372c11a530b626a6b6f48274ea18a1"
     }
   }
 }

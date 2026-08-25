@@ -1,0 +1,10 @@
+schema=cstar.validation_check.v1
+bead_id=bead:cstar:operating-pipeline-v1-batch-1
+decision_id=decision:cstar-pipeline-v1-autonomous-set-dispatch:batch-1
+command=node scripts/run-tsx.mjs --test --test-concurrency=2 tests/unit/cstar-kernel-mcp/test_forge_set_manifest_authorization.test.ts tests/unit/cstar-kernel-mcp/test_forge_set_manifest_autonomous_dispatch.test.ts tests/unit/cstar-kernel-mcp/test_forge_workspace_projection.test.ts tests/unit/cstar-kernel-mcp/test_tool_catalog.test.ts tests/unit/cstar-kernel-mcp/test_forge_adapter_runtime_portability.test.ts tests/unit/cstar-kernel-mcp/test_forge_process_containment.test.ts tests/unit/test_host_supervision.test.ts
+result=PASS
+tests=88
+suites=7
+breakdown=2 portability; 7 containment; 34 SET authorization; 14 autonomous dispatch; 19 workspace projection; 9 catalog; 3 host supervision
+provider_attempts=0
+live_activation=not_invoked

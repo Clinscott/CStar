@@ -14,7 +14,7 @@ def test_agents_md_is_a_small_router_not_a_parallel_runbook() -> None:
     text = AGENTS.read_text(encoding="utf-8")
     assert len(text.splitlines()) <= 50
     assert ".agents/AGENTS.feature" in text
-    assert "request -> authorize -> execute -> independent record_result" in text
+    assert "cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute -> independent cstar_record_result" in text
     assert "direct Hall/SQLite" in text
     assert "Detailed procedures belong in" in text
 
@@ -39,12 +39,15 @@ def test_gherkin_router_targets_only_existing_canonical_contracts() -> None:
         assert (ROOT / relative).is_file(), relative
 
 
-def test_router_keeps_forge_authorization_and_independent_validation_explicit() -> None:
+def test_router_keeps_set_materialization_and_automatic_advancement_explicit() -> None:
     text = ROUTER.read_text(encoding="utf-8")
+    set_design = next(line for line in text.splitlines() if "a new SET/design is ready" in line)
     forge = next(line for line in text.splitlines() if "implementation is requested" in line)
+    assert "one cstar_augury mission_boundary v2 with v1 compatibility" in set_design
     assert "cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute" in forge
     validation = next(line for line in text.splitlines() if "delivery needs validation" in line)
     assert "independent cstar_record_result" in validation
+    assert "automatic next-child advancement" in validation
     assert "docs/operations/corvus-forge-pipeline-playbook.md" in forge
     assert "docs/operations/corvus-forge-pipeline-playbook.md" in validation
 
@@ -55,6 +58,7 @@ def test_router_covers_current_operator_situations() -> None:
         "kernel health is unknown",
         "a known mission resumes",
         "route or scope is ambiguous",
+        "a new SET/design is ready",
         "implementation is requested",
         "external evidence is requested",
         "delivery needs validation",
@@ -66,6 +70,28 @@ def test_router_covers_current_operator_situations() -> None:
         assert situation in text
     assert "cstar-closeout and one bounded generated handoff" in text
     assert "A required operator grant is absent" in text
+
+
+def test_router_keeps_cstar_state_and_cos_orchestration_separate() -> None:
+    agents = AGENTS.read_text(encoding="utf-8")
+    router = ROUTER.read_text(encoding="utf-8")
+
+    assert "CStar is only the deterministic state manager" in agents
+    assert "CoS in Codex is the supervisor/delegator" in agents
+    assert "CoS owns no host goal" in agents
+    assert "must never create, resume, update, pause, block, complete, or close one" in agents
+    assert "replacement workers get a new goal plus bounded handoff" in agents
+    assert "CStar does not launch agents, workthreads, providers, or cognition" in router
+    assert "CoS does not implement, research, debug, edit source" in router
+    assert "Host goals belong to workers, not CoS" in router
+    assert "gpt-5.6-luna" in agents
+    assert "reasoning effort \"max\"" in router
+    assert "never silently falls back" in router
+    assert "retained/resumable host-issued worker thread with stable lineage" in router
+    assert "gpt-5.6-sol" in router
+    assert "gpt-5.6-terra" in router
+    assert "6-normal" not in router
+    assert "8-burst" not in router
 
 
 def test_persona_route_is_explicit_iterative_and_non_authoritative() -> None:
@@ -83,7 +109,7 @@ def test_persona_route_is_explicit_iterative_and_non_authoritative() -> None:
 def test_compatibility_pointer_cannot_reintroduce_a_short_forge_route() -> None:
     text = POINTER.read_text(encoding="utf-8")
     assert "compatibility pointer only" in text
-    assert re.search(r"request,\s*authorize, execute, and independent[- ]validation", text)
+    assert ".agents/AGENTS.feature" in text
     assert "cstar_persona_set" in text
 
 

@@ -1,58 +1,44 @@
 import { getForgeWritableDb } from '../../pennyone/intel/forge_hall_store.js';
-import { saveForgeRequest } from '../../pennyone/intel/forge_request_authorization_controller.js';
-import {
-    activeForgeAuthorizationMatchesRequest,
-    getForgeAuthorizationByRequest,
-} from '../../pennyone/intel/forge_receipt_controller.js';
-import { ROOT_USER_FORGE_INTENT_PROFILE } from '../../pennyone/intel/forge_authorization_policy.js';
-import { buildHallRepositoryId, normalizeHallPath } from '../../../types/hall.js';
-import {
-    errorPayloadResponse,
-    errorResponse,
-    mcpErrorCode,
-    mcpGuardrail,
-    mcpMutation,
-    preAuthorizationErrorResponse,
-    preAuthorizationResponse,
-    textResponse,
-    type McpTextResponse,
-} from '../contracts/responses.js';
+import { activeForgeAuthorizationMatchesRequest, getForgeAuthorizationByRequest, getForgeRequest }
+    from '../../pennyone/intel/forge_receipt_controller.js';
+import { getForgeMissionGrantByRequest }
+    from '../../pennyone/intel/forge_mission_grant_controller.js';
+import { isForgeMissionGrantCandidate, missionGrantInputFromSetAuthority }
+    from '../../pennyone/intel/forge_mission_grant_scope.js';
+import { errorPayloadResponse, errorResponse, mcpErrorCode, mcpGuardrail, mcpMutation,
+    preAuthorizationErrorResponse, preAuthorizationResponse, textResponse,
+    type McpTextResponse } from '../contracts/responses.js';
 import type { McpRequestContext } from '../contracts/request_context.js';
 import {
     findDispatchValidationError,
     hasDuplicatePackageLockMismatch,
     resolveDispatchSurface,
-    verifyDispatchPackageLocks,
     type DispatchRequestArgs,
 } from './dispatch_request.js';
-import {
-    resolveForgeExecutionAdapterRef,
-    sealForgeAdapterRuntime,
-} from './forge_adapters.js';
-import {
-    assertDispatchAdapterCapability,
-    resolveDispatchActionAuthority,
-} from './dispatch_action_authority.js';
+import { resolveForgeExecutionAdapterRef } from './forge_adapters.js';
+import { assertDispatchAdapterCapability, resolveDispatchActionAuthority }
+    from './dispatch_action_authority.js';
 import {
     assertForgeRequiredOutputsContained,
-    buildForgeRequestId,
-    canonicalizeForgeRequest,
-    hashCanonicalForgeRequest,
-    hashForgeTargetPaths,
     stableJson,
-    type ForgeRequestContractArgs,
 } from './forge_request_contract.js';
-import { sealForgeHermesRuntimeExpectation } from './forge_hermes_runtime_contract.js';
 import { verifyCodexRequestIdentity } from './operator_authorization.js';
 import { reconcileLegacyV2ForgeRequest } from './forge_legacy_v2_reconciliation.js';
 import { findForgeRequestByDecisionBeforeMutation } from './forge_execute_request_authority.js';
 import { assertLiveForgeRuntimeReady } from '../contracts/runtime.js';
 import { resolveForgeRuntimeRoots } from './forge_runtime_roots.js';
-
+import { verifyPendingForgeSetManifestAuthority } from './forge_set_manifest_autonomous_authority.js';
+import { isForgeAutonomousPolicyCandidate, verifyPendingForgeAutonomousPolicyAuthority }
+    from './forge_autonomous_policy_authority.js';
+import {
+    authorizePreparedForgeMissionGrant,
+    persistPreparedForgeRequest,
+    prepareForgeRequestMaterialization,
+} from '../../pennyone/intel/forge_request_materialization.js';
+import { autoAuthorizePendingForgeRequest } from './forge_request_auto_authorization.js';
 export interface ForgeRequestArgs extends DispatchRequestArgs {
     execution_adapter_ref?: string;
 }
-
 function forgeRequestValidationError(args: ForgeRequestArgs): string | null {
     const baseError = findDispatchValidationError(args, {
         require_operator_authorization_ref: false,
@@ -82,7 +68,6 @@ function forgeRequestValidationError(args: ForgeRequestArgs): string | null {
     }
     return null;
 }
-
 export async function handleForgeRequest(
     args: ForgeRequestArgs,
     requestContext?: McpRequestContext,
@@ -107,7 +92,6 @@ export async function handleForgeRequest(
                 ),
             }, 'forge_request_contract_invalid', validationError);
         }
-
         const { controlRoot, codeRoot } = resolveForgeRuntimeRoots();
         const actionAuthority = resolveDispatchActionAuthority(args, codeRoot);
         const surface = resolveDispatchSurface('forge', args);
@@ -168,7 +152,6 @@ export async function handleForgeRequest(
                 ),
             }, 'project_files_adapter_requires_required_output_paths');
         }
-
         if (adapter.selected) {
             try {
                 assertDispatchAdapterCapability(
@@ -238,31 +221,14 @@ export async function handleForgeRequest(
             }
         }
 
-        const packageLockProofs = liveRequested
-            ? verifyDispatchPackageLocks(args.package_locks, codeRoot)
-            : [];
-        const maxAttempts = 1;
         const selectedAdapter = adapter.selected;
-        const adapterRuntimeProof = selectedAdapter ? sealForgeAdapterRuntime(selectedAdapter) : null;
-        const hermesRuntimeExpectation = selectedAdapter?.ref === 'cstar-forge-hermes-minimax-worker-adapter'
-            && adapterRuntimeProof
-            ? await sealForgeHermesRuntimeExpectation(adapterRuntimeProof)
-            : null;
-        const writeCapability = selectedAdapter?.write_capability === 'project_files'
-            ? 'project_files'
-            : selectedAdapter?.write_capability === 'response_only'
-                ? 'response_only'
-                : null;
-        const canonical = canonicalizeForgeRequest(
-            args as ForgeRequestContractArgs,
-            codeRoot,
-            decisionId,
-            selectedAdapter?.ref ?? adapter.canonical_ref,
-            writeCapability,
-            maxAttempts,
-            adapterRuntimeProof,
-            hermesRuntimeExpectation,
-        );
+        const prepared = await prepareForgeRequestMaterialization({
+            args, code_root: codeRoot, decision_id: decisionId, adapter,
+        });
+        const packageLockProofs = prepared.package_lock_proofs;
+        const adapterRuntimeProof = prepared.canonical.adapter_runtime;
+        const hermesRuntimeExpectation = prepared.canonical.hermes_runtime;
+        const canonical = prepared.canonical;
         const existingByDecision = findForgeRequestByDecisionBeforeMutation(
             controlRoot,
             args.bead_id!.trim(),
@@ -356,65 +322,106 @@ export async function handleForgeRequest(
         } finally {
             existingByDecision.release();
         }
-        const requestSha256 = hashCanonicalForgeRequest(canonical);
-        const requestId = buildForgeRequestId(requestSha256);
+        const requestSha256 = prepared.request_sha256;
+        const requestId = prepared.request_id;
         const db = getForgeWritableDb(controlRoot);
-        const saved = saveForgeRequest(db, {
-            request_id: requestId,
-            repo_id: buildHallRepositoryId(normalizeHallPath(controlRoot)),
-            bead_id: args.bead_id!.trim(),
-            decision_id: decisionId,
-            request_sha256: requestSha256,
-            request_summary_json: stableJson(canonical),
-            target_paths_sha256: hashForgeTargetPaths(canonical),
-            live_source_allowed: false,
-            max_attempts: maxAttempts,
-            requester_thread_id: requesterIdentity.thread_id,
-            requester_turn_id: requesterIdentity.turn_id,
-            requester_record_set_sha256: requesterIdentity.turn_record_set_sha256,
-            authorization_profile: liveRequested
-                ? ROOT_USER_FORGE_INTENT_PROFILE
-                : undefined,
-            adapter_ref: selectedAdapter?.ref,
-            write_capability: writeCapability ?? undefined,
+        const saved = persistPreparedForgeRequest({
+            db,
+            control_root: controlRoot,
+            code_root: codeRoot,
+            prepared,
+            requester: requesterIdentity,
         });
-
-        const authorization = getForgeAuthorizationByRequest(db, saved.request.request_id);
+        let currentRequest = saved.request;
+        let authorization = getForgeAuthorizationByRequest(db, currentRequest.request_id);
+        if (liveRequested && !authorization && currentRequest.status === 'PENDING_AUTH') {
+            if (isForgeAutonomousPolicyCandidate(db, currentRequest)) {
+                const authority = verifyPendingForgeAutonomousPolicyAuthority({
+                    db, request: currentRequest, caller: requesterIdentity,
+                });
+                authorization = authorizePreparedForgeMissionGrant({
+                    db,
+                    control_root: controlRoot,
+                    code_root: codeRoot,
+                    prepared,
+                    request: currentRequest,
+                    grant: authority.grant,
+                }).authorization;
+                currentRequest = getForgeRequest(db, currentRequest.request_id)!;
+            } else if (isForgeMissionGrantCandidate(db, currentRequest)) {
+                try {
+                    const authority = verifyPendingForgeSetManifestAuthority({
+                        db, request: currentRequest, caller: requesterIdentity,
+                    });
+                    authorization = authorizePreparedForgeMissionGrant({
+                        db,
+                        control_root: controlRoot,
+                        code_root: codeRoot,
+                        prepared,
+                        request: currentRequest,
+                        grant: missionGrantInputFromSetAuthority(currentRequest, authority),
+                    }).authorization;
+                    currentRequest = getForgeRequest(db, currentRequest.request_id)!;
+                } catch (error) {
+                    if ((error as Error).message !== 'forge_set_manifest_operator_signal_missing') throw error;
+                }
+            }
+            if (!authorization && !isForgeMissionGrantCandidate(db, currentRequest)) {
+                await autoAuthorizePendingForgeRequest(
+                    db,
+                    currentRequest.request_id,
+                    currentRequest.request_sha256,
+                    requestContext,
+                );
+                currentRequest = getForgeRequest(db, currentRequest.request_id)!;
+                authorization = getForgeAuthorizationByRequest(db, currentRequest.request_id);
+            }
+        }
+        const missionGrant = getForgeMissionGrantByRequest(db, currentRequest.request_id);
+        const autonomousPolicy = missionGrant !== null
+            && isForgeAutonomousPolicyCandidate(db, currentRequest);
         const authorizationBound = activeForgeAuthorizationMatchesRequest(
-            saved.request,
+            currentRequest,
             authorization,
         );
         const authorizationExpired = authorizationBound
-            && authorization.expires_at <= Date.now();
+            && authorization!.expires_at <= Date.now();
         const authorizationCurrentTurn = authorizationBound
-            && authorization.operator_thread_id === requesterIdentity.thread_id
-            && authorization.operator_turn_id === requesterIdentity.turn_id
-            && authorization.operator_record_set_sha256
-                === requesterIdentity.turn_record_set_sha256;
+            && authorization!.operator_thread_id === requesterIdentity.thread_id
+            && authorization!.operator_turn_id === requesterIdentity.turn_id
+            && authorization!.operator_record_set_sha256 === requesterIdentity.turn_record_set_sha256;
         const terminalRequest = ['SUCCEEDED', 'FAILED_FINAL', 'EXHAUSTED', 'AMBIGUOUS', 'REVOKED']
-            .includes(saved.request.status);
+            .includes(currentRequest.status);
         const ready = liveRequested && authorizationBound
-            && authorizationCurrentTurn && !authorizationExpired && !terminalRequest;
+            && (missionGrant !== null || authorizationCurrentTurn)
+            && !authorizationExpired && !terminalRequest;
         const historicalAuthorization = liveRequested && authorizationBound
-            && !authorizationCurrentTurn && !authorizationExpired && !terminalRequest;
+            && missionGrant === null && !authorizationCurrentTurn
+            && !authorizationExpired && !terminalRequest;
         return textResponse({
             status: !liveRequested
                 ? 'no_spend_request_recorded'
                 : terminalRequest ? 'terminal_request_replayed'
                 : authorizationExpired ? 'authorization_expired_replayed'
                 : historicalAuthorization ? 'authorized_request_historical_retrieval'
-                : ready ? 'authorized_request_replayed' : 'pending_authorization_recorded',
+                : ready ? (missionGrant ? 'AUTHORIZED' : 'authorized_request_replayed')
+                    : 'pending_authorization_recorded',
             dispatch_kind: 'forge',
             decision_id: decisionId,
             receipt_id: requestId,
             bead_id: args.bead_id,
             request_sha256: requestSha256,
             request_replayed: saved.replayed,
+            request_corrected: saved.superseded_request_id !== undefined,
+            superseded_receipt_id: saved.superseded_request_id ?? null,
             legacy_challenge_upgraded: saved.challenge_upgraded,
-            request_status: saved.request.status,
-            max_attempts: saved.request.max_attempts,
-            expires_at: saved.request.expires_at ?? null,
-            authorization_profile: saved.request.authorization_profile ?? null,
+            request_status: currentRequest.status,
+            max_attempts: currentRequest.max_attempts,
+            expires_at: currentRequest.expires_at ?? null,
+            authorization_profile: currentRequest.authorization_profile ?? null,
+            operator_authorization_ref: authorization?.operator_authorization_ref ?? null,
+            mission_grant_id: missionGrant?.mission_grant_id ?? null,
+            mission_grant_status: missionGrant?.status ?? null,
             authorization_challenge: null,
             authorization_challenge_sha256: null,
             authorization_manifest: liveRequested ? {
@@ -425,7 +432,7 @@ export async function handleForgeRequest(
             } : null,
             target_paths: canonical.target_paths,
             required_output_paths: canonical.required_output_paths,
-            target_paths_sha256: saved.request.target_paths_sha256,
+            target_paths_sha256: currentRequest.target_paths_sha256,
             package_lock_proofs: packageLockProofs,
             authorized_dispatch_surface: surface,
             authorized_execution_adapter: adapter,
@@ -442,7 +449,7 @@ export async function handleForgeRequest(
                 fail_closed_reason: !liveRequested
                     ? 'no_live_execution_requested'
                     : terminalRequest
-                        ? `terminal_forge_request_${saved.request.status.toLowerCase()}`
+                        ? `terminal_forge_request_${currentRequest.status.toLowerCase()}`
                         : authorizationExpired
                             ? 'forge_authorization_expired'
                         : historicalAuthorization
@@ -451,24 +458,16 @@ export async function handleForgeRequest(
             },
             guardrail: mcpGuardrail(
                 terminalRequest || authorizationExpired || historicalAuthorization
-                    ? 'block'
-                    : !liveRequested || ready ? 'allow' : 'caution',
+                    ? 'block' : !liveRequested || ready ? 'allow' : 'caution',
                 terminalRequest || authorizationExpired || historicalAuthorization
-                    ? 'refuse'
-                    : !liveRequested || ready ? 'continue' : 'verify',
-                !liveRequested
-                    ? 'The durable request records a no-spend contract and grants no live execution authority.'
-                    : terminalRequest
-                        ? 'The immutable Forge request is terminal and cannot receive another authorization or attempt.'
-                        : authorizationExpired
-                            ? 'The request-bound authorization expired before a new attempt could be reserved.'
-                        : historicalAuthorization
-                            ? 'The request has a valid historical authorization, but only its exact authorizing turn may reserve the attempt.'
-                    : ready
-                    ? 'The immutable request already has a hash-bound one-shot authorization receipt.'
-                    : 'The immutable request is pending one exact work-referenced root-user Forge intent; no live authority is bound.',
+                    ? 'refuse' : !liveRequested || ready ? 'continue' : 'verify',
+                ready
+                    ? 'The immutable request has a hash-bound request-scoped authorization receipt.'
+                    : terminalRequest || authorizationExpired || historicalAuthorization
+                        ? 'The immutable request cannot reserve a new attempt.'
+                        : 'The immutable request grants no current live execution authority.',
                 terminalRequest
-                    ? [`terminal_forge_request_${saved.request.status.toLowerCase()}`]
+                    ? [`terminal_forge_request_${currentRequest.status.toLowerCase()}`]
                     : authorizationExpired
                         ? ['forge_authorization_expired']
                         : historicalAuthorization
@@ -478,15 +477,13 @@ export async function handleForgeRequest(
             ),
             next_action: !liveRequested
                 ? 'No live execution is authorized by this receipt.'
-                : terminalRequest
-                    ? 'Use the original idempotency key only to retrieve its durable attempt; do not authorize or spend again.'
-                    : authorizationExpired
-                        ? 'Do not execute this expired grant; record a new operator decision if another attempt is wanted.'
-                    : historicalAuthorization
-                        ? 'Treat this as historical retrieval only; do not reserve or execute a new attempt from this turn.'
                 : ready
-                    ? 'Call cstar_forge_execute once from the same authorizing turn with a stable idempotency_key.'
-                    : 'Call cstar_forge_authorize with this receipt id and hash while the current root-user build instruction is active; if the work reference is missing or ambiguous, ask one human-readable clarification.',
+                    ? missionGrant
+                        ? autonomousPolicy
+                            ? 'CStar may call cstar_forge_execute once from this same-root structural workflow with a stable idempotency_key.'
+                            : 'Call cstar_forge_execute from a later root-thread turn with a stable idempotency_key.'
+                        : 'Call cstar_forge_execute once from the same authorizing turn with a stable idempotency_key.'
+                    : 'Do not execute; use compatibility authorization only for an eligible pending legacy receipt.',
         });
     } catch (error) {
         return requestIdentityVerified

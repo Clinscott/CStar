@@ -1,0 +1,5 @@
+schema=cstar.validation_check.v1
+bead_id=bead:cstar:operating-pipeline-v1-batch-1
+command=npm run typecheck
+result=PASS
+exit_code=0

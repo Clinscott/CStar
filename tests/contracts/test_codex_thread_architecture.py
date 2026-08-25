@@ -26,7 +26,9 @@ def test_cstar_researcher_forge_and_corvuseye_have_separate_roles():
     doctrine = _normalized(DOCTRINE)
 
     required = [
-        "CStar is the axle rather than a PMT or worker spoke.",
+        "CStar is only the deterministic state manager for Corvus estate work.",
+        "CoS in Codex is the orchestrator and supervisor/delegator.",
+        "CStar is the axle rather than a PMT or worker spoke, but it is only the deterministic state manager.",
         "Researcher gathers evidence through authorized source lanes.",
         "Corvus Forge builds implementation through the durable",
         "CorvusEye is the independent evaluation and red-team spoke.",
@@ -59,7 +61,7 @@ def test_goal_lifecycle_and_red_gates_are_contractual():
     doctrine = _normalized(DOCTRINE)
 
     required = [
-        "CoS receives User intent and records the goal as a bounded CStar-tracked decision, proposal, or bead.",
+        "CoS receives User intent and records the requested work as a bounded CStar-tracked decision, proposal, or bead; this does not create a host goal.",
         "When waiting on a live worker or external state, CoS pauses rather than",
         "A PMT read is never the live worker and never blocks execution.",
         "PMT `STATE_UPDATE` after meaningful project work",
@@ -84,3 +86,65 @@ def test_stale_pmt_ownership_and_mm_routing_are_declared_violations():
 
     for phrase in required:
         assert phrase in doctrine
+
+
+def test_cos_delegation_and_workthread_contract_is_fail_closed():
+    doctrine = _normalized(DOCTRINE)
+    feature = _normalized(FEATURE)
+
+    required = [
+        "CoS must not implement, research, debug, edit source, run worker tests or validation, or silently take over failed worker work.",
+        "A `workthread` is only a retained/resumable host-issued worker thread with stable lineage.",
+        "CStar must not launch a workthread, agent, or provider",
+        "requested_model",
+        "requested_reasoning",
+        "selector_status",
+        "actual_identity",
+        "actual_identity: unreported",
+        "Selector absence or mismatch is a visible unsupported/blocked result",
+        "never silently fall back",
+        "gpt-5.6-luna",
+        "gpt-5.6-sol",
+        "gpt-5.6-terra",
+        "no numeric concurrency cap",
+    ]
+
+    for phrase in required:
+        assert phrase in doctrine
+
+    assert "6-normal" not in doctrine
+    assert "8-burst" not in doctrine
+    assert "CoS requests correction through the owning lane or records a durable successor repair" in feature
+    assert "CoS works the issue" not in feature
+
+
+def test_worker_owned_host_goals_reject_authority_and_goal_reuse():
+    doctrine = _normalized(DOCTRINE)
+    feature = _normalized(FEATURE)
+
+    required = [
+        "CoS owns no host goal",
+        "CoS must never create, resume, update, pause, block, complete, or close a host goal",
+        "Every substantive implementation, research, debug, or validation assignment",
+        "owns exactly one bounded host goal",
+        "exact CStar bead id, the decision, the target paths, and the checker contract",
+        "Host-goal status is worker-local evidence, never CStar lifecycle authority",
+        "Recoverable correction stays in the same retained workthread and the same host goal",
+        "If a replacement worker is required, it receives a new host goal",
+        "explicit bounded CStar handoff",
+        "never inherits hidden host-goal state",
+        "distinct validator owns a distinct validation goal",
+        "never reuses the implementation goal",
+        "Legacy CoS-held host goals remain paused and historical",
+        "CStar has no generic host-goal surface",
+    ]
+
+    for phrase in required:
+        assert phrase in doctrine
+
+    assert "CoS creates a host goal" not in doctrine
+    assert "replacement worker inherits hidden host-goal state" not in doctrine
+    assert "validator reuses the implementation goal" not in doctrine
+    assert "CoS owns no host goal" in feature
+    assert "Host goals are worker-owned evidence" in feature
+    assert "goal status is worker-local evidence, never CStar lifecycle truth" in feature

@@ -127,7 +127,10 @@ function saveExactRequest(value: ReturnType<typeof setupRoot>, sourceThreadId: s
     return { requestId, requestSha256 };
 }
 
-function appendExactEventMirror(sessionFile: string, message: string, timestamp: string): void {
+function appendExactEventMirror(
+    sessionFile: string, message: string, timestamp: string,
+    audio?: unknown[], localAudio?: unknown[],
+): void {
     fs.appendFileSync(sessionFile, `${JSON.stringify({
         timestamp,
         type: 'event_msg',
@@ -137,6 +140,8 @@ function appendExactEventMirror(sessionFile: string, message: string, timestamp:
             images: [],
             local_images: [],
             text_elements: [],
+            ...(audio === undefined ? {} : { audio }),
+            ...(localAudio === undefined ? {} : { local_audio: localAudio }),
         },
     })}\n`);
 }
@@ -189,6 +194,41 @@ describe('Forge current-turn authorization after host restart', () => {
         }, validRequestContext(session.threadId, session.turnId)));
 
         assert.equal(granted.status, 'authorized');
+    });
+
+    it('accepts the current host mirror shape with empty audio fields', async () => {
+        const value = setupRoot('empty-audio-mirror');
+        const text = 'Resume the TokenPath Q0 phase-one repair.';
+        const session = createSession({ textParts: [text] });
+        appendExactEventMirror(
+            session.sessionFile, text, new Date(Date.parse(session.timestamp) + 1).toISOString(),
+            [], [],
+        );
+        const request = saveExactRequest(value, session.threadId);
+        const granted = parse(await handleForgeAuthorize({
+            forge_request_receipt_id: request.requestId,
+            request_sha256: request.requestSha256,
+        }, validRequestContext(session.threadId, session.turnId)));
+
+        assert.equal(granted.status, 'authorized');
+    });
+
+    it('rejects a host mirror that carries audio content', async () => {
+        const value = setupRoot('nonempty-audio-mirror');
+        const text = 'Resume the TokenPath Q0 phase-one repair.';
+        const session = createSession({ textParts: [text] });
+        appendExactEventMirror(
+            session.sessionFile, text, new Date(Date.parse(session.timestamp) + 1).toISOString(),
+            ['unexpected'], [],
+        );
+        const request = saveExactRequest(value, session.threadId);
+        const rejected = parse(await handleForgeAuthorize({
+            forge_request_receipt_id: request.requestId,
+            request_sha256: request.requestSha256,
+        }, validRequestContext(session.threadId, session.turnId)));
+
+        assert.equal(rejected.error_code, 'forge_operator_authorization_required');
+        assert.equal(getForgeAuthorizationByRequest(value.db, request.requestId), null);
     });
 
     for (const [label, text] of [

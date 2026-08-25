@@ -44,6 +44,7 @@ export {
     resolveActivePlanningSession,
     summarizeSessionBeads,
     buildTraceAgentHandoffPayload,
+    buildRuntimeTraceHandoffPayload,
     buildTraceStatusPayload,
     resolveActiveTraceHandoffPayload,
     buildTraceFailuresPayload,

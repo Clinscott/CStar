@@ -1,0 +1,9 @@
+validation_id=validation:cstar-operating-pipeline-v1-adjacent:independent-20260801
+command=node scripts/run-tsx.mjs --test --test-concurrency=2 [the 14 allowlisted CStar pipeline test modules]
+result=PASS
+tests=112
+suites=14
+failed=0
+provider_attempts=0
+live_sources=false
+scope=SET mission-grant, provider-start, execute traces/authority, pre-provider repair-resume, post-validation advancement, handoff, host validation, and default catalog

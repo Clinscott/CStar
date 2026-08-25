@@ -1,0 +1,10 @@
+schema=cstar.validation_check.v1
+bead_id=bead:cstar:operating-pipeline-v1-batch-1
+validation_id=validation:cstar-operating-pipeline-v1:independent-20260801-v2
+command=node scripts/run-tsx.mjs --test --test-concurrency=2 tests/unit/cstar-kernel-mcp/*.test.ts
+result=PASS
+tests=807
+suites=111
+provider_attempts=0
+live_source_collection=0
+git_or_deploy_effects=0

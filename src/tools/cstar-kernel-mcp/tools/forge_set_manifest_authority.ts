@@ -1,8 +1,13 @@
 import { createHash } from 'node:crypto';
 import type Database from 'better-sqlite3';
-import type { HallForgeRequestRecord } from '../../../types/forge.js';
+import type {
+    ForgeMissionGrantEnvelope,
+    HallForgeRequestRecord,
+} from '../../../types/forge.js';
 import { ROOT_USER_FORGE_INTENT_PROFILE } from
     '../../pennyone/intel/forge_authorization_policy.js';
+import { readForgeMissionGrantEnvelope }
+    from '../../pennyone/intel/forge_mission_grant_envelope.js';
 import {
     FORGE_SET_AUTHORIZATION_AGE_MS,
     readExactForgeSetSignal,
@@ -46,6 +51,8 @@ export interface SetManifestAuthorityProjection {
         design_revision: number;
         design_sha256: string;
         batch_order: string[];
+        mission_grant_envelope: ForgeMissionGrantEnvelope;
+        mission_grant_envelope_sha256: string;
     };
     child: {
         bead_id: string;
@@ -79,6 +86,13 @@ export interface SetManifestAuthorityProjection {
 export interface VerifiedForgeSetManifestAuthority {
     intent: VerifiedForgeOperatorIntent;
     authority_manifest_sha256: string;
+}
+
+export interface ForgeSetManifestAuthorityIdentity {
+    thread_id: string;
+    turn_id: string;
+    turn_record_sha256: string;
+    turn_record_set_sha256: string;
 }
 
 function sha256(value: string): string {
@@ -161,19 +175,30 @@ function countRows(db: Database.Database, sql: string, ...params: unknown[]): nu
     return Number((db.prepare(sql).get(...params) as { count?: number }).count ?? 0);
 }
 
-function assertRequestIsUniqueAndUnspent(
+export function assertForgeSetManifestRequestIsUniqueAndUnspent(
     db: Database.Database,
     request: HallForgeRequestRecord,
-    identity: VerifiedCodexRequestIdentity,
+    identity: ForgeSetManifestAuthorityIdentity,
     allowReplay = false,
+    allowLaterRequester = false,
 ): void {
+    const requesterThreadId = allowLaterRequester
+        ? requiredReference(request.requester_thread_id,
+            'forge_set_manifest_requester_lineage_mismatch') : identity.thread_id;
+    const requesterTurnId = allowLaterRequester
+        ? requiredReference(request.requester_turn_id,
+            'forge_set_manifest_requester_lineage_mismatch') : identity.turn_id;
+    const requesterRecordSetSha256 = allowLaterRequester
+        ? requiredHash(request.requester_record_set_sha256,
+            'forge_set_manifest_requester_lineage_mismatch') : identity.turn_record_set_sha256;
     const requesterRows = db.prepare(`
         SELECT request_id FROM hall_forge_requests
         WHERE requester_thread_id = ? AND requester_turn_id = ?
           AND requester_record_set_sha256 = ?
+          AND status <> 'SUPERSEDED'
         ORDER BY created_at, request_id
     `).all(
-        identity.thread_id, identity.turn_id, identity.turn_record_set_sha256,
+        requesterThreadId, requesterTurnId, requesterRecordSetSha256,
     ) as Array<{ request_id?: string }>;
     if (requesterRows.length !== 1 || requesterRows[0]?.request_id !== request.request_id) {
         throw new Error('forge_set_manifest_requester_turn_reused');
@@ -187,18 +212,27 @@ function assertRequestIsUniqueAndUnspent(
         throw new Error('forge_set_manifest_request_not_unspent');
     }
     if (!allowReplay && countRows(db, `
-        SELECT COUNT(*) AS count FROM hall_forge_authorizations
-        WHERE operator_thread_id = ? AND (
-            operator_turn_id = ? OR operator_record_set_sha256 = ?
-            OR operator_record_sha256 = ?
+        SELECT COUNT(*) AS count FROM hall_forge_authorizations AS authorization
+        JOIN hall_forge_requests AS authorized_request
+          ON authorized_request.request_id = authorization.request_id
+        WHERE authorization.operator_thread_id = ?
+          AND authorized_request.bead_id = ?
+          AND authorization.request_id <> ? AND (
+            authorization.operator_turn_id = ?
+            OR authorization.operator_record_set_sha256 = ?
+            OR authorization.operator_record_sha256 = ?
         )
-    `, identity.thread_id, identity.turn_id, identity.turn_record_set_sha256,
+    `, identity.thread_id, request.bead_id, request.request_id,
+    identity.turn_id, identity.turn_record_set_sha256,
     identity.turn_record_sha256) !== 0) {
         throw new Error('forge_set_manifest_operator_turn_reused');
     }
 }
 
-function assertRequestPolicy(request: HallForgeRequestRecord, allowReplay = false): void {
+export function assertForgeSetManifestRequestPolicy(
+    request: HallForgeRequestRecord,
+    allowReplay = false,
+): void {
     let summary: unknown;
     try { summary = JSON.parse(request.request_summary_json); } catch {
         throw new Error('forge_set_manifest_request_summary_invalid');
@@ -241,14 +275,28 @@ export function resolveForgeSetManifestAuthorityProjection(
     request: HallForgeRequestRecord,
     identity: VerifiedCodexRequestIdentity,
     allowReplay = false,
+    allowLaterRequester = false,
 ): SetManifestAuthorityProjection {
-    assertRequestPolicy(request, allowReplay);
-    if (request.requester_thread_id !== identity.thread_id
-        || request.requester_turn_id !== identity.turn_id
-        || request.requester_record_set_sha256 !== identity.turn_record_set_sha256) {
+    assertForgeSetManifestRequestPolicy(request, allowReplay);
+    const requesterThreadId = requiredReference(
+        request.requester_thread_id, 'forge_set_manifest_requester_lineage_mismatch',
+    );
+    const requesterTurnId = requiredReference(
+        request.requester_turn_id, 'forge_set_manifest_requester_lineage_mismatch',
+    );
+    const requesterRecordSetSha256 = requiredHash(
+        request.requester_record_set_sha256, 'forge_set_manifest_requester_lineage_mismatch',
+    );
+    if (requesterThreadId !== identity.thread_id
+        || (!allowLaterRequester && (
+            requesterTurnId !== identity.turn_id
+            || requesterRecordSetSha256 !== identity.turn_record_set_sha256
+        ))) {
         throw new Error('forge_set_manifest_requester_lineage_mismatch');
     }
-    assertRequestIsUniqueAndUnspent(db, request, identity, allowReplay);
+    assertForgeSetManifestRequestIsUniqueAndUnspent(
+        db, request, identity, allowReplay, allowLaterRequester,
+    );
 
     const child = readBead(db, request.bead_id, 'forge_set_manifest_child_not_found');
     const childMetadata = parseMetadata(
@@ -261,6 +309,7 @@ export function resolveForgeSetManifestAuthorityProjection(
     const parentMetadata = parseMetadata(
         parent.metadata_json, 'forge_set_manifest_parent_metadata_invalid',
     );
+    const missionEnvelope = readForgeMissionGrantEnvelope(parentMetadata);
     const parentDecision = requiredReference(
         parentMetadata.decision_id, 'forge_set_manifest_decision_invalid',
     );
@@ -293,9 +342,12 @@ export function resolveForgeSetManifestAuthorityProjection(
         childMetadata.mutation_request_identity,
         'forge_set_manifest_child_identity_invalid',
     );
+    const childIdentityMatches = allowLaterRequester
+        ? childIdentity.thread_id === identity.thread_id
+        : mutationIdentityMatches(childIdentity, identity);
     const parkedRequest = parentMetadata.parked_request_receipt;
     if (!mutationIdentityMatches(parentIdentity, identity)
-        || !mutationIdentityMatches(childIdentity, identity)
+        || !childIdentityMatches
         || parent.repo_id !== request.repo_id || child.repo_id !== request.repo_id
         || parent.target_ref !== parentDecision
         || childMetadata.design_sha256 !== designSha256
@@ -338,6 +390,8 @@ export function resolveForgeSetManifestAuthorityProjection(
             design_revision: Number(designRevision),
             design_sha256: designSha256,
             batch_order: batchOrder,
+            mission_grant_envelope: missionEnvelope.envelope,
+            mission_grant_envelope_sha256: missionEnvelope.sha256,
         },
         child: {
             bead_id: child.bead_id,
@@ -354,9 +408,9 @@ export function resolveForgeSetManifestAuthorityProjection(
             target_paths_sha256: request.target_paths_sha256,
             bead_id: request.bead_id,
             decision_id: request.decision_id,
-            requester_thread_id: identity.thread_id,
-            requester_turn_id: identity.turn_id,
-            requester_record_set_sha256: identity.turn_record_set_sha256,
+            requester_thread_id: requesterThreadId,
+            requester_turn_id: requesterTurnId,
+            requester_record_set_sha256: requesterRecordSetSha256,
             created_at: request.created_at,
         },
         operator: {

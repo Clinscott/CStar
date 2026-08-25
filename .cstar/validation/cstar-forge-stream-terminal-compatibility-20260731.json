@@ -1,0 +1,50 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:cstar:forge-stream-terminal-compatibility-20260731",
+  "validation_id": "validation:cstar-forge-stream-terminal-compatibility-20260731",
+  "reported_verdict": "ACCEPTED",
+  "artifacts": [
+    {
+      "path": ".agents/skills/corvus-forge/runtime/hermes_cli/forge_entrypoint_support.py",
+      "sha256": "80bd61494c855a6db084cb671fae9a2a219c21a84f635ce7702b34c7dcd2c18e"
+    },
+    {
+      "path": ".agents/skills/corvus-forge/runtime/hermes_cli/forge_entrypoint.py",
+      "sha256": "ab6bdd224905909010fc935128a3a613c4232dd5b4a59b55cd769a1db0057911"
+    },
+    {
+      "path": "tests/unit/corvus-forge/test_private_hermes_streaming.py",
+      "sha256": "4a98e439bdd4834fa1532349a086dd95c48712ae266eecf22d922b4e41cecd71"
+    },
+    {
+      "path": "tests/unit/corvus-forge/test_private_hermes_runtime.py",
+      "sha256": "057e20495ad1dca7920878b417978d43f3c7e48a6a98d6c571add086f0cef650"
+    }
+  ],
+  "checks": [
+    {
+      "name": "private Hermes unit tests: 15 passed",
+      "status": "pass",
+      "evidence_path": "tests/unit/corvus-forge/test_private_hermes_streaming.py",
+      "sha256": "4a98e439bdd4834fa1532349a086dd95c48712ae266eecf22d922b4e41cecd71"
+    },
+    {
+      "name": "Forge MCP focused suite: 27 tests across 3 suites passed",
+      "status": "pass",
+      "evidence_path": ".agents/skills/corvus-forge/runtime/hermes_cli/forge_entrypoint.py",
+      "sha256": "ab6bdd224905909010fc935128a3a613c4232dd5b4a59b55cd769a1db0057911"
+    },
+    {
+      "name": "npm run typecheck",
+      "status": "pass",
+      "evidence_path": ".agents/skills/corvus-forge/runtime/hermes_cli/forge_entrypoint_support.py",
+      "sha256": "80bd61494c855a6db084cb671fae9a2a219c21a84f635ce7702b34c7dcd2c18e"
+    },
+    {
+      "name": "git diff --check and <=500-line audit (max 401)",
+      "status": "pass",
+      "evidence_path": "tests/unit/corvus-forge/test_private_hermes_runtime.py",
+      "sha256": "057e20495ad1dca7920878b417978d43f3c7e48a6a98d6c571add086f0cef650"
+    }
+  ]
+}

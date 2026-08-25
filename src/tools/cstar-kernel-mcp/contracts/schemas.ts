@@ -1,5 +1,10 @@
 import { z } from 'zod';
 
+export {
+    auguryMissionBoundarySchema,
+    auguryMissionBoundaryTransportSchema,
+} from './augury_mission_schema.js';
+
 export const dispatchMetricSchema = z.object({
     name: z.string().min(1).describe('Metric name, e.g. precision, pass_rate, artifact_integrity'),
     threshold: z.string().min(1).describe('Acceptance threshold, e.g. >= 0.95 or zero P1/P2 blockers'),
@@ -21,7 +26,7 @@ export const dispatchSpendPolicySchema = z.object({
 
 export const forgeRequestSpendPolicySchema = z.object({
     mode: z.enum(['no_spend', 'dry_run', 'live_authorized'])
-        .describe('live_authorized requests remain pending until cstar_forge_authorize binds one current explicit work-referenced root-user build or resume instruction'),
+        .describe('For an immutable exact-SET mission child, the kernel may derive request-scoped authority during cstar_forge_request; cstar_forge_authorize remains the explicit no-spend authorization gate for the default lifecycle.'),
     max_retries: z.number().int().min(0).optional().describe('Must be zero for a live Forge request'),
     live_source_allowed: z.boolean().optional().describe('Must be false for the bounded Forge authorization profile'),
 }).strict().describe('Forge request spend intent. Legacy freeform operator_authorization_ref is forbidden here.');

@@ -1,0 +1,41 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:cstar:operating-pipeline-v1-batch-1",
+  "validation_id": "validation:cstar-operating-pipeline-v1-batch-1:independent-20260801",
+  "reported_verdict": "ACCEPTED",
+  "artifacts": [
+    {"path":"src/tools/cstar-kernel-mcp/tools/forge_set_manifest_authority.ts","sha256":"63ab34219f34c40f8354fdb4c656553b6d1bcf9ef07824ddbb276158c1104608"},
+    {"path":"src/tools/cstar-kernel-mcp/tools/forge_set_manifest_autonomous_authority.ts","sha256":"3483462ad07776ec6ba92deef9ec96e369153e9901206b0b3e6deabb0e83041b"},
+    {"path":"src/tools/cstar-kernel-mcp/tools/forge_set_manifest_iteration_authority.ts","sha256":"8495b91a0db313c779879a22f9d048ff0cd23b59374e5555327c16beae16662e"},
+    {"path":"src/tools/cstar-kernel-mcp/tools/forge_autonomous_policy_authority.ts","sha256":"77fdc28c7dd7b176de0c246446b09679395147eba7b01f86e2bdbecaaa8df976"},
+    {"path":"src/tools/cstar-kernel-mcp/tools/forge_execution_authority.ts","sha256":"bab4aba413e72d2f25a9b32bbfe9f5b63e5c1876a520f0454056f202f1d538ea"},
+    {"path":"src/tools/cstar-kernel-mcp/tools/forge_request.ts","sha256":"afbe43d50e0e819851b4511276ef4550f83e5706346c05c0785756e7fbdc19d4"},
+    {"path":"src/tools/cstar-kernel-mcp/tools/forge_request_auto_authorization.ts","sha256":"9cfd292614241b09f34d1c2894793f679d21fc590f31e25ef18091130a112dab"},
+    {"path":"src/tools/cstar-kernel-mcp/tools/forge_execute_request_authority.ts","sha256":"c629e0883eff68e379b2d8998cdfe6ceb4adf1ed1bb4368a82b70672c4f2cbf7"},
+    {"path":"src/tools/cstar-kernel-mcp/tools/forge_execute_reservation.ts","sha256":"1efaca2b81407a77b2dc65e59769d362fa13ac0db46373d2a1c689ed01f7579b"},
+    {"path":"src/tools/cstar-kernel-mcp/tools/forge_execute_result.ts","sha256":"0fd1a457f2944c7f2676676030737315a9adb7654ff2012d3e569e89d926d6cb"},
+    {"path":"src/tools/cstar-kernel-mcp/tools/forge_operator_intent_attestation.ts","sha256":"a8decf7138c05147223437b23ee4261787eac66d6072ace6e594559f551120c4"},
+    {"path":"src/tools/pennyone/intel/forge_mission_grant_controller.ts","sha256":"314e3d861028afbf7a59a25ea0192051de33549cdf695a3aa5210b5e3acd6cf9"},
+    {"path":"src/tools/pennyone/intel/forge_mission_grant_envelope.ts","sha256":"6114a9ae87d6acd4cb5933732d0bb6eb5dd0cc8b8842edc1f7292437b41efbd5"},
+    {"path":"src/tools/pennyone/intel/forge_mission_grant_scope.ts","sha256":"c6ece29b8a45f9261fba975968be6729eb4c0cb38e6d7358d71378d1039f8e7e"},
+    {"path":"src/tools/pennyone/intel/forge_post_validation_advancement.ts","sha256":"27c48916bd9f613fcc38a2fcc66cc0c7c05bc3b932c2b0d620bbfe48d70c314d"},
+    {"path":"src/tools/pennyone/intel/forge_post_validation_advancement_projection.ts","sha256":"fe80a6c64600cc8b0283f5a02b6e99d04f38356b042ef75c7dce2b4d4e18161c"},
+    {"path":"src/tools/pennyone/intel/forge_set_manifest_iteration_authorization_reuse.ts","sha256":"ae834718179013360df78d5a40ba42a42eff8030b3c391f18d916514cb8dfc60"},
+    {"path":"src/tools/pennyone/intel/forge_request_authorization_controller.ts","sha256":"6e0fcca1ac17c3e66a1c67d31672f18512e2b26a0079c6f800d3231a55428d15"},
+    {"path":"src/tools/pennyone/intel/forge_validation_controller.ts","sha256":"dfb0d61e8ffbb8bb569ae8f6eae59039d486acb45304ed37232500356fa49a63"},
+    {"path":"tests/unit/cstar-kernel-mcp/test_forge_set_manifest_authorization.test.ts","sha256":"55098e5238fe9eebf8a7b7d397f096d1c7c9cc29a32d8f84767e220b8fa2624e"},
+    {"path":"tests/unit/cstar-kernel-mcp/test_forge_set_manifest_autonomous_dispatch.test.ts","sha256":"e0056a1d870fd500cb0628847c19c02830cd19a413bf0d598c5773e350b5d1a6"},
+    {"path":"tests/unit/cstar-kernel-mcp/test_forge_workspace_projection.test.ts","sha256":"63849cb74e9df6578f5a5194e09744232827ded592095ff3636e3b46b836888e"},
+    {"path":"tests/unit/cstar-kernel-mcp/test_tool_catalog.test.ts","sha256":"5d0621c23f5c1261fc4a2c1ed98bb8e153a492ef45a0007d08b18f65419da64a"},
+    {"path":"tests/unit/cstar-kernel-mcp/test_forge_adapter_runtime_portability.test.ts","sha256":"e4854278f82ca1e3fc9e5e2918e9def5e4ee4ade6885327e4658890bb7ffb055"},
+    {"path":"tests/unit/cstar-kernel-mcp/test_forge_process_containment.test.ts","sha256":"297bd2e6f0609f632a011892604e5043e6eea8266d0d294c59bdc559e084525f"},
+    {"path":"tests/unit/test_host_supervision.test.ts","sha256":"376944074300b93bfd4f7815283fabda9e6b96a6e8de97360efddfbb02b37865"},
+    {"path":".agents/skills/corvus-forge/runtime/manifest.json","sha256":"19a751c9076e26f4ddb0698d0b786d5a9b4c99c9d852f9d157fed2f064d56617"}
+  ],
+  "checks": [
+    {"name":"batch-1 focused checker 88/88","status":"pass","evidence_path":".cstar/validation/cstar-operating-pipeline-v1-batch-1-focused-20260801.txt","sha256":"7e43eb638a89bb29783b39332e4e9340dfbb4cf64c71f1a2057ae4e286ccc67d"},
+    {"name":"typecheck exit 0","status":"pass","evidence_path":".cstar/validation/cstar-operating-pipeline-v1-batch-1-typecheck-20260801.txt","sha256":"dda4f70bbee09f1a3f72beaa5922dffad39ecf0dd017dfbfb3facd54033a00f9"},
+    {"name":"targeted diff and line audit","status":"pass","evidence_path":".cstar/validation/cstar-operating-pipeline-v1-batch-1-diff-lines-20260801.txt","sha256":"e9cba583c8a2d7874aaa6918f54b04957b3e9fe1ab1642071b2330251c92c716"},
+    {"name":"runtime lock native and Forge manifest proof","status":"pass","evidence_path":".cstar/validation/cstar-operating-pipeline-v1-batch-1-runtime-20260801.txt","sha256":"d862e60d45c9809d7388c44a5e1189a9d9f46e4898f432baa2e5713b6f558eab"}
+  ]
+}

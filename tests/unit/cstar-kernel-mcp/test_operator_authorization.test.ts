@@ -25,6 +25,42 @@ afterEach(() => {
 });
 
 describe('connection-bound Codex operator authorization', () => {
+    it('retries current root identity after ordinary append-only session growth', async () => {
+        const fixture = createSession();
+        const originalOpenSync = fs.openSync;
+        const originalReadSync = fs.readSync;
+        let sessionOpenCount = 0;
+        let scanDescriptor: number | null = null;
+        let appended = false;
+        fs.openSync = ((...args: Parameters<typeof fs.openSync>) => {
+            const descriptor = originalOpenSync(...args);
+            if (String(args[0]) === fixture.sessionFile && ++sessionOpenCount === 2) {
+                scanDescriptor = descriptor;
+            }
+            return descriptor;
+        }) as typeof fs.openSync;
+        fs.readSync = ((...args: Parameters<typeof fs.readSync>) => {
+            const read = originalReadSync(...args);
+            if (!appended && args[0] === scanDescriptor) {
+                appended = true;
+                fs.appendFileSync(fixture.sessionFile,
+                    `${JSON.stringify({ type: 'event_msg', payload: { type: 'agent_message' } })}\n`);
+            }
+            return read;
+        }) as typeof fs.readSync;
+        try {
+            const verified = await verifyCodexRequestIdentity(
+                validRequestContext(fixture.threadId, fixture.turnId),
+            );
+            assert.equal(verified.turn_id, fixture.turnId);
+            assert.equal(appended, true);
+            assert.equal(sessionOpenCount, 5);
+        } finally {
+            fs.openSync = originalOpenSync;
+            fs.readSync = originalReadSync;
+        }
+    });
+
     it('accepts an omitted root thread_source while rejecting explicit nested lineage', async () => {
         const fixture = createSession({ sessionMeta: { thread_source: undefined } });
 

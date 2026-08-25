@@ -253,8 +253,8 @@ describe('exact hash-bound Forge authorization', () => {
             validRequestContext(requestSession.threadId, requestSession.turnId),
         ));
 
-        assert.equal(pending.status, 'pending_authorization_recorded');
-        assert.equal(pending.request_status, 'PENDING_AUTH');
+        assert.equal(pending.status, 'authorized_request_replayed');
+        assert.equal(pending.request_status, 'AUTHORIZED');
         assert.equal(
             pending.authorization_manifest.canonical_request_json,
             stableJson(pending.authorization_manifest.canonical_request),
@@ -299,7 +299,7 @@ describe('exact hash-bound Forge authorization', () => {
         ));
         assert.equal(terminal.status, 'terminal_request_replayed');
         assert.equal(terminal.authorization_challenge, null);
-        assert.match(terminal.next_action, /do not authorize or spend again/i);
+        assert.match(terminal.next_action, /compatibility authorization.*pending legacy receipt/i);
     });
 
     it('authorizes once from the sole exact root-user input and replays exactly', async () => {

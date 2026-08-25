@@ -1,0 +1,28 @@
+{
+  "schema": "cstar.validation.evidence.v1",
+  "bead_id": "bead:cstar:default-forge-request-auto-authorization-20260731",
+  "decision_id": "decision:cstar-default-forge-request-auto-authorization-20260731",
+  "validator": {
+    "thread_id": "019fba38-7091-7943-b79d-487931b351d4",
+    "submission_id": "019fba94-37e5-7592-84ed-10390ff12151"
+  },
+  "checks": [
+    {"name": "focused_tests", "result": "84/84 pass across 6 suites"},
+    {"name": "typecheck", "result": "pass"},
+    {"name": "targeted_diff_check", "result": "pass"},
+    {"name": "line_limit", "result": "pass; maximum 496 lines"},
+    {"name": "provider_or_host_mutation", "result": "none"}
+  ],
+  "files": [
+    {"path": "src/tools/cstar-kernel-mcp/tools/forge_request.ts", "sha256": "afbe43d50e0e819851b4511276ef4550f83e5706346c05c0785756e7fbdc19d4", "lines": 496},
+    {"path": "src/tools/cstar-kernel-mcp/tools/forge_request_auto_authorization.ts", "sha256": "6aa68bd60623c3c99ababbbc7ca31cb836b9abc2b7b7259d018eafeda7dbdb15", "lines": 70},
+    {"path": "src/tools/pennyone/intel/forge_request_authorization_replay.ts", "sha256": "6e4a23e2b1a141ec7d154becabef6c1b38e6c27f51a56f7af961ebb67c83c77a", "lines": 20},
+    {"path": "src/tools/pennyone/intel/forge_request_persistence.ts", "sha256": "227ed1efeaaf70f7d87187fe7db4190cc23ea98dc9084174c9edd7358d475fad", "lines": 216},
+    {"path": "tests/unit/cstar-kernel-mcp/test_forge_request_auto_authorization.test.ts", "sha256": "86073386517a59856fe1657ba02cf95b2bba4ec66d4529774d69f343fc1b5efc", "lines": 84},
+    {"path": "tests/unit/cstar-kernel-mcp/test_forge_natural_language_authorization.test.ts", "sha256": "ae7a3f780ba15f8effc12008cd5639a5f3646aaddefdf18055117304b61f7c7b", "lines": 347},
+    {"path": "tests/unit/cstar-kernel-mcp/test_forge_request_authorization_controller.test.ts", "sha256": "e836c80f21605a7e7bf499abb7eb97099ab15b981dd2b76ba57e5fd86a89dbfd", "lines": 489},
+    {"path": "tests/unit/cstar-kernel-mcp/test_forge_execute.test.ts", "sha256": "68db577cc726f12930db86f0899a756da8aaf8cb90dfc632d8680b88a339f094", "lines": 488},
+    {"path": "tests/unit/cstar-kernel-mcp/test_goal_resume.test.ts", "sha256": "f9e41cce2b2911827da531f88fb8a5e82bc01ba34ff555a3e60d19e3f1df0c77", "lines": 488},
+    {"path": "tests/unit/cstar-kernel-mcp/test_handoff_runtime_state.test.ts", "sha256": "883617186e62744aa6fe75a74e8eeeda6b710f655bccd2bae7bff48f31c8e0c6", "lines": 80}
+  ]
+}

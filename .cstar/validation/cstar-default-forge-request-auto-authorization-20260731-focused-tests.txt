@@ -1,0 +1,1 @@
+Independent validator Zeno: 84/84 tests passed across 6 focused suites: auto authorization 2, natural authorization 33, authorization controller 13, Forge execute 16, goal resume 18, and handoff runtime 2.

@@ -153,7 +153,8 @@ export async function verifyValidationEvidence(
         || !VALIDATION_EVIDENCE_SHA256.test(subject.requester_record_set_sha256)
         || !VALIDATION_EVIDENCE_SHA256.test(subject.executor_record_sha256)
         || !VALIDATION_EVIDENCE_SHA256.test(subject.executor_record_set_sha256)
-        || subject.executor_record_count !== 1
+        || !Number.isSafeInteger(subject.executor_record_count)
+        || subject.executor_record_count < 1
         || (subject.result_artifact_sha256 !== null
             && !VALIDATION_EVIDENCE_SHA256.test(subject.result_artifact_sha256))) {
         throw new Error('validation_evidence_subject_invalid');

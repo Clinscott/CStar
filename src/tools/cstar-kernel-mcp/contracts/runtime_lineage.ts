@@ -77,6 +77,7 @@ const FORGE_RUNTIME_SOURCE_FILES = [
     'hermes_cli/forge_minimax_oauth.py',
     'hermes_cli/forge_provider_journal.py',
     'hermes_cli/forge_entrypoint.py',
+    'hermes_cli/forge_entrypoint_support.py',
 ] as const;
 
 const FORGE_RUNTIME_MANIFEST_KEYS = [

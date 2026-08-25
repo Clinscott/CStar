@@ -1,0 +1,1 @@
+Independent validator Zeno: all touched source and focused test files are at or below 500 lines; maximum is exactly 500 lines in forge_authorization_policy.ts.

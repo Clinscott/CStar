@@ -7,6 +7,11 @@ global Corvus instructions first. This file contains repository deltas only.
 
 - Use `cstar-kernel` for lifecycle state. Never bypass an available kernel path
   with direct Hall/SQLite writes or ad hoc state files.
+- CStar is only the deterministic state manager; it does not launch agents, workthreads, providers, or cognition.
+- CoS in Codex is the supervisor/delegator: it sequences state and dispatches owning workers, but does not implement, research, debug, edit source, run worker tests/validation, or take over failed worker work.
+- Substantive direct Codex subagents and retained/resumable workthreads request `gpt-5.6-luna` with reasoning `max` through an enforcing host selector; absence or mismatch is visible and never silently falls back.
+- CoS owns no host goal and must never create, resume, update, pause, block, complete, or close one; workers own exactly one bounded host goal per substantive assignment.
+- Worker objectives bind the exact CStar bead, decision, target paths, and checker; correction stays in the same goal, replacement workers get a new goal plus bounded handoff, and validators use distinct goals.
 - Registries and observed runtime are evidence, not authority. Beads and
   receipts are the durable timeline for lifecycle state.
 - CoS coordinates. Forge implements. Researcher researches. CorvusEye or a
@@ -21,7 +26,7 @@ global Corvus instructions first. This file contains repository deltas only.
 
 Follow [`.agents/AGENTS.feature`](.agents/AGENTS.feature). One situation selects
 one narrow surface and one canonical runbook. The Forge route is always
-`request -> authorize -> execute -> independent record_result`.
+`cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute -> independent cstar_record_result`.
 Daily freshness follows `docs/operations/cstar-goal-driven-daily-bootstrap.md`.
 
 ## Repository deltas

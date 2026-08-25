@@ -118,6 +118,13 @@ Feature: Codex steered-turn request identity
     Then the record is excluded from authority, hashes, counts, timestamps, and cohort topology
     And inserting or mutating that record cannot change the root-user record-set digest
 
+  Scenario: A host-carried subagent notification cannot steer operator authority
+    Given a complete subagent-notification envelope is carried in a user-shaped host record
+    And its body contains cancellation, grant, report, or recommendation prose
+    When CStar projects root-user identity or scans later authority changes
+    Then the complete host notification is excluded from authority, hashes, counts, and revocation
+    But quoted or incomplete notification markup inside an operator record remains canonical user input
+
   Scenario: A tagged record explicitly claims user authority without the canonical wrapper
     Given a selected or later tagged record claims user role or user-message type
     But it is not a canonical response-item message with user role

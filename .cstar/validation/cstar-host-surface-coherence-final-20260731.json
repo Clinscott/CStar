@@ -1,0 +1,58 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:cstar:augury-set-mission-boundary",
+  "validation_id": "validation:cstar-host-surface-coherence-final:20260731",
+  "reported_verdict": "ACCEPTED",
+  "artifacts": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "a8074b1f28926ec28bf0bf9bc3889260dc1f8ec7377de5be5d7807e170f5949c"
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/augury.ts",
+      "sha256": "d18bd34c446211e4576f1991ccd1ca35de7aec2616f33e1dae8ed5268e46cae8"
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/contracts/schemas.ts",
+      "sha256": "c5a945b885b714f56a31af64de4df113da6931d78d3e276c27f3f95f49aa9d94"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_augury_bead_result.test.ts",
+      "sha256": "e917a3f3a0976f11327ce29c1e0f52f8113eec2dbfa82069f06a553a3dd9e9f5"
+    },
+    {
+      "path": "docs/integrations/cstar-kernel-mcp.md",
+      "sha256": "e1205b0c6ed52cfb84cf7937f6811683724c47f863686d50c19e07054cdef0ec"
+    },
+    {
+      "path": "tests/contracts/test_cstar_agent_router.py",
+      "sha256": "77be7a2b6df058f4cfc88f63724098b23542a26a33d603edea7a09c69cf24055"
+    }
+  ],
+  "checks": [
+    {
+      "name": "router contract 7 of 7",
+      "status": "pass",
+      "evidence_path": "tests/contracts/test_cstar_agent_router.py",
+      "sha256": "77be7a2b6df058f4cfc88f63724098b23542a26a33d603edea7a09c69cf24055"
+    },
+    {
+      "name": "focused host surface suite 68 of 68",
+      "status": "pass",
+      "evidence_path": "tests/unit/cstar-kernel-mcp/test_augury_bead_result.test.ts",
+      "sha256": "e917a3f3a0976f11327ce29c1e0f52f8113eec2dbfa82069f06a553a3dd9e9f5"
+    },
+    {
+      "name": "typecheck and diff check",
+      "status": "pass",
+      "evidence_path": "src/tools/cstar-kernel-mcp/contracts/schemas.ts",
+      "sha256": "c5a945b885b714f56a31af64de4df113da6931d78d3e276c27f3f95f49aa9d94"
+    },
+    {
+      "name": "public Augury tier normalization and source line cap",
+      "status": "pass",
+      "evidence_path": "src/tools/cstar-kernel-mcp/tools/augury.ts",
+      "sha256": "d18bd34c446211e4576f1991ccd1ca35de7aec2616f33e1dae8ed5268e46cae8"
+    }
+  ]
+}

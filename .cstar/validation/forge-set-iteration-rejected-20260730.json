@@ -1,0 +1,37 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:cstar:operating-pipeline-v1-batch-1",
+  "validation_id": "validation:cstar-set-iteration-authority-review-1:20260730",
+  "reported_verdict": "REJECTED",
+  "artifacts": [
+    {
+      "path": "src/tools/pennyone/intel/forge_set_manifest_iteration_authorization_reuse.ts",
+      "sha256": "40325b35a5b8611750beec9ca241bc707359ad5ef64c85a9c24107a4dcf7d14a",
+      "bytes": 5089
+    },
+    {
+      "path": "src/tools/pennyone/intel/forge_request_authorization_controller.ts",
+      "sha256": "7e8b2e2370a9153a2075443d641cd189c441496519b8cf0ec2b9b1b1f5964de8",
+      "bytes": 22048
+    },
+    {
+      "path": "src/tools/pennyone/intel/forge_authorization_schema.ts",
+      "sha256": "66fce34395215ee932994bc7ab33680260b88f76ce311c51389e3d8617fbe840",
+      "bytes": 9975
+    }
+  ],
+  "checks": [
+    {
+      "name": "independent consumed-turn authority widening review",
+      "status": "pass",
+      "evidence_path": "src/tools/pennyone/intel/forge_set_manifest_iteration_authorization_reuse.ts",
+      "sha256": "40325b35a5b8611750beec9ca241bc707359ad5ef64c85a9c24107a4dcf7d14a"
+    },
+    {
+      "name": "independent malformed non-unique index migration probe",
+      "status": "pass",
+      "evidence_path": "src/tools/pennyone/intel/forge_authorization_schema.ts",
+      "sha256": "66fce34395215ee932994bc7ab33680260b88f76ce311c51389e3d8617fbe840"
+    }
+  ]
+}

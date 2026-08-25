@@ -1,17 +1,4 @@
-/**
- * Integration test for `bin/cstar-kernel-mcp.js`.
- *
- * Spawns the launcher as a child process, completes the current SDK stdio
- * `initialize` handshake, then exercises `tools/list` and `tools/call`
- * (cstar_status) over JSON-RPC. This catches a class of regression invisible
- * to the unit tests: loader resolution, env propagation, schema validity at
- * registration time, and the actual stdio framing of the SDK.
- *
- * The handshake is transport compatibility, not CStar application state. Tool
- * handlers must keep cross-call state in explicit domain handles so the same
- * schemas can survive MCP's 2026-07-28 stateless protocol direction.
- */
-
+/** Stdio integration coverage for launcher, catalog, schema, and tool calls. */
 import { describe, it, after } from 'node:test';
 import assert from 'node:assert';
 import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
@@ -20,8 +7,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Database from 'better-sqlite3';
-
-import { CSTAR_KERNEL_TOOL_NAMES } from '../../src/tools/cstar-kernel-mcp/contracts/tool_catalog.js';
+import { CSTAR_KERNEL_DEFAULT_OPERATOR_TOOL_NAMES }
+    from '../../src/tools/cstar-kernel-mcp/contracts/tool_catalog.js';
 import { ensureHallSchema } from '../../src/tools/pennyone/intel/schema.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -50,27 +37,16 @@ interface JsonRpcNotification {
     method: string;
     params?: unknown;
 }
-
 interface JsonRpcResponse {
     jsonrpc: '2.0';
     id: number;
     result?: any;
     error?: { code: number; message: string };
 }
-
 const PROTOCOL_STATE_ARG_NAMES = new Set([
-    '_meta',
-    'clientInfo',
-    'client_info',
-    'clientCapabilities',
-    'client_capabilities',
-    'mcpSessionId',
-    'mcp_session_id',
-    'Mcp-Session-Id',
-    'protocolVersion',
-    'protocol_version',
-    'sessionId',
-    'session_id',
+    '_meta', 'clientInfo', 'client_info', 'clientCapabilities', 'client_capabilities',
+    'mcpSessionId', 'mcp_session_id', 'Mcp-Session-Id', 'protocolVersion',
+    'protocol_version', 'sessionId', 'session_id',
 ]);
 
 function collectSchemaPropertyNames(schema: unknown, seen = new Set<unknown>()): string[] {
@@ -115,8 +91,6 @@ class StdioMcpClient {
 
         this.proc.stdout.setEncoding('utf-8');
         this.proc.stdout.on('data', (chunk: string) => this.absorb(chunk));
-        // stderr is captured but not asserted on — the launcher logs bootstrap
-        // diagnostics on stderr which we don't want to fail tests on.
         this.proc.stderr.setEncoding('utf-8');
         this.proc.stderr.on('data', (chunk: string) => { this.stderr += chunk; });
     }
@@ -204,6 +178,21 @@ const validDispatchRequest = {
     callback_contract: { expected_packet: 'MCP_STDIO_SMOKE_PACKET', callback_required: true },
 };
 
+const validAuguryBoundary = {
+    schema: 'cstar.augury_mission_boundary.v1',
+    repository: { schema: 'cstar.repository_root_identity.v1',
+        repository_id: 'repo:cstar:stdio', root_path: PROJECT_ROOT },
+    mission_decision_id: 'decision:cstar:stdio',
+    proposed_parent_bead_id: 'bead:cstar:stdio-parent',
+    design: { revision: 1, sha256: 'c'.repeat(64) },
+    scope: { schema: 'cstar.mission_scope.v1', domain: 'brain', subject: 'CStar' },
+    contained_target_paths: ['src/tools/cstar-kernel-mcp.ts'],
+    bead_plan: [{
+        bead_id: 'bead:cstar:stdio-child', dependencies: [], lane: 'forge',
+        target_paths: ['src/tools/cstar-kernel-mcp.ts'],
+        acceptance_obligations: ['Strict runtime boundary accepted.'], checker_obligations: ['npm run typecheck'],
+    }],
+};
 function parseToolBody(resp: JsonRpcResponse): any {
     if (resp.error) {
         return { jsonrpc_error: resp.error.message };
@@ -217,13 +206,8 @@ function parseToolBody(resp: JsonRpcResponse): any {
     }
 }
 
-// The launcher uses `process.execve` on Unix (replacing the JS process with the
-// underlying TSX-loaded MCP server). Some environments (older glibc, certain
-// containers) reject execve; the test must not hang in that case.
 async function launchClient(extraEnv: Record<string, string> = {}, launcher: string = LAUNCHER): Promise<StdioMcpClient | null> {
     const client = new StdioMcpClient(extraEnv, launcher);
-    // Probe with `initialize` and a generous timeout. If the launcher failed
-    // to boot, the request times out — we skip the tests.
     try {
         const initResp = await client.request('initialize', {
             protocolVersion: '2024-11-05',
@@ -258,18 +242,20 @@ describe('cstar-kernel-mcp stdio launcher', () => {
     it('boots, handshakes, and exposes the documented tool inventory exactly', async () => {
         client = await launchClient();
         if (!client) {
-            // Launcher unavailable in this environment — make the failure
-            // visible without flailing the test runner.
             assert.fail(`cstar-kernel-mcp launcher did not respond to initialize: ${lastLaunchStderr}`);
         }
 
         const listResp = await client.request('tools/list', {});
         assert.ok(listResp.result, `tools/list returned error: ${JSON.stringify(listResp.error)}`);
         assert.ok(Array.isArray(listResp.result.tools), 'tools/list result must contain a tools array');
-        const tools = listResp.result.tools as Array<{ name: string }>;
+        const tools = listResp.result.tools as Array<{
+            name: string;
+            description?: string;
+            inputSchema?: Record<string, unknown>;
+        }>;
         const actualNames = tools.map((t) => t.name).sort();
         const duplicateNames = actualNames.filter((name, index) => actualNames.indexOf(name) !== index);
-        const expectedNames = [...CSTAR_KERNEL_TOOL_NAMES].sort();
+        const expectedNames = [...CSTAR_KERNEL_DEFAULT_OPERATOR_TOOL_NAMES].sort();
 
         assert.deepStrictEqual(duplicateNames, [], `tools/list must not expose duplicate tool names: ${duplicateNames.join(', ')}`);
         assert.deepStrictEqual(
@@ -278,6 +264,20 @@ describe('cstar-kernel-mcp stdio launcher', () => {
             `tools/list drifted from the documented inventory; got: ${actualNames.join(', ')}`,
         );
         assert.ok(!actualNames.includes('cstar_autobot'), 'decommissioned cstar_autobot must stay absent');
+        assert.strictEqual(actualNames.length, 15);
+        const augury = tools.find((tool) => tool.name === 'cstar_augury');
+        assert.match(augury?.description ?? '', /^MUTATION: .*omission of mission_boundary is read-only/i);
+        const auguryProperties = augury?.inputSchema?.properties as
+            Record<string, unknown> | undefined;
+        assert.ok(auguryProperties?.mission_boundary);
+        const missionSchemaJson = JSON.stringify(auguryProperties.mission_boundary);
+        assert.ok(Buffer.byteLength(missionSchemaJson, 'utf8') < 4_096, missionSchemaJson);
+        for (const required of ['schema', 'version', 'repository', 'bead_plan', 'replay']) {
+            assert.match(missionSchemaJson, new RegExp(`"${required}"`));
+        }
+        assert.match(missionSchemaJson, /cstar\.augury_mission_boundary\.v1/);
+        assert.match(missionSchemaJson, /cstar\.augury_mission_boundary\.v2/);
+        assert.doesNotMatch(missionSchemaJson, /forge_child_request_template/);
     });
 
     it('keeps tool schemas independent of protocol session state for stateless MCP readiness', async () => {
@@ -356,19 +356,52 @@ describe('cstar-kernel-mcp stdio launcher', () => {
         });
     });
 
-    it('rounds-trips a tools/call for cstar_telemetry returning summary blocks', async () => {
+    it('keeps advisory omission read-only and strictly reparses compact Augury input', async () => {
         if (!client) {
             assert.fail('client was not initialized by prior test');
         }
+        const beforeDb = new Database(CONTROL_HALL, { readonly: true });
+        const before = Number(beforeDb.prepare(
+            "SELECT COUNT(*) FROM hall_beads WHERE source_kind = 'augury_mission_receipt'").pluck().get());
+        beforeDb.close();
         const resp = await client.request('tools/call', {
-            name: 'cstar_telemetry',
-            arguments: { section: 'usage' },
+            name: 'cstar_augury',
+            arguments: {
+                prompt: 'Explain the bounded CStar status route',
+                target_paths: ['src/tools/cstar-kernel-mcp.ts'],
+            },
         });
         assert.ok(resp.result, `tools/call returned error: ${JSON.stringify(resp.error)}`);
         const body = JSON.parse((resp.result.content[0] as { text: string }).text);
-        assert.strictEqual(body.status, 'ok');
-        assert.strictEqual(body.section, 'usage');
-        assert.ok(body.usage);
+        assert.ok(body.current_mission_route || body.intent_category);
+        assert.strictEqual(body.mission_boundary_receipt, undefined);
+        assert.strictEqual(body.mutation, undefined);
+        const afterDb = new Database(CONTROL_HALL, { readonly: true });
+        const afterCount = Number(afterDb.prepare(
+            "SELECT COUNT(*) FROM hall_beads WHERE source_kind = 'augury_mission_receipt'").pluck().get());
+        afterDb.close();
+        assert.strictEqual(afterCount, before);
+
+        const invalidResp = await client.request('tools/call', {
+            name: 'cstar_augury',
+            arguments: {
+                prompt: 'Reject nested transport-invalid mission input',
+                mission_boundary: {
+                    ...validAuguryBoundary,
+                    repository: { ...validAuguryBoundary.repository, unknown: true },
+                },
+            },
+        });
+        const invalidBody = parseToolBody(invalidResp);
+        assert.strictEqual(invalidResp.result?.isError, true);
+        assert.strictEqual(invalidBody.error_code, 'augury_mission_boundary_incomplete');
+
+        const acceptedResp = await client.request('tools/call', {
+            name: 'cstar_augury',
+            arguments: { prompt: 'Accept strict mission shape', mission_boundary: validAuguryBoundary },
+        });
+        const acceptedBody = parseToolBody(acceptedResp);
+        assert.strictEqual(acceptedBody.error_code, 'augury_mission_request_identity_invalid');
     });
 
     it('smoke-calls every non-legacy public tool with safe success or fail-closed inputs', async () => {
@@ -385,39 +418,20 @@ describe('cstar-kernel-mcp stdio launcher', () => {
             execution_mode: 'no_op',
         };
         const cases: Array<{ name: string; args: Record<string, unknown>; expectError?: boolean }> = [
-            { name: 'cstar_hall_maintenance', args: { action: 'harvest', limit: 1 }, expectError: true },
             { name: 'cstar_handoff', args: {} },
             { name: 'cstar_hall_search', args: { query: 'mcp smoke', limit: 1 } },
             { name: 'cstar_augury', args: { prompt: 'Audit CStar MCP smoke contracts', target_paths: ['src/tools/cstar-kernel-mcp.ts'] } },
             { name: 'cstar_doctor', args: {} },
             { name: 'cstar_verify_plan', args: {} },
             { name: 'cstar_bead', args: { action: 'list', limit: 1 } },
-            { name: 'cstar_spoke_bead_import', args: { spoke: 'missing-spoke', intent: 'smoke', acceptance_criteria: 'fail closed', lore_path: 'missing.feature' }, expectError: true },
+            { name: 'cstar_goal_resume', args: {}, expectError: true },
             { name: 'cstar_record_result', args: {}, expectError: true },
-            { name: 'cstar_engram_record', args: {}, expectError: true },
-            { name: 'cstar_war_game_score', args: { action: 'list_contests' } },
             { name: 'cstar_manifest', args: { scope: 'hub' } },
             { name: 'cstar_skill_info', args: { id: 'bookmark-weaver' } },
-            { name: 'cstar_spoke_journal', args: { spoke: 'missing-spoke' } },
-            { name: 'cstar_pennyone_context', args: { action: 'status' } },
-            { name: 'cstar_mongo_mailbox', args: { action: 'status' }, expectError: true },
             { name: 'cstar_status', args: {} },
             { name: 'cstar_persona_set', args: { persona: 'O.D.I.N.' }, expectError: true },
-            { name: 'cstar_evolve', args: { action: 'list_proposals', limit: 1 } },
-            { name: 'cstar_spoke', args: { action: 'list' } },
-            { name: 'cstar_intent_route', args: { prompt: 'build audit harness', action: 'match' } },
-            { name: 'cstar_warden', args: { action: 'list' } },
-            { name: 'cstar_telemetry', args: { section: 'usage' } },
             { name: 'cstar_researcher_request', args: validDispatchRequest },
             { name: 'cstar_forge_request', args: validDispatchRequest, expectError: true },
-            {
-                name: 'cstar_forge_authorize',
-                args: {
-                    forge_request_receipt_id: `dispatch-forge-${'0'.repeat(32)}`,
-                    request_sha256: '0'.repeat(64),
-                },
-                expectError: true,
-            },
             { name: 'cstar_forge_execute', args: forgeExecuteRequest, expectError: true },
         ];
 

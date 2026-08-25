@@ -1,0 +1,25 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:cstar:operating-pipeline-v1-batch-1",
+  "validation_id": "validation:cstar-operating-pipeline-v1:independent-20260801-v2",
+  "reported_verdict": "ACCEPTED",
+  "validator_thread_id": "019fbb0b-b2db-7822-9112-f09b367dcfd0",
+  "artifacts": [
+    {"path":"src/tools/cstar-kernel-mcp/tools/host_workflow_validation.ts","sha256":"3c558611a913e870c7833ab7d9d3976cb4d8153f317b0429855887a9e0b40cef"},
+    {"path":"src/types/validation_evidence.ts","sha256":"c90c0e76d9956b318753849e8ce8f345d2458ed0c5c3ed9a41a4c5621afb221e"},
+    {"path":"tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts","sha256":"2b820ef29004b01b2acad9759fee9d44c2c24f4998f47089cc10f642ae82f0b9"},
+    {"path":"src/tools/cstar-kernel-mcp/tools/forge_runtime_roots.ts","sha256":"fb8d693243723517f4b89628795c37f93fb704229ca0facc8784cb30227b135a"},
+    {"path":"src/tools/cstar-kernel-mcp/tools/forge_operator_work_item_resolution.ts","sha256":"cef73ee03331a29ec34133c6b5a42f8290f7d9c4abc54e0b578e698dd8785b39"},
+    {"path":"tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts","sha256":"777293928f18a5a6e45c2494b7fbeb7986470d2c950f7c0fae5eb8213472a3e4"},
+    {"path":"tests/unit/cstar-kernel-mcp/test_forge_durable_execution.test.ts","sha256":"1ce62ff73a7e8e83c117b8e08499dba7fc445bfb7c3b217645482470c96de914"},
+    {"path":"tests/unit/cstar-kernel-mcp/test_forge_exact_authorization.test.ts","sha256":"e8502cfae7f8715924e1d2c82803127c872228627c723b2cf38c11f111bbd21f"},
+    {"path":"tests/unit/cstar-kernel-mcp/test_forge_multirecord_authorization.test.ts","sha256":"3abe420a3e320ee956705fa048b01945c32f5cd33f74178d386a44ec9b3065a3"},
+    {"path":".agents/skills/corvus-forge/runtime/manifest.json","sha256":"19a751c9076e26f4ddb0698d0b786d5a9b4c99c9d852f9d157fed2f064d56617"}
+  ],
+  "checks": [
+    {"name":"host validation boundary focused suite 19/19","status":"pass","evidence_path":".cstar/validation/cstar-operating-pipeline-v1-v2-focused-20260801.txt","sha256":"8a0871d9e77f51d714eb11f946ee661a3ee02c5085fe6a6e4decbf8531e49fa9"},
+    {"name":"full CStar MCP suite 807/807","status":"pass","evidence_path":".cstar/validation/cstar-operating-pipeline-v1-v2-full-20260801.txt","sha256":"c4566f0271b9b8427ef07b703d49d6dc4d70987b3c6921923a0abee79fb4c2b3"},
+    {"name":"typecheck diff and line contracts","status":"pass","evidence_path":".cstar/validation/cstar-operating-pipeline-v1-v2-contracts-20260801.txt","sha256":"9324e75057962b653d122d327930f87cd74f3be8aa9dd8d1d1acac699ab80fec"},
+    {"name":"live runtime readiness proof","status":"pass","evidence_path":".cstar/validation/cstar-operating-pipeline-v1-v2-runtime-20260801.txt","sha256":"95abb23d67b90fd458f1c13e9a923e1e5e5dd11b4504c1e5e1ef4c22701c20a5"}
+  ]
+}

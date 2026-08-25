@@ -227,6 +227,7 @@ export function resolveForgeOperatorWorkItem(
     db: Database.Database,
     selected: HallForgeRequestRecord,
     attestation: VerifiedForgeOperatorIntent,
+    options: { allowStoredSetManifest?: boolean } = {},
 ): ForgeOperatorIntentProjection {
     if (attestation.binding_mode === 'exact_request_receipt'
         || attestation.binding_mode === 'exact_mission_record') {
@@ -244,6 +245,10 @@ export function resolveForgeOperatorWorkItem(
                 && candidate.bead_id === selected.bead_id
                 && candidate.requester_thread_id === attestation.thread_id
                 && canonicalMissionDecisionId(candidate.decision_id) === missionDecisionId);
+            const replay = replayCandidate(db, selected, attestation);
+            if (replay && !eligible.some((candidate) => candidate.request_id === replay.request_id)) {
+                eligible.push(replay);
+            }
             if (eligible.length !== 1 || eligible[0]!.request_id !== selected.request_id) {
                 throw new Error('forge_operator_intent_mission_candidate_ambiguous');
             }
@@ -280,17 +285,23 @@ export function resolveForgeOperatorWorkItem(
     }
     if (selected.authorization_profile === ROOT_USER_FORGE_INTENT_PROFILE) {
         if (!requesterLineageMatches(resolved.candidate, attestation)) {
-            if (!replay) throw new Error('forge_operator_intent_requester_lineage_mismatch');
+            if (!replay && !(options.allowStoredSetManifest === true
+                && selected.requester_thread_id === attestation.thread_id)) {
+                throw new Error('forge_operator_intent_requester_lineage_mismatch');
+            }
         }
     } else if (selected.authorization_profile !== LEGACY_EXACT_FORGE_CHALLENGE_PROFILE) {
         throw new Error('forge_operator_intent_request_profile_invalid');
     }
     return buildForgeOperatorIntentProjection({
         action: attestation.action,
-        requester_lineage_mode: selected.authorization_profile === ROOT_USER_FORGE_INTENT_PROFILE
-            && requesterLineageMatches(resolved.candidate, attestation)
-            ? 'same_turn_request'
-            : 'explicit_legacy_request_upgrade',
+        requester_lineage_mode: options.allowStoredSetManifest === true
+            && !requesterLineageMatches(resolved.candidate, attestation)
+            ? 'stored_set_manifest'
+            : selected.authorization_profile === ROOT_USER_FORGE_INTENT_PROFILE
+                && requesterLineageMatches(resolved.candidate, attestation)
+                ? 'same_turn_request'
+                : 'explicit_legacy_request_upgrade',
         kind: resolved.kind,
         value: resolved.value,
         repo_id: selected.repo_id,

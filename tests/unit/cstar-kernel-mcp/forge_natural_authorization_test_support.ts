@@ -5,6 +5,8 @@ import { closeDb, database } from '../../../src/tools/pennyone/intel/database.js
 import { saveForgeRequest } from '../../../src/tools/pennyone/intel/forge_request_authorization_controller.js';
 import { registry } from '../../../src/tools/pennyone/pathRegistry.js';
 import { buildHallRepositoryId, normalizeHallPath } from '../../../src/types/hall.js';
+import { FORGE_MISSION_GRANT_MANDATORY_PROHIBITED_ACTIONS }
+    from '../../../src/types/forge.js';
 import { handleForgeAuthorize } from '../../../src/tools/cstar-kernel-mcp/tools/forge_authorize.js';
 import { handleForgeRequest } from '../../../src/tools/cstar-kernel-mcp/tools/forge_request.js';
 import { hashForgeAuthorizationChallenge } from
@@ -83,7 +85,11 @@ export function requestArgs(
         authority_lane: 'yellow' as const,
         required_metrics: [{ name: 'operator_binding', threshold: '= pass' }],
         artifact_expectations: ['natural authorization receipt'],
-        prohibited_actions: ['project_files', 'authorized_source_collection'],
+        prohibited_actions: [
+            ...FORGE_MISSION_GRANT_MANDATORY_PROHIBITED_ACTIONS,
+            'project_files',
+            'authorized_source_collection',
+        ],
         requested_actions: ['response_only'],
         spend_policy: { mode: 'live_authorized' as const, max_retries: 0, live_source_allowed: false },
         live_source_policy: 'no live source collection',

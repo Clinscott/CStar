@@ -4,7 +4,7 @@ import { authorizeForgeRequest } from '../../pennyone/intel/forge_request_author
 import { forgeOperatorIntentProjectionJson, hashRootUserForgeIntentBinding, LEGACY_EXACT_FORGE_CHALLENGE_PROFILE, ROOT_USER_FORGE_INTENT_PROFILE } from '../../pennyone/intel/forge_authorization_policy.js';
 import { registry } from '../../pennyone/pathRegistry.js';
 import type { McpRequestContext } from '../contracts/request_context.js';
-import { errorResponse, mcpErrorCode, mcpGuardrail, mcpMutation, preAuthorizationErrorResponse, preAuthorizationResponse, textResponse, type McpTextResponse } from '../contracts/responses.js';
+import { mcpGuardrail, mcpMutation, textResponse, type McpTextResponse } from '../contracts/responses.js';
 import { hashForgeAuthorizationChallenge, verifyCurrentForgeAuthorizationChallenge } from './forge_authorization_challenge.js';
 import { verifyCurrentForgeOperatorIntent } from './forge_operator_intent_attestation.js';
 import { resolveForgeOperatorWorkItem } from './forge_operator_work_item_resolution.js';
@@ -14,33 +14,20 @@ import { verifyDispatchPackageLocks } from './dispatch_request.js';
 import { buildLegacyV2ExecutionGrant, hashLegacyV2ExecutionGrant, type LegacyV2ExecutionGrant } from './forge_legacy_v2_compatibility.js';
 import { sealForgeHermesRuntimeExpectation } from './forge_hermes_runtime_contract.js';
 import { verifyCodexRequestIdentity, type VerifiedCodexRequestIdentity } from './operator_authorization.js';
-import { buildForgeRequestId, hashCanonicalForgeRequest, hashForgeTargetPaths, stableJson, type CanonicalForgeRequest } from './forge_request_contract.js';
+import { assertPendingForgeAuthorizationPolicy, buildForgeRequestId, hashCanonicalForgeRequest, hashForgeTargetPaths, stableJson, type CanonicalForgeRequest } from './forge_request_contract.js';
 import { forgeRequestAuthorityMatches, readForgeRequestBeforeMutation } from './forge_execute_request_authority.js';
 import { assertLiveForgeRuntimeReady } from '../contracts/runtime.js';
 import { revalidateForgeGoalResumeAuthority, verifyForgeGoalResumeAuthority } from './forge_goal_resume_authority.js';
 import { revalidateForgeSetManifestAuthority, verifyCurrentForgeSetManifestAuthority } from './forge_set_manifest_authority.js';
-import { parseForgeStructuralCaller, verifyPendingForgeSetManifestAuthority, verifyPersistedForgeSetManifestAuthority } from './forge_set_manifest_autonomous_authority.js';
+import { isLaterForgeSetManifestRequest, parseForgeStructuralCaller, verifyPendingForgeSetManifestAuthority, verifyPersistedForgeSetManifestAuthority } from './forge_set_manifest_autonomous_authority.js';
+import { verifyPendingForgeSetRequestAuthority } from './forge_set_request_authority.js';
+import { isForgeAutonomousPolicyCandidate } from './forge_autonomous_policy_authority.js';
+import { forgeAuthorizeErrorResponse } from './forge_authorize_error.js';
 
 export interface ForgeAuthorizeArgs {
     forge_request_receipt_id: string;
     request_sha256: string;
     goal_resume_id?: string;
-}
-
-function assertPendingChallengePolicy(requestSummary: CanonicalForgeRequest): void {
-    if (
-        requestSummary.schema !== 'cstar.forge_request.v3'
-        || requestSummary.spend_policy.mode !== 'live_authorized'
-        || requestSummary.spend_policy.max_retries !== 0
-        || requestSummary.spend_policy.live_source_allowed !== false
-        || requestSummary.retry_budget !== 0
-        || requestSummary.fixture_policy !== 'synthetic_only'
-        || requestSummary.max_attempts !== 1
-        || !requestSummary.adapter_ref
-        || !requestSummary.write_capability
-    ) {
-        throw new Error('forge_authorization_request_policy_invalid');
-    }
 }
 
 export async function handleForgeAuthorize(
@@ -74,15 +61,10 @@ export async function handleForgeAuthorize(
         };
         let naturalIntent: Awaited<ReturnType<typeof verifyCurrentForgeOperatorIntent>> | null = null;
         let naturalIntentError: unknown;
-        let setManifestAuthority: Awaited<
-            ReturnType<typeof verifyCurrentForgeSetManifestAuthority>
-        > = null;
-        let pendingSetManifestAuthority: ReturnType<
-            typeof verifyPendingForgeSetManifestAuthority
-        > | null = null;
-        let persistedSetManifestAuthority: ReturnType<
-            typeof verifyPersistedForgeSetManifestAuthority
-        > | null = null;
+        let setManifestAuthority: Awaited<ReturnType<typeof verifyCurrentForgeSetManifestAuthority>> = null;
+        let pendingSetManifestAuthority: ReturnType<typeof verifyPendingForgeSetManifestAuthority> | null = null;
+        let persistedSetManifestAuthority: ReturnType<typeof verifyPersistedForgeSetManifestAuthority> | null = null;
+        let setRequestAuthority: ReturnType<typeof verifyPendingForgeSetRequestAuthority> | null = null;
         const root = registry.getRoot();
         let requestRead: ReturnType<typeof readForgeRequestBeforeMutation>;
         try {
@@ -130,7 +112,7 @@ export async function handleForgeAuthorize(
             verifyDispatchPackageLocks(executionGrant.effective_request.package_locks, root);
         } else {
             const canonical = parsed as CanonicalForgeRequest;
-            assertPendingChallengePolicy(canonical);
+            assertPendingForgeAuthorizationPolicy(canonical);
             if (
                 stableJson(canonical) !== request.request_summary_json
                 || hashCanonicalForgeRequest(canonical) !== request.request_sha256
@@ -141,6 +123,9 @@ export async function handleForgeAuthorize(
             ) {
                 throw new Error('forge_authorization_request_integrity_invalid');
             }
+        }
+        if (isForgeAutonomousPolicyCandidate(readDb, request)) {
+            throw new Error('forge_autonomous_policy_compatibility_authorize_forbidden');
         }
         const existingAuthorization = getForgeAuthorizationByRequest(readDb, request.request_id);
         if (!goalResumeId && existingAuthorization?.authorization_profile
@@ -165,8 +150,9 @@ export async function handleForgeAuthorize(
         } else if (!goalResumeId) {
             if (request.authorization_profile === ROOT_USER_FORGE_INTENT_PROFILE
                 && request.status === 'PENDING_AUTH'
-                && (structuralCaller.thread_id !== request.requester_thread_id
-                    || structuralCaller.turn_id !== request.requester_turn_id)) {
+                && ((structuralCaller.thread_id !== request.requester_thread_id
+                    || structuralCaller.turn_id !== request.requester_turn_id)
+                    || isLaterForgeSetManifestRequest(readDb, request))) {
                 try {
                     pendingSetManifestAuthority = verifyPendingForgeSetManifestAuthority({
                         db: readDb, request, caller: structuralCaller,
@@ -190,25 +176,39 @@ export async function handleForgeAuthorize(
             }
             if (!pendingSetManifestAuthority && !setManifestAuthority) {
                 const identity = await ensureFullIdentity();
-                setManifestAuthority = await verifyCurrentForgeSetManifestAuthority({
-                    db: readDb, request, identity,
-                });
-                if (setManifestAuthority) {
-                    naturalIntent = setManifestAuthority.intent;
-                } else {
+                if (request.authorization_profile === ROOT_USER_FORGE_INTENT_PROFILE && request.status === 'PENDING_AUTH'
+                    && identity.turn_id !== request.requester_turn_id) {
                     try {
-                        naturalIntent = await verifyCurrentForgeOperatorIntent(
-                            requestContext,
-                            Date.now(),
-                            {
-                                request_id: request.request_id,
-                                request_sha256: request.request_sha256,
-                                bead_id: request.bead_id,
-                                decision_id: request.decision_id,
-                            },
-                        );
+                        setRequestAuthority = verifyPendingForgeSetRequestAuthority({
+                            db: readDb, request, caller: identity,
+                        });
+                        naturalIntent = setRequestAuthority.intent;
                     } catch (error) {
-                        naturalIntentError = error;
+                        if (!(error instanceof Error
+                            && error.message === 'forge_set_request_set_signal_missing')) throw error;
+                    }
+                }
+                if (!setRequestAuthority) {
+                    setManifestAuthority = await verifyCurrentForgeSetManifestAuthority({
+                        db: readDb, request, identity,
+                    });
+                    if (setManifestAuthority) {
+                        naturalIntent = setManifestAuthority.intent;
+                    } else {
+                        try {
+                            naturalIntent = await verifyCurrentForgeOperatorIntent(
+                                requestContext,
+                                Date.now(),
+                                {
+                                    request_id: request.request_id,
+                                    request_sha256: request.request_sha256,
+                                    bead_id: request.bead_id,
+                                    decision_id: request.decision_id,
+                                },
+                            );
+                        } catch (error) {
+                            naturalIntentError = error;
+                        }
                     }
                 }
             }
@@ -252,7 +252,12 @@ export async function handleForgeAuthorize(
             expiresAt = goalAuthority.expires_at;
         } else if (naturalIntent) {
             if (executionGrant) throw new Error('forge_natural_authorization_legacy_v2_unsupported');
-            naturalProjection = resolveForgeOperatorWorkItem(readDb, request, naturalIntent);
+            naturalProjection = resolveForgeOperatorWorkItem(
+                readDb, request, naturalIntent,
+                { allowStoredSetManifest: Boolean(
+                    pendingSetManifestAuthority || persistedSetManifestAuthority || setRequestAuthority,
+                ) },
+            );
             authorizationProfile = ROOT_USER_FORGE_INTENT_PROFILE;
             operatorIntentJson = forgeOperatorIntentProjectionJson(naturalProjection);
             authorizationBindingSha256 = hashRootUserForgeIntentBinding({
@@ -309,6 +314,9 @@ export async function handleForgeAuthorize(
             if (naturalIntent && naturalProjection) {
                 const currentProjection = resolveForgeOperatorWorkItem(
                     writable, current, naturalIntent,
+                    { allowStoredSetManifest: Boolean(
+                        pendingSetManifestAuthority || persistedSetManifestAuthority || setRequestAuthority,
+                    ) },
                 );
                 if (forgeOperatorIntentProjectionJson(currentProjection)
                     !== forgeOperatorIntentProjectionJson(naturalProjection)) {
@@ -336,6 +344,17 @@ export async function handleForgeAuthorize(
                         !== pendingSetManifestAuthority.intent.operator_authorization_ref
                     || currentPending.binding !== pendingSetManifestAuthority.binding) {
                     throw new Error('forge_set_manifest_authority_projection_drift');
+                }
+            } else if (setRequestAuthority) {
+                const currentSetRequest = verifyPendingForgeSetRequestAuthority({
+                    db: writable, request: current, caller: requestIdentity!,
+                });
+                if (currentSetRequest.authority_manifest_sha256
+                    !== setRequestAuthority.authority_manifest_sha256
+                    || currentSetRequest.intent.operator_authorization_ref
+                        !== setRequestAuthority.intent.operator_authorization_ref
+                    || currentSetRequest.binding !== setRequestAuthority.binding) {
+                    throw new Error('forge_set_request_authority_projection_drift');
                 }
             } else if (persistedSetManifestAuthority && existingAuthorization) {
                 verifyPersistedForgeSetManifestAuthority({
@@ -380,7 +399,7 @@ export async function handleForgeAuthorize(
             .includes(authorized.request.status);
         const expired = authorized.authorization.expires_at <= Date.now();
         const autonomousSetAuthority = Boolean(
-            pendingSetManifestAuthority || persistedSetManifestAuthority,
+            pendingSetManifestAuthority || persistedSetManifestAuthority || setRequestAuthority,
         );
         const autonomousSetMessage = 'The original SET grant authorized this unchanged immutable Forge request; CStar may execute it from a later same-root structural turn without a fresh operator instruction.';
         return textResponse({
@@ -438,44 +457,11 @@ export async function handleForgeAuthorize(
         });
     } catch (error) {
         releaseReadDb?.();
-        if (
-            !requestIdentityVerified
-            && !requestReadFailed
-            && error instanceof Error
-            && error.message === 'codex_request_identity_turn_match_count:0'
-        ) {
-            return preAuthorizationResponse({
-                status: 'operator_signal_required',
-                mutation: null,
-                forge_execution: {
-                    attempted: false,
-                    live_spend: false,
-                    live_source_collection: false,
-                },
-                guardrail: mcpGuardrail(
-                    'block',
-                    'recover',
-                    'The host resumed without a canonical root-user instruction; goal context never grants Forge authority.',
-                    ['forge_operator_signal_required'],
-                ),
-                next_action: 'Send a fresh ordinary instruction that names the work, such as: Continue building TokenPath Q0 phase one.',
-            }, 'forge_operator_signal_required');
-        }
-        if (requestReadWithValidIdentity) return errorResponse(error);
-        const errorText = error instanceof Error ? error.message : '';
-        const identityFailure = errorText.startsWith('operator_authorization_')
-            || errorText.startsWith('codex_request_identity_')
-            || errorText === 'forge_authorization_request_integrity_invalid';
-        return operatorAuthorizationVerified
-            ? errorResponse(error)
-            : requestIdentityVerified || identityFailure
-                ? preAuthorizationErrorResponse(
-                    'forge_operator_authorization_required',
-                    'forge_operator_authorization_required',
-                )
-            : preAuthorizationErrorResponse(
-                mcpErrorCode(error, 'forge_operator_authorization_required'),
-                error,
-            );
+        return forgeAuthorizeErrorResponse(error, {
+            request_identity_verified: requestIdentityVerified,
+            operator_authorization_verified: operatorAuthorizationVerified,
+            request_read_failed: requestReadFailed,
+            request_read_with_valid_identity: requestReadWithValidIdentity,
+        });
     }
 }

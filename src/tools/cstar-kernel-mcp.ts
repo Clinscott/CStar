@@ -39,7 +39,7 @@ export const server = new McpServer({
     version: '3.1.0',
 });
 
-registerCoreTools(server, instrumentTool);
+registerCoreTools(server, instrumentTool, { profile: 'default_operator' });
 
 export {
     mcpGuardrail,

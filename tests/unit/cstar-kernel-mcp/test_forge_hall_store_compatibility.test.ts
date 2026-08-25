@@ -11,6 +11,7 @@ import {
     openForgeReadDb,
 } from '../../../src/tools/pennyone/intel/forge_hall_store.js';
 import { ensureForgeAuthorizationSchema } from '../../../src/tools/pennyone/intel/forge_authorization_schema.js';
+import { ensureForgeMissionGrantSchema } from '../../../src/tools/pennyone/intel/forge_mission_grant_schema.js';
 import { readForgeRequestBeforeMutation } from '../../../src/tools/cstar-kernel-mcp/tools/forge_execute_request_authority.js';
 
 const shadowed = new Set<string>();
@@ -113,6 +114,14 @@ describe('Forge Hall store compatibility boundary', () => {
             db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'hall_forge_preprovider_continuations'").pluck().get(),
             'hall_forge_preprovider_continuations',
         );
+        assert.equal(
+            db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'hall_forge_mission_grants'").pluck().get(),
+            'hall_forge_mission_grants',
+        );
+        assert.equal(
+            db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'hall_forge_mission_grant_requests'").pluck().get(),
+            'hall_forge_mission_grant_requests',
+        );
         db.close();
     });
 
@@ -128,6 +137,10 @@ describe('Forge Hall store compatibility boundary', () => {
         assert.throws(() => getForgeWritableDb('/synthetic/root'), /hall_validation_runs/);
         assert.equal(
             db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'hall_forge_authorizations'").pluck().get(),
+            undefined,
+        );
+        assert.equal(
+            db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'hall_forge_mission_grants'").pluck().get(),
             undefined,
         );
         const requestColumns = db.prepare('PRAGMA table_info(hall_forge_requests)').all() as Array<{ name: string }>;
@@ -225,6 +238,106 @@ describe('Forge Hall store compatibility boundary', () => {
                 .pluck().get(multiRequestId),
             2,
         );
+        const policyRequestId = `dispatch-forge-${'d'.repeat(32)}`;
+        db.prepare('INSERT INTO hall_forge_requests (request_id) VALUES (?)').run(policyRequestId);
+        db.prepare(`
+            INSERT INTO hall_forge_authorizations (
+                authorization_id, request_id, request_sha256, authorization_profile,
+                authorization_binding_sha256, challenge_sha256, operator_intent_json,
+                operator_authorization_ref, operator_thread_id, operator_turn_id,
+                operator_message_sha256, operator_record_sha256,
+                operator_record_set_sha256, operator_record_count,
+                authorized_at, expires_at, created_at
+            ) VALUES (?, ?, ?, 'autonomous_dispatch_policy_v1', ?, NULL, ?, ?, ?, ?, ?, ?, ?, 1, 50, 60, 50)
+        `).run(
+            'forge-auth-autonomous-policy', policyRequestId, 'e'.repeat(64), 'f'.repeat(64),
+            '{"requester_lineage_mode":"stored_set_manifest"}', 'policy-ref',
+            'policy-thread', 'policy-turn', '1'.repeat(64), '2'.repeat(64), '3'.repeat(64),
+        );
+        assert.equal(db.prepare(
+            'SELECT authorization_profile FROM hall_forge_authorizations WHERE request_id = ?',
+        ).pluck().get(policyRequestId), 'autonomous_dispatch_policy_v1');
+        db.close();
+    });
+
+    it('repairs a same-name non-unique partial authorization index', () => {
+        const db = new Database(':memory:');
+        db.exec('CREATE TABLE hall_forge_requests (request_id TEXT PRIMARY KEY)');
+        ensureForgeAuthorizationSchema(db);
+        db.exec(`
+            DROP INDEX idx_hall_forge_authorizations_one_shot_turn;
+            CREATE INDEX idx_hall_forge_authorizations_one_shot_turn
+            ON hall_forge_authorizations(operator_thread_id, operator_turn_id)
+            WHERE operator_intent_json IS NULL
+               OR json_extract(operator_intent_json, '$.requester_lineage_mode')
+                  IS NOT 'stored_set_manifest';
+        `);
+        const malformed = (db.prepare(
+            'PRAGMA index_list(hall_forge_authorizations)',
+        ).all() as Array<Record<string, unknown>>).find(
+            (entry) => entry.name === 'idx_hall_forge_authorizations_one_shot_turn',
+        );
+        assert.equal(malformed?.unique, 0);
+        assert.equal(malformed?.partial, 1);
+
+        ensureForgeAuthorizationSchema(db);
+        const repaired = (db.prepare(
+            'PRAGMA index_list(hall_forge_authorizations)',
+        ).all() as Array<Record<string, unknown>>).find(
+            (entry) => entry.name === 'idx_hall_forge_authorizations_one_shot_turn',
+        );
+        const columns = (db.prepare(
+            'PRAGMA index_info(idx_hall_forge_authorizations_one_shot_turn)',
+        ).all() as Array<Record<string, unknown>>).map((entry) => entry.name);
+        assert.equal(repaired?.unique, 1);
+        assert.equal(repaired?.partial, 1);
+        assert.deepEqual(columns, ['operator_thread_id', 'operator_turn_id']);
+        db.close();
+    });
+
+    it('repairs a mission-grant link that still references the retired authorization table', () => {
+        const db = new Database(':memory:');
+        db.pragma('foreign_keys = ON');
+        db.exec(`
+            CREATE TABLE hall_forge_requests (request_id TEXT PRIMARY KEY);
+            CREATE TABLE hall_forge_attempts (attempt_id TEXT PRIMARY KEY);
+            CREATE TABLE hall_forge_authorizations (authorization_id TEXT PRIMARY KEY);
+            CREATE TABLE hall_forge_authorizations_exact_profile_legacy (
+                authorization_id TEXT PRIMARY KEY
+            );
+            CREATE TABLE hall_forge_mission_grants (mission_grant_id TEXT PRIMARY KEY);
+            INSERT INTO hall_forge_requests VALUES ('request');
+            INSERT INTO hall_forge_attempts VALUES ('attempt');
+            INSERT INTO hall_forge_authorizations VALUES ('authorization');
+            INSERT INTO hall_forge_authorizations_exact_profile_legacy VALUES ('authorization');
+            INSERT INTO hall_forge_mission_grants VALUES ('grant');
+            CREATE TABLE hall_forge_mission_grant_requests (
+                mission_grant_id TEXT NOT NULL,
+                request_id TEXT NOT NULL UNIQUE,
+                authorization_id TEXT NOT NULL UNIQUE,
+                request_scope_sha256 TEXT NOT NULL,
+                created_at INTEGER NOT NULL,
+                PRIMARY KEY(mission_grant_id, request_id),
+                FOREIGN KEY(mission_grant_id)
+                    REFERENCES hall_forge_mission_grants(mission_grant_id),
+                FOREIGN KEY(request_id) REFERENCES hall_forge_requests(request_id),
+                FOREIGN KEY(authorization_id)
+                    REFERENCES hall_forge_authorizations_exact_profile_legacy(authorization_id)
+            );
+            INSERT INTO hall_forge_mission_grant_requests VALUES
+                ('grant', 'request', 'authorization', 'scope', 1);
+        `);
+
+        ensureForgeMissionGrantSchema(db);
+
+        const sql = db.prepare(
+            "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'hall_forge_mission_grant_requests'",
+        ).pluck().get();
+        assert.doesNotMatch(String(sql), /exact_profile_legacy/);
+        assert.equal(db.prepare(
+            'SELECT COUNT(*) AS count FROM hall_forge_mission_grant_requests',
+        ).get().count, 1);
+        assert.deepEqual(db.prepare('PRAGMA foreign_key_check').all(), []);
         db.close();
     });
 });

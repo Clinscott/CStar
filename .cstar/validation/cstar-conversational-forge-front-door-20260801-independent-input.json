@@ -1,0 +1,17 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:cstar:conversational-forge-front-door-20260801",
+  "validation_id": "validation:cstar-conversational-forge-front-door-20260801:independent-20260801",
+  "reported_verdict": "ACCEPTED",
+  "artifacts": [
+    {"path": "src/tools/cstar-kernel-mcp/tools/forge_request_auto_authorization.ts", "sha256": "9cfd292614241b09f34d1c2894793f679d21fc590f31e25ef18091130a112dab"},
+    {"path": "tests/unit/cstar-kernel-mcp/test_forge_request_auto_authorization.test.ts", "sha256": "bb239f11b9ec94f4e7a2e26300b1c30ea4400981da78efb1c2c635f3f4f66358"},
+    {"path": "tests/unit/cstar-kernel-mcp/test_forge_natural_language_authorization.test.ts", "sha256": "bfdd0f8fcf44b0f533dd6afacacf2c88194e3675aa88e131713e9cbbe148bbae"}
+  ],
+  "checks": [
+    {"name": "focused_tests", "status": "pass", "evidence_path": ".cstar/validation/cstar-conversational-forge-front-door-20260801-focused-tests.txt", "sha256": "6fd2f49c7f2ba12c76ddfff41559334c9d67c0d8835a7040fae1831288b38dc3"},
+    {"name": "typecheck", "status": "pass", "evidence_path": ".cstar/validation/cstar-conversational-forge-front-door-20260801-typecheck.txt", "sha256": "01b49b3e920724cd112aced0c922d49709efd25f1bf64dcfcaa8ebc9bba4e6e5"},
+    {"name": "targeted_diff_check", "status": "pass", "evidence_path": ".cstar/validation/cstar-conversational-forge-front-door-20260801-diff-check.txt", "sha256": "b5fe1d4f58887b835c47fd04e434e8b9bd65f84358e0b4df3b2a1c597851dfeb"},
+    {"name": "line_limit", "status": "pass", "evidence_path": ".cstar/validation/cstar-conversational-forge-front-door-20260801-line-audit.txt", "sha256": "86176b2af466f8c5374e6fba4035335fa109adb6b4f693400664a87835ec7b3a"}
+  ]
+}

@@ -190,10 +190,9 @@ describe('MCP instrumentation authorization boundary', () => {
 
         assert.equal(JSON.parse(request.content[0]!.text).error_code, 'forge_request_contract_invalid');
         assert.equal(authorize.isError, true);
-        assert.equal(
-            JSON.parse(authorize.content[0]!.text).error_code,
-            'forge_operator_authorization_required',
-        );
+        const authorizePayload = JSON.parse(authorize.content[0]!.text);
+        assert.equal(authorizePayload.error_code, 'forge_operator_authorization_required');
+        assert.equal(authorizePayload.authorization_diagnostic_class, 'caller_identity_metadata');
         assert.equal(isPreAuthorizationRejection(authorize), true);
         assert.equal(
             JSON.parse(execute.content[0]!.text).error_code,

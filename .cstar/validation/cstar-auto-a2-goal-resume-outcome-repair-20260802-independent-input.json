@@ -1,0 +1,20 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:cstar:auto-a2-goal-resume-outcome-repair-20260802",
+  "validation_id": "validation:cstar-auto-a2-goal-resume-outcome-repair-20260802:independent-20260802",
+  "reported_verdict": "ACCEPTED",
+  "artifacts": [
+    {
+      "path": ".cstar/validation/cstar-auto-a2-goal-resume-outcome-repair-20260802-evidence.txt",
+      "sha256": "61a9e11133d01f88ca96a6919f5896a5f03411a4bb1f46a6ff41a9adcb3302e0"
+    }
+  ],
+  "checks": [
+    {
+      "name": "independent_validation_matrix_and_scope",
+      "status": "pass",
+      "evidence_path": ".cstar/validation/cstar-auto-a2-goal-resume-outcome-repair-20260802-checks.txt",
+      "sha256": "ba04c325f7565e4edf7662ccabc607d205fa875b1b5dd0285d498346cd3bf4fe"
+    }
+  ]
+}

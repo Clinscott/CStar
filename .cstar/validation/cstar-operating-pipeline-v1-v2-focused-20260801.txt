@@ -1,0 +1,10 @@
+schema=cstar.validation_check.v1
+bead_id=bead:cstar:operating-pipeline-v1-batch-1
+validation_id=validation:cstar-operating-pipeline-v1:independent-20260801-v2
+command=node scripts/run-tsx.mjs --test --test-concurrency=1 tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts tests/unit/cstar-kernel-mcp/test_validation_evidence_type_boundary.test.ts tests/unit/cstar-kernel-mcp/test_forge_host_validation_terminal_link.test.ts tests/unit/cstar-kernel-mcp/test_terminal_forge_validation_linkage.test.ts
+result=PASS
+tests=19
+suites=4
+provider_attempts=0
+host_mutations=0
+session_mutations=0

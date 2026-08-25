@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import hashlib
+import io
 import json
 import os
 import stat
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stderr
 from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import patch
@@ -170,7 +172,9 @@ class PrivateRuntimeTest(unittest.TestCase):
         self.assertEqual(request_body["stream_options"], {"include_usage": True})
         self.assertEqual(request_body["reasoning_split"], True)
         self.assertEqual(request_body["model"], "MiniMax-M3")
-        self.assertIn("max_completion_tokens", request_body)
+        self.assertEqual(request_body["max_completion_tokens"], 2048)
+        self.assertIn("smallest valid minified JSON", request_body["messages"][0]["content"])
+        self.assertIn("Emit no reasoning", request_body["messages"][0]["content"])
         self.assertNotIn("max_tokens", request_body)
         self.assertEqual(captured["headers"]["accept"], "text/event-stream")
         self.assertNotIn("anthropic-version", captured["headers"])
@@ -182,6 +186,36 @@ class PrivateRuntimeTest(unittest.TestCase):
         ])
         self.assertEqual(stat.S_IMODE(journal.stat().st_mode), 0o600)
         self.assertNotIn("synthetic-bearer", journal.read_text(encoding="ascii"))
+
+    def test_main_emits_only_bounded_schema_fingerprint_trace_code(self) -> None:
+        shape_hash = "a" * 64
+        trace_code = f"forge_entrypoint_response_schema_invalid_obj_{shape_hash}"
+        failure = forge_entrypoint.ForgeEntrypointError(
+            "forge_entrypoint_response_schema_invalid",
+            trace_code=trace_code,
+            schema_fingerprint={
+                "parser_state": "payload_object",
+                "shape_sha256": shape_hash,
+            },
+        )
+        stderr = io.StringIO()
+        with patch.object(
+            forge_entrypoint, "_require_execution_context", return_value={},
+        ), patch.object(
+            forge_entrypoint, "_read_prompt", return_value="synthetic-prompt-canary",
+        ), patch.object(
+            forge_entrypoint, "_read_oauth_credential",
+            return_value="synthetic-credential-canary",
+        ), patch.object(
+            forge_entrypoint, "activate_forge_entrypoint",
+        ), patch.object(
+            forge_entrypoint, "_request", side_effect=failure,
+        ), redirect_stderr(stderr):
+            status = forge_entrypoint.main(forge_entrypoint._EXECUTE_ARGV)
+        self.assertEqual(status, 1)
+        self.assertEqual(stderr.getvalue(), f"{trace_code}\n")
+        self.assertNotIn("synthetic-prompt-canary", stderr.getvalue())
+        self.assertNotIn("synthetic-credential-canary", stderr.getvalue())
 
 
 if __name__ == "__main__":

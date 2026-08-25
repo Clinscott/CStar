@@ -12,6 +12,7 @@ import { handleForgeExecute } from '../../../src/tools/cstar-kernel-mcp/tools/fo
 import { handleForgeRequest } from '../../../src/tools/cstar-kernel-mcp/tools/forge_request.js';
 import {
     cleanupOperatorAuthorizationFixtures,
+    appendUserMessage,
     createSession,
     validRequestContext,
 } from './operator_authorization_test_support.js';
@@ -38,7 +39,7 @@ function fixture() {
     const beadId = 'bead:test:forge-runtime-lifecycle-gate';
     const decisionId = 'decision:test:forge-runtime-lifecycle-gate';
     const requestSession = createSession({ textParts: [
-        `Build the repair for ${beadId} and ${decisionId}.`,
+        'Status is informational.',
     ] });
     const db = database.getWritableDb(root);
     const now = Date.now();
@@ -78,6 +79,12 @@ function parse(result: { content: Array<{ text: string }> }): Record<string, any
 async function authorize(value: ReturnType<typeof fixture>) {
     process.env.CSTAR_FORGE_RUNTIME_TEST_BYPASS = '1';
     const request = parse(await handleForgeRequest(value.base, context(value.requestSession)));
+    appendUserMessage(
+        value.requestSession.sessionFile,
+        value.requestSession.turnId,
+        `Authorize and execute only ${request.receipt_id} with request SHA-256 ${request.request_sha256} for ${value.beadId} now.`,
+        new Date(Date.parse(value.requestSession.timestamp) + 1_000).toISOString(),
+    );
     const authorization = parse(await handleForgeAuthorize({
         forge_request_receipt_id: request.receipt_id,
         request_sha256: request.request_sha256,
@@ -106,14 +113,20 @@ afterEach(() => {
 describe('Forge runtime lifecycle gate', () => {
     it('leaves request, authorization, and attempt ledgers unchanged while runtime readiness is red', async () => {
         const value = fixture();
-        delete process.env.CSTAR_FORGE_RUNTIME_TEST_BYPASS;
+        process.env.CSTAR_FORGE_RUNTIME_TEST_BYPASS = '0';
         const blockedRequest = parse(await handleForgeRequest(value.base, context(value.requestSession)));
         assert.match(blockedRequest.error, /forge_runtime_not_ready/);
         assert.equal(value.db.prepare('SELECT COUNT(*) AS count FROM hall_forge_requests').get().count, 0);
 
         process.env.CSTAR_FORGE_RUNTIME_TEST_BYPASS = '1';
         const request = parse(await handleForgeRequest(value.base, context(value.requestSession)));
-        delete process.env.CSTAR_FORGE_RUNTIME_TEST_BYPASS;
+        appendUserMessage(
+            value.requestSession.sessionFile,
+            value.requestSession.turnId,
+            `Authorize and execute only ${request.receipt_id} with request SHA-256 ${request.request_sha256} for ${value.beadId} now.`,
+            new Date(Date.parse(value.requestSession.timestamp) + 1_000).toISOString(),
+        );
+        process.env.CSTAR_FORGE_RUNTIME_TEST_BYPASS = '0';
         const blockedAuthorization = parse(await handleForgeAuthorize({
             forge_request_receipt_id: request.receipt_id,
             request_sha256: request.request_sha256,
@@ -126,7 +139,7 @@ describe('Forge runtime lifecycle gate', () => {
             forge_request_receipt_id: request.receipt_id,
             request_sha256: request.request_sha256,
         }, context(value.requestSession)));
-        delete process.env.CSTAR_FORGE_RUNTIME_TEST_BYPASS;
+        process.env.CSTAR_FORGE_RUNTIME_TEST_BYPASS = '0';
         const blockedExecute = parse(await handleForgeExecute({
             ...value.base,
             forge_request_receipt_id: request.receipt_id,

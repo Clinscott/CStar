@@ -3,376 +3,319 @@ import { randomUUID } from 'node:crypto';
 import { afterEach, beforeEach, describe, it } from 'node:test';
 
 import {
+    getForgeMissionGrantByRequest,
+} from '../../../src/tools/pennyone/intel/forge_mission_grant_controller.js';
+import {
     getForgeAuthorizationByRequest,
     getForgeRequest,
 } from '../../../src/tools/pennyone/intel/forge_receipt_controller.js';
-import { handleForgeAuthorize } from
-    '../../../src/tools/cstar-kernel-mcp/tools/forge_authorize.js';
-import { handleForgeRequest } from '../../../src/tools/cstar-kernel-mcp/tools/forge_request.js';
 import { handleForgeExecute } from '../../../src/tools/cstar-kernel-mcp/tools/forge_execute.js';
 import { verifyForgeExecutionAuthorization } from
     '../../../src/tools/cstar-kernel-mcp/tools/forge_execution_authority.js';
-import { verifyCodexRequestIdentity } from
-    '../../../src/tools/cstar-kernel-mcp/tools/operator_authorization.js';
 import {
     appendUserMessage,
-    createSession,
     validRequestContext,
 } from './operator_authorization_test_support.js';
 import {
     beginNaturalAuthorizationTest,
     cleanupNaturalAuthorizationTest,
-    insertBead,
-    parse,
     requestArgs,
-    setupRoot,
 } from './forge_natural_authorization_test_support.js';
-
-const PARENT = 'bead:cstar:set-autonomous-parent-test';
-const CHILD = 'bead:cstar:set-autonomous-child-test';
-const MISSION = 'decision:cstar:set-autonomous-test';
-const DECISION = `${MISSION}:batch-1`;
-const DESIGN = 'd'.repeat(64);
-
-function mutationIdentity(identity: Awaited<ReturnType<typeof verifyCodexRequestIdentity>>) {
-    return {
-        source: 'codex_request_meta', thread_id: identity.thread_id, turn_id: identity.turn_id,
-        turn_record_set_sha256: identity.turn_record_set_sha256,
-    };
-}
-
-function metadata(identity: Awaited<ReturnType<typeof verifyCodexRequestIdentity>>) {
-    return {
-        source: 'cstar-kernel-mcp', schema: 'cstar.set_manifest.v1', decision_id: MISSION,
-        design_revision: 1, design_sha256: DESIGN, batch_order: [CHILD], operator_set: true,
-        mutation_request_identity: mutationIdentity(identity),
-    };
-}
-
-function childMetadata(identity: Awaited<ReturnType<typeof verifyCodexRequestIdentity>>) {
-    return {
-        source: 'cstar-kernel-mcp', parent_bead_id: PARENT, order: 1, depends_on: [],
-        design_sha256: DESIGN, owning_lane: 'Forge', mutation_request_identity: mutationIdentity(identity),
-    };
-}
-
-function writeMetadata(value: ReturnType<typeof setupRoot>, beadId: string, valueToWrite: object): void {
-    value.db.prepare('UPDATE hall_beads SET metadata_json = ? WHERE bead_id = ?')
-        .run(JSON.stringify(valueToWrite), beadId);
-}
-
-async function prepare(label: string, authorize = true) {
-    const value = setupRoot(label);
-    const session = createSession({
-        textParts: ['SET'], timestamp: new Date(Date.now() - 10_000).toISOString(),
-    });
-    const originalContext = validRequestContext(session.threadId, session.turnId);
-    const identity = await verifyCodexRequestIdentity(originalContext);
-    insertBead(value, PARENT, MISSION);
-    insertBead(value, CHILD, DECISION);
-    writeMetadata(value, PARENT, metadata(identity));
-    writeMetadata(value, CHILD, childMetadata(identity));
-    const pending = parse(await handleForgeRequest(
-        requestArgs(value, CHILD, DECISION, session.threadId), originalContext,
-    ));
-    if (authorize) {
-        const authorized = parse(await handleForgeAuthorize({
-            forge_request_receipt_id: pending.receipt_id, request_sha256: pending.request_sha256,
-        }, originalContext));
-        assert.equal(authorized.status, 'authorized', JSON.stringify(authorized));
-    }
-    return { value, session, originalContext, pending };
-}
-
-function structuralTurn(fixture: Awaited<ReturnType<typeof prepare>>): ReturnType<typeof validRequestContext> {
-    return validRequestContext(fixture.session.threadId, randomUUID());
-}
-
-function appendSameTurn(
-    fixture: Awaited<ReturnType<typeof prepare>>,
-    text: string,
-    offsetSeconds: number,
-): void {
-    appendUserMessage(
-        fixture.session.sessionFile, fixture.session.turnId, text,
-        new Date(Date.parse(fixture.session.timestamp) + offsetSeconds * 1_000).toISOString(),
-    );
-}
-
-async function authorizeStructurally(
-    fixture: Awaited<ReturnType<typeof prepare>>,
-): Promise<Record<string, any>> {
-    return parse(await handleForgeAuthorize({
-        forge_request_receipt_id: fixture.pending.receipt_id,
-        request_sha256: fixture.pending.request_sha256,
-    }, structuralTurn(fixture)));
-}
-
-function appendRevocation(fixture: Awaited<ReturnType<typeof prepare>>): ReturnType<typeof validRequestContext> {
-    const turnId = randomUUID();
-    appendUserMessage(
-        fixture.session.sessionFile, turnId, 'Stop the Forge work.',
-        new Date(Date.parse(fixture.session.timestamp) + 1_000).toISOString(),
-    );
-    return validRequestContext(fixture.session.threadId, randomUUID());
-}
+import {
+    MISSION_CHILDREN,
+    MISSION_DECISION,
+    MISSION_PARENT,
+    appendMissionTurn,
+    appendSetTurnRecord,
+    createMissionFixture,
+    requestMissionChild,
+    rewriteMissionMetadata,
+    structuralMissionContext,
+    writeMissionChildIdentity,
+} from './forge_mission_grant_test_support.js';
 
 beforeEach(beginNaturalAuthorizationTest);
 afterEach(cleanupNaturalAuthorizationTest);
 
-describe('same-root autonomous SET Forge dispatch', () => {
-    it('preserves the immutable SET snapshot across same-turn informational growth', async () => {
-        const fixture = await prepare('pending-same-turn-growth', false);
-        appendSameTurn(
-            fixture,
-            'The scoped kernel reload completed; this record grants no additional authority.',
-            1,
-        );
-        appendSameTurn(fixture, 'The pending request remains unchanged.', 2);
-        const authorized = await authorizeStructurally(fixture);
-        assert.equal(authorized.status, 'authorized', JSON.stringify(authorized));
-        const stored = getForgeAuthorizationByRequest(
-            fixture.value.db, fixture.pending.receipt_id,
-        )!;
-        assert.equal(stored.operator_record_count, 1);
-        assert.equal(stored.operator_record_set_sha256,
-            getForgeRequest(fixture.value.db, fixture.pending.receipt_id)!
-                .requester_record_set_sha256);
+function stored(fixture: Awaited<ReturnType<typeof createMissionFixture>>, receiptId: string) {
+    const request = getForgeRequest(fixture.value.db, receiptId)!;
+    const authorization = getForgeAuthorizationByRequest(fixture.value.db, receiptId)!;
+    return { request, authorization };
+}
+
+async function executeAuthority(
+    fixture: Awaited<ReturnType<typeof createMissionFixture>>,
+    receipt: Record<string, any>,
+    context = structuralMissionContext(fixture),
+) {
+    const value = stored(fixture, receipt.receipt_id);
+    return verifyForgeExecutionAuthorization(
+        fixture.value.db,
+        value.request,
+        value.authorization.operator_authorization_ref,
+        context,
+    );
+}
+
+describe('same-root automatic SET Forge dispatch', () => {
+    it('returns automatic request-scoped authorization without a public authorize prompt', async () => {
+        const fixture = await createMissionFixture('automatic');
+        const result = await requestMissionChild(fixture, 0);
+        assert.equal(result.status, 'AUTHORIZED', JSON.stringify(result));
+        assert.equal(result.request_status, 'AUTHORIZED');
+        assert.equal(result.authorization_challenge, null);
+        assert.match(result.operator_authorization_ref, /^cstar-forge-mission-grant:/);
+        assert.match(result.next_action, /cstar_forge_execute.*later root-thread turn/i);
+        assert.doesNotMatch(result.next_action, /cstar_forge_authorize|authorization prompt/i);
+        assert.ok(getForgeMissionGrantByRequest(fixture.value.db, result.receipt_id));
     });
 
-    it('rejects duplicate and non-operative SET-shaped same-turn growth', async () => {
+    it('preserves the immutable SET prefix across informational same-turn growth', async () => {
+        const fixture = await createMissionFixture('informational-growth');
+        const result = await requestMissionChild(fixture, 0);
+        appendSetTurnRecord(
+            fixture,
+            'The request-scoped receipt remains unchanged; this adds no authority.',
+        );
+        const authority = await executeAuthority(fixture, result);
+        assert.equal(authority.mode, 'autonomous_set_manifest_v1');
+        assert.equal(authority.authorization.operator_record_count, 1);
+    });
+
+    it('rejects duplicate and non-operative SET-shaped growth without deleting the receipt', async () => {
         for (const [label, text] of [
             ['duplicate', 'SET'],
             ['suffix', 'SET now'],
-            ['identifier-suffix-dot', 'SET.extra'],
-            ['identifier-suffix-slash', 'SET/extra'],
+            ['identifier-dot', 'SET.extra'],
+            ['identifier-slash', 'SET/extra'],
             ['question', 'SET?'],
             ['modal', 'Maybe SET'],
             ['quoted', 'The report says "SET".'],
         ] as const) {
-            const fixture = await prepare(`growth-${label}`, false);
-            appendSameTurn(fixture, text, 1);
-            const rejected = await authorizeStructurally(fixture);
-            assert.equal(
-                rejected.error_code,
-                'forge_set_manifest_operator_signal_ambiguous',
-                `${label}: ${JSON.stringify(rejected)}`,
+            const fixture = await createMissionFixture(`growth-${label}`);
+            const result = await requestMissionChild(fixture, 0);
+            appendSetTurnRecord(fixture, text);
+            await assert.rejects(
+                executeAuthority(fixture, result),
+                /forge_set_manifest_operator_signal_ambiguous/,
             );
-            assert.equal(getForgeAuthorizationByRequest(
-                fixture.value.db, fixture.pending.receipt_id,
-            ), null);
+            assert.ok(getForgeAuthorizationByRequest(fixture.value.db, result.receipt_id));
         }
     });
 
-    it('rejects same-turn revocation before or after informational growth', async () => {
-        for (const [label, records] of [
-            ['terse-before', ['Cancel it.', 'The reload completed.']],
-            ['explicit-after', ['The reload completed.', 'Do not proceed.']],
-            ['withdraw-before', ['Withdraw this.', 'The reload completed.']],
-            ['never-mind-after', ['The reload completed.', 'Never mind.']],
+    it('durably revokes after terse or explicit post-SET revocation', async () => {
+        for (const [label, text] of [
+            ['terse', 'Stop.'],
+            ['explicit', 'Do not proceed.'],
+            ['withdraw', 'Withdraw this.'],
+            ['never-mind', 'Never mind.'],
         ] as const) {
-            const fixture = await prepare(`growth-revoked-${label}`, false);
-            records.forEach((text, index) => appendSameTurn(fixture, text, index + 1));
-            const rejected = await authorizeStructurally(fixture);
+            const fixture = await createMissionFixture(`revoked-${label}`);
+            const result = await requestMissionChild(fixture, 0);
+            appendSetTurnRecord(fixture, text);
+            await assert.rejects(
+                executeAuthority(fixture, result),
+                /forge_set_manifest_operator_signal_revoked/,
+            );
+            assert.equal(getForgeMissionGrantByRequest(
+                fixture.value.db, result.receipt_id,
+            )!.status, 'REVOKED');
+        }
+    });
+
+    it('authorizes the first request when it is created on a later root turn', async () => {
+        const fixture = await createMissionFixture('later-first-request');
+        const later = appendMissionTurn(
+            fixture,
+            'Materialize the already-SET first mission child.',
+        );
+        const result = await requestMissionChild(fixture, 0, later);
+        assert.equal(result.status, 'AUTHORIZED', JSON.stringify(result));
+        assert.equal((await executeAuthority(fixture, result, later)).mode,
+            'autonomous_set_manifest_v1');
+    });
+
+    it('ignores revocation evidence that predates SET and rejects unsafe later timing', async () => {
+        const safe = await createMissionFixture('pre-set-revocation');
+        appendMissionTurn(safe, 'Stop.', -1_000);
+        const safeContext = appendMissionTurn(
+            safe,
+            'Continue the already-SET bounded mission.',
+        );
+        const safeResult = await requestMissionChild(safe, 0, safeContext);
+        assert.equal(safeResult.status, 'AUTHORIZED', JSON.stringify(safeResult));
+
+        for (const label of ['equal', 'uninspectable'] as const) {
+            const fixture = await createMissionFixture(`revocation-${label}`);
+            const turn = randomUUID();
+            appendUserMessage(
+                fixture.session.sessionFile,
+                turn,
+                'Stop.',
+                label === 'equal' ? fixture.session.timestamp : 'not-a-timestamp',
+            );
+            const current = appendMissionTurn(
+                fixture,
+                'Inspect the existing mission grant boundary.',
+                25_000,
+            );
+            const result = await requestMissionChild(fixture, 0, current);
             assert.equal(
-                rejected.error_code,
-                'forge_set_manifest_operator_signal_revoked',
-                `${label}: ${JSON.stringify(rejected)}`,
+                result.error_code,
+                label === 'equal'
+                    ? 'forge_set_manifest_operator_signal_revoked'
+                    : 'forge_set_manifest_operator_signal_uninspectable',
             );
             assert.equal(getForgeAuthorizationByRequest(
-                fixture.value.db, fixture.pending.receipt_id,
+                fixture.value.db, result.receipt_id,
             ), null);
         }
     });
 
-    it('authorizes a pending Batch 1 request from a later no-record turn', async () => {
-        const fixture = await prepare('pending-no-record', false);
-        const currentContext = structuralTurn(fixture);
-        const authorized = parse(await handleForgeAuthorize({
-            forge_request_receipt_id: fixture.pending.receipt_id,
-            request_sha256: fixture.pending.request_sha256,
-        }, currentContext));
-        assert.equal(authorized.status, 'authorized', JSON.stringify(authorized));
-        assert.match(authorized.mutation.guardrail.reason, /original SET grant authorized/i);
-        assert.match(authorized.next_action, /later same-root structural turn/i);
-        assert.match(authorized.next_action, /without a fresh operator instruction/i);
-        const auth = getForgeAuthorizationByRequest(
-            fixture.value.db, fixture.pending.receipt_id,
-        )!;
-        assert.equal(auth.operator_turn_id, fixture.session.turnId);
-        assert.equal(auth.operator_thread_id, fixture.session.threadId);
-        assert.equal(auth.operator_record_count, 1);
-        const execution = await verifyForgeExecutionAuthorization(
-            fixture.value.db, getForgeRequest(fixture.value.db, fixture.pending.receipt_id)!,
-            auth.operator_authorization_ref, structuralTurn(fixture),
-        );
-        assert.equal(execution.mode, 'autonomous_set_manifest_v1');
-        assert.equal(execution.authorization.operator_turn_id, fixture.session.turnId);
+    it('authorizes a later committed child under the same grant', async () => {
+        const fixture = await createMissionFixture('later-child');
+        const first = await requestMissionChild(fixture, 0);
+        const later = appendMissionTurn(fixture, 'Continue with the second committed child.');
+        const second = await requestMissionChild(fixture, 1, later);
+        assert.equal(second.status, 'AUTHORIZED', JSON.stringify(second));
+        assert.equal(second.mission_grant_id, first.mission_grant_id);
+        assert.notEqual(second.operator_authorization_ref, first.operator_authorization_ref);
     });
 
-    it('keeps the original SET authority for a later structural caller', async () => {
-        const fixture = await prepare('accept');
-        const originalRequest = getForgeRequest(fixture.value.db, fixture.pending.receipt_id)!;
-        const originalAuth = getForgeAuthorizationByRequest(
-            fixture.value.db, fixture.pending.receipt_id,
-        )!;
-        const original = await verifyForgeExecutionAuthorization(
-            fixture.value.db, originalRequest, originalAuth.operator_authorization_ref,
-            fixture.originalContext,
-        );
-        assert.equal(original.mode, 'authorizing_turn');
-
-        const currentContext = structuralTurn(fixture);
-        const current = await verifyForgeExecutionAuthorization(
-            fixture.value.db, getForgeRequest(fixture.value.db, fixture.pending.receipt_id)!,
-            originalAuth.operator_authorization_ref, currentContext,
-        );
-        assert.equal(current.mode, 'autonomous_set_manifest_v1');
-        assert.equal(current.authorization.operator_turn_id, originalAuth.operator_turn_id);
-        assert.equal(current.authorization.operator_record_set_sha256, originalAuth.operator_record_set_sha256);
+    it('rejects child materialization from a different root thread', async () => {
+        const fixture = await createMissionFixture('cross-root-child');
+        const otherThread = randomUUID();
+        const otherIdentity = {
+            ...fixture.setIdentity,
+            session_id: otherThread,
+            thread_id: otherThread,
+        };
+        writeMissionChildIdentity(fixture, 0, otherIdentity);
+        const result = await requestMissionChild(fixture, 0);
+        assert.match(result.error_code, /^forge_set_manifest_/);
+        assert.equal(getForgeAuthorizationByRequest(
+            fixture.value.db, result.receipt_id,
+        ), null);
     });
 
-    it('replays authorization without asking the later root turn to repeat SET', async () => {
-        const fixture = await prepare('replay');
-        const currentContext = structuralTurn(fixture);
-        const replay = parse(await handleForgeAuthorize({
-            forge_request_receipt_id: fixture.pending.receipt_id,
-            request_sha256: fixture.pending.request_sha256,
-        }, currentContext));
-        assert.equal(replay.status, 'authorized', JSON.stringify(replay));
-        assert.equal(replay.authorization_replayed, true);
-        assert.match(replay.next_action, /original SET grant authorized/i);
-        assert.match(replay.next_action, /later same-root structural turn/i);
-    });
-
-    it('rejects a cross-thread caller and a later revocation', async () => {
-        const crossThread = await prepare('cross-thread');
-        const other = createSession({ textParts: ['Continue the approved structural operation.'] });
-        const auth = getForgeAuthorizationByRequest(
-            crossThread.value.db, crossThread.pending.receipt_id,
-        )!;
+    it('never executes directly from SET and accepts a later same-root structural caller', async () => {
+        const fixture = await createMissionFixture('execution-turns');
+        const result = await requestMissionChild(fixture, 0);
         await assert.rejects(
-            verifyForgeExecutionAuthorization(
-                crossThread.value.db,
-                getForgeRequest(crossThread.value.db, crossThread.pending.receipt_id)!,
-                auth.operator_authorization_ref,
-                validRequestContext(other.threadId, other.turnId),
+            executeAuthority(fixture, result, fixture.setContext),
+            /forge_mission_grant_execute_requires_later_turn/,
+        );
+        const later = await executeAuthority(fixture, result);
+        assert.equal(later.mode, 'autonomous_set_manifest_v1');
+        assert.equal(later.authorization.operator_turn_id, fixture.session.turnId);
+    });
+
+    it('replays the same automatic receipt without asking for authorization', async () => {
+        const fixture = await createMissionFixture('request-replay');
+        const first = await requestMissionChild(fixture, 0);
+        const replay = await requestMissionChild(fixture, 0);
+        assert.equal(replay.status, 'AUTHORIZED', JSON.stringify(replay));
+        assert.equal(replay.receipt_id, first.receipt_id);
+        assert.equal(replay.operator_authorization_ref, first.operator_authorization_ref);
+        assert.doesNotMatch(replay.next_action, /authorize/i);
+        assert.equal(fixture.value.db.prepare(
+            'SELECT COUNT(*) AS count FROM hall_forge_authorizations',
+        ).get().count, 1);
+    });
+
+    it('rejects cross-thread execution and later revocation', async () => {
+        const crossThread = await createMissionFixture('cross-thread-execute');
+        const first = await requestMissionChild(crossThread, 0);
+        const otherThread = randomUUID();
+        await assert.rejects(
+            executeAuthority(
+                crossThread,
+                first,
+                validRequestContext(otherThread, randomUUID()),
             ),
-            /forge_set_manifest_autonomous_caller_thread_mismatch/,
+            /forge_mission_grant_persisted_authority_invalid/,
         );
 
-        const revoked = await prepare('revoked');
-        const revokedContext = appendRevocation(revoked);
+        const revoked = await createMissionFixture('later-revocation');
+        const authorized = await requestMissionChild(revoked, 0);
+        const revokedContext = appendMissionTurn(revoked, 'Stop the Forge work.');
         await assert.rejects(
-            verifyForgeExecutionAuthorization(
-                revoked.value.db,
-                getForgeRequest(revoked.value.db, revoked.pending.receipt_id)!,
-                getForgeAuthorizationByRequest(
-                    revoked.value.db, revoked.pending.receipt_id,
-                )!.operator_authorization_ref,
-                revokedContext,
-            ),
+            executeAuthority(revoked, authorized, revokedContext),
             /forge_set_manifest_operator_signal_revoked/,
         );
     });
 
-    it('revalidates expiry, request bytes, and the immutable manifest before dispatch', async () => {
-        const expired = await prepare('expired');
+    it('revalidates expiry, request bytes, and immutable manifest scope', async () => {
+        const expired = await createMissionFixture('expired');
+        const expiredResult = await requestMissionChild(expired, 0);
         expired.value.db.prepare(
             'UPDATE hall_forge_authorizations SET expires_at = 0 WHERE request_id = ?',
-        ).run(expired.pending.receipt_id);
+        ).run(expiredResult.receipt_id);
         expired.value.db.prepare(
             'UPDATE hall_forge_requests SET expires_at = 0 WHERE request_id = ?',
-        ).run(expired.pending.receipt_id);
-        const expiredAuth = getForgeAuthorizationByRequest(
-            expired.value.db, expired.pending.receipt_id,
-        )!;
+        ).run(expiredResult.receipt_id);
         await assert.rejects(
-            verifyForgeExecutionAuthorization(
-                expired.value.db,
-                getForgeRequest(expired.value.db, expired.pending.receipt_id)!,
-                expiredAuth.operator_authorization_ref,
-                structuralTurn(expired),
-            ),
+            executeAuthority(expired, expiredResult),
             /forge_exact_authorization_expired/,
         );
 
-        const requestDrift = await prepare('request-drift');
-        const request = getForgeRequest(requestDrift.value.db, requestDrift.pending.receipt_id)!;
-        const summary = JSON.parse(request.request_summary_json) as Record<string, unknown>;
-        summary.scope = 'expanded beyond the SET manifest';
+        const requestDrift = await createMissionFixture('request-drift');
+        const driftResult = await requestMissionChild(requestDrift, 0);
+        const request = getForgeRequest(requestDrift.value.db, driftResult.receipt_id)!;
+        const summary = JSON.parse(request.request_summary_json);
+        summary.scope = `${summary.scope} expanded`;
         requestDrift.value.db.prepare(
             'UPDATE hall_forge_requests SET request_summary_json = ? WHERE request_id = ?',
-        ).run(JSON.stringify(summary), requestDrift.pending.receipt_id);
-        const requestAuth = getForgeAuthorizationByRequest(
-            requestDrift.value.db, requestDrift.pending.receipt_id,
-        )!;
+        ).run(JSON.stringify(summary), driftResult.receipt_id);
         await assert.rejects(
-            verifyForgeExecutionAuthorization(
-                requestDrift.value.db,
-                getForgeRequest(requestDrift.value.db, requestDrift.pending.receipt_id)!,
-                requestAuth.operator_authorization_ref,
-                structuralTurn(requestDrift),
-            ),
-            /forge_set_manifest_request_policy_invalid/,
+            executeAuthority(requestDrift, driftResult),
+            /forge_mission_grant_request_summary_invalid/,
         );
 
-        const manifestDrift = await prepare('manifest-drift');
-        const parent = manifestDrift.value.db.prepare(
-            'SELECT metadata_json FROM hall_beads WHERE bead_id = ?',
-        ).pluck().get(PARENT) as string;
-        const parentJson = JSON.parse(parent) as Record<string, unknown>;
-        parentJson.design_revision = 2;
-        manifestDrift.value.db.prepare(
-            'UPDATE hall_beads SET metadata_json = ? WHERE bead_id = ?',
-        ).run(JSON.stringify(parentJson), PARENT);
-        const manifestAuth = getForgeAuthorizationByRequest(
-            manifestDrift.value.db, manifestDrift.pending.receipt_id,
-        )!;
+        const manifestDrift = await createMissionFixture('manifest-drift');
+        const manifestResult = await requestMissionChild(manifestDrift, 0);
+        rewriteMissionMetadata(manifestDrift, MISSION_PARENT, (metadata) => {
+            metadata.design_sha256 = 'e'.repeat(64);
+        });
         await assert.rejects(
-            verifyForgeExecutionAuthorization(
-                manifestDrift.value.db,
-                getForgeRequest(manifestDrift.value.db, manifestDrift.pending.receipt_id)!,
-                manifestAuth.operator_authorization_ref,
-                structuralTurn(manifestDrift),
-            ),
-            /forge_set_manifest_persisted_reference_drift/,
+            executeAuthority(manifestDrift, manifestResult),
+            /forge_mission_grant_design_or_scope_drift/,
         );
     });
 
-    it('does not demand a current user record before the execute authority seam', async () => {
-        const fixture = await prepare('execute-no-record');
-        const auth = getForgeAuthorizationByRequest(
-            fixture.value.db, fixture.pending.receipt_id,
-        )!;
-        const result = await handleForgeExecute({
-            ...requestArgs(fixture.value, CHILD, DECISION, fixture.session.threadId),
-            forge_request_receipt_id: fixture.pending.receipt_id,
-            forge_request_decision_id: DECISION,
-            forge_request_bead_id: CHILD,
+    it('reaches execute preflight without requiring a current user record', async () => {
+        const fixture = await createMissionFixture('execute-no-record');
+        const result = await requestMissionChild(fixture, 0);
+        const response = await handleForgeExecute({
+            ...requestArgs(
+                fixture.value,
+                MISSION_CHILDREN[0],
+                `${MISSION_DECISION}:batch-1`,
+                fixture.session.threadId,
+            ),
+            forge_request_receipt_id: result.receipt_id,
+            forge_request_decision_id: `${MISSION_DECISION}:batch-1`,
+            forge_request_bead_id: MISSION_CHILDREN[0],
             execution_mode: 'live_authorized',
             execution_adapter_ref: 'missing-test-adapter',
-            operator_authorization_ref: auth.operator_authorization_ref,
-            idempotency_key: 'autonomous-no-record-guard',
-        }, structuralTurn(fixture));
-        assert.equal(result.isError, true);
-        assert.doesNotMatch(result.content[0].text, /codex_request_identity_turn_match_count:0/);
+            operator_authorization_ref: result.operator_authorization_ref,
+            idempotency_key: 'mission-no-record-guard',
+        }, structuralMissionContext(fixture));
+        assert.equal(response.isError, true);
+        assert.doesNotMatch(response.content[0].text, /codex_request_identity_turn_match_count:0/);
     });
 
-    it('rejects forked or subagent structural callers', async () => {
-        const fixture = await prepare('lineage-reject');
-        const auth = getForgeAuthorizationByRequest(
-            fixture.value.db, fixture.pending.receipt_id,
-        )!;
+    it('rejects forked and subagent structural callers', async () => {
+        const fixture = await createMissionFixture('lineage-reject');
+        const result = await requestMissionChild(fixture, 0);
         for (const overrides of [
             { forked_from_thread_id: fixture.session.threadId },
             { subagent_kind: 'worker' },
         ]) {
             await assert.rejects(
-                verifyForgeExecutionAuthorization(
-                    fixture.value.db,
-                    getForgeRequest(fixture.value.db, fixture.pending.receipt_id)!,
-                    auth.operator_authorization_ref,
+                executeAuthority(
+                    fixture,
+                    result,
                     validRequestContext(fixture.session.threadId, randomUUID(), overrides),
                 ),
                 /codex_request_identity_rejects_parent_fork_or_subagent/,

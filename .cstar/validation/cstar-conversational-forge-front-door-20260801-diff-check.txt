@@ -1,0 +1,1 @@
+Validation passed: targeted git diff --check exited 0 for the touched source and test files.

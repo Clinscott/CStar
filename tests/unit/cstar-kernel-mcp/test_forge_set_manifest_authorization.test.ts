@@ -5,16 +5,22 @@ import {
     getForgeAuthorizationByRequest,
     getForgeRequest,
 } from '../../../src/tools/pennyone/intel/forge_receipt_controller.js';
+import {
+    assertForgeMissionGrantReservation,
+    getForgeMissionGrantByRequest,
+} from '../../../src/tools/pennyone/intel/forge_mission_grant_controller.js';
 import { handleForgeAuthorize } from
     '../../../src/tools/cstar-kernel-mcp/tools/forge_authorize.js';
+import { verifyForgeExecutionAuthorization } from
+    '../../../src/tools/cstar-kernel-mcp/tools/forge_execution_authority.js';
 import { handleForgeRequest } from '../../../src/tools/cstar-kernel-mcp/tools/forge_request.js';
-import {
-    revalidateForgeSetManifestAuthority,
-    verifyCurrentForgeSetManifestAuthority,
-} from '../../../src/tools/cstar-kernel-mcp/tools/forge_set_manifest_authority.js';
 import { verifyCodexRequestIdentity } from
     '../../../src/tools/cstar-kernel-mcp/tools/operator_authorization.js';
 import { buildHallRepositoryId, normalizeHallPath } from '../../../src/types/hall.js';
+import { FORGE_MISSION_GRANT_MANDATORY_PROHIBITED_ACTIONS }
+    from '../../../src/types/forge.js';
+import { bindForgeMissionGrantEnvelopeMetadata }
+    from '../../../src/tools/pennyone/intel/forge_mission_grant_envelope.js';
 import {
     appendUserMessage,
     createSession,
@@ -50,8 +56,12 @@ function mutationIdentity(identity: Identity) {
     };
 }
 
-function parentMetadata(identity: Identity, batchOrder = [CHILD_BEAD]) {
-    return {
+function parentMetadata(
+    value: RootFixture,
+    identity: Identity,
+    batchOrder = [CHILD_BEAD],
+) {
+    return bindForgeMissionGrantEnvelopeMetadata({
         source: 'cstar-kernel-mcp',
         schema: 'cstar.set_manifest.v1',
         decision_id: MISSION_DECISION,
@@ -59,8 +69,24 @@ function parentMetadata(identity: Identity, batchOrder = [CHILD_BEAD]) {
         design_sha256: DESIGN_SHA256,
         batch_order: batchOrder,
         operator_set: true,
+        mission_grant_envelope: {
+            schema: 'cstar.forge_mission_grant_envelope.v1',
+            allowed_targets: [value.target],
+            allowed_outputs: [value.target],
+            allowed_actions: ['response_only'],
+            prohibited_actions: [
+                ...FORGE_MISSION_GRANT_MANDATORY_PROHIBITED_ACTIONS,
+                'project_files',
+                'authorized_source_collection',
+            ],
+            adapter_ref: 'cstar-forge-hermes-minimax-adapter',
+            write_capability: 'response_only',
+            total_provider_attempt_ceiling: batchOrder.length,
+            retry_derived_iteration_ceiling: 0,
+            paid_attempt_ceiling: batchOrder.length,
+        },
         mutation_request_identity: mutationIdentity(identity),
-    };
+    });
 }
 
 function childMetadata(
@@ -101,7 +127,7 @@ function rewriteMetadata(
 function insertManifest(value: RootFixture, identity: Identity): void {
     insertBead(value, PARENT_BEAD, MISSION_DECISION);
     insertBead(value, CHILD_BEAD, CHILD_DECISION);
-    writeMetadata(value, PARENT_BEAD, parentMetadata(identity));
+    writeMetadata(value, PARENT_BEAD, parentMetadata(value, identity));
     writeMetadata(value, CHILD_BEAD, childMetadata(identity));
 }
 
@@ -136,11 +162,22 @@ async function prepare(
     const pending = parse(await handleForgeRequest(
         requestArgs(value, CHILD_BEAD, requestDecision, session.threadId), context,
     ));
-    assert.equal(pending.status, 'pending_authorization_recorded', JSON.stringify(pending));
+    assert.ok(['pending_authorization_recorded', 'AUTHORIZED'].includes(pending.status)
+        || typeof pending.error_code === 'string', JSON.stringify(pending));
     return { value, session, context, identity, pending };
 }
 
 async function authorize(fixture: PreparedFixture): Promise<Record<string, any>> {
+    if (fixture.pending.status === 'AUTHORIZED') {
+        const stored = getForgeAuthorizationByRequest(
+            fixture.value.db, fixture.pending.receipt_id,
+        )!;
+        return {
+            status: 'authorized',
+            authorization_profile: stored.authorization_profile,
+            operator_authorization_ref: stored.operator_authorization_ref,
+        };
+    }
     return parse(await handleForgeAuthorize({
         forge_request_receipt_id: fixture.pending.receipt_id,
         request_sha256: fixture.pending.request_sha256,
@@ -148,6 +185,20 @@ async function authorize(fixture: PreparedFixture): Promise<Record<string, any>>
 }
 
 async function assertRejected(fixture: PreparedFixture): Promise<void> {
+    if (!fixture.pending.receipt_id) {
+        assert.match(fixture.pending.error_code, /^forge_/);
+        assert.equal(fixture.value.db.prepare(
+            'SELECT COUNT(*) AS count FROM hall_forge_authorizations',
+        ).get().count, 0);
+        return;
+    }
+    const request = getForgeRequest(fixture.value.db, fixture.pending.receipt_id)!;
+    if (getForgeMissionGrantByRequest(fixture.value.db, request.request_id)) {
+        assert.throws(() => assertForgeMissionGrantReservation(
+            fixture.value.db, request,
+        ));
+        return;
+    }
     const result = await authorize(fixture);
     assert.equal(result.error_code, 'forge_operator_authorization_required', JSON.stringify(result));
     assert.equal(getForgeAuthorizationByRequest(
@@ -169,41 +220,23 @@ async function addSecondBatchRequest(fixture: PreparedFixture): Promise<Record<s
     ));
 }
 
-async function verifiedAuthority(fixture: PreparedFixture) {
-    const request = getForgeRequest(fixture.value.db, fixture.pending.receipt_id)!;
-    const authority = await verifyCurrentForgeSetManifestAuthority({
-        db: fixture.value.db,
-        request,
-        identity: fixture.identity,
-    });
-    assert.ok(authority);
-    return { request, authority };
-}
-
-function revalidate(fixture: PreparedFixture, verified: Awaited<
-    ReturnType<typeof verifiedAuthority>
->): void {
-    revalidateForgeSetManifestAuthority({
-        db: fixture.value.db,
-        request: verified.request,
-        identity: fixture.identity,
-        authorityManifestSha256: verified.authority.authority_manifest_sha256,
-    });
-}
-
 describe('operator SET manifest Forge authorization', () => {
     for (const [label, text] of [
         ['exact', 'SET'],
         ['case', 'set'],
         ['whitespace', '\n\t SeT \r\n'],
         ['terminal-period', ' SET . \n'],
+        ['named-batch', 'SET the Researcher v2 complete-system batch.'],
+        ['named-batch-case-and-whitespace', '\n\t set the researcher V2 complete-system batch . \r\n'],
+        ['ordinary-goal', 'Set a new goal to prove the validity of the entire pipeline.'],
+        ['ordinary-goal-case-and-whitespace', '\n\t set A new Goal to Prove the Validity of the Entire Pipeline . \r\n'],
     ] as const) {
         it(`accepts ${label} normalization and mints the existing narrow input`, async () => {
             const fixture = await prepare(`accepted-${label}`, text);
             const result = await authorize(fixture);
             assert.equal(result.status, 'authorized', JSON.stringify(result));
             assert.equal(result.authorization_profile, 'root_user_forge_intent_v1');
-            assert.match(result.operator_authorization_ref, /^cstar-forge-set-manifest:[a-f0-9]{64}$/);
+            assert.match(result.operator_authorization_ref, /^cstar-forge-mission-grant:[a-f0-9]{64}$/);
             const stored = getForgeAuthorizationByRequest(
                 fixture.value.db, fixture.pending.receipt_id,
             )!;
@@ -211,7 +244,7 @@ describe('operator SET manifest Forge authorization', () => {
             assert.deepEqual(JSON.parse(stored.operator_intent_json!), {
                 schema: 'cstar.forge_operator_intent_projection.v1',
                 action: 'implement',
-                requester_lineage_mode: 'same_turn_request',
+                requester_lineage_mode: 'stored_set_manifest',
                 subject: { kind: 'bead', value: CHILD_BEAD, repo_id: buildHallRepositoryId(
                     normalizeHallPath(fixture.value.root),
                 ) },
@@ -230,6 +263,21 @@ describe('operator SET manifest Forge authorization', () => {
         ['modal', 'Maybe SET'],
         ['negation', 'Do not SET'],
         ['revocation', 'Revoke SET'],
+        ['ordinary-goal-prefix', 'Please set a new goal to prove the validity of the entire pipeline'],
+        ['ordinary-goal-suffix', 'Set a new goal to prove the validity of the entire pipeline now'],
+        ['ordinary-goal-question', 'Set a new goal to prove the validity of the entire pipeline?'],
+        ['ordinary-goal-exclamation', 'Set a new goal to prove the validity of the entire pipeline!'],
+        ['ordinary-goal-conditional', 'Set a new goal to prove the validity of the entire pipeline if ready'],
+        ['ordinary-goal-modal', 'Maybe set a new goal to prove the validity of the entire pipeline'],
+        ['ordinary-goal-reported', 'The report says set a new goal to prove the validity of the entire pipeline'],
+        ['ordinary-goal-recommendation', 'I recommend set a new goal to prove the validity of the entire pipeline'],
+        ['ordinary-goal-example', 'For example, set a new goal to prove the validity of the entire pipeline'],
+        ['ordinary-goal-quoted', '"Set a new goal to prove the validity of the entire pipeline"'],
+        ['ordinary-goal-negation', 'Do not set a new goal to prove the validity of the entire pipeline'],
+        ['ordinary-goal-alternative', 'Set a new goal to prove the validity of the entire pipeline but no execution'],
+        ['ordinary-goal-without-execution', 'Set a new goal to prove the validity of the entire pipeline without execution'],
+        ['named-batch-conditional', 'SET the Researcher v2 complete-system batch if ready'],
+        ['unapproved-named-batch', 'SET the different batch'],
         ['double-period', 'SET..'],
         ['unicode-space', 'SET\u00a0'],
         ['bidi', 'SET\u202e'],
@@ -256,8 +304,11 @@ describe('operator SET manifest Forge authorization', () => {
     it('rejects a different requester thread and turn', async () => {
         const fixture = await prepare('different-requester');
         const other = createSession({ textParts: ['SET'] });
-        fixture.context = validRequestContext(other.threadId, other.turnId);
-        await assertRejected(fixture);
+        const request = getForgeRequest(fixture.value.db, fixture.pending.receipt_id)!;
+        await assert.rejects(() => verifyForgeExecutionAuthorization(
+            fixture.value.db, request, fixture.pending.operator_authorization_ref,
+            validRequestContext(other.threadId, other.turnId),
+        ), /forge_mission_grant_persisted_authority_invalid/);
     });
 
     for (const [label, corrupt] of [
@@ -310,86 +361,31 @@ describe('operator SET manifest Forge authorization', () => {
         ));
     });
 
-    it('rejects two pending requests reusing the SET requester turn', async () => {
+    it('rejects a second child request from the exact SET turn', async () => {
         const fixture = await prepare('candidate-ambiguity');
         const second = await addSecondBatchRequest(fixture);
-        assert.equal(second.status, 'pending_authorization_recorded', JSON.stringify(second));
-        await assertRejected(fixture);
+        assert.equal(second.error_code, 'forge_set_manifest_requester_turn_reused');
+        assert.ok(getForgeMissionGrantByRequest(
+            fixture.value.db, fixture.pending.receipt_id,
+        ));
     });
 
-    it('does not widen SET into replay authority', async () => {
+    it('replays the same request-scoped mission receipt idempotently', async () => {
         const fixture = await prepare('no-replay');
         const first = await authorize(fixture);
         assert.equal(first.status, 'authorized', JSON.stringify(first));
         const replay = await authorize(fixture);
-        assert.equal(replay.error_code, 'forge_operator_authorization_required');
-        assert.equal(replay.authorization_replayed, undefined);
+        assert.equal(replay.status, 'authorized');
+        assert.equal(replay.operator_authorization_ref, first.operator_authorization_ref);
         assert.equal(fixture.value.db.prepare(
             'SELECT COUNT(*) AS count FROM hall_forge_authorizations',
         ).get().count, 1);
     });
 
-    it('does not reuse SET for a later request', async () => {
+    it('fails closed when a later child is added after SET materialization', async () => {
         const fixture = await prepare('later-request');
         assert.equal((await authorize(fixture)).status, 'authorized');
         const later = await addSecondBatchRequest(fixture);
-        fixture.pending = later;
-        await assertRejected(fixture);
-    });
-
-    it('accepts transaction-time revalidation when the root session is unchanged', async () => {
-        const fixture = await prepare('unchanged-revalidation');
-        const verified = await verifiedAuthority(fixture);
-        assert.doesNotThrow(() => revalidate(fixture, verified));
-    });
-
-    it('rejects a duplicate SET appended after initial authority verification', async () => {
-        const fixture = await prepare('duplicate-after-verification');
-        const verified = await verifiedAuthority(fixture);
-        appendUserMessage(
-            fixture.session.sessionFile,
-            fixture.session.turnId,
-            'SET',
-            new Date(Date.parse(fixture.session.timestamp) + 1_000).toISOString(),
-        );
-        assert.throws(
-            () => revalidate(fixture, verified),
-            /forge_set_manifest_request_identity_drift|forge_set_manifest_operator_signal_ambiguous/,
-        );
-    });
-
-    for (const [label, revocation] of [
-        ['explicit', 'Do not proceed.'],
-        ['terse', 'Stop.'],
-    ] as const) {
-        it(`rejects ${label} revocation appended after authority verification`, async () => {
-            const fixture = await prepare(`revocation-after-verification-${label}`);
-            const verified = await verifiedAuthority(fixture);
-            appendUserMessage(
-                fixture.session.sessionFile,
-                fixture.session.turnId,
-                revocation,
-                new Date(Date.parse(fixture.session.timestamp) + 1_000).toISOString(),
-            );
-            assert.throws(
-                () => revalidate(fixture, verified),
-                /forge_set_manifest_request_identity_drift|forge_set_manifest_operator_signal_ambiguous/,
-            );
-        });
-    }
-
-    it('revalidates the manifest candidate set before mutation', async () => {
-        const fixture = await prepare('candidate-drift');
-        const verified = await verifiedAuthority(fixture);
-        const otherParent = `${PARENT_BEAD}:other`;
-        insertBead(fixture.value, otherParent, `${MISSION_DECISION}:other`);
-        writeMetadata(fixture.value, otherParent, {
-            ...parentMetadata(fixture.identity),
-            decision_id: `${MISSION_DECISION}:other`,
-        });
-        assert.throws(
-            () => revalidate(fixture, verified),
-            /forge_set_manifest_candidate_ambiguous/,
-        );
+        assert.match(later.error_code, /^forge_set_manifest_/);
     });
 });

@@ -1,0 +1,30 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:cstar:augury-set-mission-boundary",
+  "validation_id": "validation:cstar-forge-post-validation-advancement:20260731",
+  "reported_verdict": "ACCEPTED",
+  "artifacts": [
+    {"path":"src/tools/pennyone/intel/forge_request_materialization.ts","sha256":"fea505acfd82631558b7f651d70b4b3169db90a3207a0b099aaf7f0eb5576603"},
+    {"path":"src/tools/cstar-kernel-mcp/tools/sterling_resolution.ts","sha256":"02f6add82410e3137fbf169ec8f519f237badfdfe35929d585ed94789c30cf3c"},
+    {"path":"src/tools/pennyone/intel/forge_post_validation_advancement_projection.ts","sha256":"fe80a6c64600cc8b0283f5a02b6e99d04f38356b042ef75c7dce2b4d4e18161c"},
+    {"path":"src/tools/pennyone/intel/forge_post_validation_advancement.ts","sha256":"27c48916bd9f613fcc38a2fcc66cc0c7c05bc3b932c2b0d620bbfe48d70c314d"},
+    {"path":"src/tools/pennyone/intel/forge_augury_v2_frontier_guard.ts","sha256":"9e9094791b119d59765d3093a9757b5011aa6a6294d4ef364101c7ed06fa6a14"},
+    {"path":"src/tools/pennyone/intel/forge_request_persistence.ts","sha256":"2ba824607d43cff70c252e6dd9354447a032426d0076691b507b0c3187524dbb"},
+    {"path":"src/tools/pennyone/intel/forge_request_authorization_controller.ts","sha256":"6e0fcca1ac17c3e66a1c67d31672f18512e2b26a0079c6f800d3231a55428d15"},
+    {"path":"src/tools/cstar-kernel-mcp/tools/forge_request.ts","sha256":"ee7403797e2bf58d215300b8cc36660663cf085924280275c742923a99872142"},
+    {"path":"src/tools/pennyone/intel/forge_mission_grant_scope.ts","sha256":"837012d13b81b86744a6868708b80506bacab476b4b6f997df827eb12ba9157b"},
+    {"path":"src/tools/cstar-kernel-mcp/tools/bead.ts","sha256":"cab942970f3093456d35ba453793d88ba22f2b106d35e6835ff3ceed46c9d109"},
+    {"path":"src/tools/cstar-kernel-mcp/tools/result.ts","sha256":"497d822e741deb0198935e53dc28f259ac3450b8d3b01636ab41b951545046ba"},
+    {"path":"src/tools/pennyone/intel/forge_validation_controller.ts","sha256":"80e527b9266b23aa154c9310b7e6ccaba3e1d86dd277d5f1dbb9fc7d7ec86bf1"},
+    {"path":"tests/features/cstar_forge_post_validation_advancement.feature","sha256":"5564f92d30d120db3d8a45b5eaa0f6e6c0e1d5828f3a7d62442886b65868b5f3"},
+    {"path":"tests/unit/cstar-kernel-mcp/forge_post_validation_advancement_test_support.ts","sha256":"6cc1d3a319fcd735266cfb33f810d3fe7e88416ca3e29673b1ced255ae19a944"},
+    {"path":"tests/unit/cstar-kernel-mcp/test_forge_post_validation_advancement.test.ts","sha256":"ace624cbb29e116f17ebef4a730c620fe3ce2a1ba6be0361d3a4b9f40270d9e8"},
+    {"path":"tests/unit/cstar-kernel-mcp/test_forge_augury_v2_frontier_guard.test.ts","sha256":"0bcdb551724abdb0fb8f7610fcca7df9ef0817365759716d23faf6ca9343cab7"}
+  ],
+  "checks": [
+    {"name":"frontier and two-connection race 6 of 6","status":"pass","evidence_path":"tests/unit/cstar-kernel-mcp/test_forge_augury_v2_frontier_guard.test.ts","sha256":"0bcdb551724abdb0fb8f7610fcca7df9ef0817365759716d23faf6ca9343cab7"},
+    {"name":"post-validation advancement focused 55 of 55","status":"pass","evidence_path":"tests/unit/cstar-kernel-mcp/test_forge_post_validation_advancement.test.ts","sha256":"ace624cbb29e116f17ebef4a730c620fe3ce2a1ba6be0361d3a4b9f40270d9e8"},
+    {"name":"complete kernel MCP suite 767 of 767","status":"pass","evidence_path":"src/tools/pennyone/intel/forge_post_validation_advancement.ts","sha256":"27c48916bd9f613fcc38a2fcc66cc0c7c05bc3b932c2b0d620bbfe48d70c314d"},
+    {"name":"typecheck diff whitespace line and hash audit","status":"pass","evidence_path":"src/tools/pennyone/intel/forge_request_persistence.ts","sha256":"2ba824607d43cff70c252e6dd9354447a032426d0076691b507b0c3187524dbb"}
+  ]
+}

@@ -1,25 +1,35 @@
 import { createHash } from 'node:crypto';
 import type Database from 'better-sqlite3';
 
+import { forgeAuthorizationLineageMatchesRequest }
+    from '../../pennyone/intel/forge_receipt_controller.js';
 import {
-    forgeAuthorizationLineageMatchesRequest,
-} from '../../pennyone/intel/forge_receipt_controller.js';
+    assertForgeMissionGrantActive,
+    getForgeMissionGrantByRequest,
+    revokeForgeMissionGrant,
+} from '../../pennyone/intel/forge_mission_grant_controller.js';
+import { assertForgeMissionGrantScope }
+    from '../../pennyone/intel/forge_mission_grant_scope.js';
 import {
     forgeOperatorIntentProjectionJson,
     hashRootUserForgeIntentBinding,
     ROOT_USER_FORGE_INTENT_PROFILE,
 } from '../../pennyone/intel/forge_authorization_policy.js';
-import type {
-    HallForgeAuthorizationRecord,
-    HallForgeRequestRecord,
-} from '../../../types/forge.js';
+import type { HallForgeAuthorizationRecord, HallForgeRequestRecord } from '../../../types/forge.js';
 import {
     readForgeSetSignalFromMutationIdentity,
     readPersistedForgeSetSignal,
     type ForgeSetMutationIdentityFields,
     type PersistedForgeSetAuthorityFields,
 } from './forge_set_manifest_signal.js';
-import { resolveForgeSetManifestAuthorityProjection } from './forge_set_manifest_authority.js';
+import {
+    resolveForgeSetManifestAuthorityProjection,
+    type SetManifestAuthorityProjection,
+} from './forge_set_manifest_authority.js';
+import {
+    isForgeSetManifestIterationRequest,
+    resolveForgeSetManifestIterationProjection,
+} from './forge_set_manifest_iteration_authority.js';
 import { resolveForgeOperatorWorkItem } from './forge_operator_work_item_resolution.js';
 import type { VerifiedForgeOperatorIntent } from './forge_operator_intent_attestation.js';
 import {
@@ -29,43 +39,32 @@ import {
 } from './operator_authorization.js';
 import type { McpRequestContext } from '../contracts/request_context.js';
 import { stableJson } from './forge_request_contract.js';
-
 export const FORGE_SET_AUTONOMOUS_AUTHORITY_MODE = 'autonomous_set_manifest_v1' as const;
-
-export interface ForgeStructuralCaller extends ParsedCodexTurnMetadata {
-    kind: 'same_root_structural';
-}
-
+export interface ForgeStructuralCaller extends ParsedCodexTurnMetadata { kind: 'same_root_structural' }
 export type ForgeCaller = VerifiedCodexRequestIdentity | ForgeStructuralCaller;
-
-export function parseForgeStructuralCaller(
-    context: McpRequestContext | undefined,
-): ForgeStructuralCaller {
+export function parseForgeStructuralCaller(context: McpRequestContext | undefined):
+ForgeStructuralCaller {
     return { ...parseCodexTurnMetadata(context), kind: 'same_root_structural' };
 }
-
 export interface VerifiedPersistedForgeSetManifestAuthority {
     intent: VerifiedForgeOperatorIntent;
     authority_manifest_sha256: string;
     original_identity: VerifiedCodexRequestIdentity;
     binding: string;
     operator_projection: ReturnType<typeof resolveForgeOperatorWorkItem>;
+    projection: SetManifestAuthorityProjection;
 }
-
 function sha256(value: string): string {
     return createHash('sha256').update(value, 'utf-8').digest('hex');
 }
-
 function failIfDifferent(actual: unknown, expected: unknown, code: string): void {
     if (actual !== expected) throw new Error(code);
 }
-
 function requestReplayStatus(status: HallForgeRequestRecord['status']): boolean {
     return [
         'PENDING_AUTH', 'AUTHORIZED', 'SUCCEEDED', 'FAILED_FINAL', 'EXHAUSTED', 'AMBIGUOUS',
     ].includes(status);
 }
-
 function buildSetIntent(
     request: HallForgeRequestRecord,
     identity: VerifiedCodexRequestIdentity,
@@ -99,11 +98,9 @@ function buildSetIntent(
         authorized_at: authorizedAt, expires_at: expiresAt,
     };
 }
-
 function isRecord(value: unknown): value is Record<string, unknown> {
     return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
-
 function mutationIdentity(value: unknown, code: string): ForgeSetMutationIdentityFields {
     if (!isRecord(value) || value.source !== 'codex_request_meta'
         || typeof value.thread_id !== 'string' || typeof value.turn_id !== 'string'
@@ -117,7 +114,6 @@ function mutationIdentity(value: unknown, code: string): ForgeSetMutationIdentit
         record_set_sha256: value.turn_record_set_sha256,
     };
 }
-
 function pendingMutationIdentity(
     db: Database.Database,
     request: HallForgeRequestRecord,
@@ -152,12 +148,24 @@ function pendingMutationIdentity(
     const parentIdentity = mutationIdentity(
         parentMetadata.mutation_request_identity, 'forge_set_manifest_parent_identity_invalid',
     );
-    if (JSON.stringify(childIdentity) !== JSON.stringify(parentIdentity)) {
+    if (childIdentity.thread_id !== parentIdentity.thread_id) {
         throw new Error('forge_set_manifest_mutation_identity_mismatch');
     }
-    return childIdentity;
+    return parentIdentity;
 }
-
+export function isLaterForgeSetManifestRequest(
+    db: Database.Database,
+    request: HallForgeRequestRecord,
+): boolean {
+    try {
+        const identity = pendingMutationIdentity(db, request);
+        return request.requester_thread_id === identity.thread_id
+            && (request.requester_turn_id !== identity.turn_id
+                || request.requester_record_set_sha256 !== identity.record_set_sha256);
+    } catch {
+        return false;
+    }
+}
 function verifyStoredRequestFields(
     request: HallForgeRequestRecord,
     authorization: HallForgeAuthorizationRecord,
@@ -180,25 +188,25 @@ function verifyStoredRequestFields(
         throw new Error('forge_set_manifest_persisted_authority_invalid');
     }
 }
-
 function buildSetAuthority(args: {
-    db: Database.Database;
-    request: HallForgeRequestRecord;
+    db: Database.Database; request: HallForgeRequestRecord;
     identity: VerifiedCodexRequestIdentity;
     signal: { record_sha256: string; content: Array<{ type: 'input_text'; text: string }> };
-    allowReplay: boolean;
+    allowReplay: boolean; allowLaterRequester?: boolean;
 }): VerifiedPersistedForgeSetManifestAuthority & {
-    binding: string;
-    operator_projection: ReturnType<typeof resolveForgeOperatorWorkItem>;
+    binding: string; operator_projection: ReturnType<typeof resolveForgeOperatorWorkItem>;
 } {
-    const projection = resolveForgeSetManifestAuthorityProjection(
-        args.db, args.request, args.identity, args.allowReplay,
+    const projection = isForgeSetManifestIterationRequest(args.db, args.request)
+        ? resolveForgeSetManifestIterationProjection({
+            db: args.db, request: args.request, identity: args.identity,
+            allowReplay: args.allowReplay,
+        }) : resolveForgeSetManifestAuthorityProjection(
+        args.db, args.request, args.identity, args.allowReplay, args.allowLaterRequester,
     );
     const authorityManifestSha256 = sha256(stableJson(projection));
-    const intent = buildSetIntent(
-        args.request, args.identity, args.signal, authorityManifestSha256,
-    );
-    const operatorProjection = resolveForgeOperatorWorkItem(args.db, args.request, intent);
+    const intent = buildSetIntent(args.request, args.identity, args.signal, authorityManifestSha256);
+    const operatorProjection = resolveForgeOperatorWorkItem(args.db, args.request, intent,
+        { allowStoredSetManifest: args.allowLaterRequester === true });
     const binding = hashRootUserForgeIntentBinding({
         request: args.request, projection: operatorProjection,
         operator_thread_id: intent.thread_id, operator_turn_id: intent.turn_id,
@@ -210,39 +218,30 @@ function buildSetAuthority(args: {
     return {
         intent, authority_manifest_sha256: authorityManifestSha256,
         original_identity: args.identity, binding, operator_projection: operatorProjection,
+        projection,
     };
 }
-
 export function verifyPendingForgeSetManifestAuthority(args: {
-    db: Database.Database;
-    request: HallForgeRequestRecord;
-    caller: ForgeCaller;
-    now?: number;
+    db: Database.Database; request: HallForgeRequestRecord; caller: ForgeCaller; now?: number;
 }): VerifiedPersistedForgeSetManifestAuthority {
     const now = args.now ?? Date.now();
     const fields = pendingMutationIdentity(args.db, args.request);
     const persisted = readForgeSetSignalFromMutationIdentity(fields, now);
-    if (args.caller.thread_id !== persisted.identity.thread_id) {
+    if (args.caller.thread_id !== persisted.identity.thread_id)
         throw new Error('forge_set_manifest_autonomous_caller_thread_mismatch');
-    }
     return buildSetAuthority({
         db: args.db, request: args.request, identity: persisted.identity,
-        signal: persisted.signal, allowReplay: false,
+        signal: persisted.signal, allowReplay: false, allowLaterRequester: true,
     });
 }
-
 export function verifyPersistedForgeSetManifestAuthority(args: {
-    db: Database.Database;
-    request: HallForgeRequestRecord;
-    authorization: HallForgeAuthorizationRecord;
-    caller: ForgeCaller;
-    now?: number;
+    db: Database.Database; request: HallForgeRequestRecord;
+    authorization: HallForgeAuthorizationRecord; caller: ForgeCaller; now?: number;
 }): VerifiedPersistedForgeSetManifestAuthority {
     const now = args.now ?? Date.now();
     verifyStoredRequestFields(args.request, args.authorization, now);
-    if (args.caller.thread_id !== args.authorization.operator_thread_id) {
+    if (args.caller.thread_id !== args.authorization.operator_thread_id)
         throw new Error('forge_set_manifest_autonomous_caller_thread_mismatch');
-    }
     const stored: PersistedForgeSetAuthorityFields = {
         thread_id: args.authorization.operator_thread_id,
         turn_id: args.authorization.operator_turn_id,
@@ -259,32 +258,86 @@ export function verifyPersistedForgeSetManifestAuthority(args: {
     }
     const built = buildSetAuthority({
         db: args.db, request: args.request, identity: persisted.identity,
-        signal: persisted.signal, allowReplay: true,
+        signal: persisted.signal, allowReplay: true, allowLaterRequester: true,
     });
-    failIfDifferent(args.authorization.operator_authorization_ref,
-        built.intent.operator_authorization_ref, 'forge_set_manifest_persisted_reference_drift');
-    failIfDifferent(args.authorization.operator_message_sha256,
-        built.intent.message_sha256, 'forge_set_manifest_persisted_message_drift');
-    failIfDifferent(args.authorization.operator_record_sha256,
-        built.intent.session_record_sha256, 'forge_set_manifest_persisted_record_drift');
+    failIfDifferent(args.authorization.operator_authorization_ref, built.intent.operator_authorization_ref,
+        'forge_set_manifest_persisted_reference_drift');
+    failIfDifferent(args.authorization.operator_message_sha256, built.intent.message_sha256,
+        'forge_set_manifest_persisted_message_drift');
+    failIfDifferent(args.authorization.operator_record_sha256, built.intent.session_record_sha256,
+        'forge_set_manifest_persisted_record_drift');
     failIfDifferent(args.authorization.operator_record_set_sha256,
         built.intent.session_record_set_sha256, 'forge_set_manifest_persisted_record_set_drift');
-    failIfDifferent(args.authorization.operator_record_count,
-        built.intent.session_record_count, 'forge_set_manifest_persisted_record_count_drift');
+    failIfDifferent(args.authorization.operator_record_count, built.intent.session_record_count,
+        'forge_set_manifest_persisted_record_count_drift');
     failIfDifferent(args.authorization.operator_intent_json,
-        forgeOperatorIntentProjectionJson(built.operator_projection),
-        'forge_set_manifest_persisted_intent_drift');
-    failIfDifferent(args.authorization.authorization_binding_sha256,
-        built.binding, 'forge_set_manifest_persisted_binding_drift');
-    failIfDifferent(args.authorization.authorized_at,
-        built.intent.authorized_at, 'forge_set_manifest_persisted_time_drift');
-    failIfDifferent(args.authorization.expires_at,
-        built.intent.expires_at, 'forge_set_manifest_persisted_time_drift');
+        forgeOperatorIntentProjectionJson(built.operator_projection), 'forge_set_manifest_persisted_intent_drift');
+    failIfDifferent(args.authorization.authorization_binding_sha256, built.binding,
+        'forge_set_manifest_persisted_binding_drift');
+    failIfDifferent(args.authorization.authorized_at, built.intent.authorized_at,
+        'forge_set_manifest_persisted_time_drift');
+    failIfDifferent(args.authorization.expires_at, built.intent.expires_at,
+        'forge_set_manifest_persisted_time_drift');
     return {
-        intent: built.intent,
-        authority_manifest_sha256: built.authority_manifest_sha256,
-        original_identity: built.original_identity,
-        binding: built.binding,
-        operator_projection: built.operator_projection,
+        intent: built.intent, authority_manifest_sha256: built.authority_manifest_sha256,
+        original_identity: built.original_identity, binding: built.binding,
+        operator_projection: built.operator_projection, projection: built.projection,
+    };
+}
+
+export function verifyPersistedForgeMissionGrantAuthority(args: {
+    db: Database.Database;
+    request: HallForgeRequestRecord;
+    authorization: HallForgeAuthorizationRecord;
+    caller: ForgeCaller;
+    now?: number;
+}): { intent: VerifiedForgeOperatorIntent; authority_manifest_sha256: string } {
+    const now = args.now ?? Date.now();
+    const grant = getForgeMissionGrantByRequest(args.db, args.request.request_id);
+    if (!grant) throw new Error('forge_mission_grant_not_found');
+    assertForgeMissionGrantActive(args.db, grant, now);
+    assertForgeMissionGrantScope(args.db, grant, args.request);
+    if (!forgeAuthorizationLineageMatchesRequest(args.request, args.authorization)
+        || !args.authorization.operator_authorization_ref
+            .startsWith('cstar-forge-mission-grant:')
+        || args.authorization.operator_thread_id !== grant.root_thread_id
+        || args.authorization.operator_turn_id !== grant.set_turn_id
+        || args.authorization.operator_record_sha256 !== grant.set_record_sha256
+        || args.authorization.operator_record_set_sha256 !== grant.set_record_set_sha256
+        || args.authorization.operator_record_count !== grant.set_record_count
+        || args.caller.thread_id !== grant.root_thread_id) {
+        throw new Error('forge_mission_grant_persisted_authority_invalid');
+    }
+    if (args.caller.turn_id === grant.set_turn_id) {
+        throw new Error('forge_mission_grant_execute_requires_later_turn');
+    }
+    let persisted: ReturnType<typeof readPersistedForgeSetSignal>;
+    try {
+        persisted = readPersistedForgeSetSignal({
+            thread_id: grant.root_thread_id,
+            turn_id: grant.set_turn_id,
+            record_sha256: grant.set_record_sha256,
+            record_set_sha256: grant.set_record_set_sha256,
+            record_count: grant.set_record_count,
+        }, now);
+    } catch (error) {
+        const code = error instanceof Error ? error.message : String(error);
+        if (code === 'forge_set_manifest_operator_signal_revoked') {
+            revokeForgeMissionGrant(args.db, grant.mission_grant_id, code, now);
+        }
+        throw error;
+    }
+    return {
+        intent: buildSetIntent(
+            args.request,
+            persisted.identity,
+            persisted.signal,
+            sha256(stableJson({
+                schema: 'cstar.forge_mission_grant_authority.v1',
+                mission_grant_id: grant.mission_grant_id,
+                request_id: args.request.request_id,
+            })),
+        ),
+        authority_manifest_sha256: grant.design_sha256,
     };
 }

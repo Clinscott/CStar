@@ -1,0 +1,20 @@
+{
+  "schema": "cstar.forge_ambiguous_execution_validation.v1",
+  "validation_id": "validation:cstar-pipeline-v1-forge-ambiguous:20260730",
+  "bead_id": "bead:cstar:operating-pipeline-v1-batch-1",
+  "execution_receipt_id": "forge-execute-0cec1171b8f410b2e773f14ab8bc28cc",
+  "attempt_id": "forge-attempt-66cdb1bd201406023a484e5321d5cd7b-1",
+  "envelope_path": "/home/morderith/Corvus/CStar/work/forge-executions/forge-execute-0cec1171b8f410b2e773f14ab8bc28cc/adapter-execution-envelope.json",
+  "envelope_sha256": "1022c1e760ced93061dba71ebff02a916b3193167ffca776f0c751670665026c",
+  "verdict": "INCONCLUSIVE",
+  "attempt_status": "UNKNOWN",
+  "request_status": "AMBIGUOUS",
+  "provider_requests_started": 1,
+  "provider_requests_completed": 0,
+  "provider_requests_ambiguous": 1,
+  "final_provider_state": "response_headers_received",
+  "live_spend": "unknown",
+  "response_artifact_exists": false,
+  "workspace_commit": null,
+  "retry_allowed": false
+}

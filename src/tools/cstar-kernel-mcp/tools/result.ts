@@ -12,6 +12,14 @@ import {
     resolveForgeValidationSubject,
 } from '../../pennyone/intel/forge_validation_controller.js';
 import {
+    advanceForgePostValidation,
+    forgePostValidationFailed,
+    forgePostValidationNotTriggered,
+    isV2AuguryForgeChild,
+    readForgePostValidationAdvancement,
+    type ForgePostValidationAdvancementOutcome,
+} from '../../pennyone/intel/forge_post_validation_advancement.js';
+import {
     mcpErrorCode,
     mcpMutation,
     preAuthorizationErrorResponse,
@@ -29,6 +37,8 @@ import {
 } from './host_workflow_validation.js';
 import { verifyCodexRequestIdentity } from './operator_authorization.js';
 import { saveValidationRunToDb } from './validation_run_store.js';
+import { resolveForgeRuntimeRoots } from './forge_runtime_roots.js';
+import { resolveValidationEvidenceRoots } from './shared.js';
 
 function isPositiveValidationVerdict(verdict: string): boolean {
     return verdict === 'ACCEPTED' || verdict === 'SUCCESS';
@@ -51,6 +61,10 @@ export async function handleRecordResult({ bead_id, verdict, notes, validation_i
         let repoId = 'cstar';
         const validationId = validation_id?.trim()
             || `val-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+        const forgeExecutionReceiptId = forge_execution_receipt_id?.trim();
+        if (forgeExecutionReceiptId && host_validation_receipt) {
+            throw new Error('validation_subject_kind_ambiguous');
+        }
         let validationError: string | undefined;
         let validationAuthority: 'reported' | 'verified_v2' | 'verified_v3' = 'reported';
         let storedVerdict: CStarValidationVerdict = verdict;
@@ -58,6 +72,7 @@ export async function handleRecordResult({ bead_id, verdict, notes, validation_i
         let beadTargetPath: string | undefined;
         let forgeValidation: ReturnType<typeof finalizeForgeValidation> | null = null;
         let forgeValidationError: string | undefined;
+        let forgeAdvancement: ForgePostValidationAdvancementOutcome | null = null;
 
         let releaseReadDb: (() => void) | null = null;
         try {
@@ -65,22 +80,27 @@ export async function handleRecordResult({ bead_id, verdict, notes, validation_i
             const readHandle = openForgeReadDb(root);
             releaseReadDb = readHandle.release;
             const bead = readHandle.db.prepare(`
-                SELECT b.repo_id, b.target_path, r.root_path
+                SELECT b.repo_id, b.target_path, b.metadata_json, r.root_path
                 FROM hall_beads b
                 JOIN hall_repositories r ON r.repo_id = b.repo_id
                 WHERE b.bead_id = ?
-            `).get(bead_id) as { repo_id?: string; target_path?: string; root_path?: string } | undefined;
-            const normalizedRoot = root.replace(/\\/g, '/').replace(/\/+$/, '');
-            const recordedRoot = String(bead?.root_path ?? '').replace(/\\/g, '/').replace(/\/+$/, '');
-            if (!bead?.repo_id || recordedRoot !== normalizedRoot) {
+            `).get(bead_id) as {
+                repo_id?: string;
+                target_path?: string;
+                metadata_json?: string | null;
+                root_path?: string;
+            } | undefined;
+            if (!bead?.repo_id || !bead.root_path) {
                 throw new Error('validation_bead_not_found_in_repository');
             }
+            const validationRoots = resolveValidationEvidenceRoots({
+                controlRoot: root,
+                codeRoot: CODE_ROOT,
+                beadRepositoryRoot: bead.root_path,
+                beadMetadataJson: bead.metadata_json,
+            });
             repoId = bead.repo_id;
             beadTargetPath = bead.target_path;
-            const forgeExecutionReceiptId = forge_execution_receipt_id?.trim();
-            if (forgeExecutionReceiptId && host_validation_receipt) {
-                throw new Error('validation_subject_kind_ambiguous');
-            }
             const forgeSubject = forgeExecutionReceiptId
                 ? resolveForgeValidationSubject(readHandle.db, {
                     execution_receipt_id: forgeExecutionReceiptId,
@@ -90,7 +110,7 @@ export async function handleRecordResult({ bead_id, verdict, notes, validation_i
                 : undefined;
             verifiedEvidence = host_validation_receipt
                 ? verifyHostWorkflowValidationEvidence(
-                    CODE_ROOT,
+                    validationRoots.v3Root,
                     validation_evidence,
                     host_validation_receipt,
                     {
@@ -103,7 +123,7 @@ export async function handleRecordResult({ bead_id, verdict, notes, validation_i
                     requestIdentity,
                 )
                 : await verifyValidationEvidence(
-                    root,
+                    validationRoots.v2Root,
                     validation_evidence,
                     requestContext,
                     forgeSubject,
@@ -141,6 +161,52 @@ export async function handleRecordResult({ bead_id, verdict, notes, validation_i
                     });
                 });
                 forgeValidation = persist.immediate();
+                const existingAdvancement = readForgePostValidationAdvancement(
+                    db, forgeExecutionReceiptId,
+                );
+                if (existingAdvancement) {
+                    forgeAdvancement = existingAdvancement;
+                } else if (
+                    forgeValidation.mode === 'delivery_finalization'
+                    && forgeValidation.accepted === true
+                    && forgeValidation.execution_status_changed
+                    && validationAuthority === 'verified_v2'
+                    && isV2AuguryForgeChild(db, forgeValidation.request.bead_id)
+                ) {
+                    const roots = resolveForgeRuntimeRoots();
+                    try {
+                        forgeAdvancement = await advanceForgePostValidation({
+                            db,
+                            control_root: roots.controlRoot,
+                            code_root: roots.codeRoot,
+                            execution_receipt_id: forgeExecutionReceiptId,
+                            validation_id: validationId,
+                            request_id: forgeValidation.request.request_id,
+                            request_sha256: forgeValidation.request.request_sha256,
+                        });
+                    } catch (error) {
+                        forgeAdvancement = forgePostValidationFailed({
+                            execution_receipt_id: forgeExecutionReceiptId,
+                            validation_id: validationId,
+                            error,
+                        });
+                    }
+                } else {
+                    const reason = forgeValidation.mode !== 'delivery_finalization'
+                        ? `forge_advancement_mode_${forgeValidation.mode}`
+                        : forgeValidation.accepted !== true
+                            ? 'forge_advancement_validation_not_accepted'
+                            : !forgeValidation.execution_status_changed
+                                ? 'forge_advancement_validation_replay'
+                                : validationAuthority !== 'verified_v2'
+                                    ? 'forge_advancement_validation_unverified'
+                                    : 'forge_advancement_non_augury_v2_child';
+                    forgeAdvancement = forgePostValidationNotTriggered({
+                        execution_receipt_id: forgeExecutionReceiptId,
+                        validation_id: validationId,
+                        reason,
+                    });
+                }
             } else {
                 saveValidationRunToDb(db, validationRecord, verifiedEvidence ?? undefined);
             }
@@ -201,6 +267,9 @@ export async function handleRecordResult({ bead_id, verdict, notes, validation_i
         }
         if (forgeValidationError) {
             response.forge_validation_warning = forgeValidationError;
+        }
+        if (forgeAdvancement) {
+            response.forge_advancement = forgeAdvancement;
         }
         return textResponse(response, Boolean(validationError || forgeValidationError));
     } catch (error: any) {

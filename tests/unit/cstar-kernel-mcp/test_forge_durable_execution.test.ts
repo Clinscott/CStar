@@ -287,7 +287,7 @@ describe('CStar durable Forge public path', () => {
         const requestResult = await handleForgeRequest(base, requestContext(fixture.authorization));
         assert.equal(requestResult.isError, undefined, requestResult.content[0].text);
         const request = JSON.parse(requestResult.content[0].text);
-        assert.equal(request.status, 'pending_authorization_recorded');
+        assert.equal(request.status, 'authorized_request_replayed');
         const authorizeResult = await handleForgeAuthorize({
             forge_request_receipt_id: request.receipt_id,
             request_sha256: request.request_sha256,
@@ -356,7 +356,7 @@ describe('CStar durable Forge public path', () => {
         const requestResult = await handleForgeRequest(base, requestContext(fixture.authorization));
         assert.equal(requestResult.isError, undefined, requestResult.content[0].text);
         const request = JSON.parse(requestResult.content[0].text);
-        assert.equal(request.status, 'pending_authorization_recorded');
+        assert.equal(request.status, 'authorized_request_replayed');
         assert.match(request.receipt_id, /^dispatch-forge-/);
         const authorizeResult = await handleForgeAuthorize({
             forge_request_receipt_id: request.receipt_id,

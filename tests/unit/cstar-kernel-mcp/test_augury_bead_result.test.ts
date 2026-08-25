@@ -198,7 +198,27 @@ it('routes explicit prompt targets instead of stale active session context', () 
     assert.strictEqual(decision.stale_session_divergence_blocker, false);
     assert.deepStrictEqual(decision.divergence_warnings, ['stale_session_target_divergence']);
 });
-
+it('normalizes an internal WEAVE route to exactly SKILL in public Augury output', async () => {
+    const internalRoute = resolveAuguryCurrentIntentCategory(['harden'],
+        { HARDEN: { triggers: ['harden'], default_path: 'contract_hardening', tier: 'WEAVE' } });
+    assert.strictEqual(internalRoute?.tier, 'WEAVE');
+    const beadId = 'bead:exec:test-legacy-weave-route';
+    const target = 'docs/integrations/cstar-kernel-mcp.md';
+    beadStore.set(beadId, {
+        id: beadId, repo_id: 'test-repo', target_kind: 'WORKFLOW', target_path: target,
+        status: 'IN_PROGRESS', rationale: 'Exercise legacy Augury tier display normalization.',
+        contract_refs: [], baseline_scores: {}, created_at: Date.now(), updated_at: Date.now(),
+        metadata: { augury_contract: { intent_category: 'HARDEN', intent: 'Harden the CStar kernel MCP contract.',
+            selection_tier: internalRoute?.tier, selection_name: internalRoute?.default_path, mimirs_well: [target] } },
+    });
+    const result = await withUnavailableSyntheticPersona(() => handleAugury(
+        { prompt: 'harden the CStar kernel MCP contract', target_paths: [target] }));
+    const parsed = JSON.parse(result.content[0].text);
+    const selections = [parsed.selection, parsed.current_mission_route.selection,
+        parsed.active_session_suggestion.selection, parsed.routing_provenance.session.selection];
+    assert.deepStrictEqual(selections, Array(4).fill('SKILL: contract_hardening'));
+    assert.doesNotMatch(JSON.stringify(parsed), /\bWEAVE\b/);
+});
 it('routes deterministic prompt intent instead of unrelated active session without target paths', () => {
     const decision = decideAugurySessionRouting({
         hasSessionRoute: true,

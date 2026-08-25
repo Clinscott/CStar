@@ -1,0 +1,74 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:cstar:first-principles-runtime-lifecycle-repair-20260731",
+  "validation_id": "validation:cstar-first-principles-runtime-lifecycle-repair-20260731",
+  "reported_verdict": "ACCEPTED",
+  "artifacts": [
+    {
+      "path": "src/tools/pennyone/intel/forge_terminal_lifecycle.ts",
+      "sha256": "97011e3ace60e6531d56e463d5b1fba66be366bf6340168266fb0b27b90134ec"
+    },
+    {
+      "path": "src/tools/pennyone/intel/forge_receipt_controller.ts",
+      "sha256": "2a2a7e34985ee6b64513325b5b962748afa9e336150c7c737b16d960fe76405b"
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/forge_execute_result.ts",
+      "sha256": "0fd1a457f2944c7f2676676030737315a9adb7654ff2012d3e569e89d926d6cb"
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/hall.ts",
+      "sha256": "9e3621b4f3eccdeee4903c5728936ad73be724a368a27ee1d9160b3ee2a2f160"
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/register_core_tools.ts",
+      "sha256": "6c2eb5cfce620ebedda5e0e08e565055f6b9899789371d71a1e490ec3d9fc360"
+    },
+    {
+      "path": "src/node/core/commands/trace.ts",
+      "sha256": "7e5644df5202ee33f259be9cbd0632f151d16b8d8762e77187a73323b1254760"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_terminal_lifecycle.test.ts",
+      "sha256": "8a6f052ad2f59e557c59605e6fc65d6fc7e26d2a9b7f43d073188ff18a43be40"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_receipt_controller.test.ts",
+      "sha256": "fff6f6d7a67f62b538c364672ee4997a1dc068391e8a21ec3d5d92f69a713ae5"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_autonomous_policy_dispatch.test.ts",
+      "sha256": "8f90db3ae22bb6e472c1dc89ec282dfc69298c1139bf69f750df32a372fa2391"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_handoff_runtime_state.test.ts",
+      "sha256": "883617186e62744aa6fe75a74e8eeeda6b710f655bccd2bae7bff48f31c8e0c6"
+    }
+  ],
+  "checks": [
+    {
+      "name": "focused repair suite: 77 tests across 11 suites",
+      "status": "pass",
+      "evidence_path": "tests/unit/cstar-kernel-mcp/test_handoff_runtime_state.test.ts",
+      "sha256": "883617186e62744aa6fe75a74e8eeeda6b710f655bccd2bae7bff48f31c8e0c6"
+    },
+    {
+      "name": "npm run typecheck",
+      "status": "pass",
+      "evidence_path": "src/tools/cstar-kernel-mcp/register_core_tools.ts",
+      "sha256": "6c2eb5cfce620ebedda5e0e08e565055f6b9899789371d71a1e490ec3d9fc360"
+    },
+    {
+      "name": "git diff --check",
+      "status": "pass",
+      "evidence_path": "src/tools/pennyone/intel/forge_receipt_controller.ts",
+      "sha256": "2a2a7e34985ee6b64513325b5b962748afa9e336150c7c737b16d960fe76405b"
+    },
+    {
+      "name": "touched repair source/test files <=500 lines",
+      "status": "pass",
+      "evidence_path": "tests/unit/cstar-kernel-mcp/test_forge_autonomous_policy_dispatch.test.ts",
+      "sha256": "8f90db3ae22bb6e472c1dc89ec282dfc69298c1139bf69f750df32a372fa2391"
+    }
+  ]
+}

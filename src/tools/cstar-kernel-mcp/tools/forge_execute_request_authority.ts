@@ -93,6 +93,8 @@ export function forgeRequestAuthorityMatches(
         && expected.target_paths_sha256 === current.target_paths_sha256
         && expected.live_source_allowed === current.live_source_allowed
         && expected.max_attempts === current.max_attempts
+        && expected.superseded_by === current.superseded_by
+        && expected.supersedes_request_id === current.supersedes_request_id
         && expected.authorized_at === current.authorized_at
         && expected.expires_at === current.expires_at
         && expected.created_at === current.created_at;

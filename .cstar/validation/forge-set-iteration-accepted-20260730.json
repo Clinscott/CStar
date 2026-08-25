@@ -1,0 +1,79 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:cstar:operating-pipeline-v1-batch-1",
+  "validation_id": "validation:cstar-set-iteration-authority-accepted:20260730",
+  "reported_verdict": "ACCEPTED",
+  "artifacts": [
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_authority.ts",
+      "sha256": "00cd68d302dc4851c0dd4a842990b9d249289d57bc50a86998eb1933a6b4c9cb",
+      "bytes": 20049
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_autonomous_authority.ts",
+      "sha256": "b068f317ff102aae5a7b061db58caf5328dbe47506691995f913d1c4ea77748c",
+      "bytes": 14434
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_iteration_authority.ts",
+      "sha256": "f7220dd39e50e7d0488cb83829dd5bde264fc93fb2db39587a7afd5b7176d675",
+      "bytes": 16332
+    },
+    {
+      "path": "src/tools/pennyone/intel/forge_set_manifest_iteration_authorization_reuse.ts",
+      "sha256": "350f989800ab754fc1bee7bd673d0fab2901ba76007b8bb1a78c7cfa88c6077a",
+      "bytes": 2120
+    },
+    {
+      "path": "src/tools/pennyone/intel/forge_request_authorization_controller.ts",
+      "sha256": "f1d7443b917662458c6888a7a271922ddba4725344dadc72e552bda4bb777232",
+      "bytes": 21993
+    },
+    {
+      "path": "src/tools/pennyone/intel/forge_authorization_schema.ts",
+      "sha256": "cbc990b60fc6fc0fcc728fbee1560f1baa9cdc820fcd5a25e203d01d7023b427",
+      "bytes": 10818
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_set_manifest_iteration_authorization.test.ts",
+      "sha256": "0bd4642dad30eb0eb898b10829547ee6e783284561a94f43159e947d22143928",
+      "bytes": 21442
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_set_manifest_iteration_controller_guard.test.ts",
+      "sha256": "3c84bc8925f67d239dcfce25df97430ab1d8cb3eb5281777f727f8b1f1b5b568",
+      "bytes": 13758
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_hall_store_compatibility.test.ts",
+      "sha256": "ad1602fae1aac8c2db21b2cb8029a1cbe432565c5d1c25929a236031e739e31a",
+      "bytes": 12786
+    }
+  ],
+  "checks": [
+    {
+      "name": "independent strict shared SET iteration authority review",
+      "status": "pass",
+      "evidence_path": "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_iteration_authority.ts",
+      "sha256": "f7220dd39e50e7d0488cb83829dd5bde264fc93fb2db39587a7afd5b7176d675"
+    },
+    {
+      "name": "controller-level adversarial guard suite 13 of 13",
+      "status": "pass",
+      "evidence_path": "tests/unit/cstar-kernel-mcp/test_forge_set_manifest_iteration_controller_guard.test.ts",
+      "sha256": "3c84bc8925f67d239dcfce25df97430ab1d8cb3eb5281777f727f8b1f1b5b568"
+    },
+    {
+      "name": "seven focused suites 75 of 75 and typecheck",
+      "status": "pass",
+      "evidence_path": "tests/unit/cstar-kernel-mcp/test_forge_set_manifest_iteration_authorization.test.ts",
+      "sha256": "0bd4642dad30eb0eb898b10829547ee6e783284561a94f43159e947d22143928"
+    },
+    {
+      "name": "unique partial index migration compatibility",
+      "status": "pass",
+      "evidence_path": "tests/unit/cstar-kernel-mcp/test_forge_hall_store_compatibility.test.ts",
+      "sha256": "ad1602fae1aac8c2db21b2cb8029a1cbe432565c5d1c25929a236031e739e31a"
+    }
+  ]
+}

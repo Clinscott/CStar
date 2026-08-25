@@ -1,44 +1,42 @@
 # CStar Goal-Driven and Daily Bootstrap
 
 This runbook keeps a non-trivial CStar mission continuous across long turns,
-thread interruption, subagent work, and daily toolchain changes. `AGENTS.md`
-points here instead of duplicating the procedure.
+thread interruption, retained/resumable host workthread activity, and daily
+toolchain changes. CStar is only the deterministic state manager; CoS in Codex
+is the orchestrator/supervisor that dispatches bounded work and records the
+result. `AGENTS.md` points here instead of duplicating the procedure.
 
-## 1. Start or resume the host goal
+## 1. Establish worker-owned host-goal continuity
 
 Before a non-trivial bead, multi-file change, Forge/Researcher request, or
-resumed mission:
+resumed mission, CoS binds the exact CStar bead/decision and dispatches the
+owning host-issued worker. CoS owns no host goal and must never create, resume,
+update, pause, block, complete, or close one.
 
-1. Read the current host goal.
-2. If no unfinished goal exists, create one objective that states the durable
-   outcome, lifecycle closeout, and operator gates. Do not set an artificial
-   token budget unless the operator requested one.
-3. If the goal is active, continue it. If it is blocked and the operator
-   explicitly resumes it, use the supported resume transition without changing
-   the objective or usage history.
-4. If the host exposes no resume transition, do not invent one or replace the
-   goal. Anchor the defect to a CStar repair bead, then use
-   `cstar_goal_resume` from the canonical root-user turn.
-   This appends a `cstar.host_goal_resume.v1` decision event containing only
-   bounded hashes and lifecycle references. It is a continuity-only overlay:
-   the host status remains `blocked`, no host object is mutated, and it grants
-   no spend, source, Git, installation, restart, deployment, or production
-   authority. Continue the unchanged objective only after that explicit signal
-   verifies and the event persists. The signal must be a dedicated, fully
-   anchored imperative or authorization statement. Questions, quotations,
-   examples, button-label prose, and incidental mentions of resuming a goal do
-   not qualify. Direct repair-and-proceed language such as `Fix the error and
-   continue the build` or `The error should be fixed and the build proceed`
-   qualifies for the unchanged goal. It still grants continuity only and never
-   creates Forge authority.
-5. Maintain a short plan with at most one in-progress step. Put the relevant
-   bead or decision ids in the plan/explanation when the host supports it.
+The worker packet must contain the exact CStar bead id, decision, target paths,
+checker contract, operator gates, and requested/actual model identity fields.
+The Luna Max worker or retained workthread then creates and owns exactly one
+bounded host goal for that assignment. Host-goal status is worker-local
+evidence, never CStar lifecycle truth.
 
-Mark a goal complete only after the requested outcome, focused validation,
-independent review where required, CStar result recording, and closeout are all
-done. Mark it blocked only when the host's blocked threshold is actually met;
-a red gate or failed attempt is a problem to diagnose, plan, and persist, not a
-reason to abandon the mission.
+1. For recoverable correction, keep the same retained workthread and the same
+   host goal; do not create a root-goal replacement.
+2. If a replacement worker is required, give it a new host goal and an explicit
+   bounded CStar handoff with the bead, decision, target paths, checker, and
+   prior evidence. Never silently transfer or inherit hidden host-goal state.
+3. A distinct validator receives a distinct validation goal and never reuses
+   the implementation goal.
+4. Legacy CoS-held goals stay paused and historical until a supported transfer
+   exists. Never delete, silently resume, or falsely complete them.
+5. Maintain a short CoS plan with at most one in-progress step. Put the bead or
+   decision id, worker goal identity/status, and checker in the evidence packet;
+   only CStar transitions determine lifecycle state.
+
+If a host lacks the worker-goal or retained-thread surface, record the exact
+capability gap and stop that assignment. `cstar_goal_resume`, when exposed, is
+only a bounded continuity receipt; it does not mutate a host goal, create a
+generic CStar goal, or launch a worker. CStar records deterministic bead state,
+receipts, validation, and completion through supported kernel paths.
 
 ## 2. Route each bounded subtask
 
@@ -47,32 +45,41 @@ Use the narrowest capable lane:
 - **Corvus Forge / Hermes MiniMax-M3** for implementation when the Forge lane
   applies. Request is no-spend; execute consumes the authorized attempt.
 - **Researcher / Hermes** for authorized research and evidence gathering.
-- **Codex subagent** for bounded analysis, inspection, tests, or independent
-  review. A subagent is not Forge implementation.
-- **CoS bootstrap repair** only when the canonical CStar/Forge boundary itself
-  is broken and the Forge runbook permits the exception.
+- **Host-issued direct Codex subagent or workthread** for a bounded delegated
+  analysis, inspection, or lane-owned check when the host exposes the surface.
+  CoS dispatches the owning worker and reviews returned evidence; it does not
+  perform worker tasks or replace Forge implementation, Researcher collection,
+  or independent validation.
+- **CStar control-plane gaps** are recorded by CoS when the canonical
+  CStar/Forge boundary itself is broken; any substantive repair or debug still
+  goes to a Luna Max worker or the canonical Forge lane, and CoS never edits or
+  validates worker work.
 
 When a Forge cycle has exact zero-provider, zero-spend, no-source, and no-write
 evidence, do not ask the operator to repeat the build request. Preserve the
-original immutable request and authorization, repair the bounded mechanical
-defect, obtain independent validation for the repaired artifacts, and resume
-through its pending continuation receipt. Provider start or ambiguity, scope or
-lock drift, expiry, revocation, and the bounded no-progress limits remain hard
-stops. Goal continuity can keep this workflow moving, but only the original
-Forge authorization supplies execution authority.
+original immutable request and authorization, route the bounded mechanical
+defect through its owning lane, obtain independent validation for the repaired
+artifacts, and resume through its pending continuation receipt. Provider start
+or ambiguity, scope or lock drift, expiry, revocation, and the bounded
+no-progress limits remain hard stops. Goal continuity can keep this workflow
+moving, but only the original Forge authorization supplies execution authority.
 
-Partition agents by independent files or review questions. Avoid concurrent
-edits to the same file. Ask the host for the task-appropriate current GPT-5.6
-profile only when it exposes an enforceable selector:
+Partition assignments by independent files or review questions. Avoid
+concurrent edits to the same file. Every substantive direct Codex subagent and
+retained/resumable workthread must request `gpt-5.6-luna` with reasoning effort
+`max` through a host surface that exposes an enforceable selector. Every worker
+packet records `requested_model`, `requested_reasoning`, `selector_status`, and
+`actual_identity` separately. If the host does not report actual identity,
+record `actual_identity: unreported`; never infer it from the provider, task
+name, or prompt. Selector absence or mismatch is visible and blocked/unsupported
+for that assignment; it may not silently fall back to another model or effort.
 
-- Luna for routine bounded retrieval and mechanical validation.
-- Terra for conflicting-context synthesis and contract integration.
-- Sol for security, architecture, authority, and incident forensics.
-
-Every worker packet records `requested_model`, `requested_reasoning`,
-`actual_model`, and `model_source`. If the runtime does not report actual
-identity, record `actual_model: null` and `model_source: unreported`; never infer
-it from the provider, task name, or prompt.
+The Augury exception is explicit: the first opinion requests `gpt-5.6-sol` at
+reasoning `max`; a needed second opinion requests distinct `gpt-5.6-terra` at
+reasoning `max`. Both require an enforceable selector and separate requested
+versus actual identity recording. This runbook defines no numeric concurrency
+cap; CoS dispatches only operator-granted bounded assignments and pauses for
+live workers or external state.
 
 ## 3. First-task-of-day freshness
 
@@ -126,7 +133,8 @@ lifecycle record. Durable lifecycle changes require the matching
 The first-task-of-day freshness procedure is a CoS host workflow, not a Node
 bootstrap side effect. Repository update, branch mutation, push, merge,
 installation, restart, activation, and cleanup each remain separately
-operator-gated.
+operator-gated. CStar records the deterministic lifecycle state; it does not
+launch a Codex worker, retained workthread, provider, or model cognition.
 
 For each plan step, retain only bounded evidence: exact target manifest,
 source/runtime hashes, requested-versus-actual identity, test commands and
@@ -135,6 +143,8 @@ and lifecycle receipt ids. High-volume logs stay in artifacts; beads receive
 summaries and hashes.
 
 On meaningful project work, send the mapped PMT one compact `STATE_UPDATE` for
-freshness. PMT availability is not an execution gate. Close the host goal only
-after CStar and the evidence agree; installation, restart, activation, merge,
-deployment, and production remain distinct operator gates.
+freshness. PMT availability is not an execution gate. The owning worker closes
+its host goal only after its bounded assignment and checker are complete; CoS
+records CStar lifecycle state from the returned evidence. Installation,
+restart, activation, merge, deployment, and production remain distinct
+operator gates.

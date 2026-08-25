@@ -1,0 +1,10 @@
+schema=cstar.validation_evidence.v3_preflight.v1
+validation_id=validation:cstar-operating-pipeline-v1:independent-20260801-v2
+manifest_path=.cstar/validation/cstar-operating-pipeline-v1-v2-independent-input-20260801.json
+manifest_sha256=96970d7df5d39c0d0512b90e9337562bdb09f0ba659735ba19d4db24f9b462a4
+validator_thread_id=019fbb0b-b2db-7822-9112-f09b367dcfd0
+validator_completion_turn_id=019fbb6c-7963-76c0-ab61-8ae5962e5fbf
+validator_final_message_turn_id=019fbb66-6ad7-7923-b623-447beb91b2bc
+derived_v3_evidence_sha256=dc1d0fa921df72588888b972f91aa56bc160eede93ff1ebc3f2014ec39d1dd6a
+verifier=verifyHostWorkflowValidationEvidence
+result=PASS

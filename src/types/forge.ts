@@ -2,6 +2,7 @@ export type HallForgeWriteCapability = 'response_only' | 'project_files';
 
 export type HallForgeAuthorizationProfile =
     | 'root_user_forge_intent_v1'
+    | 'autonomous_dispatch_policy_v1'
     | 'exact_request_challenge_v1';
 
 export type HallForgeRequestStatus =
@@ -11,7 +12,8 @@ export type HallForgeRequestStatus =
     | 'FAILED_FINAL'
     | 'EXHAUSTED'
     | 'AMBIGUOUS'
-    | 'REVOKED';
+    | 'REVOKED'
+    | 'SUPERSEDED';
 
 export type HallForgeAttemptStatus =
     | 'RESERVED'
@@ -29,6 +31,51 @@ export type HallForgeContinuationStatus =
     | 'PENDING_REPAIR'
     | 'RESUMED'
     | 'BLOCKED';
+
+export type HallForgeMissionGrantStatus =
+    | 'ACTIVE'
+    | 'BLOCKED'
+    | 'REVOKED'
+    | 'EXPIRED'
+    | 'EXHAUSTED';
+
+export const FORGE_MISSION_GRANT_MANDATORY_PROHIBITED_ACTIONS = [
+    'git_branch',
+    'git_commit',
+    'git_push',
+    'git_merge',
+    'git_pull_request',
+    'install',
+    'deploy',
+    'restart',
+    'activation',
+    'secret_config_mutation',
+    'credential_mutation',
+    'token_mutation',
+    'direct_state_write',
+    'destructive_cleanup',
+    'permission_change',
+    'process_control',
+    'service_control',
+    'steering',
+    'locked_holdout',
+    'expanded_spend',
+    'production_claim',
+    'out_of_scope_writes',
+] as const;
+
+export interface ForgeMissionGrantEnvelope {
+    schema: 'cstar.forge_mission_grant_envelope.v1';
+    allowed_targets: string[];
+    allowed_outputs: string[];
+    allowed_actions: string[];
+    prohibited_actions: string[];
+    adapter_ref: string;
+    write_capability: HallForgeWriteCapability;
+    total_provider_attempt_ceiling: number;
+    retry_derived_iteration_ceiling: number;
+    paid_attempt_ceiling: number;
+}
 
 export const FORGE_PRE_PROVIDER_RECOVERABLE_FAILURE_CODES = [
     'forge_hermes_target_material_too_large',
@@ -70,6 +117,8 @@ export interface HallForgeRequestRecord {
     created_at: number;
     updated_at: number;
     completed_at?: number;
+    superseded_by?: string;
+    supersedes_request_id?: string;
 }
 
 export interface HallForgeAuthorizationRecord {
@@ -95,6 +144,65 @@ export interface HallForgeAuthorizationRecord {
     created_at: number;
 }
 
+export interface HallForgeMissionGrantRecord {
+    mission_grant_id: string;
+    repo_id: string;
+    mission_decision_id: string;
+    root_bead_id: string;
+    allowed_child_lineage_json: string;
+    root_thread_id: string;
+    set_turn_id: string;
+    set_record_sha256: string;
+    set_record_set_sha256: string;
+    set_record_count: number;
+    design_sha256: string;
+    allowed_targets_json: string;
+    allowed_outputs_json: string;
+    allowed_actions_json: string;
+    prohibited_actions_json: string;
+    adapter_ref: string;
+    write_capability: HallForgeWriteCapability;
+    total_provider_attempt_ceiling: number;
+    retry_derived_iteration_ceiling: number;
+    paid_attempt_ceiling: number;
+    authorized_at: number;
+    expires_at: number;
+    status: HallForgeMissionGrantStatus;
+    revocation_state: 'ACTIVE' | 'REVOKED';
+    blocked_reason?: string;
+    revoked_at?: number;
+    revocation_reason?: string;
+    created_at: number;
+    updated_at: number;
+}
+
+export interface MaterializeForgeMissionGrantInput {
+    repo_id: string;
+    mission_decision_id: string;
+    root_bead_id: string;
+    allowed_child_lineage: string[];
+    root_thread_id: string;
+    set_turn_id: string;
+    set_record_sha256: string;
+    set_record_set_sha256: string;
+    set_record_count: number;
+    design_sha256: string;
+    allowed_targets: string[];
+    allowed_outputs: string[];
+    allowed_actions: string[];
+    prohibited_actions: string[];
+    adapter_ref: string;
+    write_capability: HallForgeWriteCapability;
+    total_provider_attempt_ceiling: number;
+    retry_derived_iteration_ceiling: number;
+    paid_attempt_ceiling: number;
+    authorization_profile?: HallForgeAuthorizationProfile;
+    policy_provider_attempt_ceiling?: number;
+    authorized_at: number;
+    expires_at: number;
+    now?: number;
+}
+
 export interface SaveForgeRequestInput {
     request_id: string;
     repo_id: string;
@@ -113,6 +221,7 @@ export interface SaveForgeRequestInput {
     authorization_challenge_sha256?: string;
     adapter_ref?: string;
     write_capability?: HallForgeWriteCapability;
+    runtime_evidence_refresh_validated?: true;
     now?: number;
 }
 

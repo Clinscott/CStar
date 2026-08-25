@@ -2,7 +2,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import type { CapabilityExport } from './distributions.js';
-import { CSTAR_KERNEL_TOOL_CATALOG } from '../tools/cstar-kernel-mcp/contracts/tool_catalog.js';
+import {
+    CSTAR_KERNEL_ADVANCED_TOOL_NAMES,
+    CSTAR_KERNEL_COMPATIBILITY_TOOL_NAMES,
+    CSTAR_KERNEL_DEFAULT_OPERATOR_TOOL_NAMES,
+    CSTAR_KERNEL_TOOL_CATALOG,
+} from '../tools/cstar-kernel-mcp/contracts/tool_catalog.js';
 
 interface PackageMetadata {
     name?: string;
@@ -73,13 +78,39 @@ export function buildGeminiManifestContent(projectRoot: string): string {
 function buildAuguryDisplaySection(): string[] {
     return [
         '## Corvus Star Augury [\u03a9]',
-        '- Augury is a read-only typed route explanation, not permission, ownership, a vote, or a generic trace ritual.',
-        '- Use `cstar_augury` only when route or material scope is ambiguous; reuse fresh mission state otherwise.',
+        '- Augury is mode-dependent: omitting `mission_boundary` is a read-only typed route explanation; supplying it materializes one new current exact SET/design mission.',
+        '- New SET/design work uses one strict `cstar_augury` mission boundary, preferring v2 with v1 compatibility, then `cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute -> independent cstar_record_result -> automatic next-child advancement`.',
+        '- Eligible child Forge requests may receive internal request-scoped SET evidence automatically, but `cstar_forge_authorize` remains the explicit no-spend authorization gate for the default operator lifecycle.',
+        '- Neither Augury mode grants permission, ownership, a vote, provider spend, or validation authority.',
+        '- Use advisory Augury only when route or material scope is ambiguous; reuse fresh mission state otherwise.',
+        '- CoS Augury model policy: request `gpt-5.6-sol` at max reasoning for the primary advisory call; when a second opinion is needed, make a distinct `gpt-5.6-terra` call at max reasoning. Use only a host surface with an enforceable selector, record requested versus actual identity, and grant no authority, spend, retries, or scope through this preference.',
         '- Council experts are advisory critique lenses. They cannot authorize work or turn synthetic evidence into proof.',
         '- TokenPath is quarantined. It cannot advise, steer, emit confidence, or accept observation writes until independently promoted.',
         '- Omit numeric confidence unless an independently validated scorer supplies a nonzero denominator, exclusions, class coverage, formula, row evidence, and provenance.',
         '- Foundational CStar work uses `Scope: brain:CStar`; use `Scope: spoke:<name>` only when a spoke is explicit.',
         '- Do not echo a full Augury block unless the operator asks for the route packet.',
+        '',
+    ];
+}
+
+function buildCosDelegationSection(): string[] {
+    return [
+        '## CStar and CoS Delegation Boundary',
+        '- CStar is only the deterministic state manager; it records bounded lifecycle state, receipts, validation, and completion, but does not launch agents, workthreads, providers, or cognition.',
+        '- CoS in Codex is the orchestrator and supervisor/delegator: it sequences CStar state, dispatches owning workers, reviews returned evidence, requests correction, records independent validation, resolves beads, and closes out.',
+        '- CoS must not implement, research, debug, edit source, run worker tests or validation, or silently take over failed worker work.',
+        '- CoS owns no host goal and must never create, resume, update, pause, block, complete, or close a host goal.',
+        '- Every substantive implementation, research, debug, or validation assignment goes to a Luna Max worker/workthread that owns exactly one bounded host goal.',
+        '- The worker-goal objective binds the exact CStar bead id, decision, target paths, and checker contract; host-goal status is worker-local evidence, never CStar lifecycle truth.',
+        '- Recoverable correction stays in the same retained workthread and same goal; a replacement worker gets a new goal plus an explicit bounded CStar handoff and never inherits hidden goal state.',
+        '- A distinct validator owns a distinct validation goal and never reuses the implementation goal; legacy CoS-held goals stay paused/historical until supported transfer and are never silently resumed or falsely completed.',
+        '- CStar has no generic host-goal or worker-launcher surface; `cstar_goal_resume`, when exposed, records continuity only and does not mutate a host goal or launch a worker.',
+        '- A `workthread` is a retained/resumable host-issued worker thread with stable lineage; it is not a CStar kernel/provider launcher, and no runtime support is claimed unless the host exposes it.',
+        '- Every substantive direct Codex subagent and retained/resumable workthread requests `gpt-5.6-luna` with reasoning effort `max` through an enforceable host selector.',
+        '- Record `requested_model`, `requested_reasoning`, `selector_status`, and `actual_identity` separately; use `actual_identity: unreported` when the host reports no actual identity.',
+        '- Selector absence or mismatch is visible; never silently fall back to another model, reasoning effort, provider, or surface.',
+        '- Augury is the exception: request `gpt-5.6-sol` at `max` for the first opinion and distinct `gpt-5.6-terra` at `max` for a needed second opinion, still through an enforceable selector.',
+        '- This contract defines no numeric concurrency cap.',
         '',
     ];
 }
@@ -115,13 +146,13 @@ export function buildGeminiContextContent(projectRoot: string, capabilities: Cap
         '',
         '## Host Behavior',
         '- Read the applicable global and nearest-repository `AGENTS.md` before making structural claims.',
-        '- Use `cstar_doctor` when health is unknown, `cstar_handoff` when resuming, `cstar_augury` when route or scope is ambiguous, and at most one broad `cstar_hall_search` before narrowing.',
+        '- Use `cstar_doctor` when health is unknown, `cstar_handoff` when resuming, advisory `cstar_augury` when route or scope is ambiguous, and at most one broad `cstar_hall_search` before narrowing.',
         '- Use `./cstar hall "<query>"` only when MCP cannot provide the needed primitive and terminal use is explicitly allowed.',
         '- Use `cstar_bead` for bead get/list/create/claim/status/block/resolve operations when available.',
         '- Use `cstar_goal_resume` only for an explicit root-user continuation signal when the host lacks a blocked-to-active transition; it records continuity and does not mutate host state or grant new authority.',
         '- If the MCP surface is degraded or unavailable, report the exact failure and remain read-only for control-plane state; do not mutate Hall or SQLite directly.',
         '- CoS coordinates estate sequencing and bounded Green/Yellow execution. Forge builds implementation; Researcher gathers evidence through authorized lanes.',
-        '- Start or resume one host goal for every non-trivial mission, keep one plan step in progress, and close the goal only after CStar lifecycle state and validation agree.',
+        '- CoS owns no host goal; every substantive assignment is sent to a Luna Max worker/workthread that owns exactly one bounded host goal and returns its local status as evidence.',
         '- Before the first CStar mutation or provider attempt of each local day, follow `docs/operations/cstar-goal-driven-daily-bootstrap.md` for Codex/Hermes freshness; updates do not authorize a restart.',
         '- PMTs are project-scoped information repositories only, and MM has no active routing role.',
         '- Preserve operator gates for acceptance, dispatch, commit, push, merge, deletion, restarts, and publish actions.',
@@ -132,6 +163,7 @@ export function buildGeminiContextContent(projectRoot: string, capabilities: Cap
         '- Public host fronts marked with kernel fallback forbidden must fail closed when no host session is active; they must not degrade into legacy kernel cognition.',
         '- Persona is non-authoritative process guidance. Read only `cstar_status.persona`; O.D.I.N. means build-run-repair and A.L.F.R.E.D. means secure-harden. Omit it when unavailable.',
         '',
+        ...buildCosDelegationSection(),
         ...buildAuguryDisplaySection(),
         ...buildKernelMcpToolsSection(),
         `## Exported Gemini Capabilities (${capabilities.length})`,
@@ -195,7 +227,7 @@ export function buildCodexPluginSkillContent(capabilities: CapabilityExport[]): 
         "    - 'BIDE_INTEGRATION_GUIDE.md'",
         "    - '.agents/skill_registry.json'",
         '  bashPatterns:',
-        "    - '\\\\bcstar\\\\s+(hall|augury|trace|one-mind|status|manifest|evolve|orchestrate)\\\\b'",
+        "    - '\\\\bcstar\\\\s+(hall|augury|status|manifest|evolve)\\\\b'",
         "    - '\\\\bnode\\\\s+bin/cstar\\\\.js\\\\s+'",
         '  promptSignals:',
         '    phrases:',
@@ -226,10 +258,10 @@ export function buildCodexPluginSkillContent(capabilities: CapabilityExport[]): 
         '- If MCP is degraded or unavailable, report the exact failure and remain read-only for control-plane state; do not mutate Hall or SQLite directly.',
         '- Use `./cstar <command>` from the CStar root or `node bin/cstar.js <command>` only when MCP cannot provide the needed primitive or the capability is explicitly terminal-required.',
         '- Use `cstar_handoff` when resuming active planning/runtime state, then carry forward only the lead bead, gate, next action, target paths, and checker commands.',
-        '- Use `cstar_handoff` when resuming, `cstar_doctor` when kernel health is unknown, and `cstar_augury` only when route or material scope is ambiguous.',
+        '- Use `cstar_handoff` when resuming, `cstar_doctor` when kernel health is unknown, advisory `cstar_augury` when route or material scope is ambiguous, and mission-boundary Augury once for a new exact SET/design.',
         '- Use direct Codex thread tools for read/list/send when exposed; session JSONL fallback is read-only degraded mode, not an execution or assignment surface.',
         '- CoS owns estate sequencing, bounded Green/Yellow execution, evidence packaging, lifecycle updates, and closeout.',
-        '- Start or resume one host goal for every non-trivial mission, keep one plan step in progress, and close the goal only after CStar lifecycle state and validation agree.',
+        '- CoS owns no host goal; every substantive assignment is sent to a Luna Max worker/workthread that owns exactly one bounded host goal and returns its local status as evidence.',
         '- Before the first CStar mutation or provider attempt of each local day, follow `docs/operations/cstar-goal-driven-daily-bootstrap.md` for Codex/Hermes freshness; updates do not authorize a restart.',
         '- Forge builds implementation; Researcher gathers evidence; CorvusEye evaluates and red-teams.',
         '- PMTs are project-scoped information repositories only. Query only the mapped PMT for bounded context and send a compact state update after meaningful work.',
@@ -246,6 +278,7 @@ export function buildCodexPluginSkillContent(capabilities: CapabilityExport[]): 
         '- Persona is non-authoritative process guidance. Read only `cstar_status.persona`; use O.D.I.N. for build-run-repair and A.L.F.R.E.D. for secure-harden, without changing scope, authority, or gates.',
         '- Do not run shell `cstar chant` for host-only planning. In Codex, perform the host-native planning and critique in-session, using Hall/Augury state commands for bounded state and evidence.',
         '',
+        ...buildCosDelegationSection(),
         ...buildAuguryDisplaySection(),
         ...buildKernelMcpToolsSection(),
         '## Context Budget',
@@ -295,9 +328,12 @@ function buildKernelMcpToolsSection(): string[] {
         `## Kernel MCP Tools (${CSTAR_KERNEL_TOOL_CATALOG.length})`,
         '',
         'The `cstar-kernel` MCP server is the authoritative kernel surface — invoke these tools directly via MCP rather than shelling out to `./cstar` whenever the needed primitive exists. Tool classes declare bounded effects; observed runtime remains evidence and cannot grant authority. Full API reference: `docs/integrations/cstar-kernel-mcp.md`.',
+        `The default profile exposes exactly ${CSTAR_KERNEL_DEFAULT_OPERATOR_TOOL_NAMES.length} tools. Advanced adds ${CSTAR_KERNEL_ADVANCED_TOOL_NAMES.length}; full compatibility adds the remaining ${CSTAR_KERNEL_COMPATIBILITY_TOOL_NAMES.length} legacy surfaces and exposes all ${CSTAR_KERNEL_TOOL_CATALOG.length}.`,
         '',
-        ...CSTAR_KERNEL_TOOL_CATALOG.map(({ name, toolClass, description }) => (
-            `- \`${name}\` (${toolClass}) — ${description}`
+        ...CSTAR_KERNEL_TOOL_CATALOG.map(({
+            name, toolClass, description, visibility,
+        }) => (
+            `- \`${name}\` (${toolClass}; ${visibility}) — ${description}`
         )),
         '',
     ];

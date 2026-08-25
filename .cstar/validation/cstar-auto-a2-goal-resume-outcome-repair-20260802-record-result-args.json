@@ -1,0 +1,28 @@
+{
+  "bead_id": "bead:cstar:auto-a2-goal-resume-outcome-repair-20260802",
+  "validation_id": "validation:cstar-auto-a2-goal-resume-outcome-repair-20260802:independent-20260802",
+  "verdict": "ACCEPTED",
+  "notes": "Independent host-v3 validation at commit f30be436490584626d1bde347f41cde082ba2b17: exact allowlist only; nine preauthorization guardrail assertions repaired; six internal/transport MCP errors preserved; goal-resume 18, A1 compatibility 113, A2 focused 11, instrumentation plus host-v3 18, typecheck, diff, and line audits passed; no production semantic weakening.",
+  "host_validation_receipt": {
+    "manifest_path": ".cstar/validation/cstar-auto-a2-goal-resume-outcome-repair-20260802-independent-input.json",
+    "manifest_sha256": "9de7421146c1c52293755d4b7820bdcf2b3e8e10c27c9fb48f7bfe8c23afddd1",
+    "validator_thread_id": "019fc346-8a9d-76b3-b3b7-364922f817ff",
+    "validator_turn_id": "019fc350-662d-7413-a6bc-c27b7f0845be"
+  },
+  "validation_evidence": {
+    "artifacts": [
+      {
+        "path": ".cstar/validation/cstar-auto-a2-goal-resume-outcome-repair-20260802-evidence.txt",
+        "sha256": "61a9e11133d01f88ca96a6919f5896a5f03411a4bb1f46a6ff41a9adcb3302e0"
+      }
+    ],
+    "checks": [
+      {
+        "name": "independent_validation_matrix_and_scope",
+        "status": "pass",
+        "evidence_path": ".cstar/validation/cstar-auto-a2-goal-resume-outcome-repair-20260802-checks.txt",
+        "sha256": "ba04c325f7565e4edf7662ccabc607d205fa875b1b5dd0285d498346cd3bf4fe"
+      }
+    ]
+  }
+}

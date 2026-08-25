@@ -1,0 +1,78 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:cstar:augury-set-mission-boundary",
+  "validation_id": "validation:cstar-augury-set-mission-boundary:20260730",
+  "reported_verdict": "ACCEPTED",
+  "artifacts": [
+    {
+      "path": "src/tools/cstar-kernel-mcp/contracts/augury_mission.ts",
+      "sha256": "0aa508b4c65ad056bdd45a6dcbaa9f158592e7432d9e526c3c045128ac2744b8"
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/augury_mission_binding.ts",
+      "sha256": "829459d7cc0a4057e5159077915bdddfd00620eb9ac49868efe5c220086d80ae"
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/augury.ts",
+      "sha256": "b2d521012ad6f078d36cb3c0332cf4f4df8c04fe8fc36cc2517953b862c41821"
+    },
+    {
+      "path": "docs/decisions/cstar-augury-set-mission-boundary.md",
+      "sha256": "ae6eb3e5405f3da895c044785c437c086af1197373843bd8aa27fb74766342bf"
+    },
+    {
+      "path": "tests/features/cstar_augury_set_mission_boundary.feature",
+      "sha256": "668e10471ff0d54eb7be74aec0ff696f1fc70e48514b0bf825317c0a36544a99"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_augury_set_mission_boundary.test.ts",
+      "sha256": "3c9625db2a24bd0697635aaed859900613f0d8593bbf40d4eb3ab9e61e492a78"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_augury_bead_result.test.ts",
+      "sha256": "14c28e12449c9b9acfb68d98f7ea9b863146ac4d0ddc772c34ca113ed99a84db"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_augury_read_only_failure_effects.test.ts",
+      "sha256": "ea642dacb50347833e8b63a5b42d78e9a3daf1420a467fcbb30b780ce8a59cf2"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_codex_request_identity.test.ts",
+      "sha256": "caaa6377984a58efb7c906d1553a8409a02e359ce07196ae170d8ff3e3699577"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_tool_catalog.test.ts",
+      "sha256": "dfc762acf958919d2b27806f42df90765c0df80634246d3d065c97c31a46a49d"
+    },
+    {
+      "path": "tests/integration/cstar_kernel_mcp_stdio.test.ts",
+      "sha256": "daa77e5f9c02a8dc54f1109d288564038ffc6cfa7e4a4c6f55a71d8835a57108"
+    }
+  ],
+  "checks": [
+    {
+      "name": "Augury mission boundary adversarial suite 68 of 68",
+      "status": "pass",
+      "evidence_path": "tests/unit/cstar-kernel-mcp/test_augury_set_mission_boundary.test.ts",
+      "sha256": "3c9625db2a24bd0697635aaed859900613f0d8593bbf40d4eb3ab9e61e492a78"
+    },
+    {
+      "name": "supported root request identity and exact SET binding",
+      "status": "pass",
+      "evidence_path": "tests/unit/cstar-kernel-mcp/test_codex_request_identity.test.ts",
+      "sha256": "caaa6377984a58efb7c906d1553a8409a02e359ce07196ae170d8ff3e3699577"
+    },
+    {
+      "name": "legacy Augury result and read-only compatibility",
+      "status": "pass",
+      "evidence_path": "tests/unit/cstar-kernel-mcp/test_augury_bead_result.test.ts",
+      "sha256": "14c28e12449c9b9acfb68d98f7ea9b863146ac4d0ddc772c34ca113ed99a84db"
+    },
+    {
+      "name": "typecheck catalog stdio diff and line-limit audit",
+      "status": "pass",
+      "evidence_path": "tests/integration/cstar_kernel_mcp_stdio.test.ts",
+      "sha256": "daa77e5f9c02a8dc54f1109d288564038ffc6cfa7e4a4c6f55a71d8835a57108"
+    }
+  ]
+}

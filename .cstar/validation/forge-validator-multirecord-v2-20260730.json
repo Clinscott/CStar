@@ -1,0 +1,32 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:cstar:operating-pipeline-v1-batch-1",
+  "validation_id": "validation:cstar-forge-validator-multirecord-v2:20260730",
+  "reported_verdict": "ACCEPTED",
+  "artifacts": [
+    {
+      "path": "src/types/validation_evidence.ts",
+      "sha256": "1aae8c47b2a02f45d25d9acce046005c4842fd131df7ade571ba7abd16e63489",
+      "bytes": 15229
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_validation_evidence_type_boundary.test.ts",
+      "sha256": "061d25ec177768a312c3776a50c342d8a44a434fc263e030757bd1857f9bd0b0",
+      "bytes": 7661
+    }
+  ],
+  "checks": [
+    {
+      "name": "multi-record v2 independence contract review",
+      "status": "pass",
+      "evidence_path": "src/types/validation_evidence.ts",
+      "sha256": "1aae8c47b2a02f45d25d9acce046005c4842fd131df7ade571ba7abd16e63489"
+    },
+    {
+      "name": "focused validation receipt suites 11 of 11",
+      "status": "pass",
+      "evidence_path": "tests/unit/cstar-kernel-mcp/test_validation_evidence_type_boundary.test.ts",
+      "sha256": "061d25ec177768a312c3776a50c342d8a44a434fc263e030757bd1857f9bd0b0"
+    }
+  ]
+}

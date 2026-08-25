@@ -1,5 +1,7 @@
 import { createHash } from 'node:crypto';
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export interface HallValidationEvidenceManifestV1 {
     schema: 'cstar.validation-evidence.v1';
     validator_identity: string;
@@ -89,6 +91,8 @@ export interface HallValidationEvidenceManifestV3 {
         recorder_record_set_sha256: string;
         validator_thread_id: string;
         validator_turn_id: string;
+        /** Final assistant-message id when the host uses a distinct completion id. */
+        validator_final_turn_id?: string;
         validator_parent_thread_id: string;
         validator_agent_path: string;
         validator_session_sha256: string;
@@ -189,13 +193,13 @@ export function isValidationEvidenceManifestV2StructurallyValid(
         || VALIDATION_EVIDENCE_SHA256.test(manifest.session_turn_record_set_sha256)
     ) && (
         manifest.session_turn_record_count === undefined
-        || manifest.session_turn_record_count === 1
+        || positiveSafeRecordCount(manifest.session_turn_record_count)
     );
     const requestRecordFieldsValid = manifest.validator_identity_source === 'test_fixture'
         ? optionalRequestRecordFieldsValid
         : VALIDATION_EVIDENCE_SHA256.test(manifest.session_turn_record_sha256 ?? '')
             && VALIDATION_EVIDENCE_SHA256.test(manifest.session_turn_record_set_sha256 ?? '')
-            && manifest.session_turn_record_count === 1
+            && positiveSafeRecordCount(manifest.session_turn_record_count)
             && nonempty(manifest.session_turn_first_timestamp)
             && nonempty(manifest.session_turn_timestamp);
     return manifest.schema === 'cstar.validation-evidence.v2'
@@ -231,7 +235,8 @@ export function isValidationEvidenceManifestV2StructurallyValid(
         && nonempty(independence.executor_turn_id)
         && VALIDATION_EVIDENCE_SHA256.test(independence.executor_record_sha256)
         && VALIDATION_EVIDENCE_SHA256.test(independence.executor_record_set_sha256)
-        && independence.executor_record_count === 1
+        && Number.isSafeInteger(independence.executor_record_count)
+        && independence.executor_record_count > 0
         && manifest.request_thread_id !== independence.requester_thread_id
         && manifest.request_thread_id !== independence.executor_thread_id
         && Array.isArray(manifest.artifacts)
@@ -310,6 +315,8 @@ export function isValidationEvidenceManifestV3StructurallyValid(
         )
         && nonempty(independence.validator_thread_id)
         && nonempty(independence.validator_turn_id)
+        && (independence.validator_final_turn_id === undefined
+            || UUID.test(independence.validator_final_turn_id))
         && independence.validator_parent_thread_id === independence.recorder_thread_id
         && /^\/root\/[a-z0-9_]+$/.test(independence.validator_agent_path)
         && VALIDATION_EVIDENCE_SHA256.test(independence.validator_session_sha256)

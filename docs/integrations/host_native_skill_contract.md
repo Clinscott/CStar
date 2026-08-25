@@ -12,6 +12,24 @@ This is the invocation contract for the three current capabilities marked
 They are agent-native procedures. They are not public shell commands, runtime
 models, or dispatcher-owned executions.
 
+## Control-Plane and Orchestration Boundary
+
+CStar is only the deterministic state manager. It records bounded lifecycle
+state, receipts, validation, and completion, but it does not launch agents,
+retained workthreads, providers, or model cognition.
+
+CoS in Codex is the orchestrator and supervisor/delegator. It binds and
+sequences CStar state, defines bounded assignments, dispatches owning workers,
+reviews returned evidence, requests correction, records independent validation,
+resolves beads, and closes out. CoS must not implement, research, debug, edit
+source, run worker tests or validation, or silently take over failed worker
+work.
+
+A `workthread` means a retained/resumable host-issued worker thread with stable
+lineage. It is a host continuity surface, not a CStar kernel worker launcher or
+a provider launcher. No runtime support is claimed unless the host exposes the
+surface.
+
 ## Host Path
 
 The active host:
@@ -36,6 +54,10 @@ or generic `hostSessionInvoker` to simulate skill execution.
 The kernel may catalog a host-only skill and fail closed if terminal or runtime
 dispatch is attempted. Recognition in `cstar manifest`, `active_in_runtime`, or
 an adapter map is discovery evidence only.
+
+CStar must not become an agent launcher. It must not create or revive a worker
+thread, provider attempt, legacy host delegation path, or generic model callback
+from a capability declaration.
 
 A failed kernel adapter executes exactly once. CStar preserves the original
 failure and adds `operator_action_required: true` with
@@ -83,6 +105,45 @@ attempt receives an `AbortSignal`; CStar waits for that runner to settle before
 cleaning its scratch files or returning the timeout. The attempt is reported as
 dispatched, is never retried, and cannot switch provider or surface.
 
+## Codex Worker Selector Contract
+
+Every substantive direct Codex subagent and retained/resumable workthread must
+request `gpt-5.6-luna` with reasoning effort `max` through a host surface that
+exposes an enforceable selector. Record `requested_model`,
+`requested_reasoning`, `selector_status`, and `actual_identity` separately. If
+the host reports no actual identity, record `actual_identity: unreported` and
+do not infer it from the provider, task, or prompt.
+
+Selector absence or mismatch is a visible blocked/unsupported result. The host
+must not silently substitute another model, reasoning effort, provider, or
+surface. The Augury exception is bounded: its first opinion requests
+`gpt-5.6-sol` at `max`, and a needed second opinion requests distinct
+`gpt-5.6-terra` at `max`; both still require the same selector and identity
+receipt. This contract defines no numeric concurrency cap.
+
+## Worker-Owned Host-Goal Contract
+
+A CStar bead or decision is canonical deterministic state; a host goal is
+worker-local evidence. CoS owns no host goal and must never create, resume,
+update, pause, block, complete, or close one. CoS only binds the exact bead and
+dispatches the owning worker through the host surface.
+
+Every substantive implementation, research, debug, or validation assignment
+goes to a Luna Max worker or retained workthread that owns exactly one bounded
+host goal. Its objective binds the exact CStar bead id, decision, target paths,
+and checker contract. Recoverable correction stays in the same retained
+workthread and goal. A replacement worker gets a new host goal plus an explicit
+bounded CStar handoff; it never silently inherits hidden host-goal state. A
+distinct validator owns a distinct validation goal and never reuses the
+implementation goal.
+
+Host-goal status is worker-local evidence, never CStar lifecycle authority.
+Legacy CoS-held goals remain paused and historical until a supported transfer
+exists; never delete, silently resume, or falsely complete them. CStar has no
+generic host-goal or worker-launcher surface. If `cstar_goal_resume` is exposed,
+it records only a bounded continuity receipt and does not mutate a host goal or
+launch a worker.
+
 ## Terminal Policy
 
 Direct terminal skill dispatch is forbidden:
@@ -90,6 +151,8 @@ Direct terminal skill dispatch is forbidden:
 - no `cstar run-skill <id>`;
 - no dynamic registry-trigger execution;
 - no shell wrapper that turns a `SKILL.md` into a model/process callback; and
+- no CStar kernel worker launcher, provider launcher, revived legacy host
+  delegation, or unexposed workthread runtime; and
 - no legacy weave, One Mind, Ravens, AutoBot, or model-memory fallback.
 
 A skill may explicitly direct the host to run a bounded terminal command when
@@ -117,4 +180,5 @@ receive a compact `STATE_UPDATE`; they grant no authority. MM is legacy.
 If the host cannot read the instruction file, the kernel surface is degraded,
 or the required gate is absent, stop the affected transition and report the
 exact failure. Do not fall back to a public model route, legacy runtime, ad hoc
-Hall/SQLite write, or untracked shell mutation.
+Hall/SQLite write, untracked shell mutation, or a substitute model/effort when
+the requested worker selector is absent or mismatched.

@@ -32,6 +32,7 @@ const DEFAULT_HOST_VALIDATOR_AGENT_PATH = '/root/validator';
 const MAX_EVIDENCE_BYTES = 4 * 1024 * 1024;
 const MAX_RECEIPT_AGE_MS = 24 * 60 * 60 * 1000;
 const MAX_VALIDATOR_FINAL_BYTES = 256 * 1024;
+const MEMORY_CITATION_SUFFIX = /^\s*<oai-mem-citation>\s*<citation_entries>[\s\S]*<\/citation_entries>\s*<rollout_ids>[\s\S]*<\/rollout_ids>\s*<\/oai-mem-citation>\s*$/u;
 
 export interface HostValidationReceiptInput {
     validator_thread_id: string;
@@ -64,6 +65,7 @@ interface IndependentValidationInput {
 
 interface ValidatorSessionReceipt {
     agentPath: string;
+    finalTurnId: string;
     sessionSha256: string;
     finalRecordSha256: string;
     taskCompleteRecordSha256: string;
@@ -117,6 +119,12 @@ function outputText(payload: Record<string, unknown>): string | null {
     return parts.some((entry) => entry === null) ? null : parts.join('');
 }
 
+function taskCompleteMessageMatches(finalText: string, completedMessage: string): boolean {
+    if (completedMessage === finalText) return true;
+    return finalText.startsWith(completedMessage)
+        && MEMORY_CITATION_SUFFIX.test(finalText.slice(completedMessage.length));
+}
+
 function verifyValidatorSession(
     rootThreadId: string,
     input: HostValidationReceiptInput,
@@ -136,6 +144,14 @@ function verifyValidatorSession(
     let finalRecordIndex = -1;
     let finalRecordSha256 = '';
     let finalTimestamp = Number.NaN;
+    let finalTurnId = '';
+    const finalCandidates: Array<{
+        index: number;
+        text: string;
+        recordSha256: string;
+        timestamp: number;
+        turnId: string;
+    }> = [];
     let taskCompleteIndex = -1;
     let taskCompleteRecordSha256 = '';
     let completedAt = Number.NaN;
@@ -152,12 +168,15 @@ function verifyValidatorSession(
             const spawn = subagent && isRecord(subagent.thread_spawn)
                 ? subagent.thread_spawn : undefined;
             const candidatePath = validatorAgentPath(payload, spawn);
+            const forkedFromMatches = !Object.prototype.hasOwnProperty.call(
+                payload, 'forked_from_id',
+            ) || payload.forked_from_id === rootThreadId;
             if (
                 index !== 0
                 || payload.thread_source !== 'subagent'
                 || payload.session_id !== rootThreadId
                 || payload.parent_thread_id !== rootThreadId
-                || payload.forked_from_id !== rootThreadId
+                || !forkedFromMatches
                 || spawn?.parent_thread_id !== rootThreadId
                 || spawn?.depth !== 1
                 || candidatePath === null
@@ -174,20 +193,44 @@ function verifyValidatorSession(
             && payload.type === 'message'
             && payload.role === 'assistant'
             && payload.phase === 'final_answer'
-            && metadata?.turn_id === input.validator_turn_id
         ) {
-            if (finalRecordIndex >= 0) throw new Error('host_validation_validator_final_ambiguous');
             const text = outputText(payload);
-            if (!text || typeof row.timestamp !== 'string') {
+            const candidateTurnId = typeof metadata?.turn_id === 'string'
+                ? metadata.turn_id : '';
+            if (!text || !UUID.test(candidateTurnId) || typeof row.timestamp !== 'string') {
                 throw new Error('host_validation_validator_final_invalid');
             }
-            if (Buffer.byteLength(text, 'utf-8') > MAX_VALIDATOR_FINAL_BYTES) {
+            const timestamp = Date.parse(row.timestamp);
+            if (!Number.isFinite(timestamp)) {
+                throw new Error('host_validation_validator_final_invalid');
+            }
+            if (Buffer.byteLength(text, 'utf-8') > MAX_VALIDATOR_FINAL_BYTES
+                && candidateTurnId === input.validator_turn_id) {
                 throw new Error('host_validation_validator_final_size_limit_exceeded');
             }
-            finalText = text;
-            finalRecordIndex = index;
-            finalRecordSha256 = sha256(rawLine);
-            finalTimestamp = Date.parse(row.timestamp);
+            if (Buffer.byteLength(text, 'utf-8') <= MAX_VALIDATOR_FINAL_BYTES) {
+                const candidate = {
+                    index,
+                    text,
+                    recordSha256: sha256(rawLine),
+                    timestamp,
+                    turnId: candidateTurnId,
+                };
+                finalCandidates.push(candidate);
+                if (candidateTurnId === input.validator_turn_id) {
+                    if (finalRecordIndex >= 0) {
+                        throw new Error('host_validation_validator_final_ambiguous');
+                    }
+                    finalText = candidate.text;
+                    finalRecordIndex = candidate.index;
+                    finalRecordSha256 = candidate.recordSha256;
+                    finalTimestamp = candidate.timestamp;
+                    finalTurnId = candidate.turnId;
+                }
+            }
+            if (taskCompleteIndex >= 0 && index > taskCompleteIndex) {
+                laterTurnActivity = true;
+            }
             return;
         }
         if (row.type === 'event_msg' && payload.type === 'task_complete') {
@@ -201,7 +244,27 @@ function verifyValidatorSession(
                 taskCompleteIndex = index;
                 taskCompleteRecordSha256 = sha256(rawLine);
                 completedAt = payload.completed_at * 1000;
-                if (payload.last_agent_message !== finalText) {
+                if (finalRecordIndex < 0) {
+                    const eventTimestamp = Date.parse(row.timestamp as string);
+                    const matchingCandidates = finalCandidates.filter((candidate) => (
+                        candidate.index < index
+                        && taskCompleteMessageMatches(candidate.text, payload.last_agent_message as string)
+                        && candidate.timestamp <= eventTimestamp + 1_000
+                        && eventTimestamp - candidate.timestamp <= 60_000
+                    ));
+                    if (matchingCandidates.length > 1) {
+                        throw new Error('host_validation_validator_final_ambiguous');
+                    }
+                    const candidate = matchingCandidates[0];
+                    if (candidate) {
+                        finalText = candidate.text;
+                        finalRecordIndex = candidate.index;
+                        finalRecordSha256 = candidate.recordSha256;
+                        finalTimestamp = candidate.timestamp;
+                        finalTurnId = candidate.turnId;
+                    }
+                }
+                if (!taskCompleteMessageMatches(finalText, payload.last_agent_message)) {
                     throw new Error('host_validation_task_complete_message_mismatch');
                 }
                 const eventTimestamp = Date.parse(row.timestamp);
@@ -242,6 +305,7 @@ function verifyValidatorSession(
     }
     return {
         agentPath,
+        finalTurnId,
         sessionSha256: scan.sha256,
         finalRecordSha256,
         taskCompleteRecordSha256,
@@ -380,6 +444,7 @@ export function verifyHostWorkflowValidationEvidence(
             recorder_record_set_sha256: recorder.turn_record_set_sha256,
             validator_thread_id: receipt.validator_thread_id,
             validator_turn_id: receipt.validator_turn_id,
+            validator_final_turn_id: validator.finalTurnId,
             validator_parent_thread_id: recorder.thread_id,
             validator_agent_path: validator.agentPath,
             validator_session_sha256: validator.sessionSha256,

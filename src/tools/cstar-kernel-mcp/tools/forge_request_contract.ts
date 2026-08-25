@@ -63,6 +63,22 @@ export interface CanonicalForgeRequest {
     max_attempts: number;
 }
 
+export function assertPendingForgeAuthorizationPolicy(
+    requestSummary: CanonicalForgeRequest,
+): void {
+    if (requestSummary.schema !== 'cstar.forge_request.v3'
+        || requestSummary.spend_policy.mode !== 'live_authorized'
+        || requestSummary.spend_policy.max_retries !== 0
+        || requestSummary.spend_policy.live_source_allowed !== false
+        || requestSummary.retry_budget !== 0
+        || requestSummary.fixture_policy !== 'synthetic_only'
+        || requestSummary.max_attempts !== 1
+        || !requestSummary.adapter_ref
+        || !requestSummary.write_capability) {
+        throw new Error('forge_authorization_request_policy_invalid');
+    }
+}
+
 function sha256(value: string): string {
     return createHash('sha256').update(value, 'utf-8').digest('hex');
 }

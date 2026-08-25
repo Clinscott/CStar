@@ -1,0 +1,10 @@
+schema=cstar.validation_check.v1
+bead_id=bead:cstar:operating-pipeline-v1-batch-1
+code_root=/home/morderith/Corvus/CStar/work/truth/cstar-master-20260730
+dependency_lineage=verified_lock_match
+dependency_mismatch_count=0
+better_sqlite3_native_artifacts=1/1 verified
+node_modules_realpath=/home/morderith/Corvus/CStar/work/truth/cstar-master-20260730/node_modules
+forge_runtime_manifest_sha256=19a751c9076e26f4ddb0698d0b786d5a9b4c99c9d852f9d157fed2f064d56617
+source_probe=library_default; live-launcher readiness not invoked
+validator_scope=source_and_contract_only

@@ -3,7 +3,7 @@
 > The authoritative kernel surface for Corvus Star. READ, MUTATION, and REQUEST
 > tools expose bounded kernel primitives and gates. `cstar_forge_execute` is the
 > sole EXECUTION tool: live mode requires a durable immutable request, verified
-> one-shot operator attestation, exact request/output locks, atomic attempt
+> mission grant or legacy compatibility recovery, exact request/output locks, atomic attempt
 > reservation, and a sealed private Hermes/MiniMax-M3 adapter. Delivery remains
 > unverified until independent `cstar_record_result` validation finalizes it.
 > Host agents (Claude, Gemini, Codex) call these tools directly over MCP rather
@@ -79,10 +79,10 @@ attestation design as a multi-user or hostile-local-process security boundary.
 
 The historical-cohort rules in this subsection apply to generic CStar request
 identity and legacy evidence only. They do not authorize Forge spend. Forge v3
-uses the stricter singleton operator-intent protocol documented under
-`cstar_forge_authorize`: current/latest root-user turn, one user record, bounded
-canonical `input_text`, an exact durable work reference, and no steering.
-Preserved v2 compatibility alone retains an internal exact-challenge protocol.
+uses either an exact singleton `SET` bound to a durable mission manifest or the
+compatibility operator-intent protocol documented under
+`cstar_forge_authorize`. Preserved v2 compatibility alone retains an internal
+exact-challenge protocol.
 
 A Codex host may persist more than one legitimate root-user message for one
 `turn_id` when the operator steers an active turn. CStar treats those messages
@@ -168,9 +168,10 @@ request metadata, both the latest request cohort and the historical consent and
 revocation state are derived from the same descriptor scan; no second session
 snapshot can race the first.
 
-One Forge authorization durably persists the singleton authorization-row hash,
-its record-set digest/count, request and requester lineage, a bounded intent
-projection, request hash, thread, turn, expiry, and one-request-per-turn binding.
+An exact `SET` deterministically materializes one durable mission grant. Each
+eligible immutable request receives its own authorization receipt bound to the
+SET record and record-set hashes, root thread, manifest lineage/design, scope,
+adapter/capability, expiry, revocation state, and aggregate attempt ceilings.
 Legacy exact-profile receipts additionally retain their challenge hash. A new
 `cstar_forge_execute` reservation independently recovers that same current turn
 before preflight and again immediately before reservation. Any drift fails before
@@ -293,50 +294,52 @@ Priority write surfaces include a deterministic `mutation` object:
 
 `cstar_autobot` is decommissioned and absent from the supported runtime
 inventory. No environment variable reactivates it. Live implementation uses
-only `cstar_forge_request` followed by `cstar_forge_authorize` and
-`cstar_forge_execute` through the sealed
+only `cstar_forge_request`, its kernel-derived request authorization receipt,
+and `cstar_forge_execute` through the sealed
 private Hermes `cstar-hub`/MiniMax-M3 adapter. A model response is evidence, not
 lifecycle state or validation.
 
 ---
 
-## Tool Inventory (28)
+## Tool Inventory (28; default 15, advanced adds 9, full compatibility 28)
 
 The typed source of truth is
 `src/tools/cstar-kernel-mcp/contracts/tool_catalog.ts`. Runtime registration,
 host packaging, and parity tests consume that metadata directly; this table is
-the reader-facing purpose projection.
+the reader-facing purpose and visibility projection. The full compatibility
+discovery delta is the 12 non-default tools: nine advanced plus three
+compatibility-only surfaces.
 
-| # | Tool | Tier |
-|:---|:---|:---|
-| 1 | `cstar_handoff` | Active state |
-| 2 | `cstar_hall_search` | Discovery |
-| 3 | `cstar_hall_maintenance` | Retired compatibility |
-| 4 | `cstar_augury` | Routing |
-| 5 | `cstar_researcher_request` | Dispatch request |
-| 6 | `cstar_forge_request` | Dispatch request |
-| 7 | `cstar_forge_authorize` | Work-referenced root-user authorization |
-| 8 | `cstar_forge_execute` | One-shot sealed Forge execution |
-| 9 | `cstar_doctor` | Diagnostics |
-| 10 | `cstar_verify_plan` | Verification |
-| 11 | `cstar_bead` | Bead lifecycle |
-| 12 | `cstar_goal_resume` | Host-goal continuity evidence |
-| 13 | `cstar_spoke_bead_import` | Bead lifecycle |
-| 14 | `cstar_record_result` | Verification |
-| 15 | `cstar_engram_record` | Memory write |
-| 16 | `cstar_war_game_score` | War games |
-| 17 | `cstar_manifest` | Capability discovery |
-| 18 | `cstar_skill_info` | Capability discovery |
-| 19 | `cstar_spoke_journal` | Spoke state |
-| 20 | `cstar_pennyone_context` | Data context |
-| 21 | `cstar_mongo_mailbox` | Retired compatibility |
-| 22 | `cstar_status` | Diagnostics |
-| 23 | `cstar_persona_set` | Explicit workflow posture |
-| 24 | `cstar_evolve` | Karpathy loop (read-only) |
-| 25 | `cstar_spoke` | Spoke lifecycle |
-| 26 | `cstar_intent_route` | Routing |
-| 27 | `cstar_warden` | Sentinel Wardens |
-| 28 | `cstar_telemetry` | Diagnostics |
+| # | Tool | Tier | Visibility |
+|:---|:---|:---|:---|
+| 1 | `cstar_handoff` | Active state | default |
+| 2 | `cstar_hall_search` | Discovery | default |
+| 3 | `cstar_hall_maintenance` | Retired compatibility | compatibility |
+| 4 | `cstar_augury` | Advisory route or SET/design materialization | default |
+| 5 | `cstar_researcher_request` | Dispatch request | default |
+| 6 | `cstar_forge_request` | Dispatch request | default |
+| 7 | `cstar_forge_authorize` | Explicit no-spend authorization | default |
+| 8 | `cstar_forge_execute` | One-shot sealed Forge execution | default |
+| 9 | `cstar_doctor` | Diagnostics | default |
+| 10 | `cstar_verify_plan` | Verification | default |
+| 11 | `cstar_bead` | Bead lifecycle | default |
+| 12 | `cstar_goal_resume` | Host-goal continuity evidence | default |
+| 13 | `cstar_spoke_bead_import` | Bead lifecycle | advanced |
+| 14 | `cstar_record_result` | Verification and advancement | default |
+| 15 | `cstar_engram_record` | Memory write | advanced |
+| 16 | `cstar_war_game_score` | War games | advanced |
+| 17 | `cstar_manifest` | Capability discovery | default |
+| 18 | `cstar_skill_info` | Capability discovery | default |
+| 19 | `cstar_spoke_journal` | Spoke state | advanced |
+| 20 | `cstar_pennyone_context` | Data context | advanced |
+| 21 | `cstar_mongo_mailbox` | Retired compatibility | compatibility |
+| 22 | `cstar_status` | Diagnostics | default |
+| 23 | `cstar_persona_set` | Explicit workflow posture | default |
+| 24 | `cstar_evolve` | Karpathy loop (read-only) | advanced |
+| 25 | `cstar_spoke` | Spoke lifecycle | advanced |
+| 26 | `cstar_intent_route` | Legacy grammar projection | compatibility |
+| 27 | `cstar_warden` | Sentinel Wardens | advanced |
+| 28 | `cstar_telemetry` | Diagnostics | advanced |
 
 ---
 
@@ -425,9 +428,11 @@ with `ENGRAM` or `LESSON` filters for bounded read-only inspection.
 
 ## 4. `cstar_augury`
 
-Resolve one mission to deterministic, typed, non-authoritative routing advice,
-an immutable Council critique lens, bounded Mimir targets, and explicit
-TokenPath quarantine status.
+Mode-dependent mission primitive. Omitting `mission_boundary` returns
+deterministic, typed, non-authoritative routing advice, an immutable Council
+critique lens, bounded Mimir targets, and explicit TokenPath quarantine status
+without a Hall write. Supplying `mission_boundary` materializes exactly one new
+current exact `SET`/design mission and is therefore a MUTATION.
 
 **Input:**
 - `prompt` (string, required) — user prompt or mission statement
@@ -436,6 +441,23 @@ TokenPath quarantine status.
 - `scope` (string, optional)
 - `bead_id` (string, optional) — accepted for compatibility only; TokenPath
   neither reads it nor writes or links advice
+- `mission_boundary` (strict object, optional) — omit for read-only advisory
+  routing; supply one canonical `cstar.augury_mission_boundary.v2` (preferred)
+  or v1 compatibility object for a new exact SET/design. Both schemas include
+  strict repository, design, scope, contained targets, ordered bead plan, and
+  optional replay bindings. V2 additionally requires `version: 2`, complete
+  nullable/non-null child Forge request-template bindings on every plan item,
+  and replay hashes/counts for the ordered templates. Unknown fields fail.
+
+The MCP catalog intentionally publishes a compact transport schema for
+`mission_boundary`. It exposes the top-level contract, the v1/v2 identity
+discriminant, and v2 guidance without recursively expanding every nested
+boundary and child-template field. This catalog schema is discovery metadata,
+not the authority boundary: `cstar_augury` reparses every supplied value with
+the strict canonical `auguryMissionBoundarySchema` before preparation or Hall
+materialization. Nested-invalid and unknown fields therefore fail closed with
+the stable `augury_mission_*` error envelope. Omission bypasses that mutation
+path and remains advisory/read-only.
 
 **Output (matched):**
 ```json
@@ -462,10 +484,13 @@ TokenPath quarantine status.
 }
 ```
 
-Augury explains route and scope; it grants no execution, spend, mutation, or
-validation authority. Use it when a route or material scope is ambiguous, not
-as a per-turn ritual. No numeric confidence is emitted unless an independent
-scorer with a real denominator has run.
+Advisory Augury explains route and scope; it grants no execution, spend,
+mutation, or validation authority. Mission-boundary Augury records the strict
+mission topology and immutable templates but still grants no provider or
+validation authority. Use advisory mode when a route or material scope is
+ambiguous and mission mode once for a new SET/design, not as a per-turn ritual.
+No numeric confidence is emitted unless an independent scorer with a real
+denominator has run.
 
 While quarantine is active, this TokenPath block is a static status envelope,
 not advice. `cstar_augury` does not read `AUGURY_TOKEN_PATH_ROOT`, probe an
@@ -486,7 +511,7 @@ background:
   "current_mission_route": {
     "source": "deterministic",
     "intent_category": "HARDEN",
-    "selection": "WEAVE: contract_hardening",
+    "selection": "SKILL: contract_hardening",
     "target_paths": ["<caller target>", "..."]
   },
   "active_session_suggestion": {
@@ -508,6 +533,9 @@ background:
 }
 ```
 
+Persisted legacy routes may still contain the retired `WEAVE` tier for replay
+compatibility. Active/public Augury output normalizes that tier to `SKILL`.
+
 Agents must treat `current_mission_route` as the route for the current call.
 `active_session_suggestion` is historical/background context unless
 `authoritative` is `true`. A fail-loud response with
@@ -524,9 +552,24 @@ validate the request contract and return compact receipts for CoS plus bounded
 state-update packets. They do not run live Researcher, Forge, Hermes,
 MiniMax, source adapters, browser collection, GitHub mutation, or model spend
 by themselves. `cstar_forge_request` additionally persists an immutable Hall
-request. Live intent remains `PENDING_AUTH` until the separate authorization
-surface binds a one-shot root-user grant; `cstar_researcher_request` remains a no-spend
-request receipt rather than an execution surface.
+request. When the request is an exact subset of an active exact-`SET` mission
+grant, the same Hall transaction derives a unique request-scoped authorization
+receipt and returns `AUTHORIZED`; otherwise it remains `PENDING_AUTH`.
+`cstar_researcher_request` remains a no-spend request receipt.
+
+The canonical active chain is `one cstar_augury mission_boundary ->
+cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute ->
+independent cstar_record_result -> automatic next-child advancement`.
+Exact-SET request-scoped evidence may be derived during materialization, but
+the default operator authorization gate remains explicit and no-spend.
+
+The durable mission grant binds repository, mission/root-bead lineage, root
+thread, exact `SET` turn and record hashes, design, targets/outputs/actions,
+adapter/capability, aggregate provider/paid/retry ceilings, expiry, and
+revocation state. Children may narrow but never widen. Unknown spend blocks the
+grant lineage; expiry, revocation, drift, exhaustion, and separately gated red
+actions fail closed. Pending unspent legacy receipts remain compatible and are
+never auto-upgraded after spend, ambiguity, expiry, or a terminal transition.
 
 **Input contract:**
 - `bead_id` or `decision_id` — CStar lifecycle anchor; a decision id is generated when needed.
@@ -584,11 +627,10 @@ If a required metric, callback packet, prohibited-action list, or dispatch
 surface proof is missing, the tools return `isError: true` with
 `status: "rejected"` or a fail-closed receipt. A request never proves
 implementation. A live-intent Forge request returns its complete
-`authorization_manifest`, stable canonical JSON, and `request_sha256` while
-remaining `PENDING_AUTH`; normal v3 responses expose no machine challenge. It
-becomes durable execution authority
-only through the separate authorize surface and still requires the atomic
-execute gate; all other request receipts are no-spend routing evidence.
+`authorization_manifest`, stable canonical JSON, and `request_sha256`.
+An eligible mission request also returns `AUTHORIZED`, its mission grant id,
+and the opaque request-scoped authorization reference. Execute remains a
+separate receipt-driven gate and never runs directly from `SET`.
 
 If activation restarts Codex before authorization, the pending request and host
 goal remain context but do not replay operator authority. The operator sends one
@@ -599,7 +641,10 @@ call.
 
 ## 4c. `cstar_forge_authorize`
 
-No-spend authorization primitive for one immutable Forge request. Tool inputs
+Explicit no-spend authorization and exact-challenge compatibility primitive for one immutable
+legacy Forge request. It is not part of active SET/design routing. It remains
+registered only in the full compatibility tool profile and is absent from both
+the default and advanced profiles. Tool inputs
 are only `forge_request_receipt_id` and `request_sha256`; Codex derives them from
 the request it just constructed, and the operator never pastes machine tokens.
 The current/latest canonical root-user turn must contain exactly one operative
@@ -653,9 +698,9 @@ root thread independently validate the delivered v2 attempt through
 `cstar_record_result`; delivery alone remains non-authoritative.
 
 Codex must verify the `authorization_manifest` against the accepted bead or
-proposal before calling authorize. If the work reference is absent or
+proposal before compatibility authorization. If the work reference is absent or
 ambiguous, it asks one human-readable clarification; it never asks the operator
-to echo the request hash or a challenge. After authorization, CoS must call
+to echo the request hash or a challenge. After compatibility authorization, CoS must call
 `cstar_forge_execute` for the initial reservation in that same root-user turn.
 A later root-user turn can retrieve an already durable attempt with its original
 idempotency key. It may create a child reservation only from an exact
@@ -668,8 +713,9 @@ Execution primitive for Corvus Forge. It is intentionally separate from
 `cstar_forge_request`. No-op mode validates shape without reserving an attempt,
 running Hermes/MiniMax, mutating source, collecting live data, or spending.
 Live mode requires the matching durable request and authorization receipt,
-the same current root-user turn that supplied the operative instruction, an unexpired
-one-shot grant, exact canonical request and target hashes, package locks, a
+either the compatible current authorizing turn or a later turn in the mission
+grant's root thread, an active unexpired/unrevoked grant, exact canonical
+request and target hashes, package locks, a
 sealed adapter runtime, and an idempotency key. Identity is rechecked after
 runtime/OAuth preflight immediately before reservation. Attempt reservation is
 atomic; an ambiguous or failed attempt consumes the grant and is never
@@ -714,7 +760,8 @@ Required fields include all `cstar_forge_request` contract fields plus:
 - `forge_request_bead_id` — must match `bead_id` when both are supplied.
 - `execution_mode` — `no_op` or `live_authorized`.
 - `operator_authorization_ref` — the opaque reference returned by
-  `cstar_forge_authorize`; required only at the outer execute level and must
+  `cstar_forge_request` or `cstar_forge_authorize`; required only
+  at the outer execute level and must
   match the immutable authorization receipt.
 - `idempotency_key` — stable key used for atomic reservation and replay.
 - `retry_of_attempt_id` — kernel/router-populated parent only for an exact
@@ -1318,7 +1365,9 @@ non-symlink, single-link `mount_token` identity file; `unproven` is not accepted
 
 ## 21. `cstar_intent_route`
 
-Resolve a prompt against the kernel intent grammar (`.agents/skill_registry.json#intent_grammar`).
+Legacy grammar-only compatibility projection. It is registered only in the
+full compatibility profile and is not an active routing surface. Active hosts
+use mode-dependent `cstar_augury`.
 
 **Input:**
 - `prompt` (string, required; 1..4096 chars)
@@ -1450,7 +1499,7 @@ That handshake is not a CStar application session. Future Streamable HTTP adapte
 
 1. Add the handler to a focused module under `src/tools/cstar-kernel-mcp/tools/` or a narrower domain folder. Do not add behavior to the root `src/tools/cstar-kernel-mcp.ts` entrypoint.
 2. Add or reuse a Zod schema in `src/tools/cstar-kernel-mcp/contracts/` when the schema is shared; otherwise keep the schema beside the registration code.
-3. Add the tool's `{ name, toolClass, description }` metadata to `CSTAR_KERNEL_TOOL_CATALOG` in `src/tools/cstar-kernel-mcp/contracts/tool_catalog.ts`.
+3. Add the tool's `{ name, toolClass, description, visibility }` metadata to `CSTAR_KERNEL_TOOL_CATALOG` in `src/tools/cstar-kernel-mcp/contracts/tool_catalog.ts`.
 4. Register its explicit schema and handler through the catalog-backed helper in `src/tools/cstar-kernel-mcp/register_core_tools.ts`; do not repeat its name, class, or description outside the catalog.
 5. Re-export the handler from `src/tools/cstar-kernel-mcp.ts` only when tests or host-facing code need a direct import.
 6. Regenerate and validate host distributions; packaging derives its inventory from the catalog.

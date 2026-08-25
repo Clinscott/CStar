@@ -1,0 +1,30 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:cstar:strict-mission-grant-singleton-binding-20260731",
+  "validation_id": "validation:cstar-strict-mission-grant-singleton-binding:20260731",
+  "reported_verdict": "ACCEPTED",
+  "artifacts": [
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/forge_operator_intent_attestation.ts",
+      "sha256": "a8decf7138c05147223437b23ee4261787eac66d6072ace6e594559f551120c4"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_multirecord_authorization.test.ts",
+      "sha256": "ca7c2089f1f61f6a0fed0ed98acf0dfd8780816ce3da0065407a4b2a28c5e20c"
+    }
+  ],
+  "checks": [
+    {
+      "name": "strict singleton and multi-record authorization matrix 113 of 113",
+      "status": "pass",
+      "evidence_path": "tests/unit/cstar-kernel-mcp/test_forge_multirecord_authorization.test.ts",
+      "sha256": "ca7c2089f1f61f6a0fed0ed98acf0dfd8780816ce3da0065407a4b2a28c5e20c"
+    },
+    {
+      "name": "typecheck and selected diff consistency",
+      "status": "pass",
+      "evidence_path": "src/tools/cstar-kernel-mcp/tools/forge_operator_intent_attestation.ts",
+      "sha256": "a8decf7138c05147223437b23ee4261787eac66d6072ace6e594559f551120c4"
+    }
+  ]
+}

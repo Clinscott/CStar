@@ -194,6 +194,14 @@ describe('durable CStar Forge attempt receipts', () => {
         });
 
         assert.equal(getForgeRequest(fixture.db, firstRequest.request_id)?.status, 'AMBIGUOUS');
+        const blockedBead = fixture.db.prepare(
+            'SELECT status, triage_reason, resolution_note FROM hall_beads WHERE bead_id = ?',
+        ).get('bead:test:unknown') as {
+            status: string; triage_reason: string; resolution_note: string;
+        };
+        assert.equal(blockedBead.status, 'BLOCKED');
+        assert.equal(blockedBead.triage_reason, 'forge_external_ambiguity:simulated_restart_ambiguity');
+        assert.match(blockedBead.resolution_note, /no retry or promotion is permitted/);
         assert.throws(
             () => reserveForgeAttempt(fixture.db, {
                 request_id: firstRequest.request_id,

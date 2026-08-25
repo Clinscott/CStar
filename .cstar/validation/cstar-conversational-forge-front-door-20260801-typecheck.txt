@@ -1,0 +1,1 @@
+Validation passed: npm run typecheck exited 0.

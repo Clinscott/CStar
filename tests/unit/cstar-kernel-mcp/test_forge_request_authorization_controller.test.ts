@@ -38,6 +38,8 @@ import {
     saveLegacyAuthorizedForgeRequest,
     trackForgeReceiptRoot,
 } from './forge_receipt_test_support.js';
+import { HALL_SCHEMA_CORE_SQL } from
+    '../../../src/tools/pennyone/intel/schema_tables_core.js';
 
 afterEach(cleanupForgeReceiptFixtures);
 
@@ -75,6 +77,17 @@ describe('durable exact Forge request authorization', () => {
             'legacy-repo', 'bead:legacy', 'decision:legacy',
             'a'.repeat(64), '{"legacy":true}', 'b'.repeat(64), now, now,
         );
+        db.exec(HALL_SCHEMA_CORE_SQL);
+        db.prepare(`
+            INSERT INTO hall_repositories (
+                repo_id, root_path, name, created_at, updated_at
+            ) VALUES ('legacy-repo', '/legacy', 'legacy', ?, ?)
+        `).run(now, now);
+        db.prepare(`
+            INSERT INTO hall_beads (
+                bead_id, repo_id, rationale, created_at, updated_at
+            ) VALUES ('bead:legacy', 'legacy-repo', 'legacy fixture', ?, ?)
+        `).run(now, now);
 
         ensureHallSchema(db, root);
 

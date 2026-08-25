@@ -1,0 +1,42 @@
+{
+  "schema": "cstar.validation-checks.v1",
+  "validation_id": "validation:cstar:set-intent-binding-live-proof-20260801:independent-20260801",
+  "bead_id": "bead:cstar:set-intent-binding-live-proof-20260801",
+  "scope": "exact SET language-binding bootstrap repair",
+  "independent_validator_thread_id": "019fbb0b-b2db-7822-9112-f09b367dcfd0",
+  "artifacts": [
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_signal.ts",
+      "sha256": "926a7eb833d735f6144c0bfaea3b23d16baac8461d9f51b7979efbe60b288371",
+      "lines": 312
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_set_manifest_authorization.test.ts",
+      "sha256": "fab972a4d56720eaec5bb9a5a7baaa4233cb586be3bd49bd5b629c25d5ee0afc",
+      "lines": 391
+    }
+  ],
+  "checks": [
+    {
+      "name": "focused_SET_authorization_autonomous_dispatch_and_mission_grants",
+      "status": "pass",
+      "command": "node scripts/run-tsx.mjs --test --test-concurrency=1 tests/unit/cstar-kernel-mcp/test_forge_set_manifest_authorization.test.ts tests/unit/cstar-kernel-mcp/test_forge_set_manifest_autonomous_dispatch.test.ts tests/unit/cstar-kernel-mcp/test_forge_set_mission_grant.test.ts",
+      "tests": 75
+    },
+    {
+      "name": "typecheck",
+      "status": "pass",
+      "command": "npm run typecheck"
+    },
+    {
+      "name": "diff_check_and_line_limits",
+      "status": "pass",
+      "command": "git diff --check -- <touched files>; wc -l <touched files>"
+    },
+    {
+      "name": "independent_final_byte_review",
+      "status": "pass",
+      "result": "ACCEPT"
+    }
+  ]
+}

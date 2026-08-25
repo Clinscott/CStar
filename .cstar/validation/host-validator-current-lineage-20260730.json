@@ -1,0 +1,32 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:cstar:operating-pipeline-v1-batch-1",
+  "validation_id": "validation:cstar-host-validator-current-lineage:20260730",
+  "reported_verdict": "ACCEPTED",
+  "artifacts": [
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/host_workflow_validation.ts",
+      "sha256": "35e59dc1110a55ed47c11e380ef26ad2c6daaee99edea00aa4cb63fcf8bfaedb",
+      "bytes": 18961
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts",
+      "sha256": "92714af4211386ad159919a4a55f8c4d7aa73046bb33ec7af82c2157fab29987",
+      "bytes": 16504
+    }
+  ],
+  "checks": [
+    {
+      "name": "current depth-one validator lineage security review",
+      "status": "pass",
+      "evidence_path": "src/tools/cstar-kernel-mcp/tools/host_workflow_validation.ts",
+      "sha256": "35e59dc1110a55ed47c11e380ef26ad2c6daaee99edea00aa4cb63fcf8bfaedb"
+    },
+    {
+      "name": "focused host workflow validation suite 11 of 11",
+      "status": "pass",
+      "evidence_path": "tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts",
+      "sha256": "92714af4211386ad159919a4a55f8c4d7aa73046bb33ec7af82c2157fab29987"
+    }
+  ]
+}

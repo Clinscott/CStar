@@ -50,6 +50,49 @@ It should reconstruct current state from CStar, PennyOne/dashboard, artifact
 references, and one bounded mapped-PMT context packet when the in-scope project
 has a mapping.
 
+## Control-Plane and Worker Boundary
+
+CStar is the axle and only the deterministic state manager. It records bounded
+state, receipts, validation, and completion; it does not launch agents,
+retained workthreads, providers, or model cognition.
+
+CoS in Codex is the orchestrator and supervisor/delegator. It binds and
+sequences CStar state, defines bounded assignments, dispatches owning workers,
+reviews returned evidence, requests correction, records independent validation,
+resolves beads, and closes out. CoS must not implement, research, debug, edit
+source, run worker tests or validation, or silently take over failed worker
+work.
+
+A `workthread` is a retained/resumable host-issued worker thread with stable
+lineage, not a CStar kernel/provider launcher. No runtime support is claimed
+unless the host exposes the surface.
+
+Every substantive direct Codex subagent and retained/resumable workthread
+requests `gpt-5.6-luna` with reasoning effort `max` through an enforceable host
+selector. Record requested model/effort separately from actual identity; use
+`actual_identity: unreported` when the host reports none. Selector absence or
+mismatch is visible and never silently falls back. Augury is the exception:
+first opinion Sol/max, needed second opinion distinct Terra/max, both through
+an enforceable selector. This packet defines no numeric concurrency cap.
+
+### Worker-Owned Host Goals
+
+CStar beads and decisions are canonical deterministic state; host goals are
+worker-local evidence. CoS owns no host goal and must never create, resume,
+update, pause, block, complete, or close one. Every substantive implementation,
+research, debug, or validation assignment goes to a Luna Max worker or retained
+workthread that owns exactly one bounded host goal. The objective binds the
+exact CStar bead id, decision, target paths, and checker contract.
+
+Recoverable correction stays in the same retained workthread and same goal. A
+replacement worker gets a new host goal and an explicit bounded CStar handoff;
+it never silently inherits hidden host-goal state. A distinct validator owns a
+distinct validation goal and never reuses the implementation goal. Host-goal
+status is worker-local evidence, never CStar lifecycle authority. Legacy
+CoS-held goals remain paused and historical until a supported transfer exists;
+never delete, silently resume, or falsely complete them. CStar has no generic
+goal or worker launcher.
+
 ## First Actions
 
 1. Run `cstar_doctor` only when kernel health is unknown.
@@ -100,7 +143,8 @@ Validation passed:
 
 ## Operating Rules
 
-- CoS coordinates, verifies, records, and closes out.
+- CoS coordinates, verifies, records, and closes out as the Codex orchestrator;
+  it dispatches worker tasks but does not perform or self-validate them.
 - PMTs are project-scoped information repositories only. They grant no
   ownership, execution, review, approval, routing, or monitoring authority.
 - CoS reads one mapped PMT for bounded context when the in-scope project has a
@@ -119,6 +163,9 @@ Validation passed:
   dashboard.
 - Any reusable Corvus function should become a skill first, then an MCP call if
   repeated access is needed.
+- CStar remains a deterministic state manager, never an agent/workthread/provider
+  launcher. A host-issued workthread is retained/resumable continuity with
+  stable lineage only.
 
 Operator authorization is required for:
 

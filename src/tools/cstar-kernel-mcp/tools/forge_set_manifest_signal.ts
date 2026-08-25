@@ -15,14 +15,24 @@ import {
     MAX_CODEX_SESSION_FILE_BYTES,
     resolveCodexSessionsRoot,
 } from './codex_session_locator.js';
-import type { VerifiedCodexRequestIdentity } from './operator_authorization.js';
+import type { McpRequestContext } from '../contracts/request_context.js';
+import { tryGetReadDb } from '../../pennyone/intel/database.js';
+import {
+    verifyCodexRequestIdentity,
+    type VerifiedCodexRequestIdentity,
+} from './operator_authorization.js';
 import { isForgeAuthorityRevocation } from './forge_revocation.js';
+import { isForgeSetIdentityConsumed } from './forge_set_manifest_consumption.js';
+import { retryAppendOnlyCodexSessionRead } from './codex_session_append_retry.js';
 
 export const FORGE_SET_AUTHORIZATION_AGE_MS = 24 * 60 * 60 * 1_000;
 
 export interface VerifiedForgeSetSignal {
     record_sha256: string;
     content: Array<{ type: 'input_text'; text: string }>;
+    root_session_record_set_sha256: string;
+    root_session_record_count: number;
+    root_session_file_bytes: number;
 }
 
 export interface PersistedForgeSetAuthorityFields {
@@ -39,9 +49,38 @@ export interface ForgeSetMutationIdentityFields {
     record_set_sha256: string;
 }
 
-interface SetRecord extends VerifiedForgeSetSignal {
+export interface VerifiedForgeSetAuthority {
+    identity: VerifiedCodexRequestIdentity;
+    signal: VerifiedForgeSetSignal;
+}
+
+interface SetRecord {
+    record_sha256: string;
+    content: Array<{ type: 'input_text'; text: string }>;
     text: string;
     timestamp: string;
+}
+
+interface HistoricalRootTurn {
+    turn_id: string;
+    first_index: number;
+    records: SetRecord[];
+}
+
+function persistedSetIsConsumed(identity: VerifiedCodexRequestIdentity): boolean {
+    let db;
+    try {
+        db = tryGetReadDb();
+    } catch (error) {
+        if (error instanceof Error && error.message === 'hall_store_missing') return false;
+        throw new Error('forge_set_manifest_consumption_uninspectable', { cause: error });
+    }
+    return db ? isForgeSetIdentityConsumed(db, {
+        thread_id: identity.thread_id,
+        turn_id: identity.turn_id,
+        record_sha256: identity.turn_record_sha256,
+        record_set_sha256: identity.turn_record_set_sha256,
+    }) : false;
 }
 
 function sha256(value: string): string {
@@ -52,12 +91,20 @@ function isRecord(value: unknown): value is Record<string, unknown> {
     return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
 
+const EXACT_SET_DIRECTIVES = new Set([
+    'set',
+    'set the researcher v2 complete-system batch',
+    'set a new goal to prove the validity of the entire pipeline',
+]);
+
 function isExactSet(text: string): boolean {
-    if (/[^A-Za-z. \t\r\n]/u.test(text)) return false;
+    if (/[^A-Za-z0-9. \t\r\n-]/u.test(text)) return false;
     const normalized = text.replace(/[ \t\r\n]+/g, ' ').trim();
     const candidate = normalized.endsWith('.')
         ? normalized.slice(0, -1).trimEnd() : normalized;
-    return candidate.toLocaleLowerCase('en-US') === 'set';
+    if (candidate.endsWith('.')) return false;
+    const directive = candidate.toLocaleLowerCase('en-US');
+    return EXACT_SET_DIRECTIVES.has(directive);
 }
 
 function mentionsSetInstruction(text: string): boolean {
@@ -87,9 +134,13 @@ function hashCanonicalTurnRecordSet(
     }));
 }
 
-function parseSetRecord(record: FixedCodexSessionRecord, turnId: string): SetRecord | null {
+function parseCanonicalSetRecord(record: FixedCodexSessionRecord): {
+    turn_id: string;
+    record: SetRecord;
+} | null {
     const classification = classifyCodexSessionRecord(record.row);
-    if (classification.kind !== 'canonical-root-user' || classification.turnId !== turnId) {
+    if (classification.kind !== 'canonical-root-user'
+        || typeof classification.turnId !== 'string') {
         return null;
     }
     const payload = isRecord(record.row.payload) ? record.row.payload : undefined;
@@ -103,11 +154,19 @@ function parseSetRecord(record: FixedCodexSessionRecord, turnId: string): SetRec
         content.push({ type: 'input_text', text: entry.text });
     }
     return {
-        record_sha256: sha256(record.rawLine),
-        content,
-        text: content.map((entry) => entry.text).join(''),
-        timestamp: record.row.timestamp,
+        turn_id: classification.turnId,
+        record: {
+            record_sha256: sha256(record.rawLine),
+            content,
+            text: content.map((entry) => entry.text).join(''),
+            timestamp: record.row.timestamp,
+        },
     };
+}
+
+function parseSetRecord(record: FixedCodexSessionRecord, turnId: string): SetRecord | null {
+    const parsed = parseCanonicalSetRecord(record);
+    return parsed?.turn_id === turnId ? parsed.record : null;
 }
 
 function assertCompleteOrderedTurn(
@@ -164,12 +223,29 @@ export function readExactForgeSetSignal(
         allowHistorical,
     );
     const records: SetRecord[] = [];
+    const noncanonicalUserLikeIndexes: number[] = [];
+    let authorityRecordIndex: number | null = null;
+    const authorityTimestamp = Date.parse(identity.turn_timestamp);
     const projection = createCodexPlatformContextProjection((record) => {
         const parsed = parseSetRecord(record, identity.turn_id);
-        if (parsed) records.push(parsed);
+        if (parsed) {
+            records.push(parsed);
+            if (parsed.record_sha256 === identity.turn_record_sha256) {
+                authorityRecordIndex = record.index;
+            }
+        }
         const classification = classifyCodexSessionRecord(record.row);
+        if (classification.kind === 'noncanonical-user-like') {
+            noncanonicalUserLikeIndexes.push(record.index);
+            return;
+        }
         if (classification.kind !== 'canonical-root-user'
             || classification.turnId === identity.turn_id) return;
+        const recordTimestamp = Date.parse(String(record.row.timestamp ?? ''));
+        if (!Number.isFinite(recordTimestamp)) {
+            throw new Error('forge_set_manifest_operator_signal_uninspectable');
+        }
+        if (recordTimestamp < authorityTimestamp) return;
         const payload = isRecord(record.row.payload) ? record.row.payload : undefined;
         const content = Array.isArray(payload?.content) ? payload.content : [];
         if (content.every((entry) => isRecord(entry)
@@ -180,12 +256,18 @@ export function readExactForgeSetSignal(
             }
         }
     });
-    scanFixedCodexSession(sessionFile, MAX_CODEX_SESSION_FILE_BYTES, (record) => {
+    const sessionSnapshot = scanFixedCodexSession(
+        sessionFile, MAX_CODEX_SESSION_FILE_BYTES, (record) => {
         canonical.consume(record);
         projection.consume(record);
-    });
+        },
+    );
     projection.finish();
     const turn = canonical.finish();
+    if (authorityRecordIndex === null
+        || noncanonicalUserLikeIndexes.some((index) => index > authorityRecordIndex!)) {
+        throw new Error('forge_set_manifest_operator_signal_uninspectable');
+    }
     assertCompleteOrderedTurn(identity, turn, records);
     const exactCurrentTurn = turn.recordSha256 === identity.turn_record_sha256
         && turn.recordSetSha256 === identity.turn_record_set_sha256
@@ -206,7 +288,132 @@ export function readExactForgeSetSignal(
     return {
         record_sha256: matches[0]!.record_sha256,
         content: matches[0]!.content,
+        root_session_record_set_sha256: sessionSnapshot.sha256,
+        root_session_record_count: sessionSnapshot.recordCount,
+        root_session_file_bytes: sessionSnapshot.fileBytes,
     };
+}
+
+function readUniqueHistoricalForgeSetIdentity(
+    current: VerifiedCodexRequestIdentity,
+    now: number,
+): VerifiedCodexRequestIdentity | null {
+    const sessionFile = findCodexSessionFile(resolveCodexSessionsRoot(), current.thread_id);
+    const turns: HistoricalRootTurn[] = [];
+    const turnsById = new Map<string, HistoricalRootTurn>();
+    const uninspectableIndexes: number[] = [];
+    let lastCanonicalTurnId: string | null = null;
+    const projection = createCodexPlatformContextProjection((record) => {
+        const classification = classifyCodexSessionRecord(record.row);
+        if (classification.kind === 'noncanonical-user-like') {
+            uninspectableIndexes.push(record.index);
+            return;
+        }
+        if (classification.kind !== 'canonical-root-user') return;
+        const parsed = parseCanonicalSetRecord(record);
+        if (!parsed) {
+            uninspectableIndexes.push(record.index);
+            return;
+        }
+        let turn = turnsById.get(parsed.turn_id);
+        if (!turn) {
+            turn = {
+                turn_id: parsed.turn_id,
+                first_index: record.index,
+                records: [],
+            };
+            turnsById.set(parsed.turn_id, turn);
+            turns.push(turn);
+        }
+        turn.records.push(parsed.record);
+        lastCanonicalTurnId = parsed.turn_id;
+    });
+    scanFixedCodexSession(sessionFile, MAX_CODEX_SESSION_FILE_BYTES, projection.consume);
+    projection.finish();
+    const currentTurn = turnsById.get(current.turn_id);
+    if (!currentTurn || lastCanonicalTurnId !== current.turn_id
+        || currentTurn.records.length !== current.turn_record_count
+        || currentTurn.records.at(-1)?.record_sha256 !== current.turn_record_sha256
+        || hashCanonicalTurnRecordSet(current.thread_id, current.turn_id, currentTurn.records)
+            !== current.turn_record_set_sha256) {
+        throw new Error('forge_set_manifest_request_identity_drift');
+    }
+    const exactTurns = turns.filter((turn) => turn.first_index < currentTurn.first_index
+        && turn.records.some((record) => isExactSet(record.text)));
+    const eligibleTurns = exactTurns.filter((turn) => {
+        const record = turn.records[0];
+        if (!record || turn.records.length !== 1) return true;
+        const identity: VerifiedCodexRequestIdentity = {
+            source: 'codex_request_meta',
+            session_id: current.session_id,
+            thread_id: current.thread_id,
+            turn_id: turn.turn_id,
+            thread_source: 'user',
+            turn_record_sha256: record.record_sha256,
+            turn_record_set_sha256: hashCanonicalTurnRecordSet(
+                current.thread_id, turn.turn_id, turn.records,
+            ),
+            turn_record_count: 1,
+            turn_first_timestamp: record.timestamp,
+            turn_timestamp: record.timestamp,
+        };
+        return !persistedSetIsConsumed(identity);
+    });
+    if (eligibleTurns.length === 0) return null;
+    if (eligibleTurns.length !== 1 || eligibleTurns[0]!.records.length !== 1) {
+        throw new Error('forge_set_manifest_operator_signal_ambiguous');
+    }
+    const selected = eligibleTurns[0]!;
+    const selectedRecord = selected.records[0]!;
+    const selectedTimestamp = Date.parse(selectedRecord.timestamp);
+    if (!Number.isFinite(selectedTimestamp) || selectedTimestamp > now + 60_000
+        || now - selectedTimestamp > FORGE_SET_AUTHORIZATION_AGE_MS) {
+        throw new Error('forge_set_manifest_request_identity_drift');
+    }
+    if (uninspectableIndexes.some((index) => index > selected.first_index)) {
+        throw new Error('forge_set_manifest_operator_signal_uninspectable');
+    }
+    for (const turn of turns) {
+        if (turn.first_index <= selected.first_index) continue;
+        if (turn.records.some((record) => isForgeSetAuthorityRevocation(record.text))) {
+            throw new Error('forge_set_manifest_operator_signal_revoked');
+        }
+    }
+    return {
+        source: 'codex_request_meta',
+        session_id: current.session_id,
+        thread_id: current.thread_id,
+        turn_id: selected.turn_id,
+        thread_source: 'user',
+        turn_record_sha256: selectedRecord.record_sha256,
+        turn_record_set_sha256: hashCanonicalTurnRecordSet(
+            current.thread_id, selected.turn_id, selected.records,
+        ),
+        turn_record_count: 1,
+        turn_first_timestamp: selectedRecord.timestamp,
+        turn_timestamp: selectedRecord.timestamp,
+    };
+}
+
+/** Use the current exact SET or one unrevoked prior SET while a repair is in step. */
+export async function verifyCurrentOrHistoricalForgeSetAuthority(
+    requestContext: McpRequestContext | undefined,
+    now = Date.now(),
+): Promise<VerifiedForgeSetAuthority | null> {
+    const current = await verifyCodexRequestIdentity(requestContext, now);
+    const currentSignal = readExactForgeSetSignal(current, now, false);
+    if (currentSignal && persistedSetIsConsumed(current)) {
+        throw new Error('forge_set_manifest_operator_signal_consumed');
+    }
+    const historical = readUniqueHistoricalForgeSetIdentity(current, now);
+    if (currentSignal && historical) {
+        throw new Error('forge_set_manifest_operator_signal_ambiguous');
+    }
+    if (currentSignal) return { identity: current, signal: currentSignal };
+    if (!historical) return null;
+    const signal = readExactForgeSetSignal(historical, now, true);
+    if (!signal) throw new Error('forge_set_manifest_operator_signal_missing');
+    return { identity: historical, signal };
 }
 
 function readHistoricalForgeSetIdentity(
@@ -268,10 +475,13 @@ export function readForgeSetSignalFromMutationIdentity(
     fields: ForgeSetMutationIdentityFields,
     now = Date.now(),
 ): { identity: VerifiedCodexRequestIdentity; signal: VerifiedForgeSetSignal } {
-    const identity = readHistoricalForgeSetIdentity(fields, now);
-    const signal = readExactForgeSetSignal(identity, now, true);
-    if (!signal) throw new Error('forge_set_manifest_operator_signal_missing');
-    return { identity, signal };
+    const sessionFile = findCodexSessionFile(resolveCodexSessionsRoot(), fields.thread_id);
+    return retryAppendOnlyCodexSessionRead(sessionFile, MAX_CODEX_SESSION_FILE_BYTES, () => {
+        const identity = readHistoricalForgeSetIdentity(fields, now);
+        const signal = readExactForgeSetSignal(identity, now, true);
+        if (!signal) throw new Error('forge_set_manifest_operator_signal_missing');
+        return { identity, signal };
+    });
 }
 
 export function readPersistedForgeSetSignal(

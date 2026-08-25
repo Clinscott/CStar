@@ -247,6 +247,27 @@ export function finalizeForgeValidation(
             throw new Error('forge_validation_receipt_subject_mismatch');
         }
         const { attempt, request } = assertForgeValidationManifestCurrent(db, manifest);
+        const accepted = outcome === 'accepted' ? true : outcome === 'rejected' ? false : null;
+        if (attempt.validation_id) {
+            if (
+                attempt.validation_id === input.validation_id
+                && attempt.validation_verdict === verified.verdict
+                && attempt.validation_notes_sha256 === notesSha256
+                && attempt.validation_authority === 'verified_v2'
+                && attempt.validation_evidence_sha256 === verified.evidence_sha256
+            ) {
+                return {
+                    attempt,
+                    request,
+                    accepted,
+                    mode: ['FAILED_FINAL', 'UNKNOWN'].includes(attempt.status)
+                        ? 'terminal_evidence_link' as const
+                        : 'delivery_finalization' as const,
+                    execution_status_changed: false,
+                };
+            }
+            throw new Error('forge_execution_already_validated');
+        }
         const continuation = getForgeContinuationByAttempt(db, attempt.attempt_id);
         const continuationRepair = attempt.status === 'FAILED_RETRYABLE'
             && continuation?.status === 'PENDING_REPAIR';
@@ -278,7 +299,6 @@ export function finalizeForgeValidation(
         if (terminalEvidenceLink && outcome === 'accepted') {
             throw new Error('forge_terminal_failure_validation_cannot_accept_delivery');
         }
-        const accepted = outcome === 'accepted' ? true : outcome === 'rejected' ? false : null;
         if (!terminalEvidenceLink && accepted === null) {
             throw new Error('forge_delivery_validation_inconclusive');
         }
@@ -297,26 +317,6 @@ export function finalizeForgeValidation(
             if (attempt.result_artifact_sha256 && !artifactHashes.has(attempt.result_artifact_sha256.toLowerCase())) {
                 throw new Error('forge_validation_result_artifact_unverified');
             }
-        }
-        if (attempt.validation_id) {
-            if (
-                attempt.validation_id === input.validation_id
-                && attempt.validation_verdict === verified.verdict
-                && attempt.validation_notes_sha256 === notesSha256
-                && attempt.validation_authority === 'verified_v2'
-                && attempt.validation_evidence_sha256 === verified.evidence_sha256
-            ) {
-                return {
-                    attempt,
-                    request,
-                    accepted,
-                    mode: terminalEvidenceLink
-                        ? 'terminal_evidence_link' as const
-                        : 'delivery_finalization' as const,
-                    execution_status_changed: false,
-                };
-            }
-            throw new Error('forge_execution_already_validated');
         }
         if (terminalEvidenceLink) {
             db.prepare(`
@@ -372,6 +372,88 @@ export function finalizeForgeValidation(
             accepted,
             mode: 'delivery_finalization' as const,
             execution_status_changed: true,
+        };
+    });
+    return finish.immediate();
+}
+
+/** Link a verified host-validation v3 receipt to a terminal Forge attempt.
+ * Host receipts are intentionally forbidden from promoting delivery; they can
+ * only bind a bounded FAILURE/INCONCLUSIVE outcome to FAILED_FINAL or UNKNOWN.
+ */
+export function finalizeForgeHostValidation(
+    db: Database.Database,
+    input: { execution_receipt_id: string; validation_id: string; bead_id: string },
+): ReturnType<typeof finalizeForgeValidation> {
+    const finish = db.transaction(() => {
+        const row = db.prepare(`
+            SELECT repo_id, bead_id, verdict, notes, authority_class,
+                   evidence_sha256, validator_identity, validator_identity_source,
+                   evidence_manifest_json
+            FROM hall_validation_runs WHERE validation_id = ?
+        `).get(input.validation_id) as Record<string, unknown> | undefined;
+        if (!row || row.authority_class !== 'verified_v3'
+            || row.validator_identity_source !== 'codex_subagent_receipt') {
+            throw new Error('forge_terminal_validation_requires_verified_host_evidence');
+        }
+        let manifest: Record<string, unknown>;
+        try { manifest = JSON.parse(String(row.evidence_manifest_json)); } catch {
+            throw new Error('forge_validation_manifest_invalid');
+        }
+        const subject = manifest.subject as Record<string, unknown> | undefined;
+        if (manifest.schema !== 'cstar.validation-evidence.v3'
+            || subject?.work_receipt_kind !== 'host_validation_manifest'
+            || subject.bead_id !== input.bead_id
+            || row.bead_id !== input.bead_id
+            || typeof row.evidence_sha256 !== 'string'
+            || !VALIDATION_EVIDENCE_SHA256.test(row.evidence_sha256)) {
+            throw new Error('forge_validation_subject_or_independence_mismatch');
+        }
+        const attempt = getForgeAttemptByExecutionReceipt(db, input.execution_receipt_id);
+        if (!attempt) throw new Error('forge_execution_receipt_not_found');
+        const request = getForgeRequest(db, attempt.request_id)!;
+        if (request.bead_id !== input.bead_id
+            || subject.validation_id !== input.validation_id) {
+            throw new Error('forge_validation_receipt_subject_mismatch');
+        }
+        const outcome = forgeValidationOutcome(String(row.verdict));
+        if (outcome === 'accepted') {
+            throw new Error('forge_terminal_failure_validation_cannot_accept_delivery');
+        }
+        if (!['FAILED_FINAL', 'UNKNOWN'].includes(attempt.status)) {
+            throw new Error(`forge_execution_not_awaiting_validation:${attempt.status}`);
+        }
+        const notesSha256 = createHash('sha256')
+            .update(String(row.notes ?? ''), 'utf-8').digest('hex');
+        if (attempt.validation_id) {
+            if (attempt.validation_id === input.validation_id
+                && attempt.validation_verdict === String(row.verdict)
+                && attempt.validation_notes_sha256 === notesSha256
+                && attempt.validation_authority === 'verified_v3'
+                && attempt.validation_evidence_sha256 === row.evidence_sha256) {
+                return {
+                    attempt, request, accepted: outcome === 'rejected' ? false : null,
+                    mode: 'terminal_evidence_link' as const, execution_status_changed: false,
+                };
+            }
+            throw new Error('forge_execution_already_validated');
+        }
+        db.prepare(`
+            UPDATE hall_forge_attempts
+            SET validation_id = ?, validation_verdict = ?, validation_notes_sha256 = ?,
+                validation_authority = 'verified_v3', validation_evidence_sha256 = ?,
+                updated_at = ?
+            WHERE attempt_id = ? AND validation_id IS NULL
+        `).run(
+            input.validation_id, String(row.verdict), notesSha256,
+            row.evidence_sha256, Date.now(), attempt.attempt_id,
+        );
+        return {
+            attempt: getForgeAttempt(db, attempt.attempt_id)!,
+            request: getForgeRequest(db, request.request_id)!,
+            accepted: outcome === 'rejected' ? false : null,
+            mode: 'terminal_evidence_link' as const,
+            execution_status_changed: false,
         };
     });
     return finish.immediate();

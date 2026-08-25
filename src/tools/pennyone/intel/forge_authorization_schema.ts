@@ -1,4 +1,5 @@
 import type Database from 'better-sqlite3';
+import { ensureForgeRequestCorrectionSchema } from './forge_request_correction_schema.js';
 
 const LEGACY_TABLE = 'hall_forge_authorizations_exact_profile_legacy';
 
@@ -8,7 +9,11 @@ export const FORGE_AUTHORIZATION_SCHEMA = `
         request_id TEXT NOT NULL UNIQUE,
         request_sha256 TEXT NOT NULL,
         authorization_profile TEXT NOT NULL CHECK(
-            authorization_profile IN ('root_user_forge_intent_v1', 'exact_request_challenge_v1')
+            authorization_profile IN (
+                'root_user_forge_intent_v1',
+                'autonomous_dispatch_policy_v1',
+                'exact_request_challenge_v1'
+            )
         ),
         authorization_binding_sha256 TEXT NOT NULL,
         challenge_sha256 TEXT,
@@ -32,13 +37,18 @@ export const FORGE_AUTHORIZATION_SCHEMA = `
                 AND authorization_binding_sha256 = challenge_sha256
                 AND operator_intent_json IS NULL)
             OR
-            (authorization_profile = 'root_user_forge_intent_v1'
+            (authorization_profile IN ('root_user_forge_intent_v1', 'autonomous_dispatch_policy_v1')
                 AND challenge_sha256 IS NULL
                 AND operator_intent_json IS NOT NULL)
         ),
-        UNIQUE(operator_thread_id, operator_turn_id),
         FOREIGN KEY(request_id) REFERENCES hall_forge_requests(request_id)
     );
+
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_hall_forge_authorizations_one_shot_turn
+    ON hall_forge_authorizations(operator_thread_id, operator_turn_id)
+    WHERE operator_intent_json IS NULL
+       OR json_extract(operator_intent_json, '$.requester_lineage_mode')
+          IS NOT 'stored_set_manifest';
 `;
 
 function tableColumns(db: Database.Database, table: string): Set<string> {
@@ -64,6 +74,31 @@ function tableSql(db: Database.Database, table: string): string | undefined {
     return typeof row?.sql === 'string' ? row.sql : undefined;
 }
 
+function indexSql(db: Database.Database, index: string): string | undefined {
+    const row = db.prepare(
+        "SELECT sql FROM sqlite_master WHERE type = 'index' AND name = ?",
+    ).get(index) as { sql?: unknown } | undefined;
+    return typeof row?.sql === 'string' ? row.sql : undefined;
+}
+
+function oneShotIndexIsExact(db: Database.Database): boolean {
+    const name = 'idx_hall_forge_authorizations_one_shot_turn';
+    const listed = (db.prepare(
+        'PRAGMA index_list(hall_forge_authorizations)',
+    ).all() as Array<Record<string, unknown>>).find((entry) => entry.name === name);
+    if (Number(listed?.unique) !== 1 || Number(listed?.partial) !== 1) return false;
+    const indexRows = db.prepare(`PRAGMA index_info(${name})`).all() as Array<Record<string, unknown>>;
+    const columns = indexRows.map((entry) => String(entry.name));
+    if (JSON.stringify(columns) !== JSON.stringify([
+        'operator_thread_id', 'operator_turn_id',
+    ])) return false;
+    const normalized = (indexSql(db, name) ?? '').replace(/\s+/g, ' ').toLowerCase();
+    return normalized === `create unique index ${name} on hall_forge_authorizations`
+        + '(operator_thread_id, operator_turn_id) where operator_intent_json is null '
+        + "or json_extract(operator_intent_json, '$.requester_lineage_mode') "
+        + "is not 'stored_set_manifest'";
+}
+
 function isCurrentAuthorizationSchema(
     db: Database.Database,
     sql: string | undefined,
@@ -81,12 +116,13 @@ function isCurrentAuthorizationSchema(
     ];
     const normalized = sql.replace(/\s+/g, ' ').toLowerCase();
     return required.every((column) => columns.has(column))
-        && normalized.includes("authorization_profile in ('root_user_forge_intent_v1', 'exact_request_challenge_v1')")
+        && normalized.includes("authorization_profile in ( 'root_user_forge_intent_v1', 'autonomous_dispatch_policy_v1', 'exact_request_challenge_v1' )")
         && normalized.includes('authorization_binding_sha256 text not null')
         && normalized.includes('request_id text not null unique')
         && normalized.includes('operator_authorization_ref text not null unique')
         && normalized.includes('operator_record_count integer not null check(operator_record_count >= 1)')
-        && normalized.includes('unique(operator_thread_id, operator_turn_id)')
+        && !normalized.includes('unique(operator_thread_id, operator_turn_id)')
+        && oneShotIndexIsExact(db)
         && normalized.includes('authorization_binding_sha256 = challenge_sha256')
         && normalized.includes('challenge_sha256 is null')
         && normalized.includes('operator_intent_json is not null');
@@ -127,6 +163,7 @@ function migrateAuthorizationTable(db: Database.Database): void {
         FROM hall_forge_authorizations ORDER BY authorization_id
     `).all();
 
+    db.exec('DROP INDEX IF EXISTS idx_hall_forge_authorizations_one_shot_turn');
     db.exec(`ALTER TABLE hall_forge_authorizations RENAME TO ${LEGACY_TABLE}`);
     db.exec(FORGE_AUTHORIZATION_SCHEMA);
     db.exec(`
@@ -185,6 +222,7 @@ function applyForgeAuthorizationSchema(db: Database.Database): void {
 }
 
 export function ensureForgeAuthorizationSchema(db: Database.Database): void {
+    ensureForgeRequestCorrectionSchema(db);
     if (db.inTransaction) {
         applyForgeAuthorizationSchema(db);
         return;

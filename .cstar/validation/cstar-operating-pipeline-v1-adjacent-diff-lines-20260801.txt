@@ -1,0 +1,9 @@
+validation_id=validation:cstar-operating-pipeline-v1-adjacent:independent-20260801
+diff_check=PASS
+diff_check_exit_code=0
+allowlisted_artifacts=68
+line_audit=PASS
+max_wc_l_lines=500
+over_500=0
+provider_attempts=0
+live_sources=false

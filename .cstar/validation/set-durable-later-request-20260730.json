@@ -1,0 +1,57 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:cstar:operating-pipeline-v1-batch-1",
+  "validation_id": "validation:cstar-set-durable-later-request:20260730",
+  "reported_verdict": "ACCEPTED",
+  "artifacts": [
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/forge_authorize.ts",
+      "sha256": "f080aca5105911e47173e5967af8b7cd1ee0aa29c746eb148ccb4c12ffa1f479",
+      "bytes": 26803
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_authority.ts",
+      "sha256": "4d71db8e4043a62d70bd83e4b7c7e344e4a284787fcd4342f44b7a751b0f1c1a",
+      "bytes": 19645
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_autonomous_authority.ts",
+      "sha256": "387043d73ef64ec406260d2c97d5770f2028e3930aed0ef1817754341f02fa25",
+      "bytes": 14200
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/forge_operator_work_item_resolution.ts",
+      "sha256": "7d011f69c8c0a84ddde2fb0b2bf8a1db41f0185928659cbd1c966c89fd86b7be",
+      "bytes": 12813
+    },
+    {
+      "path": "src/tools/pennyone/intel/forge_authorization_policy.ts",
+      "sha256": "ad7dbf95a66198d6f5f6f52d9c8aabf6e1fd0f565532a7ee7ae8227ee1922b7c",
+      "bytes": 22315
+    },
+    {
+      "path": "src/tools/pennyone/intel/forge_request_authorization_binding.ts",
+      "sha256": "d2eb2e7bdb49252f5ee798f6a75aec8dcf21e12203d8ca1009dafd01ed0d7d7c",
+      "bytes": 5606
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_set_manifest_autonomous_dispatch.test.ts",
+      "sha256": "bcc5f6ad4aa0280f9894bb501f8da7ff08af5c72c686cd9cb04a40da6224e76f",
+      "bytes": 18948
+    }
+  ],
+  "checks": [
+    {
+      "name": "durable SET authorization security review",
+      "status": "pass",
+      "evidence_path": "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_authority.ts",
+      "sha256": "4d71db8e4043a62d70bd83e4b7c7e344e4a284787fcd4342f44b7a751b0f1c1a"
+    },
+    {
+      "name": "focused SET authorization suites 73 of 73",
+      "status": "pass",
+      "evidence_path": "tests/unit/cstar-kernel-mcp/test_forge_set_manifest_autonomous_dispatch.test.ts",
+      "sha256": "bcc5f6ad4aa0280f9894bb501f8da7ff08af5c72c686cd9cb04a40da6224e76f"
+    }
+  ]
+}

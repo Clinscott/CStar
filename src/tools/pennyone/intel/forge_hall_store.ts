@@ -3,6 +3,8 @@ import Database from 'better-sqlite3';
 import { database } from './database.js';
 import { ensureForgeAuthorizationSchema } from './forge_authorization_schema.js';
 import { ensureForgeContinuationSchema } from './forge_continuation_controller.js';
+import { ensureForgeMissionGrantSchema } from './forge_mission_grant_schema.js';
+import { ensureForgeRequestCorrectionSchema } from './forge_request_correction_schema.js';
 import { assertStableHallStoreIdentity, resolveHallStorePath } from './hall_store_path.js';
 
 interface HallDatabaseCompatibility {
@@ -29,6 +31,7 @@ function ensureColumn(
 }
 
 export function ensureForgeActivationSchema(db: Database.Database): void {
+    ensureForgeRequestCorrectionSchema(db);
     db.transaction(() => {
         ensureForgeAuthorizationSchema(db);
         for (const [table, column, declaration] of [
@@ -66,6 +69,7 @@ export function ensureForgeActivationSchema(db: Database.Database): void {
             ensureColumn(db, table, column, declaration);
         }
         ensureForgeContinuationSchema(db);
+        ensureForgeMissionGrantSchema(db);
     }).immediate();
 }
 

@@ -9,7 +9,7 @@ metadata:
     - 'BIDE_INTEGRATION_GUIDE.md'
     - '.agents/skill_registry.json'
   bashPatterns:
-    - '\\bcstar\\s+(hall|augury|trace|one-mind|status|manifest|evolve|orchestrate)\\b'
+    - '\\bcstar\\s+(hall|augury|status|manifest|evolve)\\b'
     - '\\bnode\\s+bin/cstar\\.js\\s+'
   promptSignals:
     phrases:
@@ -40,10 +40,10 @@ metadata:
 - If MCP is degraded or unavailable, report the exact failure and remain read-only for control-plane state; do not mutate Hall or SQLite directly.
 - Use `./cstar <command>` from the CStar root or `node bin/cstar.js <command>` only when MCP cannot provide the needed primitive or the capability is explicitly terminal-required.
 - Use `cstar_handoff` when resuming active planning/runtime state, then carry forward only the lead bead, gate, next action, target paths, and checker commands.
-- Use `cstar_handoff` when resuming, `cstar_doctor` when kernel health is unknown, and `cstar_augury` only when route or material scope is ambiguous.
+- Use `cstar_handoff` when resuming, `cstar_doctor` when kernel health is unknown, advisory `cstar_augury` when route or material scope is ambiguous, and mission-boundary Augury once for a new exact SET/design.
 - Use direct Codex thread tools for read/list/send when exposed; session JSONL fallback is read-only degraded mode, not an execution or assignment surface.
 - CoS owns estate sequencing, bounded Green/Yellow execution, evidence packaging, lifecycle updates, and closeout.
-- Start or resume one host goal for every non-trivial mission, keep one plan step in progress, and close the goal only after CStar lifecycle state and validation agree.
+- CoS owns no host goal; every substantive assignment is sent to a Luna Max worker/workthread that owns exactly one bounded host goal and returns its local status as evidence.
 - Before the first CStar mutation or provider attempt of each local day, follow `docs/operations/cstar-goal-driven-daily-bootstrap.md` for Codex/Hermes freshness; updates do not authorize a restart.
 - Forge builds implementation; Researcher gathers evidence; CorvusEye evaluates and red-teams.
 - PMTs are project-scoped information repositories only. Query only the mapped PMT for bounded context and send a compact state update after meaningful work.
@@ -60,9 +60,30 @@ metadata:
 - Persona is non-authoritative process guidance. Read only `cstar_status.persona`; use O.D.I.N. for build-run-repair and A.L.F.R.E.D. for secure-harden, without changing scope, authority, or gates.
 - Do not run shell `cstar chant` for host-only planning. In Codex, perform the host-native planning and critique in-session, using Hall/Augury state commands for bounded state and evidence.
 
+## CStar and CoS Delegation Boundary
+- CStar is only the deterministic state manager; it records bounded lifecycle state, receipts, validation, and completion, but does not launch agents, workthreads, providers, or cognition.
+- CoS in Codex is the orchestrator and supervisor/delegator: it sequences CStar state, dispatches owning workers, reviews returned evidence, requests correction, records independent validation, resolves beads, and closes out.
+- CoS must not implement, research, debug, edit source, run worker tests or validation, or silently take over failed worker work.
+- CoS owns no host goal and must never create, resume, update, pause, block, complete, or close a host goal.
+- Every substantive implementation, research, debug, or validation assignment goes to a Luna Max worker/workthread that owns exactly one bounded host goal.
+- The worker-goal objective binds the exact CStar bead id, decision, target paths, and checker contract; host-goal status is worker-local evidence, never CStar lifecycle truth.
+- Recoverable correction stays in the same retained workthread and same goal; a replacement worker gets a new goal plus an explicit bounded CStar handoff and never inherits hidden goal state.
+- A distinct validator owns a distinct validation goal and never reuses the implementation goal; legacy CoS-held goals stay paused/historical until supported transfer and are never silently resumed or falsely completed.
+- CStar has no generic host-goal or worker-launcher surface; `cstar_goal_resume`, when exposed, records continuity only and does not mutate a host goal or launch a worker.
+- A `workthread` is a retained/resumable host-issued worker thread with stable lineage; it is not a CStar kernel/provider launcher, and no runtime support is claimed unless the host exposes it.
+- Every substantive direct Codex subagent and retained/resumable workthread requests `gpt-5.6-luna` with reasoning effort `max` through an enforceable host selector.
+- Record `requested_model`, `requested_reasoning`, `selector_status`, and `actual_identity` separately; use `actual_identity: unreported` when the host reports no actual identity.
+- Selector absence or mismatch is visible; never silently fall back to another model, reasoning effort, provider, or surface.
+- Augury is the exception: request `gpt-5.6-sol` at `max` for the first opinion and distinct `gpt-5.6-terra` at `max` for a needed second opinion, still through an enforceable selector.
+- This contract defines no numeric concurrency cap.
+
 ## Corvus Star Augury [Ω]
-- Augury is a read-only typed route explanation, not permission, ownership, a vote, or a generic trace ritual.
-- Use `cstar_augury` only when route or material scope is ambiguous; reuse fresh mission state otherwise.
+- Augury is mode-dependent: omitting `mission_boundary` is a read-only typed route explanation; supplying it materializes one new current exact SET/design mission.
+- New SET/design work uses one strict `cstar_augury` mission boundary, preferring v2 with v1 compatibility, then `cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute -> independent cstar_record_result -> automatic next-child advancement`.
+- Eligible child Forge requests may receive internal request-scoped SET evidence automatically, but `cstar_forge_authorize` remains the explicit no-spend authorization gate for the default operator lifecycle.
+- Neither Augury mode grants permission, ownership, a vote, provider spend, or validation authority.
+- Use advisory Augury only when route or material scope is ambiguous; reuse fresh mission state otherwise.
+- CoS Augury model policy: request `gpt-5.6-sol` at max reasoning for the primary advisory call; when a second opinion is needed, make a distinct `gpt-5.6-terra` call at max reasoning. Use only a host surface with an enforceable selector, record requested versus actual identity, and grant no authority, spend, retries, or scope through this preference.
 - Council experts are advisory critique lenses. They cannot authorize work or turn synthetic evidence into proof.
 - TokenPath is quarantined. It cannot advise, steer, emit confidence, or accept observation writes until independently promoted.
 - Omit numeric confidence unless an independently validated scorer supplies a nonzero denominator, exclusions, class coverage, formula, row evidence, and provenance.
@@ -72,35 +93,36 @@ metadata:
 ## Kernel MCP Tools (28)
 
 The `cstar-kernel` MCP server is the authoritative kernel surface — invoke these tools directly via MCP rather than shelling out to `./cstar` whenever the needed primitive exists. Tool classes declare bounded effects; observed runtime remains evidence and cannot grant authority. Full API reference: `docs/integrations/cstar-kernel-mcp.md`.
+The default profile exposes exactly 16 tools. Advanced adds 9; full compatibility adds the remaining 3 legacy surfaces and exposes all 28.
 
-- `cstar_hall_maintenance` (LEGACY) — Decommissioned lesson study/harvest compatibility surface; always fails closed without reading or writing Hall state.
-- `cstar_handoff` (READ) — Return compact active state from Augury/handoff logic.
-- `cstar_hall_search` (READ) — Bounded Hall search across code/docs/engrams/beads/sessions/lessons.
-- `cstar_augury` (READ) — Resolve a mission to a route with deterministic grammar, active session context, council expert, Mimir targets, and persona advice.
-- `cstar_doctor` (READ) — Diagnose base kernel health and active Augury health.
-- `cstar_verify_plan` (READ) — Recommend focused checks; do not run them.
-- `cstar_bead` (MUTATION) — Create, inspect, claim, block, resolve, and list bounded Hall beads. RESOLVED requires fresh contained Lore/Isolation artifacts bound to an exact independent Hall validation receipt; no scalar, cached, force, or exemption bypass exists.
-- `cstar_goal_resume` (MUTATION) — Append immutable continuity evidence for an explicitly resumed blocked host goal. It does not change host state or grant spend, source, Git, restart, deployment, or production authority.
-- `cstar_spoke_bead_import` (MUTATION) — Import a spoke-originated bead into the Hall through a bounded, validated handoff payload.
-- `cstar_record_result` (MUTATION) — Record independent validation for a Hall bead and optionally finalize a delivered Forge receipt.
-- `cstar_engram_record` (MUTATION) — Publish an Engram to the Hall episodic memory table and fire war-game scoring when applicable.
-- `cstar_war_game_score` (MUTATION) — War-game scoring: register_contest, tally, recent, by_scenario, get_score, list_contests.
-- `cstar_manifest` (READ) — Capability discovery. Returns the kernel registry merged with spoke-local skill manifests.
-- `cstar_skill_info` (READ) — Per-capability contract view for hub and namespaced spoke skills.
-- `cstar_spoke_journal` (READ) — Four-file journal state for a registered spoke.
-- `cstar_pennyone_context` (READ) — Bounded PennyOne/Hall state summaries. No arbitrary SQL is accepted.
-- `cstar_mongo_mailbox` (LEGACY) — Decommissioned Mongo mirror/intent compatibility surface; always fails closed without secret, network, or write activity.
-- `cstar_status` (READ) — Deterministic kernel state snapshot with optional exact Forge execution lifecycle status.
-- `cstar_persona_set` (MUTATION) — Explicitly select O.D.I.N. or A.L.F.R.E.D. for the next workflow boundary; style-only and never expands authority or bypasses gates.
-- `cstar_evolve` (READ) — Read-only inspection of Karpathy-loop artifacts: list_proposals, get_proposal, list_sprt_history.
-- `cstar_spoke` (READ) — Redacted mounted-spoke inspection and exact-match prune preview; link, unlink, project, and destructive prune fail closed until a request-scoped operator-attestation contract exists.
-- `cstar_intent_route` (READ) — Deterministic grammar-only routing. Prefer cstar_augury when session context is needed.
-- `cstar_warden` (EXECUTION) — On-demand local Sentinel Warden execution. list and bounties are read-only; scan starts a constrained project-venv process and performs no LLM inference.
-- `cstar_telemetry` (READ) — Read-only MCP telemetry summaries over the last 24h.
-- `cstar_researcher_request` (REQUEST) — Create a CStar-native no-spend Researcher request receipt.
-- `cstar_forge_request` (REQUEST) — Persist an immutable no-spend Forge request; machine challenge material stays hidden from the normal operator workflow.
-- `cstar_forge_authorize` (MUTATION) — Bind one explicit root-user build instruction or immutable CStar goal-continuation receipt to one unchanged pending Forge request; performs no provider call.
-- `cstar_forge_execute` (EXECUTION) — Atomically run one provider attempt through the private Hermes/MiniMax adapter, with durable replay, independently validated pre-provider continuity, and delivered-pending-validation semantics.
+- `cstar_hall_maintenance` (LEGACY; compatibility) — Decommissioned lesson study/harvest compatibility surface; always fails closed without reading or writing Hall state.
+- `cstar_handoff` (READ; default) — Return compact active state from Augury/handoff logic.
+- `cstar_hall_search` (READ; default) — Bounded Hall search across code/docs/engrams/beads/sessions/lessons.
+- `cstar_augury` (MUTATION; default) — Resolve a mission route and optionally materialize one strict v1/v2 exact-SET design boundary; omission of mission_boundary is read-only.
+- `cstar_doctor` (READ; default) — Diagnose base kernel health and active Augury health.
+- `cstar_verify_plan` (READ; default) — Recommend focused checks; do not run them.
+- `cstar_bead` (MUTATION; default) — Create, inspect, claim, block, resolve, and list bounded Hall beads. RESOLVED requires fresh contained Lore/Isolation artifacts bound to an exact independent Hall validation receipt; no scalar, cached, force, or exemption bypass exists.
+- `cstar_goal_resume` (MUTATION; default) — Append immutable continuity evidence for an explicitly resumed blocked host goal. It does not change host state or grant spend, source, Git, restart, deployment, or production authority.
+- `cstar_spoke_bead_import` (MUTATION; advanced) — Import a spoke-originated bead into the Hall through a bounded, validated handoff payload.
+- `cstar_record_result` (MUTATION; default) — Record independent validation for a Hall bead and optionally finalize a delivered Forge receipt.
+- `cstar_engram_record` (MUTATION; advanced) — Publish an Engram to the Hall episodic memory table and fire war-game scoring when applicable.
+- `cstar_war_game_score` (MUTATION; advanced) — War-game scoring: register_contest, tally, recent, by_scenario, get_score, list_contests.
+- `cstar_manifest` (READ; default) — Capability discovery. Returns the kernel registry merged with spoke-local skill manifests.
+- `cstar_skill_info` (READ; default) — Per-capability contract view for hub and namespaced spoke skills.
+- `cstar_spoke_journal` (READ; advanced) — Four-file journal state for a registered spoke.
+- `cstar_pennyone_context` (READ; advanced) — Bounded PennyOne/Hall state summaries. No arbitrary SQL is accepted.
+- `cstar_mongo_mailbox` (LEGACY; compatibility) — Decommissioned Mongo mirror/intent compatibility surface; always fails closed without secret, network, or write activity.
+- `cstar_status` (READ; default) — Deterministic kernel state snapshot with optional exact Forge execution lifecycle status.
+- `cstar_persona_set` (MUTATION; default) — Explicitly select O.D.I.N. or A.L.F.R.E.D. for the next workflow boundary; style-only and never expands authority or bypasses gates.
+- `cstar_evolve` (READ; advanced) — Read-only inspection of Karpathy-loop artifacts: list_proposals, get_proposal, list_sprt_history.
+- `cstar_spoke` (READ; advanced) — Redacted mounted-spoke inspection and exact-match prune preview; link, unlink, project, and destructive prune fail closed until a request-scoped operator-attestation contract exists.
+- `cstar_intent_route` (READ; compatibility) — Legacy grammar-only compatibility projection; active routing uses cstar_augury.
+- `cstar_warden` (EXECUTION; advanced) — On-demand local Sentinel Warden execution. list and bounties are read-only; scan starts a constrained project-venv process and performs no LLM inference.
+- `cstar_telemetry` (READ; advanced) — Read-only MCP telemetry summaries over the last 24h.
+- `cstar_researcher_request` (REQUEST; default) — Create a CStar-native no-spend Researcher request receipt.
+- `cstar_forge_request` (REQUEST; default) — Persist an immutable Forge request and derive a request-scoped receipt from an active exact-SET mission grant when eligible.
+- `cstar_forge_authorize` (MUTATION; default) — Bind one explicit root-user build instruction or immutable SET authority to an unchanged pending Forge request; performs no provider call.
+- `cstar_forge_execute` (EXECUTION; default) — Atomically run one provider attempt through the private Hermes/MiniMax adapter, with durable replay, independently validated pre-provider continuity, and delivered-pending-validation semantics.
 
 ## Context Budget
 - Never preload Hall memory, logs, full registry dumps, or complete bead ledgers.

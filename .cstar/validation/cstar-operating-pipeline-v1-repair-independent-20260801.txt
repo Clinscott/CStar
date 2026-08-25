@@ -1,0 +1,13 @@
+CStar Operating Pipeline v1 repair independent validation
+validator_thread=019fbb0b-b2db-7822-9112-f09b367dcfd0
+verdict=ACCEPTED
+repaired_modules=34/34 across 4 suites
+adjacent_acceptance=112/112 across 14 suites
+typecheck=npm run typecheck exit 0
+file_size_contract=1/1 pass
+scoped_diff_check=exit 0
+line_audit=max 459 lines, none over 500
+live_activation_proven=false
+provider_attempts=0
+cstar_mutations=0
+host_mutations=0

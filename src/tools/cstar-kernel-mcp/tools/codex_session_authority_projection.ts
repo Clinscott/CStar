@@ -122,16 +122,18 @@ function isExactUserEventMirror(
         || record.row.type !== 'event_msg'
         || payload?.type !== 'user_message'
         || payload.message !== source.message
-        || !Array.isArray(payload.images) || payload.images.length !== 0
-        || !Array.isArray(payload.local_images) || payload.local_images.length !== 0
-        || !Array.isArray(payload.text_elements) || payload.text_elements.length !== 0
+        || !['images', 'local_images', 'text_elements'].every(
+            (key) => Array.isArray(payload[key]) && payload[key].length === 0,
+        )
+        || !['audio', 'local_audio'].every(
+            (key) => payload[key] === undefined
+                || (Array.isArray(payload[key]) && payload[key].length === 0),
+        )
         || (payload.client_id !== undefined && typeof payload.client_id !== 'string')
     ) {
         return false;
     }
-    const allowed = new Set([
-        'type', 'client_id', 'message', 'images', 'local_images', 'text_elements',
-    ]);
+    const allowed = new Set(['type', 'client_id', 'message', 'images', 'local_images', 'text_elements', 'audio', 'local_audio']);
     const allowedRowKeys = new Set(['timestamp', 'type', 'payload']);
     return Object.keys(record.row).every((key) => allowedRowKeys.has(key))
         && Object.keys(payload).every((key) => allowed.has(key));

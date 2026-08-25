@@ -1,0 +1,64 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:cstar:operating-pipeline-v1-batch-2",
+  "validation_id": "validation:cstar-forge-preauthorization-correction:20260730",
+  "reported_verdict": "ACCEPTED",
+  "artifacts": [
+    {
+      "path": "src/tools/pennyone/intel/forge_request_correction_schema.ts",
+      "sha256": "52d85eec6e671bfe504fd63e23c78b7c47ed367ba7e9211622b361bd3e111ae9",
+      "bytes": 10517
+    },
+    {
+      "path": "src/tools/pennyone/intel/forge_request_preauthorization_correction.ts",
+      "sha256": "1f9117763d844dffbc6d5955bceedce4bfabee60f2d2c8aec1995c99f976b9ab",
+      "bytes": 7462
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_iteration_authority.ts",
+      "sha256": "9dc44f0a824e2cc1fe18b03510d27c6b755c92dd07228b8d4c2f202502685582",
+      "bytes": 18417
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_set_manifest_request_correction.test.ts",
+      "sha256": "65ceef02586320203ce2930be877635a5cf09b8b20e0dfdbfcd9d43ede8fb8fc",
+      "bytes": 10973
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_request_correction_schema.test.ts",
+      "sha256": "700bf2a2e55cdb3da85e090b7f454fedf39f176e4822b840d2a4c17ef30029ca",
+      "bytes": 14066
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_request_authorization_controller.test.ts",
+      "sha256": "e836c80f21605a7e7bf499abb7eb97099ab15b981dd2b76ba57e5fd86a89dbfd",
+      "bytes": 22299
+    }
+  ],
+  "checks": [
+    {
+      "name": "independent synthetic correction and authorization reproduction",
+      "status": "pass",
+      "evidence_path": "tests/unit/cstar-kernel-mcp/test_forge_set_manifest_request_correction.test.ts",
+      "sha256": "65ceef02586320203ce2930be877635a5cf09b8b20e0dfdbfcd9d43ede8fb8fc"
+    },
+    {
+      "name": "independent schema migration and index preservation review",
+      "status": "pass",
+      "evidence_path": "tests/unit/cstar-kernel-mcp/test_forge_request_correction_schema.test.ts",
+      "sha256": "700bf2a2e55cdb3da85e090b7f454fedf39f176e4822b840d2a4c17ef30029ca"
+    },
+    {
+      "name": "disposable 722 MB Hall snapshot preserves 98-row FK baseline and 26 requests",
+      "status": "pass",
+      "evidence_path": "src/tools/pennyone/intel/forge_request_correction_schema.ts",
+      "sha256": "52d85eec6e671bfe504fd63e23c78b7c47ed367ba7e9211622b361bd3e111ae9"
+    },
+    {
+      "name": "eighteen suites 152 of 152 typecheck diff and line audit",
+      "status": "pass",
+      "evidence_path": "tests/unit/cstar-kernel-mcp/test_forge_request_authorization_controller.test.ts",
+      "sha256": "e836c80f21605a7e7bf499abb7eb97099ab15b981dd2b76ba57e5fd86a89dbfd"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:cstar:operating-pipeline-v1-batch-1",
+  "validation_id": "validation:cstar-forge-minimax-token-limit:20260730",
+  "reported_verdict": "ACCEPTED",
+  "artifacts": [
+    {
+      "path": ".agents/skills/corvus-forge/runtime/hermes_cli/forge_entrypoint.py",
+      "sha256": "0eac00e1b9e6eacdd0525441c4e91c9f529cf40fc05aa77c2c065e7691b1d711",
+      "bytes": 16481
+    },
+    {
+      "path": "tests/unit/corvus-forge/test_private_hermes_runtime.py",
+      "sha256": "61568562fb1a2c965ceab1831eccacd5fd954069c384f181cf6f5d6638fac72d",
+      "bytes": 9427
+    }
+  ],
+  "checks": [
+    {
+      "name": "one-shot MiniMax transport safety review",
+      "status": "pass",
+      "evidence_path": ".agents/skills/corvus-forge/runtime/hermes_cli/forge_entrypoint.py",
+      "sha256": "0eac00e1b9e6eacdd0525441c4e91c9f529cf40fc05aa77c2c065e7691b1d711"
+    },
+    {
+      "name": "private runtime and readiness tests 18 of 18",
+      "status": "pass",
+      "evidence_path": "tests/unit/corvus-forge/test_private_hermes_runtime.py",
+      "sha256": "61568562fb1a2c965ceab1831eccacd5fd954069c384f181cf6f5d6638fac72d"
+    }
+  ]
+}

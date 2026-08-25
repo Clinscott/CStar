@@ -218,6 +218,8 @@ export function finalizeForgeAdapterExecutionResult({
             reasoning_profile: 'forge-private',
             adapter_version: adapterVersion,
         });
+    const beadTransition = !delivered && 'bead_transition' in durable
+        ? durable.bead_transition : null;
     return textResponse({
         status: delivered ? 'delivered_unverified' : liveSpendUnknown ? 'ambiguous' : 'failed_final',
         execution_kind: 'forge',
@@ -228,6 +230,7 @@ export function finalizeForgeAdapterExecutionResult({
         attempt_id: durable.attempt.attempt_id,
         attempt_status: durable.attempt.status,
         request_status: durable.request.status,
+        bead_transition: beadTransition,
         replayed: false,
         authorized_dispatch_surface: surface,
         authorized_execution_adapter: adapter,

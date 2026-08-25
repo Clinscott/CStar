@@ -1,0 +1,60 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:cstar:augury-model-policy-20260731",
+  "validation_id": "validation:cstar-augury-model-policy-20260731",
+  "reported_verdict": "ACCEPTED",
+  "artifacts": [
+    {
+      "path": "src/packaging/distribution_content.ts",
+      "sha256": "5a46ecb9b53b71c6657e01d321a7b2a5ce18445e1eeef80741edb564f037d89a"
+    },
+    {
+      "path": "tests/unit/test_distribution_manifests.test.ts",
+      "sha256": "8e60b15d2869167faeff6550be1574a88ca98a199585232719e2feae445407d0"
+    },
+    {
+      "path": "GEMINI.md",
+      "sha256": "8f1f9921f64d1830394455fea3f1b8a0848a81dae629ced7aa71d05087e67e42"
+    },
+    {
+      "path": "plugins/corvus-star/skills/corvus-star/SKILL.md",
+      "sha256": "12028b20c4ad3767e5b5ff188505c772eb8621b509bcfe8ef2845a40e0959070"
+    },
+    {
+      "path": "docs/decisions/cstar-augury-set-mission-boundary.md",
+      "sha256": "ae6eb3e5405f3da895c044785c437c086af1197373843bd8aa27fb74766342bf"
+    }
+  ],
+  "checks": [
+    {
+      "name": "canonical Augury policy and generated artifacts agree: Sol max primary, distinct Terra max second opinion, identity separation, no authority transfer",
+      "status": "pass",
+      "evidence_path": "src/packaging/distribution_content.ts",
+      "sha256": "5a46ecb9b53b71c6657e01d321a7b2a5ce18445e1eeef80741edb564f037d89a"
+    },
+    {
+      "name": "bead checker: 26 tests across 4 suites",
+      "status": "pass",
+      "evidence_path": "tests/unit/test_distribution_manifests.test.ts",
+      "sha256": "8e60b15d2869167faeff6550be1574a88ca98a199585232719e2feae445407d0"
+    },
+    {
+      "name": "npm run typecheck",
+      "status": "pass",
+      "evidence_path": "plugins/corvus-star/skills/corvus-star/SKILL.md",
+      "sha256": "12028b20c4ad3767e5b5ff188505c772eb8621b509bcfe8ef2845a40e0959070"
+    },
+    {
+      "name": "git diff --check",
+      "status": "pass",
+      "evidence_path": "GEMINI.md",
+      "sha256": "8f1f9921f64d1830394455fea3f1b8a0848a81dae629ced7aa71d05087e67e42"
+    },
+    {
+      "name": "policy increment and generated artifacts <=500 lines: 385, 347, 96, 128, 127",
+      "status": "pass",
+      "evidence_path": "docs/decisions/cstar-augury-set-mission-boundary.md",
+      "sha256": "ae6eb3e5405f3da895c044785c437c086af1197373843bd8aa27fb74766342bf"
+    }
+  ]
+}

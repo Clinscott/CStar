@@ -1,0 +1,1 @@
+Focused validation passed: 122/122 tests across 8 suites: default conversational request 4, natural authorization 33, authorization controller 13, Forge execute 16, one-shot authority 2, SET manifest authorization 34, goal resume 18, and handoff runtime 2.

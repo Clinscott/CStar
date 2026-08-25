@@ -1,0 +1,30 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:cstar:codex-user-event-mirror-identity-20260731",
+  "validation_id": "validation:cstar-codex-user-event-mirror-identity:20260731",
+  "reported_verdict": "ACCEPTED",
+  "artifacts": [
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/codex_session_authority_projection.ts",
+      "sha256": "4dc651327e80587a78dc5530cea9be81d61175ccdfb5856bf2b91124c3021fee"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_restart_authorization_continuity.test.ts",
+      "sha256": "636f5549a51be94f722f8a1fbea56109db5ae027d61c39d09073f64ef3453de3"
+    }
+  ],
+  "checks": [
+    {
+      "name": "root-user mirror authorization matrix 69 of 69",
+      "status": "pass",
+      "evidence_path": "tests/unit/cstar-kernel-mcp/test_forge_restart_authorization_continuity.test.ts",
+      "sha256": "636f5549a51be94f722f8a1fbea56109db5ae027d61c39d09073f64ef3453de3"
+    },
+    {
+      "name": "typecheck and selected diff consistency",
+      "status": "pass",
+      "evidence_path": "src/tools/cstar-kernel-mcp/tools/codex_session_authority_projection.ts",
+      "sha256": "4dc651327e80587a78dc5530cea9be81d61175ccdfb5856bf2b91124c3021fee"
+    }
+  ]
+}

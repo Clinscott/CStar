@@ -11,7 +11,7 @@ export function resolveForgeRuntimeRoots(): ForgeRuntimeRoots {
     const controlRoot = registry.getRoot();
     const syntheticLibraryTest = KERNEL_ROOT_BINDING_MODE === 'library_default'
         && Boolean(process.env.NODE_TEST_CONTEXT)
-        && process.env.CSTAR_FORGE_RUNTIME_TEST_BYPASS === '1';
+        && process.env.CSTAR_FORGE_RUNTIME_TEST_BYPASS !== undefined;
     return Object.freeze({
         controlRoot,
         codeRoot: syntheticLibraryTest ? controlRoot : CODE_ROOT,

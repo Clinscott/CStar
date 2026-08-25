@@ -1,0 +1,62 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:cstar:augury-set-mission-boundary",
+  "validation_id": "validation:cstar-augury-mission-batch-materialization:20260730",
+  "reported_verdict": "ACCEPTED",
+  "artifacts": [
+    {
+      "path": "src/tools/pennyone/intel/augury_mission_receipt_validation.ts",
+      "sha256": "c7a43de6df7ad4010d7cc1bf477ef6c47185214ca3eb55664828a9901e729d55"
+    },
+    {
+      "path": "src/tools/pennyone/intel/augury_mission_receipt_schema.ts",
+      "sha256": "b2e73a9fa7dcfbda61b164f4ece0a29ec1ddd383917904a5a31f47e0f6421b59"
+    },
+    {
+      "path": "src/tools/pennyone/intel/augury_mission_receipt_controller.ts",
+      "sha256": "989ac4e6f71b102fa4aefd03592a37523a53e44b26acd1757dc9823a73a8d2bd"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_augury_mission_receipt_materialization.test.ts",
+      "sha256": "480a224f58bd2575e5d2ce0d6c16f3c6f36bae8d8bd0d203369c600c38b81fea"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_augury_set_mission_boundary.test.ts",
+      "sha256": "3c9625db2a24bd0697635aaed859900613f0d8593bbf40d4eb3ab9e61e492a78"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_set_mission_grant.test.ts",
+      "sha256": "c660dc8b8bda6cb11e95d115e58f749802bbcec37296641d099eb3ef7e7208c3"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_set_manifest_authorization.test.ts",
+      "sha256": "55098e5238fe9eebf8a7b7d397f096d1c7c9cc29a32d8f84767e220b8fa2624e"
+    }
+  ],
+  "checks": [
+    {
+      "name": "atomic Augury mission batch materialization 15 of 15",
+      "status": "pass",
+      "evidence_path": "tests/unit/cstar-kernel-mcp/test_augury_mission_receipt_materialization.test.ts",
+      "sha256": "480a224f58bd2575e5d2ce0d6c16f3c6f36bae8d8bd0d203369c600c38b81fea"
+    },
+    {
+      "name": "independent replay tamper matrix 23 of 23",
+      "status": "pass",
+      "evidence_path": "src/tools/pennyone/intel/augury_mission_receipt_controller.ts",
+      "sha256": "989ac4e6f71b102fa4aefd03592a37523a53e44b26acd1757dc9823a73a8d2bd"
+    },
+    {
+      "name": "Augury boundary compatibility 13 of 13",
+      "status": "pass",
+      "evidence_path": "tests/unit/cstar-kernel-mcp/test_augury_set_mission_boundary.test.ts",
+      "sha256": "3c9625db2a24bd0697635aaed859900613f0d8593bbf40d4eb3ab9e61e492a78"
+    },
+    {
+      "name": "mission grant compatibility 42 of 42 plus typecheck and line audit",
+      "status": "pass",
+      "evidence_path": "tests/unit/cstar-kernel-mcp/test_forge_set_mission_grant.test.ts",
+      "sha256": "c660dc8b8bda6cb11e95d115e58f749802bbcec37296641d099eb3ef7e7208c3"
+    }
+  ]
+}

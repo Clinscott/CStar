@@ -66,7 +66,7 @@ function serialize(row: unknown): string {
 }
 
 function writeSession(rows: unknown[], trailingNewline = true): string {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'cstar-codex-identity-'));
+    const root = fs.mkdtempSync(path.join(process.platform === 'linux' ? '/tmp' : os.tmpdir(), 'cstar-codex-identity-'));
     roots.push(root);
     const sessionFile = path.join(root, 'rollout-synthetic.jsonl');
     const body = rows.map(serialize).join('\n') + (trailingNewline ? '\n' : '');
@@ -199,7 +199,7 @@ describe('canonical Codex root-user turn scanner', () => {
     });
 
     it('binds identity above the legacy 64 MiB cap without retaining non-user rows', () => {
-        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'cstar-codex-large-identity-'));
+        const root = fs.mkdtempSync(path.join(process.platform === 'linux' ? '/tmp' : os.tmpdir(), 'cstar-codex-large-identity-'));
         roots.push(root);
         const sessionFile = path.join(root, 'rollout-large.jsonl');
         const expectedDigest = createHash('sha256');
@@ -423,7 +423,7 @@ describe('canonical Codex root-user turn scanner', () => {
     });
 
     it('derives request and authorization identities from exactly one fixed open', async () => {
-        const codexHome = fs.mkdtempSync(path.join(os.tmpdir(), 'cstar-single-scan-auth-'));
+        const codexHome = fs.mkdtempSync(path.join(process.platform === 'linux' ? '/tmp' : os.tmpdir(), 'cstar-single-scan-auth-'));
         roots.push(codexHome);
         const sessions = path.join(codexHome, 'sessions', '2026', '07', '13');
         fs.mkdirSync(sessions, { recursive: true, mode: 0o700 });

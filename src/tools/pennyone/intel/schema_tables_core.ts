@@ -1,4 +1,5 @@
 import { FORGE_AUTHORIZATION_SCHEMA } from './forge_authorization_schema.js';
+import { FORGE_REQUEST_SCHEMA } from './forge_request_correction_schema.js';
 
 export const HALL_SCHEMA_CORE_SQL = String.raw`
         PRAGMA foreign_keys = ON;
@@ -168,49 +169,7 @@ export const HALL_SCHEMA_CORE_SQL = String.raw`
 
         CREATE INDEX IF NOT EXISTS idx_hall_beads_repo_status ON hall_beads(repo_id, status);
 
-        CREATE TABLE IF NOT EXISTS hall_forge_requests (
-            request_id TEXT PRIMARY KEY,
-            repo_id TEXT NOT NULL,
-            bead_id TEXT NOT NULL,
-            decision_id TEXT NOT NULL,
-            operator_authorization_ref TEXT,
-            operator_thread_id TEXT,
-            operator_turn_id TEXT,
-            operator_message_sha256 TEXT,
-            operator_record_sha256 TEXT,
-            operator_record_set_sha256 TEXT,
-            operator_record_count INTEGER CHECK(operator_record_count IS NULL OR operator_record_count >= 1),
-            requester_thread_id TEXT,
-            requester_turn_id TEXT,
-            requester_record_set_sha256 TEXT,
-            authorization_profile TEXT,
-            authorization_binding_sha256 TEXT,
-            authorization_challenge_sha256 TEXT,
-            request_sha256 TEXT NOT NULL,
-            request_summary_json TEXT NOT NULL,
-            adapter_ref TEXT,
-            write_capability TEXT CHECK(write_capability IN ('response_only', 'project_files')),
-            target_paths_sha256 TEXT NOT NULL,
-            live_source_allowed INTEGER NOT NULL CHECK(live_source_allowed IN (0, 1)),
-            max_attempts INTEGER NOT NULL CHECK(max_attempts >= 1 AND max_attempts <= 10),
-            status TEXT NOT NULL CHECK(status IN ('PENDING_AUTH', 'AUTHORIZED', 'SUCCEEDED', 'FAILED_FINAL', 'EXHAUSTED', 'AMBIGUOUS', 'REVOKED')),
-            active_attempt_id TEXT,
-            authorized_at INTEGER,
-            expires_at INTEGER,
-            created_at INTEGER NOT NULL,
-            updated_at INTEGER NOT NULL,
-            completed_at INTEGER,
-            UNIQUE(bead_id, decision_id),
-            UNIQUE(operator_authorization_ref),
-            FOREIGN KEY(repo_id) REFERENCES hall_repositories(repo_id),
-            FOREIGN KEY(bead_id) REFERENCES hall_beads(bead_id)
-        );
-
-        CREATE INDEX IF NOT EXISTS idx_hall_forge_requests_bead_status
-        ON hall_forge_requests(bead_id, status, created_at);
-
-        CREATE UNIQUE INDEX IF NOT EXISTS idx_hall_forge_requests_one_shot_authorization
-        ON hall_forge_requests(operator_authorization_ref);
+        ${FORGE_REQUEST_SCHEMA}
 
         ${FORGE_AUTHORIZATION_SCHEMA}
 

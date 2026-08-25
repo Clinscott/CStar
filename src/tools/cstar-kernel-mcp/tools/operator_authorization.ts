@@ -17,6 +17,7 @@ import {
     MAX_CODEX_SESSION_FILE_BYTES,
     resolveCodexSessionsRoot,
 } from './codex_session_locator.js';
+import { retryAppendOnlyCodexSessionRead } from './codex_session_append_retry.js';
 import {
     assertOperatorAuthorizationScope,
     type OperatorAuthorizationScope,
@@ -243,14 +244,16 @@ export async function verifyCodexRequestIdentity(
     const metadata = parseCodexTurnMetadata(context);
     const sessionsRoot = resolveCodexSessionsRoot();
     const sessionFile = findCodexSessionFile(sessionsRoot, metadata.thread_id);
-    const accumulator = createCanonicalCodexUserTurnAccumulator(
-        metadata.thread_id,
-        metadata.turn_id,
-        now,
-        MAX_AUTHORIZATION_AGE_MS,
-    );
-    scanFixedCodexSession(sessionFile, MAX_CODEX_SESSION_FILE_BYTES, accumulator.consume);
-    return verifiedRequestIdentity(metadata, accumulator.finish());
+    return retryAppendOnlyCodexSessionRead(sessionFile, MAX_CODEX_SESSION_FILE_BYTES, () => {
+        const accumulator = createCanonicalCodexUserTurnAccumulator(
+            metadata.thread_id,
+            metadata.turn_id,
+            now,
+            MAX_AUTHORIZATION_AGE_MS,
+        );
+        scanFixedCodexSession(sessionFile, MAX_CODEX_SESSION_FILE_BYTES, accumulator.consume);
+        return verifiedRequestIdentity(metadata, accumulator.finish());
+    });
 }
 
 export async function verifyOperatorAuthorization(

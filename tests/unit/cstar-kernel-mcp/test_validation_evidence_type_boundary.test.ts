@@ -78,6 +78,23 @@ describe('Forge validation evidence type boundary', () => {
             assert.doesNotThrow(() => isValidationEvidenceManifestV2StructurallyValid(malformed));
             assert.equal(isValidationEvidenceManifestV2StructurallyValid(malformed), false);
         }
+        assert.equal(isValidationEvidenceManifestV2StructurallyValid({
+            ...valid,
+            validator_identity_source: 'codex_request_meta',
+            session_turn_record_sha256: hash,
+            session_turn_record_set_sha256: hash,
+            session_turn_record_count: 2,
+            session_turn_first_timestamp: '2026-07-30T16:00:00.000Z',
+            session_turn_timestamp: '2026-07-30T16:00:00.100Z',
+        }), true);
+        assert.equal(isValidationEvidenceManifestV2StructurallyValid({
+            ...valid,
+            independence: { ...valid.independence, executor_record_count: 2 },
+        }), true);
+        assert.equal(isValidationEvidenceManifestV2StructurallyValid({
+            ...valid,
+            independence: { ...valid.independence, executor_record_count: 0 },
+        }), false);
     });
 
     it('accepts only exact host-workflow v3 lineage and receipt bindings', () => {

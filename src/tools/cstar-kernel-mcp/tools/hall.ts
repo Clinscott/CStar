@@ -3,6 +3,7 @@ import { registry } from '../../pennyone/pathRegistry.js';
 import { database } from '../../pennyone/intel/database.js';
 import {
     buildTraceAgentHandoffPayload,
+    buildRuntimeTraceHandoffPayload,
     resolveActivePlanningSession,
     resolveActiveTraceHandoffPayload,
     buildAuguryDoctorPayload,
@@ -35,9 +36,19 @@ export async function handleHallMaintenance(_args: unknown) {
 }
 
 export interface HandoffArgs {
+    bead_id?: string;
     prompt?: string;
     scope?: string;
     target_paths?: string[];
+}
+
+function runtimeIdentity() {
+    const lineage = buildKernelRuntimeLineage();
+    return {
+        code_root: lineage.code_root,
+        control_root: lineage.control_root,
+        binding_sha256: lineage.binding_sha256,
+    };
 }
 
 function compactHandoffSession(handoff: any) {
@@ -62,9 +73,72 @@ function compactHandoffSession(handoff: any) {
 }
 
 export function buildHandoffMcpPayload(handoff: any, root: string, args: HandoffArgs = {}) {
+    if (args.bead_id?.trim()) {
+        const bead = database.getHallBead(args.bead_id.trim());
+        if (!bead) {
+            return {
+                status: 'missing_explicit_bead',
+                authoritative: false,
+                requested_bead_id: args.bead_id.trim(),
+                runtime_identity: runtimeIdentity(),
+                guardrail: mcpGuardrail(
+                    'block',
+                    'recover',
+                    'The requested current bead was not found in CStar.',
+                    ['handoff_bead_not_found'],
+                    ['handoff'],
+                ),
+                next_action: 'Inspect the exact bead id through cstar_bead or create a bounded bead before execution.',
+            };
+        }
+        const targetDivergence = detectAuguryTargetDivergence(
+            args.target_paths ?? [],
+            bead.target_path ? [bead.target_path] : [],
+            CODE_ROOT,
+        );
+        if (args.target_paths && args.target_paths.length > 0 && targetDivergence.diverged) {
+            return {
+                status: 'explicit_bead_target_divergence',
+                authoritative: false,
+                requested_bead_id: bead.id,
+                requested_target_paths: args.target_paths,
+                divergence: targetDivergence,
+                runtime_identity: runtimeIdentity(),
+                guardrail: mcpGuardrail(
+                    'caution',
+                    'verify',
+                    'The exact bead exists, but its target does not cover the caller targets.',
+                    [],
+                    ['explicit_bead_target_divergence'],
+                ),
+                next_action: 'Use the exact bead target or create a separately scoped bead; do not widen this handoff.',
+            };
+        }
+        const explicitHandoff = buildRuntimeTraceHandoffPayload(bead, root, CODE_ROOT);
+        const terminal = ['RESOLVED', 'ARCHIVED', 'SUPERSEDED'].includes(bead.status);
+        return {
+            status: terminal ? 'completed_explicit_bead' : 'active_explicit_bead',
+            authoritative: !terminal,
+            active_session_authority: 'explicit_bead',
+            requested_bead_id: bead.id,
+            runtime_identity: runtimeIdentity(),
+            ...compactHandoffSession(explicitHandoff),
+            guardrail: terminal
+                ? mcpGuardrail(
+                    'caution',
+                    'recover',
+                    'The exact bead is terminal and cannot become current execution truth.',
+                    ['handoff_bead_terminal'],
+                    ['handoff'],
+                )
+                : mcpGuardrail('allow', 'continue', 'The exact CStar bead is the current handoff target.'),
+        };
+    }
+
     if (!handoff) {
         return {
             status: 'idle',
+            runtime_identity: runtimeIdentity(),
             guardrail: mcpGuardrail(
                 'caution',
                 'recover',
@@ -77,13 +151,14 @@ export function buildHandoffMcpPayload(handoff: any, root: string, args: Handoff
     }
 
     const requestedTargets = args.target_paths ?? [];
-    const divergence = detectAuguryTargetDivergence(requestedTargets, handoff.target_paths, root);
+    const divergence = detectAuguryTargetDivergence(requestedTargets, handoff.target_paths, CODE_ROOT);
     if (requestedTargets.length > 0 && divergence.diverged) {
         return {
             status: 'background_active_session',
             authoritative: false,
             stale_session_demoted: true,
             active_session_authority: 'background',
+            runtime_identity: runtimeIdentity(),
             requested_prompt: args.prompt ?? null,
             requested_scope: args.scope ?? null,
             requested_target_paths: requestedTargets,
@@ -103,6 +178,7 @@ export function buildHandoffMcpPayload(handoff: any, root: string, args: Handoff
     return {
         status: 'active',
         authoritative: true,
+        runtime_identity: runtimeIdentity(),
         ...compactHandoffSession(handoff),
         guardrail: handoff.execution_gate === 'execution_guarded'
             ? mcpGuardrail(

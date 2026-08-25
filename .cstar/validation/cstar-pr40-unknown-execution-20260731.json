@@ -1,0 +1,34 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:cstar:researcher-hermes-execution-v1-20260731-policy-v3",
+  "validation_id": "validation:cstar-pr40-unknown-execution-20260731",
+  "reported_verdict": "FAILURE",
+  "artifacts": [
+    {
+      "path": ".cstar/validation/cstar-pr40-unknown-execution-20260731.txt",
+      "sha256": "46bbe453a81529b7694f5b9b2518de215eaece6dcf7cff3598dd6042d581ad4b"
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/forge_execute.ts",
+      "sha256": "cb58b64d8d273d668b49890a7df3cbeedd0962b3ec25f43c47647c25b332681d"
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/forge_autonomous_policy_signal.ts",
+      "sha256": "8c3576544e4f58153dd5adc5dd8e688bdf645b0983b8c71e105bccdacfd374ab"
+    }
+  ],
+  "checks": [
+    {
+      "name": "durable UNKNOWN attempt classification",
+      "status": "pass",
+      "evidence_path": ".cstar/validation/cstar-pr40-unknown-execution-20260731.txt",
+      "sha256": "46bbe453a81529b7694f5b9b2518de215eaece6dcf7cff3598dd6042d581ad4b"
+    },
+    {
+      "name": "temporary diagnostics removed",
+      "status": "pass",
+      "evidence_path": "src/tools/cstar-kernel-mcp/tools/forge_execute.ts",
+      "sha256": "cb58b64d8d273d668b49890a7df3cbeedd0962b3ec25f43c47647c25b332681d"
+    }
+  ]
+}

@@ -1,5 +1,4 @@
 import { createHash } from 'node:crypto';
-
 import type {
     AuthorizeForgeRequestInput,
     HallForgeAuthorizationProfile,
@@ -15,6 +14,7 @@ import {
 } from './forge_goal_resume_authorization_policy.js';
 
 export const ROOT_USER_FORGE_INTENT_PROFILE = 'root_user_forge_intent_v1' as const;
+export const AUTONOMOUS_DISPATCH_POLICY_PROFILE = 'autonomous_dispatch_policy_v1' as const;
 export const LEGACY_EXACT_FORGE_CHALLENGE_PROFILE = 'exact_request_challenge_v1' as const;
 
 const SHA256 = /^[a-f0-9]{64}$/;
@@ -42,6 +42,7 @@ export type ForgeOperatorIntentAction =
 export type ForgeOperatorIntentSubjectKind = 'bead' | 'decision' | 'target_ref';
 export type ForgeOperatorIntentLineageMode =
     | 'same_turn_request'
+    | 'stored_set_manifest'
     | 'explicit_legacy_request_upgrade'
     | 'explicit_request_receipt_binding'
     | 'explicit_mission_record_binding';
@@ -76,7 +77,6 @@ export interface ForgeRequestAuthorizationExtension {
     binding?: string;
     challenge?: string;
 }
-
 function sha256(value: string): string {
     return createHash('sha256').update(value, 'utf-8').digest('hex');
 }
@@ -103,6 +103,7 @@ export function isForgeAuthorizationProfile(
     value: unknown,
 ): value is HallForgeAuthorizationProfile {
     return value === ROOT_USER_FORGE_INTENT_PROFILE
+        || value === AUTONOMOUS_DISPATCH_POLICY_PROFILE
         || value === LEGACY_EXACT_FORGE_CHALLENGE_PROFILE;
 }
 
@@ -117,6 +118,7 @@ export function buildForgeOperatorIntentProjection(input: {
     if (!SUBJECT_KINDS.has(input.kind)) throw new Error('forge_operator_intent_subject_kind_invalid');
     if (![
         'same_turn_request',
+        'stored_set_manifest',
         'explicit_legacy_request_upgrade',
         'explicit_request_receipt_binding',
         'explicit_mission_record_binding',
@@ -209,6 +211,7 @@ export function hashRootUserForgeIntentBinding(
         || (![
             'explicit_request_receipt_binding',
             'explicit_mission_record_binding',
+            'stored_set_manifest',
         ].includes(input.projection.requester_lineage_mode)
             && input.operator_record_count !== 1)) {
         throw new Error('forge_operator_intent_record_count_invalid');
@@ -255,11 +258,11 @@ export function validateLegacyExactAuthorizationBinding(
     return challenge;
 }
 
-export function forgeRequestContentMatches(
+export function forgeRequestImmutableContentMatches(
     existing: HallForgeRequestRecord,
     input: SaveForgeRequestInput,
 ): boolean {
-    const immutable = existing.request_id === input.request_id
+    return existing.request_id === input.request_id
         && existing.repo_id === input.repo_id
         && existing.bead_id === input.bead_id
         && existing.decision_id === input.decision_id
@@ -270,10 +273,18 @@ export function forgeRequestContentMatches(
         && existing.write_capability === input.write_capability
         && existing.live_source_allowed === (input.live_source_allowed ? 1 : 0)
         && existing.max_attempts === input.max_attempts;
+}
+
+export function forgeRequestContentMatches(
+    existing: HallForgeRequestRecord,
+    input: SaveForgeRequestInput,
+): boolean {
+    const immutable = forgeRequestImmutableContentMatches(existing, input);
     const requester = existing.requester_thread_id === input.requester_thread_id
         && existing.requester_turn_id === input.requester_turn_id
         && existing.requester_record_set_sha256 === input.requester_record_set_sha256;
-    const authorityAlreadyBound = existing.authorization_profile === ROOT_USER_FORGE_INTENT_PROFILE
+    const authorityAlreadyBound = (existing.authorization_profile === ROOT_USER_FORGE_INTENT_PROFILE
+        || existing.authorization_profile === AUTONOMOUS_DISPATCH_POLICY_PROFILE)
         && existing.authorization_binding_sha256 !== undefined;
     return immutable && (existing.authorization_profile === LEGACY_EXACT_FORGE_CHALLENGE_PROFILE
         || authorityAlreadyBound || requester);
@@ -396,11 +407,13 @@ function forgeAuthorizationProfileMatchesRequest(
             && request.authorization_challenge_sha256 === authorization.challenge_sha256
             && authorization.authorization_binding_sha256 === authorization.challenge_sha256;
     }
-    if (authorization.authorization_profile !== ROOT_USER_FORGE_INTENT_PROFILE
+    if (![ROOT_USER_FORGE_INTENT_PROFILE, AUTONOMOUS_DISPATCH_POLICY_PROFILE]
+        .includes(authorization.authorization_profile)
         || request.authorization_challenge_sha256 !== undefined
         || authorization.challenge_sha256 !== undefined) return false;
     try {
         if (isForgeGoalResumeProjectionJson(authorization.operator_intent_json)) {
+            if (authorization.authorization_profile !== ROOT_USER_FORGE_INTENT_PROFILE) return false;
             const projection = parseForgeGoalResumeAuthorizationProjection(
                 authorization.operator_intent_json,
             );

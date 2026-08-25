@@ -1,0 +1,82 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:cstar:augury-set-mission-boundary",
+  "validation_id": "validation:cstar-augury-mission-dispatch-wiring:20260730",
+  "reported_verdict": "ACCEPTED",
+  "artifacts": [
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/augury.ts",
+      "sha256": "09e2787576d4b58c3c1ab64dff78b916b76453b241d4822bcfb46736b975cc19"
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/augury_mission_dispatch_controller.ts",
+      "sha256": "428cea61cfbb3be52c3833e29d5a8b79585b6c678be1b6b3c8db9d14be291444"
+    },
+    {
+      "path": "src/tools/pennyone/intel/augury_mission_receipt_controller.ts",
+      "sha256": "991e0ff426e21881bc316f2d75747f49640a027fa4419d7ea2004e557fc9d42c"
+    },
+    {
+      "path": "src/tools/pennyone/intel/augury_mission_receipt_validation.ts",
+      "sha256": "59ee1750123e0dce255e63de56627ced5dc12a15dbea346180846a847e839c42"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_augury_mission_receipt_materialization.test.ts",
+      "sha256": "45b02fa6cc8082d032ff08e2f71bf2140ae2f918db98aedff6bbe445e456d22b"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/augury_mission_dispatch_test_support.ts",
+      "sha256": "a5fe3bb97706190949491ef3a6873d33079e710ca16730edb2391fb1a2782456"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_augury_mission_dispatch_controller.test.ts",
+      "sha256": "72bd8a1ca29bd9ce9bd4a8be0b14e1aa845d899142e7700978447d73a29b5341"
+    },
+    {
+      "path": "tests/features/cstar_augury_set_mission_materialization.feature",
+      "sha256": "c3b0e8d373ebdefbc45d638fa28882fd4e617006b4c2c41af80b883c7ee7d516"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_augury_set_mission_boundary.test.ts",
+      "sha256": "3c9625db2a24bd0697635aaed859900613f0d8593bbf40d4eb3ab9e61e492a78"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_set_mission_grant.test.ts",
+      "sha256": "c660dc8b8bda6cb11e95d115e58f749802bbcec37296641d099eb3ef7e7208c3"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_set_manifest_authorization.test.ts",
+      "sha256": "55098e5238fe9eebf8a7b7d397f096d1c7c9cc29a32d8f84767e220b8fa2624e"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_set_manifest_autonomous_dispatch.test.ts",
+      "sha256": "e0056a1d870fd500cb0628847c19c02830cd19a413bf0d598c5773e350b5d1a6"
+    }
+  ],
+  "checks": [
+    {
+      "name": "Augury mission dispatch wiring 9 of 9",
+      "status": "pass",
+      "evidence_path": "tests/unit/cstar-kernel-mcp/test_augury_mission_dispatch_controller.test.ts",
+      "sha256": "72bd8a1ca29bd9ce9bd4a8be0b14e1aa845d899142e7700978447d73a29b5341"
+    },
+    {
+      "name": "phase 1 and phase 2 compatibility 28 of 28",
+      "status": "pass",
+      "evidence_path": "tests/unit/cstar-kernel-mcp/test_augury_mission_receipt_materialization.test.ts",
+      "sha256": "45b02fa6cc8082d032ff08e2f71bf2140ae2f918db98aedff6bbe445e456d22b"
+    },
+    {
+      "name": "Forge mission authorization and autonomous dispatch regressions 56 of 56",
+      "status": "pass",
+      "evidence_path": "tests/unit/cstar-kernel-mcp/test_forge_set_manifest_autonomous_dispatch.test.ts",
+      "sha256": "e0056a1d870fd500cb0628847c19c02830cd19a413bf0d598c5773e350b5d1a6"
+    },
+    {
+      "name": "typecheck split-root no-provider line and hash audit",
+      "status": "pass",
+      "evidence_path": "src/tools/cstar-kernel-mcp/tools/augury_mission_dispatch_controller.ts",
+      "sha256": "428cea61cfbb3be52c3833e29d5a8b79585b6c678be1b6b3c8db9d14be291444"
+    }
+  ]
+}

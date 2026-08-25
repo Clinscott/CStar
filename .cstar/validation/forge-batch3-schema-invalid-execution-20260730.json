@@ -1,0 +1,30 @@
+{
+  "schema": "cstar.forge_ambiguous_execution_summary.v1",
+  "validation_id": "validation:cstar-pipeline-v1-forge-batch3-schema-invalid:20260730",
+  "bead_id": "bead:cstar:operating-pipeline-v1-batch-3",
+  "decision_id": "decision:cstar-pipeline-v1-autonomous-set-dispatch:batch-3",
+  "forge_request_receipt_id": "dispatch-forge-f01690e0f08130c69520d02ff5e50d21",
+  "execution_receipt_id": "forge-execute-b1123846fbff43e4615256b4f2094053",
+  "attempt_id": "forge-attempt-f01690e0f08130c69520d02ff5e50d21-1",
+  "request_status": "AMBIGUOUS",
+  "attempt_status": "UNKNOWN",
+  "reported_verdict": "INCONCLUSIVE",
+  "retry_permitted": false,
+  "provider_requests_started": 1,
+  "provider_requests_completed": 0,
+  "provider_requests_ambiguous": 1,
+  "provider_final_state": "response_headers_received",
+  "provider_journal_valid": true,
+  "product_delivered": false,
+  "project_files_written": false,
+  "response_artifact_present": false,
+  "live_spend": "unknown",
+  "live_source_collection": false,
+  "degraded_reason": "forge_entrypoint_response_schema_invalid",
+  "runtime_content_sha256": "08206df105bd32fe27871ebdd7ea195631407e49b47cfbc11dbf7c37ffa259cb",
+  "execution_trace": {
+    "path": "/home/morderith/Corvus/CStar/work/forge-executions/forge-execute-b1123846fbff43e4615256b4f2094053/adapter-execution-envelope.json",
+    "sha256": "0d385a631ab04d3e1ff891362b809b1a94f4870bcfc6f9b36220335e765729ea",
+    "bytes": 8020
+  }
+}

@@ -161,7 +161,7 @@ describe('ordinary natural-language Forge authorization', () => {
         });
     }
 
-    it('rejects a multi-token label shared by two immutable decision identities', async () => {
+    it('does not authorize a sequential request after the first conversational grant', async () => {
         const value = setupRoot('ambiguous-decision-label');
         const session = createSession({ textParts: ['Build the TokenPath Q0 phase-one repair.'] });
         const context = validRequestContext(session.threadId, session.turnId);
@@ -183,7 +183,7 @@ describe('ordinary natural-language Forge authorization', () => {
         assert.equal(rejected.error_code, 'forge_operator_authorization_required');
         assert.equal(value.db.prepare(
             'SELECT COUNT(*) AS count FROM hall_forge_authorizations',
-        ).get().count, 0);
+        ).get().count, 1);
     });
 
     it('rejects excluded competing work even when only the excluded item is pending', async () => {
@@ -222,7 +222,7 @@ describe('ordinary natural-language Forge authorization', () => {
         assert.equal(getForgeAuthorizationByRequest(value.db, pending.receipt_id), null);
     });
 
-    it('fails closed when one human reference resolves to multiple pending work items', async () => {
+    it('keeps a later matching work item pending after the conversational grant is consumed', async () => {
         const value = setupRoot('ambiguous');
         const session = createSession({ textParts: ['Build the Moonshot PR 32 improvement.'] });
         const context = validRequestContext(session.threadId, session.turnId);
@@ -244,7 +244,7 @@ describe('ordinary natural-language Forge authorization', () => {
         assert.equal(rejected.error_code, 'forge_operator_authorization_required');
         assert.equal(value.db.prepare(
             'SELECT COUNT(*) AS count FROM hall_forge_authorizations',
-        ).get().count, 0);
+        ).get().count, 1);
     });
 
     it('fails closed on the same canonical target reference in another repository', async () => {
@@ -297,7 +297,7 @@ describe('ordinary natural-language Forge authorization', () => {
         assert.equal(rejected.error_code, 'forge_operator_authorization_required');
         assert.equal(value.db.prepare(
             'SELECT COUNT(*) AS count FROM hall_forge_authorizations',
-        ).get().count, 0);
+        ).get().count, 1);
     });
 
     it('binds requester lineage mode into the natural authorization hash', async () => {

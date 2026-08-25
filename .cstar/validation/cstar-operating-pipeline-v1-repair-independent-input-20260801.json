@@ -1,0 +1,29 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:cstar:operating-pipeline-v1-batch-1",
+  "validation_id": "validation:cstar-operating-pipeline-v1-repair:independent-20260801",
+  "reported_verdict": "ACCEPTED",
+  "validator_thread_id": "019fbb0b-b2db-7822-9112-f09b367dcfd0",
+  "artifacts": [
+    {"path":"src/tools/cstar-kernel-mcp/tools/forge_runtime_roots.ts","sha256":"fb8d693243723517f4b89628795c37f93fb704229ca0facc8784cb30227b135a"},
+    {"path":"src/tools/cstar-kernel-mcp/tools/forge_operator_work_item_resolution.ts","sha256":"cef73ee03331a29ec34133c6b5a42f8290f7d9c4abc54e0b578e698dd8785b39"},
+    {"path":"tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts","sha256":"777293928f18a5a6e45c2494b7fbeb7986470d2c950f7c0fae5eb8213472a3e4"},
+    {"path":"tests/unit/cstar-kernel-mcp/test_forge_durable_execution.test.ts","sha256":"1ce62ff73a7e8e83c117b8e08499dba7fc445bfb7c3b217645482470c96de914"},
+    {"path":"tests/unit/cstar-kernel-mcp/test_forge_exact_authorization.test.ts","sha256":"e8502cfae7f8715924e1d2c82803127c872228627c723b2cf38c11f111bbd21f"},
+    {"path":"tests/unit/cstar-kernel-mcp/test_forge_multirecord_authorization.test.ts","sha256":"3abe420a3e320ee956705fa048b01945c32f5cd33f74178d386a44ec9b3065a3"}
+  ],
+  "checks": [
+    {
+      "name": "independent repaired CStar pipeline validation",
+      "status": "pass",
+      "evidence_path": ".cstar/validation/cstar-operating-pipeline-v1-repair-independent-20260801.txt",
+      "sha256": "30ff3cd3adf50e7cd8c1e7f162372a58c78318db9dc9e585e43942d42c05f7a7"
+    }
+  ],
+  "gates": {
+    "source_contract": "accepted",
+    "runtime_activation": "unproven",
+    "provider_attempt": "none",
+    "cstar_receipt": "pending_root_user_identity"
+  }
+}

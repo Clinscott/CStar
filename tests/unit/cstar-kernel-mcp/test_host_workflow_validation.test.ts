@@ -39,6 +39,7 @@ interface FixtureOptions {
     parentThreadId?: string;
     sessionId?: string;
     forkedFromId?: string;
+    omitForkedFromId?: boolean;
     spawnParentThreadId?: string;
     threadSource?: string;
     depth?: number;
@@ -50,6 +51,9 @@ interface FixtureOptions {
     agentNickname?: string;
     agentRole?: string | null;
     finalText?: string;
+    finalTurnId?: string;
+    completionTurnId?: string;
+    memoryCitationSuffix?: 'valid' | 'invalid';
     completedAt?: number;
     laterCompletion?: boolean;
     laterActivity?: boolean;
@@ -118,11 +122,16 @@ function fixture(options: FixtureOptions = {}) {
     const manifestPath = path.join(project, 'evidence', 'manifest.json');
     fs.writeFileSync(manifestPath, manifestContent, { mode: 0o600 });
     const manifestSha256 = sha256(manifestContent);
-    const finalText = options.finalText ?? [
+    const baseFinalText = options.finalText ?? [
         'Independent validation complete.',
         `Manifest ${manifestSha256}`,
         `Validation ${VALIDATION_ID}`,
     ].join('\n');
+    const citationSuffix = options.memoryCitationSuffix === 'valid'
+        ? '\n\n<oai-mem-citation>\n<citation_entries>\n</citation_entries>\n<rollout_ids>\n</rollout_ids>\n</oai-mem-citation>'
+        : options.memoryCitationSuffix === 'invalid'
+            ? '\n\n<oai-mem-citation>\n<citation_entries>\n</citation_entries>\n</oai-mem-citation>' : '';
+    const finalText = `${baseFinalText}${citationSuffix}`;
     const completedAt = options.completedAt ?? NOW - 1_000;
     const finalTimestamp = new Date(completedAt + 500).toISOString();
     const completedTimestamp = new Date(completedAt + 600).toISOString();
@@ -150,6 +159,7 @@ function fixture(options: FixtureOptions = {}) {
         agent_nickname: options.agentNickname ?? 'Validator',
         agent_role: options.agentRole === undefined ? 'validator' : options.agentRole,
     };
+    if (options.omitForkedFromId) delete sessionMeta.forked_from_id;
     if (options.omitPayloadAgentPath) delete sessionMeta.agent_path;
     const rows: unknown[] = [{
         timestamp: '2026-07-18T13:59:00.000Z',
@@ -161,14 +171,18 @@ function fixture(options: FixtureOptions = {}) {
         payload: {
             type: 'message', role: 'assistant', phase: 'final_answer',
             content: [{ type: 'output_text', text: finalText }],
-            internal_chat_message_metadata_passthrough: { turn_id: VALIDATOR_TURN },
+            internal_chat_message_metadata_passthrough: {
+                turn_id: options.finalTurnId ?? VALIDATOR_TURN,
+            },
         },
     }, {
         timestamp: completedTimestamp,
         type: 'event_msg',
         payload: {
-            type: 'task_complete', turn_id: VALIDATOR_TURN,
-            last_agent_message: finalText, completed_at: completedAt / 1_000,
+            type: 'task_complete',
+            turn_id: options.completionTurnId ?? options.finalTurnId ?? VALIDATOR_TURN,
+            last_agent_message: options.memoryCitationSuffix ? baseFinalText : finalText,
+            completed_at: completedAt / 1_000,
         },
     }];
     if (options.laterCompletion) rows.push({
@@ -203,7 +217,7 @@ function fixture(options: FixtureOptions = {}) {
         payload,
         receipt: {
             validator_thread_id: VALIDATOR_THREAD,
-            validator_turn_id: VALIDATOR_TURN,
+            validator_turn_id: options.completionTurnId ?? options.finalTurnId ?? VALIDATOR_TURN,
             manifest_path: 'evidence/manifest.json',
             manifest_sha256: manifestSha256,
         },
@@ -264,6 +278,22 @@ describe('host-workflow independent validation', () => {
         }
     });
 
+    it('accepts current depth-one host lineage when legacy forked_from_id is absent', () => {
+        const verified = verify(currentHost({ omitForkedFromId: true }));
+        assert.equal(isValidationEvidenceManifestV3StructurallyValid(verified?.manifest), true);
+    });
+
+    it('accepts the supported split final-message and task-completion turn ids', () => {
+        const finalTurnId = VALIDATOR_TURN;
+        const completionTurnId = '019f0000-0000-7000-8000-000000000203';
+        const verified = verify({ finalTurnId, completionTurnId });
+        assert.equal(isValidationEvidenceManifestV3StructurallyValid(verified?.manifest), true);
+        if (verified?.manifest.schema === 'cstar.validation-evidence.v3') {
+            assert.equal(verified.manifest.independence.validator_turn_id, completionTurnId);
+            assert.equal(verified.manifest.independence.validator_final_turn_id, finalTurnId);
+        }
+    });
+
     it('requires every default-host authority-bearing lineage field to match the root', () => {
         const wrongRoot = '019f0000-0000-7000-8000-000000000999';
         const invalid: FixtureOptions[] = [
@@ -314,6 +344,12 @@ describe('host-workflow independent validation', () => {
             { finalText: `Validation ${VALIDATION_ID} without the digest` },
             'host_validation_validator_final_not_bound_to_manifest',
         );
+    });
+
+    it('accepts only a structurally valid trailing memory citation omission', () => {
+        assert.equal(verify({ memoryCitationSuffix: 'valid' })?.manifest.schema,
+            'cstar.validation-evidence.v3');
+        expectFailure({ memoryCitationSuffix: 'invalid' }, 'host_validation_task_complete_message_mismatch');
     });
 
     it('rejects wrong bead and validation-id scope', () => {

@@ -1,0 +1,24 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:cstar:default-forge-request-auto-authorization-20260731",
+  "validation_id": "validation:default-forge-request-auto-authorization-20260731:019fba38",
+  "reported_verdict": "ACCEPTED",
+  "artifacts": [
+    {"path": "src/tools/cstar-kernel-mcp/tools/forge_request.ts", "sha256": "afbe43d50e0e819851b4511276ef4550f83e5706346c05c0785756e7fbdc19d4"},
+    {"path": "src/tools/cstar-kernel-mcp/tools/forge_request_auto_authorization.ts", "sha256": "6aa68bd60623c3c99ababbbc7ca31cb836b9abc2b7b7259d018eafeda7dbdb15"},
+    {"path": "src/tools/pennyone/intel/forge_request_authorization_replay.ts", "sha256": "6e4a23e2b1a141ec7d154becabef6c1b38e6c27f51a56f7af961ebb67c83c77a"},
+    {"path": "src/tools/pennyone/intel/forge_request_persistence.ts", "sha256": "227ed1efeaaf70f7d87187fe7db4190cc23ea98dc9084174c9edd7358d475fad"},
+    {"path": "tests/unit/cstar-kernel-mcp/test_forge_request_auto_authorization.test.ts", "sha256": "86073386517a59856fe1657ba02cf95b2bba4ec66d4529774d69f343fc1b5efc"},
+    {"path": "tests/unit/cstar-kernel-mcp/test_forge_natural_language_authorization.test.ts", "sha256": "ae7a3f780ba15f8effc12008cd5639a5f3646aaddefdf18055117304b61f7c7b"},
+    {"path": "tests/unit/cstar-kernel-mcp/test_forge_request_authorization_controller.test.ts", "sha256": "e836c80f21605a7e7bf499abb7eb97099ab15b981dd2b76ba57e5fd86a89dbfd"},
+    {"path": "tests/unit/cstar-kernel-mcp/test_forge_execute.test.ts", "sha256": "68db577cc726f12930db86f0899a756da8aaf8cb90dfc632d8680b88a339f094"},
+    {"path": "tests/unit/cstar-kernel-mcp/test_goal_resume.test.ts", "sha256": "f9e41cce2b2911827da531f88fb8a5e82bc01ba34ff555a3e60d19e3f1df0c77"},
+    {"path": "tests/unit/cstar-kernel-mcp/test_handoff_runtime_state.test.ts", "sha256": "883617186e62744aa6fe75a74e8eeeda6b710f655bccd2bae7bff48f31c8e0c6"}
+  ],
+  "checks": [
+    {"name": "independent_focused_validation", "status": "pass", "evidence_path": ".cstar/validation/cstar-default-forge-request-auto-authorization-20260731-focused-tests.txt", "sha256": "6b8330a602e99ea624ffdd1549f72bc01e49b01ffe5c6df617b8e80ea2ae6ecf"},
+    {"name": "typecheck", "status": "pass", "evidence_path": ".cstar/validation/cstar-default-forge-request-auto-authorization-20260731-typecheck.txt", "sha256": "163c464dcb5274580121888e525731adb7099ec1d41b56964fbbeebfec3bf4c7"},
+    {"name": "targeted_diff_check", "status": "pass", "evidence_path": ".cstar/validation/cstar-default-forge-request-auto-authorization-20260731-diff-check.txt", "sha256": "229dd41b707c019687954a42dbf63f2e9b10a7ed0bff8b383b192c326ad4bab9"},
+    {"name": "line_limit", "status": "pass", "evidence_path": ".cstar/validation/cstar-default-forge-request-auto-authorization-20260731-line-audit.txt", "sha256": "ee3d204888b2067f12fd7e693eafdfdaf7df32ff60bcc4dd339b77dfbee3f504"}
+  ]
+}

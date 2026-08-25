@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { HallBeadStatus, HallBeadTargetKind } from '../../types/hall.js';
 import {
+    auguryMissionBoundaryTransportSchema,
     dispatchRequestSchema,
     forgeAuthorizeSchema,
     forgeExecuteSchema,
@@ -9,6 +10,8 @@ import {
 import {
     getCstarKernelToolCatalogEntry,
     type CstarKernelToolName,
+    type CstarKernelToolProfile,
+    isCstarKernelToolVisibleInProfile,
 } from './contracts/tool_catalog.js';
 import { mcpToolDescription } from './contracts/tool_classes.js';
 import type { McpRequestContext } from './contracts/request_context.js';
@@ -55,7 +58,22 @@ function registerCatalogTool(
     );
 }
 
-export function registerCoreTools(server: ServerWithTool, instrumentTool: InstrumentTool): void {
+export function registerCoreTools(
+    unfilteredServer: ServerWithTool,
+    unfilteredInstrumentTool: InstrumentTool,
+    options: { profile?: CstarKernelToolProfile } = {},
+): void {
+    const profile = options.profile ?? 'default_operator';
+    const visible = (name: CstarKernelToolName): boolean =>
+        isCstarKernelToolVisibleInProfile(name, profile);
+    const server: ServerWithTool = {
+        tool: (...args: any[]) => visible(args[0] as CstarKernelToolName)
+            ? unfilteredServer.tool(...args)
+            : undefined,
+    };
+    const instrumentTool: InstrumentTool = (name, handler) =>
+        visible(name) ? unfilteredInstrumentTool(name, handler) : handler;
+
     registerCatalogTool(
         server,
         instrumentTool,
@@ -73,6 +91,7 @@ export function registerCoreTools(server: ServerWithTool, instrumentTool: Instru
         instrumentTool,
         'cstar_handoff',
         {
+            bead_id: z.string().optional().describe('Optional exact current CStar bead id; never inferred from ordinary language'),
             prompt: z.string().optional().describe('Optional current mission prompt used to label target-aware handoff checks'),
             scope: z.string().optional().describe('Optional current mission scope used to label target-aware handoff checks'),
             target_paths: z.array(z.string()).optional().describe('Optional current mission targets; diverging active sessions are demoted to background'),
@@ -102,6 +121,7 @@ export function registerCoreTools(server: ServerWithTool, instrumentTool: Instru
             target_paths: z.array(z.string()).optional().describe('Optional target paths'),
             scope: z.string().optional().describe('Optional scope'),
             bead_id: z.string().optional().describe('Optional bead id for route provenance; Augury does not write or link TokenPath advice'),
+            mission_boundary: auguryMissionBoundaryTransportSchema.optional(),
         },
         handleAugury,
     );

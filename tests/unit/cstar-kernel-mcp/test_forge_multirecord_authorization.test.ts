@@ -124,13 +124,64 @@ describe('exact multi-record Forge authorization', () => {
         assert.equal(replay.authorization_id, granted.authorization_id);
     });
 
+    it('binds a singleton canonical mission template as an exact v2 grant', async () => {
+        const value = setupRoot('singleton-mission-v2');
+        const beadId = 'bead:test:singleton-mission-v2';
+        const missionDecision = 'decision:test:singleton-mission-v2';
+        insertBead(value, beadId);
+        const session = createSession({
+            textParts: [`Continue and implement ${missionDecision} on ${beadId} now.`],
+        });
+        const context = validRequestContext(session.threadId, session.turnId);
+        const pending = parse(await handleForgeRequest(requestArgs(
+            value, beadId, `${missionDecision}-i1-repair`, session.threadId,
+        ), context));
+        const attestation = await verifyCurrentForgeOperatorIntent(context, Date.now(), {
+            request_id: pending.receipt_id,
+            request_sha256: pending.request_sha256,
+            bead_id: beadId,
+            decision_id: `${missionDecision}-i1-repair`,
+        });
+        assert.equal(attestation.binding_mode, 'exact_mission_record');
+        assert.equal(attestation.session_record_count, 1);
+        assert.equal(attestation.bound_request_id, pending.receipt_id);
+        const granted = parse(await handleForgeAuthorize({
+            forge_request_receipt_id: pending.receipt_id,
+            request_sha256: pending.request_sha256,
+        }, context));
+        assert.equal(granted.status, 'authorized', JSON.stringify(granted));
+        assert.match(getForgeAuthorizationByRequest(
+            value.db, pending.receipt_id,
+        )?.operator_intent_json ?? '', /explicit_mission_record_binding/);
+    });
+
+    it('does not downgrade a malformed singleton mission template to ordinary authority', async () => {
+        const value = setupRoot('singleton-mission-reject');
+        const beadId = 'bead:test:singleton-mission-reject';
+        const missionDecision = 'decision:test:singleton-mission-reject';
+        insertBead(value, beadId);
+        const session = createSession({
+            textParts: [`Maybe Continue and implement ${missionDecision} on ${beadId} now.`],
+        });
+        const context = validRequestContext(session.threadId, session.turnId);
+        const pending = parse(await handleForgeRequest(requestArgs(
+            value, beadId, `${missionDecision}-i1-repair`, session.threadId,
+        ), context));
+        const rejected = parse(await handleForgeAuthorize({
+            forge_request_receipt_id: pending.receipt_id,
+            request_sha256: pending.request_sha256,
+        }, context));
+        assert.equal(rejected.error_code, 'forge_operator_authorization_required');
+        assert.equal(getForgeAuthorizationByRequest(value.db, pending.receipt_id), null);
+    });
+
     it('binds one exact receipt in the complete ordered root turn', async () => {
         const value = setupRoot('exact-request');
         const beadId = 'bead:test:natural-multi-record';
         const decisionId = 'decision:test:natural-multi-record-i1-repair';
         insertBead(value, beadId);
         const session = createSession({
-            textParts: [`Build the repair for ${beadId}.`],
+            textParts: ['Informational context only.'],
             timestamp: new Date(Date.now() - 3_000).toISOString(),
         });
         const context = validRequestContext(session.threadId, session.turnId);

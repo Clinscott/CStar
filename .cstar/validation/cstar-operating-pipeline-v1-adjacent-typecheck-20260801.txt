@@ -1,0 +1,6 @@
+validation_id=validation:cstar-operating-pipeline-v1-adjacent:independent-20260801
+command=npm run typecheck
+result=PASS
+exit_code=0
+provider_attempts=0
+live_sources=false

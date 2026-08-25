@@ -1,0 +1,35 @@
+validation_id=validation:cstar-auto-a2-goal-resume-outcome-repair-20260802:independent-20260802
+recording_root_thread_id=019f71dc-af61-7a73-a72d-1ec3a638a011
+validator_thread_id=019fc346-8a9d-76b3-b3b7-364922f817ff
+validator_turn_id=019fc346-8b43-7701-8532-2a4a01af1872
+verdict=ACCEPTED
+
+command=node scripts/run-tsx.mjs --test tests/unit/cstar-kernel-mcp/test_goal_resume.test.ts
+result=PASS
+tests=18
+
+command=node scripts/run-tsx.mjs --test --test-concurrency=2 tests/unit/cstar-kernel-mcp/test_forge_natural_language_authorization.test.ts tests/unit/cstar-kernel-mcp/test_forge_goal_resume_multirecord_identity.test.ts tests/unit/cstar-kernel-mcp/test_goal_resume.test.ts tests/unit/cstar-kernel-mcp/test_forge_legacy_v2_continuity.test.ts tests/unit/cstar-kernel-mcp/test_forge_multirecord_authorization.test.ts tests/unit/cstar-kernel-mcp/test_forge_set_manifest_authorization.test.ts
+result=PASS
+tests=113
+
+command=node scripts/run-tsx.mjs --test --test-concurrency=2 tests/unit/cstar-kernel-mcp/test_typed_outcomes.test.ts tests/unit/cstar-kernel-mcp/test_read_deadlines.test.ts
+result=PASS
+tests=11
+
+command=node scripts/run-tsx.mjs --test tests/unit/cstar-kernel-mcp/test_instrumentation_mutation_identity.test.ts tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts tests/unit/cstar-kernel-mcp/test_validation_evidence_type_boundary.test.ts
+result=PASS
+tests=18
+
+command=npm run typecheck
+result=PASS
+
+audit=git rev-parse HEAD=f30be436490584626d1bde347f41cde082ba2b17
+audit=git rev-parse HEAD^=6563c46940c597fb2b54067c0c0ba601b7958c84
+audit=git diff --name-status parent..commit=M tests/unit/cstar-kernel-mcp/test_goal_resume.test.ts
+audit=git diff --check=PASS
+audit=preauthorization absent isError plus guardrail_block=9 plus 9
+audit=preserved isError=true sites=conflict,replay,tamperedRef,tamperedMessage,missing,terminal
+audit=production diff=empty
+audit=target lines=497
+audit=worktree status=clean
+audit=provider/CStar/Git writes=none

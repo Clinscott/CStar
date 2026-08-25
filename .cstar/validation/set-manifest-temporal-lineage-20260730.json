@@ -1,0 +1,42 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:cstar:operating-pipeline-v1-batch-1",
+  "validation_id": "validation:cstar-set-manifest-temporal-lineage:20260730",
+  "reported_verdict": "ACCEPTED",
+  "artifacts": [
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_signal.ts",
+      "sha256": "50b86b97022a9d2c5b582a4de67af420df17e3bfc8254552abc6d40776b0b052",
+      "bytes": 11701
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_authority.ts",
+      "sha256": "a425c593b957d3cf1b8d149ba7d76176f6811c740387daf703252df909c830c4",
+      "bytes": 19787
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_autonomous_authority.ts",
+      "sha256": "866f7188bdf2548e33b6325575e228e3577072673dd6099354c815e05dee7f21",
+      "bytes": 14189
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_set_manifest_autonomous_dispatch.test.ts",
+      "sha256": "abef3c1747f0fe22186d29d5f427e0235b670c1bd987b24b0d3a17dd3c759267",
+      "bytes": 22595
+    }
+  ],
+  "checks": [
+    {
+      "name": "SET temporal lineage and revocation ordering security review",
+      "status": "pass",
+      "evidence_path": "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_authority.ts",
+      "sha256": "a425c593b957d3cf1b8d149ba7d76176f6811c740387daf703252df909c830c4"
+    },
+    {
+      "name": "focused SET authorization suites 77 of 77",
+      "status": "pass",
+      "evidence_path": "tests/unit/cstar-kernel-mcp/test_forge_set_manifest_autonomous_dispatch.test.ts",
+      "sha256": "abef3c1747f0fe22186d29d5f427e0235b670c1bd987b24b0d3a17dd3c759267"
+    }
+  ]
+}

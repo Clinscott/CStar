@@ -1,0 +1,32 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:cstar:operating-pipeline-v1-batch-1",
+  "validation_id": "validation:cstar-forge-runtime-six-file-bootstrap:20260730",
+  "reported_verdict": "ACCEPTED",
+  "artifacts": [
+    {
+      "path": "src/tools/cstar-kernel-mcp/contracts/runtime_lineage.ts",
+      "sha256": "20ec6eb21b20c9799809fb028293a2ca9a8b58dc86d3f7d9fcef5ea8d9498b00",
+      "bytes": 22347
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_runtime_readiness.test.ts",
+      "sha256": "a245a07cbaf173cf3817a04ecdb1382903c308d12013ba0fe1e9b8568aff2bf3",
+      "bytes": 18829
+    }
+  ],
+  "checks": [
+    {
+      "name": "private runtime six-file closure review",
+      "status": "pass",
+      "evidence_path": "src/tools/cstar-kernel-mcp/contracts/runtime_lineage.ts",
+      "sha256": "20ec6eb21b20c9799809fb028293a2ca9a8b58dc86d3f7d9fcef5ea8d9498b00"
+    },
+    {
+      "name": "focused runtime readiness suite",
+      "status": "pass",
+      "evidence_path": "tests/unit/cstar-kernel-mcp/test_forge_runtime_readiness.test.ts",
+      "sha256": "a245a07cbaf173cf3817a04ecdb1382903c308d12013ba0fe1e9b8568aff2bf3"
+    }
+  ]
+}

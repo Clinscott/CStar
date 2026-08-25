@@ -170,10 +170,37 @@ describe('distribution generator', () => {
         assert.match(geminiContext, /host session when the registry marks a capability host-executable/);
         assert.match(geminiContext, /host-owned cognition\/workflow surfaces and `kernel-primitive` entries/);
         assert.match(geminiContext, /Corvus Star Augury \[Ω\]/);
-        assert.match(geminiContext, /read-only typed route explanation/);
+        assert.match(geminiContext, /CStar is only the deterministic state manager/);
+        assert.match(geminiContext, /CoS in Codex is the orchestrator and supervisor\/delegator/);
+        assert.match(geminiContext, /CoS must not implement, research, debug, edit source/);
+        assert.match(geminiContext, /retained\/resumable host-issued worker thread with stable lineage/);
+        assert.match(geminiContext, /gpt-5\.6-luna/);
+        assert.match(geminiContext, /Selector absence or mismatch is visible/);
+        assert.match(geminiContext, /never silently fall back/);
+        assert.match(geminiContext, /gpt-5\.6-sol/);
+        assert.match(geminiContext, /gpt-5\.6-terra/);
+        assert.match(geminiContext, /no numeric concurrency cap/);
+        assert.match(geminiContext, /Augury is mode-dependent/);
+        assert.match(geminiContext, /omitting `mission_boundary` is a read-only typed route explanation/);
+        assert.match(geminiContext, /v2 with v1 compatibility/);
+        assert.match(geminiContext, /automatic next-child advancement/);
+        assert.match(geminiContext, /internal request-scoped SET evidence automatically/);
+        assert.match(geminiContext, /`cstar_forge_authorize` remains the explicit no-spend authorization gate/);
+        assert.match(geminiContext, /default profile exposes exactly 16 tools/);
+        assert.match(geminiContext, /Advanced adds 9/);
+        assert.match(geminiContext, /full compatibility adds the remaining 3/);
         assert.doesNotMatch(geminiContext, /Mode: (?:full|lite)/);
         assert.match(geminiContext, /Omit numeric confidence unless an independently validated scorer/);
-        assert.match(geminiContext, /Start or resume one host goal for every non-trivial mission/);
+        assert.match(geminiContext, /CoS owns no host goal/);
+        assert.match(geminiContext, /must never create, resume, update, pause, block, complete, or close a host goal/);
+        assert.match(geminiContext, /owns exactly one bounded host goal/);
+        assert.match(geminiContext, /exact CStar bead id, decision, target paths, and checker contract/);
+        assert.match(geminiContext, /host-goal status is worker-local evidence, never CStar lifecycle truth/);
+        assert.match(geminiContext, /same retained workthread and same goal/);
+        assert.match(geminiContext, /new goal plus an explicit bounded CStar handoff/);
+        assert.match(geminiContext, /distinct validation goal/);
+        assert.match(geminiContext, /no generic host-goal or worker-launcher surface/);
+        assert.doesNotMatch(geminiContext, /Start or resume one host goal for every non-trivial mission/);
         assert.match(geminiContext, /cstar-goal-driven-daily-bootstrap\.md/);
         assert.match(geminiContext, /`hall` \(PRIME, native-session, host-workflow, kernel fallback forbidden\)/);
 
@@ -193,12 +220,36 @@ describe('distribution generator', () => {
 
         const codexSkill = build.files[3]?.content ?? '';
         assert.match(codexSkill, /Corvus Star Augury \[Ω\]/);
+        assert.match(codexSkill, /CStar is only the deterministic state manager/);
+        assert.match(codexSkill, /CoS in Codex is the orchestrator and supervisor\/delegator/);
+        assert.match(codexSkill, /CoS must not implement, research, debug, edit source/);
+        assert.match(codexSkill, /retained\/resumable host-issued worker thread with stable lineage/);
+        assert.match(codexSkill, /gpt-5\.6-luna/);
+        assert.match(codexSkill, /Selector absence or mismatch is visible/);
+        assert.match(codexSkill, /never silently fall back/);
+        assert.match(codexSkill, /gpt-5\.6-sol/);
+        assert.match(codexSkill, /gpt-5\.6-terra/);
+        assert.match(codexSkill, /no numeric concurrency cap/);
         assert.match(codexSkill, /Council experts are advisory critique lenses/);
+        assert.match(codexSkill, /Augury is mode-dependent/);
+        assert.match(codexSkill, /automatic next-child advancement/);
+        assert.match(codexSkill, /explicit no-spend authorization gate/);
+        assert.match(codexSkill, /default profile exposes exactly 16 tools/);
         assert.match(codexSkill, /skill-only/);
         assert.match(codexSkill, /Omit numeric confidence unless an independently validated scorer/);
-        assert.match(codexSkill, /Start or resume one host goal for every non-trivial mission/);
+        assert.match(codexSkill, /CoS owns no host goal/);
+        assert.match(codexSkill, /must never create, resume, update, pause, block, complete, or close a host goal/);
+        assert.match(codexSkill, /owns exactly one bounded host goal/);
+        assert.match(codexSkill, /exact CStar bead id, decision, target paths, and checker contract/);
+        assert.match(codexSkill, /host-goal status is worker-local evidence, never CStar lifecycle truth/);
+        assert.match(codexSkill, /same retained workthread and same goal/);
+        assert.match(codexSkill, /new goal plus an explicit bounded CStar handoff/);
+        assert.match(codexSkill, /distinct validation goal/);
+        assert.match(codexSkill, /no generic host-goal or worker-launcher surface/);
+        assert.doesNotMatch(codexSkill, /Start or resume one host goal for every non-trivial mission/);
         assert.match(codexSkill, /cstar-goal-driven-daily-bootstrap\.md/);
         assert.doesNotMatch(codexSkill, /`cstar_autobot`/);
+        assert.doesNotMatch(codexSkill, /one-mind/);
 
         const materializedGemini = fs.readFileSync(path.join(process.cwd(), 'GEMINI.md'), 'utf-8');
         const materializedCodexSkill = fs.readFileSync(
@@ -207,6 +258,10 @@ describe('distribution generator', () => {
         );
         for (const materialized of [materializedGemini, materializedCodexSkill]) {
             assert.match(materialized, /numeric confidence/i);
+            assert.match(materialized, /CStar is only the deterministic state manager/);
+            assert.match(materialized, /gpt-5\.6-luna/);
+            assert.match(materialized, /CoS owns no host goal/);
+            assert.doesNotMatch(materialized, /Start or resume one host goal for every non-trivial mission/);
             assert.doesNotMatch(materialized, /Confidence belongs in learning metadata/);
         }
 

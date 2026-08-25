@@ -21,6 +21,7 @@ const forgeSources = [
     'hermes_cli/forge_minimax_oauth.py',
     'hermes_cli/forge_provider_journal.py',
     'hermes_cli/forge_entrypoint.py',
+    'hermes_cli/forge_entrypoint_support.py',
 ];
 
 function writeJson(candidate: string, value: unknown): void {

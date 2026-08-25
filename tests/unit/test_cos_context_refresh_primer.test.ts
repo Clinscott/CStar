@@ -33,6 +33,25 @@ describe('CoS context refresh primer', () => {
 
         for (const required of [
             'CStar is the axle',
+            'CStar is the axle and only the deterministic state manager',
+            'CoS in Codex is the orchestrator and supervisor/delegator',
+            'CoS must not implement, research, debug, edit source',
+            'A `workthread` is a retained/resumable host-issued worker thread with stable lineage',
+            'gpt-5.6-luna',
+            'Selector absence or mismatch is visible',
+            'never silently fall back',
+            'gpt-5.6-terra',
+            'This primer defines no numeric concurrency cap',
+            'CoS owns no host goal and must never create, resume, update, pause, block, complete, or close one',
+            'owns exactly one bounded host goal',
+            'exact CStar bead id, decision, target paths, and checker contract',
+            'Recoverable correction remains in the same retained workthread and same goal',
+            'replacement worker receives a new host goal plus an explicit bounded CStar handoff',
+            'never inherits hidden host-goal state',
+            'distinct validator owns a distinct validation goal and never reuses the implementation goal',
+            'Host-goal status is worker-local evidence, never CStar lifecycle authority',
+            'Legacy CoS-held goals remain paused and historical',
+            'CStar has no generic goal or worker launcher',
             'PMTs are project-scoped information repositories only',
             'A missing mapped PMT is a freshness gap, not an execution gate',
             'Luna for routine retrieval, Terra for conflicting-context synthesis',
@@ -79,6 +98,10 @@ describe('CoS context refresh primer', () => {
         assert.match(packet, /PMTs are project-scoped information repositories only/);
         assert.match(packet, /PMT unavailability is a freshness gap/);
         assert.match(packet, /MM is legacy and has no active routing or relay role/);
+        assert.match(packet, /CoS owns no host goal/);
+        assert.match(packet, /exact CStar bead id, decision, target paths, and checker contract/);
+        assert.match(packet, /never silently inherits hidden host-goal state/);
+        assert.match(packet, /distinct validation goal/);
     });
 
     it('keeps a Sterling lore contract for the primer behavior', () => {
@@ -91,5 +114,18 @@ describe('CoS context refresh primer', () => {
         assert.match(feature, /require mapped-PMT context when an in-scope mapping exists/);
         assert.match(feature, /requested and actual mapped-PMT model identity separately/);
         assert.match(feature, /MM as legacy with no active routing role/);
+        assert.match(feature, /distinguish CStar as the deterministic state manager from CoS as the Codex orchestrator/);
+        assert.match(feature, /forbid CoS self-implementation, self-research, self-debugging, and self-validation/);
+        assert.match(feature, /define a workthread as host-issued retained\/resumable continuity with stable lineage/);
+        assert.match(feature, /require gpt-5\.6-luna with max reasoning for substantive direct workers/);
+        assert.match(feature, /reject absent or mismatched model selectors without silent fallback/);
+        assert.match(feature, /preserve Sol then distinct Terra max reasoning for Augury opinions/);
+        assert.match(feature, /forbid CoS-owned host goals and every CoS host-goal lifecycle mutation/);
+        assert.match(feature, /one bounded worker goal bound to the exact bead, decision, paths, and checker/);
+        assert.match(feature, /keep recoverable correction in the same retained workthread and goal/);
+        assert.match(feature, /give replacement workers new goals with explicit bounded CStar handoff/);
+        assert.match(feature, /reject host-goal status as CStar lifecycle authority/);
+        assert.match(feature, /give distinct validators distinct validation goals/);
+        assert.match(feature, /keep legacy CoS-held goals paused and historical/);
     });
 });
