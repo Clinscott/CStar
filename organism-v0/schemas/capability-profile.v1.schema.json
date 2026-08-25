@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "corvus.organism.capability_profile.v1",
+  "title": "Closed CStar capability profile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "contract_sha256", "scope_id", "profile_id", "role_id", "capabilities", "forbidden_effects", "authority_grant", "automatic_launch", "descendants", "model_policy_ref", "controller_generation_rule", "closed", "profile_sha256"],
+  "properties": {
+    "schema": {"const": "corvus.organism.capability_profile.v1"},
+    "contract_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "scope_id": {"type": "string", "minLength": 1},
+    "profile_id": {"type": "string", "pattern": "^[a-z0-9.-]+$"},
+    "role_id": {"type": "string", "pattern": "^[a-z0-9.-]+$"},
+    "capabilities": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+    "forbidden_effects": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+    "authority_grant": {"const": false},
+    "automatic_launch": {"const": false},
+    "descendants": {"const": 0},
+    "model_policy_ref": {"type": "string", "minLength": 1},
+    "controller_generation_rule": {"const": "cstar-durable-state"},
+    "closed": {"const": true},
+    "profile_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  }
+}
