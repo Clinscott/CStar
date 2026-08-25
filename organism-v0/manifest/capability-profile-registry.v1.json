@@ -1,0 +1,50 @@
+{
+  "schema": "corvus.organism.capability_profile_registry.v1",
+  "contract_sha256": "a0096f1c49f3012b89c256c30eb6c9e2892a8f7a3ff8b68b2da80538c91fa011",
+  "closed": true,
+  "authority_grant": false,
+  "profiles": [
+    {
+      "profile_id": "organism-supervisor.v1",
+      "capabilities": ["list", "read", "send", "wait", "handoff"],
+      "forbidden": ["source_implementation", "direct_reducer_write", "automatic_launch", "acceptance", "provider", "protected_effects"],
+      "descendants": 0
+    },
+    {
+      "profile_id": "system-controller.v1",
+      "capabilities": ["list", "read", "send", "wait", "handoff", "declared_system_dispatch"],
+      "forbidden": ["parent_authority", "unbounded_descendants", "protected_effects", "direct_reducer_write", "automatic_launch"],
+      "descendants": 0
+    },
+    {
+      "profile_id": "subsystem-controller.v1",
+      "capabilities": ["scoped_read", "send", "wait", "handoff", "set_declared_delegation"],
+      "forbidden": ["cross_system_write", "lifecycle_acceptance", "parent_authority", "automatic_launch", "provider"],
+      "descendants": 0
+    },
+    {
+      "profile_id": "implementation-cell.v1",
+      "capabilities": ["packet_read", "bounded_task_tools", "terminal_send"],
+      "forbidden": ["reducer_authority", "journal_authority", "acceptance", "descendants", "provider", "protected_effects"],
+      "descendants": 0
+    },
+    {
+      "profile_id": "validator.v1",
+      "capabilities": ["independent_candidate_read", "tests", "result_packet"],
+      "forbidden": ["candidate_implementation", "implementation_ancestry", "lifecycle_mutation", "provider", "protected_effects"],
+      "descendants": 0
+    },
+    {
+      "profile_id": "observer.v1",
+      "capabilities": ["read_manifests", "read_receipts", "read_health", "bounded_evidence"],
+      "forbidden": ["send", "write", "dispatch", "provider", "acceptance", "automatic_launch"],
+      "descendants": 0
+    },
+    {
+      "profile_id": "spoke-adapter.v1",
+      "capabilities": ["declared_spoke_input", "declared_spoke_output", "read_contract"],
+      "forbidden": ["other_spoke_state", "cstar_journal", "secrets", "authority", "automatic_launch"],
+      "descendants": 0
+    }
+  ]
+}
