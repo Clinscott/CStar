@@ -1,0 +1,27 @@
+{
+  "schema": "cstar.native_task_control_incident_cases.v1",
+  "cases": [
+    {"id":"TC01","name":"cancel accepts one terminal ack","expected_error":null},
+    {"id":"TC02","name":"revoke accepts one revoked terminal","expected_error":null},
+    {"id":"TC03","name":"missing cancel ack fences","expected_error":"CSTAR_NATIVE_TASK_CANCEL_ACK_MISSING"},
+    {"id":"TC04","name":"stale controller generation","expected_error":"CSTAR_NATIVE_TASK_STALE_CONTROLLER"},
+    {"id":"TC05","name":"competing lease","expected_error":"CSTAR_NATIVE_TASK_COMPETING_LEASE"},
+    {"id":"TC06","name":"succession overlap","expected_error":"CSTAR_NATIVE_TASK_SUCCESSION_OVERLAP"},
+    {"id":"TC07","name":"ambiguous succession","expected_error":"CSTAR_NATIVE_TASK_SUCCESSION_AMBIGUOUS"},
+    {"id":"TC08","name":"unchanged goal generation loop","expected_error":"CSTAR_NATIVE_TASK_GENERATION_LOOP"},
+    {"id":"TC09","name":"goal mismatch","expected_error":"CSTAR_NATIVE_TASK_GOAL_MISMATCH"},
+    {"id":"TC10","name":"duplicate cohort wait","expected_error":"CSTAR_NATIVE_TASK_WAIT_DUPLICATE"},
+    {"id":"TC11","name":"timeout freezes late events","expected_error":"CSTAR_NATIVE_TASK_LATE_EVENT"},
+    {"id":"TC12","name":"undeclared role","expected_error":"CSTAR_NATIVE_TASK_UNDECLARED_ROLE"},
+    {"id":"TC13","name":"policy widening","expected_error":"CSTAR_NATIVE_TASK_POLICY_WIDENING"},
+    {"id":"TC14","name":"manifest drift","expected_error":"CSTAR_NATIVE_TASK_MANIFEST_DRIFT"},
+    {"id":"TC15","name":"event replay conflict","expected_error":"CSTAR_NATIVE_TASK_REPLAY_CONFLICT"},
+    {"id":"TC16","name":"replacement exhaustion","expected_error":"CSTAR_NATIVE_TASK_REPLACEMENT_EXHAUSTED"},
+    {"id":"TC17","name":"scope violation","expected_error":"CSTAR_NATIVE_TASK_SCOPE_VIOLATION"},
+    {"id":"TC18","name":"missing native capability","expected_error":"CORVUS_NATIVE_TASK_SURFACE_UNAVAILABLE"},
+    {"id":"TC19","name":"Forge invocation","expected_error":"CSTAR_FORGE_DEFUNCT"},
+    {"id":"TC20","name":"selector mismatch","expected_error":"CSTAR_NATIVE_TASK_SELECTOR_MISMATCH"},
+    {"id":"TC21","name":"conflicting terminal replay","expected_error":"CSTAR_NATIVE_TASK_TERMINAL_REPLAY_CONFLICT"},
+    {"id":"TC22","name":"protected effect attempt","expected_error":"CSTAR_NATIVE_TASK_PROTECTED_EFFECT"}
+  ]
+}

@@ -1,0 +1,80 @@
+export const NATIVE_TASK_CONTROL_ERROR_CODES = {
+    INVALID_CONTRACT: 'CSTAR_NATIVE_TASK_CONTRACT_INVALID',
+    DUPLICATE_FIELD: 'CSTAR_NATIVE_TASK_DUPLICATE_FIELD',
+    UNKNOWN_FIELD: 'CSTAR_NATIVE_TASK_UNKNOWN_FIELD',
+    GOAL_MISMATCH: 'CSTAR_NATIVE_TASK_GOAL_MISMATCH',
+    STALE_CONTROLLER: 'CSTAR_NATIVE_TASK_STALE_CONTROLLER',
+    COMPETING_LEASE: 'CSTAR_NATIVE_TASK_COMPETING_LEASE',
+    LEASE_NOT_ACTIVE: 'CSTAR_NATIVE_TASK_LEASE_NOT_ACTIVE',
+    MANIFEST_DRIFT: 'CSTAR_NATIVE_TASK_MANIFEST_DRIFT',
+    UNDECLARED_ROLE: 'CSTAR_NATIVE_TASK_UNDECLARED_ROLE',
+    POLICY_WIDENING: 'CSTAR_NATIVE_TASK_POLICY_WIDENING',
+    POLICY_DEPTH: 'CSTAR_NATIVE_TASK_POLICY_DEPTH',
+    SCOPE_VIOLATION: 'CSTAR_NATIVE_TASK_SCOPE_VIOLATION',
+    PROTECTED_EFFECT: 'CSTAR_NATIVE_TASK_PROTECTED_EFFECT',
+    TERMINAL_BARRIER: 'CSTAR_NATIVE_TASK_TERMINAL_BARRIER',
+    CANCEL_ACK_MISSING: 'CSTAR_NATIVE_TASK_CANCEL_ACK_MISSING',
+    CANCEL_ALREADY_REQUESTED: 'CSTAR_NATIVE_TASK_CANCEL_ALREADY_REQUESTED',
+    TERMINAL_REPLAY_CONFLICT: 'CSTAR_NATIVE_TASK_TERMINAL_REPLAY_CONFLICT',
+    REPLAY_CONFLICT: 'CSTAR_NATIVE_TASK_REPLAY_CONFLICT',
+    GENERATION_LOOP: 'CSTAR_NATIVE_TASK_GENERATION_LOOP',
+    SUCCESSION_OVERLAP: 'CSTAR_NATIVE_TASK_SUCCESSION_OVERLAP',
+    SUCCESSION_AMBIGUOUS: 'CSTAR_NATIVE_TASK_SUCCESSION_AMBIGUOUS',
+    SUCCESSION_REQUIRED: 'CSTAR_NATIVE_TASK_SUCCESSION_REQUIRED',
+    SUCCESSION_OLD_LEASE: 'CSTAR_NATIVE_TASK_SUCCESSION_OLD_LEASE',
+    IMPLICIT_REACQUISITION: 'CSTAR_NATIVE_TASK_IMPLICIT_REACQUISITION',
+    REPLACEMENT_EXHAUSTED: 'CSTAR_NATIVE_TASK_REPLACEMENT_EXHAUSTED',
+    REPLACEMENT_NOT_ALLOWED: 'CSTAR_NATIVE_TASK_REPLACEMENT_NOT_ALLOWED',
+    LATE_EVENT: 'CSTAR_NATIVE_TASK_LATE_EVENT',
+    WAIT_DUPLICATE: 'CSTAR_NATIVE_TASK_WAIT_DUPLICATE',
+    WAIT_MISMATCH: 'CSTAR_NATIVE_TASK_WAIT_MISMATCH',
+    WAIT_TIMEOUT: 'CSTAR_NATIVE_TASK_WAIT_TIMEOUT',
+    NATIVE_SURFACE_UNAVAILABLE: 'CORVUS_NATIVE_TASK_SURFACE_UNAVAILABLE',
+    FORGE_DEFUNCT: 'CSTAR_FORGE_DEFUNCT',
+    SELECTOR_MISMATCH: 'CSTAR_NATIVE_TASK_SELECTOR_MISMATCH',
+    BREAKER_OPEN: 'CSTAR_NATIVE_TASK_BREAKER_OPEN',
+    UNKNOWN_TERMINAL: 'CSTAR_NATIVE_TASK_UNKNOWN_TERMINAL',
+    EVENT_SEQUENCE: 'CSTAR_NATIVE_TASK_EVENT_SEQUENCE',
+} as const;
+
+export type NativeTaskControlErrorCode =
+    (typeof NATIVE_TASK_CONTROL_ERROR_CODES)[keyof typeof NATIVE_TASK_CONTROL_ERROR_CODES];
+
+export interface NativeTaskControlErrorDetails {
+    [key: string]: unknown;
+}
+
+export class NativeTaskControlError extends Error {
+    readonly code: NativeTaskControlErrorCode;
+    readonly details: NativeTaskControlErrorDetails;
+    readonly terminal: boolean;
+
+    constructor(
+        code: NativeTaskControlErrorCode,
+        message: string = code,
+        details: NativeTaskControlErrorDetails = {},
+        terminal = false,
+    ) {
+        super(message);
+        this.name = 'NativeTaskControlError';
+        this.code = code;
+        this.details = details;
+        this.terminal = terminal;
+    }
+}
+
+export function nativeTaskControlError(
+    code: NativeTaskControlErrorCode,
+    details: NativeTaskControlErrorDetails = {},
+    message = code,
+): NativeTaskControlError {
+    return new NativeTaskControlError(code, message, details);
+}
+
+export function isNativeTaskControlError(value: unknown): value is NativeTaskControlError {
+    return value instanceof NativeTaskControlError;
+}
+
+export function errorCode(value: unknown): string | null {
+    return isNativeTaskControlError(value) ? value.code : null;
+}
