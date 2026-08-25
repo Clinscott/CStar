@@ -10,6 +10,7 @@ import {
 
 describe('CStar MCP Forge execute trace artifacts', () => {
     it('persists a worker execution trace when the adapter exits without response artifact', async () => {
+        const canary = 'FORGE_FAILURE_RAW_CANARY';
         const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'forge-worker-project-'));
         const suiteRoot = path.join(projectRoot, 'tests', 'truth-verification-red-team');
         fs.mkdirSync(suiteRoot, { recursive: true });
@@ -18,7 +19,9 @@ describe('CStar MCP Forge execute trace artifacts', () => {
         fs.writeFileSync(adapterPath, [
             '#!/usr/bin/env python3',
             'import json',
-            'print(json.dumps({"status":"degraded","degraded_reason":"synthetic adapter failure","live_spend":False,"live_source_collection":False}))',
+            `canary = ${JSON.stringify(canary)}`,
+            'print(json.dumps({"schema":"cstar.forge_delegate_failure.v1","status":"degraded","degraded_reason":"forge_synthetic_adapter_failure","provider":"minimax","requested_model":"MiniMax-M3","actual_model":canary,"model_source":"unreported","hermes_profile":"cstar-hub","live_spend":False,"live_spend_unknown":False,"live_source_collection":False,"unknown_raw":canary}))',
+            'import sys; sys.stderr.write(canary)',
             'raise SystemExit(1)',
         ].join('\n'));
         fs.chmodSync(adapterPath, 0o755);
@@ -43,5 +46,15 @@ describe('CStar MCP Forge execute trace artifacts', () => {
         assert.strictEqual(trace.status, 'degraded');
         assert.strictEqual(trace.response_artifact_exists, false);
         assert.strictEqual(trace.envelope.status, 'degraded');
+        assert.strictEqual(trace.envelope.schema, 'cstar.forge_delegate_failure.v1');
+        assert.strictEqual(trace.envelope.degraded_reason, 'forge_synthetic_adapter_failure');
+        assert.strictEqual(trace.envelope.provider, 'minimax');
+        assert.strictEqual(trace.envelope.requested_model, 'MiniMax-M3');
+        assert.strictEqual(trace.envelope.actual_model, null);
+        assert.strictEqual(trace.envelope.model_source, 'unreported');
+        assert.strictEqual(trace.envelope.live_spend, false);
+        assert.strictEqual(trace.envelope.live_spend_unknown, false);
+        assert.doesNotMatch(JSON.stringify(parsed), new RegExp(canary));
+        assert.doesNotMatch(JSON.stringify(trace), new RegExp(canary));
     });
 });

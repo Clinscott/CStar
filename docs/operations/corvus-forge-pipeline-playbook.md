@@ -136,6 +136,10 @@ evidence. Valid adapter output is evidence for PMT review, not automatic
 acceptance; live Hermes/MiniMax invocation remains governed by the operator
 authorization ref, PMT callback contract, receipt evidence, and this playbook.
 
+The Hermes child receives safe-mode variables before startup and uses the
+supported empty `context_engine` toolset. A headless Forge run never exposes
+the interactive `clarify` tool.
+
 ## Live-Spend Authorization Requirements
 
 Live Forge execution requires a separate operator authorization reference and a
@@ -153,6 +157,34 @@ Live execution remains blocked for:
 - Source adapter, Grok/X, RSS, browser, or GitHub mutation not explicitly
   authorized.
 - Codex-worker fallback.
+
+### Hermes compatibility preflight and failure evidence
+
+Before a worker adapter can cross the model-call boundary, CStar runs the
+sealed delegate in `--preflight` mode. The preflight may resolve and hash the
+owner-controlled Hermes executable and run only `--version`, top-level
+`--help`, and `chat --help`. It uses a temporary empty HOME/XDG tree, supplies
+no prompt, profile, provider, model, credential, or source lane, and verifies
+the exact flags used by the live command. A compatibility failure is
+non-spending and final for that reserved one-shot request; it never starts
+`hermes chat`.
+
+Provider and model overrides are passed after the `chat` subcommand because
+Hermes scopes those overrides to the chat parser. Placing them before `chat`
+allows the subparser defaults to erase the requested identity.
+
+After the model-call boundary, ambiguity remains conservative. A missing or
+malformed delegate failure envelope records spend as unknown and consumes the
+attempt. A valid nonzero delegate response may retain only the
+`cstar.forge_delegate_failure.v1` whitelist: stable reason, provider, requested
+and reported actual model identity, model-source evidence, Hermes profile,
+spend/spend-unknown, and live-source status. Raw stdout, stderr, prompts, paths,
+environment values, unknown keys, and arbitrary error text are never persisted.
+Actual model identity remains null unless Hermes explicitly reports it.
+
+A consumed receipt is never relaunched. Repair the blocker, validate and
+activate the repair, then issue a fresh decision, request, attestation,
+idempotency key, runtime seal, and one-shot grant.
 
 ## PMT Ownership And Callback Rules
 

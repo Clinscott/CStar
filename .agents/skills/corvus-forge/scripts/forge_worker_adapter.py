@@ -1,20 +1,13 @@
 #!/usr/bin/env python3
-"""Bounded Corvus Forge worker adapter.
-This adapter is intentionally small: it asks the Forge-private Hermes/MiniMax
-delegate for a strict JSON file manifest, validates every claimed write against
-the sealed CStar intent, writes only inside authorized target roots, and emits
-the standard Forge execution response packet to payload.write_to.
-It is not a Codex-worker fallback and it does not commit, push, merge, deploy,
-read secrets, collect live sources, or write Hall/SQLite directly.
-"""
+"""Bounded Forge worker: validate one sealed manifest and apply only authorized files."""
 from __future__ import annotations
 import argparse
 import hashlib
 import json
 import os
+import re
 import subprocess
-import sys
-import tempfile
+import sys, tempfile
 from pathlib import Path
 from typing import Any, Callable
 from forge_worker_safety import (
@@ -33,14 +26,38 @@ from forge_worker_safety import (
     write_response_json,
 )
 SUCCESS_STATUSES = {"accepted", "ok", "pass", "passed", "success", "succeeded"}
-EXPECTED_MANIFEST_FIELDS = set(
-    "status summary files artifacts validation metrics boundaries callback_packet".split()
-)
+DELEGATE_FAILURE_SCHEMA = "cstar.forge_delegate_failure.v1"
+SAFE_DELEGATE_REASON = re.compile(r"^forge_[a-z0-9_]+(?:_[0-9]+)?$")
+EXPECTED_MANIFEST_FIELDS = set("status summary files artifacts validation metrics boundaries callback_packet".split())
 class ManifestContractError(ValueError):
     def __init__(self, code: str, details: dict[str, Any] | None = None):
         super().__init__(code)
         self.code = code
         self.details = details or {}
+class DelegateFailure(RuntimeError):
+    def __init__(self, envelope: dict[str, Any]):
+        super().__init__(str(envelope["degraded_reason"]))
+        self.envelope = envelope
+def bounded_delegate_failure(raw: dict[str, Any], fallback: str) -> dict[str, Any]:
+    reason = raw.get("degraded_reason")
+    if not isinstance(reason, str) or len(reason) > 120 or not SAFE_DELEGATE_REASON.fullmatch(reason):
+        reason = fallback
+    model_source = raw.get("model_source")
+    model_source = model_source if model_source in {"unreported", "provider_reported"} else "unreported"
+    actual_model = raw.get("actual_model")
+    actual_reported = (model_source == "provider_reported" and isinstance(actual_model, str)
+                       and re.fullmatch(r"[A-Za-z0-9._:/-]{1,80}", actual_model))
+    if not actual_reported:
+        actual_model = None
+    spend = raw.get("live_spend") if isinstance(raw.get("live_spend"), bool) else None
+    return {
+        "schema": DELEGATE_FAILURE_SCHEMA, "degraded_reason": reason,
+        "provider": "minimax", "requested_model": "MiniMax-M3",
+        "actual_model": actual_model, "model_source": model_source,
+        "hermes_profile": "cstar-hub", "live_spend": spend,
+        "live_spend_unknown": raw.get("live_spend_unknown") is True or spend is None,
+        "live_source_collection": raw.get("live_source_collection") is True,
+    }
 def load_json(path: Path) -> dict[str, Any]:
     with path.open("r", encoding="utf-8") as handle:
         data = json.load(handle)
@@ -100,28 +117,21 @@ def build_rejected_manifest_response(manifest: dict[str, Any], failure_class: st
                 **details,
                 "top_level_field_count": len(manifest),
                 "unknown_field_count": len(set(manifest) - EXPECTED_MANIFEST_FIELDS),
-                "status": {"present": "status" in manifest,
-                           "type": json_type_name(status),
+                "status": {"present": "status" in manifest, "type": json_type_name(status),
                            "recognized_success": known_status},
-                "files": {"present": "files" in manifest,
-                          "type": json_type_name(files),
+                "files": {"present": "files" in manifest, "type": json_type_name(files),
                           "count": len(files) if isinstance(files, list) else None},
                 "callback_packet": {"present": "callback_packet" in manifest,
-                                    "type": json_type_name(callback),
-                                    "matches_expected": callback_matches},
+                                    "type": json_type_name(callback), "matches_expected": callback_matches},
                 "raw_manifest_persisted": False,
                 "raw_values_emitted": False,
             },
         },
         "validation": {"manifest_contract": "rejected"},
-        "metrics": {
-            "required_output_count": len(intent.get("required_output_paths", []) or []),
-            "reported_file_entry_count": len(files) if isinstance(files, list) else 0,
-        },
-        "boundaries": {"project_file_writes": 0,
-                       "raw_manifest_persisted": False,
-                       "raw_values_emitted": False,
-                       "live_source_collection": False,
+        "metrics": {"required_output_count": len(intent.get("required_output_paths", []) or []),
+                    "reported_file_entry_count": len(files) if isinstance(files, list) else 0},
+        "boundaries": {"project_file_writes": 0, "raw_manifest_persisted": False,
+                       "raw_values_emitted": False, "live_source_collection": False,
                        "git_mutation": False},
         "callback_packet": expected_callback,
     }
@@ -129,11 +139,8 @@ def verify_runtime_contract(intent: dict[str, Any]) -> tuple[Path, Path]:
     runtime = intent.get("adapter_runtime")
     if not isinstance(runtime, dict):
         raise ValueError("sealed adapter runtime contract is required")
-    adapter_proof = {
-        "sha256": runtime.get("sha256"),
-        "bytes": runtime.get("bytes"),
-        "owner_uid": os.getuid(),
-    }
+    adapter_proof = {"sha256": runtime.get("sha256"), "bytes": runtime.get("bytes"),
+                     "owner_uid": os.getuid()}
     verify_runtime_file(Path(__file__), adapter_proof, "adapter")
     dependencies = runtime.get("dependencies")
     if not isinstance(dependencies, list):
@@ -229,7 +236,7 @@ def model_manifest_from_delegate(
         raise ValueError(f"delegate script is not owner-only writable: {delegate_script}")
     if delegate_script.suffix != ".mjs":
         raise ValueError(f"Forge delegate must be a Node .mjs runtime: {delegate_script}")
-    with tempfile.TemporaryDirectory(prefix="cstar-forge-worker-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="cstar-forge-worker-", dir="/tmp" if sys.platform.startswith("linux") else None) as tmp:
         tmp_path = Path(tmp)
         model_response = tmp_path / "model-response.json"
         final_packet_markers = (
@@ -257,6 +264,7 @@ def model_manifest_from_delegate(
             "intent": base_intent + "\n\n" + worker_guard + "\n\n" + worker_manifest_contract,
             "project_root": str(project_root),
             "target_paths": intent.get("target_paths", []),
+            "hermes_preflight": intent.get("hermes_preflight"),
             "payload": {
                 "hermes_profile": intent["payload"]["hermes_profile"],
                 "model": intent["payload"]["model"],
@@ -282,15 +290,21 @@ def model_manifest_from_delegate(
             timeout=int(delegate_intent["payload"]["timeout_seconds"]) + 30,
             check=False,
         )
-        envelope = extract_model_json(proc.stdout) if proc.stdout.strip() else {}
+        try:
+            envelope = extract_model_json(proc.stdout) if proc.stdout.strip() else {}
+        except ValueError:
+            envelope = {}
         if proc.returncode != 0:
-            raise ValueError("delegate_exit_nonzero")
+            raise DelegateFailure(bounded_delegate_failure(
+                envelope, "forge_hermes_delegate_exit_nonzero",
+            ))
         if envelope.get("status") != "ok":
-            raise ValueError("delegate_status_not_ok")
+            raise DelegateFailure(bounded_delegate_failure(
+                envelope, "forge_hermes_delegate_status_not_ok",
+            ))
         if not model_response.is_file():
             raise ValueError("delegate did not write model response")
         return extract_model_json(model_response.read_text(encoding="utf-8")), envelope
-
 def normalize_file_entries(manifest: dict[str, Any]) -> list[dict[str, str]]:
     status = str(manifest.get("status") or "").strip().lower()
     if not status:
@@ -316,7 +330,6 @@ def normalize_file_entries(manifest: dict[str, Any]) -> list[dict[str, str]]:
     if not normalized:
         raise ManifestContractError("files_empty")
     return normalized
-
 def validate_callback_packet(manifest: dict[str, Any], expected: str) -> None:
     callback = manifest.get("callback_packet")
     if isinstance(callback, str):
@@ -360,7 +373,6 @@ def build_response(manifest: dict[str, Any], changed: list[dict[str, Any]],
         },
         "callback_packet": str(intent["expected_callback_packet"]),
     }
-
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--intent-file", required=True)
@@ -405,12 +417,8 @@ def main() -> int:
             model_invocation_can_spend = True
 
         manifest, delegate_envelope = model_manifest_from_delegate(
-            intent,
-            project_root,
-            node_interpreter,
-            delegate_script,
-            worker_manifest_contract,
-            mark_model_invocation_started,
+            intent, project_root, node_interpreter, delegate_script,
+            worker_manifest_contract, mark_model_invocation_started,
         )
         if isinstance(delegate_envelope.get("live_spend"), bool):
             observed_live_spend = delegate_envelope["live_spend"]
@@ -422,33 +430,27 @@ def main() -> int:
             response = build_response(manifest, changed_files, delegate_envelope, intent, project_root)
             write_response_json(response_path, response)
 
-        changed = apply_files(
-            project_root,
-            scopes,
-            files,
-            required_output_paths,
-            persist_validated_response,
-        )
+        changed = apply_files(project_root, scopes, files, required_output_paths,
+                              persist_validated_response)
         print(json.dumps({
-            "status": "ok",
-            "intent_id": os.environ.get("CSTAR_FORGE_EXECUTE_RECEIPT_ID"),
-            "duration_ms": delegate_envelope.get("duration_ms"),
-            "response_chars": response_path.stat().st_size,
+            "status": "ok", "intent_id": os.environ.get("CSTAR_FORGE_EXECUTE_RECEIPT_ID"),
+            "duration_ms": delegate_envelope.get("duration_ms"), "response_chars": response_path.stat().st_size,
             "est_prompt_tokens": delegate_envelope.get("est_prompt_tokens"),
-            "est_response_tokens": delegate_envelope.get("est_response_tokens"),
-            "model": intent["payload"]["model"],
+            "est_response_tokens": delegate_envelope.get("est_response_tokens"), "model": intent["payload"]["model"],
             "provider": delegate_envelope.get("provider", "minimax"),
             "requested_model": delegate_envelope.get("requested_model", intent["payload"]["model"]),
-            "actual_model": delegate_envelope.get("actual_model"),
-            "model_source": delegate_envelope.get("model_source", "unreported"),
-            "hermes_profile": intent["payload"]["hermes_profile"],
-            "wrote_to": str(response_path),
-            "ledger_entry": delegate_envelope.get("ledger_entry"),
-            "live_spend": delegate_envelope.get("live_spend", True),
+            "actual_model": delegate_envelope.get("actual_model"), "model_source": delegate_envelope.get("model_source", "unreported"),
+            "hermes_profile": intent["payload"]["hermes_profile"], "wrote_to": str(response_path),
+            "ledger_entry": delegate_envelope.get("ledger_entry"), "live_spend": delegate_envelope.get("live_spend", True),
             "live_source_collection": False,
         }))
         return 0
     except Exception as exc:
+        delegate_failure = isinstance(exc, DelegateFailure)
+        if delegate_failure:
+            delegate_envelope = exc.envelope
+            if isinstance(delegate_envelope.get("live_spend"), bool):
+                observed_live_spend = delegate_envelope["live_spend"]
         pre_manifest_rejection = isinstance(exc, RequiredOutputContractError)
         live_spend_unknown = (
             not pre_manifest_rejection and model_invocation_started
@@ -469,12 +471,15 @@ def main() -> int:
             except Exception:
                 rejected_response_written = False
         print(json.dumps({
+            **({"schema": DELEGATE_FAILURE_SCHEMA} if delegate_failure else {}),
             "status": "degraded",
             "degraded_reason": (
                 f"forge_worker_manifest_rejected:{failure_class}"
                 if failure_class is not None
                 else f"forge_worker_pre_manifest_rejected:{exc.code}"
                 if pre_manifest_rejection
+                else delegate_envelope.get("degraded_reason")
+                if delegate_failure
                 else "forge_worker_delegate_failed"
             ),
             "wrote_to": str(response_path) if rejected_response_written and response_path else None,
@@ -489,7 +494,5 @@ def main() -> int:
             "live_source_collection": False,
         }))
         return 1
-
-
 if __name__ == "__main__":
     raise SystemExit(main())

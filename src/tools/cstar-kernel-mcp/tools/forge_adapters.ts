@@ -270,6 +270,15 @@ function parseAdapterEnvelope(stdout: string): Record<string, any> | null {
     }
 }
 
+function boundedEnvelopeIdentity(value: unknown): string | null {
+    return typeof value === 'string' && /^[A-Za-z0-9._:/-]{1,80}$/.test(value) ? value : null;
+}
+
+function boundedEnvelopeReason(value: unknown): string | null {
+    return typeof value === 'string' && value.length <= 120
+        && /^forge_[a-z0-9_]+(?:_[0-9]+)?$/.test(value) ? value : null;
+}
+
 export function forgeExecutionRequiresImplementationWrites(args: ForgeExecutionArgs): boolean {
     const text = [
         args.objective,
@@ -379,9 +388,11 @@ export async function invokeForgeHermesMinimaxAdapter(
         adapterStatus = 'degraded';
         artifactError = artifactError ?? 'adapter_response_contract_invalid';
     }
-    const liveSpend = typeof envelope?.live_spend === 'boolean'
-        ? envelope.live_spend
-        : adapterStatus === 'ok';
+    const liveSpendKnown = typeof envelope?.live_spend === 'boolean';
+    const spawnFailedBeforeStart = Boolean(result.error && (result.error as NodeJS.ErrnoException).code === 'ENOENT');
+    const liveSpendUnknown = envelope?.live_spend_unknown === true
+        || (!liveSpendKnown && !spawnFailedBeforeStart);
+    const liveSpend = liveSpendKnown ? envelope!.live_spend as boolean : null;
     await writeExecutionTrace({
         schema: 'cstar.forge_adapter_execution_trace.v1',
         status: adapterStatus,
@@ -392,30 +403,38 @@ export async function invokeForgeHermesMinimaxAdapter(
         adapter_script: scriptPath,
         exit_status: result.status,
         signal: result.signal,
-        spawn_error: result.error instanceof Error ? result.error.message : result.error ? String(result.error) : null,
+        spawn_error: result.error ? 'forge_adapter_spawn_failed' : null,
         response_path: responsePath,
         response_artifact_exists: responseArtifact !== null,
         response_artifact: responseArtifact,
         artifact_error: artifactError,
         envelope: envelope
             ? {
+                schema: envelope.schema === 'cstar.forge_delegate_failure.v1' ? envelope.schema : null,
                 status: envelope.status ?? null,
                 intent_id: envelope.intent_id ?? null,
                 duration_ms: envelope.duration_ms ?? null,
                 response_chars: envelope.response_chars ?? null,
                 est_prompt_tokens: envelope.est_prompt_tokens ?? null,
                 est_response_tokens: envelope.est_response_tokens ?? null,
-                model: envelope.model ?? null,
-                hermes_profile: envelope.hermes_profile ?? null,
+                provider: envelope.provider === 'minimax' ? 'minimax' : null,
+                requested_model: (envelope.requested_model ?? envelope.model) === 'MiniMax-M3' ? 'MiniMax-M3' : null,
+                actual_model: envelope.model_source === 'provider_reported'
+                    ? boundedEnvelopeIdentity(envelope.actual_model) : null,
+                model_source: envelope.model_source === 'provider_reported' ? 'provider_reported' : 'unreported',
+                model: envelope.model === 'MiniMax-M3' ? 'MiniMax-M3' : null,
+                hermes_profile: envelope.hermes_profile === 'cstar-hub' ? 'cstar-hub' : null,
                 wrote_to: envelope.wrote_to ?? null,
-                degraded_reason: envelope.degraded_reason ?? null,
+                degraded_reason: boundedEnvelopeReason(envelope.degraded_reason),
                 live_spend: envelope.live_spend ?? null,
+                live_spend_unknown: liveSpendUnknown,
                 live_source_collection: envelope.live_source_collection ?? null,
             }
             : null,
         stdout_chars: (result.stdout || '').length,
         stderr_chars: (result.stderr || '').length,
         live_spend: liveSpend,
+        live_spend_unknown: liveSpendUnknown,
         live_source_collection: envelope?.live_source_collection === true,
     });
     let executionTraceArtifact: Record<string, unknown> | null = null;
@@ -437,30 +456,38 @@ export async function invokeForgeHermesMinimaxAdapter(
         signal: result.signal,
         status: adapterStatus,
         live_spend: liveSpend,
+        live_spend_unknown: liveSpendUnknown,
         live_source_collection: envelope?.live_source_collection === true,
         execution_trace_artifact: executionTraceArtifact,
         envelope: envelope
             ? {
+                schema: envelope.schema === 'cstar.forge_delegate_failure.v1' ? envelope.schema : null,
                 status: envelope.status ?? null,
                 intent_id: envelope.intent_id ?? null,
                 duration_ms: envelope.duration_ms ?? null,
                 response_chars: envelope.response_chars ?? null,
                 est_prompt_tokens: envelope.est_prompt_tokens ?? null,
                 est_response_tokens: envelope.est_response_tokens ?? null,
-                model: envelope.model ?? null,
-                hermes_profile: envelope.hermes_profile ?? null,
+                provider: envelope.provider === 'minimax' ? 'minimax' : null,
+                requested_model: (envelope.requested_model ?? envelope.model) === 'MiniMax-M3' ? 'MiniMax-M3' : null,
+                actual_model: envelope.model_source === 'provider_reported'
+                    ? boundedEnvelopeIdentity(envelope.actual_model) : null,
+                model_source: envelope.model_source === 'provider_reported' ? 'provider_reported' : 'unreported',
+                model: envelope.model === 'MiniMax-M3' ? 'MiniMax-M3' : null,
+                hermes_profile: envelope.hermes_profile === 'cstar-hub' ? 'cstar-hub' : null,
                 wrote_to: envelope.wrote_to ?? null,
                 response_artifact: responseArtifact,
                 response_contract: responseContract,
                 execution_trace_artifact: executionTraceArtifact,
                 ledger_entry: envelope.ledger_entry ?? null,
-                degraded_reason: envelope.degraded_reason ?? null,
+                degraded_reason: boundedEnvelopeReason(envelope.degraded_reason),
                 live_spend: envelope.live_spend ?? null,
+                live_spend_unknown: liveSpendUnknown,
                 live_source_collection: envelope.live_source_collection ?? null,
             }
             : null,
-        error: result.error ? result.error.message : artifactError,
-        stderr_tail: (result.stderr || '').slice(-500),
-        stdout_tail: envelope ? null : (result.stdout || '').slice(-500),
+        error: result.error ? 'forge_adapter_spawn_failed' : artifactError,
+        stderr_tail: null,
+        stdout_tail: null,
     };
 }

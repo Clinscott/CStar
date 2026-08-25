@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { normalizeActionList } from './dispatch_request.js';
 import type { ForgeExecutionArgs } from './forge_execute.js';
 import { inferForgeAdapterProjectRoot } from './forge_adapter_paths.js';
@@ -73,10 +74,69 @@ export interface PreparedForgeAdapterInvocation {
     executionTracePath: string;
     adapterScriptPath: string;
     runtimeProof: ForgeAdapterRuntimeProof;
+    hermesPreflight: ForgeHermesPreflightProof | null;
     environment: NodeJS.ProcessEnv;
     temporaryDirectory: string;
     spendMayHaveStarted: boolean;
     writeExecutionTrace(trace: Record<string, unknown>): void;
+}
+
+export interface ForgeHermesPreflightProof {
+    schema: 'cstar.forge_hermes_preflight.v1';
+    status: 'ok';
+    executable_sha256: string;
+    version_sha256: string;
+    checks: { version: 'pass'; help: 'pass'; chat_help: 'pass'; required_flags: 'pass' };
+    live_spend: false;
+    live_spend_unknown: false;
+    live_source_collection: false;
+}
+
+function safePreflightFailure(stdout: string): string {
+    try {
+        const parsed = JSON.parse(stdout) as Record<string, unknown>;
+        const reason = parsed?.degraded_reason;
+        if (parsed?.schema === 'cstar.forge_delegate_failure.v1'
+            && typeof reason === 'string'
+            && /^forge_[a-z0-9_]+(?:_[0-9]+)?$/.test(reason)
+            && reason.length <= 120) return reason;
+    } catch { /* Raw output is never persisted. */ }
+    return 'forge_hermes_preflight_failed';
+}
+
+function runHermesCompatibilityPreflight(
+    nodePath: string,
+    delegatePath: string,
+    environment: NodeJS.ProcessEnv,
+    cwd: string,
+): ForgeHermesPreflightProof {
+    const result = spawnSync(nodePath, [delegatePath, '--preflight'], {
+        cwd,
+        env: environment,
+        encoding: 'utf-8',
+        timeout: 15_000,
+        maxBuffer: 1024 * 1024,
+    });
+    if (result.error || result.status !== 0) throw new Error(safePreflightFailure(result.stdout || ''));
+    let parsed: Record<string, any>;
+    try { parsed = JSON.parse(result.stdout || ''); } catch { throw new Error('forge_hermes_preflight_invalid'); }
+    const checks = parsed.checks;
+    if (parsed.schema !== 'cstar.forge_hermes_preflight.v1'
+        || parsed.status !== 'ok'
+        || !/^[a-f0-9]{64}$/.test(parsed.executable_sha256 ?? '')
+        || !/^[a-f0-9]{64}$/.test(parsed.version_sha256 ?? '')
+        || checks?.version !== 'pass' || checks?.help !== 'pass'
+        || checks?.chat_help !== 'pass' || checks?.required_flags !== 'pass'
+        || parsed.live_spend !== false || parsed.live_spend_unknown !== false
+        || parsed.live_source_collection !== false) {
+        throw new Error('forge_hermes_preflight_invalid');
+    }
+    return {
+        schema: 'cstar.forge_hermes_preflight.v1', status: 'ok',
+        executable_sha256: parsed.executable_sha256, version_sha256: parsed.version_sha256,
+        checks: { version: 'pass', help: 'pass', chat_help: 'pass', required_flags: 'pass' },
+        live_spend: false, live_spend_unknown: false, live_source_collection: false,
+    };
 }
 
 export async function cleanupPreparedForgeAdapterInvocation(
@@ -100,6 +160,7 @@ function buildForgeAdapterIntent(
     adapterResponsePath: string,
     selectedAdapter: Record<string, any>,
     adapterRuntimeProof: ForgeAdapterRuntimeProof,
+    hermesPreflight: ForgeHermesPreflightProof | null,
 ): Record<string, unknown> {
     const expectedPacket = args.callback_contract.expected_packet;
     const workerAdapter = selectedAdapter.ref === 'cstar-forge-hermes-minimax-worker-adapter';
@@ -177,6 +238,7 @@ function buildForgeAdapterIntent(
         required_output_paths: args.required_output_paths ?? [],
         package_locks: args.package_locks ?? [],
         adapter_runtime: adapterRuntimeProof,
+        hermes_preflight: hermesPreflight,
         expected_callback_packet: expectedPacket,
         payload: {
             hermes_profile: 'cstar-hub',
@@ -255,6 +317,7 @@ export async function prepareForgeHermesMinimaxAdapterInvocation(
             false,
             0o700,
         );
+        let materializedDelegatePath: string | null = null;
         for (const dependency of runtimeProof.dependencies) {
             const destinationName = dependency.role === 'forge_worker_safety'
                 ? 'forge_worker_safety.py'
@@ -269,12 +332,29 @@ export async function prepareForgeHermesMinimaxAdapterInvocation(
                 false,
                 dependency.role === 'hermes_minimax_delegate' ? 0o700 : 0o600,
             );
+            if (dependency.role === 'hermes_minimax_delegate') materializedDelegatePath = destination;
         }
         // Interpreter entrypoints stay at their sealed absolute paths and are
         // re-read immediately before spawn. Adapter code is copied from sealed
         // descriptors into this owner-only runtime bundle.
         readVerifiedRuntimeFile(runtimeProof.python_interpreter);
         if (runtimeProof.node_interpreter) readVerifiedRuntimeFile(runtimeProof.node_interpreter);
+        const environment = minimalForgeAdapterEnvironment(
+            args, decisionId, executionReceiptId, selectedAdapter,
+        );
+        let hermesPreflight: ForgeHermesPreflightProof | null = null;
+        if (selectedAdapter.ref === 'cstar-forge-hermes-minimax-worker-adapter') {
+            const syntheticOverride = Boolean(process.env.NODE_TEST_CONTEXT)
+                && process.env.CSTAR_FORGE_TEST_MODE === '1';
+            if ((!runtimeProof.node_interpreter || !materializedDelegatePath) && !syntheticOverride) {
+                throw new Error('forge_hermes_preflight_runtime_missing');
+            }
+            if (runtimeProof.node_interpreter && materializedDelegatePath) {
+                hermesPreflight = runHermesCompatibilityPreflight(
+                    runtimeProof.node_interpreter.path, materializedDelegatePath, environment, root,
+                );
+            }
+        }
 
         const intent = buildForgeAdapterIntent(
             args,
@@ -284,6 +364,7 @@ export async function prepareForgeHermesMinimaxAdapterInvocation(
             responsePath,
             selectedAdapter,
             runtimeProof,
+            hermesPreflight,
         );
         const intentPath = path.join(temporaryDirectory, 'forge-adapter-intent.json');
         atomicWritePrivateFile(
@@ -301,7 +382,8 @@ export async function prepareForgeHermesMinimaxAdapterInvocation(
             executionTracePath,
             adapterScriptPath,
             runtimeProof,
-            environment: minimalForgeAdapterEnvironment(args, decisionId, executionReceiptId, selectedAdapter),
+            hermesPreflight,
+            environment,
             temporaryDirectory,
             spendMayHaveStarted: false,
             writeExecutionTrace(trace: Record<string, unknown>) {
@@ -322,6 +404,7 @@ export async function prepareForgeHermesMinimaxAdapterInvocation(
             forge_request_receipt_id: args.forge_request_receipt_id,
             adapter_ref: selectedAdapter.ref,
             adapter_runtime_proof: runtimeProof,
+            hermes_preflight: hermesPreflight,
             response_path: responsePath,
             response_artifact_exists: false,
             live_spend: false,

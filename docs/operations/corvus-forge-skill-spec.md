@@ -125,6 +125,31 @@ authorized Corvus Forge/Hermes/MiniMax dispatch surface. The MCP request
 primitive returns a compact receipt; the execution primitive consumes that
 receipt and may invoke the approved adapter only after the contract is proven.
 
+For the write-capable worker, sealed adapter preparation includes a
+non-spending Hermes compatibility preflight. The only permitted child commands
+are the exact executable with `--version`, `--help`, and `chat --help` under a
+sterile temporary HOME/XDG environment. The probe proves the CLI flags used by
+the live delegate and emits only `cstar.forge_hermes_preflight.v1` hashes and
+pass/fail fields. It receives no prompt, profile, provider, model, credential,
+or live-source authority. Preflight failure closes the reserved attempt as
+non-spending `FAILED_FINAL` before adapter/model start.
+
+The Hermes child receives safe-mode variables before startup and uses the
+supported empty `context_engine` toolset, so a headless worker cannot block on
+the interactive `clarify` callback.
+
+The live invocation places `--provider` and `--model` after `chat`; Hermes'
+chat-subparser defaults otherwise overwrite top-level values with nulls.
+
+Once the delegate may have invoked `hermes chat`, missing spend evidence is
+`UNKNOWN`, never assumed false. Nonzero delegate output is accepted as failure
+evidence only after the worker reduces it to the
+`cstar.forge_delegate_failure.v1` whitelist. The control plane discards raw
+stdout/stderr, prompt and environment content, paths, unknown fields, and
+unbounded error strings. Requested and actual model fields are separate;
+actual identity is null unless the runtime reports it. Retrying requires a new
+decision and request rather than reuse of the consumed receipt.
+
 ## Execution Primitive Contract
 
 `cstar_forge_execute` is the dedicated execution-gate primitive. It consumes or
