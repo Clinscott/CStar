@@ -10,6 +10,8 @@ export const AUTOMATIC_MISSION_SET_GRANT_SCHEMA = 'cstar.mission_set_grant.v1' a
 export const AUTOMATIC_MISSION_ROOT_RECORD_SCHEMA = 'cstar.root_user_instruction_record.v1' as const;
 export const AUTOMATIC_MISSION_LEGACY_SINGLETON_SCHEMA =
     'cstar.codex_root_user_turn_record_set.v1' as const;
+export const AUTOMATIC_MISSION_EFFECT_RESERVATION_SCHEMA =
+    'cstar.mission_effect_reservation.v1' as const;
 
 export const AUTOMATIC_MISSION_STATES = [
     'DRAFT',
@@ -259,4 +261,23 @@ export interface AutomaticMissionAuthorityBinding {
     binding_sha256: string;
     thread_id: string;
     turn_id: string;
+}
+
+export interface AutomaticMissionEffectTarget {
+    controller_id: string;
+    bead_id: string;
+}
+
+export interface AutomaticMissionEffectReservation extends AutomaticMissionEffectTarget {
+    schema: typeof AUTOMATIC_MISSION_EFFECT_RESERVATION_SCHEMA;
+    effect_id: string;
+    mission_id: string;
+    decision_id: string;
+    mission_bead_id: string;
+    request_id: string;
+    set_grant_id: string;
+    authority_binding_sha256: string;
+    generation_sha256: string;
+    status: 'RESERVED';
+    reserved_at: number;
 }
