@@ -1,0 +1,57 @@
+{
+  "schema": "cstar.independent_validation_structural_check.v1",
+  "validation_id": "validation:cstar-p0-full-batch-repair-validation-ticket-20260804-r1",
+  "bead_id": "bead:mcp:repair-aggregate-full-suite-spoke-root-and-valid-msfahzq7",
+  "status": "pass",
+  "checks": [
+    {
+      "name": "typecheck",
+      "status": "pass",
+      "command": "npm run typecheck",
+      "exit_code": 0
+    },
+    {
+      "name": "git_diff_check",
+      "status": "pass",
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "name": "touched_production_test_line_audit",
+      "status": "pass",
+      "command": "{ git diff --name-only; git ls-files --others --exclude-standard; } | sort -u | awk '$0 ~ /^(src|tests)\\// {print}' | xargs -r wc -l",
+      "file_count": 78,
+      "max_lines": 500,
+      "max_file": "src/tools/cstar-kernel-mcp/tools/augury_mission_binding.ts",
+      "max_file_lines": 500,
+      "scope_note": "Counts all current changed and untracked src/ and tests/ paths; unrelated dirty paths remain unattributed and untouched."
+    }
+  ],
+  "owned_test_inspection": {
+    "test_code_control_root_separation.test.ts": {
+      "status": "pass",
+      "asserts": [
+        "Hall reads and writes use the control-root registry",
+        "registered bead root is passed to host-validation evidence verification",
+        "bead repository root is joined through hall_repositories",
+        "Forge source and intent paths do not fall back to the control root"
+      ]
+    },
+    "test_forge_legacy_v2_public_path.test.ts": {
+      "status": "pass",
+      "asserts": [
+        "legacy request remains one request across authorize, execute, and replay",
+        "execution is one-shot and replay does not invoke the adapter",
+        "independent validator ticket is issued for the delivered receipt",
+        "ticket is consumed and validation finalizes as recorded_verified",
+        "existing semantic-widening and runtime-drift guards remain present"
+      ]
+    }
+  },
+  "source_contract_review": {
+    "status": "pass",
+    "result_handler": "resolves the registered bead repository root for evidence and uses the control root for Hall persistence",
+    "ticket_controller": "derives the host-v3 independent validator principal from the evidence manifest and atomically rejects replay or binding drift",
+    "forge_validation_controller": "requires authority-matching verified evidence and preserves v2/v3 subject and finalization distinctions"
+  }
+}

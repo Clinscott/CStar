@@ -287,7 +287,7 @@ describe('ordinary natural-language Forge authorization', () => {
             requester_turn_id: selected.requester_turn_id,
             requester_record_set_sha256: selected.requester_record_set_sha256,
             authorization_profile: 'root_user_forge_intent_v1',
-            adapter_ref: 'cstar-forge-hermes-minimax-adapter',
+            adapter_ref: null,
             write_capability: 'response_only',
         });
         const rejected = parse(await handleForgeAuthorize({

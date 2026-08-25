@@ -1,5 +1,11 @@
 # CStar Hub Hermes Research Agent — Completion Summary
 
+> **ARCHIVAL / HISTORICAL SNAPSHOT — MAY 2026 — NON-AUTHORITATIVE FOR CURRENT ROUTING.**
+> This document records May 2026 CStar Hub behavior and is not current routing
+> guidance. Current Researcher is a host-only request/evidence lane; private
+> Hermes/MiniMax is legacy v2 Forge compatibility and is not a default
+> Researcher route.
+
 **Status**: P1+P2 (already shipped 2026-05-15) + P3 + P4 + P5 + P6 + P7 + P8 + Hardening Pass 2 LIVE; P9 explicitly skipped per spec. Final verification 2026-05-15 19:14 UTC. **52/52 unit tests passing.**
 
 ## Hardening Pass 2 (added 2026-05-15 ~19:00 UTC)

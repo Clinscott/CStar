@@ -2,7 +2,7 @@
   "schema_version": 1,
   "plugin": {
     "name": "corvus-star",
-    "version": "1.0.2"
+    "version": "1.0.3"
   },
   "runtime_binding": {
     "host": "codex",
@@ -12,26 +12,26 @@
     "kernel_requirement": "external-cstar-runtime"
   },
   "tool_catalog": {
-    "count": 28,
-    "sha256": "00e013d3b825106bfb2e948e0b3c456af52d22cfaa575c44b6f15d04a7e7af6a"
+    "count": 35,
+    "sha256": "12b36c14f25fcd5501e84c7e287f9b0cf399cbd9059ac69d04c4950ca98f78e7"
   },
   "capability_exports": {
-    "codex_count": 3,
-    "gemini_count": 3,
-    "sha256": "248433f08e3c46ec8183ab0a14c49abecf1a2e21f6353cf23b3bee14df3b7e10"
+    "codex_count": 4,
+    "gemini_count": 4,
+    "sha256": "ad4e0c14fc8822d1c781314abe4c51dce8e524230228bc1e5fb2e063bc761433"
   },
   "files": {
     ".codex-plugin/plugin.json": {
       "bytes": 1446,
-      "sha256": "8701811112da9c03b4cba31616597d63ffd64b1de1869723dabe84487789c12f"
+      "sha256": "1f8e25d1530058842f871a3044b269ee333ddde99f908c734a6b7366fd4c5ddf"
     },
     "README.md": {
-      "bytes": 2259,
-      "sha256": "576652223fd036fd9c2db2342da8a8f1ceccef631a4fb4ea0436980316e563fc"
+      "bytes": 2508,
+      "sha256": "10be88c4a13aaf7077482a6494fdf33020b81cb94ccbadf5d0365fc52b9bc811"
     },
     "skills/corvus-star/SKILL.md": {
-      "bytes": 11841,
-      "sha256": "3a19b3b5bc132b5bf90d11ae1b3b72988ef67f1b6def7d0d6551e452683c779e"
+      "bytes": 13896,
+      "sha256": "2ae4ffd131ed1ea94ea02c0120bf31d42bf36745f008d63403198ca455942e63"
     }
   }
 }

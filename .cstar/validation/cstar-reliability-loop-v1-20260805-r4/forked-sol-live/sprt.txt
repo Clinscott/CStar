@@ -1,0 +1,56 @@
+schema: cstar.independent_validation_sprt.v1
+validation_id: validation:cstar-reliability-loop-v1-20260805-r4-forked-sol-live
+verdict: ACCEPTED
+
+receipt:
+  path: /home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-reliability-loop-v1-20260805-r4/sprt/receipt.json
+  bytes: 43374
+  sha256: da57e25788452d700d6215fb4f7db4e897872ec877277df12b0bb3db3d13d400
+  schema: cstar.workflow_sprt_autoresearcher.v1
+  sprt_verdict: ACCEPTED
+  cstar_acceptance: UNVERIFIED
+
+checksum:
+  path: /home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-reliability-loop-v1-20260805-r4/sprt/receipt.sha256
+  bytes: 79
+  sha256: b93a772e3b76b4ca57516b8299865b58438183d64a615e963ae46faef3d7ebfd
+  sha256sum_check_before: pass
+  sha256sum_check_after: pass
+
+candidate_digest_verification:
+  source_entries: 13
+  source_entry_hash_mismatches_before: 0
+  source_entry_hash_mismatches_after: 0
+  recorded_digest: fa3c91f0f2aa7397575dc36484ac7ce177fb2eaa16aa1b5e94fbd27549cd9d4c
+  independently_recomputed_digest_before: fa3c91f0f2aa7397575dc36484ac7ce177fb2eaa16aa1b5e94fbd27549cd9d4c
+  independently_recomputed_digest_after: fa3c91f0f2aa7397575dc36484ac7ce177fb2eaa16aa1b5e94fbd27549cd9d4c
+  digest_match: true
+
+canonical_gungnir_sources:
+  engine_sha256: 0a4a8157096ba66f053056640bdda6085b213fbc19f07de58aced2034b323d87
+  matrix_schema_sha256: c7f886a9c07da7b8a78129af9415d1bee7e0d32783d4c46c900f870f869dbd28
+  canonical_source_hash_mismatches: 0
+  authority: heuristic_evidence_only
+  aggregate_evidence_sha256: ddda3d85334c2aa39662ea0c9368c0bbba07c05c159b5246094620c11b505f1d
+
+direct_parser_execution:
+  function: verifyReliabilityReceipt
+  node_path: /home/morderith/.nvm/versions/node/v25.8.1/bin/node
+  temporary_source_file: none
+  manifest_binding_count: 1
+  pre_validation_commands_verified: true
+  post_supported_host_node_suite_verified: true
+  present: true
+  verified: true
+  error: null
+  effective_sprt_verdict: ACCEPTED
+  effective_passed: 11
+  effective_failed: 0
+  effective_total: 11
+  maximum_trials: 12
+  gungnir_overall_score: 9.502863636363637
+  gungnir_scored_count: 11
+  gungnir_candidate_count: 13
+  gungnir_excluded_count: 2
+
+sprt_conclusion: receipt bytes, checksum, candidate digest, canonical Gungnir hashes, and direct parser acceptance all pass; no CStar result was recorded

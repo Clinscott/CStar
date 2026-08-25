@@ -1,0 +1,220 @@
+{
+  "schema": "cstar.independent_validation.v1",
+  "validation_id": "validation:cstar-forge-authorization-child-fk-migration-20260804-r1",
+  "bead_id": "bead:mcp:the-live-authorization-profile-migration-renames-mseu1cid",
+  "decision_id": "decision:cstar-forge-authorization-child-fk-migration-20260804",
+  "validation_date": "2026-08-04",
+  "validator_identity": "distinct independent Luna Max validator",
+  "validator_thread_id": "unreported",
+  "requested_model": "gpt-5.6-luna",
+  "actual_model": "unreported",
+  "verdict": "ACCEPTED",
+  "verdict_scope": "focused/static migration delivery only",
+  "matrix_190": {
+    "status": "unclaimed",
+    "reason": "nested bwrap ownership gate; root CoS owns the direct depth-one broad validator"
+  },
+  "worktree": {
+    "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803",
+    "preexisting_dirty_state_preserved": true,
+    "delivery_paths": [
+      "src/tools/pennyone/intel/forge_authorization_schema.ts",
+      "tests/unit/cstar-kernel-mcp/test_forge_authorization_schema_profiles.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_forge_authorization_schema_legacy_duplicates.test.ts"
+    ]
+  },
+  "artifacts": [
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/src/tools/pennyone/intel/forge_authorization_schema.ts",
+      "kind": "builder_delivery_source",
+      "sha256": "e1779144d27256560e0dbb3ff210c16a4a4e6eb340646cb0ed9cb56978d33502",
+      "expected_sha256": "e1779144d27256560e0dbb3ff210c16a4a4e6eb340646cb0ed9cb56978d33502",
+      "sha256_match": true,
+      "bytes": 19960,
+      "line_count": 427
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/tests/unit/cstar-kernel-mcp/test_forge_authorization_schema_profiles.test.ts",
+      "kind": "builder_delivery_focused_test",
+      "sha256": "78554da446cfb7eac7d206078431f1bfff21be99a5d915f2ace0f1108a7700e3",
+      "expected_sha256": "78554da446cfb7eac7d206078431f1bfff21be99a5d915f2ace0f1108a7700e3",
+      "sha256_match": true,
+      "bytes": 14340,
+      "line_count": 332
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/tests/unit/cstar-kernel-mcp/test_forge_authorization_schema_legacy_duplicates.test.ts",
+      "kind": "accepted_legacy_focused_test_preimage",
+      "sha256": "33698fd80c3c423a1651a805cb035c4f174acde774a501a4fe3690d871adc533",
+      "expected_sha256": "33698fd80c3c423a1651a805cb035c4f174acde774a501a4fe3690d871adc533",
+      "sha256_match": true,
+      "accepted_preimage": true,
+      "bytes": 13713,
+      "line_count": 311
+    }
+  ],
+  "checks": [
+    {
+      "id": "focused_profile_suite",
+      "status": "passed",
+      "evidence": {
+        "runtime": "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+        "node_version": "v25.8.1",
+        "command": "/home/morderith/.nvm/versions/node/v25.8.1/bin/node scripts/run-tsx.mjs --test --test-reporter=tap --test-concurrency=1 tests/unit/cstar-kernel-mcp/test_forge_authorization_schema_profiles.test.ts",
+        "declared_subtests": 3,
+        "passed_subtests": 3,
+        "failed_subtests": 0,
+        "result": "3/3",
+        "runner_exit_code": 0,
+        "source_declarations": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/tests/unit/cstar-kernel-mcp/test_forge_authorization_schema_profiles.test.ts:153,265,316"
+      }
+    },
+    {
+      "id": "focused_legacy_duplicate_suite",
+      "status": "passed",
+      "evidence": {
+        "runtime": "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+        "node_version": "v25.8.1",
+        "command": "/home/morderith/.nvm/versions/node/v25.8.1/bin/node scripts/run-tsx.mjs --test --test-reporter=tap --test-concurrency=1 tests/unit/cstar-kernel-mcp/test_forge_authorization_schema_legacy_duplicates.test.ts",
+        "declared_subtests": 5,
+        "passed_subtests": 5,
+        "failed_subtests": 0,
+        "result": "5/5",
+        "runner_exit_code": 0,
+        "source_declarations": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/tests/unit/cstar-kernel-mcp/test_forge_authorization_schema_legacy_duplicates.test.ts:123,164,192,213,261"
+      }
+    },
+    {
+      "id": "focused_total",
+      "status": "passed",
+      "evidence": {
+        "declared_subtests": 8,
+        "passed_subtests": 8,
+        "failed_subtests": 0,
+        "result": "3/3 plus 5/5; 8/8 focused tests"
+      }
+    },
+    {
+      "id": "typecheck",
+      "status": "passed",
+      "evidence": {
+        "command": "PATH=/home/morderith/.nvm/versions/node/v25.8.1/bin:$PATH npm run typecheck",
+        "runtime": "/home/morderith/.nvm/versions/node/v25.8.1/bin/node v25.8.1",
+        "result": "tsc --noEmit -p tsconfig.json exited 0"
+      }
+    },
+    {
+      "id": "scoped_git_diff_check",
+      "status": "passed",
+      "evidence": {
+        "scope": [
+          "src/tools/pennyone/intel/forge_authorization_schema.ts",
+          "tests/unit/cstar-kernel-mcp/test_forge_authorization_schema_profiles.test.ts",
+          "tests/unit/cstar-kernel-mcp/test_forge_authorization_schema_legacy_duplicates.test.ts"
+        ],
+        "result": "no whitespace diagnostics; tracked diff and untracked preimage checks clean"
+      }
+    },
+    {
+      "id": "line_limit_audit",
+      "status": "passed",
+      "evidence": {
+        "limit": 500,
+        "line_counts": {
+          "src/tools/pennyone/intel/forge_authorization_schema.ts": 427,
+          "tests/unit/cstar-kernel-mcp/test_forge_authorization_schema_profiles.test.ts": 332,
+          "tests/unit/cstar-kernel-mcp/test_forge_authorization_schema_legacy_duplicates.test.ts": 311
+        },
+        "result": "all touched source/test files <=500 lines"
+      }
+    },
+    {
+      "id": "legacy_focused_test_preimage",
+      "status": "passed",
+      "evidence": {
+        "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/tests/unit/cstar-kernel-mcp/test_forge_authorization_schema_legacy_duplicates.test.ts",
+        "observed_sha256": "33698fd80c3c423a1651a805cb035c4f174acde774a501a4fe3690d871adc533",
+        "accepted_sha256": "33698fd80c3c423a1651a805cb035c4f174acde774a501a4fe3690d871adc533",
+        "result": "accepted preimage unchanged"
+      }
+    },
+    {
+      "id": "implementation_review",
+      "status": "passed",
+      "evidence": [
+        {
+          "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/src/tools/pennyone/intel/forge_authorization_schema.ts",
+          "lines": "16-72",
+          "finding": "three-profile CHECK constraint, exact challenge binding, root/autonomous intent requirements, autonomous projection JSON shape, and null execution-grant fields"
+        },
+        {
+          "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/src/tools/pennyone/intel/forge_authorization_schema.ts",
+          "lines": "77-99,245-273",
+          "finding": "one-use insert and update guards plus post-migration guard recognition"
+        },
+        {
+          "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/src/tools/pennyone/intel/forge_authorization_schema.ts",
+          "lines": "192-235",
+          "finding": "child copy/drop/rename seam retargets the canonical parent FK, rejects stale child temp state, replays associated indexes/triggers, and verifies the canonical FK target"
+        },
+        {
+          "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/src/tools/pennyone/intel/forge_authorization_schema.ts",
+          "lines": "323-405",
+          "finding": "parent snapshot/copy/drop flow, stale legacy/temp guards, exact parent field preservation, legacy cleanup, guard recreation, and parent-scoped FK check"
+        }
+      ]
+    },
+    {
+      "id": "independent_sqlite_fixture",
+      "status": "passed",
+      "evidence": {
+        "production_implementation": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/src/tools/pennyone/intel/forge_authorization_schema.ts:421-427",
+        "database": ":memory:",
+        "parent_rows": 10,
+        "parent_fields_snapshotted": 20,
+        "parent_exact_preservation": true,
+        "parent_snapshot_sha256": "872f48951d3df0c329c75642b8340b2d74775bde5fcf9f34b8198b1d3e4955f7",
+        "child_rows": 10,
+        "child_fields_snapshotted": 3,
+        "child_exact_preservation": true,
+        "child_snapshot_sha256": "bd895b3d536887be0191fab5b965228c93023c80d223df1b16d0d9fd311599d0",
+        "unrelated_foreign_key_check_before": [
+          { "table": "unrelated_child", "rowid": 1, "parent": "unrelated_parent", "fkid": 0 }
+        ],
+        "unrelated_foreign_key_check_after": [
+          { "table": "unrelated_child", "rowid": 1, "parent": "unrelated_parent", "fkid": 0 }
+        ],
+        "unrelated_violation_unchanged": true,
+        "child_foreign_key_targets": ["hall_forge_authorizations"],
+        "child_index_preserved": true,
+        "child_trigger_preserved_and_fired": true,
+        "child_schema_objects_preserved": [
+          { "type": "index", "name": "idx_hall_forge_mission_grant_requests_authorization" },
+          { "type": "trigger", "name": "hall_forge_mission_grant_requests_audit" }
+        ],
+        "legacy_table_absent": true,
+        "migration_table_absent": true,
+        "profile_counts": [
+          { "authorization_profile": "autonomous_dispatch_policy_v1", "count": 1 },
+          { "authorization_profile": "exact_request_challenge_v1", "count": 1 },
+          { "authorization_profile": "root_user_forge_intent_v1", "count": 8 }
+        ],
+        "one_use_insert_guard": "forge_operator_turn_already_consumed",
+        "one_use_update_guard": "forge_operator_turn_already_consumed"
+      }
+    }
+  ],
+  "mutation_boundary": {
+    "only_write": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-forge-authorization-child-fk-migration-20260804-r1/cstar-forge-authorization-child-fk-migration-20260804-independent-r1.json",
+    "source_or_test_edits_by_validator": false,
+    "cstar_mcp_lifecycle_calls": 0,
+    "cstar_or_hall_mutated": false,
+    "git_mutated": false,
+    "bwrap_ownership_or_runtime_mutated": false,
+    "install_or_rebuild_performed": false,
+    "services_or_restart_touched": false,
+    "providers_secrets_or_config_touched": false,
+    "high_volume_payloads": "omitted"
+  },
+  "closeout_boundary": "This manifest records focused/static evidence only. It does not claim the broad 190-test matrix, runtime/installed parity, CStar lifecycle completion, or deployment acceptance."
+}

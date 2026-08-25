@@ -32,6 +32,10 @@ import {
     parseForgeAuthorizationIntent,
     resolveForgeRequestAuthorizationBinding,
 } from './forge_request_authorization_binding.js';
+import {
+    ensureForgeRootRepairBindingSchema,
+    persistForgeRootRepairBinding,
+} from './forge_request_root_repair_binding.js';
 
 function extendPendingRequestAuthorization(
     db: Database.Database,
@@ -101,6 +105,7 @@ export function saveForgeRequest(
     input: SaveForgeRequestInput,
 ): { request: HallForgeRequestRecord; replayed: boolean; challenge_upgraded: boolean } {
     const now = input.now ?? Date.now();
+    ensureForgeRootRepairBindingSchema(db);
     if (!Number.isSafeInteger(input.max_attempts)
         || input.max_attempts < 1 || input.max_attempts > 10) {
         throw new Error('forge_request_max_attempts_invalid');
@@ -131,6 +136,7 @@ export function saveForgeRequest(
                 throw new Error('forge_request_receipt_conflict');
             }
             const request = extendPendingRequestAuthorization(db, existing, extension, now);
+            persistForgeRootRepairBinding(db, request, now);
             return {
                 request,
                 replayed: true,
@@ -176,8 +182,10 @@ export function saveForgeRequest(
             now,
             now,
         );
+        const request = getForgeRequest(db, input.request_id)!;
+        persistForgeRootRepairBinding(db, request, now);
         return {
-            request: getForgeRequest(db, input.request_id)!,
+            request,
             replayed: false,
             challenge_upgraded: false,
         };
@@ -193,6 +201,7 @@ export function authorizeForgeRequest(
     authorization: HallForgeAuthorizationRecord;
     replayed: boolean;
 } {
+    ensureForgeRootRepairBindingSchema(db);
     const input: AuthorizeForgeRequestInput = rawInput.authorization_profile
         === LEGACY_EXACT_FORGE_CHALLENGE_PROFILE
         ? {
@@ -325,7 +334,7 @@ export function authorizeForgeRequest(
         if (
             request.max_attempts !== 1
             || request.live_source_allowed !== 0
-            || !request.adapter_ref
+            || (requestSchema !== 'cstar.forge_request.v3' && !request.adapter_ref)
             || !request.write_capability
             || request.authorization_profile !== input.authorization_profile
             || request.authorization_binding_sha256 !== expectedBinding

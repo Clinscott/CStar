@@ -1,0 +1,32 @@
+{
+  "schema": "cstar.independent_validation_check.v1",
+  "validation_id": "validation:cstar-auto-p0-independent-validation-ticket-20260804-r1",
+  "bead_id": "bead:mcp:add-one-immutable-one-use-independent-validator--msf54no2",
+  "check": "focused_set_02",
+  "status": "pass",
+  "runtime": {
+    "path_prefix": "/home/morderith/.nvm/versions/node/v25.8.1/bin:$PATH",
+    "node": "v25.8.1",
+    "node_module_abi": "141",
+    "better_sqlite3_load": "pass"
+  },
+  "command": "node scripts/run-tsx.mjs --test tests/unit/cstar-kernel-mcp/test_terminal_forge_validation_linkage.test.ts tests/unit/cstar-kernel-mcp/test_validation_evidence_type_boundary.test.ts tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts tests/unit/cstar-kernel-mcp/test_validation_ticket_spoke_result.test.ts",
+  "counts": {
+    "tests": 28,
+    "suites": 4,
+    "passed": 28,
+    "failed": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "semantics": [
+    "actual host-v3 independent validator thread and turn are the ticket principal",
+    "recorder provenance is separate and recorder-shaped validator identity is rejected",
+    "repository, bead, execution receipt, attempt, exact scope hash, expiry, nonce hash, and one-use replay are covered",
+    "positive Forge validation requires an unused ticket",
+    "ticket consumption, validation persistence, and Forge finalization roll back together",
+    "wrong validator, scope, receipt, attempt, repository, bead, expiry, malformed, replay, and missing evidence fail closed",
+    "spoke evidence resolves under the registered bead repository root while lifecycle state remains in CStar"
+  ]
+}

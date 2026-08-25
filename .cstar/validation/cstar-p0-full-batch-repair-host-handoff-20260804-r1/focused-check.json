@@ -1,0 +1,44 @@
+{
+  "schema": "cstar.focused_validation_check.v1",
+  "bead_id": "bead:mcp:repair-aggregate-full-suite-current-v3-codex-hos-msfai02i",
+  "validation_id": "validation:cstar-p0-full-batch-repair-host-handoff-20260804-r1",
+  "runtime": {
+    "node": "v25.8.1",
+    "path_prefix": "/home/morderith/.nvm/versions/node/v25.8.1/bin"
+  },
+  "command": "node scripts/run-tsx.mjs --test tests/unit/cstar-kernel-mcp/test_forge_preprovider_execute_integration.test.ts tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts tests/unit/cstar-kernel-mcp/test_worker_job_lifecycle_binding.test.ts tests/unit/cstar-kernel-mcp/test_durable_async_dispatch.test.ts tests/unit/cstar-kernel-mcp/test_forge_codex_host_worker_dispatch.test.ts tests/unit/cstar-kernel-mcp/test_forge_adapter_project_root.test.ts tests/unit/cstar-kernel-mcp/test_forge_natural_language_authorization.test.ts tests/unit/cstar-kernel-mcp/test_forge_authorization_one_shot.test.ts tests/unit/cstar-kernel-mcp/test_operator_authorization_scope_binding.test.ts",
+  "tests": {
+    "passed": 4,
+    "failed": 5,
+    "cancelled": 0,
+    "skipped": 0,
+    "suites": 9,
+    "duration_ms": 21455.837311,
+    "passed_files": [
+      "tests/unit/cstar-kernel-mcp/test_durable_async_dispatch.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_forge_codex_host_worker_dispatch.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_operator_authorization_scope_binding.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_worker_job_lifecycle_binding.test.ts"
+    ],
+    "failed_files": [
+      "tests/unit/cstar-kernel-mcp/test_forge_adapter_project_root.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_forge_authorization_one_shot.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_forge_natural_language_authorization.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_forge_preprovider_execute_integration.test.ts",
+      "tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts"
+    ]
+  },
+  "typecheck": {
+    "command": "npm run typecheck",
+    "status": "pass",
+    "exit_code": 0
+  },
+  "owned_integration_diagnostic": {
+    "status": "fail",
+    "expected": "pending_authorization_recorded",
+    "actual_error": "forge_runtime_not_ready:forge_runtime_live_launcher_required,forge_runtime_distinct_code_control_roots_required",
+    "evidence": "tests/unit/cstar-kernel-mcp/test_forge_preprovider_execute_integration.test.ts:76-77,109"
+  },
+  "requested_model": "gpt-5.6-luna/max",
+  "actual_model": "unreported"
+}

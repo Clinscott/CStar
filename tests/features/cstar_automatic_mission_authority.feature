@@ -56,3 +56,53 @@ Feature: Compatibility-first ordinary-language mission ingress and SET authority
       Then the typed outcome is "ok"
       And the dispatch projection says "worker_launch_performed" is false
       And the host is responsible for any later worker launch
+
+  Rule: The public coordinator is compatibility-first and kernel-derived
+
+    Scenario: Ordinary bounded intent receives derived mission fields
+      Given an ordinary bounded mission objective and design without derived fields
+      When the public cstar_mission coordinator ingests the intent
+      Then identifiers, canonical hashes, idempotency, adapter, and callback defaults are kernel-derived
+      And caller-supplied identifiers, hashes, or immutable fields are rejected
+
+    Scenario: Missing design returns typed input guidance
+      Given an ordinary bounded mission objective without a design
+      When the public cstar_mission coordinator ingests the intent
+      Then the typed outcome is "needs_input"
+      And the response contains an explicit next action
+      And no durable queue intent is created
+
+    Scenario: Guardrails preserve root, scope, and spend authority
+      Given a mission with malformed ceilings, duplicate authority, or out-of-scope input
+      When the public cstar_mission coordinator evaluates the intent
+      Then the typed outcome is "guardrail_block"
+      And the response contains an explicit next action
+      And no worker, provider, Forge authorization, or spend is performed
+
+    Scenario: Idempotent queueing returns the durable host boundary
+      Given one valid bounded mission with an explicit idempotency key and queue request
+      When the public cstar_mission coordinator ingests the same request twice
+      Then the second response is an idempotent replay of the first durable queue receipt
+      And both responses retain the derived mission and authority hashes
+      And the host remains responsible for any worker launch
+
+    Scenario: Queueing is not false completion
+      Given a valid bounded mission authorized for host-owned queueing
+      When the public cstar_mission coordinator returns a queued result
+      Then the typed outcome is "ok"
+      And the mission state is "DISPATCH_QUEUED"
+      And "worker_launch_performed" is false
+      And the result is not independent validation or lifecycle completion
+
+    Scenario: Legacy singleton compatibility remains explicit
+      Given the compatibility profile "legacy_singleton_v1"
+      When the public cstar_mission coordinator canonicalizes one root-user record
+      Then the legacy singleton record-set and message bytes remain available
+      And modern derived mission identifiers remain scoped to that one request
+
+  Rule: Public catalog and registration stay in parity
+
+    Scenario: Default catalog exposes the coordinator and host completion boundary
+      Given the default CStar kernel catalog
+      Then "cstar_mission" and "cstar_forge_host_complete" are visible exactly once
+      And each visible workflow tool has a catalog-backed schema and handler registration

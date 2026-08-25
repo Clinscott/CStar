@@ -65,7 +65,7 @@ describe('CStar MCP Forge live-authority containment', () => {
         });
         const result = await handleForgeExecute(validForgeExecuteRequest());
 
-        assert.strictEqual(result.isError, true);
+        assert.strictEqual(result.isError, undefined);
         const parsed = JSON.parse(result.content[0].text);
         assert.strictEqual(parsed.error_code, 'forge_execution_authorization_required');
         assert.strictEqual(parsed.error, 'Forge execution authorization was not established.');

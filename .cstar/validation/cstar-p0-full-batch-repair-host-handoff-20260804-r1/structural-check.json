@@ -1,0 +1,48 @@
+{
+  "schema": "cstar.structural_validation_check.v1",
+  "bead_id": "bead:mcp:repair-aggregate-full-suite-current-v3-codex-hos-msfai02i",
+  "validation_id": "validation:cstar-p0-full-batch-repair-host-handoff-20260804-r1",
+  "diff_check": {
+    "command": "git diff --check",
+    "status": "pass",
+    "exit_code": 0
+  },
+  "line_policy": {
+    "rule": "all touched production/test files <= 500 lines",
+    "status": "pass",
+    "production_files": 47,
+    "test_files": 31,
+    "total_files": 78,
+    "max_lines": 500,
+    "max_path": "src/tools/cstar-kernel-mcp/tools/augury_mission_binding.ts"
+  },
+  "source_contract_review": {
+    "status": "pass",
+    "current_v3_route_before_legacy_adapter": "pass",
+    "repair_binding_and_scope_hashes": "pass",
+    "pre_reservation_runtime_check": "pass",
+    "post_reservation_runtime_check": "pass",
+    "idempotent_handoff_replay_and_duplicate_conflict": "pass",
+    "zero_provider_and_spend_contract": "pass",
+    "legacy_provider_and_model_rejection": "pass",
+    "no_fallback": "pass",
+    "evidence": [
+      "src/tools/cstar-kernel-mcp/tools/forge_execute.ts:214-223",
+      "src/tools/pennyone/intel/forge_host_worker_dispatch.ts:188-225",
+      "src/tools/pennyone/intel/forge_host_worker_dispatch.ts:255-310",
+      "tests/unit/cstar-kernel-mcp/test_forge_preprovider_execute_integration.test.ts:130-201",
+      "tests/unit/cstar-kernel-mcp/test_forge_codex_host_worker_dispatch.test.ts:79-142"
+    ]
+  },
+  "acceptance": {
+    "status": "rejected",
+    "reason": "The exact focused suite failed 5 of 9 files, and the owned current-v3 integration proof did not reach host_handoff_queued/replayed."
+  },
+  "scope": {
+    "worktree": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803",
+    "unrelated_dirty_work_preserved": true,
+    "validator_source_test_edits": false,
+    "requested_model": "gpt-5.6-luna/max",
+    "actual_model": "unreported"
+  }
+}

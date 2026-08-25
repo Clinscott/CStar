@@ -1,0 +1,57 @@
+schema: cstar.independent_validation_lore.v1
+validation_id: validation:cstar-reliability-loop-v1-20260805-r3-sol-final
+bead_id: bead:mcp:turn-the-accepted-sprt-autoresearcher-gungnir-fi-msg4t12q
+verdict: REJECTED
+
+validator_identity:
+  thread_id: 019fd2ae-a3b6-77b2-888a-1b3e527f0bdf
+  turn_id: 019fd2ae-a55f-7753-830b-fcaced400b14
+  requested_model: gpt-5.6-sol
+  requested_reasoning: max
+  actual_model: gpt-5.6-sol
+  actual_reasoning: max
+
+frozen_candidate:
+  root: /home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803
+  branch: codex/cstar-state-only-luna-host-seam-batch1-20260803
+  head: afbbc1770ec6a7a2adc15b83f91c5586ac2525c0
+  frozen_scope_baseline: .cstar/validation/cstar-reliability-loop-v1-20260805-r3/final/pre-hashes.tsv
+  frozen_scope_files: 34
+  frozen_scope_hash_matches: 34
+  frozen_scope_hash_mismatches: 0
+  candidate_source_entries: 13
+  recorded_candidate_source_digest: 734bcede97508530fc2325ffbf97f31ecc5f6e92d1aa9a415887d598e23b2b70
+  recomputed_candidate_source_digest: 734bcede97508530fc2325ffbf97f31ecc5f6e92d1aa9a415887d598e23b2b70
+  candidate_source_entry_hash_mismatches: 0
+
+repository_root_binding:
+  result_source: src/tools/cstar-kernel-mcp/tools/result.ts
+  resolver_source: src/tools/cstar-kernel-mcp/contracts/validation_evidence_root.ts
+  result_line_283: beadRepositoryRoot is resolved from repoId, the registered repository root, CODE_ROOT, and CONTROL_ROOT.
+  result_lines_285_303: beadRepositoryRoot is passed to both host-v3 and legacy validation-evidence verification.
+  result_line_306: beadRepositoryRoot is passed to verifyReliabilityReceipt.
+  resolver_line_26: a hub row bound to CONTROL_ROOT resolves to CODE_ROOT; a spoke resolves to its registered repository root.
+  conclusion: pass
+
+named_gate_audit:
+  hub_gate: pass; resolver and focused hub-root tests bind evidence to CODE_ROOT rather than CONTROL_ROOT.
+  spoke_gate: pass; resolver, Sterling, and validation-ticket tests bind evidence to the registered spoke root while lifecycle state remains in CStar.
+  controller_gate: pass; Forge subject resolution and one-use validation-ticket consumption/finalization remain transactional and independently bound.
+  callback_gate: pass; Researcher callback derivation, supplied-decision binding, strict Forge callback schemas, and missing-callback fail-closed behavior passed.
+  legacy_gate: pass; matching legacy host evidence remains a compatibility duplicate, mismatches fail closed, and no-metadata result calls remain opt-in without a reliability continuation.
+
+blocking_finding:
+  code: r3_sprt_receipt_rejected_by_candidate_parser
+  verifier_result: reliability_receipt_schema_invalid
+  source_contract: src/tools/cstar-kernel-mcp/tools/reliability_loop.ts:229-237
+  producer_contract: .agents/skills/cstar-sprt-autoresearcher/scripts/cstar_workflow_gungnir.py:230-250
+  canonical_engine_contract: src/core/engine/gungnir/calculus.ts:40-43,383-386
+  receipt_evidence: all 11 Gungnir records contain coverage as the string heuristic
+  contradiction: the producer and canonical engine require the string heuristic, but validateRunnerGungnir requires Array.isArray(entry.coverage)
+  effect: verifyReliabilityReceipt rejects the exact hash-bound r3 receipt, so its claimed SPRT ACCEPTED status cannot satisfy the critical reliability gate
+
+authority_boundary:
+  source_edits: none
+  cstar_calls_or_mutations: none
+  restart_install_git_mutation: none
+  lifecycle_transition_recorded: false

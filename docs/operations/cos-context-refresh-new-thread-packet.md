@@ -111,7 +111,8 @@ Validation passed:
   security, or incident forensics only when the host exposes an enforceable
   selector. Record requested and actual identity separately; use `unreported`
   when the host reports none.
-- MM is legacy and has no active routing or relay role.
+- MM is inactive and has no active routing, synthesis, ownership, relay, review,
+  or execution role.
 - Corvus Forge builds implementation when a Forge route exists.
 - Researcher researches; live external collection is lane-gated.
 - CorvusEye evaluates/red-teams; it cannot self-certify Researcher.

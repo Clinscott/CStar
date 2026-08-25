@@ -1,0 +1,116 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:mcp:replace-the-process-local-automatic-mission-queu-msey1zqx",
+  "validation_id": "validation:cstar-durable-mission-dispatch-intent-20260804-r2",
+  "reported_verdict": "ACCEPTED",
+  "verdict": "ACCEPTED",
+  "verdict_scope": "source, focused runtime tests, adjacent SET-authority tests, typecheck, diff integrity, pinned hashes, line limits, and adversarial durable-dispatch behavior",
+  "validation_date": "2026-08-04",
+  "code_root": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803",
+  "validator_identity": "distinct depth-one Codex host validator with transparent requested-versus-actual selector reporting",
+  "validator_thread_id": "019fce07-c2b3-7d71-8c9c-1d648a631bcc",
+  "validator_turn_id": "019fce15-612b-7242-9b7e-b7441e8ded53",
+  "latest_turn_id": "019fce15-612b-7242-9b7e-b7441e8ded53",
+  "validator_parent_thread_id": "019f71dc-af61-7a73-a72d-1ec3a638a011",
+  "validator_depth": 1,
+  "validator_thread_source": "subagent",
+  "validator_agent_path": "/root/validator",
+  "builder_thread_id": "019fcddd-3d93-73f3-9b47-8318d5e55b0b",
+  "prior_rejecting_validator_thread_id": "019fcdf3-17bf-7a53-9723-acf003e61f11",
+  "requested_model": "gpt-5.6-luna",
+  "requested_effort": "max",
+  "actual_model": "gpt-5.6-sol",
+  "actual_effort": "high",
+  "selector_status": "not_honored",
+  "selector_claim": "The requested selector was not honored; this manifest does not claim Luna execution.",
+  "test_counts": {
+    "focused_suites": 3,
+    "focused_passed": 18,
+    "adjacent_set_authority_suites": 4,
+    "adjacent_set_authority_passed": 113,
+    "total_suites": 7,
+    "total_passed": 131,
+    "total_failed": 0
+  },
+  "reused_evidence_basis": "All ten operator-pinned source, test, and frozen-file SHA-256 values were rechecked during the bound validator turn and remained exact.",
+  "source_review": {
+    "authoritative_map_absent": "pass",
+    "worker_launch_and_provider_spend_absent": "pass",
+    "default_catalog_expansion_absent": "pass",
+    "root_user_set_and_scope_gates_preserved": "pass",
+    "augury_materialization_and_dispatch_atomic": "pass"
+  },
+  "host_final_binding": {
+    "validator_thread_id": "019fce07-c2b3-7d71-8c9c-1d648a631bcc",
+    "validator_turn_id": "019fce15-612b-7242-9b7e-b7441e8ded53",
+    "validation_id_required_in_exact_final_answer": "validation:cstar-durable-mission-dispatch-intent-20260804-r2",
+    "manifest_sha256_required_in_exact_final_answer": true,
+    "matching_policy": "exact host assistant final_answer and task_complete last_agent_message binding"
+  },
+  "mutation_boundary": {
+    "source_edits": false,
+    "test_edits": false,
+    "cstar_or_hall_mutation": false,
+    "install_or_rebuild": false,
+    "restart": false,
+    "git_commit_push_or_merge": false,
+    "deploy": false,
+    "config_or_secret_mutation": false,
+    "written_scope": ".cstar/validation/cstar-durable-mission-dispatch-intent-20260804-r2/"
+  },
+  "closeout_boundary": {
+    "record_result_performed": false,
+    "bead_closed": false,
+    "host_validation_package_only": true
+  },
+  "artifacts": [
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/src/tools/pennyone/intel/automatic_mission_controller.ts",
+      "sha256": "b90fb2a7d6ffb23f669c2ffcfa1247c7b38cbe46683b6ad362e34845f328c5d2"
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/src/tools/pennyone/intel/automatic_mission_dispatch_store.ts",
+      "sha256": "cfcd01a8efb80bb4843162f5e911c1c0fa6a76d19efbf6129f4bd88fbc164f7b"
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/src/tools/cstar-kernel-mcp/tools/automatic_mission.ts",
+      "sha256": "e1ae69b8bd07f119e9c349fcb8f2c257e31149ae3300821ac0982989fddf9a32"
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/src/tools/cstar-kernel-mcp/tools/augury.ts",
+      "sha256": "016002af45a8cb23f4b5f881010a8e92e03f520b7e2c6599199b4500e49b0dc7"
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/src/tools/cstar-kernel-mcp/tools/augury_mission_dispatch_controller.ts",
+      "sha256": "00283a80aaadce364825336fb81d2bc614fe540208ca4139ed7bd04f43311d74"
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/tests/unit/cstar-kernel-mcp/test_automatic_mission_state.test.ts",
+      "sha256": "08cb45e3b2ab53becab469207b6b3a06e8a94cad5f2ca91b23cb322e7930c95c"
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/tests/unit/cstar-kernel-mcp/test_augury_natural_translation_integration.test.ts",
+      "sha256": "c0234309a795e2c41cac1b1d47c0b6458f0950c198a4c1ac79ffaaf5294dd753"
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/tests/unit/cstar-kernel-mcp/test_automatic_mission_durable_dispatch.test.ts",
+      "sha256": "b7698c6c4cdc79f92c0dbb6f015fb54e3b2ff87908ea0990244d7bf9158864af"
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/src/tools/pennyone/intel/schema.ts",
+      "sha256": "5ec66256c3c45bb8905a2562d08d6d2435c90419a818fb59739b784a67119fae"
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/src/tools/pennyone/intel/repository_spokes.ts",
+      "sha256": "4c4550c448706efc9b7f164f7b7443adfe062d812b0fa905c5007054810064a5"
+    }
+  ],
+  "checks": [
+    {
+      "name": "current_hashes_reused_131_tests_typecheck_diff_lines_adversarial_and_targeted_source_review",
+      "status": "pass",
+      "evidence_path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-durable-mission-dispatch-intent-20260804-r2/validation-evidence.txt",
+      "sha256": "0dd160a44a80099bb4e6fb9fb1d60b9277c9a6ed5f011125c7248e1f0471a8fc"
+    }
+  ]
+}

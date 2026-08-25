@@ -1,0 +1,8 @@
+schema: cstar.independent_check.v1
+validation_id: validation:cstar-host-validator-null-path-compatibility-20260805-r1
+check: typecheck
+command: PATH=/home/morderith/.nvm/versions/node/v25.8.1/bin:$PATH npm run typecheck
+expanded_command: tsc --noEmit -p tsconfig.json
+exit_code: 0
+errors: 0
+verdict: pass

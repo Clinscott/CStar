@@ -8,6 +8,7 @@ import {
     withImmediateHallCoordinationTransaction,
 } from './agent_coordination_controller.js';
 import { database } from './database.js';
+import { verifyCanonicalHostGoalSnapshotMaterial, type CanonicalHostGoalSnapshotMaterial } from './host_goal_snapshot.js';
 const SHA256 = /^[a-f0-9]{64}$/;
 const TERMINAL_BEAD_STATUSES = new Set(['RESOLVED', 'ARCHIVED', 'SUPERSEDED']);
 const GOAL_RESUME_SCHEMA = 'cstar.host_goal_resume.v1';
@@ -15,30 +16,14 @@ const MAX_GOAL_RESUME_HISTORY = 1_000;
 const RATIONALE = 'Operator explicitly resumed a blocked host goal while the host exposes no resume transition.';
 const SUMMARY = 'Continuity-only host goal resume overlay recorded; host goal status remains blocked.';
 const PAYLOAD_KEYS = [
-    'authority_effect',
-    'continued_bead_id',
-    'decision_id',
-    'goal_ref',
-    'host_goal_objective_sha256',
-    'host_goal_snapshot_sha256',
-    'host_resume_capability',
-    'host_status_mutated',
-    'observed_host_status',
-    'operator_attestation_sha256',
-    'operator_message_sha256',
-    'operator_record_count',
-    'operator_record_first_timestamp',
-    'operator_record_set_sha256',
-    'operator_record_sha256',
-    'operator_resume_ref',
-    'operator_thread_id',
-    'operator_timestamp',
-    'operator_turn_id',
-    'previous_resume_id',
-    'repair_bead_id',
-    'resume_generation',
-    'resume_id',
-    'schema',
+    'authority_effect', 'continued_bead_id', 'decision_id', 'goal_ref',
+    'host_goal_objective_sha256', 'host_goal_snapshot_sha256', 'host_goal_snapshot_schema',
+    'host_goal_thread_id', 'host_goal_created_at', 'host_goal_updated_at',
+    'host_resume_capability', 'host_status_mutated', 'observed_host_status',
+    'operator_attestation_sha256', 'operator_message_sha256', 'operator_record_count',
+    'operator_record_first_timestamp', 'operator_record_set_sha256', 'operator_record_sha256',
+    'operator_resume_ref', 'operator_thread_id', 'operator_timestamp', 'operator_turn_id',
+    'previous_resume_id', 'repair_bead_id', 'resume_generation', 'resume_id', 'schema',
 ].sort();
 export interface GoalResumeInput {
     repair_bead_id: string;
@@ -46,6 +31,7 @@ export interface GoalResumeInput {
     decision_id?: string;
     host_goal_objective_sha256: string;
     host_goal_snapshot_sha256: string;
+    host_goal_snapshot: CanonicalHostGoalSnapshotMaterial;
     observed_host_status: 'blocked';
     host_resume_capability: 'unavailable';
 }
@@ -60,7 +46,6 @@ export interface GoalResumeRecordResult {
 function sha256(value: string): string {
     return createHash('sha256').update(value, 'utf-8').digest('hex');
 }
-
 function requireHash(value: string, name: string): string {
     const normalized = value.trim().toLowerCase();
     if (!SHA256.test(normalized)) throw new Error(`goal_resume_${name}_invalid`);
@@ -73,7 +58,6 @@ function exactKeys(value: Record<string, unknown>, expected: string[]): boolean 
 function eventPayload(event: HallCoordinationEventRecord): Record<string, unknown> {
     return event.payload ?? {};
 }
-
 function nullableString(value: unknown): string | undefined {
     return typeof value === 'string' && value.length > 0 ? value : undefined;
 }
@@ -116,7 +100,6 @@ function buildOperatorAttestationSha256(values: {
         session_record_timestamp: values.recordTimestamp,
     }));
 }
-
 export function validateCurrentGoalResumeOperatorAttestation(
     attestation: VerifiedOperatorIntentAttestation,
 ): string {
@@ -232,8 +215,12 @@ export function validateStoredGoalResumeEvent(
     const operatorResumeRef = nullableString(payload.operator_resume_ref);
     const operatorFirstTimestamp = nullableString(payload.operator_record_first_timestamp);
     const operatorTimestamp = nullableString(payload.operator_timestamp);
+    const hostGoalSnapshotSchema = nullableString(payload.host_goal_snapshot_schema);
+    const hostGoalThreadId = nullableString(payload.host_goal_thread_id);
     if (!repairBeadId || !operatorThreadId || !operatorTurnId || !operatorResumeRef
-        || !operatorFirstTimestamp || !operatorTimestamp) {
+        || !operatorFirstTimestamp || !operatorTimestamp || !hostGoalSnapshotSchema
+        || !hostGoalThreadId || payload.host_goal_created_at === undefined
+        || payload.host_goal_updated_at === undefined) {
         throw new Error('goal_resume_history_operator_lineage_invalid');
     }
     const generation = Number(payload.resume_generation);
@@ -288,6 +275,11 @@ export function validateStoredGoalResumeEvent(
     if (operatorAttestationSha256 !== expectedOperatorAttestationSha256) {
         throw new Error('goal_resume_history_operator_attestation_invalid');
     }
+    if (hostGoalThreadId !== operatorThreadId) throw new Error('goal_resume_history_host_goal_thread_invalid');
+    verifyCanonicalHostGoalSnapshotMaterial({ schema: hostGoalSnapshotSchema, host_goal_thread_id: hostGoalThreadId,
+        objective_sha256: objectiveSha256, status: payload.observed_host_status,
+        created_at: payload.host_goal_created_at, updated_at: payload.host_goal_updated_at,
+        host_resume_capability: payload.host_resume_capability }, snapshotSha256, objectiveSha256);
     if (
         payload.schema !== GOAL_RESUME_SCHEMA
         || payload.resume_id !== event.event_id
@@ -330,6 +322,10 @@ function currentRequestMatches(
         && (payload.decision_id ?? undefined) === input.decision_id
         && payload.host_goal_objective_sha256 === input.host_goal_objective_sha256
         && payload.host_goal_snapshot_sha256 === input.host_goal_snapshot_sha256
+        && payload.host_goal_snapshot_schema === input.host_goal_snapshot.schema
+        && payload.host_goal_thread_id === input.host_goal_snapshot.host_goal_thread_id
+        && payload.host_goal_created_at === input.host_goal_snapshot.created_at
+        && payload.host_goal_updated_at === input.host_goal_snapshot.updated_at
         && payload.operator_thread_id === attestation.thread_id
         && payload.operator_turn_id === attestation.turn_id
         && payload.operator_resume_ref === attestation.operator_resume_ref
@@ -349,13 +345,18 @@ export function recordHostGoalResume(
     repoId: string,
     now = Date.now(),
 ): GoalResumeRecordResult {
+    const objectiveSha256 = requireHash(input.host_goal_objective_sha256, 'objective_hash');
+    const snapshotSha256 = requireHash(input.host_goal_snapshot_sha256, 'snapshot_hash');
+    const hostGoalSnapshot = verifyCanonicalHostGoalSnapshotMaterial(input.host_goal_snapshot, snapshotSha256, objectiveSha256);
+    if (hostGoalSnapshot.host_goal_thread_id !== attestation.thread_id) throw new Error('goal_resume_host_goal_thread_mismatch');
     const normalized: GoalResumeInput = {
         ...input,
         repair_bead_id: input.repair_bead_id.trim(),
         continued_bead_id: input.continued_bead_id?.trim() || undefined,
         decision_id: input.decision_id?.trim() || undefined,
-        host_goal_objective_sha256: requireHash(input.host_goal_objective_sha256, 'objective_hash'),
-        host_goal_snapshot_sha256: requireHash(input.host_goal_snapshot_sha256, 'snapshot_hash'),
+        host_goal_objective_sha256: objectiveSha256,
+        host_goal_snapshot_sha256: snapshotSha256,
+        host_goal_snapshot: hostGoalSnapshot,
     };
     if (normalized.observed_host_status !== 'blocked') {
         throw new Error('goal_resume_host_status_must_remain_blocked');
@@ -439,6 +440,8 @@ export function recordHostGoalResume(
             goal_ref: goalRef,
             host_goal_objective_sha256: normalized.host_goal_objective_sha256,
             host_goal_snapshot_sha256: normalized.host_goal_snapshot_sha256,
+            host_goal_snapshot_schema: normalized.host_goal_snapshot.schema, host_goal_thread_id: normalized.host_goal_snapshot.host_goal_thread_id,
+            host_goal_created_at: normalized.host_goal_snapshot.created_at, host_goal_updated_at: normalized.host_goal_snapshot.updated_at,
             observed_host_status: 'blocked',
             host_resume_capability: 'unavailable',
             host_status_mutated: false,

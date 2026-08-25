@@ -1,0 +1,53 @@
+schema: cstar.independent_validation_lore.v1
+validation_id: validation:cstar-reliability-loop-v1-20260805-r4-forked-sol-live
+bead_id: bead:mcp:turn-the-accepted-sprt-autoresearcher-gungnir-fi-msg4t12q
+verdict: ACCEPTED
+
+validator_identity:
+  thread_id: 019fd2cb-6b35-7141-8d19-9858c7196162
+  turn_id: 019fd2d1-a86a-7680-a59e-7fbe58ae895f
+  requested_model: gpt-5.6-sol
+  requested_reasoning: max
+  host_reported_actual_model: gpt-5.6-sol
+  host_reported_actual_reasoning: max
+  identity_source: supported resumed Codex Desktop host context
+
+supported_host_test_context:
+  node_suite_only_CODEX_THREAD_ID: 019fd2c9-691b-7e72-9cca-c8434a404ed1
+  validator_identity_derived_from_test_override: false
+  override_scope: exact required 9-file Node command only
+
+repository_binding:
+  root: /home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803
+  receipt_checker_root_match: true
+  branch: codex/cstar-state-only-luna-host-seam-batch1-20260803
+  head: afbbc1770ec6a7a2adc15b83f91c5586ac2525c0
+
+frozen_candidate:
+  candidate_source_entries: 13
+  candidate_source_paths_unique: true
+  candidate_source_hash_mismatches_before: 0
+  candidate_source_hash_mismatches_after: 0
+  candidate_source_digest_recorded: fa3c91f0f2aa7397575dc36484ac7ce177fb2eaa16aa1b5e94fbd27549cd9d4c
+  candidate_source_digest_recomputed_before: fa3c91f0f2aa7397575dc36484ac7ce177fb2eaa16aa1b5e94fbd27549cd9d4c
+  candidate_source_digest_recomputed_after: fa3c91f0f2aa7397575dc36484ac7ce177fb2eaa16aa1b5e94fbd27549cd9d4c
+  reliability_loop_sha256: 221eb19a93c400e2f5fd0e2abc89319457230feaed30a6b5e256707a6bcd5453
+  reliability_loop_test_sha256: abcf9826a1535f3780e4f88ec349898dcc0a9a69211b4ff2895d303c24e6b810
+  result_sha256: 1a1f978aa33037ea44a03e058023e9dc9b691558254cb40a3fd7b76954c974c1
+
+audited_24_file_freeze:
+  algorithm: sha256(canonical-json ordered entries[path,bytes,sha256])
+  digest_before: c7added4af12b529dd3953454d3194e8a9a15e9b3c2848717859fa811c84a4e9
+  digest_after: c7added4af12b529dd3953454d3194e8a9a15e9b3c2848717859fa811c84a4e9
+  drift_count: 0
+
+authority_boundary:
+  source_or_test_edits: none
+  cstar_or_hall_calls_or_mutations: none
+  service_or_process_state_mutation: none
+  install_activation_restart_deploy: none
+  git_index_ref_or_working_file_mutation: none
+  persistent_writes: exactly the four requested forked-sol-live validation files
+  lifecycle_transition_recorded: false
+
+lore_conclusion: frozen root, source hashes, candidate digest, and validator identity satisfy the independent validation boundary

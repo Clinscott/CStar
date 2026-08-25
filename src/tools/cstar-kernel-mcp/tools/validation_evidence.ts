@@ -34,7 +34,7 @@ export interface ValidationEvidenceSubject {
     target_paths_sha256: string;
     attempt_id: string;
     result_artifact_sha256: string | null;
-    adapter_ref: string;
+    adapter_ref: string | null;
     adapter_version: string | null;
     external_execution_id: string | null;
     requester_thread_id: string;
@@ -98,7 +98,8 @@ export function consumeKernelVerifiedValidationEvidence(
 function verifyFile(root: string, candidate: string, expectedSha256: string): { path: string; sha256: string } {
     const normalizedHash = expectedSha256.trim().toLowerCase();
     if (!VALIDATION_EVIDENCE_SHA256.test(normalizedHash)) throw new Error('validation_evidence_sha256_invalid');
-    const file = readBoundedUtf8FileInside(root, candidate, MAX_VALIDATION_EVIDENCE_BYTES);
+    const rootedCandidate = path.isAbsolute(candidate) ? candidate : path.join(root, candidate);
+    const file = readBoundedUtf8FileInside(root, rootedCandidate, MAX_VALIDATION_EVIDENCE_BYTES);
     const actual = createHash('sha256').update(file.content, 'utf-8').digest('hex');
     if (actual !== normalizedHash) throw new Error('validation_evidence_sha256_mismatch');
     return { path: path.resolve(file.path), sha256: actual };
@@ -142,10 +143,12 @@ export async function verifyValidationEvidence(
         || validatorThreadId === subject.executor_thread_id) {
         throw new Error('validation_evidence_validator_not_independent');
     }
+    const adapterRefValid = subject.adapter_ref === null
+        || (typeof subject.adapter_ref === 'string' && subject.adapter_ref.trim().length > 0);
     if (!subject.repository_id.trim() || !subject.bead_id.trim()
         || !subject.work_receipt_id.trim() || !subject.forge_request_id.trim()
         || !subject.decision_id.trim() || !subject.attempt_id.trim()
-        || !subject.adapter_ref.trim() || !subject.requester_thread_id.trim()
+        || !adapterRefValid || !subject.requester_thread_id.trim()
         || !subject.requester_turn_id.trim() || !subject.authorization_id.trim()
         || !subject.executor_thread_id.trim() || !subject.executor_turn_id.trim()
         || !VALIDATION_EVIDENCE_SHA256.test(subject.forge_request_sha256)

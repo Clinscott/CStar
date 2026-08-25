@@ -1,0 +1,47 @@
+{
+  "schema": "cstar.independent_validation_check.v1",
+  "validation_id": "validation:cstar-auto-p0-independent-validation-ticket-20260804-r1",
+  "bead_id": "bead:mcp:add-one-immutable-one-use-independent-validator--msf54no2",
+  "check": "structural_integrity_and_independent_probe",
+  "status": "pass",
+  "runtime_observations": {
+    "default": {
+      "node": "v26.5.0",
+      "node_module_abi": "147",
+      "better_sqlite3_plain_load": "pass",
+      "test_policy": "not used for the validation suites"
+    },
+    "pinned": {
+      "node": "v25.8.1",
+      "node_module_abi": "141",
+      "better_sqlite3_plain_load": "pass",
+      "test_policy": "used for all validation suites and typecheck"
+    }
+  },
+  "line_counts": {
+    "src/tools/cstar-kernel-mcp/register_core_tools.ts": 479,
+    "src/tools/cstar-kernel-mcp/tools/result.ts": 355,
+    "src/tools/cstar-kernel-mcp/tools/validation_evidence.ts": 242,
+    "src/tools/pennyone/intel/forge_validation_controller.ts": 425,
+    "src/tools/pennyone/intel/schema_tables_runtime.ts": 314,
+    "src/tools/pennyone/intel/validation_ticket_controller.ts": 378,
+    "tests/unit/cstar-kernel-mcp/test_validation_ticket_spoke_result.test.ts": 461,
+    "tests/unit/cstar-kernel-mcp/validation_ticket_test_helpers.ts": 107
+  },
+  "line_limit": 500,
+  "maximum_lines": 479,
+  "all_within_limit": true,
+  "typecheck": "pass",
+  "git_diff_check": "pass",
+  "trailing_whitespace": "pass",
+  "independent_probe": {
+    "name": "host_v3_validator_principal",
+    "status": "pass",
+    "derived_validator_thread_id": "019f0000-0000-7000-8000-000000000201",
+    "derived_validator_turn_id": "019f0000-0000-7000-8000-000000000202",
+    "recorder_thread_id": "019f0000-0000-7000-8000-000000000101",
+    "recorder_turn_id": "019f0000-0000-7000-8000-000000000102",
+    "recorder_substitution": "rejected"
+  },
+  "scope_integrity": "Only the eight SET-02 paths were attributed; unrelated dirty paths were not edited, staged, reset, or included as SET-02 artifacts."
+}
