@@ -1,0 +1,35 @@
+{
+  "schema": "corvus.incident_replay.v1",
+  "incident_id": "incident:s05:unknown-worker-recovery",
+  "predecessor": {
+    "effect_status": "UNKNOWN",
+    "candidate_bytes": 0,
+    "candidate_files": 0,
+    "can_continue": false,
+    "can_donate_bytes": false,
+    "acceptance_credit": 0
+  },
+  "recovery": {
+    "required": true,
+    "state_after_unknown": "RECOVERY_REQUIRED",
+    "forward_delta_id": "delta:s05:unknown-recovery:01",
+    "distinct_from_predecessor": true,
+    "automatic_continuation": false,
+    "retry_budget": 0
+  },
+  "events": [
+    {
+      "event_type": "EFFECT_UNKNOWN",
+      "revision": 6
+    },
+    {
+      "event_type": "RECOVERY_SET_BOUND",
+      "revision": 7
+    },
+    {
+      "event_type": "EFFECT_RESERVED",
+      "revision": 8,
+      "forward_delta_id": "delta:s05:unknown-recovery:01"
+    }
+  ]
+}
