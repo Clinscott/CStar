@@ -189,7 +189,7 @@ describe("CStar MCP promoted spoke and telemetry surfaces", () => {
         assert.strictEqual(entry.remote_configured, true);
         assert.strictEqual(entry.last_scan_at, 1700000000000);
         assert.strictEqual(entry.last_health_at, 1700000005000);
-        assert.strictEqual(entry.accept_beads, true);
+        assert.strictEqual(entry.accept_beads, false);
         assert.match(entry.root_sha256, /^[a-f0-9]{64}$/);
         assert.match(entry.repository_binding_sha256, /^[a-f0-9]{64}$/);
         assert.strictEqual(entry.default_branch, undefined);

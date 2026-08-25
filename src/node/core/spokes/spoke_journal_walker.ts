@@ -5,7 +5,11 @@ import path from 'node:path';
 import { readBoundedUtf8FileInside } from '../../../tools/cstar-kernel-mcp/contracts/runtime.js';
 import { database } from '../../../tools/pennyone/intel/database.js';
 import type { HallMountedSpokeRecord } from '../../../types/hall.js';
-import { verifyMountToken } from './spoke_authority.js';
+import {
+    verifyMountedSpokeAuthority,
+    type SpokeAuthorityVerification,
+} from './spoke_attachment_authority.js';
+import type { MountTokenVerdict } from './spoke_authority.js';
 
 export type SpokeJournalFileValidation = 'ok' | 'invalid' | 'missing' | 'drift';
 export type SpokeJournalValidation =
@@ -32,6 +36,9 @@ export interface SpokeJournalFile {
 export interface SpokeJournalReport {
     spoke: string;
     root_sha256: string;
+    authority_verification: SpokeAuthorityVerification;
+    authority_failure_code?: string;
+    mount_token: MountTokenVerdict;
     files: {
         memory_md: SpokeJournalFile;
         tasks_md: SpokeJournalFile;
@@ -54,13 +61,6 @@ const MEMORY_FALLBACK = '.agents/memory.md';
 
 function rootFingerprint(root: string): string {
     return createHash('sha256').update(path.resolve(root), 'utf-8').digest('hex');
-}
-
-function hallMountToken(spoke: HallMountedSpokeRecord): string | null {
-    const authority = spoke.metadata?.authority;
-    if (!authority || typeof authority !== 'object' || Array.isArray(authority)) return null;
-    const token = (authority as Record<string, unknown>).mount_token;
-    return typeof token === 'string' ? token : null;
 }
 
 function readFileStat(root: string, relativePath: string): FileStatSummary | null {
@@ -178,11 +178,25 @@ function readSimpleFile(
     return file;
 }
 
-function missingReport(slug: string, root: string, validation: SpokeJournalValidation): SpokeJournalReport {
+function missingReport(
+    slug: string,
+    root: string,
+    validation: SpokeJournalValidation,
+    authority: {
+        authority_verification: SpokeAuthorityVerification;
+        authority_failure_code?: string;
+        mount_token: MountTokenVerdict;
+    } = {
+        authority_verification: 'failed',
+        authority_failure_code: 'spoke_attachment_identity_missing',
+        mount_token: 'unproven',
+    },
+): SpokeJournalReport {
     const missing = (pathValue: string): SpokeJournalFile => ({ present: false, path: pathValue, validation: 'missing' });
     return {
         spoke: slug,
         root_sha256: rootFingerprint(root),
+        ...authority,
         files: {
             memory_md: missing(MEMORY_PRIMARY),
             tasks_md: missing('tasks.md'),
@@ -195,8 +209,15 @@ function missingReport(slug: string, root: string, validation: SpokeJournalValid
 
 export function walkSpokeJournalForRecord(spoke: HallMountedSpokeRecord): SpokeJournalReport {
     if (spoke.mount_status !== 'active') return missingReport(spoke.slug, spoke.root_path, 'mount_status_drift');
-    const binding = verifyMountToken(spoke.root_path, hallMountToken(spoke));
-    if (binding.verdict !== 'ok') return missingReport(spoke.slug, spoke.root_path, 'mount_binding_unverified');
+    const binding = verifyMountedSpokeAuthority(spoke);
+    if (binding.authority_verification !== 'token_verified'
+        && binding.authority_verification !== 'hall_attachment_verified') {
+        return missingReport(spoke.slug, spoke.root_path, 'mount_binding_unverified', {
+            authority_verification: binding.authority_verification,
+            ...(binding.failure_code ? { authority_failure_code: binding.failure_code } : {}),
+            mount_token: binding.mount_token,
+        });
+    }
     let root: string;
     try {
         root = fs.realpathSync(spoke.root_path);
@@ -206,6 +227,9 @@ export function walkSpokeJournalForRecord(spoke: HallMountedSpokeRecord): SpokeJ
     return {
         spoke: spoke.slug,
         root_sha256: binding.root_sha256,
+        authority_verification: binding.authority_verification,
+        ...(binding.failure_code ? { authority_failure_code: binding.failure_code } : {}),
+        mount_token: binding.mount_token,
         files: {
             memory_md: readMemoryFile(root),
             tasks_md: readSimpleFile(root, 'tasks.md', (content, file) => { file.open_tasks = countOpenTasks(content); }),

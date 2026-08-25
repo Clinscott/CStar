@@ -22,6 +22,9 @@ export interface SpokeCapabilityRecord {
     validation: string;
     validation_reason?: string;
     shadows_hub_id: boolean;
+    authority_verification: string;
+    authority_failure_code?: string;
+    mount_token: string;
     name: string;
     description: string;
 }
@@ -42,6 +45,9 @@ export function adaptSpokeManifestToCapability(s: SpokeSkillManifest): SpokeCapa
         validation: s.validation,
         validation_reason: s.validation_reason,
         shadows_hub_id: s.shadows_hub_id,
+        authority_verification: s.authority_verification,
+        authority_failure_code: s.authority_failure_code,
+        mount_token: s.mount_token,
         name: s.name,
         description: s.description,
     };

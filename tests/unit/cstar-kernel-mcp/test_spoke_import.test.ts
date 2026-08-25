@@ -1,4 +1,4 @@
-import { beforeEach, describe, it } from 'node:test';
+import { afterEach, beforeEach, describe, it } from 'node:test';
 import {
     assert,
     fs,
@@ -71,6 +71,11 @@ describe('🜂 cstar_spoke_bead_import — rich spoke handoff payload', () => {
         designPath = path.join(tmpSpokeRoot, 'docs', 'design', 'SAMPLE.md');
         fs.writeFileSync(lorePath, 'Feature: sample\n');
         fs.writeFileSync(designPath, '# Sample Design\n');
+    });
+
+    afterEach(() => {
+        if (tmpSpokeRoot) fs.rmSync(tmpSpokeRoot, { recursive: true, force: true });
+        tmpSpokeRoot = '';
     });
 
     it('imports a rich bead and stamps lore/design/threat-model metadata', async () => {
@@ -182,7 +187,7 @@ describe('🜂 cstar_spoke_bead_import — rich spoke handoff payload', () => {
             acceptance_criteria: 'No secret-shaped metadata persists.',
             lore_path: 'tests/features/sample.feature',
             metadata: { credential: 'synthetic-secret' },
-        });
+        } as any);
         assert.strictEqual(JSON.parse(metadata.content[0].text).error, 'spoke_import_unstructured_metadata_forbidden');
     });
 });

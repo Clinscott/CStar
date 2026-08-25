@@ -13,7 +13,7 @@
 
 - **Server:** `bin/cstar-kernel-mcp.js` → `src/tools/cstar-kernel-mcp.ts`
 - **Metadata catalog:** `src/tools/cstar-kernel-mcp/contracts/tool_catalog.ts`
-- **Schema/handler registration:** `src/tools/cstar-kernel-mcp/register_core_tools.ts`
+- **Schema/handler registration:** `src/tools/cstar-kernel-mcp/register_core_tools.ts` plus the bounded spoke registration module
 - **Server name:** `cstar-kernel`
 - **Transport:** stdio (JSON-RPC 2.0, newline-delimited)
 - **Current SDK protocol:** `2024-11-05` over stdio
@@ -300,7 +300,7 @@ lifecycle state or validation.
 
 ---
 
-## Tool Inventory (28)
+## Tool Inventory (29)
 
 The typed source of truth is
 `src/tools/cstar-kernel-mcp/contracts/tool_catalog.ts`. Runtime registration,
@@ -333,10 +333,11 @@ the reader-facing purpose projection.
 | 22 | `cstar_status` | Diagnostics |
 | 23 | `cstar_persona_set` | Explicit workflow posture |
 | 24 | `cstar_evolve` | Karpathy loop (read-only) |
-| 25 | `cstar_spoke` | Spoke lifecycle |
-| 26 | `cstar_intent_route` | Routing |
-| 27 | `cstar_warden` | Sentinel Wardens |
-| 28 | `cstar_telemetry` | Diagnostics |
+| 25 | `cstar_spoke` | Read-only spoke inspection |
+| 26 | `cstar_spoke_attachment` | Hall-owned spoke attachment |
+| 27 | `cstar_intent_route` | Routing |
+| 28 | `cstar_warden` | Sentinel Wardens |
+| 29 | `cstar_telemetry` | Diagnostics |
 
 ---
 
@@ -1000,7 +1001,7 @@ closed.
 ## 9. `cstar_spoke_bead_import`
 
 Rich Bead-import surface for spokes. Hard-rejects unregistered, inactive,
-quarantined, read-only, or `mount_token=unproven` spokes. Lore and design files
+quarantined, read-only, or unverified spokes. Lore and design files
 must be contained, bounded, non-symlink, single-link files under the exact
 canonical mounted root. Only safe relative paths are persisted; absolute target
 paths and unstructured caller metadata are rejected.
@@ -1010,7 +1011,7 @@ paths and unstructured caller metadata are rejected.
 - `intent`, `acceptance_criteria` (strings)
 - `lore_path` (string) — Gherkin .feature file, must exist on disk
 
-**Optional:** `bead_id`, `design_doc_path`, `wireframe_ref`, `threat_model_summary`, `contract_refs`, `checker_shell`, `target_paths`, `target_kind`, `target_ref`, `augury_block`, `assigned_agent`, `status`. The deprecated `metadata` input must remain empty.
+**Optional:** `bead_id`, `design_doc_path`, `wireframe_ref`, `threat_model_summary`, `contract_refs`, `checker_shell`, `target_paths`, `target_kind`, `target_ref`, `augury_block`, `assigned_agent`, `status`. `metadata` is absent from the public schema and any compatibility probe that supplies it is rejected.
 
 **Output:** `{ status: 'created', action: 'spoke_bead_import', mutation, spoke, repo_id, bead }`.
 
@@ -1085,8 +1086,10 @@ War-game scoring. Actions: `register_contest`, `tally`, `recent`, `by_scenario`,
 ## 13. `cstar_manifest`
 
 Capability discovery. Hub registry merged with spoke-local manifests, namespaced
-`<slug>:<id>`. A spoke manifest is read only after an exact Hall/on-disk
-`mount_token` match; `unproven` is rejected. Reads are bounded, reject symlink
+`<slug>:<id>`. A spoke manifest is read only after
+`verifyMountedSpokeAuthority` returns `token_verified` or
+`hall_attachment_verified`; the legacy `mount_token` verdict and any safe
+failure code remain visible. Reads are bounded, reject symlink
 and hardlink files, and never enter private homes. Results use relative
 authority paths and omit raw roots. Read-only; announce-only per
 BEAD-CSTAR-SPOKE-DISCOVERY-001.
@@ -1108,8 +1111,9 @@ The response never returns a raw working-directory root.
 ## 15. `cstar_spoke_journal`
 
 Four-file journal state for a registered spoke: `memory.md`, `tasks.md`,
-`wireframe.md`, `DEV_JOURNAL.md`. An exact `mount_token` binding is required;
-`unproven` fails closed. Reads are bounded, reject symlink and hardlink files,
+`wireframe.md`, `DEV_JOURNAL.md`. `token_verified` or
+`hall_attachment_verified` is required; the legacy `mount_token` verdict and
+safe failure code are retained. Reads are bounded, reject symlink and hardlink files,
 and never enter private homes. Reports relative path, presence, mtime, SHA-256,
 size, summary, and a root SHA-256—never the raw root. Memory-file drift between
 `.agent/` and `.agents/` is flagged.
@@ -1197,9 +1201,9 @@ development-process guidance only.
   "persona": "A.L.F.R.E.D." | "O.D.I.N." | null,
   "persona_projection_status": "bounded_config_projection" | "bounded_config_invalid" | "bounded_config_reader_unavailable" | "self_consistent_unverified" | "legacy_self_consistent_unverified" | "unavailable",
   "forge_execution": { "found": true, "attempt_status": "STARTED", "request_status": "AUTHORIZED", "recovery": { "classification": "owner_alive" } },
-  "workspace": "/abs/path",
+  "workspace": "<sha256>",
   "hall_reachable": true,
-  "managed_spokes": [{ "slug": "...", "mount_status": "active", "trust_level": "trusted", "write_policy": "read_write", "root_path": "..." }],
+  "managed_spokes": [{ "slug": "...", "mount_status": "active", "trust_level": "trusted", "write_policy": "read_write", "authority_verification": "hall_attachment_verified", "mount_token": "unproven" }],
   "agents": [{ "id": "gemini", "name": "Gemini", "status": "SLEEPING", "last_seen": null }]
 }
 ```
@@ -1292,10 +1296,9 @@ Read-only inspection of evolve proposals and SPRT history. Proposal generation a
 
 ## 20. `cstar_spoke`
 
-Redacted mounted-spoke inspection and exact-match prune preview. The historical
-mutation path is retired because it mixed Hall writes, arbitrary filesystem and
-Git reads, private Hermes profile discovery, and secret-bearing outputs without
-a request-scoped authority contract.
+Redacted mounted-spoke inspection and exact-match prune preview. This public
+tool remains read-only; its legacy link, unlink, and project actions fail closed.
+The supported mutation is `cstar_spoke_attachment` below.
 
 **Input:**
 - `action` ("list" | "link" | "unlink" | "inspect" | "project" | "doctor" | "prune" | "verify" | "health", required)
@@ -1311,10 +1314,60 @@ a request-scoped authority contract.
 path, remote, Git, private-home, writable-Hall, or spoke-filesystem activity.
 `list`, `inspect`, and `doctor` expose an allowlist of lifecycle fields plus
 SHA-256 bindings; raw roots, repository ids, remotes, branches, metadata,
-credentials, PII, and mount tokens are omitted. Doctor does not probe mounted
-paths. `prune` with `dry_run=true` performs only exact Hall row/root comparison
-and returns hashes. `verify` and `health` require an exact, bounded,
-non-symlink, single-link `mount_token` identity file; `unproven` is not accepted.
+credentials, PII, and raw mount-token values are omitted. Doctor alone is a
+Hall-only survey: it does not stat, resolve, or read mounted paths and does not
+invoke attachment or token verification. Each Doctor entry reports exactly
+`attachment_authority: { observation: "unobserved", verification:
+"not_checked" }` and `filesystem_observation: "not_performed"`; it never claims
+that authority was verified. `prune` with `dry_run=true` performs only exact
+Hall row/root comparison and returns hashes. Explicit filesystem-reading
+operations use `verifyMountedSpokeAuthority`, which requires Hall binding,
+exact root proof, policy, receipt, and revocation checks before the unchanged
+legacy token verifier. A valid token returns `token_verified`; a no-identity
+active Hall receipt returns `hall_attachment_verified`. `unproven` is not
+accepted for readiness.
+
+## 20.1 `cstar_spoke_attachment`
+
+Compatibility-first Hall-owned local attachment mutation surface. The required
+input is `action` (`link`, `project`, or `unlink`), the exact lowercase
+`slug`, and the canonical absolute `root_path` under `/home/morderith/Corvus`.
+The root must be a real repository with its nearest `AGENTS.md` and a Git
+marker. Its proof binds the exact policy bytes and a stable root-object
+device/inode/size identity, so policy drift or same-path replacement fails
+closed. The canonical root basename is the only accepted slug. Symlink,
+hardlink, ancestor/descendant, moved-root, alias, collision, and suffix-inferred
+matches fail closed. The spoke repository is never written and no
+`.cstar/IDENTITY.json` is created or consumed by linking.
+
+Only `link` accepts `authority_source`: omission means the exact current
+root-user turn; the alternative is an exact existing Hall-persisted
+`cstar_mission_set_grant` parent. A current-turn grant must include the word
+`now`; its selected record and complete ordered record set are both bound.
+Questions, conditionals, quoted/reported or modal language, negation, current
+terse revocation, duplicate grants, expired turns, and replayed sources fail
+closed. `project` and `unlink` reject `authority_source` but each consumes its
+own current-root-turn grant. `project` records only a Hall projection for an
+already active attachment, binds the active link receipt as parent, and cannot
+create or revive authority. `unlink` atomically records one revocation of that
+same link before deleting the exact active row.
+
+Link creates one immutable `cstar.spoke_attachment_authority_grant.v1`, one immutable
+link-authority receipt, and an active trusted `local`/`read_write` mounted row
+with `projection_status: missing`. The `attachment_authority` metadata object
+contains only `schema`, `receipt_id`, and `receipt_sha256`. Attachment authority
+grants, attachment receipts, and `attachment_authority` metadata represent the
+root only through hashes and identifiers; none stores the raw root path. The
+private legacy `hall_mounted_spokes.root_path` operational field retains the
+canonical root for bounded resolution, and public projections always redact it.
+Tokens, caller metadata, operator text, secrets, and repository files are not
+persisted by the attachment-authority records. Grants and receipts also bind
+stable root identity, record hash/count, source mission/dispatch receipt when
+present, and event parent identifiers. Receipt and grant updates or deletes are
+rejected by Hall triggers. Event constraints allow one receipt per grant, one
+revocation per link, and require every projection or revocation to name its
+exact active link parent. Mission dispatch receipt hashes are recomputed from
+canonical bytes and duplicate JSON keys fail closed.
 
 ## 21. `cstar_intent_route`
 

@@ -13,10 +13,10 @@ import { registerCoreTools } from '../../../src/tools/cstar-kernel-mcp/register_
 const PROJECT_ROOT = path.resolve(import.meta.dirname, '..', '..', '..');
 
 describe('CStar MCP canonical tool catalog', () => {
-    it('contains exactly 28 unique public tools and excludes AutoBot', () => {
+    it('contains exactly 29 unique public tools and excludes AutoBot', () => {
         const toolNameSet = new Set<string>(CSTAR_KERNEL_TOOL_NAMES);
 
-        assert.equal(CSTAR_KERNEL_TOOL_CATALOG.length, 28);
+        assert.equal(CSTAR_KERNEL_TOOL_CATALOG.length, 29);
         assert.deepEqual(
             CSTAR_KERNEL_TOOL_NAMES,
             CSTAR_KERNEL_TOOL_CATALOG.map(({ name }) => name),
@@ -82,6 +82,37 @@ describe('CStar MCP canonical tool catalog', () => {
         const mongoSchema = mongoRegistration[2] as Record<string, any>;
         assert.match(mongoSchema.action.description, /retired compatibility.*fails closed/i);
         assert.match(mongoSchema.operator_authorization_ref.description, /grants no authority.*cannot enable writes/i);
+
+        const attachmentRegistration = registrations.find(([name]) => name === 'cstar_spoke_attachment');
+        assert.ok(attachmentRegistration);
+        const attachmentSchema = attachmentRegistration[2] as Record<string, any>;
+        assert.deepEqual(Object.keys(attachmentSchema).sort(), [
+            'action', 'authority_source', 'root_path', 'slug',
+        ]);
+        assert.deepEqual(attachmentSchema.action.options, ['link', 'project', 'unlink']);
+        assert.deepEqual(
+            attachmentSchema.authority_source.parse({ kind: 'current_root_turn' }),
+            { kind: 'current_root_turn' },
+        );
+        assert.deepEqual(
+            attachmentSchema.authority_source.parse({
+                kind: 'cstar_mission_set_grant',
+                mission_id: 'mission:fixture',
+                grant_id: 'grant:fixture',
+            }),
+            {
+                kind: 'cstar_mission_set_grant',
+                mission_id: 'mission:fixture',
+                grant_id: 'grant:fixture',
+            },
+        );
+        assert.throws(
+            () => attachmentSchema.authority_source.parse({
+                kind: 'current_root_turn',
+                metadata: 'forbidden',
+            }),
+            /unrecognized/i,
+        );
     });
 
     it('rejects scalar Gungnir mandate claims and accepts only receipt-backed audit shapes', () => {

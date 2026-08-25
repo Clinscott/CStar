@@ -34,6 +34,7 @@ import { handleSpokeBeadImport } from './tools/spoke_bead_import.js';
 import { handleStatus } from './tools/status.js';
 import { handleTelemetry } from './tools/telemetry.js';
 import { handleWarden } from './tools/warden.js';
+import { registerSpokeTools } from './register_spoke_tools.js';
 
 type ServerWithTool = { tool: (...args: any[]) => unknown };
 type ToolHandler = (args: any, context?: McpRequestContext) => Promise<any>;
@@ -196,7 +197,6 @@ export function registerCoreTools(server: ServerWithTool, instrumentTool: Instru
             augury_block: z.string().optional().describe('Optional Augury route block'),
             assigned_agent: z.string().optional().describe('Assigned agent'),
             status: z.enum(HALL_BEAD_STATUSES as [HallBeadStatus, ...HallBeadStatus[]]).optional().describe('Initial status; defaults to OPEN.'),
-            metadata: z.record(z.string(), z.unknown()).optional().describe('Small metadata object'),
         },
         handleSpokeBeadImport,
     );
@@ -394,6 +394,8 @@ export function registerCoreTools(server: ServerWithTool, instrumentTool: Instru
         },
         handleSpoke,
     );
+
+    registerSpokeTools(server, instrumentTool);
 
     registerCatalogTool(
         server,

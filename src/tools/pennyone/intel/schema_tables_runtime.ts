@@ -1,3 +1,5 @@
+import { SPOKE_ATTACHMENT_SCHEMA_SQL } from './spoke_attachment_schema_runtime.js';
+
 export const HALL_SCHEMA_RUNTIME_SQL = String.raw`
         CREATE TABLE IF NOT EXISTS hall_skill_proposals (
             proposal_id TEXT PRIMARY KEY,
@@ -260,4 +262,5 @@ export const HALL_SCHEMA_RUNTIME_SQL = String.raw`
         CREATE INDEX IF NOT EXISTS idx_hall_mounted_spokes_repo
         ON hall_mounted_spokes(repo_id, slug);
 
+${SPOKE_ATTACHMENT_SCHEMA_SQL}
 `;

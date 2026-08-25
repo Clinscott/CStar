@@ -119,7 +119,12 @@ export const CSTAR_KERNEL_TOOL_CATALOG = [
     {
         name: 'cstar_spoke',
         toolClass: 'READ',
-        description: 'Redacted mounted-spoke inspection and exact-match prune preview; link, unlink, project, and destructive prune fail closed until a request-scoped operator-attestation contract exists.',
+        description: 'Redacted mounted-spoke inspection and exact-match prune preview; legacy link, unlink, and project actions remain retired and fail closed.',
+    },
+    {
+        name: 'cstar_spoke_attachment',
+        toolClass: 'MUTATION',
+        description: 'Compatibility-first Hall-owned local spoke attachment mutation surface for link, project, and current-turn unlink with exact root proof and immutable authority receipts.',
     },
     {
         name: 'cstar_intent_route',

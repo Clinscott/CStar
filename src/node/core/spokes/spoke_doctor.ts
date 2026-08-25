@@ -3,9 +3,18 @@ import path from 'node:path';
 
 import { database } from '../../../tools/pennyone/intel/database.js';
 import type { HallMountedSpokeRecord } from '../../../types/hall.js';
-import { verifyMountToken, type MountTokenVerdict } from './spoke_authority.js';
+import {
+    verifyMountedSpokeAuthority,
+    type SpokeAuthorityVerification,
+} from './spoke_attachment_authority.js';
+import type { MountTokenVerdict } from './spoke_authority.js';
 
 export type SpokeBucket = 'live' | 'phantom' | 'duplicate' | 'stale';
+
+export interface SpokeSurveyAttachmentAuthorityProjection {
+    observation: 'unobserved';
+    verification: 'not_checked';
+}
 
 export interface SpokeSurveyEntry {
     slug: string;
@@ -16,9 +25,10 @@ export interface SpokeSurveyEntry {
     trust_level: string;
     write_policy: string;
     projection_status: string;
+    attachment_authority: SpokeSurveyAttachmentAuthorityProjection;
     bucket: SpokeBucket;
     reason: string;
-    filesystem_observed: false;
+    filesystem_observation: 'not_performed';
     is_hub: boolean;
 }
 
@@ -71,9 +81,13 @@ export function surveySpokesForRecords(
             trust_level: row.trust_level,
             write_policy: row.write_policy,
             projection_status: row.projection_status,
+            attachment_authority: {
+                observation: 'unobserved',
+                verification: 'not_checked',
+            },
             bucket,
             reason,
-            filesystem_observed: false,
+            filesystem_observation: 'not_performed',
             is_hub: isHub,
         };
     }).sort((left, right) => left.bucket.localeCompare(right.bucket) || left.slug.localeCompare(right.slug));
@@ -96,6 +110,8 @@ export interface SpokeHealthReport {
     slug: string;
     root_sha256: string;
     verdict: 'healthy' | 'degraded' | 'unhealthy';
+    authority_verification: SpokeAuthorityVerification;
+    authority_failure_code?: string;
     mount_token: MountTokenVerdict;
     heartbeat_written: false;
 }
@@ -103,15 +119,18 @@ export interface SpokeHealthReport {
 export function healthCheckSpoke(slug: string): SpokeHealthReport {
     const spoke = database.getHallMountedSpoke(slug);
     if (!spoke) throw new Error('spoke_not_registered');
-    const hallToken = (spoke.metadata?.authority as Record<string, unknown> | undefined)?.mount_token;
-    const token = verifyMountToken(spoke.root_path, typeof hallToken === 'string' ? hallToken : null);
+    const token = verifyMountedSpokeAuthority(spoke);
+    const verified = token.authority_verification === 'token_verified'
+        || token.authority_verification === 'hall_attachment_verified';
     return {
         slug,
         root_sha256: token.root_sha256,
-        verdict: token.verdict === 'ok'
+        verdict: verified
             ? 'healthy'
-            : token.verdict === 'unsafe_root' ? 'unhealthy' : 'degraded',
-        mount_token: token.verdict,
+            : token.failure_code === 'spoke_attachment_root_moved_or_drift' ? 'unhealthy' : 'degraded',
+        authority_verification: token.authority_verification,
+        ...(token.failure_code ? { authority_failure_code: token.failure_code } : {}),
+        mount_token: token.mount_token,
         heartbeat_written: false,
     };
 }
@@ -120,6 +139,8 @@ export interface SpokeVerifyReport {
     slug: string;
     root_sha256: string;
     drift_detected: boolean;
+    authority_verification: SpokeAuthorityVerification;
+    authority_failure_code?: string;
     mount_token: MountTokenVerdict;
     identity_present: boolean;
 }
@@ -127,13 +148,15 @@ export interface SpokeVerifyReport {
 export function verifySpoke(slug: string): SpokeVerifyReport {
     const spoke = database.getHallMountedSpoke(slug);
     if (!spoke) throw new Error('spoke_not_registered');
-    const hallToken = (spoke.metadata?.authority as Record<string, unknown> | undefined)?.mount_token;
-    const token = verifyMountToken(spoke.root_path, typeof hallToken === 'string' ? hallToken : null);
+    const token = verifyMountedSpokeAuthority(spoke);
     return {
         slug,
         root_sha256: token.root_sha256,
-        drift_detected: token.verdict !== 'ok',
-        mount_token: token.verdict,
+        drift_detected: token.authority_verification !== 'token_verified'
+            && token.authority_verification !== 'hall_attachment_verified',
+        authority_verification: token.authority_verification,
+        ...(token.failure_code ? { authority_failure_code: token.failure_code } : {}),
+        mount_token: token.mount_token,
         identity_present: token.identity_present,
     };
 }

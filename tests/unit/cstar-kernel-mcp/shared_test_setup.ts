@@ -17,6 +17,7 @@ import {
     createSession,
     validRequestContext,
 } from './operator_authorization_test_support.js';
+import { createOwnedSyntheticSpokeRoot } from './spoke_fixture_cleanup_test_support.js';
 export { invokeForgeAdapterForTest } from './shared_forge_adapter_test_setup.js';
 export { validationStore } from './shared_sterling_test_setup.js';
 export const spokeStore = new Map<string, HallMountedSpokeRecord>();
@@ -172,7 +173,7 @@ const handleWarden: typeof rawHandleWarden = (
 ) => rawHandleWarden(args, context);
 
 const SYNTHETIC_MOUNT_TOKEN = 'synthetic-kernel-test-mount-token';
-const DEFAULT_SYNTHETIC_SPOKE_ROOT = fs.mkdtempSync(path.join(os.tmpdir(), 'cstar-test-spoke-root-'));
+const DEFAULT_SYNTHETIC_SPOKE_ROOT = createOwnedSyntheticSpokeRoot('cstar-test-spoke-root-');
 
 export function bindSyntheticSpokeRoot(rootPath: string): void {
     const identityDir = path.join(rootPath, '.cstar');

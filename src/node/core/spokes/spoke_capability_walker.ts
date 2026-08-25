@@ -7,7 +7,12 @@ import {
     resolveExistingPathInside,
 } from '../../../tools/cstar-kernel-mcp/contracts/runtime.js';
 import type { HallMountedSpokeRecord } from '../../../types/hall.js';
-import { verifyMountToken } from './spoke_authority.js';
+import {
+    verifyMountedSpokeAuthority,
+    type SpokeAuthorityVerification,
+    type VerifyMountedSpokeAuthorityResult,
+} from './spoke_attachment_authority.js';
+import type { MountTokenVerdict } from './spoke_authority.js';
 import {
     __journalTesting,
     walkSpokeJournal,
@@ -31,6 +36,9 @@ export interface SpokeSkillManifest {
     validation: SpokeSkillValidation;
     validation_reason?: string;
     shadows_hub_id: boolean;
+    authority_verification: SpokeAuthorityVerification;
+    authority_failure_code?: string;
+    mount_token: MountTokenVerdict;
 }
 
 export interface WalkSpokeSkillsOptions {
@@ -98,18 +106,15 @@ function validateBareId(id: string): { ok: boolean; reason?: string } {
     return { ok: true };
 }
 
-function hallMountToken(spoke: HallMountedSpokeRecord): string | null {
-    const authority = spoke.metadata?.authority;
-    if (!authority || typeof authority !== 'object' || Array.isArray(authority)) return null;
-    const token = (authority as Record<string, unknown>).mount_token;
-    return typeof token === 'string' ? token : null;
-}
-
-function verifiedSpokeRoot(spoke: HallMountedSpokeRecord): string | null {
-    const binding = verifyMountToken(spoke.root_path, hallMountToken(spoke));
-    if (binding.verdict !== 'ok') return null;
+function verifiedSpokeRoot(spoke: HallMountedSpokeRecord): {
+    root: string;
+    authority: VerifyMountedSpokeAuthorityResult;
+} | null {
+    const authority = verifyMountedSpokeAuthority(spoke);
+    if (authority.authority_verification !== 'token_verified'
+        && authority.authority_verification !== 'hall_attachment_verified') return null;
     try {
-        return fs.realpathSync(spoke.root_path);
+        return { root: fs.realpathSync(spoke.root_path), authority };
     } catch {
         return null;
     }
@@ -118,6 +123,7 @@ function verifiedSpokeRoot(spoke: HallMountedSpokeRecord): string | null {
 function readSkillManifest(
     spoke: HallMountedSpokeRecord,
     root: string,
+    authority: VerifyMountedSpokeAuthorityResult,
     bareId: string,
     hubRegistryIds: ReadonlySet<string>,
 ): SpokeSkillManifest | null {
@@ -167,6 +173,9 @@ function readSkillManifest(
         validation,
         validation_reason: validationReason,
         shadows_hub_id: hubRegistryIds.has(bareId),
+        authority_verification: authority.authority_verification,
+        ...(authority.failure_code ? { authority_failure_code: authority.failure_code } : {}),
+        mount_token: authority.mount_token,
     };
 }
 
@@ -178,8 +187,9 @@ export function walkSpokeSkillsForRecords(
     for (const spoke of spokes) {
         if (spoke.mount_status !== 'active') continue;
         if (spoke.trust_level === 'quarantined' && options.includeQuarantined !== true) continue;
-        const root = verifiedSpokeRoot(spoke);
-        if (!root) continue;
+        const verified = verifiedSpokeRoot(spoke);
+        if (!verified) continue;
+        const root = verified.root;
         let skillsDirectory: string;
         try {
             skillsDirectory = resolveExistingPathInside(root, path.join(root, '.agents', 'skills'), 'directory');
@@ -192,6 +202,7 @@ export function walkSpokeSkillsForRecords(
             const manifest = readSkillManifest(
                 spoke,
                 root,
+                verified.authority,
                 entry.name,
                 options.hubRegistryIds ?? new Set<string>(),
             );

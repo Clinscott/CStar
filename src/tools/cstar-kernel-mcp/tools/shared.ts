@@ -10,7 +10,7 @@ import type { SovereignBead } from '../../../types/bead.js';
 import { buildHallRepositoryId, normalizeHallPath } from '../../../types/hall.js';
 import { registry } from '../../pennyone/pathRegistry.js';
 import { database } from '../../pennyone/intel/database.js';
-import { verifyMountToken } from '../../../node/core/spokes/spoke_authority.js';
+import { verifyMountedSpokeAuthority } from '../../../node/core/spokes/spoke_attachment_authority.js';
 import { resolveExistingPathInside } from '../contracts/runtime.js';
 
 export const HALL_BEAD_STATUSES: HallBeadStatus[] = [
@@ -149,13 +149,13 @@ export function resolveSpokeAnchor(spokeSlug: string | undefined | null): SpokeA
     if (!spoke) {
         throw new Error(
             `Spoke '${slug}' is not registered in the Hall estate. ` +
-            `Mount it with './cstar spoke link <slug> <root>' before submitting beads.`,
+            `Use the CStar spoke attachment surface before submitting beads.`,
         );
     }
     if (spoke.mount_status !== 'active') {
         throw new Error(
             `Spoke '${slug}' is not active (mount_status='${spoke.mount_status}'). ` +
-            `Re-link or repair the spoke before submitting beads.`,
+            `Use cstar_spoke_attachment to link or repair the spoke before submitting beads.`,
         );
     }
     if (spoke.trust_level === 'quarantined') {
@@ -170,11 +170,11 @@ export function resolveSpokeAnchor(spokeSlug: string | undefined | null): SpokeA
             `Bead writes require 'read_write'.`,
         );
     }
-    const hallToken = (spoke.metadata?.authority as Record<string, unknown> | undefined)?.mount_token;
-    const tokenVerdict = verifyMountToken(spoke.root_path, typeof hallToken === 'string' ? hallToken : null);
-    if (tokenVerdict.verdict !== 'ok') {
+    const authority = verifyMountedSpokeAuthority(spoke);
+    if (authority.authority_verification !== 'token_verified'
+        && authority.authority_verification !== 'hall_attachment_verified') {
         throw new Error(
-            `spoke_mount_token_verification_failed:${tokenVerdict.verdict}`,
+            `spoke_mount_authority_verification_failed:${authority.failure_code ?? authority.authority_verification}`,
         );
     }
     return {
@@ -187,6 +187,9 @@ export function resolveSpokeAnchor(spokeSlug: string | undefined | null): SpokeA
             spoke_write_policy: spoke.write_policy,
             spoke_root_sha256: createHash('sha256').update(path.resolve(spoke.root_path), 'utf-8').digest('hex'),
             spoke_kind: spoke.kind,
+            authority_verification: authority.authority_verification,
+            mount_token: authority.mount_token,
+            ...(authority.failure_code ? { authority_failure_code: authority.failure_code } : {}),
         },
     };
 }

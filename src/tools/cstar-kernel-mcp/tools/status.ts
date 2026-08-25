@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { registry } from '../../pennyone/pathRegistry.js';
 import { database } from '../../pennyone/intel/database.js';
 import { StateRegistry } from '../../../node/core/state.js';
@@ -13,6 +14,7 @@ import {
     getForgeRequest,
 } from '../../pennyone/intel/forge_receipt_controller.js';
 import { inspectForgeAttemptRecovery } from './forge_attempt_recovery.js';
+import { verifyMountedSpokeAuthority } from '../../../node/core/spokes/spoke_attachment_authority.js';
 
 export interface StatusArgs {
     forge_execution_receipt_id?: string;
@@ -106,7 +108,7 @@ export async function handleStatus(args: StatusArgs = {}): Promise<McpTextRespon
                 personaProjection.active_persona,
                 personaProjection.projection_status,
             ),
-            workspace: root,
+            workspace: createHash('sha256').update(root, 'utf-8').digest('hex'),
             runtime_lineage: runtimeLineage,
             readiness: {
                 kernel_root_binding: runtimeLineage.binding_mode === 'live_launcher',
@@ -117,13 +119,23 @@ export async function handleStatus(args: StatusArgs = {}): Promise<McpTextRespon
             },
             hall_reachable: hallReachable,
             ...(forgeExecution ? { forge_execution: forgeExecution } : {}),
-            managed_spokes: snapshot.managed_spokes.map((s) => ({
-                slug: s.slug,
-                mount_status: s.mount_status,
-                trust_level: s.trust_level,
-                write_policy: s.write_policy,
-                root_path: s.root_path,
-            })),
+            managed_spokes: snapshot.managed_spokes.map((s) => {
+                const full = database.getHallMountedSpoke(s.slug, root);
+                const authority = full ? verifyMountedSpokeAuthority(full) : {
+                    authority_verification: 'failed' as const,
+                    failure_code: 'spoke_attachment_wrong_hub' as const,
+                    mount_token: 'unproven' as const,
+                };
+                return {
+                    slug: s.slug,
+                    mount_status: s.mount_status,
+                    trust_level: s.trust_level,
+                    write_policy: s.write_policy,
+                    authority_verification: authority.authority_verification,
+                    ...(authority.failure_code ? { authority_failure_code: authority.failure_code } : {}),
+                    mount_token: authority.mount_token,
+                };
+            }),
             agents: Object.values(snapshot.agents).map((a) => ({
                 id: a.id,
                 name: a.name,

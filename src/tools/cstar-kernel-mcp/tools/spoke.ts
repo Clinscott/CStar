@@ -4,6 +4,7 @@ import type { HallMountedSpokeRecord } from '../../../types/hall.js';
 import { buildHallRepositoryId, normalizeHallPath } from '../../../types/hall.js';
 import { registry } from '../../pennyone/pathRegistry.js';
 import { database } from '../../pennyone/intel/database.js';
+import { verifyMountedSpokeAuthority } from '../../../node/core/spokes/spoke_attachment_authority.js';
 import {
     healthCheckSpoke,
     pruneSpokes,
@@ -42,6 +43,9 @@ function sha256(value: string): string {
  * allowlist: never raw roots, remotes, metadata, tokens, or repo identifiers.
  */
 function redactedSpoke(spoke: HallMountedSpokeRecord): Record<string, unknown> {
+    const authority = verifyMountedSpokeAuthority(spoke);
+    const verified = authority.authority_verification === 'token_verified'
+        || authority.authority_verification === 'hall_attachment_verified';
     return {
         slug: spoke.slug,
         spoke_id: spoke.spoke_id,
@@ -52,11 +56,14 @@ function redactedSpoke(spoke: HallMountedSpokeRecord): Record<string, unknown> {
         trust_level: spoke.trust_level,
         write_policy: spoke.write_policy,
         projection_status: spoke.projection_status,
+        authority_verification: authority.authority_verification,
+        ...(authority.failure_code ? { authority_failure_code: authority.failure_code } : {}),
+        mount_token: authority.mount_token,
         default_branch_configured: Boolean(spoke.default_branch),
         remote_configured: Boolean(spoke.remote_url),
         last_scan_at: spoke.last_scan_at ?? null,
         last_health_at: spoke.last_health_at ?? null,
-        accept_beads: spoke.mount_status === 'active'
+        accept_beads: verified && spoke.mount_status === 'active'
             && spoke.trust_level === 'trusted'
             && spoke.write_policy === 'read_write',
     };

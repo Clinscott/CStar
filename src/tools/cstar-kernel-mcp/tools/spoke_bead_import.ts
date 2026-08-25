@@ -29,7 +29,6 @@ export interface SpokeBeadImportArgs {
     augury_block?: string;
     assigned_agent?: string;
     status?: HallBeadStatus;
-    metadata?: Record<string, unknown>;
 }
 
 function requireSafeRelativeTarget(value: string, fieldName: string): string {
@@ -52,6 +51,9 @@ export async function handleSpokeBeadImport(
     requestContext?: McpRequestContext,
 ) {
     try {
+        if (Object.prototype.hasOwnProperty.call(args, 'metadata')) {
+            throw new Error('spoke_import_unstructured_metadata_forbidden');
+        }
         const requestIdentity = await verifyCodexRequestIdentity(requestContext);
         const slug = requireString(args.spoke, 'spoke');
         const intent = requireString(args.intent, 'intent');
@@ -72,9 +74,6 @@ export async function handleSpokeBeadImport(
             ? normalizeHallPath(path.relative(anchor.spoke.root_path, resolvedDesignDoc))
             : undefined;
 
-        if (args.metadata && Object.keys(args.metadata).length > 0) {
-            throw new Error('spoke_import_unstructured_metadata_forbidden');
-        }
         const targetPaths = (args.target_paths || [])
             .filter((candidate) => candidate.trim().length > 0)
             .map((candidate, index) => requireSafeRelativeTarget(candidate, `target_paths[${index}]`));
@@ -143,6 +142,10 @@ export async function handleSpokeBeadImport(
             mutation: mcpMutation('spoke_bead_import', beadId, 'Spoke bead import was validated and persisted through the MCP write surface.'),
             spoke: anchor.spoke.slug,
             repo_id: anchor.repoId,
+            authority_verification: anchor.metadata?.authority_verification ?? 'failed',
+            ...(anchor.metadata?.authority_failure_code
+                ? { authority_failure_code: anchor.metadata.authority_failure_code } : {}),
+            mount_token: anchor.metadata?.mount_token ?? 'unproven',
             bead: compactBead(database.getHallBead(beadId)),
         });
     } catch (error: any) {
