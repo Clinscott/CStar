@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "corvus.organism.role_manifest.v1",
+  "title": "Closed CStar organism role manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "contract", "contract_sha256", "scope_id", "parent_scope_id", "role_id", "controller_identity", "controller_generation_source", "succession_rule", "health_signal_ids", "allowed_effect_kinds", "escalation_boundary", "model_policy_ref", "capability_profile_ref", "local_contract_hash", "parent_manifest_hash", "source_or_artifact_scope", "authority_grant", "automatic_cognition", "automatic_worker_execution", "forge", "closed", "manifest_sha256"],
+  "properties": {
+    "schema": {"const": "corvus.organism.role_manifest.v1"},
+    "contract": {"const": "corvus.organism.tiered_topology.v1"},
+    "contract_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "scope_id": {"type": "string", "minLength": 1, "pattern": "^[a-z0-9./_-]+$"},
+    "parent_scope_id": {"type": ["string", "null"]},
+    "role_id": {"type": "string", "pattern": "^[a-z0-9.-]+$"},
+    "controller_identity": {"const": "cstar"},
+    "controller_generation_source": {"const": "cstar-durable-state"},
+    "succession_rule": {"const": "atomic_revoke_identify_bind_append"},
+    "health_signal_ids": {"type": "array", "minItems": 10, "uniqueItems": true, "items": {"type": "string"}},
+    "allowed_effect_kinds": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+    "escalation_boundary": {"type": "string", "minLength": 1},
+    "model_policy_ref": {"type": "string", "minLength": 1},
+    "capability_profile_ref": {"type": "string", "minLength": 1},
+    "local_contract_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "parent_manifest_hash": {"type": ["string", "null"], "pattern": "^[a-f0-9]{64}$"},
+    "source_or_artifact_scope": {"type": "string", "minLength": 1},
+    "authority_grant": {"const": false},
+    "automatic_cognition": {"const": false},
+    "automatic_worker_execution": {"const": false},
+    "forge": {"const": "TOMBSTONED_PERMANENT"},
+    "closed": {"const": true},
+    "manifest_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  }
+}

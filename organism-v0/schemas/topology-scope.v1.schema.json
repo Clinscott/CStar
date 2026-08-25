@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "corvus.organism.topology_scope.v1",
+  "title": "Closed tiered topology scope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "contract_sha256", "scope_id", "parent_scope_id", "role_manifest_path", "capability_profile_path", "agents_path", "children", "canonical_reducer", "canonical_journal", "controller_identity", "closed"],
+  "properties": {
+    "schema": {"const": "corvus.organism.topology_scope.v1"},
+    "contract_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "scope_id": {"type": "string", "minLength": 1},
+    "parent_scope_id": {"type": ["string", "null"]},
+    "role_manifest_path": {"type": "string", "minLength": 1},
+    "capability_profile_path": {"type": "string", "minLength": 1},
+    "agents_path": {"type": "string", "minLength": 1},
+    "children": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+    "canonical_reducer": {"const": "organism-v0/src/reducer.ts"},
+    "canonical_journal": {"const": "organism-v0/src/journal.ts"},
+    "controller_identity": {"const": "cstar"},
+    "closed": {"const": true}
+  }
+}
