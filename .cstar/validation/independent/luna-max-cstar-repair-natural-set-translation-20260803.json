@@ -1,0 +1,231 @@
+{
+  "schema": "cstar.validation.independent_luna_max.v1",
+  "validation_id": "luna-max-independent-cstar-repair-natural-set-translation-20260803-v1",
+  "verdict": "REJECT",
+  "bead_id": "bead:cstar:repair-natural-set-translation-20260803",
+  "decision_id": "decision:cstar-state-only-luna-host-seam-batch1-20260803",
+  "validator": {
+    "persona": "Luna Max",
+    "role": "distinct independent validator",
+    "goal_thread_id": "019fc8c6-7ca4-7752-b127-18f8e6aea285",
+    "goal_owned_by_validator": true,
+    "host_goal_count": 1
+  },
+  "successor": {
+    "worktree": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803",
+    "branch": "codex/cstar-state-only-luna-host-seam-batch1-20260803",
+    "head": "afbbc1770ec6a7a2adc15b83f91c5586ac2525c0",
+    "head_matches_requested": true,
+    "builder_delivery_is_uncommitted": true,
+    "status_after_validation_unchanged": true
+  },
+  "builder_receipt": {
+    "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-repair-natural-set-translation-20260803.json",
+    "sha256": "87af4b91e4fc47447d951e259dd9ee781eb31a5ba665fc473ad7399516b18624",
+    "expected_sha256": "87af4b91e4fc47447d951e259dd9ee781eb31a5ba665fc473ad7399516b18624",
+    "schema": "cstar.validation.cstar_repair_natural_set_translation.v2"
+  },
+  "parent_immutability": {
+    "worktree": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-auto-20260802",
+    "branch": "codex/cstar-automatic-internal-machinery-refactor-20260802",
+    "head": "afbbc1770ec6a7a2adc15b83f91c5586ac2525c0",
+    "receipt_status_exact_set": [
+      " M src/tools/cstar-kernel-mcp/tools/forge_set_manifest_signal.ts",
+      "?? .cstar/validation/cstar-repair-natural-set-translation-20260803.json",
+      "?? src/tools/cstar-kernel-mcp/tools/forge_set_manifest_consumption.ts",
+      "?? tests/unit/cstar-kernel-mcp/test_forge_set_manifest_natural_translation.test.ts"
+    ],
+    "current_status_matches_receipt": true,
+    "helper_evidence_hashes_match": true,
+    "helper_evidence": {
+      "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_signal.ts": "a759ddc66f00fb40461c57ba4e256f9b19bfd2f81e6cbdcd6e75c06ac5f0c05e",
+      "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_consumption.ts": "d11e137d12ffebabc01336b6b18c9ae3bf872b5796eb07d9bd73fab7bb76aa41",
+      "tests/unit/cstar-kernel-mcp/test_forge_set_manifest_natural_translation.test.ts": "33dc7f51ac8b14ee35be6fa10037e42dc7d47898aed29eb6a933ff12289cea91",
+      ".cstar/validation/cstar-repair-natural-set-translation-20260803.json": "81c734ce997e3905048f0cdcbb0a358056f5eea7dfa4ca9be3e4c9bab589fb9e"
+    }
+  },
+  "call_graph": [
+    "cstar_augury registration",
+    "handleAugury",
+    "parseMissionBoundary",
+    "prepareAuguryMissionBoundary",
+    "prepareAuguryMissionBoundaryV2",
+    "verifyAuguryMissionNaturalSetIdentity",
+    "verifyCodexRequestIdentity",
+    "readExactForgeNaturalSetTranslation",
+    "finalizeAuguryMissionBoundary",
+    "finalizeAuguryMissionBoundaryV2",
+    "dispatchAuguryMissionBoundary",
+    "materializeAuguryMissionReceipt",
+    "validateAuguryMissionReceiptV2"
+  ],
+  "review": {
+    "complete_receipt_bound_delivery_paths_reviewed": 18,
+    "tracked_worktree_delivery_paths": 3,
+    "untracked_delivery_source_test_paths": 15,
+    "private_dispatch_not_publicly_registered": true,
+    "legacy_exact_set_path_preserved": true,
+    "full_ordered_record_set_binding_present": true,
+    "one_use_persistence_and_replay_guard_present": true,
+    "v2_receipt_and_hall_materialization_present": true,
+    "caller_bypass_found": false,
+    "open_ended_nlp_parser_found": false,
+    "reusable_spend_or_mission_authority_found": false,
+    "network_or_provider_symbols_in_delivered_paths": false,
+    "all_touched_production_test_sources_le_500_lines": true,
+    "maximum_touched_source_lines": 500,
+    "maximum_touched_source_path": "src/tools/cstar-kernel-mcp/tools/augury_mission_binding.ts",
+    "pinned_head_delta_test_goal_resume_lines": 497,
+    "pinned_head_delta_test_goal_resume_sha256": "d9513ac8f87bce4ecb1f15365c2bed6f03a1402e91391cc976184a8bc878b470"
+  },
+  "commands": [
+    {
+      "command": "node scripts/run-tsx.mjs --test --test-concurrency=1 tests/unit/cstar-kernel-mcp/test_forge_set_manifest_natural_translation.test.ts tests/unit/cstar-kernel-mcp/test_augury_natural_translation_integration.test.ts",
+      "exit_code": 0,
+      "suites": 2,
+      "tests": 29,
+      "passed": 29,
+      "failed": 0
+    },
+    {
+      "command": "node scripts/run-tsx.mjs --test --test-concurrency=1 tests/unit/cstar-kernel-mcp/test_codex_request_identity.test.ts tests/unit/cstar-kernel-mcp/test_operator_authorization.test.ts tests/unit/cstar-kernel-mcp/test_forge_set_manifest_authorization.test.ts tests/unit/cstar-kernel-mcp/test_forge_request_authorization_controller.test.ts tests/unit/cstar-kernel-mcp/test_forge_natural_language_authorization.test.ts tests/unit/cstar-kernel-mcp/test_forge_multirecord_authorization.test.ts tests/unit/cstar-kernel-mcp/test_forge_authorization_one_shot.test.ts tests/unit/cstar-kernel-mcp/test_forge_receipt_controller.test.ts tests/unit/cstar-kernel-mcp/test_augury_natural_translation_integration.test.ts tests/unit/cstar-kernel-mcp/test_forge_set_manifest_natural_translation.test.ts",
+      "exit_code": 0,
+      "suites": 11,
+      "tests": 169,
+      "passed": 169,
+      "failed": 0,
+      "provider_execution_tests_excluded": true
+    },
+    {
+      "command": "npm run typecheck",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "clean": true
+    },
+    {
+      "command": "wc -l on every touched production/test source",
+      "exit_code": 0,
+      "source_files": 19,
+      "maximum_lines": 500
+    },
+    {
+      "command": "sha256sum .cstar/validation/cstar-repair-natural-set-translation-20260803.json",
+      "exit_code": 0,
+      "actual_sha256": "87af4b91e4fc47447d951e259dd9ee781eb31a5ba665fc473ad7399516b18624"
+    },
+    {
+      "command": "cstar hall \"bead:cstar:repair-natural-set-translation-20260803\"",
+      "exit_code": 1,
+      "read_only": true,
+      "error": "Error parsing: /home/morderith/Corvus/CStar/package.json",
+      "cstar_mutation": false
+    }
+  ],
+  "worker_broad_reconciliation": {
+    "receipt_claim": {"suites": 19, "tests": 199, "passed": 199, "failed": 0},
+    "command_recoverable_from_receipt": false,
+    "independently_rerun": false,
+    "reason": "The receipt records counts only and contains no broad command string."
+  },
+  "synthetic_batch1": {
+    "command": "NODE_TEST_CONTEXT=1 node scripts/run-tsx.mjs (inline read-only synthetic harness)",
+    "design_sha256": "e775daf70c27f5ca4c455a7494c4fab55434ade314caffd717bb812bea42579a",
+    "target_count": 22,
+    "scope": "brain:CStar",
+    "positive": {
+      "result": "PASS",
+      "receipt_schema": "cstar.augury_mission_receipt.v2",
+      "materialization_replayed": false,
+      "hall_receipt_rows": 1,
+      "design_and_target_binding_verified": true
+    },
+    "replay": {"result": "REJECTED", "error": "augury_mission_set_signal_consumed"},
+    "duplicate": {"result": "REJECTED", "error": "augury_mission_set_signal_ambiguous"},
+    "revocation": {"result": "REJECTED", "error": "augury_mission_set_signal_revoked"},
+    "required_context_probes": [
+      {"text": "Could you do it?", "result": "REJECTED", "error": "forge_set_manifest_natural_signal_ambiguous"},
+      {"text": "If later, do it", "result": "REJECTED", "error": "forge_set_manifest_natural_signal_ambiguous"},
+      {"text": "Maybe do it", "result": "REJECTED", "error": "forge_set_manifest_natural_signal_ambiguous"},
+      {"text": "The report says do it", "result": "REJECTED", "error": "forge_set_manifest_natural_signal_ambiguous"},
+      {"text": "The report says \"Do it\".", "result": "REJECTED", "error": "forge_set_manifest_natural_signal_ambiguous"},
+      {"text": "For example, do it", "result": "REJECTED", "error": "forge_set_manifest_natural_signal_ambiguous"},
+      {"text": "We should discuss whether to do it.", "result": "REJECTED", "error": "forge_set_manifest_natural_signal_ambiguous"},
+      {"text": "The report recommends we do it.", "result": "REJECTED", "error": "forge_set_manifest_natural_signal_ambiguous"}
+    ],
+    "mismatch_probes": [
+      {"kind": "scope", "result": "REJECTED", "error": "augury_mission_scope_mismatch"},
+      {"kind": "target_set", "result": "REJECTED", "error": "augury_mission_target_set_mismatch"},
+      {"kind": "decision", "result": "REJECTED", "error": "augury_mission_materialization_parent_stale"},
+      {"kind": "bead", "result": "REJECTED", "error": "augury_mission_plan_dependency_invalid"},
+      {"kind": "design", "result": "REJECTED", "error": "augury_mission_materialization_parent_stale"}
+    ],
+    "acceptance_failures": [
+      {
+        "requirement": "scoped revocation must fail closed",
+        "input_sequence": ["Do it", "Stop this mission."],
+        "actual": "OK cstar.augury_mission_receipt.v2",
+        "expected": "augury_mission_set_signal_revoked",
+        "source_reason": "isForgeAuthorityRevocation lacks a mission target in its scoped cancellation grammar; the natural context predicate therefore does not classify this record before the exact Do it match is selected.",
+        "source_refs": ["src/tools/cstar-kernel-mcp/tools/forge_set_manifest_signal.ts:125-129", "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_signal.ts:159-163", "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_signal.ts:361-366"]
+      },
+      {
+        "requirement": "first-person denial must fail closed",
+        "input_sequence": ["Do it", "I am not authorizing this."],
+        "actual": "OK cstar.augury_mission_receipt.v2",
+        "expected": "augury_mission_set_signal_revoked or augury_mission_set_signal_ambiguous",
+        "source_reason": "The authority-shaped predicate matches authorize but not the inflected form authorizing, and the revocation predicate does not classify this denial; the exact Do it record is consequently translated.",
+        "source_refs": ["src/tools/cstar-kernel-mcp/tools/forge_set_manifest_signal.ts:125-129", "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_signal.ts:361-366"]
+      },
+      {
+        "requirement": "direct natural translation must fail closed for the same denial and revocation",
+        "input_sequence": ["Do it", "I am not authorizing this."],
+        "actual_direct_translation": "TRANSLATED",
+        "input_sequence_2": ["Do it", "Stop this mission."],
+        "actual_direct_translation_2": "TRANSLATED"
+      }
+    ]
+  },
+  "effects": {
+    "network_calls": 0,
+    "provider_attempts": 0,
+    "cstar_mcp_mutations": 0,
+    "cstar_record_result_called": false,
+    "reload_called": false,
+    "git_commit_push_merge": false,
+    "config_or_host_state_mutation": false,
+    "live_truth_touched": false
+  },
+  "changed_paths": [
+    {"path": "src/tools/cstar-kernel-mcp/register_core_tools.ts", "sha256": "8bc232ab4f850e16ac90f60cc5a678f180c0d3d557dbabfad6c4f54317f6a804", "lines": 465},
+    {"path": "src/tools/cstar-kernel-mcp/tools/augury.ts", "sha256": "730a14ef36ade50c1ede25cead3f28c0340c158fa61c51dbf28c15fe0100994b", "lines": 417},
+    {"path": "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_signal.ts", "sha256": "748d8f43d17273b0dd4b1b23483d08547670116ca113c9f2daa6edcd8252aa4f", "lines": 497},
+    {"path": "src/tools/cstar-kernel-mcp/contracts/augury_mission.ts", "sha256": "69a7556dda08af463295a5c4140e94b8553f8f41b552b4d63a9f6d20367366c7", "lines": 331},
+    {"path": "src/tools/cstar-kernel-mcp/contracts/augury_mission_schema.ts", "sha256": "405a709d34c485621d278822b22d420ab63a02e26c300d6f289f337eef26fa5d", "lines": 184},
+    {"path": "src/tools/cstar-kernel-mcp/contracts/forge_child_request_template.ts", "sha256": "489eb5dc0d441a6a82511073895e4503f99e3cc701a7a86d6daa09023debd60b", "lines": 330},
+    {"path": "src/tools/cstar-kernel-mcp/tools/augury_mission_binding.ts", "sha256": "e22206645dad031fb90809146b119b064e2e109f1558cfafb46cd84544862abc", "lines": 500},
+    {"path": "src/tools/cstar-kernel-mcp/tools/augury_mission_binding_v2.ts", "sha256": "09c58c624656b28e6103b38aab55d89ce847f8d1537a242ae1060bfab609b896", "lines": 297},
+    {"path": "src/tools/cstar-kernel-mcp/tools/augury_mission_dispatch_controller.ts", "sha256": "428cea61cfbb3be52c3833e29d5a8b79585b6c678be1b6b3c8db9d14be291444", "lines": 55},
+    {"path": "src/tools/cstar-kernel-mcp/tools/augury_mission_natural_translation.ts", "sha256": "12bbada2266a3a31c30ea7238f57dccac3701227d800606022e017e9dcd1af5f", "lines": 42},
+    {"path": "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_consumption.ts", "sha256": "d11e137d12ffebabc01336b6b18c9ae3bf872b5796eb07d9bd73fab7bb76aa41", "lines": 55},
+    {"path": "src/tools/pennyone/intel/augury_mission_child_template_binding.ts", "sha256": "b3d99c078aba6fc0cdbcdef4239acfbf9288161ce190fbcc6c35e16dff3e76b1", "lines": 33},
+    {"path": "src/tools/pennyone/intel/augury_mission_receipt_controller.ts", "sha256": "6b316706956655ff9772baef2059db28c8b8f0695529b5c15347f20708f615bd", "lines": 481},
+    {"path": "src/tools/pennyone/intel/augury_mission_receipt_schema.ts", "sha256": "b2e73a9fa7dcfbda61b164f4ece0a29ec1ddd383917904a5a31f47e0f6421b59", "lines": 99},
+    {"path": "src/tools/pennyone/intel/augury_mission_receipt_validation.ts", "sha256": "93e57e063476f36426607317eed131c2d599461ed2a4b84c70349c59ed538333", "lines": 394},
+    {"path": "src/tools/pennyone/intel/augury_mission_receipt_validation_v2.ts", "sha256": "fa2a73c52e2ca28ac7ef5b0ec814eb3bff11f168dd92fa036f84050ae22a927e", "lines": 233},
+    {"path": "tests/unit/cstar-kernel-mcp/test_augury_natural_translation_integration.test.ts", "sha256": "0b7d27640e7a25ac5792eae1a3f9b78a0fd4576a27db53a890d5cb8f49cb2b01", "lines": 235},
+    {"path": "tests/unit/cstar-kernel-mcp/test_forge_set_manifest_natural_translation.test.ts", "sha256": "33dc7f51ac8b14ee35be6fa10037e42dc7d47898aed29eb6a933ff12289cea91", "lines": 200}
+  ],
+  "independent_report": {
+    "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/independent/luna-max-cstar-repair-natural-set-translation-20260803.json",
+    "self_sha256_excluded_from_file_to_avoid_recursive_hashing": true
+  },
+  "live_activation_requirement": {
+    "scoped_reload_required": true,
+    "exact_requirement": "After correction and a fresh independent validation, perform only the scoped runtime reload for the successor CStar Augury seam; live cstar_augury must succeed for an exact current root-user Do it bound to the validated v2 brain:CStar boundary and must fail closed for duplicates, revocations, stale identities, and consumed identities.",
+    "current_gate": "BLOCKED_BY_REJECT",
+    "reload_performed": false
+  }
+}

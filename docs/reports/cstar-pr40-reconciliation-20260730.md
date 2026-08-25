@@ -1,5 +1,11 @@
 # CStar Local and PR40 Reconciliation
 
+> **HISTORICAL SNAPSHOT — 2026-07-30 — NON-AUTHORITATIVE FOR CURRENT ROUTING.**
+> This report records the PR40 reconciliation state as of 2026-07-30. Sealed
+> `cstar-hub`/MiniMax descriptions are legacy v2 compatibility material, not
+> the current v3 default. Current v3 Forge uses the Codex-host state-only
+> handoff; current Researcher is the host-only request/evidence lane.
+
 Date: 2026-07-30
 Decision: `decision:cstar-pr40-local-reconciliation-20260729`
 Parent bead: `bead:cstar:pr40-local-reconciliation-20260729`

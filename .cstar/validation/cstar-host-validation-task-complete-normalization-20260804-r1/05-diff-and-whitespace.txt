@@ -1,0 +1,10 @@
+read-only Git/whitespace checks:
+- git diff --check: exit_status=0; no output
+- git diff --check -- src/tools/cstar-kernel-mcp/tools/host_workflow_validation.ts
+  tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts:
+  exit_status=0; no output
+- rg -n '[[:blank:]]+$' over all four final target files: exit_status=1
+  with no output, meaning no trailing-whitespace matches
+
+The tracked-file Git checks and the explicit scan covering the two untracked
+helper files both passed. No Git state was changed.

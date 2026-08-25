@@ -1,0 +1,93 @@
+{
+  "schema": "cstar.independent_validation_check.v1",
+  "check": "full_kernel_mcp_unit",
+  "status": "pass",
+  "command": "PATH=/home/morderith/.nvm/versions/node/v25.8.1/bin:$PATH node scripts/run-tsx.mjs --test --test-concurrency=2 tests/unit/cstar-kernel-mcp/*.test.ts",
+  "runtime": {
+    "node": "v25.8.1",
+    "native_module_rebuild": false
+  },
+  "counts": {
+    "tests": 808,
+    "suites": 109,
+    "passed": 808,
+    "failed": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "duration_ms": 150908.20393
+  },
+  "semantic_coverage": [
+    {
+      "area": "authorization_non_regression",
+      "status": "pass",
+      "evidence": [
+        "exact multi-record Forge authorization",
+        "ordinary natural-language Forge authorization",
+        "operator SET manifest Forge authorization",
+        "same-root autonomous SET Forge dispatch",
+        "one-shot exact Forge authority",
+        "connection-bound Codex operator authorization"
+      ]
+    },
+    {
+      "area": "typed_outcomes_deadlines_telemetry",
+      "status": "pass",
+      "evidence": [
+        "typed MCP outcomes",
+        "bounded MCP read deadlines",
+        "SET-01 MCP outcome and deadline instrumentation",
+        "MCP instrumentation authorization boundary"
+      ]
+    },
+    {
+      "area": "persona_cas",
+      "status": "pass",
+      "evidence": [
+        "cstar_persona_set",
+        "CStar status-only persona boundary"
+      ]
+    },
+    {
+      "area": "validation_ticket_and_spoke_roots",
+      "status": "pass",
+      "evidence": [
+        "one-use Forge validation tickets",
+        "CStar code/control root separation",
+        "Forge validation evidence type boundary",
+        "public terminal Forge validation linkage"
+      ]
+    },
+    {
+      "area": "current_v3_host_handoff_drift_zero_provider",
+      "status": "pass",
+      "evidence": [
+        "Forge Codex-host worker handoff contract",
+        "CStar durable Forge public path",
+        "Forge current-v3 Codex-host handoff compatibility",
+        "Forge runtime lifecycle gate",
+        "Codex-host runtime lineage contract",
+        "durable asynchronous dispatch seam"
+      ]
+    },
+    {
+      "area": "catalog_router_distribution_parity",
+      "status": "pass",
+      "evidence": [
+        "SET-04 catalog and router parity",
+        "CStar MCP canonical tool catalog",
+        "distribution generator",
+        "CStar MCP tool class contract"
+      ]
+    },
+    {
+      "area": "test_only_node_test_context_scoping",
+      "status": "pass",
+      "evidence": "No NODE_TEST_CONTEXT assignment occurs under src; test fixtures scope and restore the variable."
+    }
+  ],
+  "source_test_edits": false,
+  "provider_attempts": 0,
+  "network_activity": false,
+  "runtime_activation": false
+}

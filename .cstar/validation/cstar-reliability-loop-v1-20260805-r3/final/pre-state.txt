@@ -1,0 +1,8 @@
+validation_id: validation:cstar-reliability-loop-v1-20260805-r3-final
+bead_id: bead:mcp:turn-the-accepted-sprt-autoresearcher-gungnir-fi-msg4t12q
+head: afbbc1770ec6a7a2adc15b83f91c5586ac2525c0
+branch: codex/cstar-state-only-luna-host-seam-batch1-20260803
+scope_count: 34
+scope_digest: 4fa5a330f92225722eef52948b63f2d371c21e4e2147271741daf015dba30a6f
+result_ts_sha256: 1a1f978aa33037ea44a03e058023e9dc9b691558254cb40a3fd7b76954c974c1
+receipt_sha256: 802814c0ebf3846405513a15cfdbf1043c215ae5ba4895502d794f78081a463d

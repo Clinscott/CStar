@@ -312,6 +312,23 @@ describe('legacy Forge v2 public continuity path', () => {
         const validatorSession = createSession({
             textParts: ['Independently validate the delivered legacy v2 Forge output.'],
         });
+        const ticketRequestSession = createSession({
+            textParts: ['Issue one validator ticket for the delivered legacy v2 output.'],
+        });
+        const issuedTicket = parse(await handleRecordResult({
+            bead_id: fixture.legacy.bead_id,
+            verdict: 'INCONCLUSIVE',
+            validation_id: 'validation:legacy-v2-public-ticket-issue',
+            validation_ticket_request: {
+                execution_receipt_id: executed.execution_receipt_id,
+                attempt_id: executed.attempt_id,
+                scope_sha256: sha256(stableJson(fixture.legacy.target_paths)),
+                validator_thread_id: validatorSession.threadId,
+                validator_turn_id: validatorSession.turnId,
+            },
+        }, validRequestContext(ticketRequestSession.threadId, ticketRequestSession.turnId)));
+        assert.equal(issuedTicket.status, 'validation_ticket_issued', JSON.stringify(issuedTicket));
+        process.env.CODEX_HOME = validatorSession.codexHome;
         delete process.env.NODE_TEST_CONTEXT;
         process.env.CSTAR_MCP_CALLER_THREAD_ID = validatorSession.threadId;
         process.env.CSTAR_MCP_CALLER_TRANSPORT = 'direct-stdio';
@@ -320,6 +337,7 @@ describe('legacy Forge v2 public continuity path', () => {
             verdict: 'SUCCESS',
             validation_id: 'validation:legacy-v2-public-path',
             forge_execution_receipt_id: executed.execution_receipt_id,
+            validation_ticket: issuedTicket.validation_ticket,
             validation_evidence: {
                 artifacts: [
                     { path: evidencePath, sha256: evidenceSha256 },
@@ -340,6 +358,12 @@ describe('legacy Forge v2 public continuity path', () => {
         assert.equal(validation.forge_validation.accepted, true);
         assert.equal(validation.forge_validation.attempt_status, 'SUCCEEDED');
         assert.equal(validation.forge_validation.request_status, 'SUCCEEDED');
+        assert.equal(
+            fixture.db.prepare(
+                'SELECT consumed_validation_id FROM hall_forge_validation_tickets',
+            ).get()?.consumed_validation_id,
+            'validation:legacy-v2-public-path',
+        );
     });
 
     it('rejects a semantic widening before challenge publication or request mutation', async () => {

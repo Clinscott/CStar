@@ -1,0 +1,7 @@
+validation_id=validation:cstar-forge-authorization-child-fk-migration-20260804-r2
+runtime=/home/morderith/.nvm/versions/node/v25.8.1/bin/node v25.8.1; npm 11.11.0
+command=/home/morderith/.nvm/versions/node/v25.8.1/bin/node scripts/run-tsx.mjs --test --test-concurrency=2 tests/unit/cstar-kernel-mcp/test_forge_authorization_schema_profiles.test.ts tests/unit/cstar-kernel-mcp/test_forge_authorization_schema_legacy_duplicates.test.ts
+profile_suite=3/3 passed, 0 failed, exit 0
+legacy_duplicate_suite=5/5 passed, 0 failed, exit 0
+focused_total=8/8 passed across 2 suites
+

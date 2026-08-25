@@ -282,7 +282,6 @@ describe('CStar durable Forge public path', () => {
                 callback_required: true,
             },
             package_locks: [],
-            execution_adapter_ref: 'cstar-forge-hermes-minimax-adapter',
         };
         const requestResult = await handleForgeRequest(base, requestContext(fixture.authorization));
         assert.equal(requestResult.isError, undefined, requestResult.content[0].text);
@@ -315,11 +314,12 @@ describe('CStar durable Forge public path', () => {
         assert.equal(parsed.forge_execution.attempted, false);
         assert.equal(parsed.forge_execution.adapter_invoked, false);
         assert.equal(parsed.forge_execution.live_spend, false);
-        assert.match(parsed.error, /forge_artifact_directory_unsafe_type/);
+        assert.equal(result.isError, undefined);
+        assert.match(parsed.forge_execution.fail_closed_reason, /forge_artifact_directory_unsafe_type/);
         assert.deepEqual(fs.readdirSync(outsideArtifacts), []);
     });
 
-    it('records one authorized request, preserves ambiguous spend, and replays without another invocation', async () => {
+    it('records one host-owned handoff and replays it without another provider attempt', async () => {
         const fixture = createFixture();
         const decisionId = 'decision-test-durable-forge-handler';
         const base = {
@@ -332,7 +332,7 @@ describe('CStar durable Forge public path', () => {
             target_paths: [CSTAR_TARGET],
             scope: 'CStar durable Forge authority test only',
             authority_lane: 'yellow' as const,
-            required_metrics: [{ name: 'adapter_invocations', threshold: '= 1' }],
+            required_metrics: [{ name: 'provider_attempts', threshold: '= 0' }],
             artifact_expectations: ['DURABLE_FORGE_TEST_PACKET'],
             prohibited_actions: ['git_merge', 'git_push', 'deploy', 'authorized_source_collection'],
             requested_actions: ['response_only'],
@@ -350,7 +350,6 @@ describe('CStar durable Forge public path', () => {
                 callback_thread_id: fixture.authorization.threadId,
             },
             package_locks: [],
-            execution_adapter_ref: 'cstar-forge-hermes-minimax-adapter',
         };
 
         const requestResult = await handleForgeRequest(base, requestContext(fixture.authorization));
@@ -381,15 +380,12 @@ describe('CStar durable Forge public path', () => {
             operator_authorization_ref: authorization.operator_authorization_ref,
             idempotency_key: 'durable-handler-one-shot',
         };
-        const laterSession = writeSingleInputSession(
-            fixture.codexHome,
-            'A later root-user turn cannot spend the exact one-turn grant.',
-        );
+        const laterSession = writeSingleInputSession(fixture.codexHome, 'A later root-user turn cannot spend the exact one-turn grant.');
         const driftResult = await handleForgeExecute(
             { ...executeArgs, idempotency_key: 'record-set-drift' },
             requestContext(laterSession),
         );
-        assert.equal(driftResult.isError, true);
+        assert.equal(driftResult.isError, undefined);
         assert.equal(
             JSON.parse(driftResult.content[0].text).error_code,
             'forge_execution_authorization_required',
@@ -400,57 +396,38 @@ describe('CStar durable Forge public path', () => {
         assert.equal(attemptsBefore.count, 0);
 
         const firstResult = await handleForgeExecute(executeArgs, requestContext(fixture.authorization));
-        assert.equal(firstResult.isError, true, firstResult.content[0].text);
+        assert.equal(firstResult.isError, undefined, firstResult.content[0].text);
         const first = JSON.parse(firstResult.content[0].text);
-        assert.equal(first.status, 'ambiguous');
-        assert.equal(first.attempt_status, 'UNKNOWN');
-        assert.equal(first.request_status, 'AMBIGUOUS');
-        assert.equal(first.forge_execution.adapter_result.envelope.requested_model, 'MiniMax-M3');
-        assert.equal(first.forge_execution.adapter_result.envelope.actual_model, null);
-        assert.equal(first.forge_execution.adapter_result.envelope.model_source, 'unreported');
-        assert.equal(first.forge_execution.adapter_result.envelope.live_spend, null);
-        assert.equal(first.forge_execution.adapter_result.envelope.live_spend_unknown, true);
-        const firstArtifact = first.forge_execution.adapter_result.envelope.response_artifact;
-        const firstArtifactStat = fs.statSync(firstArtifact.path);
-        const executionRoot = path.dirname(path.dirname(firstArtifact.path));
-        const executionDirectoriesBeforeReplay = fs.readdirSync(executionRoot).sort();
+        assert.equal(first.status, 'host_handoff_queued');
+        assert.equal(first.attempt_status, 'STARTED');
+        assert.equal(first.request_status, 'AUTHORIZED');
+        assert.equal(first.worker_job.schema, 'cstar.codex_host_worker_job.v2');
+        assert.equal(first.worker_job.runner_owner, 'codex-host');
+        assert.equal(first.worker_job.requested_model, 'gpt-5.6-luna');
+        assert.equal(first.worker_job.requested_reasoning, 'max');
+        assert.equal(first.worker_job.actual_identity, null);
+        assert.equal(first.worker_job.provider_requests_started, 0);
+        assert.equal(first.worker_job.spend_uncertain, false);
+        assert.equal(first.worker_job.known_spend_observed, false);
+        assert.equal(first.worker_job.cstar_launch, false);
+        assert.equal(first.worker_job.project_root, path.resolve('.'));
+        assert.equal(first.worker_job.validation_ticket_binding.one_use, true);
+        assert.equal(first.worker_job.validation_ticket_binding.attempt_id, first.attempt_id);
+        assert.equal(first.worker_job.validation_ticket_request.scope_sha256, request.target_paths_sha256);
+        assert.equal(first.host_handoff.provider_attempted, false);
+        const handoffPath = first.host_handoff.handoff_path;
+        const handoffStat = fs.statSync(handoffPath);
+        assert.equal(fs.existsSync(path.join(fixture.root, 'forge-adapter-invoked')), false);
 
-        const deniedReplayResult = await handleForgeExecute({
-            ...executeArgs,
-            operator_authorization_ref: `${authorization.operator_authorization_ref}-tampered`,
-        }, requestContext(laterSession));
-        assert.equal(deniedReplayResult.isError, true);
-        assert.equal(
-            JSON.parse(deniedReplayResult.content[0].text).error_code,
-            'forge_execution_authorization_required',
-        );
-
-        const tamperDb = database.getWritableDb(fixture.root);
-        tamperDb.prepare(`
-            UPDATE hall_forge_requests SET expires_at = expires_at + 1 WHERE request_id = ?
-        `).run(request.receipt_id);
-        const timeDriftReplayResult = await handleForgeExecute(
-            executeArgs,
-            requestContext(laterSession),
-        );
-        assert.equal(timeDriftReplayResult.isError, true);
-        assert.equal(
-            JSON.parse(timeDriftReplayResult.content[0].text).error_code,
-            'forge_execution_authorization_required',
-        );
-        tamperDb.prepare(`
-            UPDATE hall_forge_requests SET expires_at = expires_at - 1 WHERE request_id = ?
-        `).run(request.receipt_id);
-
-        const pendingReplayResult = await handleForgeExecute(executeArgs, requestContext(laterSession));
-        assert.equal(pendingReplayResult.isError, true, pendingReplayResult.content[0].text);
+        const pendingReplayResult = await handleForgeExecute(executeArgs, requestContext(fixture.authorization));
+        assert.equal(pendingReplayResult.isError, undefined, pendingReplayResult.content[0].text);
         const pendingReplay = JSON.parse(pendingReplayResult.content[0].text);
-        assert.equal(pendingReplay.status, 'ambiguous_replay');
+        assert.equal(pendingReplay.status, 'host_handoff_replayed');
         assert.equal(pendingReplay.replayed, true);
-        assert.equal(pendingReplay.attempt_status, 'UNKNOWN');
-        assert.equal(pendingReplay.forge_execution.fail_closed_reason, 'durable_attempt_unknown');
-        assert.equal(fs.statSync(firstArtifact.path).mtimeMs, firstArtifactStat.mtimeMs);
-        assert.deepEqual(fs.readdirSync(executionRoot).sort(), executionDirectoriesBeforeReplay);
+        assert.equal(pendingReplay.attempt_status, 'STARTED');
+        assert.equal(pendingReplay.worker_job.job_id, first.worker_job.job_id);
+        assert.equal(fs.statSync(handoffPath).mtimeMs, handoffStat.mtimeMs);
+        assert.equal(pendingReplay.forge_execution.provider_attempted, false);
         const attemptsAfter = database.getReadDb(fixture.root).prepare(`
             SELECT COUNT(*) AS count FROM hall_forge_attempts WHERE request_id = ?
         `).get(request.receipt_id) as { count: number };

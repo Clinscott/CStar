@@ -1,0 +1,6 @@
+scope: forge_authorization_schema.ts and test_forge_authorization_schema_legacy_duplicates.test.ts
+review: migration removes the table-level pair UNIQUE constraint, preserves legacy rows exactly, installs deterministic insert/update one-use triggers after copy, and leaves failed migrations transactional
+review: fresh, repeated-ensure, legacy-duplicate, current-table-unique, update-collision/self/unused, Hall-bootstrap-isolation, and lifecycle non-regression behavior are covered by the green checks
+review: no authority, spend, replay, provider, scope, or execution-boundary weakening found in the exact scoped diff
+review: both touched source/test files are under the 500-line policy
+status: pass

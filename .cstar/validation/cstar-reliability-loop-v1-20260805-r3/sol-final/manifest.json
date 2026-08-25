@@ -1,0 +1,53 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:mcp:turn-the-accepted-sprt-autoresearcher-gungnir-fi-msg4t12q",
+  "validation_id": "validation:cstar-reliability-loop-v1-20260805-r3-sol-final",
+  "reported_verdict": "REJECTED",
+  "artifacts": [
+    {
+      "path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r3/sol-final/lore.txt",
+      "sha256": "51b124c6e69d13c4e203552cd8b6d8a5927c9dc7fb79d86a2508f5a4bb906334",
+      "bytes": 3487
+    },
+    {
+      "path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r3/sol-final/isolation.txt",
+      "sha256": "dd156447c26b1c16feaa1b4d36c89ab982ed681a06d0229edaa50fab183ad78c",
+      "bytes": 4104
+    },
+    {
+      "path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r3/sol-final/sprt.txt",
+      "sha256": "3308e93bab7fbb84f27c22dd493919216b1b56119dd9bf95762cfaa36035c4d7",
+      "bytes": 2250
+    },
+    {
+      "path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r3/sprt/receipt.json",
+      "sha256": "802814c0ebf3846405513a15cfdbf1043c215ae5ba4895502d794f78081a463d",
+      "bytes": 43373
+    },
+    {
+      "path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r3/sprt/receipt.sha256",
+      "sha256": "98788f7756169ce40db0d345f2fbc80a453db32636932b0dce3ae4d56008b56d",
+      "bytes": 79
+    }
+  ],
+  "checks": [
+    {
+      "name": "Lore frozen-source and repository-root gate audit completed",
+      "status": "pass",
+      "evidence_path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r3/sol-final/lore.txt",
+      "sha256": "51b124c6e69d13c4e203552cd8b6d8a5927c9dc7fb79d86a2508f5a4bb906334"
+    },
+    {
+      "name": "Isolation prescribed execution and line-count checks completed",
+      "status": "pass",
+      "evidence_path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r3/sol-final/isolation.txt",
+      "sha256": "dd156447c26b1c16feaa1b4d36c89ab982ed681a06d0229edaa50fab183ad78c"
+    },
+    {
+      "name": "SPRT checksum digest and candidate-parser verification completed",
+      "status": "pass",
+      "evidence_path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r3/sol-final/sprt.txt",
+      "sha256": "3308e93bab7fbb84f27c22dd493919216b1b56119dd9bf95762cfaa36035c4d7"
+    }
+  ]
+}

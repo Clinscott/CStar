@@ -1,0 +1,9 @@
+validation_id=validation:cstar-forge-authorization-child-fk-migration-20260804-r2
+source=/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/src/tools/pennyone/intel/forge_authorization_schema.ts
+lines=11-73: three allowed profiles; exact challenge binding; root/autonomous intent requirement; autonomous JSON schema/action/lineage/bead/repository checks; autonomous execution-grant fields null
+lines=77-99,245-273: insert and update one-use guards and guarded-schema recognition require forge_operator_turn_already_consumed
+lines=192-235: child-table rebuild copies rows, retargets legacy parent FK to hall_forge_authorizations, recreates associated index/trigger SQL, verifies canonical child FK
+lines=323-405: parent snapshot/copy preserves all selected fields, rejects stale migration tables, rebuilds child, drops only the legacy parent, recreates guards, checks parent-scoped FK integrity
+lines=421-427: public ensure entrypoint preserves caller transaction or uses an immediate transaction
+review_result=source behavior is bounded to the requested parent/child migration; no live database was passed to this implementation
+

@@ -1,0 +1,27 @@
+required compatible-runtime command:
+  /home/morderith/.nvm/versions/node/v25.8.1/bin/node --import ./node_modules/tsx/dist/loader.mjs tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts
+compatible runtime: node v25.8.1; npm 11.11.0; better-sqlite3 12.6.2;
+native ABI 141
+compatible-runtime exit_status: 0
+compatible-runtime tests: 16
+compatible-runtime passed: 16
+compatible-runtime failed: 0
+compatible-runtime skipped: 0
+compatible-runtime todo: 0
+coverage: receipt-only v3 derivation; legacy payload compatibility and
+conflict; matcher acceptance/rejection; manifest shape, duplicate paths,
+scope/hash, lineage, latest-turn, freshness, authorization, and native
+better-sqlite3 persistence/cross-scope replay
+
+Explicit default-runtime comparison:
+  /home/morderith/.nvm/versions/node/v26.5.0/bin/node --import ./node_modules/tsx/dist/loader.mjs tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts
+default runtime: node v26.5.0; exit_status: 1; tests 16; passed 15;
+failed 1
+default-runtime limitation: the persistence test failed before its assertions
+with ERR_DLOPEN_FAILED because better-sqlite3 was compiled for
+NODE_MODULE_VERSION 141 while Node v26.5.0 requires 147.
+
+The existing compatible Node v25.8.1 runtime clears that single legacy native
+module failure without installing or rebuilding dependencies. The Node 26
+failure is recorded as an environment limitation, not as a source-behavior
+failure; no acceptance check was claimed from the failed runtime.

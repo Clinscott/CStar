@@ -17,6 +17,7 @@ import {
     resolveHallPersonaProjectionForWrite,
     resolveHallPersonaForWrite,
 } from '../../src/tools/pennyone/persona_projection.ts';
+import { setCanonicalPersonaState } from '../../src/tools/pennyone/intel/persona_state.ts';
 import { registry } from '../../src/tools/pennyone/pathRegistry.ts';
 
 describe('PennyOne Hall persona projection', () => {
@@ -56,14 +57,16 @@ describe('PennyOne Hall persona projection', () => {
         });
     }
 
-    it('preserves the target repository persona when one already exists', () => {
+    it('uses the canonical control-plane persona for a target write', () => {
+        setCanonicalPersonaState(root, 'O.D.I.N.');
         save(root, 'A.L.F.R.E.D.');
-        save(target, 'O.D.I.N.');
+        save(target, 'A.L.F.R.E.D.');
         assert.equal(resolveHallPersonaForWrite(target, root), 'O.D.I.N.');
         assert.equal(fs.existsSync(path.join(target, '.stats')), false);
     });
 
     it('inherits the control-plane projection for a new target repository', () => {
+        setCanonicalPersonaState(root, 'O.D.I.N.');
         save(root, 'O.D.I.N.');
         assert.equal(resolveHallPersonaForWrite(target, root), 'O.D.I.N.');
         const projection = resolveHallPersonaProjectionForWrite(target, root);
@@ -72,6 +75,7 @@ describe('PennyOne Hall persona projection', () => {
     });
 
     it('preserves a self-consistent unchanged marker across a routine repository write', () => {
+        setCanonicalPersonaState(root, 'O.D.I.N.');
         save(target, 'O.D.I.N.');
         upsertHallRepository({
             root_path: target,
@@ -85,6 +89,8 @@ describe('PennyOne Hall persona projection', () => {
             updated_at: 2,
         });
         assert.equal(readHallPersonaProjection(target), 'O.D.I.N.');
+        const record = getHallRepositoryRecord(target);
+        assert.ok(record?.metadata?.persona_projection);
     });
 
     it('does not preserve a marker when the scalar changes', () => {
@@ -100,6 +106,8 @@ describe('PennyOne Hall persona projection', () => {
             created_at: 2,
             updated_at: 2,
         });
+        const record = getHallRepositoryRecord(target);
+        assert.equal(record?.metadata?.persona_projection, undefined);
         assert.equal(readHallPersonaProjection(target), null);
     });
 
@@ -151,7 +159,7 @@ describe('PennyOne Hall persona projection', () => {
         assert.equal(readHallPersonaProjection(target), null);
     });
 
-    it('labels a matching legacy v1 marker unverified without upgrading it', () => {
+    it('does not treat a matching legacy v1 marker as canonical persona state', () => {
         const valueSha256 = createHash('sha256').update('O.D.I.N.', 'utf8').digest('hex');
         upsertHallRepository({
             root_path: target,
@@ -170,8 +178,8 @@ describe('PennyOne Hall persona projection', () => {
             updated_at: 1,
         });
         assert.deepEqual(readHallPersonaProjectionState(target), {
-            active_persona: 'O.D.I.N.',
-            projection_status: 'legacy_self_consistent_unverified',
+            active_persona: null,
+            projection_status: 'unavailable',
         });
         const record = getHallRepositoryRecord(target);
         assert.equal(

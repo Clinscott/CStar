@@ -1,0 +1,8 @@
+command: node scripts/run-tsx.mjs --test tests/unit/cstar-kernel-mcp/test_terminal_forge_validation_linkage.test.ts tests/unit/cstar-kernel-mcp/test_forge_preprovider_continuation.test.ts tests/unit/cstar-kernel-mcp/test_validation_evidence_type_boundary.test.ts
+runtime: node v25.8.1; npm 11.11.0
+exit_status: 0
+suites: 3
+tests: 7
+passed: 7
+failed: 0
+coverage: terminal linkage 2/2; pre-provider continuation 2/2; validation evidence type boundary 3/3

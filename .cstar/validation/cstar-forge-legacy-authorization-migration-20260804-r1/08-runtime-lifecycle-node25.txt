@@ -1,0 +1,7 @@
+command: node scripts/run-tsx.mjs --test tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts
+runtime: node v25.8.1
+suite: Forge runtime lifecycle gate
+tests: 4
+passed: 4
+failed: 0
+status: pass

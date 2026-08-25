@@ -66,3 +66,11 @@ Feature: Durable CStar work routing and recovery
     When legacy completion reconciliation is invoked
     Then it fails before Hall memory validation provider Git or dispatch activity
     And result validation remains an explicit cstar_record_result operation
+
+  Scenario: Researcher callback compatibility stays bounded
+    Given an ordinary Researcher request omits callback_contract
+    When the CStar kernel normalizes the request
+    Then it derives exactly one decision-bound CSTAR_RESEARCHER_RESULT:<decision_id> packet for source_callback_thread_id
+    And an explicit callback_contract remains compatible with the legacy callback defaults
+    And Forge request and execute contracts still require callback_contract
+    And normalization has no provider, spend, source, retry, execution, or authority effect

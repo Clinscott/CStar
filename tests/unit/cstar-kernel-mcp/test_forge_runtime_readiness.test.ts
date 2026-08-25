@@ -106,12 +106,50 @@ function fixture(): { codeRoot: string; controlRoot: string; runtimeRoot: string
     return { codeRoot, controlRoot, runtimeRoot };
 }
 
+function hostFixture(): { codeRoot: string; controlRoot: string; runtimeRoot: string } {
+    const value = fixture();
+    writeJson(path.join(value.runtimeRoot, 'host-manifest.json'), {
+        schema: 'cstar.forge_host_runtime_manifest.v2',
+        runtime_owner: 'cstar-state-only',
+        runner_owner: 'codex-host',
+        workflow_surfaces: ['forge', 'researcher'],
+        requested_model: 'gpt-5.6-luna',
+        requested_reasoning: 'max',
+        selector_status: 'enforced',
+        actual_identity: null,
+        transport: 'codex-host',
+        host_launch_required: true,
+        provider_attempted: false,
+        network_policy: 'codex_host_no_cstar_network',
+        cognition_launch: false,
+        cstar_launch: false,
+        manifest_schema_path: 'host-manifest.schema.json',
+        generator_path: 'scripts/codex_host_runtime_lineage.mjs',
+        proof_files: [
+            'runtime/host-manifest.json',
+            'runtime/host-manifest.schema.json',
+            'scripts/codex_host_runtime_lineage.mjs',
+        ],
+        receipt_schema: 'cstar.forge_host_runtime_receipt.v2',
+        hash_algorithm: 'sha256',
+    });
+    writeJson(path.join(value.runtimeRoot, 'host-manifest.schema.json'), {
+        $id: 'cstar.forge_host_runtime_manifest.v2',
+        additionalProperties: false,
+    });
+    writeFile(
+        path.join(value.codeRoot, '.agents/skills/corvus-forge/scripts/codex_host_runtime_lineage.mjs'),
+        'cstar.forge_host_runtime_receipt.v2\n',
+    );
+    return value;
+}
+
 afterEach(() => {
     for (const root of roots.splice(0)) fs.rmSync(root, { recursive: true, force: true });
 });
 
 describe('Forge live-runtime readiness', () => {
-    it('accepts only a distinct-root, synchronized, complete synthetic runtime', () => {
+    it('reads the legacy Hermes manifest but never treats it as current readiness', () => {
         const value = fixture();
         const lineage = buildKernelRuntimeLineageForRoots({
             codeRoot: value.codeRoot,
@@ -124,6 +162,27 @@ describe('Forge live-runtime readiness', () => {
             'verified_required_native_artifacts',
         );
         assert.equal(lineage.forge_runtime_proof.contract, 'verified_manifest_content');
+        assert.equal(lineage.forge_runtime_proof.manifest_version, 'legacy_v1');
+        assert.equal(lineage.forge_runtime_proof.actionable, false);
+        assert.equal(lineage.forge_runtime_manifest_present, false);
+        assert.ok(evaluateKernelForgeReadiness(lineage).failures.includes(
+            'forge_runtime_legacy_v1_non_actionable',
+        ));
+    });
+
+    it('accepts only a distinct-root, synchronized, current Codex-host runtime', () => {
+        const value = hostFixture();
+        const lineage = buildKernelRuntimeLineageForRoots({
+            codeRoot: value.codeRoot,
+            controlRoot: value.controlRoot,
+            bindingMode: 'live_launcher',
+        });
+        assert.equal(lineage.forge_runtime_proof.contract, 'verified_manifest_content');
+        assert.equal(lineage.forge_runtime_proof.manifest_version, 'host_v2');
+        assert.equal(lineage.forge_runtime_proof.actionable, true);
+        assert.equal(lineage.forge_runtime_proof.launcher_sha256, null);
+        assert.equal(lineage.forge_runtime_proof.executable_launcher_present, false);
+        assert.ok(lineage.forge_runtime_proof.receipt_sha256);
         assert.deepEqual(evaluateKernelForgeReadiness(lineage), { ready: true, failures: [] });
     });
 
@@ -134,10 +193,10 @@ describe('Forge live-runtime readiness', () => {
             controlRoot: value.codeRoot,
             bindingMode: 'live_launcher',
         });
-        assert.deepEqual(evaluateKernelForgeReadiness(lineage), {
-            ready: false,
-            failures: ['forge_runtime_distinct_code_control_roots_required'],
-        });
+        assert.equal(evaluateKernelForgeReadiness(lineage).ready, false);
+        assert.ok(evaluateKernelForgeReadiness(lineage).failures.includes(
+            'forge_runtime_distinct_code_control_roots_required',
+        ));
     });
 
     it('rejects another dependency drift even when TSX still matches', () => {

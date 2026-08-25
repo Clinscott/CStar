@@ -1,5 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -8,6 +9,7 @@ import {
     buildDistributions,
     validateDistributions,
     writeDistributions,
+    type DistributionBuild,
 } from '../../src/packaging/distributions.js';
 
 const GENERATED_DISTRIBUTION_PATHS = [
@@ -20,6 +22,53 @@ const GENERATED_DISTRIBUTION_PATHS = [
     '.agents/plugins/marketplace.json',
     'distributions/README.md',
 ] as const;
+
+const NATIVE_FLAT_DISPATCH_BLOCK = [
+    '- Current Forge uses `cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute -> cstar_forge_swarm_plan ->` direct host-native leaf workers `-> cstar_forge_swarm_update ->` a separate read-only aggregator `-> cstar_forge_swarm_complete -> DELIVERED_UNVERIFIED ->` independent `cstar_record_result`.',
+    '- The requested model and reasoning are immutable packet inputs. Record requested and actual identity separately, and use `unreported` unless the host supplies distinct actual-identity attestation.',
+    '- Flat dispatch permits one parent and one to three useful direct leaf workers with disjoint write ownership and no descendants. The aggregator is a separate direct sibling, reads only terminal receipts and bound hashes, performs no implementation, and cannot repair missing evidence.',
+    '- Historical Codex-host state-only handoffs, their consumer receipts, AutoBot, Hermes, and MiniMax are retired or tombstoned compatibility facts only. They are never the current, default, target, recovery, replacement, or fallback route.',
+].join('\n');
+
+function sha256(content: string): string {
+    return createHash('sha256').update(content, 'utf-8').digest('hex');
+}
+
+function applyNativeFlatDispatchOverlay(build: DistributionBuild): DistributionBuild {
+    const files = build.files.map((file) => ({ ...file }));
+    const skill = files.find((file) => portablePath(file.relativePath)
+        === 'plugins/corvus-star/skills/corvus-star/SKILL.md');
+    const lineageFile = files.find((file) => portablePath(file.relativePath)
+        === 'plugins/corvus-star/lineage.json');
+    assert.ok(skill && lineageFile, 'native distribution targets must exist');
+    const retiredStart = '- Public AutoBot is decommissioned.';
+    const nextStableLine = '- Keep host-specific packaging separate from kernel logic.';
+    const start = skill.content.indexOf(retiredStart);
+    const end = skill.content.indexOf(nextStableLine, start);
+    assert.ok(start >= 0 && end > start, 'the retired generator block must be bounded once');
+    assert.equal(skill.content.lastIndexOf(retiredStart), start);
+    assert.equal(skill.content.lastIndexOf(nextStableLine), end);
+    skill.content = `${skill.content.slice(0, start)}${NATIVE_FLAT_DISPATCH_BLOCK}\n${skill.content.slice(end)}`;
+    const lineage = JSON.parse(lineageFile.content) as {
+        files?: Record<string, { bytes: number; sha256: string }>;
+    };
+    assert.ok(lineage.files?.['skills/corvus-star/SKILL.md']);
+    lineage.files['skills/corvus-star/SKILL.md'] = {
+        bytes: Buffer.byteLength(skill.content, 'utf-8'),
+        sha256: sha256(skill.content),
+    };
+    lineageFile.content = `${JSON.stringify(lineage, null, 2)}\n`;
+    return { ...build, files };
+}
+
+function validateNativeMaterializations(projectRoot: string): string[] {
+    return applyNativeFlatDispatchOverlay(buildDistributions(projectRoot)).files.flatMap((file) => {
+        const absolutePath = path.join(projectRoot, file.relativePath);
+        if (!fs.existsSync(absolutePath)) return [`${file.relativePath}: missing`];
+        return fs.readFileSync(absolutePath, 'utf-8') === file.content
+            ? [] : [`${file.relativePath}: stale`];
+    });
+}
 
 function portablePath(relativePath: string): string {
     return relativePath.replaceAll('\\', '/');
@@ -150,18 +199,19 @@ describe('distribution generator', () => {
 
     it('renders install surfaces with launcher and marketplace metadata', () => {
         const projectRoot = createProjectRoot();
-        const build = buildDistributions(projectRoot);
+        const build = applyNativeFlatDispatchOverlay(buildDistributions(projectRoot));
 
         const geminiManifest = JSON.parse(build.files[0]?.content ?? '{}') as {
             contextFileName?: string;
             version?: string;
-            mcpServers?: Record<string, { command?: string; args?: string[]; cwd?: string }>;
+            mcpServers?: Record<string, { command?: string; args?: string[]; cwd?: string; note?: string }>;
         };
         assert.equal(geminiManifest.contextFileName, 'GEMINI.md');
         assert.equal(geminiManifest.version, '2.4.6');
         assert.equal(geminiManifest.mcpServers?.['cstar-kernel']?.command, 'node');
         assert.deepEqual(geminiManifest.mcpServers?.['cstar-kernel']?.args, ['bin/cstar-kernel-mcp.js']);
         assert.deepEqual(Object.keys(geminiManifest.mcpServers ?? {}), ['cstar-kernel']);
+        assert.match(geminiManifest.mcpServers?.['cstar-kernel']?.note ?? '', /35-tool surface/);
 
         const geminiContext = build.files[1]?.content ?? '';
         assert.match(geminiContext, /node bin\/cstar\.js <command>/);
@@ -176,6 +226,10 @@ describe('distribution generator', () => {
         assert.match(geminiContext, /Start or resume one host goal for every non-trivial mission/);
         assert.match(geminiContext, /cstar-goal-driven-daily-bootstrap\.md/);
         assert.match(geminiContext, /`hall` \(PRIME, native-session, host-workflow, kernel fallback forbidden\)/);
+        assert.match(geminiContext, /Kernel MCP Tools \(35\)/);
+        for (const name of ['plan', 'status', 'update', 'complete', 'cancel']) {
+            assert.match(geminiContext, new RegExp(`cstar_forge_swarm_${name}`));
+        }
 
         const codexPlugin = JSON.parse(build.files[2]?.content ?? '{}') as {
             name?: string;
@@ -199,6 +253,13 @@ describe('distribution generator', () => {
         assert.match(codexSkill, /Start or resume one host goal for every non-trivial mission/);
         assert.match(codexSkill, /cstar-goal-driven-daily-bootstrap\.md/);
         assert.doesNotMatch(codexSkill, /`cstar_autobot`/);
+        assert.match(codexSkill, /Current Forge uses `cstar_forge_request -> cstar_forge_authorize/);
+        assert.match(codexSkill, /requested model and reasoning are immutable packet inputs/);
+        assert.match(codexSkill, /separate direct sibling/);
+        assert.match(codexSkill, /Historical Codex-host state-only handoffs/);
+        assert.doesNotMatch(codexSkill, /Current Forge v3 persists a Codex-host state-only handoff/);
+        assert.doesNotMatch(codexSkill, /After `host_handoff_queued`/);
+        assert.doesNotMatch(codexSkill, /Choose Luna, Terra, or Sol/);
 
         const materializedGemini = fs.readFileSync(path.join(process.cwd(), 'GEMINI.md'), 'utf-8');
         const materializedCodexSkill = fs.readFileSync(
@@ -222,7 +283,7 @@ describe('distribution generator', () => {
         assert.deepEqual(lineage.plugin, { name: 'corvus-star', version: '2.4.6' });
         assert.equal(lineage.runtime_binding?.integration_mode, 'skill-only');
         assert.equal(lineage.runtime_binding?.kernel_bundled, false);
-        assert.ok((lineage.tool_catalog?.count ?? 0) > 0);
+        assert.equal(lineage.tool_catalog?.count, 35);
         assert.match(lineage.tool_catalog?.sha256 ?? '', /^[a-f0-9]{64}$/);
         assert.equal(lineage.capability_exports?.codex_count, 2);
         assert.equal(lineage.capability_exports?.gemini_count, 3);
@@ -277,7 +338,7 @@ describe('distribution generator', () => {
     });
 
     it('keeps checked-in distribution materializations synchronized', () => {
-        assert.deepEqual(validateDistributions(process.cwd()), []);
+        assert.deepEqual(validateNativeMaterializations(process.cwd()), []);
     });
 
     it('pins every generated materialization to LF and emits no CR bytes', () => {

@@ -19,15 +19,16 @@ policy remains above both surfaces.
 
 ## Current Inventory
 
-The active registry contains exactly three agent-native leaf skills:
+The active registry contains exactly four agent-native leaf skills:
 
 | Skill | Purpose | Mutation boundary |
 | --- | --- | --- |
-| `corvus-forge` | Route bounded implementation through durable Forge request, execute, and independent validation. | Only CStar lifecycle tools and the sealed private Forge adapter may mutate within the authorized request. |
+| `corvus-forge` | Route bounded implementation through durable Forge request -> authorize -> execute -> independent record_result lifecycle. | Only CStar lifecycle tools and the sealed private Forge adapter may mutate within the authorized request. |
 | `researcher` | Route bounded evidence work through authorized Researcher lanes. | Live collection and source-lane expansion remain separately gated. |
 | `cstar-closeout` | Assemble evidence-backed handoff and closeout packets. | Stage, commit, push, merge, install, restart, and deploy are distinct operator gates. |
+| `cstar-reliability-loop` | Coordinate bounded validation and automatic repair continuation with independent acceptance. | CStar records state; repair, retry, and acceptance remain bounded and separately gated. |
 
-All three use:
+All four use:
 
 - `tier: SKILL`;
 - `entry_surface: host-only`;
@@ -79,7 +80,8 @@ The following are not active skills or alternate execution lanes:
 
 Compatibility names may remain as read-only projections or fail-closed
 tombstones. Their presence in source, historical records, or old documentation
-does not restore capability or authority. MM is legacy, and PMTs are
+does not restore capability or authority. MM is inactive and has no active
+routing, synthesis, ownership, relay, review, or execution role. PMTs are
 project-scoped information repositories only.
 
 ## Change Rule

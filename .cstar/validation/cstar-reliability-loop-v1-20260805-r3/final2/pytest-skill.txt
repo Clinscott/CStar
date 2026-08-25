@@ -1,0 +1,11 @@
+check: Python skill contract
+requested_command: pytest tests/unit/test_cstar_reliability_loop_skill.py
+requested_command_exit_code: 1
+requested_command_result: pytest collected 0 items because the host temporary directory was on /mnt/c and its capture file disappeared during collection
+bounded_host_adjustment: TMPDIR=/tmp pytest tests/unit/test_cstar_reliability_loop_skill.py
+bounded_host_adjustment_exit_code: 0
+tests: 5
+passed: 5
+failed: 0
+result: skill contract passes when pytest uses the native Linux temporary directory; no source or test edit was made
+

@@ -1,0 +1,85 @@
+{
+  "schema": "cstar.independent_validation_check.v1",
+  "check": "full_kernel_mcp_unit_directory",
+  "command": "PATH=/home/morderith/.nvm/versions/node/v25.8.1/bin:$PATH node scripts/run-tsx.mjs --test --test-concurrency=2 tests/unit/cstar-kernel-mcp/*.test.ts",
+  "runtime": {
+    "node": "v25.8.1",
+    "npm": "12.0.0",
+    "installs_or_rebuilds": false
+  },
+  "exit_code": 1,
+  "tests": 808,
+  "suites": 109,
+  "passed": 795,
+  "failed": 13,
+  "cancelled": 0,
+  "skipped": 0,
+  "reported_verdict": "REJECTED",
+  "failure_ownership": [
+    {
+      "test": "routes host-validation source evidence through code root while Hall remains control-root state",
+      "owner": "SET-02 independent-validator tickets and spoke-root acceptance",
+      "class": "touched_refactor_contract"
+    },
+    {
+      "test": "blocks a selected project-files adapter for a response-only request before runtime or database work",
+      "owner": "SET-01 typed outcomes",
+      "class": "touched_refactor_contract"
+    },
+    {
+      "test": "dispatch requests reject missing required metrics",
+      "owner": "SET-01 typed outcomes",
+      "class": "touched_refactor_contract"
+    },
+    {
+      "test": "dispatch requests reject prohibited or red-gated requested actions",
+      "owner": "SET-01 typed outcomes",
+      "class": "touched_refactor_contract"
+    },
+    {
+      "test": "Forge requests reject live source collection before issuing an exact authorization challenge",
+      "owner": "SET-01 typed outcomes",
+      "class": "touched_refactor_contract"
+    },
+    {
+      "test": "cstar_forge_execute rejects live execution without operator authorization",
+      "owner": "SET-01 typed outcomes",
+      "class": "touched_refactor_contract"
+    },
+    {
+      "test": "cstar_forge_execute rejects mismatched receipt linkage",
+      "owner": "SET-01 typed outcomes",
+      "class": "touched_refactor_contract"
+    },
+    {
+      "test": "cstar_forge_execute rejects inconsistent package locks",
+      "owner": "SET-01 typed outcomes",
+      "class": "touched_refactor_contract"
+    },
+    {
+      "test": "reconciles, authorizes, executes once, and replays without replacing the request",
+      "owner": "SET-02 independent-validator ticket enforcement",
+      "class": "touched_refactor_contract"
+    },
+    {
+      "test": "requires repair binding and resumes in the original authorizing turn",
+      "owner": "SET-03 Codex-host worker handoff",
+      "class": "touched_refactor_contract"
+    },
+    {
+      "test": "detects pre-reservation binding drift without a durable attempt or adapter invocation",
+      "owner": "SET-03 Codex-host worker handoff",
+      "class": "touched_refactor_contract"
+    },
+    {
+      "test": "finalizes post-reservation drift without invoking the adapter or claiming spend",
+      "owner": "SET-03 Codex-host worker handoff",
+      "class": "touched_refactor_contract"
+    },
+    {
+      "test": "does not demand a current user record before the execute authority seam",
+      "owner": "SET-01 typed outcomes and SET-03 Codex-host worker handoff",
+      "class": "touched_refactor_contract"
+    }
+  ]
+}

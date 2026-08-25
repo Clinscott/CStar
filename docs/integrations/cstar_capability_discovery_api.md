@@ -6,8 +6,9 @@
 `.agents/skill_registry.json`. Discovery reports what the host may inspect. It
 does not grant execution, lifecycle, spend, mutation, or activation authority.
 
-The current registry contains exactly three agent-native skills:
-`corvus-forge`, `researcher`, and `cstar-closeout`. Deterministic kernel tools
+The current registry contains exactly four agent-native skills:
+`corvus-forge`, `researcher`, `cstar-closeout`, and `cstar-reliability-loop`.
+Deterministic kernel tools
 are declared by the typed `cstar-kernel` MCP catalog instead of being duplicated
 as registry entries.
 
@@ -31,7 +32,7 @@ Each capability record may include:
 - host-support declarations; and
 - normalized invocation metadata.
 
-For the current three entries:
+For the current four entries:
 
 - `tier` is `SKILL`;
 - `entry_surface` is `host-only`;

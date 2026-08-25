@@ -1,9 +1,11 @@
-import Database from 'better-sqlite3';
+import type Database from 'better-sqlite3';
 
 import { database } from './database.js';
 import { ensureForgeAuthorizationSchema } from './forge_authorization_schema.js';
 import { ensureForgeContinuationSchema } from './forge_continuation_controller.js';
+import { ensureForgeRootRepairBindingSchema } from './forge_request_root_repair_binding.js';
 import { assertStableHallStoreIdentity, resolveHallStorePath } from './hall_store_path.js';
+import { getBetterSqlite3 } from './native_database.js';
 
 interface HallDatabaseCompatibility {
     getReadDb?: (rootPath?: string) => Database.Database;
@@ -31,6 +33,7 @@ function ensureColumn(
 export function ensureForgeActivationSchema(db: Database.Database): void {
     db.transaction(() => {
         ensureForgeAuthorizationSchema(db);
+        ensureForgeRootRepairBindingSchema(db);
         for (const [table, column, declaration] of [
             ['hall_forge_requests', 'operator_record_set_sha256', 'TEXT'],
             ['hall_forge_requests', 'operator_record_count', 'INTEGER'],
@@ -76,7 +79,7 @@ export function openForgeReadDb(rootPath: string): ForgeReadHandle {
     }
 
     const store = resolveHallStorePath(rootPath, false);
-    const db = new Database(store.dbPath, { readonly: true, fileMustExist: true });
+    const db = new (getBetterSqlite3())(store.dbPath, { readonly: true, fileMustExist: true });
     try {
         assertStableHallStoreIdentity(store);
         db.pragma('query_only = ON');

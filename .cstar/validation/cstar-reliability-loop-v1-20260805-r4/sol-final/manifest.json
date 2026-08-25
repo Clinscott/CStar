@@ -1,0 +1,53 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:mcp:turn-the-accepted-sprt-autoresearcher-gungnir-fi-msg4t12q",
+  "validation_id": "validation:cstar-reliability-loop-v1-20260805-r4-sol-final",
+  "reported_verdict": "ACCEPTED",
+  "artifacts": [
+    {
+      "path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r4/sol-final/lore.txt",
+      "sha256": "0b300e3a837d4ed56eaa73b454d69df80735817a3416d112ec8491c54708dc92",
+      "bytes": 2562
+    },
+    {
+      "path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r4/sol-final/isolation.txt",
+      "sha256": "2f6bfff2e34e412c2b2202304b9a26b1050d2780931bcbd311e1519f1a23690a",
+      "bytes": 3953
+    },
+    {
+      "path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r4/sol-final/sprt.txt",
+      "sha256": "a93f453f210c37f49afe98ecd528e159ccac49be0108a68cf5771163adb5f6ec",
+      "bytes": 1947
+    },
+    {
+      "path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r4/sprt/receipt.json",
+      "sha256": "da57e25788452d700d6215fb4f7db4e897872ec877277df12b0bb3db3d13d400",
+      "bytes": 43374
+    },
+    {
+      "path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r4/sprt/receipt.sha256",
+      "sha256": "b93a772e3b76b4ca57516b8299865b58438183d64a615e963ae46faef3d7ebfd",
+      "bytes": 79
+    }
+  ],
+  "checks": [
+    {
+      "name": "Lore r4 defect closure frozen-source and repository-root audit completed",
+      "status": "pass",
+      "evidence_path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r4/sol-final/lore.txt",
+      "sha256": "0b300e3a837d4ed56eaa73b454d69df80735817a3416d112ec8491c54708dc92"
+    },
+    {
+      "name": "Isolation prescribed execution and line-count checks completed",
+      "status": "pass",
+      "evidence_path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r4/sol-final/isolation.txt",
+      "sha256": "2f6bfff2e34e412c2b2202304b9a26b1050d2780931bcbd311e1519f1a23690a"
+    },
+    {
+      "name": "SPRT checksum digest Gungnir and direct parser verification completed",
+      "status": "pass",
+      "evidence_path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r4/sol-final/sprt.txt",
+      "sha256": "a93f453f210c37f49afe98ecd528e159ccac49be0108a68cf5771163adb5f6ec"
+    }
+  ]
+}

@@ -1,15 +1,19 @@
 # CStar private Forge runtime
 
-This directory is owned and versioned by CStar. It is the sealed, stdlib-only
-provider child used by the private Forge adapter. It is not a vendored Hermes
-agent checkout and it does not make AutoBot or the upstream Hermes repository
-part of CStar's authorized estate.
+This provenance describes only the sealed legacy v2 Forge compatibility
+runtime. It is not current v3 routing and is not the default Researcher route.
 
-Hermes owns and updates the `cstar-hub` OAuth profile and credential
-lifecycle. The isolated child in this directory may open only the allowlisted
-MiniMax OAuth record through the read-only resolver. It never refreshes or
-writes the store. The CStar kernel receives only redacted readiness and
-provider-result envelopes; it never receives the bearer.
+This directory is owned and versioned by CStar. It is the sealed, stdlib-only
+provider child used by the explicitly selected legacy v2 private Forge adapter.
+It is not a vendored Hermes agent checkout and it does not make AutoBot or the
+upstream Hermes repository part of CStar's authorized estate.
+
+The explicitly selected legacy v2 compatibility lane uses the Hermes-owned
+`cstar-hub` OAuth profile and credential lifecycle. The isolated child in this
+directory may open only the allowlisted MiniMax OAuth record through the
+read-only resolver. It never refreshes or writes the store. The CStar kernel
+receives only redacted readiness and provider-result envelopes; it never
+receives the bearer.
 
 The initial implementation was adapted from the locally validated CStar Forge
 entrypoint previously staged under the Hermes checkout. The ownership migration
@@ -18,9 +22,10 @@ intentionally replaces upstream `__init__.py`, `pyproject.toml`, and
 system Python executable.
 
 MiniMax M3 requests use the provider's OpenAI-compatible `/v1` route with
-bounded SSE streaming. This follows the current supported Hermes M3 transport;
-the Anthropic-compatible MiniMax route remains an M2.x route and is not used by
-the pinned M3 worker.
+bounded SSE streaming. This describes the pinned legacy v2 Forge compatibility
+transport only; it is not current v3 routing and is not the default Researcher
+route. The Anthropic-compatible MiniMax route remains an M2.x route and is not
+used by the pinned legacy v2 M3 worker.
 
 The six-role topology was independently reimplemented from the design described
 by `https://github.com/unclebob/swarm-forge`, branch `six-pack`, commit
