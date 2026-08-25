@@ -6,6 +6,7 @@ import type {
     ChantWeavePayload,
 } from '../contracts.ts';
 import type { SkillBead } from '../../skills/types.js';
+import { resolveSkillRegistryEntries } from '../../../../core/skill_registry_contract.js';
 
 export type DirectChantResolution =
     | {
@@ -136,7 +137,7 @@ export const INTENT_CATEGORIES: Record<string, {
     HARDEN:      { triggers: ['contract', 'comply', 'sterling', 'harden', 'gherkin'], default_path: 'contract_hardening', tier: 'WEAVE' },
     EXPAND:      { triggers: ['deploy', 'link', 'mount', 'spoke', 'onboard'], default_path: 'expansion', tier: 'WEAVE' },
     EVOLVE:      { triggers: ['optimize', 'refactor', 'evolve', 'improve'], default_path: 'evolve', tier: 'WEAVE' },
-    ORCHESTRATE: { triggers: ['plan', 'dispatch', 'autobot', 'orchestrate'], default_path: 'orchestrate', tier: 'WEAVE' },
+    ORCHESTRATE: { triggers: ['plan', 'dispatch', 'orchestrate'], default_path: 'orchestrate', tier: 'WEAVE' },
     GUARD:       { triggers: ['protect', 'shield', 'lock', 'guard', 'drift'], default_path: 'silver_shield', tier: 'SPELL' },
     DOCUMENT:    { triggers: ['document', 'explain', 'chronicle', 'architecture', 'study', 'harvest', 'learn'], default_path: 'mimir-harvester', tier: 'SKILL' },
 };
@@ -169,24 +170,19 @@ export function loadRegistryManifest(projectRoot: string): RegistryManifest | nu
         return null;
     }
 
+    let manifest: unknown;
     try {
-        return JSON.parse(deps.fs.readFileSync(manifestPath, 'utf-8')) as RegistryManifest;
+        manifest = JSON.parse(deps.fs.readFileSync(manifestPath, 'utf-8')) as unknown;
     } catch {
         return null;
     }
+
+    resolveSkillRegistryEntries<RegistryEntry>(manifest);
+    return manifest as RegistryManifest;
 }
 
 export function getRegistryEntries(manifest: RegistryManifest | null): Record<string, RegistryEntry> {
-    if (!manifest) {
-        return {};
-    }
-    if (manifest.entries && typeof manifest.entries === 'object') {
-        return manifest.entries;
-    }
-    if (manifest.skills && typeof manifest.skills === 'object') {
-        return manifest.skills;
-    }
-    return {};
+    return resolveSkillRegistryEntries<RegistryEntry>(manifest);
 }
 
 export function getRegistryIntentCategories(
