@@ -1,0 +1,38 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:mcp:repair-ordinary-hall-writable-bootstrap-so-cstar-msekb1h2",
+  "validation_id": "validation:cstar-bead-forge-schema-isolation-20260804-r4",
+  "reported_verdict": "ACCEPTED",
+  "artifacts": [
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/src/tools/pennyone/intel/schema.ts",
+      "sha256": "5ec66256c3c45bb8905a2562d08d6d2435c90419a818fb59739b784a67119fae",
+      "bytes": 10808
+    },
+    {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/tests/unit/cstar-kernel-mcp/test_bead_forge_schema_isolation.test.ts",
+      "sha256": "98a19241830735d709bbd5fe12cd6d5be1bfdedcab13d597dce1c02a35e74685",
+      "bytes": 7357
+    }
+  ],
+  "checks": [
+    {
+      "name": "seven-suite schema isolation validation",
+      "status": "pass",
+      "evidence_path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/bead-forge-schema-isolation-20260804/bead-forge-schema-isolation-20260804-r4-tests.txt",
+      "sha256": "6edb411913ad1bec14ee80c9535927db81deb1a57dda90c863a3141db490df8b"
+    },
+    {
+      "name": "typescript typecheck",
+      "status": "pass",
+      "evidence_path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/bead-forge-schema-isolation-20260804/bead-forge-schema-isolation-20260804-r4-typecheck.txt",
+      "sha256": "f42147956b6d839166f02d2a1da780783c9eb3e8b862b248ebf02e3df1ab0003"
+    },
+    {
+      "name": "git diff check",
+      "status": "pass",
+      "evidence_path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/bead-forge-schema-isolation-20260804/bead-forge-schema-isolation-20260804-r4-diff-check.txt",
+      "sha256": "bae952c91b62af0a48857e903a98d691757404a644019a02694982d9dad22c78"
+    }
+  ]
+}

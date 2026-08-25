@@ -2,10 +2,16 @@
 
 > The authoritative kernel surface for Corvus Star. READ, MUTATION, and REQUEST
 > tools expose bounded kernel primitives and gates. `cstar_forge_execute` is the
-> sole EXECUTION tool: live mode requires a durable immutable request, verified
-> one-shot operator attestation, exact request/output locks, atomic attempt
-> reservation, and a sealed private Hermes/MiniMax-M3 adapter. Delivery remains
-> unverified until independent `cstar_record_result` validation finalizes it.
+> sole EXECUTION tool. The current `forge-native-codex-swarm-v1` route requires
+> a durable immutable request, verified one-shot operator attestation, exact
+> request/output locks, and atomic native-run reservation. The five public
+> swarm tools record a flat plan, project read-only status, record direct-worker
+> receipts, persist only `DELIVERED_UNVERIFIED`, and cancel only with complete
+> stop proof. Requested selector and reasoning are immutable host-packet inputs;
+> they are not validator defaults. Actual identity remains `unreported` unless
+> the host supplies distinct attestation. Historical Codex-host handoff and
+> private Hermes/MiniMax material is legacy or tombstone evidence only, never a
+> current/default/target/recovery/fallback route.
 > Host agents (Claude, Gemini, Codex) call these tools directly over MCP rather
 > than shelling out to `./cstar`.
 
@@ -37,9 +43,11 @@ Executable lineage and canonical state are separate. `CODE_ROOT` supplies
 source, registries, dispatch contracts, and adapters; `CONTROL_ROOT` supplies
 Hall, lifecycle state, telemetry, logs, receipts, and estate target
 containment. `cstar_status` and `cstar_doctor` report both roots and hashes.
-Kernel root health is not Forge readiness: a real code-root dependency tree
-matching the checked-in lock and the manifest-bound private Hermes runtime are
-additionally required. See
+Kernel root health is not Forge readiness: the current native connection also
+requires its active generation, worker/control package contract, and a real
+code-root dependency tree matching the checked-in lock. A manifest-bound
+private runtime is relevant only to an explicitly selected historical adapter.
+See
 `docs/operations/cstar-kernel-code-control-root-boundary.md`.
 
 The `cstar.kernel_runtime_lineage.v2` Forge verdict is fail-closed. It requires
@@ -78,8 +86,8 @@ attestation design as a multi-user or hostile-local-process security boundary.
 ### Codex steered-turn request identity
 
 The historical-cohort rules in this subsection apply to generic CStar request
-identity and legacy evidence only. They do not authorize Forge spend. Forge v3
-uses the stricter singleton operator-intent protocol documented under
+identity and legacy evidence only. They do not authorize Forge spend. Current
+native Forge uses the stricter singleton operator-intent protocol documented under
 `cstar_forge_authorize`: current/latest root-user turn, one user record, bounded
 canonical `input_text`, an exact durable work reference, and no steering.
 Preserved v2 compatibility alone retains an internal exact-challenge protocol.
@@ -190,8 +198,11 @@ the documented same-UID trust assumption.
    explicit grants, global Corvus invariants, nearest repository policy, and
    current CStar lifecycle state govern in that order. Registries and observed
    runtime describe capability and evidence; neither may weaken a gate.
-3. **Capability discovery.** `cstar_manifest` and `cstar_skill_info` are the
-   canonical inventory surfaces. Spoke skills are namespaced `<slug>:<id>`.
+3. **Capability discovery.** `cstar_manifest` is the default operator catalog
+   and omits hub entries whose resolved `entry_surface` is `compatibility`.
+   `cstar_skill_info` remains the explicit exact-id lookup for hub compatibility
+   entries as well as active capabilities. Spoke skills are namespaced
+   `<slug>:<id>`.
 4. **Bead anchoring.** Multi-file changes anchor to a Hall bead via `cstar_bead`. The `cstar_handoff` tool returns the active planning state for resuming work.
 5. **Stateless-protocol readiness.** No tool input schema may require protocol session ids, protocol version, or client metadata. If a workflow needs continuity, return and require an explicit domain handle such as `bead_id`, `validation_id`, `spoke`, `memory_id`, or the immutable event returned by `cstar_goal_resume`. TokenPath is not a public continuity handle while quarantined.
 6. **Routing boundary.** Load the nearest `AGENTS.md` or `AGENTS.qmd` for current
@@ -202,6 +213,54 @@ the documented same-UID trust assumption.
    binds operator evidence within the trusted single-user host. It does not
    authenticate mutually hostile same-UID processes; a multi-user deployment
    requires an OS-enforced peer identity or separately authenticated transport.
+
+### Current native Forge flat-dispatch boundary
+
+The accepted lifecycle is `cstar_forge_request -> cstar_forge_authorize ->
+cstar_forge_execute -> cstar_forge_swarm_plan -> direct host-native workers ->
+cstar_forge_swarm_update -> separate read-only aggregator ->
+cstar_forge_swarm_complete -> DELIVERED_UNVERIFIED -> independent
+cstar_record_result`.
+
+`cstar_forge_execute` reserves or replays one exact
+`forge-native-codex-swarm-v1` run and returns a worker package plus a distinct
+control receipt. It does not itself launch a model or host task. CoS builds one
+closed canonical packet and validates it with
+`.agents/skills/corvus-forge/scripts/validate_native_swarm_packet.mjs` before
+recording `cstar_forge_swarm_plan`.
+
+The plan contains one to three useful direct workers with explicit ordinals,
+disjoint write ownership, exact outputs/tests, one attempt, zero retry/replay/
+replacement/fallback, and no nested parent, descendants, or peer messages.
+Requested model and reasoning are preserved exactly from the packet. Actual
+identity is a separate host observation and is `unreported` without distinct
+attestation.
+
+Each terminal leaf is recorded through `cstar_forge_swarm_update` under the
+retained control lease. `cstar_forge_swarm_status` projects the run and receipt
+summaries without exposing the control receipt or mutating state. After every
+leaf is terminal, a separate read-only aggregator consumes only the packet,
+terminal receipts, frozen candidate identities, and bounded evidence. It makes
+zero source writes and performs no implementation, repair, retest, cancellation,
+or authority change.
+
+The aggregate is checked by
+`.agents/skills/corvus-forge/scripts/validate_native_swarm_receipt.mjs` and then
+submitted to `cstar_forge_swarm_complete`. Completion can record only
+`DELIVERED_UNVERIFIED`; it cannot accept lifecycle, replace independent
+validation, or issue a transfer-readiness claim. Cancellation is two-stage:
+record `CANCEL_REQUESTED`, inspect every host task, and finalize `CANCELLED` only
+with complete terminal stop proof. Missing inspection freezes `UNKNOWN`,
+retains the worktree, and launches no replacement.
+
+The former Codex-host state-only handoff is a retired generation/tombstone. Its
+consumer and lineage facts may be retained only when explicitly labelled
+historical. They do not authorize execution and are never a fallback.
+
+Independent validation uses a one-use validator ticket bound to the exact Forge
+execution and validator identity. `cstar_record_result` consumes the ticket once;
+replay is rejected. This documents the validation boundary and does not claim
+that a ticket has been issued, consumed, or activated in a live run.
 
 ## MCP 2026-07-28 Release-Candidate Readiness
 
@@ -292,15 +351,20 @@ Priority write surfaces include a deterministic `mutation` object:
 ```
 
 `cstar_autobot` is decommissioned and absent from the supported runtime
-inventory. No environment variable reactivates it. Live implementation uses
-only `cstar_forge_request` followed by `cstar_forge_authorize` and
-`cstar_forge_execute` through the sealed
-private Hermes `cstar-hub`/MiniMax-M3 adapter. A model response is evidence, not
-lifecycle state or validation.
+inventory. No environment variable reactivates it. The legacy private v2 Forge
+adapter, sealed private Hermes `cstar-hub`/MiniMax-M3, and the Codex-host
+state-only handoff are historical, retired, or generation-tombstoned evidence
+only. They are never current, default, target, recovery, replacement, or
+fallback routes. The current native connection is
+`forge-native-codex-swarm-v1`: CStar reserves the run and exposes bounded
+worker/control receipts, while CoS records requested selector and reasoning
+separately from host-attested actual identity. A host-task receipt is evidence
+only; it is not Forge authorization, validation, or lifecycle success. A model
+response is evidence, not lifecycle state or validation.
 
 ---
 
-## Tool Inventory (28)
+## Tool Inventory (35)
 
 The typed source of truth is
 `src/tools/cstar-kernel-mcp/contracts/tool_catalog.ts`. Runtime registration,
@@ -309,34 +373,41 @@ the reader-facing purpose projection.
 
 | # | Tool | Tier |
 |:---|:---|:---|
-| 1 | `cstar_handoff` | Active state |
-| 2 | `cstar_hall_search` | Discovery |
-| 3 | `cstar_hall_maintenance` | Retired compatibility |
+| 1 | `cstar_hall_maintenance` | Retired compatibility |
+| 2 | `cstar_handoff` | Active state |
+| 3 | `cstar_hall_search` | Discovery |
 | 4 | `cstar_augury` | Routing |
-| 5 | `cstar_researcher_request` | Dispatch request |
-| 6 | `cstar_forge_request` | Dispatch request |
-| 7 | `cstar_forge_authorize` | Work-referenced root-user authorization |
-| 8 | `cstar_forge_execute` | One-shot sealed Forge execution |
-| 9 | `cstar_doctor` | Diagnostics |
-| 10 | `cstar_verify_plan` | Verification |
-| 11 | `cstar_bead` | Bead lifecycle |
-| 12 | `cstar_goal_resume` | Host-goal continuity evidence |
-| 13 | `cstar_spoke_bead_import` | Bead lifecycle |
-| 14 | `cstar_record_result` | Verification |
-| 15 | `cstar_engram_record` | Memory write |
-| 16 | `cstar_war_game_score` | War games |
-| 17 | `cstar_manifest` | Capability discovery |
-| 18 | `cstar_skill_info` | Capability discovery |
-| 19 | `cstar_spoke_journal` | Spoke state |
-| 20 | `cstar_pennyone_context` | Data context |
-| 21 | `cstar_mongo_mailbox` | Retired compatibility |
-| 22 | `cstar_status` | Diagnostics |
-| 23 | `cstar_persona_set` | Explicit workflow posture |
-| 24 | `cstar_evolve` | Karpathy loop (read-only) |
-| 25 | `cstar_spoke` | Spoke lifecycle |
-| 26 | `cstar_intent_route` | Routing |
-| 27 | `cstar_warden` | Sentinel Wardens |
-| 28 | `cstar_telemetry` | Diagnostics |
+| 5 | `cstar_doctor` | Diagnostics |
+| 6 | `cstar_verify_plan` | Verification |
+| 7 | `cstar_bead` | Bead lifecycle |
+| 8 | `cstar_goal_resume` | Host-goal continuity evidence |
+| 9 | `cstar_spoke_bead_import` | Bead lifecycle |
+| 10 | `cstar_record_result` | Verification |
+| 11 | `cstar_engram_record` | Memory write |
+| 12 | `cstar_war_game_score` | War games |
+| 13 | `cstar_manifest` | Capability discovery |
+| 14 | `cstar_skill_info` | Capability discovery |
+| 15 | `cstar_spoke_journal` | Spoke state |
+| 16 | `cstar_pennyone_context` | Data context |
+| 17 | `cstar_mongo_mailbox` | Retired compatibility |
+| 18 | `cstar_status` | Diagnostics |
+| 19 | `cstar_persona_set` | Explicit workflow posture |
+| 20 | `cstar_evolve` | Karpathy loop (read-only) |
+| 21 | `cstar_spoke` | Spoke lifecycle |
+| 22 | `cstar_intent_route` | Routing |
+| 23 | `cstar_warden` | Sentinel Wardens |
+| 24 | `cstar_telemetry` | Diagnostics |
+| 25 | `cstar_researcher_request` | Dispatch request |
+| 26 | `cstar_forge_request` | Dispatch request |
+| 27 | `cstar_forge_authorize` | Work-referenced root-user authorization |
+| 28 | `cstar_forge_execute` | Native run reservation |
+| 29 | `cstar_forge_swarm_plan` | Native direct-worker plan |
+| 30 | `cstar_forge_swarm_status` | Native run status |
+| 31 | `cstar_forge_swarm_update` | Native worker receipt |
+| 32 | `cstar_forge_swarm_complete` | Unverified native delivery |
+| 33 | `cstar_forge_swarm_cancel` | Stop-proof cancellation |
+| 34 | `cstar_mission` | Ordinary mission request compatibility |
+| 35 | `cstar_forge_host_complete` | Retired host-completion tombstone |
 
 ---
 
@@ -518,8 +589,11 @@ session is the only available context.
 
 ## 4b. `cstar_researcher_request` / `cstar_forge_request`
 
-Control-plane request primitives for routing Researcher and Corvus
-Forge/Hermes MiniMax work without falling back to Codex workers. These tools
+Control-plane request primitives for routing Researcher and Corvus Forge
+requests. Current Forge selects `forge-native-codex-swarm-v1`; historical
+Hermes/MiniMax material remains explicit legacy compatibility and is not a
+fallback.
+These tools
 validate the request contract and return compact receipts for CoS plus bounded
 state-update packets. They do not run live Researcher, Forge, Hermes,
 MiniMax, source adapters, browser collection, GitHub mutation, or model spend
@@ -534,7 +608,8 @@ request receipt rather than an execution surface.
   destination for a bounded context/update packet. It is used only when targets
   are inside that project and never gates execution. The deprecated
   `owner_pmt_thread_id` alias is accepted for compatibility but grants no
-  ownership or review authority.
+  ownership, execution, approval, review, routing, monitoring, or lifecycle
+  authority.
 - `source_callback_thread_id` — CoS callback destination.
 - `objective`, optional `prompt`, optional `target_paths`, optional `system_under_test`.
 - `scope` and `authority_lane` (`green`, `yellow`, or `red`).
@@ -585,8 +660,8 @@ surface proof is missing, the tools return `isError: true` with
 `status: "rejected"` or a fail-closed receipt. A request never proves
 implementation. A live-intent Forge request returns its complete
 `authorization_manifest`, stable canonical JSON, and `request_sha256` while
-remaining `PENDING_AUTH`; normal v3 responses expose no machine challenge. It
-becomes durable execution authority
+remaining `PENDING_AUTH`; normal v3 responses expose no machine challenge. The
+operator never pastes machine tokens. It becomes durable execution authority
 only through the separate authorize surface and still requires the atomic
 execute gate; all other request receipts are no-spend routing evidence.
 
@@ -599,28 +674,31 @@ call.
 
 ## 4c. `cstar_forge_authorize`
 
-No-spend authorization primitive for one immutable Forge request. Tool inputs
-are only `forge_request_receipt_id` and `request_sha256`; Codex derives them from
-the request it just constructed, and the operator never pastes machine tokens.
-The current/latest canonical root-user turn must contain exactly one operative
-build, implement, repair, fix, route-to-Forge, or named continue/resume
-instruction. It must resolve to
-exactly one eligible request through an exact bead id, decision id, or canonical
-Hall `target_ref`, or through one exact derived operator label. That label keeps
-the decision-ordered tokens shared with `target_ref` plus structured `qN`,
-`phaseN`, or `prN` stages, and requires at least three unique tokens with both
-identity and stage evidence. Partial, reordered, date-only, internal-activity,
-zero-match, and multi-match labels fail closed. Questions, examples,
-hypotheticals, quoted UI text, negation, revocation, bare
-`Proceed`/`this`/`it`, duplicate user rows, steering, stale turns, forks, and
-subagents also fail closed. Harmless outer whitespace is accepted but
-control/bidi text is not.
+No-spend authorization primitive for one immutable Forge request. Public inputs
+are `forge_request_receipt_id`, `request_sha256`, and optional router-supplied
+`goal_resume_id`. Operators must not author or paste bead ids, decision ids,
+sidecar hashes, challenge tokens, target or scope material, or other authority
+material. The ordinary path still requires the exact current root-user
+authorization contract and fails closed on ambiguity, steering, forks,
+subagents, negation, revocation, protected terms, or malformed evidence.
 
-There is no cross-turn replay exception. A goal-only host resume returns
-`forge_operator_signal_required` with a human-readable next action, no Hall
-mutation, and no provider call. A fresh `Continue building <unique work>` or
-`Resume the <unique work> build` instruction may authorize; bare `Continue`,
-`Proceed`, `Restarted`, and status text cannot.
+The exact lowercase `goal-resume-v2:<64 lowercase hex>` form is a kernel-produced
+trusted continuity receipt. It can authorize the unchanged request after an
+interruption without fresh repair wording. The kernel re-reads trusted request
+and receipt data and derives the bead, decision, root-repair binding, and
+continuity evidence while rechecking exact request/hash lineage and targets,
+required outputs, actions, retry, spend, live-source, callback, package-lock,
+and protected-gate boundaries. Current v2 text is liveness and revocation input
+only; neutral questions, status, and unrelated prose do not create a new grant,
+while explicit revocation, scope/target changes, forks, or protected terms veto
+the continuity path.
+
+The exact lowercase `goal-resume:<64 lowercase hex>` form is a compatibility
+boundary only. The handler rejects it with
+`forge_goal_resume_v1_historical_only`; it is never Forge authority. Thus the
+bounded trusted-v2 continuity exception is the only cross-turn continuation
+exception. It does not widen scope, reauthorize protected gates, or replay a
+spent request, and it causes no provider call by itself.
 
 For a newly created v3 request, requester thread, turn, and record-set lineage
 must equal the authorizing operator turn and are included in the authorization
@@ -633,7 +711,11 @@ operator prose.
 The tool re-hashes the canonical request and target set, verifies the request id,
 adapter/capability, synthetic-only/no-live-source/zero-retry/one-attempt policy,
 then verifies live Forge readiness after operator intent and before opening
-writable Hall. A red runtime creates no authorization receipt. An unspent
+writable Hall. Historical legacy-v2 evidence records that the authorizing turn
+was checked again after runtime/OAuth preflight immediately before reservation;
+that retained adapter and the Codex-host state-only handoff are generation-
+tombstoned and cannot be selected by current execution. A red runtime creates
+no authorization receipt. An unspent
 `cstar.forge_request.v2` is not upgraded or reissued. A semantically identical
 current request returns the original id/hash with a separate
 `cstar.forge_legacy_v2_execution_grant.v1` compatibility manifest. The manifest
@@ -665,14 +747,16 @@ unexpired, unrevoked request and original authorization.
 ## 4d. `cstar_forge_execute`
 
 Execution primitive for Corvus Forge. It is intentionally separate from
-`cstar_forge_request`. No-op mode validates shape without reserving an attempt,
-running Hermes/MiniMax, mutating source, collecting live data, or spending.
-Live mode requires the matching durable request and authorization receipt,
-the same current root-user turn that supplied the operative instruction, an unexpired
-one-shot grant, exact canonical request and target hashes, package locks, a
-sealed adapter runtime, and an idempotency key. Identity is rechecked after
-runtime/OAuth preflight immediately before reservation. Attempt reservation is
-atomic; an ambiguous or failed attempt consumes the grant and is never
+`cstar_forge_request`. Current native live mode reserves or replays one
+`forge-native-codex-swarm-v1` run and returns split worker/control receipts; it
+records requested selector separately from host-attested actual identity and
+does not itself launch a model or host task. Retained historical legacy-adapter
+no-op material records shape validation without reserving an attempt, running
+Hermes/MiniMax, mutating source, collecting live data, or spending. That
+generation-tombstoned path historically required the
+matching durable request and authorization receipt, exact locks, its sealed
+adapter runtime, and an idempotency key. Attempt reservation is atomic; an
+ambiguous or failed legacy attempt consumes the grant and is never
 auto-relaunched as provider spend.
 
 A proven pre-provider mechanical cycle is different. Exact evidence of zero
@@ -719,8 +803,9 @@ Required fields include all `cstar_forge_request` contract fields plus:
 - `idempotency_key` — stable key used for atomic reservation and replay.
 - `retry_of_attempt_id` — kernel/router-populated parent only for an exact
   validated pre-provider continuation; it is not operator-facing input.
-- Optional `execution_adapter_ref` — checked as an adapter proof; missing or
-  unregistered adapters fail closed.
+- Optional `execution_adapter_ref` — accepted only for explicit legacy-v2
+  compatibility. Current native requests must omit it and bind the active
+  native connection; any current-generation adapter reference fails closed.
 
 No-op mode returns `status: "validated_noop"` with
 `forge_execution.attempted=false`, `live_spend=false`,
@@ -731,7 +816,10 @@ blocks when the requested adapter is unknown. A changed sealed runtime is
 accepted only through the exact independently validated continuation binding.
 Required outputs must be contained by explicit targets and included
 in the canonical request/authorization manifest and exact request hash before
-the challenge is accepted. Approved adapter references are:
+the challenge is accepted. Retained historical adapter references are
+generation-tombstoned and not selectable by the current native route:
+
+### Legacy v2 adapter references (historical evidence only)
 
 - `cstar-forge-hermes-minimax-adapter` — response-only; may write only the
   adapter response artifact and fails closed for build/package/source-mutation
@@ -828,8 +916,9 @@ restore host file bytes/modes and remove created files, directories, stages,
 and backups. Multi-file crash recovery remains inspection-required because the
 host committer has no durable write-ahead journal.
 
-Operators must not substitute `cstar_autobot`, Codex workers, direct Hermes, or
-ad hoc shell execution for this gate. The private write-capable adapter invokes
+Operators must not substitute `cstar_autobot`, the retired Codex-host consumer,
+direct Hermes, or ad hoc shell execution for the current native direct-worker
+gate. The historical private write-capable adapter invoked
 Hermes through its `cstar-hub` profile pinned to `minimax-oauth/MiniMax-M3`; receipts
 record requested and actual model identity separately and do not infer the
 actual model when the provider omits it. The model response stays inside
@@ -871,6 +960,54 @@ evidence only; request/attempt status, result, error, spend, retry, active
 attempt, and completion fields remain unchanged. Positive evidence can never
 resurrect a terminal failure.
 
+## 4e. Native flat-dispatch lifecycle tools
+
+These tools consume only kernel-issued run/control bindings and closed native
+schemas. Caller fields cannot widen the SET/request/connection/lease
+intersection.
+
+### `cstar_forge_swarm_plan` (MUTATION)
+
+Input is exactly `run_id`, `control_receipt`, and `plan`. It records one plan
+for one to three useful direct workers. Write and output ownership must be
+disjoint and contained; test paths must be allowed; `integration_paths` is
+empty; expected outputs are sorted, unique, assigned, and bound by
+`plan_sha256`. Exact replay is inert. Conflict, lease expiry, nested ownership,
+a fourth worker, caller authority, or path drift rejects before plan state.
+
+### `cstar_forge_swarm_status` (READ)
+
+Input is exactly `run_id`. The response projects connection/generation, run
+state, plan hash, lease expiry, requested identity, bounded worker summaries,
+aggregate receipt, and gaps. It never returns the control receipt, lease id, or
+cancellation secret and does not initialize or mutate durable state.
+
+### `cstar_forge_swarm_update` (MUTATION)
+
+Input is exactly `run_id`, `control_receipt`, `plan`, and `worker_receipt`. One
+terminal direct-leaf receipt is recorded under the current lease. Requested
+identity must equal the immutable plan/package input. Unattested actual identity
+is `unreported`; a caller or worker cannot self-attest. Changed files, checks,
+artifacts, ancestry, digest, and zero descendants are bound. Exact replay has
+zero new effects; a conflicting duplicate rejects without replacing evidence.
+
+### `cstar_forge_swarm_complete` (MUTATION)
+
+Input is exactly `run_id`, `control_receipt`, and `aggregate`. All planned
+worker receipts, changed files, checks, artifacts, direct task graph, candidate
+digest, and aggregate digest must match. The separate host aggregator is
+read-only and outside this kernel mutation. Success persists exactly
+`DELIVERED_UNVERIFIED`, returns `independent_validation_required: true`, and
+claims no lifecycle acceptance. Exact replay is inert; conflict is terminal.
+
+### `cstar_forge_swarm_cancel` (MUTATION)
+
+Action `request` records `CANCEL_REQUESTED`. Action `finalize` requires the
+exact plan when present and complete inspection of the coordinator plus every
+direct worker. A complete terminal graph permits `CANCELLED`; an uninspectable,
+nonterminal, unknown, mismatched, or descendant-shaped graph freezes `UNKNOWN`.
+The worktree is retained and no replacement is launched.
+
 ## 5. `cstar_doctor`
 
 Kernel diagnostics. Returns registry / Augury / database health plus telemetry
@@ -878,7 +1015,7 @@ summary. `score` is a legacy diagnostic projection only; it is not a quality,
 readiness, execution, or authority verdict. The TokenPath block reports
 quarantine/compatibility telemetry and cannot steer or record observations.
 
-**Input:** `{ "forge_execution_receipt_id"?: "forge-execute-<32 lowercase hex>" }`
+**Input:** `{}` (empty object; no input fields).
 
 **Output:**
 ```json
@@ -975,27 +1112,49 @@ zero benchmark/SPRT denominators yield `INCONCLUSIVE`, never `ACCEPTED`. See
 
 ## 8. `cstar_goal_resume`
 
-Append one immutable continuity record after a canonical root-user turn
-explicitly resumes a blocked host goal and the host exposes no supported resume
-transition. This tool does not change the host goal, replace its objective, or
-grant spend, source, Git, installation, restart, deployment, or production
-authority.
+Append one immutable v2 continuity record after a blocked host goal is resumed
+while the host exposes no supported resume transition. The public MCP
+registration accepts exactly these three top-level input fields:
 
-**Input:**
-- `repair_bead_id` (string, required) — active bead that owns the host defect
-- `continued_bead_id` (string, optional) — active mission bead being continued
-- `decision_id` (string, optional) — correlated CStar decision
-- `host_goal_objective_sha256` and `host_goal_snapshot_sha256` (SHA-256, required)
-- `observed_host_status` (literal `blocked`)
-- `host_resume_capability` (literal `unavailable`)
+- `forge_request_receipt_id` — the exact stored Forge request receipt id
+- `request_sha256` — the exact lowercase SHA-256 of that stored request
+- `host_goal_projection` — a strict `cstar.host_get_goal_projection.v1` object
 
-The kernel verifies the exact current root-user turn before opening Hall. It
-stores hashes and lifecycle references, never raw operator text. Exact replay
-returns the existing event; changed inputs under the same operator record set,
-tampered history, missing or terminal beads, and broken generation chains fail
-closed.
+The projection has exactly these fields: `schema`, `threadId`, `objective`,
+`status` (`blocked`), `tokensUsed`, `timeUsedSeconds`, `createdAt`, `updatedAt`,
+and `hostResumeCapability` (`unavailable`). Counters are validated transient
+host observations. Objective hashing covers its exact UTF-8 bytes without trim
+or Unicode normalization. Raw objective text and transient counters are not
+durably persisted.
 
-**Output:** `{ status: 'recorded'|'replayed', mutation, resume_id, goal_ref, resume_generation, previous_resume_id, host_status_mutated: false, authority_effect: 'continuity_only' }`.
+The kernel reads the stored request and derives its request bead, decision,
+target/scope, package-lock, action, callback, and other exact lineage together
+with the immutable root-repair sidecar. Callers cannot supply lineage or
+authority fields. Request/hash integrity, active bead and root-thread lineage,
+continuity evidence, replay history, and all existing protected gates remain
+kernel checks.
+
+The sidecar is `cstar.forge_request_root_repair_binding.v1`. Current-v3 stores
+its semantic `adapter_ref` as null; a local schema check widens an older NOT
+NULL column transactionally while preserving historical non-null adapter
+values byte-for-byte. Legacy-v2 adapter selection remains explicit
+compatibility state and is never a current-v3 sidecar fallback.
+
+**Output:** `{ status: 'recorded'|'replayed', mutation, resume_id: 'goal-resume-v2:<64 lowercase hex>', goal_ref, resume_generation, previous_resume_id, host_status_mutated: false, authority_effect: 'continuity_only' }`.
+
+Exact replay returns the existing v2 event and does not create a second event.
+Resume is continuity-only: it creates no new provider call, spend, Forge
+request, authorization, or attempt, and it does not inherit protected-gate
+authority. The durable event contains canonical hashes and bounded lineage,
+never raw objective, transient counters, or operator prose.
+
+Historical internal-only compatibility facts are retained for old receipts and
+evidence: `goal-resume:<64 lowercase hex>`, `repair_bead_id`,
+`continued_bead_id`, `decision_id`, `host_goal_objective_sha256`,
+`host_goal_snapshot_sha256`, `observed_host_status`, and
+`host_resume_capability`. These fields are not accepted by the current public
+registration or Forge authorization. A v1 Forge id is rejected with
+`forge_goal_resume_v1_historical_only` and can never provide Forge authority.
 
 ## 9. `cstar_spoke_bead_import`
 
@@ -1040,9 +1199,10 @@ independent evidence are stored as `INCONCLUSIVE` rather than authoritative.
 - `validation_evidence` (object, optional) — bounded artifact/check paths and
   SHA-256 hashes only. For Forge v2, CStar derives validator identity and
   independence from the current request and exact execution receipt. For host
-  v3, these arrays must exactly match the independently hashed validation
-  manifest. Caller-supplied identity or independence fields are rejected by the
-  strict tool schema.
+  v3, the independently hashed manifest is authoritative and CStar derives
+  these arrays from it; when supplied for legacy compatibility, the arrays must
+  be semantically equal. Caller-supplied identity or independence fields are
+  rejected by the strict tool schema.
 
 Validation persistence and delivery finalization/terminal evidence linkage are
 one transaction. If either
@@ -1088,7 +1248,9 @@ Capability discovery. Hub registry merged with spoke-local manifests, namespaced
 `<slug>:<id>`. A spoke manifest is read only after an exact Hall/on-disk
 `mount_token` match; `unproven` is rejected. Reads are bounded, reject symlink
 and hardlink files, and never enter private homes. Results use relative
-authority paths and omit raw roots. Read-only; announce-only per
+authority paths and omit raw roots. The default hub projection excludes
+`entry_surface: compatibility`; use exact `cstar_skill_info` lookup for an
+explicit compatibility capability. Read-only; announce-only per
 BEAD-CSTAR-SPOKE-DISCOVERY-001.
 
 **Input:**
@@ -1099,7 +1261,9 @@ BEAD-CSTAR-SPOKE-DISCOVERY-001.
 
 Per-capability contract. Resolves `<slug>:<id>` to a bounded, verified spoke
 SKILL.md plus redacted invocation metadata; bare ids go to the kernel registry.
-The response never returns a raw working-directory root.
+Bare hub ids, including exact compatibility ids such as `calculus`, remain
+discoverable even when they are absent from the default manifest. The response
+never returns a raw working-directory root.
 
 **Input:**
 - `id` (string, required)
@@ -1187,7 +1351,7 @@ Deterministic current-state snapshot. CStar lifecycle state is separated from
 the legacy framework projection; persona supplies non-authoritative tone and
 development-process guidance only.
 
-**Input:** _(none)_
+**Input:** `{ "forge_execution_receipt_id"?: "forge-execute-<32 lowercase hex>" }`
 
 **Output:**
 ```json

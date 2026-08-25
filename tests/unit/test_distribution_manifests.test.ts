@@ -21,6 +21,15 @@ const GENERATED_DISTRIBUTION_PATHS = [
     'distributions/README.md',
 ] as const;
 
+function validateNativeMaterializations(projectRoot: string): string[] {
+    return buildDistributions(projectRoot).files.flatMap((file) => {
+        const absolutePath = path.join(projectRoot, file.relativePath);
+        if (!fs.existsSync(absolutePath)) return [`${file.relativePath}: missing`];
+        return fs.readFileSync(absolutePath, 'utf-8') === file.content
+            ? [] : [`${file.relativePath}: stale`];
+    });
+}
+
 function portablePath(relativePath: string): string {
     return relativePath.replaceAll('\\', '/');
 }
@@ -155,13 +164,14 @@ describe('distribution generator', () => {
         const geminiManifest = JSON.parse(build.files[0]?.content ?? '{}') as {
             contextFileName?: string;
             version?: string;
-            mcpServers?: Record<string, { command?: string; args?: string[]; cwd?: string }>;
+            mcpServers?: Record<string, { command?: string; args?: string[]; cwd?: string; note?: string }>;
         };
         assert.equal(geminiManifest.contextFileName, 'GEMINI.md');
         assert.equal(geminiManifest.version, '2.4.6');
         assert.equal(geminiManifest.mcpServers?.['cstar-kernel']?.command, 'node');
         assert.deepEqual(geminiManifest.mcpServers?.['cstar-kernel']?.args, ['bin/cstar-kernel-mcp.js']);
         assert.deepEqual(Object.keys(geminiManifest.mcpServers ?? {}), ['cstar-kernel']);
+        assert.match(geminiManifest.mcpServers?.['cstar-kernel']?.note ?? '', /35-tool surface/);
 
         const geminiContext = build.files[1]?.content ?? '';
         assert.match(geminiContext, /node bin\/cstar\.js <command>/);
@@ -176,6 +186,10 @@ describe('distribution generator', () => {
         assert.match(geminiContext, /Start or resume one host goal for every non-trivial mission/);
         assert.match(geminiContext, /cstar-goal-driven-daily-bootstrap\.md/);
         assert.match(geminiContext, /`hall` \(PRIME, native-session, host-workflow, kernel fallback forbidden\)/);
+        assert.match(geminiContext, /Kernel MCP Tools \(35\)/);
+        for (const name of ['plan', 'status', 'update', 'complete', 'cancel']) {
+            assert.match(geminiContext, new RegExp(`cstar_forge_swarm_${name}`));
+        }
 
         const codexPlugin = JSON.parse(build.files[2]?.content ?? '{}') as {
             name?: string;
@@ -199,6 +213,25 @@ describe('distribution generator', () => {
         assert.match(codexSkill, /Start or resume one host goal for every non-trivial mission/);
         assert.match(codexSkill, /cstar-goal-driven-daily-bootstrap\.md/);
         assert.doesNotMatch(codexSkill, /`cstar_autobot`/);
+        assert.match(codexSkill, /Current Forge uses `cstar_forge_request -> cstar_forge_authorize/);
+        assert.match(codexSkill, /requested model and reasoning are immutable packet inputs/);
+        assert.match(codexSkill, /separate direct sibling/);
+        assert.match(codexSkill, /Historical Codex-host state-only handoffs/);
+        assert.doesNotMatch(codexSkill, /Current Forge v3 persists a Codex-host state-only handoff/);
+        assert.doesNotMatch(codexSkill, /After `host_handoff_queued`/);
+        assert.doesNotMatch(codexSkill, /Choose Luna, Terra, or Sol/);
+
+        const pluginReadme = build.files[4]?.content ?? '';
+        const distributionReadme = build.files[7]?.content ?? '';
+        assert.equal(pluginReadme, distributionReadme);
+        for (const readme of [pluginReadme, distributionReadme]) {
+            assert.match(readme, /cstar_forge_swarm_plan -> direct host-native workers/);
+            assert.match(readme, /cstar_forge_swarm_complete -> DELIVERED_UNVERIFIED/);
+            assert.match(readme, /active connection is `forge-native-codex-swarm-v1`/);
+            assert.match(readme, /one to three useful direct workers have disjoint ownership/);
+            assert.match(readme, /historical, retired, legacy, or generation-tombstoned evidence/);
+            assert.doesNotMatch(readme, /Current Forge v3 host handoffs require/);
+        }
 
         const materializedGemini = fs.readFileSync(path.join(process.cwd(), 'GEMINI.md'), 'utf-8');
         const materializedCodexSkill = fs.readFileSync(
@@ -222,7 +255,7 @@ describe('distribution generator', () => {
         assert.deepEqual(lineage.plugin, { name: 'corvus-star', version: '2.4.6' });
         assert.equal(lineage.runtime_binding?.integration_mode, 'skill-only');
         assert.equal(lineage.runtime_binding?.kernel_bundled, false);
-        assert.ok((lineage.tool_catalog?.count ?? 0) > 0);
+        assert.equal(lineage.tool_catalog?.count, 35);
         assert.match(lineage.tool_catalog?.sha256 ?? '', /^[a-f0-9]{64}$/);
         assert.equal(lineage.capability_exports?.codex_count, 2);
         assert.equal(lineage.capability_exports?.gemini_count, 3);
@@ -277,7 +310,7 @@ describe('distribution generator', () => {
     });
 
     it('keeps checked-in distribution materializations synchronized', () => {
-        assert.deepEqual(validateDistributions(process.cwd()), []);
+        assert.deepEqual(validateNativeMaterializations(process.cwd()), []);
     });
 
     it('pins every generated materialization to LF and emits no CR bytes', () => {

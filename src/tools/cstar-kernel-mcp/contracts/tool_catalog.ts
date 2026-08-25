@@ -154,7 +154,42 @@ export const CSTAR_KERNEL_TOOL_CATALOG = [
     {
         name: 'cstar_forge_execute',
         toolClass: 'EXECUTION',
-        description: 'Atomically run one provider attempt through the private Hermes/MiniMax adapter, with durable replay, independently validated pre-provider continuity, and delivered-pending-validation semantics.',
+        description: 'Reserve or replay one authorized forge-native-codex-swarm-v1 run and return separate worker and control receipts; no model/provider fallback is permitted.',
+    },
+    {
+        name: 'cstar_forge_swarm_plan',
+        toolClass: 'MUTATION',
+        description: 'Validate and record one exact plan for one to three useful direct workers with disjoint write ownership and no nested parent.',
+    },
+    {
+        name: 'cstar_forge_swarm_status',
+        toolClass: 'READ',
+        description: 'Project one native Forge run, worker receipts, gaps, and aggregate state without initializing or mutating durable state.',
+    },
+    {
+        name: 'cstar_forge_swarm_update',
+        toolClass: 'MUTATION',
+        description: 'Record or replay one exact terminal direct-worker receipt under the retained run control lease.',
+    },
+    {
+        name: 'cstar_forge_swarm_complete',
+        toolClass: 'MUTATION',
+        description: 'Validate and persist one complete native aggregate at DELIVERED_UNVERIFIED; this never accepts lifecycle or substitutes for independent validation.',
+    },
+    {
+        name: 'cstar_forge_swarm_cancel',
+        toolClass: 'MUTATION',
+        description: 'Request cancellation, then record CANCELLED only with complete stop proof or freeze UNKNOWN when task state is uninspectable.',
+    },
+    {
+        name: 'cstar_mission',
+        toolClass: 'REQUEST',
+        description: 'Compatibility-first ordinary bounded mission coordinator; derives immutable identifiers and hashes, persists host-owned queue intent when authorized, and never launches workers, providers, or Forge authority.',
+    },
+    {
+        name: 'cstar_forge_host_complete',
+        toolClass: 'LEGACY',
+        description: 'Retired host-handoff completion tombstone; always returns a typed non-mutating generation-retired response.',
     },
 ] as const satisfies readonly CstarKernelToolCatalogShape[];
 

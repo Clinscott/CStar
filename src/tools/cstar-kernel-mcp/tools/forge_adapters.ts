@@ -68,9 +68,11 @@ export type { PreparedForgeAdapterInvocation } from './forge_adapter_invocation.
 export const FORGE_EXECUTION_ADAPTERS = [
     {
         ref: 'cstar-forge-hermes-minimax-adapter',
+        compatibility_lane: 'legacy_v2_only',
+        current_route: false,
         plain_english_label: 'cstar-forge-report-only',
         aliases: ['cstar-forge-report-only', 'response-only-report', 'report-only'],
-        name: 'CStar Forge Hermes MiniMax adapter',
+        name: 'CStar Forge legacy v2 Hermes MiniMax adapter',
         contract_surface: 'docs/operations/corvus-forge-skill-spec.md',
         playbook_surface: 'docs/operations/corvus-forge-pipeline-playbook.md',
         invocation: 'operator_authorized_live_gate',
@@ -81,9 +83,11 @@ export const FORGE_EXECUTION_ADAPTERS = [
     },
     {
         ref: 'cstar-forge-hermes-minimax-worker-adapter',
+        compatibility_lane: 'legacy_v2_only',
+        current_route: false,
         plain_english_label: 'cstar-forge-edit-files',
         aliases: ['cstar-forge-edit-files', 'file-editing-worker', 'edit-files'],
-        name: 'CStar Forge Hermes MiniMax worker adapter',
+        name: 'CStar Forge legacy v2 Hermes MiniMax worker adapter',
         contract_surface: 'docs/operations/corvus-forge-skill-spec.md',
         playbook_surface: 'docs/operations/corvus-forge-pipeline-playbook.md',
         invocation: 'operator_authorized_live_gate',
@@ -151,8 +155,8 @@ export function resolveForgeExecutionAdapterRef(requestedRef: string | undefined
         checked: requested
             ? proofs.length > 0
                 ? proofs
-                : [{ ref: requested, authorized: false, reason: 'no approved Forge/Hermes/MiniMax execution adapter is registered' }]
-            : proofs.map((adapter) => ({ ...adapter, authorized: false, reason: 'execution_adapter_ref is required for live execution' })),
+                : [{ ref: requested, authorized: false, reason: 'no approved legacy-v2 Forge adapter is registered' }]
+            : proofs.map((adapter) => ({ ...adapter, authorized: false, reason: 'execution_adapter_ref is required for explicit legacy-v2 execution' })),
     };
 }
 export function resolveForgeExecutionAdapter(args: ForgeExecutionArgs, root = CODE_ROOT) {

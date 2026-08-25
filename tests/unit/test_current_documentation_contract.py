@@ -7,7 +7,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_OPERATOR_SKILLS = {"corvus-forge", "researcher", "cstar-closeout"}
+DEFAULT_OPERATOR_SKILLS = {"corvus-forge", "researcher", "cstar-closeout", "cstar-reliability-loop"}
 COMPATIBILITY_SKILLS = {"calculus"}
 
 
@@ -19,7 +19,7 @@ def _flat(text: str) -> str:
     return " ".join(text.split())
 
 
-def test_current_registry_and_docs_expose_only_three_agent_native_skills() -> None:
+def test_current_registry_and_docs_expose_four_agent_native_skills() -> None:
     registry = json.loads(_read(".agents/skill_registry.json"))
     entries = registry["entries"]
     default_entries = {
@@ -70,11 +70,13 @@ def test_current_architecture_docs_reject_legacy_execution_topology() -> None:
     assert "The Weaves (" not in registry_doc
     assert "autonomous Weave framework is retired" in weave_doc
     assert "exposes no Orchestrate or HostGovernor adapter" in weave_doc
-    assert "There is no reverse model bridge" not in host_doc  # wording lives in compatibility pointer
+    assert "cstar_forge_swarm_plan -> direct host-native workers" in _flat(weave_doc)
     assert "does not create a callback from CStar into the host" in host_doc
-    assert "MimirClient.request" not in host_doc
+    assert "forge-native-codex-swarm-v1" in host_doc
+    assert "DELIVERED_UNVERIFIED -> independent cstar_record_result" in _flat(host_doc)
+    assert "never current, default, target, recovery, replacement, or fallback routes" in _flat(host_doc)
     assert "PMTs may be queried only as mapped project information repositories" in host_doc
-    assert "MM is legacy" in host_doc
+    assert "MM is inactive and has no active routing, synthesis, ownership, relay, review, or execution role" in " ".join(host_doc.split())
 
 
 def test_codex_active_turn_identity_is_a_root_user_projection() -> None:
@@ -319,7 +321,7 @@ def test_ci_checks_checked_in_distributions_before_release_generation() -> None:
         "- name: Validate Generated Distribution Artifacts", 1
     )[1].split("- name:", 1)[0]
 
-    assert "node-version: 22" in workflow
+    assert "node-version-file: .nvmrc" in workflow
     assert "npm run validate:distributions" in validation_step
     assert "npm run build:distributions" not in validation_step
 
@@ -347,20 +349,38 @@ def test_kernel_docs_separate_code_control_and_forge_readiness() -> None:
 
 
 def test_host_goal_resume_is_append_only_and_continuity_only() -> None:
-    bootstrap = _read("docs/operations/cstar-goal-driven-daily-bootstrap.md")
-    flat_bootstrap = _flat(bootstrap)
+    bootstrap = _flat(_read("docs/operations/cstar-goal-driven-daily-bootstrap.md"))
     feature = _read("tests/features/cstar_host_goal_resume.feature")
+    kernel_doc = _flat(_read("docs/integrations/cstar-kernel-mcp.md"))
 
     for required in (
-        "cstar_goal_resume",
-        "cstar.host_goal_resume.v1",
-        "continuity-only overlay",
-        "host status remains `blocked`",
-        "dedicated, fully anchored imperative or authorization statement",
+        "cstar_goal_resume", "cstar.host_goal_resume.v2", "cstar.host_get_goal_projection.v1",
+        "cstar.host_goal_snapshot.v1", "request receipt id and request SHA-256 as the only request lineage fields",
+        "continuity_only", "host status remains `blocked`", "same canonical root thread",
+        "does not need fresh repair wording", "liveness evidence only", "revocation",
+        "protected actions", "scope expansion", "different target or goal", "tokensUsed",
+        "timeUsedSeconds", "raw objective", "raw operator/current-turn text",
+        "forge_goal_resume_v1_historical_only", "using only this safe payload",
     ):
-        assert required in flat_bootstrap
-    assert "no raw operator message" in feature
-    assert "no second coordination event" in feature
+        assert required in bootstrap
+    for required in (
+        "cstar.host_goal_resume.v2", "cstar.host_get_goal_projection.v1",
+        "cstar.host_goal_snapshot.v1", "continuity_only", "raw operator text",
+        "exactly one v2 coordination event exists", "no resume event is inserted",
+        "forge_goal_resume_v1_historical_only",
+    ):
+        assert required in feature
+    for required in (
+        "optional router-supplied", "goal_resume_id", "goal-resume-v2:<64 lowercase hex>",
+        "goal-resume:<64 lowercase hex>", "forge_goal_resume_v1_historical_only",
+        "Operators must not author or paste bead ids", "decision ids",
+        "forge-native-codex-swarm-v1", "one to three useful direct workers",
+        "cstar_forge_swarm_plan", "zero provider calls", "network requests", "spend",
+        "DELIVERED_UNVERIFIED", "liveness and revocation input only",
+    ):
+        assert required in kernel_doc
+    for stale in ("Public inputs are `forge_request_receipt_id`, `request_sha256`.", "A later root-user turn can only retrieve an already durable attempt"):
+        assert stale not in kernel_doc
 
 
 def test_persona_context_is_status_only_with_isolated_bounded_reader() -> None:

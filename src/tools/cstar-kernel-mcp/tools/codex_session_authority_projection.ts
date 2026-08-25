@@ -124,13 +124,16 @@ function isExactUserEventMirror(
         || payload.message !== source.message
         || !Array.isArray(payload.images) || payload.images.length !== 0
         || !Array.isArray(payload.local_images) || payload.local_images.length !== 0
+        || (payload.audio !== undefined && (!Array.isArray(payload.audio) || payload.audio.length !== 0))
+        || (payload.local_audio !== undefined && (!Array.isArray(payload.local_audio) || payload.local_audio.length !== 0))
         || !Array.isArray(payload.text_elements) || payload.text_elements.length !== 0
         || (payload.client_id !== undefined && typeof payload.client_id !== 'string')
     ) {
         return false;
     }
     const allowed = new Set([
-        'type', 'client_id', 'message', 'images', 'local_images', 'text_elements',
+        'type', 'client_id', 'message', 'images', 'local_images', 'audio', 'local_audio',
+        'text_elements',
     ]);
     const allowedRowKeys = new Set(['timestamp', 'type', 'payload']);
     return Object.keys(record.row).every((key) => allowedRowKeys.has(key))

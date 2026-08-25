@@ -1,0 +1,61 @@
+Validation: validation:cstar-persona-cas-contract-20260804-r1
+Bead: bead:mcp:complete-the-deterministic-process-only-persona--msf2wzdw
+Code root: /home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803
+Validator thread: 019fce73-0304-7980-a0ae-cb56a6837b29
+Validator turn: 019fce73-0c52-72a3-a86c-c5bb448855cd
+Root/parent thread: 019f71dc-af61-7a73-a72d-1ec3a638a011
+Validator depth/source: 1 / subagent
+
+Focused checker (Node 25):
+command: /home/morderith/.nvm/versions/node/v25.8.1/bin/node scripts/run-tsx.mjs --test tests/unit/cstar-kernel-mcp/test_persona_set.test.ts tests/unit/cstar-kernel-mcp/test_persona_status_boundary.test.ts tests/unit/cstar-kernel-mcp/test_tool_catalog.test.ts
+suites: 3
+tests: 22
+passed: 22
+failed: 0
+
+Typecheck (Node 25):
+command: /home/morderith/.nvm/versions/node/v25.8.1/bin/npm run typecheck
+exit: 0
+
+Adjacent authorization/kernel/tool/instrumentation matrix (Node 25):
+command: /home/morderith/.nvm/versions/node/v25.8.1/bin/node scripts/run-tsx.mjs --test tests/unit/cstar-kernel-mcp/test_operator_authorization.test.ts tests/unit/cstar-kernel-mcp/test_operator_authorization_scope_binding.test.ts tests/unit/cstar-kernel-mcp/test_kernel_surfaces_core.test.ts tests/unit/cstar-kernel-mcp/test_tool_classes.test.ts tests/unit/cstar-kernel-mcp/test_instrumentation_mutation_identity.test.ts
+suites: 6
+tests: 45
+passed: 45
+failed: 0
+
+Integrity checks:
+git diff --check --: pass
+bounded git diff --check for persona_state.ts and test_persona_set.test.ts: pass
+all 12 pinned artifact hashes: pass
+all 12 pinned artifacts <=500 lines: pass
+
+Covered behavior:
+changed/noop/blocked outcomes: pass
+expected_current compare-and-set and stale conflict: pass
+concurrent stale writers serialize as one change and one block: pass
+deterministic and idempotent receipts: pass
+same-value first call seeds Hall revision 1 with noop receipt: pass
+repeated same-value call replays the original receipt: pass
+stale first expectation inserts zero canonical rows: pass
+status reads canonical Hall state after legacy config changes: pass
+shared .agents/config.json is migration-read-only and never exposed or generically rewritten: pass
+retired Python compatibility writer cannot bypass canonical state: pass
+optional expected_current schema and unchanged 28-tool public catalog: pass
+authority_effect=process_only and next_workflow_boundary: pass
+no retry/spend/scope/Git/source/restart/deploy/secret/config/production authority: pass
+
+Source review:
+persona writes use one immediate transaction: pass
+state update uses revision compare-and-set and rolls back on write failure: pass
+invalid canonical state fails closed: pass
+configuration is consulted only when dedicated Hall state is absent: pass
+status projection prefers canonical Hall state and never emits config payloads: pass
+registration exposes only persona and optional expected_current: pass
+
+Mutation boundary:
+source edits: false
+test edits: false
+live CStar/Hall mutation: false
+config/secrets/providers/install/rebuild/restart/Git/deploy: false
+written scope: this bounded validation package only

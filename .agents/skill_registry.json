@@ -104,7 +104,7 @@
     "corvus-forge": {
       "id": "corvus-forge",
       "title": "Corvus Forge",
-      "description": "Durable implementation routing through CStar request, execute, and independent validation.",
+      "description": "Durable implementation routing through CStar native flat dispatch, separate read-only aggregation, and independent record_result.",
       "tier": "SKILL",
       "viability": "ACTIVE",
       "risk": "high",
@@ -115,12 +115,22 @@
       "owner_runtime": "host-agent",
       "host_support": {"codex": "native-session", "gemini": "native-session", "claude": "native-session"},
       "recursion_policy": "leaf",
-      "contracts": [".agents/skills/corvus-forge/SKILL.md"],
-      "tests": ["tests/unit/test_skill_execution_contracts.test.ts"],
+      "contracts": [
+        ".agents/skills/corvus-forge/SKILL.md",
+        ".agents/skills/corvus-forge/scripts/validate_native_swarm_packet.mjs",
+        ".agents/skills/corvus-forge/scripts/validate_native_swarm_receipt.mjs"
+      ],
+      "tests": [
+        "tests/unit/corvus-forge/test_native_swarm_packet.test.mjs",
+        "tests/unit/corvus-forge/test_native_swarm_receipt.test.mjs",
+        "tests/unit/test_skill_execution_contracts.test.ts"
+      ],
       "intent_categories": ["BUILD", "REPAIR", "EVOLVE"],
       "execution": {
         "mode": "agent-native",
-        "ownership_model": "host-workflow"
+        "ownership_model": "host-workflow",
+        "connection_id": "forge-native-codex-swarm-v1",
+        "allow_kernel_fallback": false
       }
     },
     "researcher": {
@@ -162,6 +172,36 @@
       "contracts": [".agents/skills/cstar-closeout/SKILL.md"],
       "tests": ["tests/unit/test_cstar_closeout_skill.py"],
       "intent_categories": ["DOCUMENT"],
+      "execution": {
+        "mode": "agent-native",
+        "ownership_model": "host-workflow"
+      }
+    },
+    "cstar-reliability-loop": {
+      "id": "cstar-reliability-loop",
+      "title": "CStar Reliability Loop v1",
+      "description": "Host-only bounded validation and automatic repair continuation; CStar records state, CoS orchestrates, and Luna Max implements and independently validates.",
+      "tier": "SKILL",
+      "viability": "ACTIVE",
+      "risk": "medium",
+      "entry_surface": "host-only",
+      "instruction_path": ".agents/skills/cstar-reliability-loop/SKILL.md",
+      "entrypoint_path": null,
+      "authority_path": ".agents/skills/cstar-reliability-loop",
+      "owner_runtime": "host-agent",
+      "host_support": {"codex": "native-session", "gemini": "native-session", "claude": "native-session"},
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/cstar-reliability-loop/SKILL.md",
+        ".agents/skills/cstar-reliability-loop/references/reliability-continuation.schema.json",
+        "tests/features/cstar_reliability_loop.feature"
+      ],
+      "tests": [
+        "tests/unit/cstar-kernel-mcp/test_reliability_loop.test.ts",
+        "tests/unit/cstar-kernel-mcp/test_reliability_loop_result.test.ts",
+        "tests/unit/test_cstar_reliability_loop_skill.py"
+      ],
+      "intent_categories": ["VERIFY", "HARDEN"],
       "execution": {
         "mode": "agent-native",
         "ownership_model": "host-workflow"

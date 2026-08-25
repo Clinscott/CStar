@@ -6,7 +6,7 @@ import { registry } from '../../pennyone/pathRegistry.js';
 import type { McpRequestContext } from '../contracts/request_context.js';
 import { errorResponse, mcpErrorCode, mcpGuardrail, mcpMutation, preAuthorizationErrorResponse, preAuthorizationResponse, textResponse, type McpTextResponse } from '../contracts/responses.js';
 import { hashForgeAuthorizationChallenge, verifyCurrentForgeAuthorizationChallenge } from './forge_authorization_challenge.js';
-import { verifyCurrentForgeOperatorIntent } from './forge_operator_intent_attestation.js';
+import { verifyCurrentForgeOperatorIntent, type VerifiedForgeOperatorIntent } from './forge_operator_intent_attestation.js';
 import { resolveForgeOperatorWorkItem } from './forge_operator_work_item_resolution.js';
 import { resolveForgeExecutionAdapterRef, sealForgeAdapterRuntime } from './forge_adapters.js';
 import { assertDispatchAdapterCapability } from './dispatch_action_authority.js';
@@ -17,35 +17,60 @@ import { verifyCodexRequestIdentity, type VerifiedCodexRequestIdentity } from '.
 import { buildForgeRequestId, hashCanonicalForgeRequest, hashForgeTargetPaths, stableJson, type CanonicalForgeRequest } from './forge_request_contract.js';
 import { forgeRequestAuthorityMatches, readForgeRequestBeforeMutation } from './forge_execute_request_authority.js';
 import { assertLiveForgeRuntimeReady } from '../contracts/runtime.js';
-import { revalidateForgeGoalResumeAuthority, verifyForgeGoalResumeAuthority } from './forge_goal_resume_authority.js';
+import { revalidateForgeGoalResumeV2Authority, verifyForgeGoalResumeV2Authority } from './forge_goal_resume_v2_authority.js';
+import { isGoalResumeV1Id, isGoalResumeV2Id } from '../../pennyone/intel/goal_resume_v2_contract.js';
 import { revalidateForgeSetManifestAuthority, verifyCurrentForgeSetManifestAuthority } from './forge_set_manifest_authority.js';
 import { parseForgeStructuralCaller, verifyPendingForgeSetManifestAuthority, verifyPersistedForgeSetManifestAuthority } from './forge_set_manifest_autonomous_authority.js';
-
+import { buildForgeRootRepairContinuationIntent, isForgeRootRepairContinuationReference } from '../../pennyone/intel/forge_request_root_repair_binding.js';
+import { bindForgeNativeAuthorization, type ForgeNativeAuthorizationBinding, type ForgeNativeAuthorizationBindingInput } from './forge_native_authorization_binding.js';
+import { verifyForgeNativeRequestBinding } from './forge_native_request_binding.js';
 export interface ForgeAuthorizeArgs {
     forge_request_receipt_id: string;
     request_sha256: string;
     goal_resume_id?: string;
 }
-
+export type ForgeNativeAuthorizationToolContext = Pick<ForgeNativeAuthorizationBindingInput, 'authority_chain' | 'native_request'>;
+export function preflightForgeNativeAuthorizationToolContext(context: ForgeNativeAuthorizationToolContext | undefined, requestId: string, requestSha256: string): void {
+    if (!context) return;
+    if (Object.keys(context).some((key) => !['authority_chain', 'native_request'].includes(key))) throw new Error('forge_native_authorization_tool_context_field_forbidden');
+    if (context.native_request.authority.request_id !== requestId
+        || context.native_request.authority.request_sha256 !== requestSha256) throw new Error('forge_native_authorization_tool_request_mismatch');
+    verifyForgeNativeRequestBinding({ authority_chain: context.authority_chain, goal: context.native_request.goal,
+        acceptance: context.native_request.acceptance }, context.native_request);
+}
+export function resolveForgeNativeAuthorizationToolBinding(context: ForgeNativeAuthorizationToolContext | undefined,
+    legacy: Omit<ForgeNativeAuthorizationBindingInput, 'authority_chain' | 'native_request'> & { request_id: string; request_sha256: string }): ForgeNativeAuthorizationBinding | null {
+    if (!context) return null;
+    preflightForgeNativeAuthorizationToolContext(context, legacy.request_id, legacy.request_sha256);
+    const { request_id: _requestId, request_sha256: _requestSha256, ...binding } = legacy;
+    return bindForgeNativeAuthorization({ ...context, ...binding });
+}
 function assertPendingChallengePolicy(requestSummary: CanonicalForgeRequest): void {
-    if (
-        requestSummary.schema !== 'cstar.forge_request.v3'
+    if (requestSummary.schema !== 'cstar.forge_request.v3'
         || requestSummary.spend_policy.mode !== 'live_authorized'
         || requestSummary.spend_policy.max_retries !== 0
         || requestSummary.spend_policy.live_source_allowed !== false
         || requestSummary.retry_budget !== 0
         || requestSummary.fixture_policy !== 'synthetic_only'
         || requestSummary.max_attempts !== 1
-        || !requestSummary.adapter_ref
-        || !requestSummary.write_capability
-    ) {
-        throw new Error('forge_authorization_request_policy_invalid');
-    }
+        || requestSummary.adapter_ref !== null
+        || !requestSummary.write_capability) throw new Error('forge_authorization_request_policy_invalid');
+}
+function assertUnusedCurrentTurn(db: ReturnType<typeof getForgeWritableDb>, repoId: string,
+    requestId: string, intent: VerifiedForgeOperatorIntent): void {
+    if (intent.binding_mode !== 'current_turn_continuation') return;
+    const reused = db.prepare(
+        'SELECT 1 FROM hall_forge_requests r JOIN hall_forge_authorizations z ON z.request_id = r.request_id '
+        + 'WHERE r.repo_id = ? AND r.request_id <> ? AND r.requester_thread_id = ? '
+        + 'AND r.requester_turn_id = ? LIMIT 1',
+    ).get(repoId, requestId, intent.thread_id, intent.turn_id);
+    if (reused) throw new Error('forge_operator_intent_current_turn_reused');
 }
 
 export async function handleForgeAuthorize(
     args: ForgeAuthorizeArgs,
     requestContext?: McpRequestContext,
+    nativeAuthorizationContext?: ForgeNativeAuthorizationToolContext,
 ): Promise<McpTextResponse> {
     let requestIdentityVerified = false;
     let operatorAuthorizationVerified = false;
@@ -55,15 +80,14 @@ export async function handleForgeAuthorize(
     try {
         const requestId = args.forge_request_receipt_id?.trim();
         const requestSha256 = args.request_sha256?.trim().toLowerCase();
-        const goalResumeId = args.goal_resume_id?.trim() || undefined;
-        if (!/^dispatch-forge-[a-f0-9]{32}$/.test(requestId ?? '')) {
-            throw new Error('forge_authorization_request_id_invalid');
-        }
-        if (!/^[a-f0-9]{64}$/.test(requestSha256 ?? '')) {
-            throw new Error('forge_authorization_request_sha256_invalid');
-        }
-        if (goalResumeId && !/^goal-resume:[a-f0-9]{64}$/.test(goalResumeId)) {
+        const goalResumeId = args.goal_resume_id || undefined;
+        if (!/^dispatch-forge-[a-f0-9]{32}$/.test(requestId ?? '')) throw new Error('forge_authorization_request_id_invalid');
+        if (!/^[a-f0-9]{64}$/.test(requestSha256 ?? '')) throw new Error('forge_authorization_request_sha256_invalid');
+        if (goalResumeId && !isGoalResumeV1Id(goalResumeId) && !isGoalResumeV2Id(goalResumeId)) {
             throw new Error('forge_goal_resume_id_invalid');
+        }
+        if (goalResumeId && isGoalResumeV1Id(goalResumeId)) {
+            throw new Error('forge_goal_resume_v1_historical_only');
         }
         const structuralCaller = parseForgeStructuralCaller(requestContext);
         let requestIdentity: VerifiedCodexRequestIdentity | null = null;
@@ -74,15 +98,9 @@ export async function handleForgeAuthorize(
         };
         let naturalIntent: Awaited<ReturnType<typeof verifyCurrentForgeOperatorIntent>> | null = null;
         let naturalIntentError: unknown;
-        let setManifestAuthority: Awaited<
-            ReturnType<typeof verifyCurrentForgeSetManifestAuthority>
-        > = null;
-        let pendingSetManifestAuthority: ReturnType<
-            typeof verifyPendingForgeSetManifestAuthority
-        > | null = null;
-        let persistedSetManifestAuthority: ReturnType<
-            typeof verifyPersistedForgeSetManifestAuthority
-        > | null = null;
+        let setManifestAuthority: Awaited<ReturnType<typeof verifyCurrentForgeSetManifestAuthority>> = null;
+        let pendingSetManifestAuthority: ReturnType<typeof verifyPendingForgeSetManifestAuthority> | null = null;
+        let persistedSetManifestAuthority: ReturnType<typeof verifyPersistedForgeSetManifestAuthority> | null = null;
         const root = registry.getRoot();
         let requestRead: ReturnType<typeof readForgeRequestBeforeMutation>;
         try {
@@ -95,52 +113,33 @@ export async function handleForgeAuthorize(
         }
         const { db: readDb, request, release } = requestRead;
         releaseReadDb = release;
-        if (request.request_sha256 !== requestSha256) {
-            throw new Error('forge_authorization_request_hash_mismatch');
-        }
+        if (request.request_sha256 !== requestSha256) throw new Error('forge_authorization_request_hash_mismatch');
         let parsed: unknown;
-        try {
-            parsed = JSON.parse(request.request_summary_json);
-        } catch {
-            throw new Error('forge_request_summary_invalid');
-        }
+        try { parsed = JSON.parse(request.request_summary_json); }
+        catch { throw new Error('forge_request_summary_invalid'); }
         let executionGrant: LegacyV2ExecutionGrant | null = null;
-        const parsedSchema = parsed && typeof parsed === 'object' && !Array.isArray(parsed)
-            ? (parsed as Record<string, unknown>).schema
-            : null;
+        const parsedSchema = parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? (parsed as Record<string, unknown>).schema : null;
         if (parsedSchema === 'cstar.forge_request.v2') {
+            if (nativeAuthorizationContext) throw new Error('forge_native_authorization_legacy_v2_forbidden');
             const adapter = resolveForgeExecutionAdapterRef(request.adapter_ref);
-            if (!adapter.selected
-                || adapter.selected.ref !== 'cstar-forge-hermes-minimax-worker-adapter') {
+            if (!adapter.selected || adapter.selected.ref !== 'cstar-forge-hermes-minimax-worker-adapter') {
                 throw new Error('forge_legacy_v2_execution_adapter_unavailable');
             }
             const adapterRuntime = sealForgeAdapterRuntime(adapter.selected);
             const hermesRuntime = await sealForgeHermesRuntimeExpectation(adapterRuntime);
-            executionGrant = buildLegacyV2ExecutionGrant(
-                request,
-                root,
-                adapterRuntime,
-                hermesRuntime,
-            );
-            assertDispatchAdapterCapability(
-                executionGrant.effective_request.action_authority,
-                adapter.selected.write_capability,
-                { require_adapter: true },
-            );
+            executionGrant = buildLegacyV2ExecutionGrant(request, root, adapterRuntime, hermesRuntime);
+            assertDispatchAdapterCapability(executionGrant.effective_request.action_authority,
+                adapter.selected.write_capability, { require_adapter: true });
             verifyDispatchPackageLocks(executionGrant.effective_request.package_locks, root);
         } else {
             const canonical = parsed as CanonicalForgeRequest;
             assertPendingChallengePolicy(canonical);
-            if (
-                stableJson(canonical) !== request.request_summary_json
+            if (stableJson(canonical) !== request.request_summary_json
                 || hashCanonicalForgeRequest(canonical) !== request.request_sha256
                 || buildForgeRequestId(request.request_sha256) !== request.request_id
                 || hashForgeTargetPaths(canonical) !== request.target_paths_sha256
-                || canonical.adapter_ref !== request.adapter_ref
-                || canonical.write_capability !== request.write_capability
-            ) {
-                throw new Error('forge_authorization_request_integrity_invalid');
-            }
+                || canonical.adapter_ref !== (request.adapter_ref ?? null)
+                || canonical.write_capability !== request.write_capability) throw new Error('forge_authorization_request_integrity_invalid');
         }
         const existingAuthorization = getForgeAuthorizationByRequest(readDb, request.request_id);
         if (!goalResumeId && existingAuthorization?.authorization_profile
@@ -196,28 +195,39 @@ export async function handleForgeAuthorize(
                 if (setManifestAuthority) {
                     naturalIntent = setManifestAuthority.intent;
                 } else {
-                    try {
-                        naturalIntent = await verifyCurrentForgeOperatorIntent(
-                            requestContext,
-                            Date.now(),
-                            {
-                                request_id: request.request_id,
-                                request_sha256: request.request_sha256,
-                                bead_id: request.bead_id,
-                                decision_id: request.decision_id,
-                            },
-                        );
-                    } catch (error) {
-                        naturalIntentError = error;
+                    const continuationReplay = Boolean(existingAuthorization
+                        && isForgeRootRepairContinuationReference(existingAuthorization.operator_authorization_ref)
+                        && request.status === 'AUTHORIZED');
+                    const durableRepairIntent = request.authorization_profile === ROOT_USER_FORGE_INTENT_PROFILE
+                        && (request.status === 'PENDING_AUTH' || continuationReplay)
+                        ? buildForgeRootRepairContinuationIntent({
+                            db: readDb,
+                            request,
+                            identity,
+                            existingAuthorization,
+                        })
+                        : null;
+                    if (durableRepairIntent) {
+                        naturalIntent = durableRepairIntent;
+                    } else {
+                        try {
+                            naturalIntent = await verifyCurrentForgeOperatorIntent(
+                                requestContext, Date.now(), {
+                                    request_id: request.request_id,
+                                    request_sha256: request.request_sha256,
+                                    bead_id: request.bead_id,
+                                    decision_id: request.decision_id,
+                                    requester_record_set_sha256: request.requester_record_set_sha256,
+                                });
+                        } catch (error) {
+                            naturalIntentError = error;
+                        }
                     }
                 }
             }
         }
-        const executionGrantSha256 = executionGrant
-            ? hashLegacyV2ExecutionGrant(executionGrant)
-            : undefined;
-        let authorizationProfile: typeof ROOT_USER_FORGE_INTENT_PROFILE
-            | typeof LEGACY_EXACT_FORGE_CHALLENGE_PROFILE;
+        const executionGrantSha256 = executionGrant ? hashLegacyV2ExecutionGrant(executionGrant) : undefined;
+        let authorizationProfile: typeof ROOT_USER_FORGE_INTENT_PROFILE | typeof LEGACY_EXACT_FORGE_CHALLENGE_PROFILE;
         let authorizationBindingSha256: string;
         let challengeSha256: string | undefined;
         let operatorIntentJson: string | undefined;
@@ -231,11 +241,9 @@ export async function handleForgeAuthorize(
         let authorizedAt: number;
         let expiresAt: number;
         let naturalProjection: ReturnType<typeof resolveForgeOperatorWorkItem> | null = null;
-        const goalAuthority = goalResumeId
-            ? await verifyForgeGoalResumeAuthority({
-                db: readDb, request, goalResumeId, identity: await ensureFullIdentity(),
-            })
-            : null;
+        const goalAuthority = goalResumeId ? await verifyForgeGoalResumeV2Authority({
+            db: readDb, request, goalResumeId, identity: await ensureFullIdentity(),
+        }) : null;
         if (goalAuthority) {
             if (executionGrant) throw new Error('forge_goal_resume_legacy_v2_unsupported');
             authorizationProfile = ROOT_USER_FORGE_INTENT_PROFILE;
@@ -252,6 +260,7 @@ export async function handleForgeAuthorize(
             expiresAt = goalAuthority.expires_at;
         } else if (naturalIntent) {
             if (executionGrant) throw new Error('forge_natural_authorization_legacy_v2_unsupported');
+            assertUnusedCurrentTurn(readDb, request.repo_id, request.request_id, naturalIntent);
             naturalProjection = resolveForgeOperatorWorkItem(readDb, request, naturalIntent);
             authorizationProfile = ROOT_USER_FORGE_INTENT_PROFILE;
             operatorIntentJson = forgeOperatorIntentProjectionJson(naturalProjection);
@@ -278,12 +287,9 @@ export async function handleForgeAuthorize(
             if (request.authorization_profile === ROOT_USER_FORGE_INTENT_PROFILE) {
                 throw naturalIntentError ?? new Error('forge_operator_intent_required');
             }
-            challengeSha256 = hashForgeAuthorizationChallenge(
-                requestId!, requestSha256!, executionGrantSha256,
-            );
+            challengeSha256 = hashForgeAuthorizationChallenge(requestId!, requestSha256!, executionGrantSha256);
             const exact = await verifyCurrentForgeAuthorizationChallenge(
-                requestContext, requestId!, requestSha256!, executionGrantSha256,
-            );
+                requestContext, requestId!, requestSha256!, executionGrantSha256);
             authorizationProfile = LEGACY_EXACT_FORGE_CHALLENGE_PROFILE;
             authorizationBindingSha256 = challengeSha256;
             operatorAuthorizationRef = exact.reference;
@@ -296,6 +302,9 @@ export async function handleForgeAuthorize(
             authorizedAt = exact.authorized_at;
             expiresAt = exact.expires_at;
         }
+        preflightForgeNativeAuthorizationToolContext(
+            nativeAuthorizationContext, request.request_id, request.request_sha256,
+        );
         operatorAuthorizationVerified = true;
         assertLiveForgeRuntimeReady();
         releaseReadDb();
@@ -307,21 +316,20 @@ export async function handleForgeAuthorize(
                 throw new Error('forge_request_authority_drift_before_authorization');
             }
             if (naturalIntent && naturalProjection) {
-                const currentProjection = resolveForgeOperatorWorkItem(
-                    writable, current, naturalIntent,
-                );
+                assertUnusedCurrentTurn(writable, current.repo_id, current.request_id, naturalIntent);
+                const currentProjection = resolveForgeOperatorWorkItem(writable, current, naturalIntent);
                 if (forgeOperatorIntentProjectionJson(currentProjection)
                     !== forgeOperatorIntentProjectionJson(naturalProjection)) {
                     throw new Error('forge_operator_intent_candidate_set_drift');
                 }
             }
             if (goalAuthority && goalResumeId) {
-                revalidateForgeGoalResumeAuthority({
+                revalidateForgeGoalResumeV2Authority({
                     db: writable,
                     request: current,
                     goalResumeId,
                     identity: requestIdentity!,
-                    projection: goalAuthority.projection,
+                    authority: goalAuthority,
                 });
             }
             if (pendingSetManifestAuthority) {
@@ -376,6 +384,16 @@ export async function handleForgeAuthorize(
             });
         });
         const authorized = authorizeAgainstStableCandidateSet.immediate();
+        const nativeAuthorizationBinding = resolveForgeNativeAuthorizationToolBinding(
+            nativeAuthorizationContext, {
+                request_id: authorized.request.request_id,
+                request_sha256: authorized.request.request_sha256,
+                authorization_id: authorized.authorization.authorization_id,
+                authorization_ref: authorized.authorization.operator_authorization_ref,
+                legacy_authorization_binding_sha256:
+                    authorized.authorization.authorization_binding_sha256,
+            },
+        );
         const terminal = ['SUCCEEDED', 'FAILED_FINAL', 'EXHAUSTED', 'AMBIGUOUS', 'REVOKED']
             .includes(authorized.request.status);
         const expired = authorized.authorization.expires_at <= Date.now();
@@ -401,6 +419,7 @@ export async function handleForgeAuthorize(
             expires_at: authorized.request.expires_at,
             authorization_replayed: authorized.replayed,
             authorization_challenge: null,
+            native_authorization_binding: nativeAuthorizationBinding,
             mutation: terminal || expired || authorized.replayed
                 ? null
                 : mcpMutation(

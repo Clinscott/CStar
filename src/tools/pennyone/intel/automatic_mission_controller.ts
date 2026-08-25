@@ -19,12 +19,26 @@ import {
     hashAutomaticMissionRootRecordSet,
     normalizeAutomaticMissionConstraints,
 } from './automatic_mission_schema.js';
+import {
+    AutomaticMissionDispatchStore,
+    type AutomaticMissionDispatchReceipt,
+    type AutomaticMissionDispatchStoreOptions,
+} from './automatic_mission_dispatch_store.js';
 
 export interface AutomaticMissionControllerOptions {
     now?: number;
     action?: AutomaticMissionAction;
     queue_dispatch?: boolean;
 }
+
+export interface AutomaticMissionControllerPersistenceOptions
+    extends AutomaticMissionDispatchStoreOptions {
+    store?: AutomaticMissionDispatchStore;
+}
+
+export type AutomaticMissionControllerOutcome = AutomaticMissionOutcome & {
+    dispatch_intent_receipt?: AutomaticMissionDispatchReceipt;
+};
 
 function outcome<T extends AutomaticMissionRecord>(
     kind: AutomaticMissionOutcome<T>['outcome'],
@@ -57,7 +71,8 @@ function errorKind(code: string): AutomaticMissionOutcome<'never'>['outcome'] {
     if (code.includes('transport')) return 'transport_error';
     if (code.includes('authority') || code.includes('grant_') || code.includes('nonoperative')
         || code.includes('revok') || code.includes('ceiling') || code.includes('expiry')
-        || code.includes('replay') || code.includes('scope')) {
+        || code.includes('replay') || code.includes('scope') || code.includes('repository')
+        || code.includes('deadline') || code.includes('idempotency')) {
         return 'guardrail_block';
     }
     return 'internal_error';
@@ -279,43 +294,107 @@ function createBareMission(now: number): AutomaticMissionRecord {
 }
 
 export class AutomaticMissionController {
-    private readonly missions = new Map<string, AutomaticMissionRecord>();
+    private readonly store: AutomaticMissionDispatchStore;
+
+    constructor(options: AutomaticMissionControllerPersistenceOptions = {}) {
+        this.store = options.store ?? new AutomaticMissionDispatchStore(options);
+    }
 
     ingest(
         input: AutomaticMissionInput,
         options: AutomaticMissionControllerOptions = {},
-    ): AutomaticMissionOutcome {
+    ): AutomaticMissionControllerOutcome {
+        const now = options.now ?? Date.now();
         let candidate: AutomaticMissionRecord | undefined;
         try {
-            candidate = createAutomaticMissionRecord(input, options.now ?? Date.now());
+            candidate = createAutomaticMissionRecord(input, now);
         } catch {
             // The normal ingress path returns the typed validation outcome below.
         }
         const key = candidate?.idempotency_key;
         if (key) {
-            const existing = this.missions.get(key);
-            if (existing) {
-                if (candidate!.request_sha256 !== existing.request_sha256) {
-                    return outcome('guardrail_block', existing, {
+            const existing = this.store.getByIdempotencyKey(key);
+            if (existing?.mission) {
+                if (candidate!.request_sha256 !== existing.mission.request_sha256) {
+                    return outcome('guardrail_block', existing.mission, {
                         error_code: 'automatic_mission_idempotency_conflict',
                         message: 'The idempotency key is already bound to a different mission request.',
                     });
                 }
-                return outcome('ok', existing, { idempotent_replay: true });
+                return {
+                    ...outcome('ok', existing.mission, {
+                        idempotent_replay: true,
+                        dispatch: {
+                            queued: true,
+                            launch_required_by_host: true,
+                            worker_launch_performed: false,
+                            host_dispatch_id: existing.receipt.dispatch_id,
+                        },
+                    }),
+                    dispatch_intent_receipt: existing.receipt,
+                };
             }
         }
-        const result = ingestAutomaticMission(input, options);
-        if (result.mission && result.outcome !== 'internal_error' && key) {
-            this.missions.set(key, result.mission);
+
+        const action = options.action ?? input.action;
+        const queueRequested = Boolean(options.queue_dispatch || input.queue_dispatch
+            || action === 'queue_dispatch');
+        const result = ingestAutomaticMission(
+            queueRequested ? { ...input, action: 'materialize', queue_dispatch: false } : input,
+            queueRequested
+                ? { ...options, action: 'materialize', queue_dispatch: false, now }
+                : { ...options, now },
+        );
+        if (!queueRequested || result.outcome !== 'ok' || result.state !== 'MATERIALIZED'
+            || !result.mission) {
+            return result;
         }
-        return result;
+        const queued = transitionAutomaticMission(result.mission, 'DISPATCH_QUEUED', now);
+        if (queued.outcome !== 'ok' || !queued.mission || !queued.mission.set_grant) return queued;
+        try {
+            const persisted = this.store.enqueue({
+                source_kind: 'automatic_mission',
+                mission_id: queued.mission.mission_id,
+                decision_id: queued.mission.decision_id,
+                bead_id: queued.mission.bead_id,
+                idempotency_key: queued.mission.idempotency_key,
+                intent_binding: {
+                    request_sha256: queued.mission.request_sha256,
+                    authority_binding_sha256: queued.mission.set_grant.authority_binding_sha256,
+                    root_user_record_set_sha256: queued.mission.root_user_record_set_sha256,
+                    spend_ceiling: queued.mission.set_grant.spend_ceiling,
+                },
+                mission: queued.mission,
+                deadline_at: queued.mission.set_grant.expires_at,
+                now,
+            });
+            const mission = persisted.mission ?? queued.mission;
+            return {
+                ...outcome('ok', mission, {
+                    idempotent_replay: persisted.replayed || undefined,
+                    dispatch: {
+                        queued: true,
+                        launch_required_by_host: true,
+                        worker_launch_performed: false,
+                        host_dispatch_id: persisted.receipt.dispatch_id,
+                    },
+                    next_action: 'The host may claim the durable intent; CStar does not launch workers.',
+                }),
+                dispatch_intent_receipt: persisted.receipt,
+            };
+        } catch (error) {
+            const code = errorCode(error);
+            return outcome(errorKind(code), queued.mission, { error_code: code, message: code });
+        }
     }
 
     get(missionId: string): AutomaticMissionRecord | undefined {
-        return [...this.missions.values()].find((mission) => mission.mission_id === missionId);
+        return this.store.getByMissionId(missionId)?.mission;
     }
 }
 
-export function createAutomaticMissionController(): AutomaticMissionController {
-    return new AutomaticMissionController();
+export function createAutomaticMissionController(
+    options: AutomaticMissionControllerPersistenceOptions = {},
+): AutomaticMissionController {
+    return new AutomaticMissionController(options);
 }

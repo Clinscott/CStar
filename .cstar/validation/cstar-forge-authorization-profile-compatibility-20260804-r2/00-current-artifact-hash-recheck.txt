@@ -1,0 +1,13 @@
+current_artifact_hash_recheck
+42f49a4bd056fc5242a53d1a663158e60ed221e1a72ee353ed0adbe89ffdacc5  src/tools/pennyone/intel/forge_authorization_schema.ts
+33698fd80c3c423a1651a805cb035c4f174acde774a501a4fe3690d871adc533  tests/unit/cstar-kernel-mcp/test_forge_authorization_schema_legacy_duplicates.test.ts
+75f6cca3592c91981172305e6cb602702648134a0b72f937fdbd7689a56bc268  tests/unit/cstar-kernel-mcp/test_forge_authorization_schema_profiles.test.ts
+15554 src/tools/pennyone/intel/forge_authorization_schema.ts
+13713 tests/unit/cstar-kernel-mcp/test_forge_authorization_schema_legacy_duplicates.test.ts
+11333 tests/unit/cstar-kernel-mcp/test_forge_authorization_schema_profiles.test.ts
+40600 total
+  306 src/tools/pennyone/intel/forge_authorization_schema.ts
+  311 tests/unit/cstar-kernel-mcp/test_forge_authorization_schema_legacy_duplicates.test.ts
+  267 tests/unit/cstar-kernel-mcp/test_forge_authorization_schema_profiles.test.ts
+  884 total
+status=pass

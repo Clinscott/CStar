@@ -102,7 +102,8 @@ import {
     getLessonTree
 } from './lesson_controller.js';
 import { ensureHallSchema } from './schema.js';
-import Database from 'better-sqlite3';
+import type Database from 'better-sqlite3';
+import { getBetterSqlite3 } from './native_database.js';
 import { registry } from '../pathRegistry.js';
 import {
     assertStableHallStoreIdentity,
@@ -143,7 +144,7 @@ export class HallDatabase {
         }
         this.requireCacheCapacity(this.readonlyDbs, store.root);
 
-        const db = new Database(store.dbPath, { readonly: true, fileMustExist: true });
+        const db = new (getBetterSqlite3())(store.dbPath, { readonly: true, fileMustExist: true });
         try {
             assertStableHallStoreIdentity(store);
             db.pragma('query_only = ON');
@@ -180,7 +181,7 @@ export class HallDatabase {
         this.requireCacheCapacity(this.writableDbs, root);
         const store = resolveHallStorePath(root, true);
 
-        const db = new Database(store.dbPath);
+        const db = new (getBetterSqlite3())(store.dbPath);
         try {
             assertStableHallStoreIdentity(store);
             ensureHallSchema(db, store.root);

@@ -1,0 +1,22 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:mcp:define-the-host-native-cstar-reliability-loop-v1-msg56v3p",
+  "validation_id": "validation:cstar-reliability-loop-skill-20260805-r4",
+  "reported_verdict": "ACCEPTED",
+  "artifacts": [
+    {"path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.agents/skills/cstar-reliability-loop/SKILL.md", "sha256": "54ea0de97b0e5ada81bf8d5d697cb962d354029e09da3aa6a94322cabacf8e2f", "bytes": 2966},
+    {"path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.agents/skills/cstar-reliability-loop/references/reliability-continuation.schema.json", "sha256": "ae462ae308ada26cde61d5b516e74c5e9537ef9a6065e909029e3859fd4c00eb", "bytes": 4049},
+    {"path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/tests/features/cstar_reliability_loop.feature", "sha256": "ec7719d36f330e7b4512cd2047b6507507485946573baef4b12b81e438e92fab", "bytes": 3380},
+    {"path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/tests/unit/test_cstar_reliability_loop_skill.py", "sha256": "ef73b402e1ad29d17a9591b0a33e476c8f0aadc23d83efdf5028eda220680d76", "bytes": 4392},
+    {"path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-reliability-loop-v1-20260805-r4/sprt/receipt.json", "sha256": "da57e25788452d700d6215fb4f7db4e897872ec877277df12b0bb3db3d13d400", "bytes": 43374},
+    {"path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-reliability-loop-v1-20260805-r4/sprt/receipt.sha256", "sha256": "b93a772e3b76b4ca57516b8299865b58438183d64a615e963ae46faef3d7ebfd", "bytes": 79},
+    {"path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-reliability-loop-v1-20260805-r4/forked-sol-high-live/lore.txt", "sha256": "db8cb0d9997d235cb1bac07dabfb9afbda27eaea68b221b620baa56a484e8469", "bytes": 1142},
+    {"path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-reliability-loop-v1-20260805-r4/forked-sol-high-live/isolation.txt", "sha256": "d68bce00edc7f28b2d4f07d8d2fcffce3f30e4e090c0afe704b137daaf57dc33", "bytes": 1853},
+    {"path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-reliability-loop-v1-20260805-r4/forked-sol-high-live/sprt.txt", "sha256": "d85d98fdec4fb66a73d7dc46644641aa93e9a27c681f40365afa881f4f6e1e11", "bytes": 1485}
+  ],
+  "checks": [
+    {"name": "Skill child frozen Lore evidence accepted", "status": "pass", "evidence_path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-reliability-loop-v1-20260805-r4/forked-sol-high-live/lore.txt", "sha256": "db8cb0d9997d235cb1bac07dabfb9afbda27eaea68b221b620baa56a484e8469"},
+    {"name": "Skill child isolation evidence accepted", "status": "pass", "evidence_path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-reliability-loop-v1-20260805-r4/forked-sol-high-live/isolation.txt", "sha256": "d68bce00edc7f28b2d4f07d8d2fcffce3f30e4e090c0afe704b137daaf57dc33"},
+    {"name": "Skill child SPRT evidence accepted", "status": "pass", "evidence_path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-reliability-loop-v1-20260805-r4/forked-sol-high-live/sprt.txt", "sha256": "d85d98fdec4fb66a73d7dc46644641aa93e9a27c681f40365afa881f4f6e1e11"}
+  ]
+}

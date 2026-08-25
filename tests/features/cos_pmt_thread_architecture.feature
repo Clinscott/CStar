@@ -15,7 +15,7 @@ Feature: CoS and project-context thread architecture
     Then Forge builds implementation through the durable Forge path
     And Researcher gathers evidence through authorized lanes
     And CorvusEye performs independent evaluation when required
-    And MM has no active routing or relay role
+    And MM is inactive and has no active routing, synthesis, ownership, relay, review, or execution role
 
   Scenario: The User is asked only for high-order or red-gated decisions
     Given CoS is executing bounded Green or Yellow work

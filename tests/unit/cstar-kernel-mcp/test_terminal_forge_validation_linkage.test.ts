@@ -68,7 +68,7 @@ function createFixture() {
             schema: 'cstar.forge_request.v3',
             required_output_paths: [],
         }),
-        adapter_ref: 'cstar-forge-hermes-minimax-worker-adapter',
+        adapter_ref: null,
         write_capability: 'project_files',
         target_paths_sha256: 'e'.repeat(64),
         live_source_allowed: false,
@@ -102,7 +102,7 @@ function createFixture() {
         authorization_id: authorization.authorization_id,
         idempotency_key: 'terminal-link',
         execution_receipt_id: `forge-execute-${suffix}`,
-        adapter_ref: request.adapter_ref!,
+        adapter_ref: request.adapter_ref ?? '',
     }).attempt;
     markForgeAttemptStarted(db, attempt.attempt_id);
     finalizeForgeAttempt(db, {

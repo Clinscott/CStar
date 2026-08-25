@@ -1,0 +1,213 @@
+{
+  "schema": "cstar.validation.cstar_repair_natural_set_translation.v2",
+  "status": "implementation_verified_pending_independent_validation",
+  "decision_id": "decision:cstar-state-only-luna-host-seam-batch1-20260803",
+  "bead_id": "bead:cstar:repair-natural-set-translation-20260803",
+  "parent": {
+    "worktree": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-auto-20260802",
+    "branch": "codex/cstar-automatic-internal-machinery-refactor-20260802",
+    "head": "afbbc1770ec6a7a2adc15b83f91c5586ac2525c0",
+    "read_only": true,
+    "untouched_uncommitted_delivery": {
+      "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_signal.ts": "a759ddc66f00fb40461c57ba4e256f9b19bfd2f81e6cbdcd6e75c06ac5f0c05e",
+      "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_consumption.ts": "d11e137d12ffebabc01336b6b18c9ae3bf872b5796eb07d9bd73fab7bb76aa41",
+      "tests/unit/cstar-kernel-mcp/test_forge_set_manifest_natural_translation.test.ts": "33dc7f51ac8b14ee35be6fa10037e42dc7d47898aed29eb6a933ff12289cea91",
+      ".cstar/validation/cstar-repair-natural-set-translation-20260803.json": "81c734ce997e3905048f0cdcbb0a358056f5eea7dfa4ca9be3e4c9bab589fb9e"
+    }
+  },
+  "successor": {
+    "worktree": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803",
+    "branch": "codex/cstar-state-only-luna-host-seam-batch1-20260803",
+    "head": "afbbc1770ec6a7a2adc15b83f91c5586ac2525c0",
+    "derived_from_parent_head": true
+  },
+  "actual_augury_path": [
+    "handleAugury",
+    "prepareAuguryMissionBoundary",
+    "prepareAuguryMissionBoundaryV2",
+    "verifyAuguryMissionNaturalSetIdentity",
+    "readExactForgeNaturalSetTranslation",
+    "finalizeAuguryMissionBoundary",
+    "dispatchAuguryMissionBoundary",
+    "materializeAuguryMissionReceipt"
+  ],
+  "boundary_contract": {
+    "root_text": "Do it",
+    "mission_decision_id": "decision:cstar-state-only-luna-host-seam-batch1-20260803",
+    "proposed_parent_bead_id": "bead:cstar:state-only-luna-host-seam-batch1-20260803:parent",
+    "design_sha256": "e775daf70c27f5ca4c455a7494c4fab55434ade314caffd717bb812bea42579a",
+    "target_count": 22,
+    "scope": "brain:CStar",
+    "one_use": true,
+    "legacy_exact_set_preserved": true
+  },
+  "changed_paths": [
+    {
+      "path": "src/tools/cstar-kernel-mcp/register_core_tools.ts",
+      "preimage_sha256": "ab4aced77608101d9f0da2b9a5a907866e173db40b2d401f4421602dde84318f",
+      "postimage_sha256": "8bc232ab4f850e16ac90f60cc5a678f180c0d3d557dbabfad6c4f54317f6a804",
+      "line_count": 465
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/augury.ts",
+      "preimage_sha256": "818ea16a1268b62415a9da0f993302d4e099e75a2da86edeb09f1dce85599779",
+      "postimage_sha256": "730a14ef36ade50c1ede25cead3f28c0340c158fa61c51dbf28c15fe0100994b",
+      "line_count": 417
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_signal.ts",
+      "preimage_sha256": "3ab47243d2c3231e5d37b4940e87ef3947046717404a453f0f4e49c9129ff367",
+      "postimage_sha256": "748d8f43d17273b0dd4b1b23483d08547670116ca113c9f2daa6edcd8252aa4f",
+      "line_count": 497
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/contracts/augury_mission.ts",
+      "preimage_sha256": "absent_at_successor_parent_head",
+      "postimage_sha256": "69a7556dda08af463295a5c4140e94b8553f8f41b552b4d63a9f6d20367366c7",
+      "line_count": 331
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/contracts/augury_mission_schema.ts",
+      "preimage_sha256": "absent_at_successor_parent_head",
+      "postimage_sha256": "405a709d34c485621d278822b22d420ab63a02e26c300d6f289f337eef26fa5d",
+      "line_count": 184
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/contracts/forge_child_request_template.ts",
+      "preimage_sha256": "absent_at_successor_parent_head",
+      "postimage_sha256": "489eb5dc0d441a6a82511073895e4503f99e3cc701a7a86d6daa09023debd60b",
+      "line_count": 330
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/augury_mission_binding.ts",
+      "preimage_sha256": "absent_at_successor_parent_head",
+      "postimage_sha256": "e22206645dad031fb90809146b119b064e2e109f1558cfafb46cd84544862abc",
+      "line_count": 500
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/augury_mission_binding_v2.ts",
+      "preimage_sha256": "absent_at_successor_parent_head",
+      "postimage_sha256": "09c58c624656b28e6103b38aab55d89ce847f8d1537a242ae1060bfab609b896",
+      "line_count": 297
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/augury_mission_dispatch_controller.ts",
+      "preimage_sha256": "absent_at_successor_parent_head",
+      "postimage_sha256": "428cea61cfbb3be52c3833e29d5a8b79585b6c678be1b6b3c8db9d14be291444",
+      "line_count": 55
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/augury_mission_natural_translation.ts",
+      "preimage_sha256": "absent_at_successor_parent_head",
+      "postimage_sha256": "12bbada2266a3a31c30ea7238f57dccac3701227d800606022e017e9dcd1af5f",
+      "line_count": 42
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_consumption.ts",
+      "preimage_sha256": "absent_at_successor_parent_head",
+      "postimage_sha256": "d11e137d12ffebabc01336b6b18c9ae3bf872b5796eb07d9bd73fab7bb76aa41",
+      "line_count": 55
+    },
+    {
+      "path": "src/tools/pennyone/intel/augury_mission_child_template_binding.ts",
+      "preimage_sha256": "absent_at_successor_parent_head",
+      "postimage_sha256": "b3d99c078aba6fc0cdbcdef4239acfbf9288161ce190fbcc6c35e16dff3e76b1",
+      "line_count": 33
+    },
+    {
+      "path": "src/tools/pennyone/intel/augury_mission_receipt_controller.ts",
+      "preimage_sha256": "absent_at_successor_parent_head",
+      "postimage_sha256": "6b316706956655ff9772baef2059db28c8b8f0695529b5c15347f20708f615bd",
+      "line_count": 481
+    },
+    {
+      "path": "src/tools/pennyone/intel/augury_mission_receipt_schema.ts",
+      "preimage_sha256": "absent_at_successor_parent_head",
+      "postimage_sha256": "b2e73a9fa7dcfbda61b164f4ece0a29ec1ddd383917904a5a31f47e0f6421b59",
+      "line_count": 99
+    },
+    {
+      "path": "src/tools/pennyone/intel/augury_mission_receipt_validation.ts",
+      "preimage_sha256": "absent_at_successor_parent_head",
+      "postimage_sha256": "93e57e063476f36426607317eed131c2d599461ed2a4b84c70349c59ed538333",
+      "line_count": 394
+    },
+    {
+      "path": "src/tools/pennyone/intel/augury_mission_receipt_validation_v2.ts",
+      "preimage_sha256": "absent_at_successor_parent_head",
+      "postimage_sha256": "fa2a73c52e2ca28ac7ef5b0ec814eb3bff11f168dd92fa036f84050ae22a927e",
+      "line_count": 233
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_augury_natural_translation_integration.test.ts",
+      "preimage_sha256": "absent_at_successor_parent_head",
+      "postimage_sha256": "0b7d27640e7a25ac5792eae1a3f9b78a0fd4576a27db53a890d5cb8f49cb2b01",
+      "line_count": 235
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_set_manifest_natural_translation.test.ts",
+      "preimage_sha256": "absent_at_successor_parent_head",
+      "postimage_sha256": "33dc7f51ac8b14ee35be6fa10037e42dc7d47898aed29eb6a933ff12289cea91",
+      "line_count": 200
+    }
+  ],
+  "validation": {
+    "focused_integration": {
+      "command": "node scripts/run-tsx.mjs --test --test-concurrency=1 tests/unit/cstar-kernel-mcp/test_forge_set_manifest_natural_translation.test.ts tests/unit/cstar-kernel-mcp/test_augury_natural_translation_integration.test.ts",
+      "suites": 2,
+      "tests": 29,
+      "passed": 29,
+      "failed": 0
+    },
+    "broad_reconciliation": {
+      "suites": 19,
+      "tests": 199,
+      "passed": 199,
+      "failed": 0
+    },
+    "typecheck": {
+      "command": "npm run typecheck",
+      "exit_code": 0
+    },
+    "diff_check": {
+      "command": "git diff --check",
+      "clean": true
+    },
+    "line_audit": {
+      "command": "wc -l on every touched production/test source",
+      "all_touched_source_files_le_500": true,
+      "maximum_line_count": 500
+    },
+    "e2e": {
+      "synthetic_only": true,
+      "handle": "cstar_augury mission_boundary v2",
+      "materialized_receipt_schema": "cstar.augury_mission_receipt.v2",
+      "materialized_target_count": 22,
+      "replay_error": "augury_mission_set_signal_consumed",
+      "adversarial_cases": [
+        "duplicate Do it",
+        "Do it followed by Stop"
+      ],
+      "legacy_case": "v1 singleton SET prepares successfully"
+    }
+  },
+  "effects": {
+    "network_calls": 0,
+    "provider_attempts": 0,
+    "cstar_mcp_mutations": 0,
+    "live_activation": false,
+    "restart": false,
+    "git_commit_push_merge": false,
+    "secrets_or_config_mutation": false,
+    "destructive_cleanup": false
+  },
+  "activation": {
+    "scoped_reload_required": true,
+    "expected_live_cstar_augury_result": "success for an exact current root-user Do it bound to a validated v2 brain:CStar boundary; fail closed for duplicates, revocations, stale/consumed identities",
+    "independent_validator_and_runtime_reload_pending": true
+  },
+  "caveats": [
+    "This is a bounded successor working tree with uncommitted changes; no commit or remote PR was created.",
+    "The copied v2 caller/materializer source was validated locally with synthetic fixtures; distinct independent CStar acceptance and scoped reload remain separate gates."
+  ]
+}

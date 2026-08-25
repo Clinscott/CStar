@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import type {
+    CodexHostWorkerJobContract,
     ExecutableWorkerJobContract,
     WorkerJobRecord,
     WorkerJobProviderEvidence,
@@ -11,7 +12,10 @@ import {
     WORKER_JOB_PROVIDER_REQUEST_CEILING,
     WORKER_JOB_VALIDATION_VERDICTS,
 } from '../../../types/worker_job.js';
-import { executableWorkerJobContractSchema } from '../../cstar-kernel-mcp/contracts/worker_jobs.js';
+import {
+    codexHostWorkerJobContractSchema,
+    executableWorkerJobContractSchema,
+} from '../../cstar-kernel-mcp/contracts/worker_jobs.js';
 import { WorkerJobLedgerError } from './worker_job_errors.js';
 
 const SHA256 = /^[a-f0-9]{64}$/;
@@ -59,6 +63,19 @@ export function workerJobContractSha256(
     contract: ExecutableWorkerJobContract,
 ): string {
     return sha256(JSON.stringify(contract));
+}
+
+export function normalizeCodexHostWorkerJobContract(
+    input: CodexHostWorkerJobContract,
+): CodexHostWorkerJobContract {
+    const parsed = codexHostWorkerJobContractSchema.safeParse(input);
+    if (!parsed.success) {
+        throw new WorkerJobLedgerError(
+            'WORKER_JOB_CONTRACT_INVALID',
+            parsed.error.issues.map((issue) => issue.message).join(' '),
+        );
+    }
+    return parsed.data as CodexHostWorkerJobContract;
 }
 
 export function requireExecutableAt(

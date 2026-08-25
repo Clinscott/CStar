@@ -1,0 +1,18 @@
+{
+  "schema": "cstar.independent_fixture_check.v1",
+  "fixture_path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-forge-authorization-profile-compatibility-20260804-r1/05-hall-copy-r2.sqlite",
+  "live_hall_touched": false,
+  "historical_rows_preserved": true,
+  "historical_row_count": 10,
+  "profile_counts": {
+    "autonomous_dispatch_policy_v1": 1,
+    "exact_request_challenge_v1": 1,
+    "root_user_forge_intent_v1": 8
+  },
+  "autonomous_projection_guarded": true,
+  "execution_grant_rejected": true,
+  "retired_and_unknown_profiles_rejected": true,
+  "insert_update_replay_guards_preserved": true,
+  "status": "pass"
+}
+exit_code=0
