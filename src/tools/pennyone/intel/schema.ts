@@ -107,6 +107,18 @@ export function ensureHallSchema(database: Database.Database, rootPath: string):
     ensureColumn(database, 'hall_forge_attempts', 'model_source', 'TEXT');
     ensureColumn(database, 'hall_forge_attempts', 'reasoning_profile', 'TEXT');
     ensureColumn(database, 'hall_forge_attempts', 'adapter_version', 'TEXT');
+    ensureColumn(database, 'hall_forge_attempts', 'attempt_budget_class', "TEXT NOT NULL DEFAULT 'provider_or_unknown'");
+    ensureColumn(database, 'hall_forge_attempts', 'provider_evidence_valid', 'INTEGER NOT NULL DEFAULT 0');
+    ensureColumn(database, 'hall_forge_attempts', 'provider_requests_started', 'INTEGER');
+    ensureColumn(database, 'hall_forge_attempts', 'provider_requests_completed', 'INTEGER');
+    ensureColumn(database, 'hall_forge_attempts', 'provider_requests_ambiguous', 'INTEGER');
+    ensureColumn(database, 'hall_forge_attempts', 'live_spend', 'INTEGER');
+    ensureColumn(database, 'hall_forge_attempts', 'live_spend_unknown', 'INTEGER NOT NULL DEFAULT 1');
+    ensureColumn(database, 'hall_forge_attempts', 'known_spend_observed', 'INTEGER NOT NULL DEFAULT 0');
+    ensureColumn(database, 'hall_forge_attempts', 'live_source_collection', 'INTEGER');
+    ensureColumn(database, 'hall_forge_attempts', 'workspace_commit_present', 'INTEGER');
+    ensureColumn(database, 'hall_forge_attempts', 'failure_evidence_sha256', 'TEXT');
+    ensureColumn(database, 'hall_forge_attempts', 'failure_signature_sha256', 'TEXT');
     ensureColumn(database, 'hall_forge_requests', 'operator_record_set_sha256', 'TEXT');
     ensureColumn(database, 'hall_forge_requests', 'operator_record_count', 'INTEGER');
     ensureColumn(database, 'hall_forge_requests', 'requester_thread_id', 'TEXT');

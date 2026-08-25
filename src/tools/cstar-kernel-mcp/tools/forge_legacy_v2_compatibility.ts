@@ -16,6 +16,7 @@ import {
     canonicalizeForgeRequest,
     canonicalizeForgeRequiredOutputPaths,
     hashCanonicalForgeRequest,
+    hashForgeTargetPaths,
     stableJson,
     type CanonicalForgeRequest,
 } from './forge_request_contract.js';
@@ -444,7 +445,14 @@ export async function resolveRecordedForgeExecutionContract(
         ? (parsed as Record<string, unknown>).schema
         : null;
     if (schema === 'cstar.forge_request.v3') {
-        return { canonical: parsed as CanonicalForgeRequest, legacyCompatibility: false };
+        const canonical = parsed as CanonicalForgeRequest;
+        if (stableJson(canonical) !== request.request_summary_json
+            || hashCanonicalForgeRequest(canonical) !== request.request_sha256
+            || buildForgeRequestId(request.request_sha256) !== request.request_id
+            || hashForgeTargetPaths(canonical) !== request.target_paths_sha256) {
+            throw new Error('forge_request_summary_integrity_invalid');
+        }
+        return { canonical, legacyCompatibility: false };
     }
     if (schema !== 'cstar.forge_request.v2') {
         throw new Error('forge_request_summary_schema_invalid');

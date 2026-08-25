@@ -1,7 +1,12 @@
+import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 
 import { readBoundedJsonObject } from '../core/safe_local_file.js';
+import {
+    CSTAR_KERNEL_TOOL_CATALOG,
+    CSTAR_KERNEL_TOOL_NAMES,
+} from '../tools/cstar-kernel-mcp/contracts/tool_catalog.js';
 
 import {
     buildCodexPluginManifestContent,
@@ -70,6 +75,14 @@ const EXECUTABLE_HOST_STATUSES = new Set<HostSupportStatus>([
     'exec-bridge',
 ]);
 const CAPABILITY_REGISTRY_MAX_BYTES = 1024 * 1024;
+
+const CODEX_PLUGIN_RUNTIME_BINDING = {
+    host: 'codex',
+    integration_mode: 'skill-only',
+    kernel_registration: 'host-global',
+    kernel_bundled: false,
+    kernel_requirement: 'external-cstar-runtime',
+} as const;
 
 function resolveProjectRoot(projectRoot: string): string {
     return path.resolve(projectRoot);
@@ -146,10 +159,83 @@ function getCapabilitiesForHost(projectRoot: string, provider: HostProvider): Ca
         .sort((left, right) => left.id.localeCompare(right.id));
 }
 
+function sha256(content: string): string {
+    return createHash('sha256').update(content, 'utf-8').digest('hex');
+}
+
+function portablePath(value: string): string {
+    return value.split(path.sep).join('/');
+}
+
+function buildCodexPluginLineageContent(
+    version: string,
+    pluginFiles: GeneratedFile[],
+    geminiCapabilities: CapabilityExport[],
+    codexCapabilities: CapabilityExport[],
+): string {
+    const pluginRoot = path.join('plugins', 'corvus-star');
+    const files = Object.fromEntries(
+        pluginFiles
+            .map((file) => ({
+                relativePath: portablePath(path.relative(pluginRoot, file.relativePath)),
+                content: file.content,
+            }))
+            .sort((left, right) => left.relativePath.localeCompare(right.relativePath))
+            .map(({ relativePath, content }) => [
+                relativePath,
+                {
+                    bytes: Buffer.byteLength(content, 'utf-8'),
+                    sha256: sha256(content),
+                },
+            ]),
+    );
+
+    return `${JSON.stringify({
+        schema_version: 1,
+        plugin: {
+            name: 'corvus-star',
+            version,
+        },
+        runtime_binding: CODEX_PLUGIN_RUNTIME_BINDING,
+        tool_catalog: {
+            count: CSTAR_KERNEL_TOOL_NAMES.length,
+            sha256: sha256(JSON.stringify(CSTAR_KERNEL_TOOL_CATALOG)),
+        },
+        capability_exports: {
+            codex_count: codexCapabilities.length,
+            gemini_count: geminiCapabilities.length,
+            sha256: sha256(JSON.stringify({
+                codex: codexCapabilities,
+                gemini: geminiCapabilities,
+            })),
+        },
+        files,
+    }, null, 2)}\n`;
+}
+
 export function buildDistributions(projectRoot: string): DistributionBuild {
     const resolvedRoot = resolveProjectRoot(projectRoot);
     const geminiCapabilities = getCapabilitiesForHost(resolvedRoot, 'gemini');
     const codexCapabilities = getCapabilitiesForHost(resolvedRoot, 'codex');
+    const pluginRoot = path.join('plugins', 'corvus-star');
+    const pluginFiles: GeneratedFile[] = [
+        {
+            relativePath: path.join(pluginRoot, '.codex-plugin', 'plugin.json'),
+            content: buildCodexPluginManifestContent(resolvedRoot),
+        },
+        {
+            relativePath: path.join(pluginRoot, 'skills', 'corvus-star', 'SKILL.md'),
+            content: buildCodexPluginSkillContent(codexCapabilities),
+        },
+        {
+            relativePath: path.join(pluginRoot, 'README.md'),
+            content: buildDistributionReadmeContent(geminiCapabilities, codexCapabilities),
+        },
+    ];
+    const pluginManifest = JSON.parse(pluginFiles[0]!.content) as { version?: unknown };
+    if (typeof pluginManifest.version !== 'string') {
+        throw new Error('generated_codex_plugin_version_missing');
+    }
 
     return {
         geminiCapabilities,
@@ -163,17 +249,15 @@ export function buildDistributions(projectRoot: string): DistributionBuild {
                 relativePath: 'GEMINI.md',
                 content: buildGeminiContextContent(resolvedRoot, geminiCapabilities),
             },
+            ...pluginFiles,
             {
-                relativePath: path.join('plugins', 'corvus-star', '.codex-plugin', 'plugin.json'),
-                content: buildCodexPluginManifestContent(resolvedRoot),
-            },
-            {
-                relativePath: path.join('plugins', 'corvus-star', 'skills', 'corvus-star', 'SKILL.md'),
-                content: buildCodexPluginSkillContent(codexCapabilities),
-            },
-            {
-                relativePath: path.join('plugins', 'corvus-star', 'README.md'),
-                content: buildDistributionReadmeContent(geminiCapabilities, codexCapabilities),
+                relativePath: path.join(pluginRoot, 'lineage.json'),
+                content: buildCodexPluginLineageContent(
+                    pluginManifest.version,
+                    pluginFiles,
+                    geminiCapabilities,
+                    codexCapabilities,
+                ),
             },
             {
                 relativePath: path.join('.agents', 'plugins', 'marketplace.json'),
@@ -245,6 +329,7 @@ export function buildReleaseBundles(projectRoot: string): ReleaseBundle[] {
         path.join('plugins', 'corvus-star', '.codex-plugin', 'plugin.json'),
         path.join('plugins', 'corvus-star', 'README.md'),
         path.join('plugins', 'corvus-star', 'skills', 'corvus-star', 'SKILL.md'),
+        path.join('plugins', 'corvus-star', 'lineage.json'),
         path.join('distributions', 'README.md'),
     ].map((relativePath) => {
         const file = fileMap.get(relativePath);

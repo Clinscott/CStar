@@ -26,6 +26,7 @@ import { handleEngramRecord, handleWarGameScore } from './tools/war_game.js';
 import { handleIntentRoute } from './tools/intent_route.js';
 import { handleMongoMailbox } from './tools/mongo_mailbox.js';
 import { handlePennyOneContext } from './tools/pennyone_context.js';
+import { handlePersonaSet } from './tools/persona_set.js';
 import { handleRecordResult } from './tools/result.js';
 import { HALL_BEAD_STATUSES, HALL_BEAD_TARGET_KINDS } from './tools/shared.js';
 import { handleSpoke } from './tools/spoke.js';
@@ -210,6 +211,12 @@ export function registerCoreTools(server: ServerWithTool, instrumentTool: Instru
             notes: z.string().optional().describe('Compact validation notes'),
             validation_id: z.string().optional().describe('Caller-stable validation id for idempotent recording'),
             forge_execution_receipt_id: z.string().optional().describe('Forge execution receipt to finalize only after this independent validation'),
+            host_validation_receipt: z.object({
+                validator_thread_id: z.string().regex(/^[0-9a-f-]{36}$/i),
+                validator_turn_id: z.string().regex(/^[0-9a-f-]{36}$/i),
+                manifest_path: z.string().min(1),
+                manifest_sha256: z.string().regex(/^[a-fA-F0-9]{64}$/),
+            }).strict().optional().describe('Depth-one validator receipt recorded by the canonical root CoS for host-workflow validation'),
             validation_evidence: z.object({
                 artifacts: z.array(z.object({
                     path: z.string().min(1),
@@ -334,8 +341,24 @@ export function registerCoreTools(server: ServerWithTool, instrumentTool: Instru
         server,
         instrumentTool,
         'cstar_status',
-        {},
+        {
+            forge_execution_receipt_id: z.string()
+                .regex(/^forge-execute-[a-f0-9]{32}$/)
+                .optional()
+                .describe('Optional exact Forge execution receipt for read-only lifecycle status'),
+        },
         handleStatus,
+    );
+
+    registerCatalogTool(
+        server,
+        instrumentTool,
+        'cstar_persona_set',
+        {
+            persona: z.enum(['O.D.I.N.', 'A.L.F.R.E.D.'])
+                .describe('Exact persona state applied only from the next workflow boundary'),
+        },
+        handlePersonaSet,
     );
 
     registerCatalogTool(

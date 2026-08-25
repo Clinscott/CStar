@@ -17,6 +17,7 @@ import {
     resolveCodexSessionsRoot,
 } from './codex_session_locator.js';
 import { parseCodexTurnMetadata } from './operator_authorization.js';
+import { isForgeAuthorityRevocation } from './forge_revocation.js';
 
 const AUTHORIZATION_AGE_MS = 24 * 60 * 60 * 1_000;
 const UNSAFE_TEXT = /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f\u061c\u200b-\u200f\u2028-\u202e\u2060-\u206f\ufeff]/u;
@@ -32,9 +33,20 @@ export interface VerifiedForgeOperatorIntent {
     message_sha256: string;
     session_record_sha256: string;
     session_record_set_sha256: string;
-    session_record_count: 1;
+    session_record_count: number;
+    binding_mode: 'ordinary_language' | 'exact_request_receipt' | 'exact_mission_record';
+    bound_request_id?: string;
+    bound_request_sha256?: string;
+    bound_decision_id?: string;
     authorized_at: number;
     expires_at: number;
+}
+
+export interface StableForgeInstructionBinding {
+    request_id: string;
+    request_sha256: string;
+    bead_id: string;
+    decision_id: string;
 }
 
 interface IntentRecord {
@@ -97,8 +109,64 @@ function actionForVerb(verb: string): ForgeOperatorIntentAction {
     }
     if (normalized === 'repair' || normalized === 'repairing') return 'repair';
     if (normalized === 'fix' || normalized === 'fixing') return 'fix';
+    if (
+        normalized === 'simplify'
+        || normalized === 'simplifying'
+        || normalized === 'simplification'
+    ) return 'repair';
     if (normalized === 'forge' || normalized === 'forging') return 'route_to_forge';
     return 'build';
+}
+
+function isIdentifierCharacter(value: string | undefined): boolean {
+    return value !== undefined && /[\p{L}\p{N}_:./-]/u.test(value);
+}
+
+function includesExactIdentifier(text: string, identifier: string): boolean {
+    const lower = text.toLowerCase();
+    const needle = identifier.toLowerCase();
+    let offset = lower.indexOf(needle);
+    while (offset >= 0) {
+        const before = offset === 0 ? undefined : lower[offset - 1];
+        const afterOffset = offset + needle.length;
+        const after = afterOffset === lower.length ? undefined : lower[afterOffset];
+        if (!isIdentifierCharacter(before) && !isIdentifierCharacter(after)) return true;
+        offset = lower.indexOf(needle, offset + 1);
+    }
+    return false;
+}
+
+const BOUND_SCOPED_NEGATION = /\b(?:do\s+not|don't|never|must\s+not|not\s+authorized\s+to|no\s+longer)\b[^.\n;]{0,160}\b(?:implement|build|repair|fix|simplify|continue|resume|proceed|authorize|execute)\b/i;
+const BOUND_FIRST_PERSON_NEGATION = /\bi\s+(?:(?:am\s+)?not\s+(?:authorizing|permitting|allowing)|do\s+not\s+(?:authorize|permit|allow))\b/i;
+
+function isBoundForgeRevocation(text: string): boolean {
+    return BOUND_SCOPED_NEGATION.test(text)
+        || BOUND_FIRST_PERSON_NEGATION.test(text)
+        || isForgeAuthorityRevocation(text);
+}
+
+export function classifyBoundForgeIntent(
+    text: string,
+    binding: StableForgeInstructionBinding,
+    mode: 'exact_request_receipt' | 'exact_mission_record',
+): { action: ForgeOperatorIntentAction; normalizedText: string; workReferenceText: string } {
+    if (UNSAFE_TEXT.test(text)) throw new Error('forge_operator_intent_unsafe_text');
+    const normalizedText = text.trim().replace(/\s+/g, ' ');
+    const missionDecisionId = binding.decision_id.replace(
+        /-i[1-9][0-9]*-[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$/,
+        '',
+    );
+    const expected = mode === 'exact_request_receipt'
+        ? `Authorize and execute only ${binding.request_id} with request SHA-256 ${binding.request_sha256} for ${binding.bead_id} now`
+        : `Continue and implement ${missionDecisionId} on ${binding.bead_id} now`;
+    const candidate = normalizedText.endsWith('.')
+        ? normalizedText.slice(0, -1).trimEnd() : normalizedText;
+    if (candidate.toLocaleLowerCase('en-US') !== expected.toLocaleLowerCase('en-US')) {
+        throw new Error('forge_operator_intent_nonoperative_text');
+    }
+    const action: ForgeOperatorIntentAction = mode === 'exact_mission_record'
+        ? 'implement' : 'route_to_forge';
+    return { action, normalizedText, workReferenceText: binding.bead_id };
 }
 
 function classifyForgeIntent(text: string): {
@@ -122,10 +190,10 @@ function classifyForgeIntent(text: string): {
         throw new Error('forge_operator_intent_nonoperative_text');
     }
     if (
-        /\b(?:do\s+not|don't|never|must\s+not|not\s+authorized\s+to)\s+(?:build|implement|repair|fix|forge|send|route|dispatch|continue|resume)\b/i.test(normalizedText)
-        || /\bnot\s+(?:authorizing|permitting|allowing)\b[^.]{0,100}\b(?:forge|build|implement|repair|fix|continue|resume)\b/i.test(normalizedText)
+        /\b(?:do\s+not|don't|never|must\s+not|not\s+authorized\s+to)\s+(?:build|implement|repair|fix|simplify|forge|send|route|dispatch|continue|resume)\b/i.test(normalizedText)
+        || /\bnot\s+(?:authorizing|permitting|allowing)\b[^.]{0,100}\b(?:forge|build|implement|repair|fix|simplify|continue|resume)\b/i.test(normalizedText)
         || /\b(?:revoke|withdraw|cancel|stop|pause)\b[^.]{0,100}\b(?:forge|build|work|request|authorization|permission)\b/i.test(normalizedText)
-        || /\b(?:but|however)\b[^.]{0,100}\b(?:do\s+not|don't|not\s+authorized|revoke|stop|pause)\b[^.]{0,100}\b(?:forge|build|implement|repair|fix)\b/i.test(normalizedText)
+        || /\b(?:but|however)\b[^.]{0,100}\b(?:do\s+not|don't|not\s+authorized|revoke|stop|pause)\b[^.]{0,100}\b(?:forge|build|implement|repair|fix|simplify)\b/i.test(normalizedText)
         || /\b(?:not|except|exclude|excluding|without|skip|omit|instead\s+of|rather\s+than)\b/i.test(normalizedText)
     ) {
         throw new Error('forge_operator_intent_negated');
@@ -135,12 +203,12 @@ function classifyForgeIntent(text: string): {
     const route = body.match(
         /^(?:send|route|dispatch)\s+(.+?)\s+(?:to|through|via)\s+(?:the\s+)?(?:cstar\s+)?forge(?:[.!]|$)/i,
     );
-    const direct = body.match(/^(build|implement|repair|fix|forge)\s+(.+)/i);
+    const direct = body.match(/^(build|implement|repair|fix|simplify|forge)\s+(.+)/i);
     const resumeGerund = body.match(
-        /^(?:continue|resume)\s+(building|implementing|repairing|fixing|forging)\s+(.+)/i,
+        /^(?:continue|resume)\s+(building|implementing|repairing|fixing|simplifying|forging)\s+(.+)/i,
     );
     const resumeNamed = body.match(
-        /^(?:continue|resume)\s+(.+?)\s+(build|implementation|repair|fix)(?:[.!]|$)/i,
+        /^(?:continue|resume)\s+(.+?)\s+(build|implementation|repair|fix|simplification)(?:[.!]|$)/i,
     );
     let action: ForgeOperatorIntentAction;
     let subject: string;
@@ -150,6 +218,12 @@ function classifyForgeIntent(text: string): {
     } else if (direct) {
         action = actionForVerb(direct[1]!);
         subject = direct[2]!;
+        if (direct[1]!.toLowerCase() === 'simplify') {
+            subject = subject.replace(
+                /\s+first(?:,\s*|\s+)then\s+(?:begin|continue|proceed)[.!]*$/i,
+                '',
+            );
+        }
     } else if (resumeGerund) {
         action = actionForVerb(resumeGerund[1]!);
         subject = resumeGerund[2]!;
@@ -172,6 +246,7 @@ function classifyForgeIntent(text: string): {
 export async function verifyCurrentForgeOperatorIntent(
     context: McpRequestContext | undefined,
     now = Date.now(),
+    stableBinding?: StableForgeInstructionBinding,
 ): Promise<VerifiedForgeOperatorIntent> {
     const metadata = parseCodexTurnMetadata(context);
     const sessionFile = findCodexSessionFile(resolveCodexSessionsRoot(), metadata.thread_id);
@@ -203,47 +278,107 @@ export async function verifyCurrentForgeOperatorIntent(
     });
     projection.finish();
     const turn = canonical.finish();
-    if (
-        turn.recordCount !== 1
-        || intentRecords.length !== 1
-        || intentRecords[0]!.recordSha256 !== turn.recordSha256
-    ) {
-        throw new Error('forge_operator_intent_single_root_user_record_required');
+    if (intentRecords.length !== turn.recordCount || intentRecords.length === 0) {
+        throw new Error('forge_operator_intent_root_user_record_set_incomplete');
     }
-    const currentRecord = intentRecords[0]!;
-    const classified = classifyForgeIntent(currentRecord.text);
+    let currentRecord: IntentRecord;
+    let classified: ReturnType<typeof classifyForgeIntent>;
+    let bindingMode: VerifiedForgeOperatorIntent['binding_mode'];
+    let matchingRecords: IntentRecord[];
+    if (turn.recordCount === 1) {
+        currentRecord = intentRecords[0]!;
+        classified = classifyForgeIntent(currentRecord.text);
+        bindingMode = 'ordinary_language';
+        matchingRecords = [currentRecord];
+    } else {
+        if (!stableBinding) {
+            throw new Error('forge_operator_intent_exact_request_binding_required');
+        }
+        if (intentRecords.some((record) => isBoundForgeRevocation(record.text))) {
+            throw new Error('forge_operator_intent_negated');
+        }
+        const missionDecisionId = stableBinding.decision_id.replace(
+            /-i[1-9][0-9]*-[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$/,
+            '',
+        );
+        const receiptRecords = intentRecords.filter((record) =>
+            includesExactIdentifier(record.text, stableBinding.request_id)
+            && includesExactIdentifier(record.text, stableBinding.request_sha256)
+            && includesExactIdentifier(record.text, stableBinding.bead_id));
+        const missionRecords = intentRecords.filter((record) =>
+            includesExactIdentifier(record.text, missionDecisionId)
+            && includesExactIdentifier(record.text, stableBinding.bead_id));
+        matchingRecords = [...new Map(
+            [...receiptRecords, ...missionRecords]
+                .map((record) => [record.recordSha256, record]),
+        ).values()];
+        if (matchingRecords.length === 0) {
+            throw new Error('forge_operator_intent_exact_request_binding_missing');
+        }
+        if (matchingRecords.length !== 1) {
+            throw new Error('forge_operator_intent_exact_request_binding_ambiguous');
+        }
+        currentRecord = matchingRecords[0]!;
+        bindingMode = receiptRecords.some(
+            (record) => record.recordSha256 === currentRecord.recordSha256,
+        )
+            ? 'exact_request_receipt' : 'exact_mission_record';
+        classified = classifyBoundForgeIntent(currentRecord.text, stableBinding, bindingMode);
+    }
     const turnTimestamp = Date.parse(turn.timestamp);
     const expiresAt = turnTimestamp + AUTHORIZATION_AGE_MS;
     if (!Number.isFinite(turnTimestamp) || now >= expiresAt) {
         throw new Error('forge_operator_intent_expired');
     }
-    const messageSha256 = sha256(JSON.stringify({
-        schema: 'cstar.forge_operator_intent_message.v1',
-        thread_id: metadata.thread_id,
-        turn_id: metadata.turn_id,
-        records: [{
-            index: 0,
-            record_sha256: currentRecord.recordSha256,
-            content: currentRecord.content,
-        }],
-    }));
+    const messageSha256 = sha256(JSON.stringify(bindingMode === 'ordinary_language'
+        ? {
+            schema: 'cstar.forge_operator_intent_message.v1',
+            thread_id: metadata.thread_id,
+            turn_id: metadata.turn_id,
+            records: [{
+                index: 0,
+                record_sha256: currentRecord.recordSha256,
+                content: currentRecord.content,
+            }],
+        }
+        : {
+            schema: 'cstar.forge_operator_intent_message.v2',
+            thread_id: metadata.thread_id,
+            turn_id: metadata.turn_id,
+            turn_record_set_sha256: turn.recordSetSha256,
+            selected_record_sha256: currentRecord.recordSha256,
+            records: matchingRecords.map((record, index) => ({
+                index,
+                record_sha256: record.recordSha256,
+                content: record.content,
+            })),
+        }));
     return {
         intent: 'forge_execute',
         action: classified.action,
         normalized_text: classified.normalizedText,
         work_reference_text: classified.workReferenceText,
         operator_authorization_ref: [
-            'cstar-forge-intent', 'v1',
+            'cstar-forge-intent', bindingMode === 'ordinary_language' ? 'v1' : 'v2',
             'thread', metadata.thread_id,
             'turn', metadata.turn_id,
             'record-set-sha256', turn.recordSetSha256,
+            ...(bindingMode === 'ordinary_language'
+                ? [] : ['request-sha256', stableBinding!.request_sha256]),
         ].join(':'),
         thread_id: metadata.thread_id,
         turn_id: metadata.turn_id,
         message_sha256: messageSha256,
         session_record_sha256: turn.recordSha256,
         session_record_set_sha256: turn.recordSetSha256,
-        session_record_count: 1,
+        session_record_count: turn.recordCount,
+        binding_mode: bindingMode,
+        bound_request_id: bindingMode !== 'ordinary_language'
+            ? stableBinding!.request_id : undefined,
+        bound_request_sha256: bindingMode !== 'ordinary_language'
+            ? stableBinding!.request_sha256 : undefined,
+        bound_decision_id: bindingMode !== 'ordinary_language'
+            ? stableBinding!.decision_id : undefined,
         authorized_at: turnTimestamp,
         expires_at: expiresAt,
     };

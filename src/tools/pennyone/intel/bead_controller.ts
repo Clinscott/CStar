@@ -12,15 +12,11 @@ import { registry } from '../pathRegistry.js';
 import { buildHallRepositoryId, normalizeHallPath } from '../../../types/hall.js';
 import { parseJson, stringifyJson } from './schema.js';
 import { normalizeBeadMetadata } from './bead_metadata.js';
+import type { VerifiedValidationEvidence } from '../../cstar-kernel-mcp/tools/validation_evidence.js';
 import {
-    hashValidationEvidenceManifest,
-    isValidationEvidenceManifestV2StructurallyValid,
-    VALIDATION_EVIDENCE_SHA256,
-} from '../../../types/validation_evidence.js';
-import {
-    consumeKernelVerifiedValidationEvidence,
-    type VerifiedValidationEvidence,
-} from '../../cstar-kernel-mcp/tools/validation_evidence.js';
+    assertValidationRecordAuthority,
+    isImmutableValidationAuthority,
+} from './validation_record_authority.js';
 
 function shouldEmitPennyOneDebugLogs(): boolean {
     return process.env.CSTAR_DEBUG_LOGS === '1';
@@ -361,36 +357,7 @@ export function saveValidationRun(
     kernelEvidence?: VerifiedValidationEvidence,
 ): void {
     const db = database.getWritableDb();
-    if (record.authority_class === 'verified') {
-        throw new Error('verified_validation_v1_retired');
-    }
-    if (record.authority_class === 'verified_v2') {
-        const manifest = record.evidence_manifest;
-        if (
-            !manifest
-            || manifest.schema !== 'cstar.validation-evidence.v2'
-            || !isValidationEvidenceManifestV2StructurallyValid(manifest)
-            || !VALIDATION_EVIDENCE_SHA256.test(record.evidence_sha256 ?? '')
-            || manifest.validator_identity !== record.validator_identity
-            || manifest.validator_identity_source !== record.validator_identity_source
-            || hashValidationEvidenceManifest(manifest) !== record.evidence_sha256
-        ) {
-            throw new Error('verified_validation_v2_manifest_invalid');
-        }
-        const syntheticTestFixture = manifest.validator_identity_source === 'test_fixture'
-            && Boolean(process.env.NODE_TEST_CONTEXT);
-        const exactKernelProof = kernelEvidence?.manifest === manifest
-            && kernelEvidence.evidence_sha256 === record.evidence_sha256
-            && kernelEvidence.validator_identity === record.validator_identity
-            && kernelEvidence.validator_identity_source === record.validator_identity_source;
-        if (!syntheticTestFixture && !exactKernelProof) {
-            throw new Error('verified_validation_v2_kernel_proof_required');
-        }
-        if (kernelEvidence && (!exactKernelProof
-            || !consumeKernelVerifiedValidationEvidence(kernelEvidence))) {
-            throw new Error('verified_validation_v2_kernel_proof_invalid');
-        }
-    }
+    assertValidationRecordAuthority(record, kernelEvidence);
     const existing = db.prepare(`
         SELECT repo_id, bead_id, verdict, authority_class, evidence_sha256,
                validator_identity, validator_identity_source, evidence_manifest_json
@@ -401,7 +368,7 @@ export function saveValidationRun(
         if (existing.repo_id !== record.repo_id || (existing.bead_id ?? null) !== (record.bead_id ?? null)) {
             throw new Error('validation_id_scope_conflict');
         }
-        if (existing.authority_class === 'verified' || existing.authority_class === 'verified_v2') {
+        if (isImmutableValidationAuthority(existing.authority_class)) {
             const sameVerifiedReceipt = record.authority_class === existing.authority_class
                 && existing.verdict === record.verdict
                 && existing.evidence_sha256 === record.evidence_sha256

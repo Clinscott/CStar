@@ -68,7 +68,11 @@ export async function handleGoalResume(
                 ? 'unavailable' as const
                 : (() => { throw new Error('goal_resume_host_capability_must_be_unavailable'); })(),
         };
-        const attestation = await verifyCurrentGoalResumeIntent(requestContext, now);
+        const attestation = await verifyCurrentGoalResumeIntent(requestContext, now, {
+            repair_bead_id: input.repair_bead_id,
+            continued_bead_id: input.continued_bead_id,
+            decision_id: input.decision_id,
+        });
         intentVerified = true;
         const { root, repoId } = resolveActiveRepo();
         const recorded = recordHostGoalResume(input, attestation, root, repoId, now);

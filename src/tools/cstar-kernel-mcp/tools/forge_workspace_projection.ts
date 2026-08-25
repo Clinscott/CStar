@@ -5,8 +5,14 @@ import path from 'node:path';
 import type { ForgeExecutionArgs } from './forge_execute_contract.js';
 import { assertSafeOwnedDirectory, ensureSafeDirectoryTree } from './forge_adapter_artifacts.js';
 
-const TARGET_FILE_MAX_BYTES = 64 * 1024;
-const TARGET_TOTAL_MAX_BYTES = 512 * 1024;
+export const FORGE_MODEL_MATERIAL_POLICY = Object.freeze({
+    schema: 'cstar.forge_material_policy.v1' as const,
+    file_max_bytes: 512 * 1024,
+    total_max_bytes: 512 * 1024,
+    prompt_max_bytes: 1024 * 1024,
+});
+const TARGET_FILE_MAX_BYTES = FORGE_MODEL_MATERIAL_POLICY.file_max_bytes;
+const TARGET_TOTAL_MAX_BYTES = FORGE_MODEL_MATERIAL_POLICY.total_max_bytes;
 export const FORGE_WORKSPACE_OUTPUT_FILE_MAX_BYTES = 16 * 1024 * 1024;
 export const FORGE_WORKSPACE_OUTPUT_TOTAL_MAX_BYTES = 32 * 1024 * 1024;
 const TARGET_COUNT_MAX = 512;
@@ -262,7 +268,6 @@ export function prepareForgeWorkspaceProjection(
     }
     const projectedTargets: string[] = [];
     let targetBytes = 0;
-    let outputBytes = 0;
     const snapshots = new Map<string, FileSnapshot>();
 
     for (const source of [...sources].sort()) {
@@ -274,7 +279,10 @@ export function prepareForgeWorkspaceProjection(
             projectedTargets.push(workspaceRoot);
             continue;
         }
-        const maxBytes = outputSet.has(source) ? FORGE_WORKSPACE_OUTPUT_FILE_MAX_BYTES : TARGET_FILE_MAX_BYTES;
+        // Existing required outputs are also model input. Apply the bounded
+        // model-material cap to every file exposed to the worker; the larger
+        // output caps apply only to returned bytes during commit.
+        const maxBytes = TARGET_FILE_MAX_BYTES;
         const { snapshot, content, directory } = readSnapshot(sourceProjectRoot, source, maxBytes);
         snapshots.set(source, snapshot);
         if (directory) {
@@ -287,16 +295,9 @@ export function prepareForgeWorkspaceProjection(
         const projected = projectedPath(workspaceRoot, sourceProjectRoot, source);
         ensureSafeDirectoryTree(workspaceRoot, path.dirname(projected.path));
         if (content) {
-            if (outputSet.has(source)) {
-                outputBytes += content.byteLength;
-                if (outputBytes > FORGE_WORKSPACE_OUTPUT_TOTAL_MAX_BYTES) {
-                    throw new Error('forge_workspace_output_material_too_large');
-                }
-            } else {
-                targetBytes += content.byteLength;
-                if (targetBytes > TARGET_TOTAL_MAX_BYTES) {
-                    throw new Error('forge_workspace_target_material_too_large');
-                }
+            targetBytes += content.byteLength;
+            if (targetBytes > TARGET_TOTAL_MAX_BYTES) {
+                throw new Error('forge_workspace_target_material_too_large');
             }
             writeProjectedFile(workspaceRoot, projected.path, content, snapshot.mode);
         }
@@ -309,7 +310,7 @@ export function prepareForgeWorkspaceProjection(
             source_path: source,
             projected_path: projected.path,
             relative_path: projected.relative.split(path.sep).join('/'),
-            initial: snapshots.get(source) ?? readSnapshot(sourceProjectRoot, source, FORGE_WORKSPACE_OUTPUT_FILE_MAX_BYTES).snapshot,
+            initial: snapshots.get(source) ?? readSnapshot(sourceProjectRoot, source, TARGET_FILE_MAX_BYTES).snapshot,
         };
     });
     if (outputs.length > 0) {

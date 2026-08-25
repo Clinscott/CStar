@@ -1,6 +1,6 @@
 {
   "name": "corvus-star",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Host-native Corvus Star Augury, Hall, and CStar runtime integration.",
   "author": {
     "name": "Craig Linscott"

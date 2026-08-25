@@ -9,7 +9,7 @@ import {
 import { sealForgeHermesRuntimeExpectation } from '../../../src/tools/cstar-kernel-mcp/tools/forge_hermes_runtime_contract.js';
 import {
     createForgeOAuthHorizon,
-    preflightForgeHermesOAuthBeforeReservation,
+    preflightForgeHermesOAuthAfterReservation,
 } from '../../../src/tools/cstar-kernel-mcp/tools/forge_hermes_oauth_contract.js';
 import {
     assertDispatchAdapterCapability,
@@ -61,7 +61,7 @@ export async function invokeForgeAdapterForTest(args: ForgeExecutionArgs) {
             const oauthHorizon = createForgeOAuthHorizon(
                 args, decisionId, executionReceiptId, adapter.selected, expectedRuntime,
             );
-            const preflight = await preflightForgeHermesOAuthBeforeReservation(
+            const preflight = await preflightForgeHermesOAuthAfterReservation(
                 args, decisionId, executionReceiptId, root, adapter.selected,
                 runtimeProof, expectedRuntime, oauthHorizon,
             );

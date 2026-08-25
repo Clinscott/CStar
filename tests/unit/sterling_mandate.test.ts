@@ -11,6 +11,7 @@ import { registry } from '../../src/tools/pennyone/pathRegistry.js';
 import type {
     HallBeadRecord,
     HallValidationEvidenceManifest,
+    HallValidationEvidenceManifestV3,
     HallValidationRun,
 } from '../../src/types/hall.js';
 import { buildHallRepositoryId, normalizeHallPath } from '../../src/types/hall.js';
@@ -236,11 +237,132 @@ describe('Sterling independent validation authority boundary', () => {
         return record;
     }
 
+    function saveHostVerifiedValidation(evidenceRoot = root): { record: HallValidationRun; receiptPath: string } {
+        const receiptPath = writeFile(
+            evidenceRoot,
+            'work/evidence/host-validation-manifest.json',
+            '{"status":"pass"}\n',
+        );
+        const receiptSha = sha256(receiptPath);
+        const validatorThreadId = 'test-host-validator-thread';
+        const validatorTurnId = 'test-host-validator-turn';
+        const manifest: HallValidationEvidenceManifestV3 = {
+            schema: 'cstar.validation-evidence.v3',
+            validator_identity: `codex-subagent:${validatorThreadId}:turn:${validatorTurnId}`,
+            validator_identity_source: 'test_fixture',
+            request_thread_id: 'test-recorder-thread',
+            request_turn_id: 'test-recorder-turn',
+            subject: {
+                repository_id: repoId,
+                bead_id: bead.bead_id,
+                target_path: bead.target_path ?? null,
+                work_receipt_kind: 'host_validation_manifest',
+                work_receipt_id: `host-validation:${receiptSha}`,
+                validation_id: 'validation:synthetic:sterling',
+                validation_manifest_schema: 'cstar.independent_validation_input.v1',
+                validation_manifest_path: receiptPath,
+                validation_manifest_sha256: receiptSha,
+            },
+            independence: {
+                policy: 'depth_one_codex_subagent_from_recording_root_v1',
+                recorder_thread_id: 'test-recorder-thread',
+                recorder_turn_id: 'test-recorder-turn',
+                recorder_record_set_sha256: 'a'.repeat(64),
+                validator_thread_id: validatorThreadId,
+                validator_turn_id: validatorTurnId,
+                validator_parent_thread_id: 'test-recorder-thread',
+                validator_agent_path: '/root/validator',
+                validator_session_sha256: 'b'.repeat(64),
+                validator_final_record_sha256: 'c'.repeat(64),
+                validator_task_complete_record_sha256: 'd'.repeat(64),
+                validator_completed_at: now,
+            },
+            artifacts: [lorePath, isolationPath].map((artifactPath) => ({
+                path: artifactPath,
+                sha256: sha256(artifactPath),
+            })),
+            checks: [{
+                name: 'focused host validation',
+                status: 'pass',
+                evidence_path: checkPath,
+                sha256: sha256(checkPath),
+            }],
+        };
+        const record: HallValidationRun = {
+            validation_id: 'validation:synthetic:sterling',
+            repo_id: repoId,
+            bead_id: bead.bead_id,
+            verdict: 'ACCEPTED',
+            authority_class: 'verified_v3',
+            validator_identity: manifest.validator_identity,
+            validator_identity_source: manifest.validator_identity_source,
+            evidence_manifest: manifest,
+            evidence_sha256: hashValidationEvidenceManifest(manifest),
+            created_at: now,
+        };
+        database.saveValidationRun(record);
+        return { record, receiptPath };
+    }
+
     it('accepts only fresh contained Lore and Isolation bound to the exact verified receipt', () => {
         saveVerifiedValidation();
         const verdict = verifySterlingMandate(bead, evidence(), root, now + 1);
         assert.equal(verdict.verdict, 'ACCEPTED');
         assert.ok(verdict.legs.every((leg) => leg.status === 'satisfied'));
+    });
+
+    it('accepts a kernel-shaped host-workflow v3 receipt', () => {
+        saveHostVerifiedValidation();
+        const verdict = verifySterlingMandate(bead, evidence(), root, now + 1);
+        assert.equal(verdict.verdict, 'ACCEPTED');
+        assert.ok(verdict.legs.every((leg) => leg.status === 'satisfied'));
+    });
+
+    it('reads v3 host evidence from a separated code root while Hall remains in the control root', () => {
+        const codeRoot = fs.mkdtempSync(path.join(
+            process.platform === 'linux' ? '/tmp' : os.tmpdir(),
+            'cstar-sterling-code-root-',
+        ));
+        const originalPaths = { lorePath, isolationPath, checkPath };
+        try {
+            lorePath = writeFile(
+                codeRoot,
+                'tests/features/sterling.feature',
+                fs.readFileSync(originalPaths.lorePath, 'utf-8'),
+            );
+            isolationPath = writeFile(
+                codeRoot,
+                'tests/unit/sterling.test.ts',
+                fs.readFileSync(originalPaths.isolationPath, 'utf-8'),
+            );
+            checkPath = writeFile(
+                codeRoot,
+                'work/evidence/sterling-check.txt',
+                fs.readFileSync(originalPaths.checkPath, 'utf-8'),
+            );
+            saveHostVerifiedValidation(codeRoot);
+            assert.equal(
+                verifySterlingMandate(bead, evidence(), root, now + 1).verdict,
+                'REJECTED',
+            );
+            assert.equal(
+                verifySterlingMandate(bead, evidence(), root, now + 1, codeRoot).verdict,
+                'ACCEPTED',
+            );
+        } finally {
+            ({ lorePath, isolationPath, checkPath } = originalPaths);
+            fs.rmSync(codeRoot, { recursive: true, force: true });
+        }
+    });
+
+    it('rejects host-workflow target drift and a changed validator manifest', () => {
+        const { receiptPath } = saveHostVerifiedValidation();
+        assert.equal(
+            verifySterlingMandate({ ...bead, target_path: 'other' }, evidence(), root, now + 1).verdict,
+            'REJECTED',
+        );
+        fs.writeFileSync(receiptPath, '{"status":"changed"}\n', 'utf-8');
+        assert.equal(verifySterlingMandate(bead, evidence(), root, now + 1).verdict, 'REJECTED');
     });
 
     it('rejects caller scalar scores, claimed Wardens, exemptions, and force-like evidence', () => {

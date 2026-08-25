@@ -197,6 +197,13 @@ function requesterLineageMatches(
         && candidate.requester_record_set_sha256 === attestation.session_record_set_sha256;
 }
 
+function canonicalMissionDecisionId(decisionId: string): string {
+    return decisionId.replace(
+        /-i[1-9][0-9]*-[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$/,
+        '',
+    );
+}
+
 function replayCandidate(
     db: Database.Database,
     selected: HallForgeRequestRecord,
@@ -221,6 +228,36 @@ export function resolveForgeOperatorWorkItem(
     selected: HallForgeRequestRecord,
     attestation: VerifiedForgeOperatorIntent,
 ): ForgeOperatorIntentProjection {
+    if (attestation.binding_mode === 'exact_request_receipt'
+        || attestation.binding_mode === 'exact_mission_record') {
+        if (attestation.bound_request_id !== selected.request_id
+            || attestation.bound_request_sha256 !== selected.request_sha256
+            || attestation.bound_decision_id !== selected.decision_id
+            || attestation.work_reference_text !== selected.bead_id
+            || selected.requester_thread_id !== attestation.thread_id) {
+            throw new Error('forge_operator_intent_exact_request_binding_mismatch');
+        }
+        if (attestation.binding_mode === 'exact_mission_record') {
+            const missionDecisionId = canonicalMissionDecisionId(selected.decision_id);
+            const eligible = loadCandidates(db).filter((candidate) =>
+                candidate.repo_id === selected.repo_id
+                && candidate.bead_id === selected.bead_id
+                && candidate.requester_thread_id === attestation.thread_id
+                && canonicalMissionDecisionId(candidate.decision_id) === missionDecisionId);
+            if (eligible.length !== 1 || eligible[0]!.request_id !== selected.request_id) {
+                throw new Error('forge_operator_intent_mission_candidate_ambiguous');
+            }
+        }
+        return buildForgeOperatorIntentProjection({
+            action: attestation.action,
+            requester_lineage_mode: attestation.binding_mode === 'exact_request_receipt'
+                ? 'explicit_request_receipt_binding'
+                : 'explicit_mission_record_binding',
+            kind: 'bead',
+            value: selected.bead_id,
+            repo_id: selected.repo_id,
+        });
+    }
     const candidates = loadCandidates(db);
     const replay = replayCandidate(db, selected, attestation);
     if (replay && !candidates.some((candidate) => candidate.request_id === replay.request_id)) {

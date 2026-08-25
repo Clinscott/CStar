@@ -279,7 +279,7 @@ export function assertForgeHermesPreflightEquivalent(
     }
 }
 
-export async function preflightForgeHermesOAuthBeforeReservation(
+export async function preflightForgeHermesOAuthAfterReservation(
     args: ForgeExecutionArgs,
     decisionId: string,
     executionReceiptId: string,

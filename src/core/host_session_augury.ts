@@ -170,13 +170,20 @@ function buildAuguryQualityLine(intentCategory: string): string {
     return 'Code Standard: scoped changes; preserve unrelated work; verify focused behavior; leave no known broken surface.';
 }
 
-function buildProjectedPersonaToneLine(contract: Record<string, unknown>): string {
+function buildProjectedPersonaGuidance(contract: Record<string, unknown>): string {
     const advice = contract.persona_advice;
     if (!advice || typeof advice !== 'object' || Array.isArray(advice)) return '';
     const projected = advice as Record<string, unknown>;
-    if (projected.authority !== 'style_only' || projected.source !== 'hall_self_consistent_record') return '';
+    if (projected.authority !== 'non_authoritative_process_guidance'
+        || !['bounded_active_persona_projection', 'hall_active_persona_projection']
+            .includes(String(projected.source))) return '';
     const tone = compactSingleLine(projected.tone_directive, 200);
-    return tone ? `Persona Tone: ${tone}` : '';
+    const posture = compactSingleLine(projected.development_posture, 40);
+    const process = compactSingleLine(projected.process_directive, 260);
+    return [
+        tone ? `Persona Tone: ${tone}` : '',
+        posture && process ? `Development Posture (${posture}): ${process}` : '',
+    ].filter(Boolean).join('\n');
 }
 
 export function formatAugurySteeringBlock(
@@ -205,6 +212,7 @@ export function formatAugurySteeringBlock(
             `Intent: ${compactSingleLine(contract.intent ?? contract.canonical_intent, 180)}`,
             promptMimirsWell.length ? `Mimir's Well: ${promptMimirsWell.map((entry) => compactSingleLine(entry, 140)).join(' | ')}` : '',
             expert ? `Council Expert: ${compactSingleLine(expert.label ?? expert.id ?? 'UNKNOWN', 80)}` : '',
+            buildProjectedPersonaGuidance(contract),
             'Directive: Route only. Consult targets before choosing a path. Do not echo.',
             '[/CORVUS_STAR_AUGURY]',
         ].filter(Boolean).join('\n');
@@ -220,7 +228,7 @@ export function formatAugurySteeringBlock(
         antiBehavior.length ? `Guardrails: ${antiBehavior.join(' | ')}` : '',
         'Corvus Standard: CStar is the engine; spokes are managed extensions; keep work Hall/Mimir traceable.',
         buildAuguryQualityLine(intentCategory.toUpperCase()),
-        buildProjectedPersonaToneLine(contract),
+        buildProjectedPersonaGuidance(contract),
         trajectoryStatus && trajectoryStatus !== 'STABLE'
             ? `Trajectory: ${trajectoryStatus}${trajectoryReason ? `: ${trajectoryReason}` : ''}` : '',
         contract.gungnir_verdict ? `Verdict: ${compactSingleLine(contract.gungnir_verdict, 220)}` : '',

@@ -1,6 +1,6 @@
 ---
 name: researcher
-description: Govern CStar Researcher and Hermes Researcher evidence requests, truth-verification gates, and PMT-owned review packets without authorizing live execution by default.
+description: Govern bounded CStar Researcher evidence requests, truth-verification gates, callbacks, and optional project-context updates without authorizing live execution by default.
 tier: SKILL
 risk: medium
 intent_category: VERIFY
@@ -16,7 +16,7 @@ and routes decision packets into CStar. This file is also the default authorized
 dispatch surface checked by `cstar_researcher_request`.
 
 This surface is a request and authority contract. It is not a live execution
-adapter. A valid request receipt proves that PMT/CoS routing, metrics,
+adapter. A valid request receipt proves that bounded routing, metrics,
 artifacts, prohibited actions, callback, and package locks are present. It does
 not itself run Hermes, MiniMax, source adapters, browser collection, GitHub
 mutation, or model spend.
@@ -27,7 +27,10 @@ mutation, or model spend.
 surface when all request fields pass validation. The request must include:
 
 - `bead_id` or explicit `decision_id`
-- owner PMT thread id and CoS/source callback thread id
+- required `source_callback_thread_id` for CoS or the requesting source
+- optional `state_update_thread_id` for a mapped project information repository;
+  `owner_pmt_thread_id` is a deprecated compatibility alias and grants no
+  ownership, review, routing, or execution authority
 - bounded objective, prompt, scope, authority lane, target paths, and system
   under test when relevant
 - required metrics with thresholds and acceptance rules
@@ -50,15 +53,24 @@ Live Hermes/MiniMax or source-adapter work requires all of the following:
 
 - `spend_policy.mode = live_authorized`
 - explicit `operator_authorization_ref`
-- owner PMT goal with source callback contract
+- source callback contract and, when mapped, an optional project-context update
+  destination
 - accepted package/hash locks for the code, corpus, runner, retry policy, and
   scorecard surfaces under test
 - one-line prohibited-action confirmation in the callback packet
 - compact artifact-first final report back to CoS
 
 Even with live authorization, `cstar_researcher_request` remains a receipt
-surface. Execution must happen only through the approved Researcher/Hermes PMT
-lane for the exact bead and decision.
+surface. Execution must happen only through the approved Researcher adapter or
+Hermes Researcher lane for the exact bead and decision. A PMT is never that
+execution lane and never grants permission to use it.
+
+## Project Context Boundary
+
+A mapped PMT is an optional project-scoped information repository. Researcher
+may receive one bounded context packet through CoS and may send one compact
+state update after meaningful work. PMT unavailability is a freshness gap, not
+an execution gate. MM is legacy and has no active routing role.
 
 ## Active Scope
 
@@ -155,7 +167,7 @@ Researcher reports should distinguish:
 - visible prompt contract versus hidden evaluator data
 - scoreable-only metrics versus malformed-output accounting
 - development-set evidence versus locked-holdout evidence
-- PMT-owned result versus CoS/operator decision
+- Researcher evidence packet versus CoS/operator decision
 - whether live dispatch, model spend, source collection, secret access, repo
   mutation, or PR action was requested
 

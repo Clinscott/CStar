@@ -104,7 +104,12 @@ export const CSTAR_KERNEL_TOOL_CATALOG = [
     {
         name: 'cstar_status',
         toolClass: 'READ',
-        description: 'Deterministic kernel state snapshot.',
+        description: 'Deterministic kernel state snapshot with optional exact Forge execution lifecycle status.',
+    },
+    {
+        name: 'cstar_persona_set',
+        toolClass: 'MUTATION',
+        description: 'Explicitly select O.D.I.N. or A.L.F.R.E.D. for the next workflow boundary; style-only and never expands authority or bypasses gates.',
     },
     {
         name: 'cstar_evolve',
@@ -144,12 +149,12 @@ export const CSTAR_KERNEL_TOOL_CATALOG = [
     {
         name: 'cstar_forge_authorize',
         toolClass: 'MUTATION',
-        description: 'Bind one current explicit work-referenced root-user build or resume instruction to one unchanged pending Forge request; performs no provider call.',
+        description: 'Bind one explicit root-user build instruction or immutable CStar goal-continuation receipt to one unchanged pending Forge request; performs no provider call.',
     },
     {
         name: 'cstar_forge_execute',
         toolClass: 'EXECUTION',
-        description: 'Atomically reserve and invoke the private Hermes/MiniMax adapter once, with durable replay and delivered-pending-validation semantics.',
+        description: 'Atomically run one provider attempt through the private Hermes/MiniMax adapter, with durable replay, independently validated pre-provider continuity, and delivered-pending-validation semantics.',
     },
 ] as const satisfies readonly CstarKernelToolCatalogShape[];
 

@@ -17,10 +17,13 @@ def test_sterling_docs_reject_claimed_or_cached_authority() -> None:
 
     for text in (operation, integration):
         assert "authority_class=verified_v2" in text
+        assert "verified_v3" in text
         assert "independent" in text
         assert "cstar.validation-evidence.v2" in text and "SHA-256" in text
         assert "requester" in text and "executor" in text
         assert "cached" in text
         assert "force" in text and "exemption" in text
+    assert "code root" in operation and "control root" in operation
+    assert "`CODE_ROOT`" in integration and "`CONTROL_ROOT`" in integration
     assert "rejects the path without reading outside" in feature
     assert "original verified receipt remains immutable" in feature

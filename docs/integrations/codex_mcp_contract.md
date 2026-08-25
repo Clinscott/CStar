@@ -141,13 +141,12 @@ item, and proven after a separately authorized supported-plugin activation and
 restart window. Source code does not auto-install, self-heal, invoke a launcher,
 or write `.agents/state` activity sidecars.
 
-The former self-heal, launcher smoke, direct Codex installer, ambient Codex
-activity writer, Gemini symlink installer, and local genesis setup paths are
-retirement tombstones. Their stable failures are:
+The former self-heal, launcher smoke, ambient Codex activity writer, Gemini
+symlink installer, and local genesis setup paths are retirement tombstones.
+Their stable failures are:
 
 - `legacy_codex_self_heal_retired_requires_operator_gated_supported_plugin_surface`
 - `legacy_codex_launcher_smoke_retired_use_cstar_doctor_and_live_runtime_proof`
-- `direct_codex_plugin_install_retired_use_supported_codex_plugin_surface`
 - `legacy_codex_cli_activity_sidecar_retired_use_host_runtime_receipt`
 - `direct_gemini_extension_install_retired_requires_supported_host_surface`
 - `direct_local_setup_retired_requires_operator_gated_supported_installer`
@@ -155,6 +154,14 @@ retirement tombstones. Their stable failures are:
 None reads host config, marketplace state, environment contents, or credentials;
 none writes a cache, symlink, environment, log, or package; and none starts a
 process. Installation and restart remain distinct operator gates.
+
+The compatibility-named `installCodexPlugin` helper is instead a bounded source
+stager. It requires one pre-existing approved local marketplace entry, verifies
+the generated plugin lineage, and may write only the personal plugin source
+tree. It does not mutate marketplace or Codex cache state, invoke `codex plugin
+add`, activate the plugin, restart the host, or prove live runtime. Staging,
+installation, activation, restart, and production therefore remain distinct
+authority effects.
 
 ## Simplification Rule
 

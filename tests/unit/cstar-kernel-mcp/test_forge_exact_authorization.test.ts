@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { randomUUID } from 'node:crypto';
 import { afterEach, beforeEach, describe, it } from 'node:test';
 import { z } from 'zod';
 
@@ -388,9 +389,14 @@ describe('exact hash-bound Forge authorization', () => {
             forge_request_receipt_id: `dispatch-forge-${'9'.repeat(32)}`,
             request_sha256: '8'.repeat(64),
         }, context));
+        const noRecord = parse(await handleForgeAuthorize({
+            forge_request_receipt_id: `dispatch-forge-${'9'.repeat(32)}`,
+            request_sha256: '8'.repeat(64),
+        }, validRequestContext(session.threadId, randomUUID())));
 
         assert.equal(existing.error_code, 'forge_operator_authorization_required');
-        assert.deepEqual(absent, existing);
+        assert.equal(absent.error_code, 'forge_request_receipt_not_found');
+        assert.deepEqual(noRecord, existing);
         assert.equal(getForgeAuthorizationByRequest(fixture.db, fixture.requestId), null);
     });
 

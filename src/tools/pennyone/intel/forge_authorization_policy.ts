@@ -8,6 +8,11 @@ import type {
     SaveForgeRequestInput,
 } from '../../../types/forge.js';
 import { forgeRequesterLineageMatchesRequest } from './forge_requester_lineage.js';
+import {
+    hashForgeGoalResumeAuthorizationBinding,
+    isForgeGoalResumeProjectionJson,
+    parseForgeGoalResumeAuthorizationProjection,
+} from './forge_goal_resume_authorization_policy.js';
 
 export const ROOT_USER_FORGE_INTENT_PROFILE = 'root_user_forge_intent_v1' as const;
 export const LEGACY_EXACT_FORGE_CHALLENGE_PROFILE = 'exact_request_challenge_v1' as const;
@@ -37,7 +42,9 @@ export type ForgeOperatorIntentAction =
 export type ForgeOperatorIntentSubjectKind = 'bead' | 'decision' | 'target_ref';
 export type ForgeOperatorIntentLineageMode =
     | 'same_turn_request'
-    | 'explicit_legacy_request_upgrade';
+    | 'explicit_legacy_request_upgrade'
+    | 'explicit_request_receipt_binding'
+    | 'explicit_mission_record_binding';
 
 export interface ForgeOperatorIntentProjection {
     schema: 'cstar.forge_operator_intent_projection.v1';
@@ -108,7 +115,12 @@ export function buildForgeOperatorIntentProjection(input: {
 }): ForgeOperatorIntentProjection {
     if (!ACTIONS.has(input.action)) throw new Error('forge_operator_intent_action_invalid');
     if (!SUBJECT_KINDS.has(input.kind)) throw new Error('forge_operator_intent_subject_kind_invalid');
-    if (!['same_turn_request', 'explicit_legacy_request_upgrade']
+    if (![
+        'same_turn_request',
+        'explicit_legacy_request_upgrade',
+        'explicit_request_receipt_binding',
+        'explicit_mission_record_binding',
+    ]
         .includes(input.requester_lineage_mode)) {
         throw new Error('forge_operator_intent_requester_lineage_mode_invalid');
     }
@@ -192,7 +204,13 @@ export function hashRootUserForgeIntentBinding(
     if (input.projection.subject.repo_id !== input.request.repo_id) {
         throw new Error('forge_operator_intent_repository_mismatch');
     }
-    if (input.operator_record_count !== 1) {
+    if (!Number.isSafeInteger(input.operator_record_count)
+        || input.operator_record_count < 1
+        || (![
+            'explicit_request_receipt_binding',
+            'explicit_mission_record_binding',
+        ].includes(input.projection.requester_lineage_mode)
+            && input.operator_record_count !== 1)) {
         throw new Error('forge_operator_intent_record_count_invalid');
     }
     for (const [name, value] of [
@@ -382,6 +400,22 @@ function forgeAuthorizationProfileMatchesRequest(
         || request.authorization_challenge_sha256 !== undefined
         || authorization.challenge_sha256 !== undefined) return false;
     try {
+        if (isForgeGoalResumeProjectionJson(authorization.operator_intent_json)) {
+            const projection = parseForgeGoalResumeAuthorizationProjection(
+                authorization.operator_intent_json,
+            );
+            return authorization.authorization_binding_sha256
+                === hashForgeGoalResumeAuthorizationBinding({
+                    request,
+                    projection,
+                    operator_thread_id: authorization.operator_thread_id,
+                    operator_turn_id: authorization.operator_turn_id,
+                    operator_message_sha256: authorization.operator_message_sha256,
+                    operator_record_sha256: authorization.operator_record_sha256,
+                    operator_record_set_sha256: authorization.operator_record_set_sha256,
+                    operator_record_count: authorization.operator_record_count,
+                });
+        }
         const projection = parseForgeOperatorIntentProjection(authorization.operator_intent_json);
         return authorization.authorization_binding_sha256 === hashRootUserForgeIntentBinding({
             request,

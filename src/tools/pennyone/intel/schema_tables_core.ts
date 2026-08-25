@@ -227,6 +227,19 @@ export const HALL_SCHEMA_CORE_SQL = String.raw`
             model_source TEXT,
             reasoning_profile TEXT,
             adapter_version TEXT,
+            attempt_budget_class TEXT NOT NULL DEFAULT 'provider_or_unknown'
+                CHECK(attempt_budget_class IN ('provider_or_unknown', 'mechanical_no_provider')),
+            provider_evidence_valid INTEGER NOT NULL DEFAULT 0 CHECK(provider_evidence_valid IN (0, 1)),
+            provider_requests_started INTEGER CHECK(provider_requests_started IS NULL OR provider_requests_started >= 0),
+            provider_requests_completed INTEGER CHECK(provider_requests_completed IS NULL OR provider_requests_completed >= 0),
+            provider_requests_ambiguous INTEGER CHECK(provider_requests_ambiguous IS NULL OR provider_requests_ambiguous >= 0),
+            live_spend INTEGER CHECK(live_spend IS NULL OR live_spend IN (0, 1)),
+            live_spend_unknown INTEGER NOT NULL DEFAULT 1 CHECK(live_spend_unknown IN (0, 1)),
+            known_spend_observed INTEGER NOT NULL DEFAULT 0 CHECK(known_spend_observed IN (0, 1)),
+            live_source_collection INTEGER CHECK(live_source_collection IS NULL OR live_source_collection IN (0, 1)),
+            workspace_commit_present INTEGER CHECK(workspace_commit_present IS NULL OR workspace_commit_present IN (0, 1)),
+            failure_evidence_sha256 TEXT,
+            failure_signature_sha256 TEXT,
             status TEXT NOT NULL CHECK(status IN ('RESERVED', 'STARTED', 'SUCCEEDED', 'FAILED_RETRYABLE', 'FAILED_FINAL', 'UNKNOWN')),
             retry_of_attempt_id TEXT,
             external_execution_id TEXT,
@@ -254,6 +267,41 @@ export const HALL_SCHEMA_CORE_SQL = String.raw`
         CREATE UNIQUE INDEX IF NOT EXISTS idx_hall_forge_attempts_external_execution
         ON hall_forge_attempts(adapter_ref, external_execution_id)
         WHERE external_execution_id IS NOT NULL;
+
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_hall_forge_attempts_one_retry_child
+        ON hall_forge_attempts(request_id, retry_of_attempt_id)
+        WHERE retry_of_attempt_id IS NOT NULL;
+
+        CREATE TABLE IF NOT EXISTS hall_forge_preprovider_continuations (
+            continuation_id TEXT PRIMARY KEY,
+            request_id TEXT NOT NULL,
+            attempt_id TEXT NOT NULL UNIQUE,
+            cycle_ordinal INTEGER NOT NULL CHECK(cycle_ordinal >= 1 AND cycle_ordinal <= 10),
+            failure_code TEXT NOT NULL,
+            failure_fingerprint_sha256 TEXT NOT NULL,
+            execution_trace_sha256 TEXT NOT NULL,
+            zero_provider_proof_sha256 TEXT NOT NULL,
+            zero_provider_proof_json TEXT NOT NULL,
+            continuation_authority_sha256 TEXT NOT NULL,
+            prior_runtime_sha256 TEXT NOT NULL,
+            next_runtime_sha256 TEXT,
+            repair_validation_id TEXT,
+            repair_evidence_sha256 TEXT,
+            reconciled_from_status TEXT CHECK(reconciled_from_status IS NULL OR reconciled_from_status = 'FAILED_FINAL'),
+            block_reason TEXT CHECK(block_reason IS NULL OR block_reason IN ('repeated_failure_no_progress', 'mechanical_cycle_budget_exhausted')),
+            provider_attempted INTEGER NOT NULL DEFAULT 0 CHECK(provider_attempted = 0),
+            proof_valid INTEGER NOT NULL DEFAULT 1 CHECK(proof_valid = 1),
+            status TEXT NOT NULL CHECK(status IN ('PENDING_REPAIR', 'RESUMED', 'BLOCKED')),
+            created_at INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL,
+            resumed_at INTEGER,
+            UNIQUE(request_id, cycle_ordinal),
+            FOREIGN KEY(request_id) REFERENCES hall_forge_requests(request_id),
+            FOREIGN KEY(request_id, attempt_id) REFERENCES hall_forge_attempts(request_id, attempt_id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_hall_forge_preprovider_continuations_pending
+        ON hall_forge_preprovider_continuations(request_id, status, cycle_ordinal);
 
         CREATE TABLE IF NOT EXISTS hall_bead_critiques (
             critique_id TEXT PRIMARY KEY,

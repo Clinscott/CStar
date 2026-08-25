@@ -16,6 +16,10 @@ import {
     getForgeAuthorizationByRequest,
     getForgeRequest,
 } from './forge_receipt_controller.js';
+import {
+    bindForgeContinuationRepairValidation,
+    getForgeContinuationByAttempt,
+} from './forge_continuation_controller.js';
 
 export interface RecordForgeDeliveryInput {
     attempt_id: string;
@@ -228,7 +232,7 @@ export function finalizeForgeValidation(
     attempt: HallForgeAttemptRecord;
     request: HallForgeRequestRecord;
     accepted: boolean | null;
-    mode: 'delivery_finalization' | 'terminal_evidence_link';
+    mode: 'delivery_finalization' | 'terminal_evidence_link' | 'continuation_repair_binding';
     execution_status_changed: boolean;
 } {
     const now = input.now ?? Date.now();
@@ -243,11 +247,33 @@ export function finalizeForgeValidation(
             throw new Error('forge_validation_receipt_subject_mismatch');
         }
         const { attempt, request } = assertForgeValidationManifestCurrent(db, manifest);
+        const continuation = getForgeContinuationByAttempt(db, attempt.attempt_id);
+        const continuationRepair = attempt.status === 'FAILED_RETRYABLE'
+            && continuation?.status === 'PENDING_REPAIR';
         const pendingDelivery = attempt.status === 'STARTED'
             && attempt.result_status?.startsWith('DELIVERED_PENDING_VALIDATION:');
         const terminalEvidenceLink = ['FAILED_FINAL', 'UNKNOWN'].includes(attempt.status);
-        if (!pendingDelivery && !terminalEvidenceLink) {
+        if (!pendingDelivery && !terminalEvidenceLink && !continuationRepair) {
             throw new Error(`forge_execution_not_awaiting_validation:${attempt.status}`);
+        }
+        if (continuationRepair) {
+            if (outcome !== 'accepted') {
+                throw new Error('forge_continuation_repair_validation_not_accepted');
+            }
+            bindForgeContinuationRepairValidation(
+                db,
+                attempt.attempt_id,
+                input.validation_id,
+                verified.evidence_sha256,
+                now,
+            );
+            return {
+                attempt: getForgeAttempt(db, attempt.attempt_id)!,
+                request: getForgeRequest(db, attempt.request_id)!,
+                accepted: true,
+                mode: 'continuation_repair_binding' as const,
+                execution_status_changed: false,
+            };
         }
         if (terminalEvidenceLink && outcome === 'accepted') {
             throw new Error('forge_terminal_failure_validation_cannot_accept_delivery');

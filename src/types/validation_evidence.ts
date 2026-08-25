@@ -60,9 +60,50 @@ export interface HallValidationEvidenceManifestV2 {
     checks: Array<{ name: string; status: 'pass'; evidence_path: string; sha256: string }>;
 }
 
+export interface HallValidationEvidenceManifestV3 {
+    schema: 'cstar.validation-evidence.v3';
+    validator_identity: string;
+    validator_identity_source: 'codex_subagent_receipt' | 'test_fixture';
+    request_thread_id: string;
+    request_turn_id: string;
+    session_turn_record_sha256?: string;
+    session_turn_record_set_sha256?: string;
+    session_turn_record_count?: number;
+    session_turn_first_timestamp?: string;
+    session_turn_timestamp?: string;
+    subject: {
+        repository_id: string;
+        bead_id: string;
+        target_path: string | null;
+        work_receipt_kind: 'host_validation_manifest';
+        work_receipt_id: string;
+        validation_id: string;
+        validation_manifest_schema: 'cstar.independent_validation_input.v1';
+        validation_manifest_path: string;
+        validation_manifest_sha256: string;
+    };
+    independence: {
+        policy: 'depth_one_codex_subagent_from_recording_root_v1';
+        recorder_thread_id: string;
+        recorder_turn_id: string;
+        recorder_record_set_sha256: string;
+        validator_thread_id: string;
+        validator_turn_id: string;
+        validator_parent_thread_id: string;
+        validator_agent_path: string;
+        validator_session_sha256: string;
+        validator_final_record_sha256: string;
+        validator_task_complete_record_sha256: string;
+        validator_completed_at: number;
+    };
+    artifacts: Array<{ path: string; sha256: string }>;
+    checks: Array<{ name: string; status: 'pass'; evidence_path: string; sha256: string }>;
+}
+
 export type HallValidationEvidenceManifest =
     | HallValidationEvidenceManifestV1
-    | HallValidationEvidenceManifestV2;
+    | HallValidationEvidenceManifestV2
+    | HallValidationEvidenceManifestV3;
 
 export type CStarValidationVerdict =
     | 'ACCEPTED'
@@ -83,7 +124,7 @@ export interface CStarValidationRunRecord {
     post_scores?: Record<string, unknown>;
     benchmark?: Record<string, unknown>;
     notes?: string;
-    authority_class?: 'reported' | 'verified' | 'verified_v2' | 'internal' | 'legacy_unverified';
+    authority_class?: 'reported' | 'verified' | 'verified_v2' | 'verified_v3' | 'internal' | 'legacy_unverified';
     evidence_sha256?: string;
     validator_identity?: string;
     validator_identity_source?: HallValidationEvidenceManifest['validator_identity_source'];
@@ -121,6 +162,10 @@ function nonempty(value: unknown): value is string {
 
 function nullableNonempty(value: unknown): boolean {
     return value === null || nonempty(value);
+}
+
+function positiveSafeRecordCount(value: unknown): boolean {
+    return Number.isSafeInteger(value) && Number(value) > 0;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -207,6 +252,88 @@ export function isValidationEvidenceManifestV2StructurallyValid(
             && check.status === 'pass'
             && nonempty(check.evidence_path)
             && nonempty(check.sha256)
+            && VALIDATION_EVIDENCE_SHA256.test(check.sha256)
+        ));
+}
+
+export function isValidationEvidenceManifestV3StructurallyValid(
+    value: unknown,
+): value is HallValidationEvidenceManifestV3 {
+    if (!isRecord(value) || !isRecord(value.subject) || !isRecord(value.independence)) {
+        return false;
+    }
+    const manifest = value as unknown as HallValidationEvidenceManifestV3;
+    const subject = manifest.subject;
+    const independence = manifest.independence;
+    const optionalRequestRecordFieldsValid = (
+        manifest.session_turn_record_sha256 === undefined
+        || VALIDATION_EVIDENCE_SHA256.test(manifest.session_turn_record_sha256)
+    ) && (
+        manifest.session_turn_record_set_sha256 === undefined
+        || VALIDATION_EVIDENCE_SHA256.test(manifest.session_turn_record_set_sha256)
+    ) && (
+        manifest.session_turn_record_count === undefined
+        || positiveSafeRecordCount(manifest.session_turn_record_count)
+    );
+    const requestRecordFieldsValid = manifest.validator_identity_source === 'test_fixture'
+        ? optionalRequestRecordFieldsValid
+        : VALIDATION_EVIDENCE_SHA256.test(manifest.session_turn_record_sha256 ?? '')
+            && VALIDATION_EVIDENCE_SHA256.test(manifest.session_turn_record_set_sha256 ?? '')
+            && positiveSafeRecordCount(manifest.session_turn_record_count)
+            && nonempty(manifest.session_turn_first_timestamp)
+            && nonempty(manifest.session_turn_timestamp);
+    return manifest.schema === 'cstar.validation-evidence.v3'
+        && nonempty(manifest.request_thread_id)
+        && nonempty(manifest.request_turn_id)
+        && manifest.validator_identity
+            === `codex-subagent:${independence.validator_thread_id}:turn:${independence.validator_turn_id}`
+        && (manifest.validator_identity_source === 'codex_subagent_receipt'
+            || manifest.validator_identity_source === 'test_fixture')
+        && requestRecordFieldsValid
+        && nonempty(subject.repository_id)
+        && nonempty(subject.bead_id)
+        && (subject.target_path === null || nonempty(subject.target_path))
+        && subject.work_receipt_kind === 'host_validation_manifest'
+        && subject.work_receipt_id === `host-validation:${subject.validation_manifest_sha256}`
+        && nonempty(subject.validation_id)
+        && subject.validation_manifest_schema === 'cstar.independent_validation_input.v1'
+        && nonempty(subject.validation_manifest_path)
+        && VALIDATION_EVIDENCE_SHA256.test(subject.validation_manifest_sha256)
+        && independence.policy === 'depth_one_codex_subagent_from_recording_root_v1'
+        && independence.recorder_thread_id === manifest.request_thread_id
+        && independence.recorder_turn_id === manifest.request_turn_id
+        && VALIDATION_EVIDENCE_SHA256.test(independence.recorder_record_set_sha256)
+        && (
+            manifest.session_turn_record_set_sha256 === undefined
+                ? manifest.validator_identity_source === 'test_fixture'
+                : independence.recorder_record_set_sha256 === manifest.session_turn_record_set_sha256
+        )
+        && nonempty(independence.validator_thread_id)
+        && nonempty(independence.validator_turn_id)
+        && independence.validator_parent_thread_id === independence.recorder_thread_id
+        && /^\/root\/[a-z0-9_]+$/.test(independence.validator_agent_path)
+        && VALIDATION_EVIDENCE_SHA256.test(independence.validator_session_sha256)
+        && VALIDATION_EVIDENCE_SHA256.test(independence.validator_final_record_sha256)
+        && VALIDATION_EVIDENCE_SHA256.test(independence.validator_task_complete_record_sha256)
+        && Number.isFinite(independence.validator_completed_at)
+        && independence.validator_completed_at > 0
+        && independence.validator_thread_id !== independence.recorder_thread_id
+        && Array.isArray(manifest.artifacts)
+        && manifest.artifacts.length > 0
+        && manifest.artifacts.length <= 50
+        && manifest.artifacts.every((entry) => (
+            isRecord(entry)
+            && nonempty(entry.path)
+            && VALIDATION_EVIDENCE_SHA256.test(entry.sha256)
+        ))
+        && Array.isArray(manifest.checks)
+        && manifest.checks.length > 0
+        && manifest.checks.length <= 25
+        && manifest.checks.every((check) => (
+            isRecord(check)
+            && nonempty(check.name)
+            && check.status === 'pass'
+            && nonempty(check.evidence_path)
             && VALIDATION_EVIDENCE_SHA256.test(check.sha256)
         ));
 }

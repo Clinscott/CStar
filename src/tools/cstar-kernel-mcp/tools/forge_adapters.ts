@@ -54,6 +54,7 @@ import {
     projectAdapterEnvelope,
     type ReturnedForgeAdapterEnvelope,
 } from './forge_adapter_envelope.js';
+import { buildForgeExecutionOwnerProof } from './forge_execution_owner.js';
 export {
     cleanupPreparedForgeAdapterInvocation,
     prepareForgeHermesMinimaxAdapterInvocation,
@@ -235,6 +236,7 @@ export async function invokeForgeHermesMinimaxAdapter(
         hermes_preflight: hermesPreflight,
         response_path: responsePath,
         response_artifact_exists: false,
+        execution_owner: buildForgeExecutionOwnerProof(),
         live_spend: false,
         live_source_collection: false,
     });

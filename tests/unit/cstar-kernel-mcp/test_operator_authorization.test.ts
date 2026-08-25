@@ -25,6 +25,19 @@ afterEach(() => {
 });
 
 describe('connection-bound Codex operator authorization', () => {
+    it('accepts an omitted root thread_source while rejecting explicit nested lineage', async () => {
+        const fixture = createSession({ sessionMeta: { thread_source: undefined } });
+
+        const verified = await verifyCodexRequestIdentity(validRequestContext(
+            fixture.threadId,
+            fixture.turnId,
+            { thread_source: undefined },
+        ));
+
+        assert.equal(verified.thread_id, fixture.threadId);
+        assert.equal(verified.turn_id, fixture.turnId);
+    });
+
     it('accepts one canonical multipart root-user turn', async () => {
         const fixture = createSession();
         fs.appendFileSync(fixture.sessionFile, `${JSON.stringify({ timestamp: fixture.timestamp, type: 'response_item', payload: { type: 'message', role: 'assistant', content: [{ type: 'output_text', text: 'I revoke Forge.' }], internal_chat_message_metadata_passthrough: { turn_id: fixture.turnId } } })}\n`);

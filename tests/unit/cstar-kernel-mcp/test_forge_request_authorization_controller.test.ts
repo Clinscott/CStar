@@ -25,6 +25,11 @@ import {
     hashRootUserForgeIntentBinding,
 } from '../../../src/tools/pennyone/intel/forge_authorization_policy.js';
 import {
+    buildForgeGoalResumeAuthorizationProjection,
+    forgeGoalResumeAuthorizationProjectionJson,
+    hashForgeGoalResumeAuthorizationBinding,
+} from '../../../src/tools/pennyone/intel/forge_goal_resume_authorization_policy.js';
+import {
     cleanupForgeReceiptFixtures,
     createForgeReceiptFixture,
     forgeAuthorizationInput,
@@ -247,6 +252,73 @@ describe('durable exact Forge request authorization', () => {
             }),
             /forge_authorization_attestation_invalid/,
         );
+        fixture.db.close();
+    });
+
+    it('accepts a complete multi-record identity only for the goal-resume projection', () => {
+        const fixture = createForgeReceiptFixture();
+        const beadId = 'bead:test:goal-resume-multi-record';
+        insertForgeReceiptBead(fixture.db, fixture.repoId, beadId);
+        const requestInput = forgeRequestInput(fixture.repoId, beadId);
+        const request = saveForgeRequest(fixture.db, requestInput).request;
+        const operator = {
+            thread: randomUUID(),
+            turn: randomUUID(),
+            message: '1'.repeat(64),
+            record: '2'.repeat(64),
+            recordSet: '3'.repeat(64),
+            count: 2,
+        };
+        const projection = buildForgeGoalResumeAuthorizationProjection({
+            request,
+            historical: {
+                scope_authority: 'historical_exact_challenge',
+                reference: 'cstar-forge-challenge:synthetic-history',
+                thread_id: randomUUID(),
+                turn_id: randomUUID(),
+                message_sha256: '4'.repeat(64),
+                session_record_sha256: '5'.repeat(64),
+                session_record_set_sha256: '6'.repeat(64),
+                session_record_count: 1,
+                authorized_at: Date.now() - 1_000,
+            },
+            goal_resume_id: `goal-resume:${'7'.repeat(64)}`,
+            event_sha256: '8'.repeat(64),
+            operator_attestation_sha256: '9'.repeat(64),
+            current_thread_id: operator.thread,
+            current_turn_id: operator.turn,
+            current_record_set_sha256: operator.recordSet,
+            challenge_sha256: request.authorization_challenge_sha256!,
+        });
+        const binding = hashForgeGoalResumeAuthorizationBinding({
+            request,
+            projection,
+            operator_thread_id: operator.thread,
+            operator_turn_id: operator.turn,
+            operator_message_sha256: operator.message,
+            operator_record_sha256: operator.record,
+            operator_record_set_sha256: operator.recordSet,
+            operator_record_count: operator.count,
+        });
+
+        const authorized = authorizeForgeRequest(fixture.db, forgeAuthorizationInput(
+            requestInput,
+            {
+                authorization_profile: 'root_user_forge_intent_v1',
+                authorization_binding_sha256: binding,
+                challenge_sha256: undefined,
+                operator_intent_json: forgeGoalResumeAuthorizationProjectionJson(projection),
+                operator_thread_id: operator.thread,
+                operator_turn_id: operator.turn,
+                operator_message_sha256: operator.message,
+                operator_record_sha256: operator.record,
+                operator_record_set_sha256: operator.recordSet,
+                operator_record_count: operator.count,
+            },
+        ));
+
+        assert.equal(authorized.request.operator_record_count, 2);
+        assert.equal(authorized.authorization.operator_record_count, 2);
         fixture.db.close();
     });
 

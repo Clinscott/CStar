@@ -89,7 +89,12 @@ describe('Forge Hall store compatibility boundary', () => {
         const db = new Database(':memory:');
         db.exec(`
             CREATE TABLE hall_forge_requests (request_id TEXT PRIMARY KEY);
-            CREATE TABLE hall_forge_attempts (attempt_id TEXT PRIMARY KEY);
+            CREATE TABLE hall_forge_attempts (
+                attempt_id TEXT PRIMARY KEY,
+                request_id TEXT NOT NULL,
+                retry_of_attempt_id TEXT,
+                UNIQUE(request_id, attempt_id)
+            );
             CREATE TABLE hall_validation_runs (validation_id TEXT PRIMARY KEY);
         `);
         shadowDatabaseMethod('getWritableDb', undefined);
@@ -103,6 +108,10 @@ describe('Forge Hall store compatibility boundary', () => {
         assert.equal(
             db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'hall_forge_authorizations'").pluck().get(),
             'hall_forge_authorizations',
+        );
+        assert.equal(
+            db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'hall_forge_preprovider_continuations'").pluck().get(),
+            'hall_forge_preprovider_continuations',
         );
         db.close();
     });
@@ -189,6 +198,33 @@ describe('Forge Hall store compatibility boundary', () => {
         assert.equal(first.operator_intent_json, null);
         assert.deepEqual(second, first);
         assert.equal(schemaAfterSecond, schemaAfterFirst);
+        assert.match(
+            String(schemaAfterSecond).replace(/\s+/g, ' ').toLowerCase(),
+            /operator_record_count integer not null check\(operator_record_count >= 1\)/,
+        );
+
+        const multiRequestId = `dispatch-forge-${'7'.repeat(32)}`;
+        db.prepare('INSERT INTO hall_forge_requests (request_id) VALUES (?)').run(multiRequestId);
+        db.prepare(`
+            INSERT INTO hall_forge_authorizations (
+                authorization_id, request_id, request_sha256, authorization_profile,
+                authorization_binding_sha256, challenge_sha256, operator_intent_json,
+                operator_authorization_ref, operator_thread_id, operator_turn_id,
+                operator_message_sha256, operator_record_sha256,
+                operator_record_set_sha256, operator_record_count,
+                authorized_at, expires_at, created_at
+            ) VALUES (?, ?, ?, 'root_user_forge_intent_v1', ?, NULL, ?, ?, ?, ?, ?, ?, ?, 2, 30, 40, 30)
+        `).run(
+            'forge-auth-goal-multi', multiRequestId, '8'.repeat(64), '9'.repeat(64),
+            '{"schema":"synthetic-goal-resume"}', 'goal-multi-ref',
+            'goal-multi-thread', 'goal-multi-turn', 'a'.repeat(64),
+            'b'.repeat(64), 'c'.repeat(64),
+        );
+        assert.equal(
+            db.prepare('SELECT operator_record_count FROM hall_forge_authorizations WHERE request_id = ?')
+                .pluck().get(multiRequestId),
+            2,
+        );
         db.close();
     });
 });

@@ -2,9 +2,8 @@ import type Database from 'better-sqlite3';
 import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import { getForgeWritableDb } from '../../pennyone/intel/forge_hall_store.js';
-import { finalizeForgeAttempt, getForgeAttemptByIdempotency, getForgeAuthorizationByRequest, getForgeRequest, markForgeAttemptStarted, reserveForgeAttempt } from '../../pennyone/intel/forge_receipt_controller.js';
-import { recordForgeDelivery } from '../../pennyone/intel/forge_validation_controller.js';
-import { registry } from '../../pennyone/pathRegistry.js';
+import { finalizeForgeAttempt, getForgeAttemptByIdempotency, getForgeRequest, markForgeAttemptStarted } from '../../pennyone/intel/forge_receipt_controller.js';
+import { getForgeContinuationByAttempt, getPendingForgeContinuation } from '../../pennyone/intel/forge_continuation_controller.js';
 import {
     errorResponse,
     markNonRecordablePreAuthorizationResponse,
@@ -33,25 +32,40 @@ import {
     assertForgeRequiredOutputsContained,
     buildForgeExecutionReceiptId,
     canonicalizeForgeRequest,
+    assertForgeContinuationScope,
     hashCanonicalForgeRequest,
+    hashForgeRuntimeBinding,
     hashForgeTargetPaths,
     projectCanonicalForgeInvocationArgs,
     stableJson,
+    type CanonicalForgeRequest,
 } from './forge_request_contract.js';
 import { forgeHermesRuntimeExpectationEquals, sealForgeHermesRuntimeExpectation } from './forge_hermes_runtime_contract.js';
-import { createForgeOAuthHorizon, preflightForgeHermesOAuthBeforeReservation } from './forge_hermes_oauth_contract.js';
-import { forgeRequestAuthorityMatches, readForgeRequestBeforeMutation } from './forge_execute_request_authority.js';
+import { createForgeOAuthHorizon, preflightForgeHermesOAuthAfterReservation } from './forge_hermes_oauth_contract.js';
+import { readForgeRequestBeforeMutation } from './forge_execute_request_authority.js';
 import {
-    forgeAuthorizationMatches,
     forgeExecutionAuthorityMatches,
     verifyForgeExecutionAuthorization,
     verifyForgeReplayAuthorization,
 } from './forge_execution_authority.js';
-import { verifyCodexRequestIdentity } from './operator_authorization.js';
-import { buildForgeAttemptReplayResponse } from './forge_execute_replay.js';
+import {
+    buildForgeAttemptReplayAfterRecovery,
+    buildForgeAttemptReplayResponse,
+} from './forge_execute_replay.js';
+import {
+    finalizeForgeAdapterExecutionResult,
+    finalizeForgeKernelPreProviderFailure,
+} from './forge_execute_result.js';
 import { resolveRecordedForgeExecutionContract } from './forge_legacy_v2_compatibility.js';
 import { createForgeHandlerRuntimeReadinessAssertion, type ForgeRuntimeReadinessAssertion } from '../contracts/runtime.js';
-
+import {
+    reconcileForgePreProviderFailureFromTrace,
+    verifyForgeContinuationLineage,
+    verifyForgeContinuationRepairBinding,
+    verifyPreparedForgeContinuationRepairBinding,
+} from './forge_continuation_authority.js';
+import { reserveVerifiedForgeExecution } from './forge_execute_reservation.js';
+import { resolveForgeRuntimeRoots } from './forge_runtime_roots.js';
 export async function handleForgeExecute(
     args: ForgeExecutionArgs,
     requestContext?: McpRequestContext,
@@ -62,6 +76,8 @@ export async function handleForgeExecute(
     let adapterStarted = false;
     let preparedInvocation: PreparedForgeAdapterInvocation | null = null;
     let completedAdapterVersion: string | undefined;
+    let recordedCanonicalForFailure: CanonicalForgeRequest | null = null;
+    let currentCanonicalForFailure: CanonicalForgeRequest | null = null;
     let executionAuthorizationVerified = false;
     let releaseReadDb: (() => void) | null = null;
     const assertStableRuntimeReady = createForgeHandlerRuntimeReadinessAssertion(runtimeReadinessTestOverride);
@@ -85,9 +101,8 @@ export async function handleForgeExecute(
                 ),
             }, 'forge_execution_contract_invalid', validationError);
         }
-
-        const root = registry.getRoot();
-        const suppliedActionAuthority = resolveDispatchActionAuthority(args, root);
+        const { controlRoot, codeRoot } = resolveForgeRuntimeRoots();
+        const suppliedActionAuthority = resolveDispatchActionAuthority(args, codeRoot);
         const surface = resolveDispatchSurface('forge', args);
         if (args.execution_mode === 'no_op') {
             const adapter = resolveForgeExecutionAdapter(args);
@@ -130,14 +145,13 @@ export async function handleForgeExecute(
                 ),
             }, Boolean(failClosedReason));
         }
-
-        await verifyCodexRequestIdentity(requestContext);
-        const { db: readDb, request, release } = readForgeRequestBeforeMutation(
-            root,
+        const { db: readDb, request: initialRequest, release } = readForgeRequestBeforeMutation(
+            controlRoot,
             args.forge_request_receipt_id,
         );
+        let request = initialRequest;
         releaseReadDb = release;
-        await verifyForgeReplayAuthorization(
+        const replayAuthority = await verifyForgeReplayAuthorization(
             readDb,
             request,
             args.operator_authorization_ref,
@@ -149,6 +163,32 @@ export async function handleForgeExecute(
         if (request.operator_authorization_ref !== args.operator_authorization_ref?.trim()) {
             throw new Error('forge_operator_authorization_reference_mismatch');
         }
+        if (request.status === 'FAILED_FINAL' && args.retry_of_attempt_id?.trim()) {
+            let recorded: CanonicalForgeRequest;
+            try { recorded = JSON.parse(request.request_summary_json) as CanonicalForgeRequest; } catch {
+                throw new Error('forge_request_summary_invalid');
+            }
+            if (recorded.schema !== 'cstar.forge_request.v3') {
+                throw new Error('forge_preprovider_reconciliation_request_schema_invalid');
+            }
+            hallDb = getForgeWritableDb(controlRoot);
+            if (replayAuthority.mode !== 'full') {
+                throw new Error('forge_continuation_requires_full_caller');
+            }
+            verifyForgeContinuationLineage({
+                authorization: replayAuthority.authorization,
+                caller: replayAuthority.caller,
+            });
+            reconcileForgePreProviderFailureFromTrace({
+                root: controlRoot,
+                db: hallDb,
+                request,
+                authorization: replayAuthority.authorization,
+                parent_attempt_id: args.retry_of_attempt_id.trim(),
+                recorded_canonical: recorded,
+            });
+            request = getForgeRequest(hallDb, request.request_id)!;
+        }
         const existingAttempt = getForgeAttemptByIdempotency(
             readDb,
             request.request_id,
@@ -157,11 +197,9 @@ export async function handleForgeExecute(
         if (existingAttempt) {
             releaseReadDb();
             releaseReadDb = null;
-            return markNonRecordablePreAuthorizationResponse(buildForgeAttemptReplayResponse(
-                args,
-                existingAttempt as unknown as Record<string, unknown>,
-                request.status,
-            ));
+            return markNonRecordablePreAuthorizationResponse(
+                buildForgeAttemptReplayAfterRecovery(controlRoot, args, existingAttempt),
+            );
         }
         const executionAuthority = await verifyForgeExecutionAuthorization(
             readDb,
@@ -185,68 +223,86 @@ export async function handleForgeExecute(
             throw new Error('forge_request_adapter_capability_mismatch');
         }
         if (adapter.selected.write_capability === 'project_files') {
-            assertForgeRequiredOutputsContained(root, args.target_paths, args.required_output_paths);
+            assertForgeRequiredOutputsContained(codeRoot, args.target_paths, args.required_output_paths);
         }
         const adapterRuntimeProof = sealForgeAdapterRuntime(adapter.selected);
-
         if (request.live_source_allowed !== 0 || args.spend_policy.live_source_allowed === true) {
             throw new Error('forge_live_source_not_authorized');
         }
-        const packageLockProofs = verifyDispatchPackageLocks(args.package_locks, root);
+        const packageLockProofs = verifyDispatchPackageLocks(args.package_locks, codeRoot);
         const resolvedContract = await resolveRecordedForgeExecutionContract(
             request,
             executionAuthority.authorization,
-            root,
+            controlRoot,
             adapter.selected.ref,
             adapterRuntimeProof,
         );
         const recordedCanonical = resolvedContract.canonical;
+        recordedCanonicalForFailure = recordedCanonical;
         const legacyCompatibility = resolvedContract.legacyCompatibility;
         const expectedHermesRuntime = recordedCanonical.hermes_runtime;
+        const continuationMode = executionAuthority.mode === 'pre_provider_continuation';
+        let executionHermesRuntime = expectedHermesRuntime;
+        let runtimeBindingDrift = false;
         if (adapter.selected.ref === 'cstar-forge-hermes-minimax-worker-adapter') {
             if (!expectedHermesRuntime) throw new Error('forge_request_hermes_runtime_missing');
             const currentHermesRuntime = await sealForgeHermesRuntimeExpectation(adapterRuntimeProof);
             if (!forgeHermesRuntimeExpectationEquals(currentHermesRuntime, expectedHermesRuntime)) {
-                throw new Error('forge_hermes_request_runtime_drift');
+                executionHermesRuntime = currentHermesRuntime;
             }
         }
-
         const canonical = canonicalizeForgeRequest(
             args,
-            root,
+            codeRoot,
             decisionId,
             adapter.selected.ref,
             request.write_capability,
             request.max_attempts,
             adapterRuntimeProof,
-            expectedHermesRuntime,
+            executionHermesRuntime,
         );
+        currentCanonicalForFailure = canonical;
+        runtimeBindingDrift = hashForgeRuntimeBinding(recordedCanonical)
+            !== hashForgeRuntimeBinding(canonical);
         const requestSha256 = hashCanonicalForgeRequest(canonical);
+        if (continuationMode || runtimeBindingDrift) {
+            assertForgeContinuationScope(recordedCanonical, canonical);
+        }
         if (
+            !continuationMode && !runtimeBindingDrift && (
             (legacyCompatibility
                 ? requestSha256 !== hashCanonicalForgeRequest(recordedCanonical)
                     || stableJson(canonical) !== stableJson(recordedCanonical)
                 : requestSha256 !== request.request_sha256
                     || stableJson(canonical) !== request.request_summary_json)
-            || hashForgeTargetPaths(canonical) !== request.target_paths_sha256
+            || hashForgeTargetPaths(canonical) !== request.target_paths_sha256)
         ) {
             throw new Error('forge_execution_request_hash_mismatch');
         }
-
+        if (hashForgeTargetPaths(canonical) !== request.target_paths_sha256) {
+            throw new Error('forge_execution_target_paths_hash_mismatch');
+        }
+        if (continuationMode) {
+            const continuation = getPendingForgeContinuation(readDb, request.request_id);
+            if (!continuation
+                || continuation.failure_fingerprint_sha256
+                    !== executionAuthority.continuation_fingerprint) {
+                throw new Error('forge_continuation_receipt_drift');
+            }
+            verifyForgeContinuationRepairBinding({
+                root: controlRoot, db: readDb, continuation, request,
+                authorization: executionAuthority.authorization,
+                canonical, adapter_runtime: adapterRuntimeProof,
+            });
+        }
         // Only durable canonical paths may reach the model-visible adapter
         // intent. Raw execute arguments can be lexically different while
         // hashing to the same authority and therefore must not shape prompts.
         const invocationArgs = projectCanonicalForgeInvocationArgs(args, canonical);
         const executionReceiptId = buildForgeExecutionReceiptId(request.request_id, args.idempotency_key.trim());
-        const oauthHorizon = expectedHermesRuntime ? createForgeOAuthHorizon(
-            invocationArgs, decisionId, executionReceiptId, adapter.selected, expectedHermesRuntime,
+        const oauthHorizon = executionHermesRuntime ? createForgeOAuthHorizon(
+            invocationArgs, decisionId, executionReceiptId, adapter.selected, executionHermesRuntime,
         ) : null;
-        const preReservationHermesPreflight = expectedHermesRuntime
-            ? await preflightForgeHermesOAuthBeforeReservation(
-                invocationArgs, decisionId, executionReceiptId, root,
-                adapter.selected, adapterRuntimeProof, expectedHermesRuntime, oauthHorizon!,
-            )
-            : null;
         const refreshedExecutionAuthority = await verifyForgeExecutionAuthorization(
             readDb,
             request,
@@ -259,85 +315,64 @@ export async function handleForgeExecute(
         assertStableRuntimeReady();
         releaseReadDb();
         releaseReadDb = null;
-        hallDb = getForgeWritableDb(root);
-        const currentRequest = getForgeRequest(hallDb, request.request_id);
-        if (!currentRequest || !forgeRequestAuthorityMatches(request, currentRequest)) {
-            throw new Error('forge_request_authority_drift_before_reservation');
-        }
-        const currentAuthorization = getForgeAuthorizationByRequest(hallDb, request.request_id);
-        if (
-            !currentAuthorization
-            || !forgeAuthorizationMatches(executionAuthority.authorization, currentAuthorization)
-        ) {
-            throw new Error('forge_authorization_drift_before_reservation');
-        }
-        const racedAttempt = getForgeAttemptByIdempotency(
-            hallDb,
-            currentRequest.request_id,
-            args.idempotency_key.trim(),
-        );
-        if (racedAttempt) {
+        const reservation = reserveVerifiedForgeExecution({
+            root: controlRoot,
+            request,
+            authorization: executionAuthority.authorization,
+            args,
+            executionReceiptId,
+            adapterRef: adapter.selected.ref,
+            canonical,
+        });
+        hallDb = reservation.db;
+        if (reservation.kind === 'replay') {
             return buildForgeAttemptReplayResponse(
                 args,
-                racedAttempt as unknown as Record<string, unknown>,
-                currentRequest.status,
+                reservation.attempt as unknown as Record<string, unknown>,
+                reservation.current_request.status,
+                getForgeContinuationByAttempt(hallDb, reservation.attempt.attempt_id),
             );
         }
-        const reservation = reserveForgeAttempt(hallDb, {
-            request_id: request.request_id,
-            authorization_id: executionAuthority.authorization.authorization_id,
-            idempotency_key: args.idempotency_key.trim(),
-            execution_receipt_id: executionReceiptId,
-            adapter_ref: adapter.selected.ref,
-            provider: 'minimax-oauth',
-            requested_model: 'MiniMax-M3',
-            model_source: 'unreported',
-            reasoning_profile: 'forge-private',
-            adapter_version: adapter.selected.ref,
-            retry_of_attempt_id: args.retry_of_attempt_id?.trim() || undefined,
-        });
+        const currentRequest = reservation.current_request;
+        const currentAuthorization = reservation.current_authorization;
         reservedAttemptId = reservation.attempt.attempt_id;
-        if (reservation.replayed) {
-            return buildForgeAttemptReplayResponse(args, reservation.attempt as unknown as Record<string, unknown>, reservation.request.status);
+        if (runtimeBindingDrift && !continuationMode) {
+            throw new Error('forge_hermes_request_runtime_drift');
         }
-
+        const reservedHermesPreflight = executionHermesRuntime
+            ? await preflightForgeHermesOAuthAfterReservation(
+                invocationArgs, decisionId, executionReceiptId, controlRoot,
+                adapter.selected, adapterRuntimeProof, executionHermesRuntime, oauthHorizon!,
+            )
+            : null;
         preparedInvocation = await prepareForgeHermesMinimaxAdapterInvocation(
-            invocationArgs,
-            decisionId,
-            executionReceiptId,
-            root,
-            adapter.selected,
-            adapterRuntimeProof,
-            expectedHermesRuntime,
-            preReservationHermesPreflight,
-            oauthHorizon,
+            invocationArgs, decisionId, executionReceiptId, controlRoot, adapter.selected,
+            adapterRuntimeProof, executionHermesRuntime, reservedHermesPreflight,
+            oauthHorizon, codeRoot,
         );
+        if (continuationMode) verifyPreparedForgeContinuationRepairBinding({
+            root: controlRoot, db: hallDb, request: currentRequest, authorization: currentAuthorization,
+            parent_attempt_id: args.retry_of_attempt_id!.trim(),
+            continuation_fingerprint: executionAuthority.continuation_fingerprint!,
+            canonical, adapter_runtime: adapterRuntimeProof,
+            prepared_projection: preparedInvocation.workspaceProjection,
+        });
         assertStableRuntimeReady();
         markForgeAttemptStarted(hallDb, reservation.attempt.attempt_id);
         const adapterResult = await invokeForgeHermesMinimaxAdapter(
             invocationArgs,
             decisionId,
             executionReceiptId,
-            root,
+            controlRoot,
             adapter.selected,
             adapterRuntimeProof,
             preparedInvocation,
         );
         adapterStarted = preparedInvocation.spendMayHaveStarted;
         preparedInvocation = null;
-        const sourceViolation = adapterResult.live_source_collection === true;
-        const liveSpendUnknown = adapterResult.live_spend_unknown === true;
-        const delivered = adapterResult.status === 'ok' && !sourceViolation && !liveSpendUnknown;
-        const externalExecutionId = typeof adapterResult.envelope?.intent_id === 'string'
-            ? adapterResult.envelope.intent_id
-            : undefined;
-        const responseArtifactSha256 = typeof adapterResult.envelope?.response_artifact?.sha256 === 'string'
-            ? adapterResult.envelope.response_artifact.sha256
-            : undefined;
         const traceArtifactSha256 = typeof adapterResult.execution_trace_artifact?.sha256 === 'string'
             ? adapterResult.execution_trace_artifact.sha256
             : undefined;
-        const artifactSha256 = responseArtifactSha256;
         const runtimeDigest = typeof adapterResult.hermes_runtime_content_sha256 === 'string'
             ? adapterResult.hermes_runtime_content_sha256
             : null;
@@ -346,91 +381,23 @@ export async function handleForgeExecute(
             traceArtifactSha256 ? `trace:${traceArtifactSha256}` : null,
         ].filter(Boolean).join('@');
         completedAdapterVersion = durableAdapterVersion;
-        const durable = delivered
-            ? recordForgeDelivery(hallDb, {
-                attempt_id: reservation.attempt.attempt_id,
-                external_execution_id: externalExecutionId,
-                result_status: String(adapterResult.status),
-                result_artifact_sha256: artifactSha256,
-                provider: typeof adapterResult.envelope?.provider === 'string'
-                    ? adapterResult.envelope.provider : 'minimax-oauth',
-                requested_model: typeof adapterResult.envelope?.requested_model === 'string'
-                    ? adapterResult.envelope.requested_model : 'MiniMax-M3',
-                actual_model: typeof adapterResult.envelope?.actual_model === 'string'
-                    ? adapterResult.envelope.actual_model : undefined,
-                model_source: typeof adapterResult.envelope?.model_source === 'string'
-                    ? adapterResult.envelope.model_source : 'unreported',
-                reasoning_profile: 'forge-private',
-                adapter_version: durableAdapterVersion,
-            })
-            : finalizeForgeAttempt(hallDb, {
-                attempt_id: reservation.attempt.attempt_id,
-                status: liveSpendUnknown ? 'UNKNOWN' : 'FAILED_FINAL',
-                external_execution_id: externalExecutionId,
-                result_status: String(adapterResult.status),
-                result_artifact_sha256: artifactSha256,
-                error_code: sourceViolation
-                    ? 'forge_adapter_collected_unauthorized_live_source'
-                    : liveSpendUnknown
-                        ? 'forge_adapter_live_spend_unknown'
-                        : adapterResult.error ?? undefined,
-                provider: typeof adapterResult.envelope?.provider === 'string'
-                    ? adapterResult.envelope.provider : 'minimax-oauth',
-                requested_model: typeof adapterResult.envelope?.requested_model === 'string'
-                    ? adapterResult.envelope.requested_model : 'MiniMax-M3',
-                actual_model: typeof adapterResult.envelope?.actual_model === 'string'
-                    ? adapterResult.envelope.actual_model : undefined,
-                model_source: typeof adapterResult.envelope?.model_source === 'string'
-                    ? adapterResult.envelope.model_source : 'unreported',
-                reasoning_profile: 'forge-private',
-                adapter_version: durableAdapterVersion,
-            });
+        const response = finalizeForgeAdapterExecutionResult({
+            db: hallDb,
+            args,
+            request,
+            attemptId: reservation.attempt.attempt_id,
+            decisionId,
+            executionReceiptId,
+            adapterResult,
+            adapterVersion: durableAdapterVersion,
+            recordedCanonical,
+            currentCanonical: canonical,
+            surface,
+            adapter,
+            packageLockProofs,
+        });
         reservedAttemptId = null;
-
-        return textResponse({
-            status: delivered ? 'delivered_unverified' : liveSpendUnknown ? 'ambiguous' : 'failed_final',
-            execution_kind: 'forge',
-            decision_id: decisionId,
-            bead_id: request.bead_id,
-            forge_request_receipt_id: request.request_id,
-            execution_receipt_id: executionReceiptId,
-            attempt_id: durable.attempt.attempt_id,
-            attempt_status: durable.attempt.status,
-            request_status: durable.request.status,
-            replayed: false,
-            authorized_dispatch_surface: surface,
-            authorized_execution_adapter: adapter,
-            package_lock_proofs: packageLockProofs,
-            required_metrics: canonical.required_metrics,
-            artifact_expectations: canonical.artifact_expectations,
-            prohibited_actions: canonical.prohibited_actions,
-            requested_actions: canonical.requested_actions,
-            action_authority: canonical.action_authority,
-            forge_execution: {
-                mode: args.execution_mode,
-                attempted: true,
-                adapter_invoked: true,
-                adapter_result: adapterResult,
-                live_spend: liveSpendUnknown ? 'unknown' : adapterResult.live_spend === true,
-                live_source_collection: adapterResult.live_source_collection === true,
-                codex_worker_fallback_allowed: false,
-                fail_closed_reason: delivered ? null : durable.attempt.error_code ?? 'forge_adapter_failed_final',
-            },
-            guardrail: mcpGuardrail(
-                delivered ? 'caution' : 'block',
-                delivered ? 'verify' : 'refuse',
-                delivered
-                    ? 'The adapter delivered a structurally valid artifact; independent validation is still required before success.'
-                    : liveSpendUnknown
-                        ? 'The adapter may have spent before failing; the attempt is UNKNOWN and consumes the one-shot grant.'
-                        : 'The durable attempt is terminal and cannot be replayed as new spend.',
-                delivered ? [] : [durable.attempt.error_code ?? 'forge_adapter_failed_final'],
-                ['forge_execution_authority', 'forge_execution_result', 'independent_validation'],
-            ),
-            next_action: delivered
-                ? 'Run focused independent validation, then call cstar_record_result with this execution_receipt_id.'
-                : 'Do not retry this one-shot request.',
-        }, !delivered);
+        return response;
     } catch (error) {
         releaseReadDb?.();
         releaseReadDb = null;
@@ -458,6 +425,21 @@ export async function handleForgeExecute(
         if (hallDb && reservedAttemptId) {
             const message = error instanceof Error ? error.message : String(error);
             try {
+                if (!invocationMayHaveStarted && recordedCanonicalForFailure) {
+                    const continuationResponse = finalizeForgeKernelPreProviderFailure({
+                        db: hallDb,
+                        args,
+                        attemptId: reservedAttemptId,
+                        failureCode: message,
+                        recordedCanonical: recordedCanonicalForFailure,
+                        currentCanonical: currentCanonicalForFailure
+                            ?? recordedCanonicalForFailure,
+                    });
+                    if (continuationResponse) {
+                        reservedAttemptId = null;
+                        return continuationResponse;
+                    }
+                }
                 const terminal = finalizeForgeAttempt(hallDb, {
                     attempt_id: reservedAttemptId,
                     status: invocationMayHaveStarted ? 'UNKNOWN' : 'FAILED_FINAL',

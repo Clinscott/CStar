@@ -21,6 +21,23 @@ export type HallForgeAttemptStatus =
     | 'FAILED_FINAL'
     | 'UNKNOWN';
 
+export type HallForgeAttemptBudgetClass =
+    | 'provider_or_unknown'
+    | 'mechanical_no_provider';
+
+export type HallForgeContinuationStatus =
+    | 'PENDING_REPAIR'
+    | 'RESUMED'
+    | 'BLOCKED';
+
+export const FORGE_PRE_PROVIDER_RECOVERABLE_FAILURE_CODES = [
+    'forge_hermes_target_material_too_large',
+    'forge_workspace_target_material_too_large',
+    'forge_workspace_output_material_too_large',
+    'forge_hermes_request_runtime_drift',
+    'forge_hermes_oauth_status_failed',
+] as const;
+
 export interface HallForgeRequestRecord {
     request_id: string;
     repo_id: string;
@@ -134,6 +151,18 @@ export interface HallForgeAttemptRecord {
     model_source?: string;
     reasoning_profile?: string;
     adapter_version?: string;
+    attempt_budget_class: HallForgeAttemptBudgetClass;
+    provider_evidence_valid: 0 | 1;
+    provider_requests_started?: number;
+    provider_requests_completed?: number;
+    provider_requests_ambiguous?: number;
+    live_spend?: 0 | 1;
+    live_spend_unknown: 0 | 1;
+    known_spend_observed: 0 | 1;
+    live_source_collection?: 0 | 1;
+    workspace_commit_present?: 0 | 1;
+    failure_evidence_sha256?: string;
+    failure_signature_sha256?: string;
     status: HallForgeAttemptStatus;
     retry_of_attempt_id?: string;
     external_execution_id?: string;
@@ -149,4 +178,29 @@ export interface HallForgeAttemptRecord {
     spawn_started_at?: number;
     completed_at?: number;
     updated_at: number;
+}
+
+export interface HallForgeContinuationRecord {
+    continuation_id: string;
+    request_id: string;
+    attempt_id: string;
+    cycle_ordinal: number;
+    failure_code: string;
+    failure_fingerprint_sha256: string;
+    execution_trace_sha256: string;
+    zero_provider_proof_sha256: string;
+    zero_provider_proof_json: string;
+    continuation_authority_sha256: string;
+    prior_runtime_sha256: string;
+    next_runtime_sha256?: string;
+    repair_validation_id?: string;
+    repair_evidence_sha256?: string;
+    reconciled_from_status?: 'FAILED_FINAL';
+    block_reason?: 'repeated_failure_no_progress' | 'mechanical_cycle_budget_exhausted';
+    provider_attempted: 0;
+    proof_valid: 1;
+    status: HallForgeContinuationStatus;
+    created_at: number;
+    updated_at: number;
+    resumed_at?: number;
 }

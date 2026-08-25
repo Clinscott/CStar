@@ -117,7 +117,7 @@ function buildOperatorAttestationSha256(values: {
     }));
 }
 
-function validateCurrentOperatorAttestation(
+export function validateCurrentGoalResumeOperatorAttestation(
     attestation: VerifiedOperatorIntentAttestation,
 ): string {
     if (
@@ -196,7 +196,7 @@ function requireActiveBead(
     }
 }
 
-function validateStoredEvent(
+export function validateStoredGoalResumeEvent(
     event: HallCoordinationEventRecord,
     repoId: string,
     goalRef: string,
@@ -324,7 +324,7 @@ function currentRequestMatches(
     attestation: VerifiedOperatorIntentAttestation,
 ): boolean {
     const payload = eventPayload(event);
-    const operatorAttestationSha256 = validateCurrentOperatorAttestation(attestation);
+    const operatorAttestationSha256 = validateCurrentGoalResumeOperatorAttestation(attestation);
     return payload.repair_bead_id === input.repair_bead_id
         && (payload.continued_bead_id ?? undefined) === input.continued_bead_id
         && (payload.decision_id ?? undefined) === input.decision_id
@@ -364,7 +364,7 @@ export function recordHostGoalResume(
         throw new Error('goal_resume_host_capability_must_be_unavailable');
     }
     const goalRef = buildGoalRef(attestation.thread_id, normalized.host_goal_objective_sha256);
-    const operatorAttestationSha256 = validateCurrentOperatorAttestation(attestation);
+    const operatorAttestationSha256 = validateCurrentGoalResumeOperatorAttestation(attestation);
     const resumeId = buildResumeId({
         goalRef,
         operatorRecordSetSha256: attestation.session_record_set_sha256,
@@ -403,7 +403,7 @@ export function recordHostGoalResume(
         }
         const validated = history.map((event) => ({
             event,
-            ...validateStoredEvent(event, repoId, goalRef),
+            ...validateStoredGoalResumeEvent(event, repoId, goalRef),
         })).sort((left, right) => left.generation - right.generation);
         validated.forEach((entry, index) => {
             const expectedGeneration = index + 1;

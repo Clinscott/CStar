@@ -34,3 +34,23 @@ Feature: Validation evidence fails closed
     When it is offered to finalize execution receipt B
     Then CStar rejects the subject and lineage mismatch
     And neither execution changes state
+
+  Scenario: A validator subagent reports host-workflow evidence through its parent CoS
+    Given a depth-one validator subagent has one latest completed final turn
+    And its independent-validation manifest binds the exact bead, validation id, verdict, artifacts, and checks
+    When the canonical root CoS records that manifest and validator receipt
+    Then CStar verifies the subagent session lineage and final manifest digest
+    And it persists a verified-v3 receipt without granting the subagent mutation authority
+
+  Scenario: Host validation spoofs or drifts its lineage or subject
+    Given a host-validation receipt has a different parent, nested agent path, stale completion, failed check, or changed scope
+    When the canonical root CoS offers it to cstar_record_result
+    Then CStar rejects the exact mismatch before persistence
+    And no verified-v3 receipt is minted
+
+  Scenario: Host validation runs with separated code and control roots
+    Given the active source and validator evidence live in the canonical code root
+    And Hall beads and validation rows live in the separate control root
+    When the root CoS records and resolves verified-v3 host evidence
+    Then CStar hashes evidence only from the code root
+    And it persists lifecycle state only through the control root

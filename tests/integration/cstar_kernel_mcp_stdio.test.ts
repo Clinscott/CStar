@@ -98,6 +98,7 @@ class StdioMcpClient {
     private readonly pending = new Map<number, (resp: JsonRpcResponse) => void>();
     public readonly proc: ChildProcessWithoutNullStreams;
     public stderr = '';
+    public forcedTermination = false;
     private nextId = 1;
 
     constructor(extraEnv: Record<string, string> = {}, launcher: string = LAUNCHER) {
@@ -171,6 +172,7 @@ class StdioMcpClient {
                 return;
             }
             const timer = setTimeout(() => {
+                this.forcedTermination = true;
                 this.proc.kill('SIGTERM');
                 resolve();
             }, 2000);
@@ -342,6 +344,16 @@ describe('cstar-kernel-mcp stdio launcher', () => {
                 && body.readiness?.dependency_lineage
                 && body.readiness?.forge_runtime_manifest,
         );
+
+        const forgeStatusResp = await client.request('tools/call', {
+            name: 'cstar_status',
+            arguments: { forge_execution_receipt_id: `forge-execute-${'0'.repeat(32)}` },
+        });
+        const forgeStatus = parseToolBody(forgeStatusResp);
+        assert.deepStrictEqual(forgeStatus.forge_execution, {
+            found: false,
+            execution_receipt_id: `forge-execute-${'0'.repeat(32)}`,
+        });
     });
 
     it('rounds-trips a tools/call for cstar_telemetry returning summary blocks', async () => {
@@ -390,6 +402,7 @@ describe('cstar-kernel-mcp stdio launcher', () => {
             { name: 'cstar_pennyone_context', args: { action: 'status' } },
             { name: 'cstar_mongo_mailbox', args: { action: 'status' }, expectError: true },
             { name: 'cstar_status', args: {} },
+            { name: 'cstar_persona_set', args: { persona: 'O.D.I.N.' }, expectError: true },
             { name: 'cstar_evolve', args: { action: 'list_proposals', limit: 1 } },
             { name: 'cstar_spoke', args: { action: 'list' } },
             { name: 'cstar_intent_route', args: { prompt: 'build audit harness', action: 'match' } },
@@ -455,6 +468,19 @@ describe('cstar-kernel-mcp stdio launcher', () => {
         } finally {
             await testClient.close();
         }
+    });
+
+    it('terminates the launcher tree when the client closes its stdio pipe', async () => {
+        const testClient = await launchClient();
+        if (!testClient) {
+            assert.fail('cstar-kernel-mcp launcher did not respond to initialize');
+        }
+        await testClient.close();
+        assert.strictEqual(
+            testClient.forcedTermination,
+            false,
+            `launcher required forced termination after stdin closed: ${testClient.stderr}`,
+        );
     });
 
 });

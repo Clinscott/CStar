@@ -12,6 +12,11 @@ const IDENTITY = {
     decision_id: 'decision-six-role-test',
     adapter_ref: 'cstar-forge-hermes-minimax-worker-adapter',
 };
+const MATERIAL_POLICY = {
+    schema: 'cstar.forge_material_policy.v1',
+    file_max_bytes: 512 * 1024, total_max_bytes: 512 * 1024,
+    prompt_max_bytes: 1024 * 1024,
+};
 const roots: string[] = [];
 
 function fixture(failRole = '') {
@@ -24,7 +29,8 @@ function fixture(failRole = '') {
     const intentPath = path.join(root, 'intent.json');
     fs.writeFileSync(intentPath, JSON.stringify({
         intent: 'Change only the synthetic target and return callback TEST.',
-        execution_identity: IDENTITY, project_root: root, target_paths: [target],
+        execution_identity: IDENTITY, material_policy: MATERIAL_POLICY,
+        project_root: root, target_paths: [target],
         payload: { hermes_profile: 'cstar-hub', model: 'MiniMax-M3',
             expected_output: 'json', write_to: response, timeout_seconds: 360 },
     }));

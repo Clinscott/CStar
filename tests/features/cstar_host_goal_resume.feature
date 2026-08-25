@@ -1,4 +1,12 @@
 Feature: A blocked host goal can continue without falsifying host state
+  Scenario: A stable root instruction binding survives diagnostic prose
+    Given a canonical root-user turn names the exact decision and repair and continued beads
+    And the turn contains an explicit continuation grant alongside quoted diagnostic questions
+    When cstar_goal_resume binds the canonical record set to those exact mission references
+    Then the Hall stores one immutable goal resume receipt
+    And authorization does not depend on punctuation or an exact prose grammar
+    And missing or mismatched mission references fail closed
+
   Scenario: The operator explicitly resumes while the host has no transition
     Given the host goal is still displayed as blocked
     And the host exposes no supported blocked-to-active transition
@@ -32,3 +40,10 @@ Feature: A blocked host goal can continue without falsifying host state
     When CoS requests a host-goal resume record
     Then CStar rejects the text as a missing explicit resume signal
     And no coordination event is inserted
+
+  Scenario: Repair-and-proceed language resumes continuity without granting Forge authority
+    Given an unchanged goal owns a Forge request with a proven pre-provider mechanical failure
+    When the operator says the error should be fixed and the build proceed
+    Then cstar_goal_resume records continuity only
+    And no Forge request, authorization, attempt, provider action, or spend is created by goal resume
+    And the original Forge authorization remains the sole authority for an independently validated continuation

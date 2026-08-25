@@ -103,27 +103,33 @@ function writeAliasedResponseAdapter(root: string): string {
 }
 
 describe('CStar MCP Forge execute trace artifacts', () => {
-    it('proves OAuth readiness before reserving and rechecks it during preparation', () => {
+    it('reserves before OAuth readiness and rechecks it during preparation', () => {
         const source = fs.readFileSync(path.resolve(
             'src/tools/cstar-kernel-mcp/tools/forge_execute.ts',
         ), 'utf-8');
         const replay = source.indexOf('const existingAttempt = getForgeAttemptByIdempotency');
-        const preflight = source.indexOf('const preReservationHermesPreflight =');
-        const reserve = source.indexOf('const reservation = reserveForgeAttempt');
+        const reserve = source.indexOf('const reservation = reserveVerifiedForgeExecution');
+        const preflight = source.indexOf('const reservedHermesPreflight =');
         const prepare = source.indexOf('preparedInvocation = await prepareForgeHermesMinimaxAdapterInvocation');
-        assert.ok(replay > 0 && replay < preflight && preflight < reserve && reserve < prepare);
-        assert.match(source.slice(preflight, reserve), /preflightForgeHermesOAuthBeforeReservation/);
-        assert.match(source.slice(reserve, prepare), /provider: 'minimax-oauth'/);
+        const preparedVerify = source.indexOf('verifyPreparedForgeContinuationRepairBinding({');
+        const start = source.indexOf('markForgeAttemptStarted(');
+        assert.ok(replay > 0 && replay < reserve && reserve < preflight && preflight < prepare);
+        assert.ok(prepare < preparedVerify && preparedVerify < start);
+        assert.match(source.slice(preflight, prepare), /preflightForgeHermesOAuthAfterReservation/);
     });
 
     it('retains completed adapter evidence across a later persistence exception', () => {
-        const source = fs.readFileSync(path.resolve(
+        const executeSource = fs.readFileSync(path.resolve(
             'src/tools/cstar-kernel-mcp/tools/forge_execute.ts',
         ), 'utf-8');
-        const captured = source.indexOf('completedAdapterVersion = durableAdapterVersion;');
-        const persistence = source.indexOf('const durable = delivered');
-        const catchFallback = source.indexOf('let failureAdapterVersion = completedAdapterVersion;');
+        const resultSource = fs.readFileSync(path.resolve(
+            'src/tools/cstar-kernel-mcp/tools/forge_execute_result.ts',
+        ), 'utf-8');
+        const captured = executeSource.indexOf('completedAdapterVersion = durableAdapterVersion;');
+        const persistence = executeSource.indexOf('finalizeForgeAdapterExecutionResult({');
+        const catchFallback = executeSource.indexOf('let failureAdapterVersion = completedAdapterVersion;');
         assert.ok(captured > 0 && captured < persistence && persistence < catchFallback);
+        assert.match(resultSource, /const durable = delivered\s*\? recordForgeDelivery/);
     });
 
     it('binds sterile compatibility and redacted OAuth preflight into prepared invocation evidence', async () => {

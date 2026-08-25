@@ -20,6 +20,7 @@ import { buildHallRepositoryId, normalizeHallPath } from '../../../src/types/hal
 const originalRoot = registry.getRoot();
 const originalCodexHome = process.env.CODEX_HOME;
 const temporaryRoots: string[] = [];
+const STRUCTURED_GRANT = 'Authorize goal continuation for repair bead:repair:test-goal-resume with continued bead:test:continued-mission and decision decision:test:goal-resume now.';
 
 function restoreEnv(name: string, value: string | undefined): void {
     if (value === undefined) delete process.env[name];
@@ -41,7 +42,7 @@ function contextFor(threadId: string, turnId: string): McpRequestContext {
     } };
 }
 
-function createFixture(text = 'You have my authorization to restart the goal and work the problems to completion.') {
+function createFixture(text: string | string[] = STRUCTURED_GRANT) {
     const root = fs.mkdtempSync(path.join(process.platform === 'linux' ? '/tmp' : os.tmpdir(), 'cstar-goal-resume-'));
     temporaryRoots.push(root);
     registry.setRoot(root);
@@ -68,15 +69,16 @@ function createFixture(text = 'You have my authorization to restart the goal and
     const turnId = randomUUID();
     const timestamp = new Date(now).toISOString();
     const sessionPath = path.join(sessions, `rollout-goal-${threadId}.jsonl`);
+    const texts = Array.isArray(text) ? text : [text];
     const rows = [
         { timestamp, type: 'session_meta', payload: {
             id: threadId, thread_source: 'user', parent_thread_id: null,
             agent_path: null, forked_from_id: null,
         } },
-        { timestamp, type: 'response_item', payload: {
-            type: 'message', role: 'user', content: [{ type: 'input_text', text }],
+        ...texts.map((recordText) => ({ timestamp, type: 'response_item', payload: {
+            type: 'message', role: 'user', content: [{ type: 'input_text', text: recordText }],
             internal_chat_message_metadata_passthrough: { turn_id: turnId },
-        } },
+        } })),
     ];
     fs.writeFileSync(sessionPath, `${rows.map((row) => JSON.stringify(row)).join('\n')}\n`, { mode: 0o600 });
     process.env.CODEX_HOME = codexHome;
@@ -96,6 +98,7 @@ function createFixture(text = 'You have my authorization to restart the goal and
         repairBeadId,
         continuedBeadId,
         threadId,
+        turnId,
         sessionPath,
         now,
         context: contextFor(threadId, turnId),
@@ -111,7 +114,10 @@ function appendResumeTurn(fixture: ReturnType<typeof createFixture>, offsetMs = 
         payload: {
             type: 'message',
             role: 'user',
-            content: [{ type: 'input_text', text: 'Resume the goal and continue the audit.' }],
+            content: [{
+                type: 'input_text',
+                text: STRUCTURED_GRANT,
+            }],
             internal_chat_message_metadata_passthrough: { turn_id: turnId },
         },
     };
@@ -288,17 +294,22 @@ describe('dedicated continuity-only host goal resume tool', () => {
     });
 
     it('rejects missing and terminal repair beads', async () => {
-        const fixture = createFixture();
+        const missingBeadId = 'bead:repair:missing';
+        const fixture = createFixture(
+            `Authorize goal continuation for repair ${missingBeadId} with continued bead:test:continued-mission and decision decision:test:goal-resume now.`,
+        );
         const missing = await handleGoalResume({
             ...fixture.args,
-            repair_bead_id: 'bead:repair:missing',
+            repair_bead_id: missingBeadId,
         }, fixture.context);
         assert.equal(missing.isError, true);
         assert.match(responseBody(missing).error, /goal_resume_repair_bead_not_found/);
 
-        fixture.db.prepare("UPDATE hall_beads SET status = 'RESOLVED' WHERE bead_id = ?")
-            .run(fixture.repairBeadId);
-        const terminal = await handleGoalResume(fixture.args, fixture.context);
+        database.close();
+        const terminalFixture = createFixture();
+        terminalFixture.db.prepare("UPDATE hall_beads SET status = 'RESOLVED' WHERE bead_id = ?")
+            .run(terminalFixture.repairBeadId);
+        const terminal = await handleGoalResume(terminalFixture.args, terminalFixture.context);
         assert.equal(terminal.isError, true);
         assert.match(responseBody(terminal).error, /goal_resume_repair_bead_terminal/);
     });
@@ -329,11 +340,122 @@ describe('dedicated continuity-only host goal resume tool', () => {
         assert.equal(count.count, 0);
     });
 
+    it('rejects a quoted diagnostic continuation grant', async () => {
+        const fixture = createFixture(
+            'The diagnostic says "Authorize goal continuation for repair bead:repair:test-goal-resume with continued bead:test:continued-mission and decision decision:test:goal-resume now."',
+        );
+
+        const response = await handleGoalResume(fixture.args, fixture.context);
+        assert.equal(response.isError, true);
+        assert.match(responseBody(response).error, /goal_resume_operator_signal_missing/);
+    });
+
+    it('accepts only the exact structured continuation template', async () => {
+        const fixture = createFixture(['Status is informational.', STRUCTURED_GRANT]);
+
+        const attestation = await verifyCurrentGoalResumeIntent(fixture.context, Date.now(), {
+            repair_bead_id: fixture.repairBeadId,
+            continued_bead_id: fixture.continuedBeadId,
+            decision_id: fixture.args.decision_id,
+        });
+        assert.equal(attestation.session_record_count, 2);
+        assert.equal(attestation.selected_record_index, 1);
+        const response = responseBody(await handleGoalResume(fixture.args, fixture.context));
+        assert.equal(response.status, 'recorded');
+        assert.match(response.resume_id, /^goal-resume:[a-f0-9]{64}$/);
+    });
+
+    it('rejects a structured continuation when an exact mission reference is absent', async () => {
+        const fixture = createFixture([
+            'I authorize continuation of decision:test:goal-resume.',
+            'Resume bead:repair:test-goal-resume.',
+        ].join(' '));
+
+        const response = await handleGoalResume(fixture.args, fixture.context);
+        assert.equal(response.isError, true);
+        assert.match(responseBody(response).error, /goal_resume_operator_signal_missing/);
+    });
+
+    it('rejects incidental documentation even when it names every mission reference', async () => {
+        const fixture = createFixture([
+            'Document repair bead:repair:test-goal-resume now;',
+            'mention bead:test:continued-mission now and decision:test:goal-resume now in the guide.',
+        ].join(' '));
+
+        const response = await handleGoalResume(fixture.args, fixture.context);
+        assert.equal(response.isError, true);
+        assert.match(responseBody(response).error, /goal_resume_operator_signal_missing/);
+    });
+
+    it('rejects suffix collisions, duplicate grants, and turn-level revocation', async () => {
+        for (const text of [
+            [
+                'I authorize continuation of decision:test:goal-resume-extra.',
+                'Resume bead:repair:test-goal-resume-extra with bead:test:continued-mission-extra.',
+            ].join(' '),
+            'Authorize goal continuation for repair bead:repair:test-goal-resume.extra with continued bead:test:continued-mission and decision decision:test:goal-resume now.',
+            'Authorize goal continuation for repair bead:repair:test-goal-resume/extra with continued bead:test:continued-mission and decision decision:test:goal-resume now.',
+            [STRUCTURED_GRANT, STRUCTURED_GRANT.toUpperCase()],
+            [STRUCTURED_GRANT, 'Do not resume the goal.'],
+            ['Do not resume the goal.', STRUCTURED_GRANT],
+            [
+                'I do not authorize continuation of decision:test:goal-resume.',
+                'Do not resume bead:repair:test-goal-resume with bead:test:continued-mission.',
+            ].join(' '),
+        ]) {
+            const fixture = createFixture(text);
+            const response = await handleGoalResume(fixture.args, fixture.context);
+            assert.equal(response.isError, true);
+            assert.match(
+                responseBody(response).error,
+                /goal_resume_operator_signal_(?:missing|negated|ambiguous)/,
+            );
+            database.close();
+        }
+    });
+
+    it('rejects questions, conditionals, and reported structured authority', async () => {
+        const bound = 'repair bead:repair:test-goal-resume with continued bead:test:continued-mission and decision decision:test:goal-resume';
+        for (const text of [
+            `Could you authorize goal continuation for ${bound} now?`,
+            `If later, authorize goal continuation for ${bound} now.`,
+            `The docs say "Authorize goal continuation for ${bound} now."`,
+        ]) {
+            const fixture = createFixture(text);
+            const response = await handleGoalResume(fixture.args, fixture.context);
+            assert.equal(response.isError, true);
+            assert.match(responseBody(response).error, /goal_resume_operator_signal_missing/);
+            database.close();
+        }
+    });
+
+    it('rejects every terse standalone revocation before and after the grant', async () => {
+        for (const revocation of [
+            'Stop.', 'Pause!', 'Cancel it.', 'Revoke this.', 'Withdraw that.',
+            'Never mind.', 'Do not proceed.', 'Do not continue!', 'Do not resume.',
+        ]) {
+            for (const records of [
+                [revocation, STRUCTURED_GRANT],
+                [STRUCTURED_GRANT, revocation],
+            ]) {
+                const fixture = createFixture(records);
+                const response = await handleGoalResume(fixture.args, fixture.context);
+                assert.equal(response.isError, true);
+                assert.match(responseBody(response).error, /goal_resume_operator_signal_negated/);
+                database.close();
+            }
+        }
+    });
+
     it('accepts only fully anchored resume commands or authorization statements', async () => {
         for (const accepted of [
             'Resume!',
             'Resume the goal and work the problems that arise to completion.',
             'I authorize you to continue the audit to completion.',
+            'Fix the error and continue the build.',
+            'The error should be fixed and the build proceed.',
+            'I should not have to re issue a forge build request if a single error is discovered and fixed. The error should be fixed and the build proceed.',
+            'This is not a red gate. The goal should have continued after the router fix.',
         ]) {
             const fixture = createFixture(accepted);
             assert.equal((await verifyCurrentGoalResumeIntent(fixture.context)).intent, 'goal_resume');
@@ -349,11 +471,16 @@ describe('dedicated continuity-only host goal resume tool', () => {
             'Resume the goal and work, but this is not an instruction.',
             'Resume the goal and proceed only as quoted prose.',
             'You are authorized to resume the goal and proceed is not something I said.',
+            'The error should not be fixed and the build proceed.',
+            'Should the error be fixed and the build proceed?',
+            'Example: "The error should be fixed and the build proceed."',
+            'The error should be fixed but do not continue the build.',
+            'The goal should not have continued after the router fix.',
         ]) {
             const fixture = createFixture(rejected);
             await assert.rejects(
                 verifyCurrentGoalResumeIntent(fixture.context),
-                /goal_resume_operator_signal_missing/,
+                /goal_resume_operator_signal_(?:missing|negated)/,
             );
             database.close();
         }

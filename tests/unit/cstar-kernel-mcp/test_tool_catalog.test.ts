@@ -13,10 +13,10 @@ import { registerCoreTools } from '../../../src/tools/cstar-kernel-mcp/register_
 const PROJECT_ROOT = path.resolve(import.meta.dirname, '..', '..', '..');
 
 describe('CStar MCP canonical tool catalog', () => {
-    it('contains exactly 27 unique public tools and excludes AutoBot', () => {
+    it('contains exactly 28 unique public tools and excludes AutoBot', () => {
         const toolNameSet = new Set<string>(CSTAR_KERNEL_TOOL_NAMES);
 
-        assert.equal(CSTAR_KERNEL_TOOL_CATALOG.length, 27);
+        assert.equal(CSTAR_KERNEL_TOOL_CATALOG.length, 28);
         assert.deepEqual(
             CSTAR_KERNEL_TOOL_NAMES,
             CSTAR_KERNEL_TOOL_CATALOG.map(({ name }) => name),
@@ -47,7 +47,7 @@ describe('CStar MCP canonical tool catalog', () => {
         );
         assert.match(
             getCstarKernelToolCatalogEntry('cstar_forge_authorize').description,
-            /current explicit work-referenced root-user build or resume instruction/i,
+            /explicit root-user build instruction or immutable CStar goal-continuation receipt/i,
         );
     });
 

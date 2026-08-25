@@ -248,6 +248,7 @@ def model_manifest_from_delegate(
         delegate_intent = {
             "intent": base_intent + "\n\n" + worker_guard + "\n\n" + worker_manifest_contract,
             "execution_identity": execution_identity,
+            "material_policy": intent.get("material_policy"),
             "project_root": str(project_root),
             "target_paths": intent.get("target_paths", []),
             "hermes_preflight": intent.get("hermes_preflight"),

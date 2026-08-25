@@ -7,7 +7,8 @@ Read this local handoff packet before acting:
 /home/morderith/Corvus/CStar/docs/operations/cos-context-refresh-new-thread-packet.md
 
 Treat it as the bootstrap context for the fresh CoS thread. After reading it,
-run CStar health/handoff/Augury checks before claiming current state.
+select only the CStar check required by the current situation before claiming
+current state.
 ```
 
 ## Packet Status
@@ -51,11 +52,12 @@ has a mapping.
 
 ## First Actions
 
-1. Run `cstar_doctor`.
-2. Run `cstar_handoff` with the current user request, scope, and target paths.
-3. Run `cstar_augury`.
-4. Run one bounded `cstar_hall_search` only if the active bead or next gate is
-   unclear.
+1. Run `cstar_doctor` only when kernel health is unknown.
+2. Run `cstar_handoff` when resuming a known mission, with the current user
+   request, scope, and target paths.
+3. Run `cstar_augury` only when route or scope is ambiguous.
+4. Run one bounded `cstar_hall_search` only if the active bead or next gate
+   remains unclear after the selected check.
 5. Inspect only the active bead and artifact refs needed for the next decision.
    If the in-scope project has a mapped PMT, read it once for bounded context;
    if unavailable, record a freshness gap and continue.

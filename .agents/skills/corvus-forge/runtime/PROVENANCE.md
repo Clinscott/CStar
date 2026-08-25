@@ -17,6 +17,11 @@ intentionally replaces upstream `__init__.py`, `pyproject.toml`, and
 `uv.lock` lineage with this manifest, launcher, five source files, and the
 system Python executable.
 
+MiniMax M3 requests use the provider's OpenAI-compatible `/v1` route with
+bounded SSE streaming. This follows the current supported Hermes M3 transport;
+the Anthropic-compatible MiniMax route remains an M2.x route and is not used by
+the pinned M3 worker.
+
 The six-role topology was independently reimplemented from the design described
 by `https://github.com/unclebob/swarm-forge`, branch `six-pack`, commit
 `59803dadb38e0e09d5357d749452036e4a82ae60`. No upstream source, shell, Clojure,

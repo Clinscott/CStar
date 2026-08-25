@@ -23,8 +23,8 @@
   plugin supplies a skill only.
 
 The driver `bin/cstar-kernel-mcp.js` spawns Node with the TSX loader against
-`src/tools/cstar-kernel-mcp.ts`, inherits stdio, and exits with the child
-status. It retains a small launcher parent so the child receives an exact
+`src/tools/cstar-kernel-mcp.ts`, relays stdin, inherits stdout/stderr, and exits
+with the child status. It retains a small launcher parent so the child receives an exact
 allowlisted, host-neutral environment before startup. The launcher never
 copies the parent environment wholesale, never forwards `NODE_OPTIONS`,
 provider credentials, Mongo URIs, persona values, or TokenPath roots, and the
@@ -300,7 +300,7 @@ lifecycle state or validation.
 
 ---
 
-## Tool Inventory (27)
+## Tool Inventory (28)
 
 The typed source of truth is
 `src/tools/cstar-kernel-mcp/contracts/tool_catalog.ts`. Runtime registration,
@@ -331,11 +331,12 @@ the reader-facing purpose projection.
 | 20 | `cstar_pennyone_context` | Data context |
 | 21 | `cstar_mongo_mailbox` | Retired compatibility |
 | 22 | `cstar_status` | Diagnostics |
-| 23 | `cstar_evolve` | Karpathy loop (read-only) |
-| 24 | `cstar_spoke` | Spoke lifecycle |
-| 25 | `cstar_intent_route` | Routing |
-| 26 | `cstar_warden` | Sentinel Wardens |
-| 27 | `cstar_telemetry` | Diagnostics |
+| 23 | `cstar_persona_set` | Explicit workflow posture |
+| 24 | `cstar_evolve` | Karpathy loop (read-only) |
+| 25 | `cstar_spoke` | Spoke lifecycle |
+| 26 | `cstar_intent_route` | Routing |
+| 27 | `cstar_warden` | Sentinel Wardens |
+| 28 | `cstar_telemetry` | Diagnostics |
 
 ---
 
@@ -655,8 +656,11 @@ Codex must verify the `authorization_manifest` against the accepted bead or
 proposal before calling authorize. If the work reference is absent or
 ambiguous, it asks one human-readable clarification; it never asks the operator
 to echo the request hash or a challenge. After authorization, CoS must call
-`cstar_forge_execute` for a new reservation in that same root-user turn. A later root-user turn can only retrieve an
-already durable attempt with its original idempotency key.
+`cstar_forge_execute` for the initial reservation in that same root-user turn.
+A later root-user turn can retrieve an already durable attempt with its original
+idempotency key. It may create a child reservation only from an exact
+`cstar.forge_pre_provider_continuation.v1` receipt for the same immutable,
+unexpired, unrevoked request and original authorization.
 
 ## 4d. `cstar_forge_execute`
 
@@ -669,7 +673,29 @@ one-shot grant, exact canonical request and target hashes, package locks, a
 sealed adapter runtime, and an idempotency key. Identity is rechecked after
 runtime/OAuth preflight immediately before reservation. Attempt reservation is
 atomic; an ambiguous or failed attempt consumes the grant and is never
-auto-relaunched.
+auto-relaunched as provider spend.
+
+A proven pre-provider mechanical cycle is different. Exact evidence of zero
+provider requests, zero ambiguous dispatch, zero spend, no live source, and no
+workspace commit records `FAILED_RETRYABLE` and `mechanical_no_provider` without
+reducing the one-provider-attempt budget. CStar preserves the original request
+and authorization, repairs the local defect, binds independent
+`cstar_record_result` evidence to the repaired runtime and target preimages,
+then resumes with a new internal idempotency key and `retry_of_attempt_id`.
+Operators never paste either internal value or repeat the build prompt.
+The first post-repair continuation check writes the bounded owner-only
+`continuation-runtime-evidence.json` beneath the parent execution receipt;
+independent validation hashes that CStar-produced adapter/interpreter/
+containment/dependency/Hermes binding together with the named CStar-owned
+runtime files, and CStar will not replace it after the validation is linked.
+The prepared workspace preimages must still match that receipt before
+`STARTED`; any appended same-turn revocation is later input, not part of the
+original authorization.
+
+Provider start or ambiguity, missing evidence, scope/worktree/lock drift,
+expiry, revocation, or another request cannot inherit continuation. The third
+consecutive identical failure and tenth total mechanical cycle are `BLOCKED`.
+Zero retries still means zero provider, role, or orchestration retries.
 
 Live request creation verifies readiness before runtime sealing,
 reconciliation, or request persistence. Execute preserves no-op and durable
@@ -691,6 +717,8 @@ Required fields include all `cstar_forge_request` contract fields plus:
   `cstar_forge_authorize`; required only at the outer execute level and must
   match the immutable authorization receipt.
 - `idempotency_key` — stable key used for atomic reservation and replay.
+- `retry_of_attempt_id` — kernel/router-populated parent only for an exact
+  validated pre-provider continuation; it is not operator-facing input.
 - Optional `execution_adapter_ref` — checked as an adapter proof; missing or
   unregistered adapters fail closed.
 
@@ -699,8 +727,9 @@ No-op mode returns `status: "validated_noop"` with
 `live_source_collection=false`, and `codex_worker_fallback_allowed=false`.
 
 Live mode rejects missing, expired, mismatched, or drifted authorization and
-blocks when the requested adapter is unknown or its sealed runtime differs from
-the request. Required outputs must be contained by explicit targets and included
+blocks when the requested adapter is unknown. A changed sealed runtime is
+accepted only through the exact independently validated continuation binding.
+Required outputs must be contained by explicit targets and included
 in the canonical request/authorization manifest and exact request hash before
 the challenge is accepted. Approved adapter references are:
 
@@ -849,7 +878,7 @@ summary. `score` is a legacy diagnostic projection only; it is not a quality,
 readiness, execution, or authority verdict. The TokenPath block reports
 quarantine/compatibility telemetry and cannot steer or record observations.
 
-**Input:** _(none)_
+**Input:** `{ "forge_execution_receipt_id"?: "forge-execute-<32 lowercase hex>" }`
 
 **Output:**
 ```json
@@ -917,12 +946,14 @@ Sterling's Audit leg accepts only evidence already bound to the bead and
 repository by an authoritative Hall receipt:
 
 - `audit.validation_id` must resolve to an `ACCEPTED` or `SUCCESS` validation
-  whose bead and repository exactly match, with `authority_class=verified_v2`,
-  a CStar-derived request-bound validator identity, at least one passed check,
-  and a canonical `cstar.validation-evidence.v2` manifest whose SHA-256
-  recomputes. The manifest must bind the exact Forge request, authorization,
-  execution receipt, attempt, adapter, result artifact, and target-set hashes;
-  its validator root thread must differ from both the requester and executor.
+  whose bead and repository exactly match and whose canonical manifest digest
+  recomputes. Forge work requires `authority_class=verified_v2` and an exact
+  `cstar.validation-evidence.v2` request/authorization/attempt/adapter/result
+  binding, with a validator distinct from both the Forge requester and
+  authorizing executor. Host work may use `authority_class=verified_v3` and an exact
+  `cstar.validation-evidence.v3` bead/repository/target binding plus a verified
+  depth-one validator session parented by the recording root CoS. V3 grants no
+  Forge-finalization authority.
 - `lore_paths` and `isolation_paths` accept only safe relative, non-symlink,
   single-link files inside the CStar root. Their current bytes and SHA-256 must
   exactly appear in that validation manifest. Absolute paths and arbitrary
@@ -997,10 +1028,21 @@ independent evidence are stored as `INCONCLUSIVE` rather than authoritative.
 - `forge_execution_receipt_id` (string, optional) — transactionally finalizes
   a delivered attempt or links verified non-positive evidence to an explicitly
   supported terminal attempt
+- `host_validation_receipt` (object, optional) — host-workflow receipt containing
+  `validator_thread_id`, `validator_turn_id`, `manifest_path`, and
+  `manifest_sha256`. It is mutually exclusive with
+  `forge_execution_receipt_id`. CStar derives the parent/root relationship from
+  the fixed Codex session and requires one latest completed final turn whose
+  text binds the exact manifest digest and validation id.
+  In a separated live launcher, manifest, artifact, check, Lore, and Isolation
+  bytes resolve only from `CODE_ROOT`; bead lookup and Hall persistence remain
+  under `CONTROL_ROOT`.
 - `validation_evidence` (object, optional) — bounded artifact/check paths and
-  SHA-256 hashes only. CStar derives validator identity and independence from
-  the current request and exact `forge_execution_receipt_id`; caller-supplied
-  identity or independence fields are rejected by the strict tool schema.
+  SHA-256 hashes only. For Forge v2, CStar derives validator identity and
+  independence from the current request and exact execution receipt. For host
+  v3, these arrays must exactly match the independently hashed validation
+  manifest. Caller-supplied identity or independence fields are rejected by the
+  strict tool schema.
 
 Validation persistence and delivery finalization/terminal evidence linkage are
 one transaction. If either
@@ -1009,14 +1051,15 @@ side fails, the validation row is rolled back and the response reports
 stored verdict. TokenPath is not part of this generic result contract; its
 quarantined sidecar lifecycle cannot be supplied or promoted through this tool.
 
-Only `authority_class=verified_v2` can finalize Forge or satisfy Sterling.
+Only `authority_class=verified_v2` can finalize Forge. Sterling accepts a
+current exact `verified_v2` Forge receipt or `verified_v3` host-workflow receipt.
 Legacy `cstar.validation-evidence.v1` receipts remain readable but cannot be
 promoted, replayed across executions, or used as current validation authority.
 The verified Hall write additionally consumes a one-use opaque proof produced
 by the kernel request-identity verifier; generic Hall writers remain
-reported-only and cannot self-mint verified-v2 authority.
+reported-only and cannot self-mint verified-v2 or verified-v3 authority.
 
-**Output:** `{ status, mutation?, bead_id, reported_verdict, stored_verdict, validation_id, validation_persisted, validation_authority, authoritative, forge_validation? }`, where `validation_authority` is `reported`, `verified_v2`, or `not_persisted`.
+**Output:** `{ status, mutation?, bead_id, reported_verdict, stored_verdict, validation_id, validation_persisted, validation_authority, authoritative, forge_validation? }`, where `validation_authority` is `reported`, `verified_v2`, `verified_v3`, or `not_persisted`.
 
 ## 11. `cstar_engram_record`
 
@@ -1141,7 +1184,8 @@ driver changes this result.
 ## 18. `cstar_status`
 
 Deterministic current-state snapshot. CStar lifecycle state is separated from
-the legacy framework projection; persona is explicitly style-only.
+the legacy framework projection; persona supplies non-authoritative tone and
+development-process guidance only.
 
 **Input:** _(none)_
 
@@ -1151,7 +1195,8 @@ the legacy framework projection; persona is explicitly style-only.
   "framework": { "authority": "compatibility_projection", "status": "AWAKE", "process_uptime_seconds": 0, "baseline_gungnir_score": 0 },
   "current_mission": { "authority": "cstar_lifecycle", "current_bead_id": "bead-...", "target_paths": ["..."] },
   "persona": "A.L.F.R.E.D." | "O.D.I.N." | null,
-  "persona_projection_status": "self_consistent_unverified" | "legacy_self_consistent_unverified" | "unavailable",
+  "persona_projection_status": "bounded_config_projection" | "bounded_config_invalid" | "bounded_config_reader_unavailable" | "self_consistent_unverified" | "legacy_self_consistent_unverified" | "unavailable",
+  "forge_execution": { "found": true, "attempt_status": "STARTED", "request_status": "AUTHORIZED", "recovery": { "classification": "owner_alive" } },
   "workspace": "/abs/path",
   "hall_reachable": true,
   "managed_spokes": [{ "slug": "...", "mount_status": "active", "trust_level": "trusted", "write_policy": "read_write", "root_path": "..." }],
@@ -1163,17 +1208,36 @@ the legacy framework projection; persona is explicitly style-only.
 telemetry, not measured validation, confidence, or readiness evidence.
 
 The bounded top-level `persona` scalar is the only supported active-persona
-read surface. Kernel callers must not open, parse,
-print, diff, or request `.agents/config.json` or any containing object. If
-`cstar_status` is unavailable, omit persona context and report a freshness gap;
-there is no local-file fallback and there is no active persona default.
+read surface. Kernel callers must not open, parse, print, diff, or request
+`.agents/config.json` or any containing object. The isolated
+`scripts/read_active_persona.py` runtime boundary reads only the configured
+persona field and emits only one canonical scalar; status never receives the
+containing object. Only an absent config may use an already marked Hall
+compatibility fallback. Malformed or conflicting config and an unavailable
+isolated reader fail closed with their own projection status. If neither
+bounded source is available, omit persona context and report a freshness gap.
+There is no active persona default.
+
+When an exact Forge execution receipt is supplied, status adds a bounded,
+read-only attempt/request projection. It never invokes or retries the adapter.
+A `STARTED` attempt reports exact-owner liveness when the trace contains owner
+proof; legacy ownerless traces report the hard reconciliation deadline.
+
+Persona also supplies non-authoritative development posture. `O.D.I.N.` is
+`build_run_repair`: build the bounded implementation, run it, repair
+recoverable failures, and continue to validation. `A.L.F.R.E.D.` is
+`secure_harden`: establish working behavior, then emphasize trust boundaries,
+abuse cases, failure containment, hardening, and validation. Neither posture
+changes scope, authority, or an operator gate.
 
 Persona provenance fails closed. Bootstrap rows, legacy migrations, document
 ingestion, user profiles, profile digests, and SessionStart hooks cannot create
 or change the active persona even when they carry a nonzero timestamp. A
 migration may preserve an already-explicit Hall projection, but must ignore the
 legacy persona field. Runtime coordination actors and ceremony behavior remain
-persona-neutral; an explicit status scalar may affect presentation style only.
+authority-neutral; an explicit status scalar may affect presentation and
+non-authoritative development posture, but never scope, routing authority, or
+an operator gate.
 An explicit Hall projection requires a `cstar.persona_projection.v2`
 SHA-256 self-consistency marker bound to the exact canonical scalar. That
 marker proves row consistency, not source authority or independent validation;
@@ -1184,6 +1248,36 @@ The legacy `StateRegistry` is read-only. Its mutation methods fail with
 `legacy_state_registry_mutation_retired_use_cstar_kernel` before Hall or
 filesystem effects, and status never falls back to
 `.agents/sovereign_state.json` or generic `sovereign_projection` metadata.
+
+## 18a. `cstar_persona_set`
+
+Explicitly select one style-only process posture for the next workflow
+boundary. The tool accepts only the exact scalar `O.D.I.N.` or
+`A.L.F.R.E.D.`, verifies a canonical root-user Codex request identity, and
+performs no provider, source, Git, or deployment action.
+
+**Input:**
+
+```json
+{ "persona": "O.D.I.N." | "A.L.F.R.E.D." }
+```
+
+The kernel invokes an isolated system-Python writer with a secret-free
+environment. That writer validates ownership, permissions, link count, size,
+and JSON structure; updates only recognized persona fields; preserves unknown
+fields without emitting them; and atomically replaces the config. CStar then
+re-reads the bounded scalar and mirrors a self-consistent Hall projection.
+
+The response is `updated` or `already_active`, includes the prior/current
+canonical scalar and config digest, and reports any Hall mirror freshness gap.
+It also returns the process posture:
+
+- O.D.I.N.: `iterative_build_run_test_repair`.
+- A.L.F.R.E.D.: `secure_harden_verify`.
+
+Both remain iterative and style-only. Neither changes objective, targets,
+actions, spend, source, retry, Git, restart, secret/config, deployment, or
+production gates. See `docs/operations/cstar-iterative-development.md`.
 
 ## 19. `cstar_evolve`
 

@@ -5,7 +5,6 @@ import {
     getForgeAuthorizationByRequest,
 } from '../../pennyone/intel/forge_receipt_controller.js';
 import { ROOT_USER_FORGE_INTENT_PROFILE } from '../../pennyone/intel/forge_authorization_policy.js';
-import { registry } from '../../pennyone/pathRegistry.js';
 import { buildHallRepositoryId, normalizeHallPath } from '../../../types/hall.js';
 import {
     errorPayloadResponse,
@@ -48,6 +47,7 @@ import { verifyCodexRequestIdentity } from './operator_authorization.js';
 import { reconcileLegacyV2ForgeRequest } from './forge_legacy_v2_reconciliation.js';
 import { findForgeRequestByDecisionBeforeMutation } from './forge_execute_request_authority.js';
 import { assertLiveForgeRuntimeReady } from '../contracts/runtime.js';
+import { resolveForgeRuntimeRoots } from './forge_runtime_roots.js';
 
 export interface ForgeRequestArgs extends DispatchRequestArgs {
     execution_adapter_ref?: string;
@@ -108,8 +108,8 @@ export async function handleForgeRequest(
             }, 'forge_request_contract_invalid', validationError);
         }
 
-        const root = registry.getRoot();
-        const actionAuthority = resolveDispatchActionAuthority(args, root);
+        const { controlRoot, codeRoot } = resolveForgeRuntimeRoots();
+        const actionAuthority = resolveDispatchActionAuthority(args, codeRoot);
         const surface = resolveDispatchSurface('forge', args);
         if (!surface.found) {
             return preAuthorizationResponse({
@@ -218,7 +218,7 @@ export async function handleForgeRequest(
 
         if (liveRequested && adapter.selected?.write_capability === 'project_files') {
             try {
-                assertForgeRequiredOutputsContained(root, args.target_paths, args.required_output_paths);
+                assertForgeRequiredOutputsContained(codeRoot, args.target_paths, args.required_output_paths);
             } catch (error) {
                 const reason = error instanceof Error ? error.message : String(error);
                 return errorPayloadResponse({
@@ -239,7 +239,7 @@ export async function handleForgeRequest(
         }
 
         const packageLockProofs = liveRequested
-            ? verifyDispatchPackageLocks(args.package_locks, root)
+            ? verifyDispatchPackageLocks(args.package_locks, codeRoot)
             : [];
         const maxAttempts = 1;
         const selectedAdapter = adapter.selected;
@@ -255,7 +255,7 @@ export async function handleForgeRequest(
                 : null;
         const canonical = canonicalizeForgeRequest(
             args as ForgeRequestContractArgs,
-            root,
+            codeRoot,
             decisionId,
             selectedAdapter?.ref ?? adapter.canonical_ref,
             writeCapability,
@@ -264,7 +264,7 @@ export async function handleForgeRequest(
             hermesRuntimeExpectation,
         );
         const existingByDecision = findForgeRequestByDecisionBeforeMutation(
-            root,
+            controlRoot,
             args.bead_id!.trim(),
             decisionId,
         );
@@ -289,7 +289,7 @@ export async function handleForgeRequest(
                     const reconciliation = reconcileLegacyV2ForgeRequest({
                         request: existing,
                         attempt_count: existingByDecision.attemptCount,
-                        root,
+                        root: controlRoot,
                         canonical,
                         adapter_runtime: adapterRuntimeProof,
                         hermes_runtime: hermesRuntimeExpectation,
@@ -358,10 +358,10 @@ export async function handleForgeRequest(
         }
         const requestSha256 = hashCanonicalForgeRequest(canonical);
         const requestId = buildForgeRequestId(requestSha256);
-        const db = getForgeWritableDb(root);
+        const db = getForgeWritableDb(controlRoot);
         const saved = saveForgeRequest(db, {
             request_id: requestId,
-            repo_id: buildHallRepositoryId(normalizeHallPath(root)),
+            repo_id: buildHallRepositoryId(normalizeHallPath(controlRoot)),
             bead_id: args.bead_id!.trim(),
             decision_id: decisionId,
             request_sha256: requestSha256,

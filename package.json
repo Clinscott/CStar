@@ -1,6 +1,7 @@
 {
   "name": "corvusstar",
   "version": "1.0.1",
+  "codexPluginVersion": "1.0.2",
   "description": "Deterministic control plane and lifecycle ledger for the Corvus estate.",
   "keywords": [
     "corvus",

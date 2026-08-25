@@ -19,9 +19,9 @@ import {
 } from './codex_session_locator.js';
 import {
     assertOperatorAuthorizationScope,
-    hasContradictoryForgeLaneInstruction,
     type OperatorAuthorizationScope,
 } from './operator_authorization_scope.js';
+import { isForgeAuthorityRevocation } from './forge_revocation.js';
 export type { OperatorAuthorizationScope } from './operator_authorization_scope.js';
 
 const CODEX_AUTHORIZATION_REF = /^codex-thread:([0-9a-f-]{36}):turn:([0-9a-f-]{36}):sha256:([a-f0-9]{64})$/;
@@ -94,16 +94,12 @@ function isRecord(value: unknown): value is Record<string, unknown> {
     return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
 
-function isLaterAuthorizationConflict(text: string): boolean {
-    return hasContradictoryForgeLaneInstruction(text)
-        || /\b(?:do\s+not|don't|no\s+longer)\s+authorize\b/i.test(text)
-        || (/\b(?:revoke|withdraw|cancel)\b/i.test(text)
-            && /\b(?:authorization|permission|forge|audit|execute|spend)\b/i.test(text))
-        || /^\s*(?:stop|pause|cancel|wait|hold\s+on)[.!]?\s*$/i.test(text);
-}
-
 function optionalIdentityFieldIsEmpty(value: unknown): boolean {
     return value === undefined || value === null || value === '';
+}
+
+function threadSourceIsCanonicalRoot(value: unknown): boolean {
+    return value === undefined || value === 'user';
 }
 
 function createAuthorizedTurnMatcher(
@@ -119,7 +115,7 @@ function createAuthorizedTurnMatcher(
         const payload = isRecord(row.payload) ? row.payload : undefined;
         if (row.type === 'session_meta') {
             canonicalUserSession = payload?.id === expectedThreadId
-                && payload.thread_source === 'user'
+                && threadSourceIsCanonicalRoot(payload.thread_source)
                 && optionalIdentityFieldIsEmpty(payload.parent_thread_id)
                 && optionalIdentityFieldIsEmpty(payload.agent_path)
                 && optionalIdentityFieldIsEmpty(payload.forked_from_id);
@@ -152,7 +148,7 @@ function createAuthorizedTurnMatcher(
         if (matchedAuthorization && !canonicalInputTextContent) {
             throw new Error('operator_authorization_later_user_record_uninspectable');
         }
-        if (matchedAuthorization && isLaterAuthorizationConflict(text)) {
+        if (matchedAuthorization && isForgeAuthorityRevocation(text)) {
             throw new Error('operator_authorization_later_revocation_found');
         }
         const metadata = isRecord(payload.internal_chat_message_metadata_passthrough)
@@ -204,7 +200,7 @@ export function parseCodexTurnMetadata(context: McpRequestContext | undefined): 
     if (nested.thread_id !== topLevelThreadId || nested.session_id !== nested.thread_id) {
         throw new Error('codex_request_identity_thread_mismatch');
     }
-    if (nested.thread_source !== 'user') {
+    if (!threadSourceIsCanonicalRoot(nested.thread_source)) {
         throw new Error('codex_request_identity_requires_root_user_thread');
     }
     if (

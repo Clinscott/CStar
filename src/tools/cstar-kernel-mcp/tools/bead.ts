@@ -13,6 +13,7 @@ import {
     preAuthorizationErrorResponse,
     textResponse,
 } from '../contracts/responses.js';
+import { CODE_ROOT } from '../contracts/runtime.js';
 import {
     compactBead,
     generateBeadId,
@@ -79,6 +80,7 @@ function gateSterlingMandate(bead: SovereignBead, args: BeadToolArgs, hubRoot: s
         repo_id: bead.repo_id,
         rationale: bead.rationale,
         status: bead.status,
+        target_path: bead.target_path,
         baseline_scores: bead.baseline_scores,
         metadata: bead.metadata,
         created_at: bead.created_at,
@@ -89,7 +91,16 @@ function gateSterlingMandate(bead: SovereignBead, args: BeadToolArgs, hubRoot: s
     if (!validationId || requestedResolvedValidationId(args, bead) !== validationId) {
         throw new Error('sterling_validation_id_must_match_resolved_validation_id');
     }
-    const verdict = verifySterlingMandate(beadAsHallRecord, args.mandate_evidence, hubRoot);
+    const validation = database.getValidationRunById(validationId);
+    const evidenceRoot = validation?.evidence_manifest?.schema === 'cstar.validation-evidence.v3'
+        ? CODE_ROOT : hubRoot;
+    const verdict = verifySterlingMandate(
+        beadAsHallRecord,
+        args.mandate_evidence,
+        hubRoot,
+        Date.now(),
+        evidenceRoot,
+    );
 
     if (verdict.verdict === 'REJECTED') {
         throw new Error(

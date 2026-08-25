@@ -1,28 +1,17 @@
 # CStar Authority Pointer
 
-This file is a compatibility pointer only. Current repository authority lives in
-[`AGENTS.md`](AGENTS.md), after the operator and global Corvus instructions.
-Registry declarations and observed runtime are evidence; neither outranks those
-instructions or creates execution authority.
+This file is a compatibility pointer only. Current repository instructions live
+in `AGENTS.md`, after platform/operator safety and global Corvus invariants.
 
-The active boundary is deliberately small:
+- CStar kernel MCP owns durable lifecycle state and supported receipts.
+- CoS coordinates; Forge implements; Researcher researches; an independent lane
+  validates. PMTs are information-only and MM has no active routing role.
+- Forge uses request, authorize, execute, and independent validation.
+- Persona is explicit workflow state, selected with `cstar_persona_set` only at
+  a workflow boundary. It never changes scope, authority, or operator gates.
+- Capability declarations and runtime observations are evidence, not authority.
+- Installation, activation, restart, Git, deployment, live sources, holdout,
+  secrets/config, destructive cleanup, and production stay separately gated.
 
-- CStar kernel MCP owns durable planning, bead/proposal lifecycle, validation,
-  completion, and Forge/Researcher request receipts.
-- CoS coordinates operator-facing work. PMTs are project-scoped information
-  repositories only, and MM has no active routing role.
-- Corvus Forge implements through the durable private Hermes/MiniMax request,
-  execute, and independent-validation path. Node runtime weaves, dynamic legacy
-  commands, and Codex subagents are not substitutes.
-- The Node runtime does not create lifecycle beads, invoke host callbacks, or
-  infer provider/model authority. Retired or unknown runtime and CLI names fail
-  closed before Hall, state, provider, process, source, or Git effects.
-- Persona context is style-only and comes only from the bounded field returned
-  by `cstar_status`; there is no local configuration-file fallback.
-- Scores and production claims require current measured evidence. Installation,
-  restart, activation, merge, deployment, live-source, holdout, secrets/config,
-  destructive cleanup, and production remain separately operator-gated.
-
-Procedures belong in the runbooks linked from `AGENTS.md`. Historical Trace,
-One Mind, Weave, Spell, Gungnir, autonomous-governor, and automatic-Hall prose
-has no current authority.
+Use the current `CODE_ROOT/.agents/AGENTS.feature` for situation routing and the
+runbook named by its selected row. Do not copy procedures back into this file.

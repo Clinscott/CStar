@@ -5,7 +5,7 @@ import path from 'node:path';
 import { afterEach, beforeEach, describe, it } from 'node:test';
 
 import { closeDb, database } from '../../../src/tools/pennyone/intel/database.js';
-import { getForgeAuthorizationByRequest } from '../../../src/tools/pennyone/intel/forge_receipt_controller.js';
+import { getForgeAuthorizationByRequest, getForgeRequest } from '../../../src/tools/pennyone/intel/forge_receipt_controller.js';
 import { saveForgeRequest } from '../../../src/tools/pennyone/intel/forge_request_authorization_controller.js';
 import { registry } from '../../../src/tools/pennyone/pathRegistry.js';
 import { buildHallRepositoryId, normalizeHallPath } from '../../../src/types/hall.js';
@@ -25,6 +25,8 @@ import {
     validRequestContext,
 } from './operator_authorization_test_support.js';
 import { writeCountingAdapter } from './forge_durable_execution_test_support.js';
+import { verifyCodexRequestIdentity } from '../../../src/tools/cstar-kernel-mcp/tools/operator_authorization.js';
+import { verifyForgeContinuationLineage } from '../../../src/tools/cstar-kernel-mcp/tools/forge_continuation_authority.js';
 
 const originalRoot = registry.getRoot();
 const originalAdapter = process.env.CSTAR_FORGE_HERMES_MINIMAX_ADAPTER_SCRIPT;
@@ -247,4 +249,92 @@ describe('Forge current-turn authorization after host restart', () => {
         assert.equal(rejected.forge_execution.live_spend, false);
         assert.equal(getForgeAuthorizationByRequest(value.db, request.requestId), null);
     });
+
+    it('permits only same-thread unrevoked continuation before reconciliation', async () => {
+        const value = setupRoot('continuation-lineage');
+        const session = createSession({ textParts: ['Build the TokenPath Q0 phase-one repair.'] });
+        const requestRef = saveExactRequest(value, session.threadId);
+        const granted = parse(await handleForgeAuthorize({
+            forge_request_receipt_id: requestRef.requestId,
+            request_sha256: requestRef.requestSha256,
+        }, validRequestContext(session.threadId, session.turnId)));
+        assert.equal(granted.status, 'authorized');
+        const authorization = getForgeAuthorizationByRequest(value.db, requestRef.requestId)!;
+        assert.ok(getForgeRequest(value.db, requestRef.requestId));
+        const currentTurn = randomUUID();
+        appendUserMessage(
+            session.sessionFile,
+            currentTurn,
+            'The error should be fixed and the build proceed.',
+            new Date(Date.now() + 1).toISOString(),
+        );
+        const caller = await verifyCodexRequestIdentity(
+            validRequestContext(session.threadId, currentTurn),
+        );
+        assert.doesNotThrow(() => verifyForgeContinuationLineage({ authorization, caller }));
+        assert.throws(() => verifyForgeContinuationLineage({
+            authorization, caller, now: authorization.expires_at + 1,
+        }), /forge_continuation_caller_invalid/);
+
+        const other = createSession({ textParts: ['Continue unrelated work.'] });
+        const otherCaller = await verifyCodexRequestIdentity(
+            validRequestContext(other.threadId, other.turnId),
+        );
+        assert.throws(() => verifyForgeContinuationLineage({
+            authorization, caller: otherCaller,
+        }), /forge_continuation_caller_invalid/);
+    });
+
+    it('detects a later explicit Forge revocation', async () => {
+        const value = setupRoot('continuation-revocation');
+        const session = createSession({ textParts: ['Build the TokenPath Q0 phase-one repair.'] });
+        const requestRef = saveExactRequest(value, session.threadId);
+        const granted = parse(await handleForgeAuthorize({
+            forge_request_receipt_id: requestRef.requestId,
+            request_sha256: requestRef.requestSha256,
+        }, validRequestContext(session.threadId, session.turnId)));
+        assert.equal(granted.status, 'authorized');
+        const revokedTurn = randomUUID();
+        appendUserMessage(
+            session.sessionFile,
+            revokedTurn,
+            'Stop the Forge build request.',
+            new Date(Date.now() + 1).toISOString(),
+        );
+        const caller = await verifyCodexRequestIdentity(
+            validRequestContext(session.threadId, revokedTurn),
+        );
+        assert.throws(() => verifyForgeContinuationLineage({
+            authorization: getForgeAuthorizationByRequest(value.db, requestRef.requestId)!,
+            caller,
+        }), /forge_continuation_revoked/);
+    });
+
+    for (const [label, revocation] of [
+        ['stop', 'Stop the Forge build request.'],
+        ['proceed', 'Do not proceed with the Forge build.'],
+        ['execute', "Don't execute the build."],
+        ['rescind', 'I rescind the Forge authorization.'],
+    ] as const) {
+        it(`detects an appended ${label} revocation in the authorizing turn`, async () => {
+            const value = setupRoot(`same-turn-revocation-${label}`);
+            const session = createSession({ textParts: ['Build the TokenPath Q0 phase-one repair.'] });
+            const requestRef = saveExactRequest(value, session.threadId);
+            const granted = parse(await handleForgeAuthorize({
+                forge_request_receipt_id: requestRef.requestId,
+                request_sha256: requestRef.requestSha256,
+            }, validRequestContext(session.threadId, session.turnId)));
+            assert.equal(granted.status, 'authorized');
+            appendUserMessage(
+                session.sessionFile, session.turnId, revocation,
+                new Date(Date.now() + 1).toISOString(),
+            );
+            const caller = await verifyCodexRequestIdentity(
+                validRequestContext(session.threadId, session.turnId),
+            );
+            assert.throws(() => verifyForgeContinuationLineage({
+                authorization: getForgeAuthorizationByRequest(value.db, requestRef.requestId)!, caller,
+            }), /forge_continuation_revoked/);
+        });
+    }
 });

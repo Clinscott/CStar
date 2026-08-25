@@ -7,6 +7,7 @@ import { CSTAR_KERNEL_TOOL_CATALOG } from '../tools/cstar-kernel-mcp/contracts/t
 interface PackageMetadata {
     name?: string;
     version?: string;
+    codexPluginVersion?: string;
     description?: string;
     homepage?: string;
     repository?: string | { url?: string };
@@ -99,7 +100,7 @@ export function buildGeminiContextContent(projectRoot: string, capabilities: Cap
         '',
         '## Identity',
         `- Package: \`${metadata.name ?? 'corvusstar'}\` v${metadata.version ?? '0.0.0'}`,
-        '- Persona: read only the bounded `cstar_status.persona` projection at runtime; omit it when unavailable.',
+        '- Persona: read only `cstar_status.persona`; apply O.D.I.N. as build-run-repair and A.L.F.R.E.D. as secure-harden guidance without changing authority or operator gates.',
         `- Repository: \`${getRepositoryUrl(metadata.repository) || 'local workspace'}\``,
         '',
         '## Authority Order',
@@ -129,7 +130,7 @@ export function buildGeminiContextContent(projectRoot: string, capabilities: Cap
         '- Treat `native-session` and `exec-bridge` capabilities as host-routed, and treat `supported` capabilities as kernel-backed launch surfaces.',
         '- Treat `host-workflow` entries as host-owned cognition/workflow surfaces and `kernel-primitive` entries as deterministic kernel control-plane primitives.',
         '- Public host fronts marked with kernel fallback forbidden must fail closed when no host session is active; they must not degrade into legacy kernel cognition.',
-        '- Persona is style-only. Read only the bounded persona projection returned by `cstar_status`; omit persona context when unavailable.',
+        '- Persona is non-authoritative process guidance. Read only `cstar_status.persona`; O.D.I.N. means build-run-repair and A.L.F.R.E.D. means secure-harden. Omit it when unavailable.',
         '',
         ...buildAuguryDisplaySection(),
         ...buildKernelMcpToolsSection(),
@@ -151,7 +152,7 @@ export function buildCodexPluginManifestContent(projectRoot: string): string {
 
     return `${JSON.stringify({
         name: 'corvus-star',
-        version: metadata.version ?? '0.0.0',
+        version: metadata.codexPluginVersion ?? metadata.version ?? '0.0.0',
         description: 'Host-native Corvus Star Augury, Hall, and CStar runtime integration.',
         author,
         homepage: metadata.homepage ?? repositoryUrl,
@@ -242,7 +243,7 @@ export function buildCodexPluginSkillContent(capabilities: CapabilityExport[]): 
         '- Treat `host-workflow` entries as host-owned cognition/workflow surfaces and `kernel-primitive` entries as deterministic kernel control-plane primitives.',
         '- Public host fronts marked with forbidden kernel fallback must fail closed instead of dropping into legacy kernel cognition.',
         '- This Codex plugin is skill-only. It bundles neither MCP servers nor hooks; the independently managed host-global CStar kernel supplies tools.',
-        '- Persona is style-only. Read only the bounded persona projection from `cstar_status`; omit it when that field is unavailable.',
+        '- Persona is non-authoritative process guidance. Read only `cstar_status.persona`; use O.D.I.N. for build-run-repair and A.L.F.R.E.D. for secure-harden, without changing scope, authority, or gates.',
         '- Do not run shell `cstar chant` for host-only planning. In Codex, perform the host-native planning and critique in-session, using Hall/Augury state commands for bounded state and evidence.',
         '',
         ...buildAuguryDisplaySection(),
@@ -308,9 +309,9 @@ function buildGeminiMcpServers(): Record<string, McpServerConfig> {
 
 export function buildDistributionReadmeContent(geminiCapabilities: CapabilityExport[], codexCapabilities: CapabilityExport[]): string {
     return [
-        '# Corvus Star Install Surfaces',
+        '# Corvus Star Source and Release Surfaces',
         '',
-        'This repository generates host install artifacts from the declared registry and kernel tool catalog.',
+        'This repository generates verified host source-staging artifacts from the declared registry and kernel tool catalog.',
         '',
         '## Gemini CLI',
         '- Install from the repository root so `gemini-extension.json` and `GEMINI.md` are available.',
@@ -320,10 +321,12 @@ export function buildDistributionReadmeContent(geminiCapabilities: CapabilityExp
         '- Public host fronts marked as no-fallback are expected to fail closed when the host session is unavailable.',
         '',
         '## Codex',
-        '- The source plugin under `plugins/corvus-star/` is skill-only: manifest, README, and skill.',
+        '- The source plugin under `plugins/corvus-star/` is skill-only: manifest, README, skill, and generated lineage.',
         '- It contains no MCP server or hook. The host-global CStar kernel is managed independently.',
-        '- Install or update it only through the supported Codex plugin surface.',
-        '- Do not copy plugin caches or marketplace files by hand.',
+        '- `plugins/corvus-star/lineage.json` binds the immutable version to its tool catalog, exported capabilities, runtime mode, and per-file hashes.',
+        '- Source staging only: `npm run install:codex-local` verifies and stages the plugin under `~/plugins/corvus-star`; it does not run `codex plugin add`, refresh Codex cache, restart Desktop, or prove live activation.',
+        '- Marketplace reconciliation, `codex plugin add`, restart or new-task pickup, and live proof remain separately operator-gated.',
+        '- Never copy plugin caches or marketplace state by hand.',
         '- Codex skill context presents Augury as an advisory route explanation, never authority or proof.',
         '- Public host fronts marked as no-fallback are expected to fail closed when the host session is unavailable.',
         '',
@@ -339,9 +342,9 @@ export function buildDistributionReadmeContent(geminiCapabilities: CapabilityExp
         '- `npm run release:prepare`',
         '',
         '## CI',
-        '- Pull requests and pushes should fail if generated install artifacts drift from the registry-backed source.',
+        '- Pull requests and pushes should fail if generated host artifacts drift from the registry-backed source.',
         '- Tagged pushes and manual runs can publish host-ready bundle artifacts from `dist/host-distributions/`.',
-        '- Use supported host installation surfaces; never hand-edit Codex plugin caches or marketplace state.',
+        '- Stage verified source, then use the supported host activation surface; never hand-edit Codex plugin caches or marketplace state.',
         '',
     ].join('\n');
 }

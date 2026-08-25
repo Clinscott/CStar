@@ -7,7 +7,7 @@ import {
     assertForgeHermesPreflightEquivalent,
     createForgeOAuthHorizon,
     minimalForgeAdapterEnvironment,
-    preflightForgeHermesOAuthBeforeReservation,
+    preflightForgeHermesOAuthAfterReservation,
     validateAndProjectForgeHermesPreflight,
 } from '../../../src/tools/cstar-kernel-mcp/tools/forge_hermes_oauth_contract.js';
 import {
@@ -170,7 +170,7 @@ describe('Forge Hermes OAuth contract', () => {
             const actualHorizon = createForgeOAuthHorizon(
                 args, 'decision:oauth-contract', executionId, selected, expected,
             );
-            const actual = await preflightForgeHermesOAuthBeforeReservation(
+            const actual = await preflightForgeHermesOAuthAfterReservation(
                 args, 'decision:oauth-contract', executionId,
                 path.resolve('.'), selected, runtime, expected, actualHorizon,
             );
