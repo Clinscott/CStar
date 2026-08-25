@@ -59,33 +59,49 @@ function createProjectRoot(): string {
     return root;
 }
 
+function createPreparedCodexHome(): { homeDir: string; marketplacePath: string } {
+    const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-home-codex-'));
+    const marketplacePath = path.join(homeDir, '.agents', 'plugins', 'marketplace.json');
+    fs.mkdirSync(path.dirname(marketplacePath), { recursive: true });
+    fs.writeFileSync(
+        marketplacePath,
+        `${JSON.stringify({
+            name: 'corvus-local',
+            plugins: [{
+                name: 'corvus-star',
+                source: { source: 'local', path: './plugins/corvus-star' },
+                policy: { installation: 'AVAILABLE', authentication: 'ON_INSTALL' },
+                category: 'Developer Tools',
+            }],
+        }, null, 2)}\n`,
+        'utf-8',
+    );
+    return { homeDir, marketplacePath };
+}
+
 describe('distribution installers', () => {
-    it('links the project root into the local Gemini extensions directory', () => {
+    it('rejects retired direct Gemini installation without host mutation', () => {
         const projectRoot = createProjectRoot();
         const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-home-gemini-'));
+        const before = fs.readdirSync(homeDir);
 
-        const result = installGeminiExtension({ projectRoot, homeDir });
-        const stat = fs.lstatSync(result.linkPath);
-
-        assert.equal(stat.isSymbolicLink(), true);
-        assert.equal(path.resolve(path.dirname(result.linkPath), fs.readlinkSync(result.linkPath)), projectRoot);
+        assert.throws(
+            () => installGeminiExtension({ projectRoot, homeDir }),
+            /direct_gemini_extension_install_retired_requires_supported_host_surface/,
+        );
+        assert.deepEqual(fs.readdirSync(homeDir), before);
     });
 
-    it('installs the Codex plugin into the local marketplace with absolute MCP cwd', () => {
+    it('stages the Codex plugin into a prepared marketplace without activation effects', () => {
         const projectRoot = createProjectRoot();
-        const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-home-codex-'));
+        const { homeDir, marketplacePath } = createPreparedCodexHome();
+        const marketplaceBefore = fs.readFileSync(marketplacePath);
 
         const result = installCodexPlugin({ projectRoot, homeDir });
-        const pluginMcpPath = path.join(result.pluginPath, '.mcp.json');
-        const pluginMcp = JSON.parse(fs.readFileSync(pluginMcpPath, 'utf-8')) as {
-            mcpServers?: Record<string, { cwd?: string }>;
-        };
-        const marketplace = JSON.parse(fs.readFileSync(result.marketplacePath, 'utf-8')) as {
-            plugins?: Array<{ name?: string; source?: { path?: string } }>;
-        };
-
-        assert.equal(pluginMcp.mcpServers?.pennyone?.cwd, projectRoot);
-        assert.equal(marketplace.plugins?.[0]?.name, 'corvus-star');
-        assert.equal(marketplace.plugins?.[0]?.source?.path, './plugins/corvus-star');
+        assert.equal(result.pluginPath, path.join(homeDir, 'plugins', 'corvus-star'));
+        assert.equal(fs.existsSync(path.join(result.pluginPath, 'lineage.json')), true);
+        assert.equal(fs.existsSync(path.join(result.pluginPath, '.mcp.json')), false);
+        assert.deepEqual(fs.readFileSync(marketplacePath), marketplaceBefore);
+        assert.equal(fs.existsSync(path.join(homeDir, '.codex')), false);
     });
 });

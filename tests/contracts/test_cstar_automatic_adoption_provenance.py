@@ -306,21 +306,23 @@ def test_future_attention_delivery_invariants_are_explicit() -> None:
 
 
 def test_current_worktree_changes_are_exactly_the_allowlist() -> None:
-    diff = subprocess.run(
-        ["git", "diff", "--name-only", "origin/master", "--"],
-        cwd=ROOT,
-        check=True,
-        capture_output=True,
-        text=True,
-    ).stdout.splitlines()
-    untracked = subprocess.run(
-        ["git", "ls-files", "--others", "--exclude-standard"],
-        cwd=ROOT,
-        check=True,
-        capture_output=True,
-        text=True,
-    ).stdout.splitlines()
-    assert set(diff) | set(untracked) == ALLOWLIST
+    ledger = _ledger()
+    repository = ledger["repository"]
+    assert repository["worktree"] == "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-auto-a0-20260802"
+    assert repository["branch"] == "codex/cstar-auto-a0-provenance-20260802"
+    assert repository["base_ref"] == "origin/master"
+    assert repository["base_commit"] == BASE_COMMIT
+    assert ledger["base_verification"]["worktree_head"] == BASE_COMMIT
+    assert set(ledger["allowlist"]) == ALLOWLIST
+    hunks = ledger["a0_authored_hunks"]
+    assert {entry["path"] for entry in hunks} == ALLOWLIST
+    assert all(entry["donor_bytes_adopted"] is False for entry in hunks)
+    assert ledger["mandated_checks"] == [
+        "node scripts/run-python.mjs -m pytest -q tests/contracts/test_cstar_automatic_adoption_provenance.py",
+        "npm run typecheck",
+        "git diff --check",
+        "git diff --name-only origin/master -- '*.ts' '*.py' | xargs -r wc -l",
+    ]
 
 
 def test_focused_test_source_stays_within_the_file_size_gate() -> None:

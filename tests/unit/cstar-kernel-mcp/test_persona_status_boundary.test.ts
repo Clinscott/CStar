@@ -16,6 +16,10 @@ import {
     closeDb,
     upsertHallRepository,
 } from '../../../src/tools/pennyone/intel/database.ts';
+import {
+    readCanonicalPersonaState,
+    setCanonicalPersonaState,
+} from '../../../src/tools/pennyone/intel/persona_state.ts';
 import { registry } from '../../../src/tools/pennyone/pathRegistry.ts';
 import {
     buildPersonaProjectionMetadata,
@@ -66,45 +70,19 @@ describe('CStar status-only persona boundary', () => {
         assert.doesNotMatch(source, /\.agents[\\/'\"]|config\.json/);
     });
 
-    it('preserves a Hall-projected persona while legacy framework mutation fails closed', () => {
-        upsertHallRepository({
-            root_path: root,
-            name: 'synthetic-cstar',
-            status: 'AWAKE',
-            active_persona: 'O.D.I.N.',
-            baseline_gungnir_score: 0,
-            intent_integrity: 0,
-            metadata: {
-                source: 'synthetic-persona-boundary-test',
-                ...buildPersonaProjectionMetadata('O.D.I.N.'),
-            },
-            created_at: 1,
-            updated_at: 1,
-        });
+    it('preserves dedicated Hall persona state while legacy framework mutation fails closed', () => {
+        const applied = setCanonicalPersonaState(root, 'O.D.I.N.');
+        assert.equal(applied.outcome, 'changed');
+        assert.equal(readCanonicalPersonaState(root).active_persona, 'O.D.I.N.');
 
         assert.throws(
             () => StateRegistry.updateFramework({ active_task: 'bounded synthetic update' }),
             /legacy_state_registry_mutation_retired_use_cstar_kernel/,
         );
-
-        assert.equal(StateRegistry.get().framework.active_persona, 'O.D.I.N.');
     });
 
     it('returns only the projected scalar and derives policy from it', async () => {
-        upsertHallRepository({
-            root_path: root,
-            name: 'synthetic-cstar',
-            status: 'AWAKE',
-            active_persona: 'O.D.I.N.',
-            baseline_gungnir_score: 0,
-            intent_integrity: 0,
-            metadata: {
-                source: 'synthetic-persona-boundary-test',
-                ...buildPersonaProjectionMetadata('O.D.I.N.'),
-            },
-            created_at: 1,
-            updated_at: 1,
-        });
+        setCanonicalPersonaState(root, 'O.D.I.N.');
 
         const result = await handleStatus();
         const payload = JSON.parse(result.content[0]?.text ?? '{}') as Record<string, unknown>;
@@ -114,6 +92,18 @@ describe('CStar status-only persona boundary', () => {
         assert.equal((payload.framework as Record<string, unknown>).active_persona, undefined);
         assert.equal('tone_directive' in payload, false);
         assert.equal(JSON.stringify(payload).includes('config'), false);
+    });
+
+    it('prefers canonical Hall state over a later legacy config value', async () => {
+        setCanonicalPersonaState(root, 'O.D.I.N.');
+        fs.writeFileSync(path.join(root, '.agents', 'config.json'), JSON.stringify({
+            system: { persona: 'A.L.F.R.E.D.' }, secret: 'SECRET_CANARY_MUST_NOT_ESCAPE',
+        }));
+        const result = await handleStatus();
+        const payload = JSON.parse(result.content[0]?.text ?? '{}') as Record<string, unknown>;
+        assert.equal(payload.persona, 'O.D.I.N.');
+        assert.equal(payload.persona_projection_status, 'self_consistent_unverified');
+        assert.doesNotMatch(JSON.stringify(payload), /SECRET_CANARY|system/);
     });
 
     it('reads only the configured persona scalar through the isolated reader', async () => {

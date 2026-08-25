@@ -1,0 +1,45 @@
+schema: cstar.independent_validation_lore.v1
+validation_id: validation:cstar-reliability-loop-v1-20260805-r4-kepler-live
+bead_id: bead:mcp:turn-the-accepted-sprt-autoresearcher-gungnir-fi-msg4t12q
+verdict: ACCEPTED
+
+validator_identity:
+  thread_id: 019fd24a-2aee-7861-9aca-d2ac36206514
+  task_complete_turn_id: 019fd2c3-e5e4-7323-91cf-1805b5f53662
+  requested_model: gpt-5.6-luna
+  requested_reasoning: max
+  actual_model: gpt-5.6-sol
+  actual_reasoning: max
+
+frozen_candidate:
+  root: /home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803
+  observed_branch: master
+  observed_head: 31728dd6c198a0b61bc287f581b4347e5f2675dd
+  reliability_loop_sha256: 221eb19a93c400e2f5fd0e2abc89319457230feaed30a6b5e256707a6bcd5453
+  result_sha256: 1a1f978aa33037ea44a03e058023e9dc9b691558254cb40a3fd7b76954c974c1
+  candidate_source_entries: 13
+  recorded_candidate_source_digest: fa3c91f0f2aa7397575dc36484ac7ce177fb2eaa16aa1b5e94fbd27549cd9d4c
+  recomputed_candidate_source_digest: fa3c91f0f2aa7397575dc36484ac7ce177fb2eaa16aa1b5e94fbd27549cd9d4c
+  candidate_digest_match: true
+
+reliability_contract:
+  receipt_parser: verifyReliabilityReceipt
+  receipt_present: true
+  receipt_verified: true
+  receipt_error: null
+  receipt_sha256: da57e25788452d700d6215fb4f7db4e897872ec877277df12b0bb3db3d13d400
+  sprt_verdict: ACCEPTED
+  trials_passed: 11
+  trials_failed: 0
+  trials_total: 11
+  gungnir_authority: heuristic_evidence_only
+  gungnir_authority_effect: none
+
+authority_boundary:
+  source_edits: none
+  cstar_calls_or_mutations: none
+  live_provider_or_network: none
+  restart_install_git_mutation: none
+  lifecycle_transition_recorded: false
+
+lore_conclusion: frozen source, repository-bound receipt parsing, deterministic candidate digest, and non-authoritative Gungnir evidence all satisfy Reliability Loop v1 r4

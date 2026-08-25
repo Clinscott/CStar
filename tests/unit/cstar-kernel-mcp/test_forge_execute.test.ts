@@ -135,20 +135,24 @@ it('cstar_forge_execute rejects live execution without operator authorization', 
         spend_policy: { mode: 'live_authorized', max_retries: 1, live_source_allowed: false },
         operator_authorization_ref: undefined,
     }));
-    assert.strictEqual(result.isError, true);
+    assert.strictEqual(result.isError, undefined);
     const parsed = JSON.parse(result.content[0].text);
+    assert.strictEqual(parsed.outcome, 'guardrail_block');
+    assert.strictEqual(parsed.error_code, 'forge_execution_contract_invalid');
     assert.strictEqual(parsed.status, 'rejected');
-    assert.match(parsed.error, /operator_authorization_ref/);
+    assert.strictEqual(parsed.error, 'live Forge execution requires operator_authorization_ref');
 });
 
 it('cstar_forge_execute rejects mismatched receipt linkage', async () => {
     const result = await handleForgeExecute(validForgeExecuteRequest({
         decision_id: 'decision-other',
     }));
-    assert.strictEqual(result.isError, true);
+    assert.strictEqual(result.isError, undefined);
     const parsed = JSON.parse(result.content[0].text);
+    assert.strictEqual(parsed.outcome, 'guardrail_block');
+    assert.strictEqual(parsed.error_code, 'forge_execution_contract_invalid');
     assert.strictEqual(parsed.status, 'rejected');
-    assert.match(parsed.error, /decision_id must match/);
+    assert.strictEqual(parsed.error, 'decision_id must match forge_request_decision_id');
 });
 
 it('cstar_forge_execute rejects inconsistent package locks', async () => {
@@ -158,10 +162,12 @@ it('cstar_forge_execute rejects inconsistent package locks', async () => {
             { path: 'work/packages/forge.tar.gz', sha256: 'def456' },
         ],
     }));
-    assert.strictEqual(result.isError, true);
+    assert.strictEqual(result.isError, undefined);
     const parsed = JSON.parse(result.content[0].text);
+    assert.strictEqual(parsed.outcome, 'guardrail_block');
+    assert.strictEqual(parsed.error_code, 'forge_execution_contract_invalid');
     assert.strictEqual(parsed.status, 'rejected');
-    assert.match(parsed.error, /package_locks/);
+    assert.strictEqual(parsed.error, 'package_locks contain inconsistent hashes for the same path');
 });
 
 it('cstar_forge_execute invokes the approved adapter under live authorization without Codex fallback', async () => {

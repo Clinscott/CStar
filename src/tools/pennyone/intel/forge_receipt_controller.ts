@@ -326,7 +326,7 @@ export function reserveForgeAttempt(
             `).run(now, now, request.request_id);
             throw new Error('forge_request_authorization_expired');
         }
-        if (request.adapter_ref !== input.adapter_ref) {
+        if ((request.adapter_ref ?? '') !== input.adapter_ref) {
             throw new Error('forge_attempt_adapter_mismatch');
         }
         const active = db.prepare(`

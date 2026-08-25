@@ -128,7 +128,8 @@ Do not loop forever trying to get a perfect startup.
 - Researcher researches; live external collection is lane-gated.
 - CorvusEye evaluates and red-teams; it cannot self-certify Researcher.
 - PennyOne/dashboard mirrors state for operator visibility.
-- MM is legacy and has no active routing or relay role.
+- MM is inactive and has no active routing, synthesis, ownership, relay, review,
+  or execution role.
 - Chat history is a locator, not evidence.
 
 ## Operator Gates
@@ -250,7 +251,8 @@ Operating rules:
   explicit authorization.
 - When waiting on external state, stop and pause. Do not poll-loop.
 - PMTs grant no ownership, execution, review, approval, routing, or monitoring
-  authority. MM is legacy and has no active role.
+  authority. MM is inactive and has no active routing, synthesis, ownership,
+  relay, review, or execution role.
 
 Default CoS response shape:
 - Verdict

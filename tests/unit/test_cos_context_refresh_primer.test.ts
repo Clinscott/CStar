@@ -37,7 +37,7 @@ describe('CoS context refresh primer', () => {
             'A missing mapped PMT is a freshness gap, not an execution gate',
             'Luna for routine retrieval, Terra for conflicting-context synthesis',
             'Requested and actual identity are recorded separately',
-            'MM is legacy and has no active routing or relay role',
+            'MM is inactive and has no active routing, synthesis, ownership, relay, review, or execution role',
             'Corvus Forge builds implementation',
             'Researcher researches',
             'PennyOne/dashboard mirrors state',
@@ -78,7 +78,7 @@ describe('CoS context refresh primer', () => {
         assert.match(packet, /perfect_score_review_pending/);
         assert.match(packet, /PMTs are project-scoped information repositories only/);
         assert.match(packet, /PMT unavailability is a freshness gap/);
-        assert.match(packet, /MM is legacy and has no active routing or relay role/);
+        assert.match(packet, /MM is inactive and has no active routing, synthesis, ownership, relay, review, or execution role/);
     });
 
     it('keeps a Sterling lore contract for the primer behavior', () => {
@@ -90,6 +90,6 @@ describe('CoS context refresh primer', () => {
         assert.match(feature, /PMT unavailability as a freshness gap/);
         assert.match(feature, /require mapped-PMT context when an in-scope mapping exists/);
         assert.match(feature, /requested and actual mapped-PMT model identity separately/);
-        assert.match(feature, /MM as legacy with no active routing role/);
+        assert.match(feature, /MM is inactive and has no active routing, synthesis, ownership, relay, review, or execution role/);
     });
 });

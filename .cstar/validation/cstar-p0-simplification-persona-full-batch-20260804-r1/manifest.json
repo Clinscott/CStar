@@ -1,0 +1,178 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:mcp:implement-the-operator-authorized-p0-compatibili-mrphda57",
+  "validation_id": "validation:cstar-p0-simplification-persona-full-batch-20260804-r1",
+  "reported_verdict": "REJECTED",
+  "worktree": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803",
+  "requested_model": "gpt-5.6-luna/max",
+  "actual_model": "gpt-5",
+  "artifact_count": 32,
+  "artifacts": [
+    {
+      "path": ".cstar/validation/cstar-p0-simplification-persona-full-batch-20260804-r1/report.md",
+      "sha256": "b9fe3048195e4bd5a96d6c4264e9fae5537f8a4101898265d87dc0fa640cc994",
+      "role": "validation_report"
+    },
+    {
+      "path": ".cstar/validation/cstar-p0-simplification-persona-full-batch-20260804-r1/full-unit-check.json",
+      "sha256": "d9348ed6fe96dc7f6d8dedd8834b9051397b9cbfa0d7e3035c0fc25667ce4cf7",
+      "role": "full_unit_check"
+    },
+    {
+      "path": ".cstar/validation/cstar-p0-simplification-persona-full-batch-20260804-r1/contracts-distribution-check.json",
+      "sha256": "e9be82739ae135aeef415514c1da70d9f49b84f7643324568409fcec3b659eab",
+      "role": "contracts_distribution_check"
+    },
+    {
+      "path": ".cstar/validation/cstar-p0-simplification-persona-full-batch-20260804-r1/structural-check.json",
+      "sha256": "bb9d3dbd1356a5eff9815943b9c41b70798619a67eff9db264b7d89b3e00c176",
+      "role": "structural_check"
+    },
+    {
+      "path": ".cstar/validation/cstar-auto-p0-outcome-deadline-telemetry-20260804-r2/manifest.json",
+      "sha256": "5cc9772fc416f92213427303d7456d6166c9f59c5ca602eea8021b26e74e84bc",
+      "role": "accepted_child_manifest_set_01"
+    },
+    {
+      "path": ".cstar/validation/cstar-auto-p0-independent-validation-ticket-20260804-r1/manifest.json",
+      "sha256": "c09dfeadcc87cb8ffe840d64a5ac7e74f1e722277b56411c3c2ba9ad9dafa4e2",
+      "role": "accepted_child_manifest_set_02"
+    },
+    {
+      "path": ".cstar/validation/cstar-auto-p0-codex-host-worker-consumption-20260804-r1/manifest.json",
+      "sha256": "3e55b46284ff2917b0677cadb5279738f894d14f5c1c73f613cec34124954c60",
+      "role": "accepted_child_manifest_set_03"
+    },
+    {
+      "path": ".cstar/validation/cstar-auto-p0-catalog-router-parity-20260804-r2/manifest.json",
+      "sha256": "d0637e466cad52c4080e27489d075e359afd149a69377ce95503578ad7960c17",
+      "role": "accepted_child_manifest_set_04"
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/contracts/responses.ts",
+      "sha256": "64bb908c07fded134fd6b95e9f70471a6ae900063b7185cc1a9f4fddb638c3d4",
+      "role": "set_01_source"
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/telemetry/usage.ts",
+      "sha256": "77a8a1e10a3861a88ef5d6770574562db589f0528f2adfad6a7ebb91ee401013",
+      "role": "set_01_source"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_mcp_outcome_deadline_instrumentation.test.ts",
+      "sha256": "e5c8b68f4bef52f8d40519cb9f7e0afecb1cf14a2bbf29fbf84e3b08ccbb116d",
+      "role": "set_01_test"
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/result.ts",
+      "sha256": "ef02a8101246618d09693a028626629324757f69ebe13db4f3c7717298e27241",
+      "role": "set_02_source"
+    },
+    {
+      "path": "src/tools/pennyone/intel/validation_ticket_controller.ts",
+      "sha256": "34f933f0d98e98e47a40cf66a6163f3fa3a66ce116f1303130341b3d17aa2e22",
+      "role": "set_02_source"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_validation_ticket_spoke_result.test.ts",
+      "sha256": "9dd3c0fbf230d614d5d798e9274cbe3c1c07c207632c236cc83861064f1d21ae",
+      "role": "set_02_test"
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/contracts/worker_jobs.ts",
+      "sha256": "c74b06adb7b4c6843c581505fa8a29a28830f3f9d348d2468340a52932dfef1b",
+      "role": "set_03_source"
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/forge_execute.ts",
+      "sha256": "e45966cca28e2bd732103fec727098ace20291ec998476ff8cea2e2dfc20da28",
+      "role": "set_03_source"
+    },
+    {
+      "path": "src/tools/pennyone/intel/forge_host_worker_dispatch.ts",
+      "sha256": "7ee338843f5e669972663300163a9c0a395e484ebefe882b9459ffc711383347",
+      "role": "set_03_source"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_codex_host_worker_dispatch.test.ts",
+      "sha256": "01a4ff9b01afecc6c770e0b2a3412169772477d46224353a684649486b159b6b",
+      "role": "set_03_test"
+    },
+    {
+      "path": ".agents/skill_registry.json",
+      "sha256": "bd6c1bd3b86f882257f1bb4e4e6a2b5f1eac547cb84904c7be5bc92db9137cc3",
+      "role": "set_04_registry"
+    },
+    {
+      "path": "src/node/core/commands/capability_discovery.ts",
+      "sha256": "75f9b3b0505ce76d90beb0736658db5df6d8b41b426ffe57cc0402e3714ebe2f",
+      "role": "set_04_source"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_capability_compatibility_discovery.test.ts",
+      "sha256": "458647c9aebe3be835f45804fe51d9c9b083a8ac35a8b060752e5285bb89affb",
+      "role": "set_04_test"
+    },
+    {
+      "path": "plugins/corvus-star/lineage.json",
+      "sha256": "5ad42f79fb0cc6109c5a49fa3c6237710a76ad67d5b0698382cc8284a2c101c8",
+      "role": "generated_plugin_lineage"
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/persona_set.ts",
+      "sha256": "cb9d62bcd7f88649240bd8ddb1693bd1b12440d142db97483a3001d433f8ec40",
+      "role": "persona_source"
+    },
+    {
+      "path": "src/tools/pennyone/intel/persona_state.ts",
+      "sha256": "684906a2a8ffc39a4c844a0cf6c31e6ba747298b601772f7792ff3418839e7e8",
+      "role": "persona_source"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_persona_set.test.ts",
+      "sha256": "5887b66921c4a374ea93ea2b11c5f19cb28410fc09477f81f42011b71d604b41",
+      "role": "persona_test"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_persona_status_boundary.test.ts",
+      "sha256": "b3ef408a68fc143b68ba8538d791cec28563064109bdda302cc0e0004226ff6e",
+      "role": "persona_test"
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_signal.ts",
+      "sha256": "e0cf3af76e1669f3656b7ef6b39e7588f5e5450583e13c14d360ef3258154cf0",
+      "role": "authorization_source"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_set_manifest_natural_translation.test.ts",
+      "sha256": "e758a886f2e6ee3c890ee8f254a252474c4d1caa3cdd20430e8b3df49e74c6c6",
+      "role": "authorization_test"
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/automatic_mission.ts",
+      "sha256": "e1ae69b8bd07f119e9c349fcb8f2c257e31149ae3300821ac0982989fddf9a32",
+      "role": "mission_binding_source"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_automatic_mission_state.test.ts",
+      "sha256": "08cb45e3b2ab53becab469207b6b3a06e8a94cad5f2ca91b23cb322e7930c95c",
+      "role": "mission_binding_test"
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "016c9aa6413e853d5347ed7ce8cf7a1e48f140b749f617211aadcfc783e23eda",
+      "role": "router_policy"
+    },
+    {
+      "path": ".agents/AGENTS.feature",
+      "sha256": "ecc7bda3216df9885381a88cbb072e7447f827b15eedb13fdc6d93c5807adff3",
+      "role": "router_feature"
+    }
+  ],
+  "constraints": {
+    "artifact_paths_unique": true,
+    "manifest_self_reference": false,
+    "artifact_limit": 50,
+    "passing_hash_evidence_paths_unique": true
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:mcp:repair-aggregate-full-suite-typed-outcome-expect-msfahzf9",
+  "validation_id": "validation:cstar-p0-full-batch-repair-typed-outcomes-20260804-r1",
+  "reported_verdict": "ACCEPTED",
+  "artifacts": [
+    {
+      "path": "src/tools/cstar-kernel-mcp/contracts/responses.ts",
+      "sha256": "64bb908c07fded134fd6b95e9f70471a6ae900063b7185cc1a9f4fddb638c3d4",
+      "bytes": 8008
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/telemetry/usage.ts",
+      "sha256": "77a8a1e10a3861a88ef5d6770574562db589f0528f2adfad6a7ebb91ee401013",
+      "bytes": 19865
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/dispatch_request.ts",
+      "sha256": "c2bc23bb0019734e8e1ce0d91838f342f7a88b4ecc03df4fae1ac30a6210bbec",
+      "bytes": 13979
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_dispatch_action_authority.test.ts",
+      "sha256": "797e96d2ea7f5c45a88bd8c2207d13e21f73603fd059a592705aca44bbe7a857",
+      "bytes": 11882
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_dispatch_requests.test.ts",
+      "sha256": "7d45a46180f22e7c68d0ec51478b4cbaea8f7abeb13d679a0575c74b5f3dd829",
+      "bytes": 11461
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_execute.test.ts",
+      "sha256": "62d7ce91a65a53a6710bbd2e8d011aa4ec282812234fff31ba062aa2eab8f207",
+      "bytes": 27427
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_set_manifest_autonomous_dispatch.test.ts",
+      "sha256": "108a24c9ff91f89e9247739c45e63988b67ff252cc1d9ed6ea0b13c15d9e124c",
+      "bytes": 18060
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_typed_outcomes.test.ts",
+      "sha256": "89e8084a5b530f67ddae183bb3b256e4d9ece468d0633712da6024c3f4fd4d8f",
+      "bytes": 3791
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_mcp_outcome_deadline_instrumentation.test.ts",
+      "sha256": "e5c8b68f4bef52f8d40519cb9f7e0afecb1cf14a2bbf29fbf84e3b08ccbb116d",
+      "bytes": 6302
+    }
+  ],
+  "checks": [
+    {
+      "name": "focused six-suite validation",
+      "status": "pass",
+      "evidence_path": ".cstar/validation/cstar-p0-full-batch-repair-typed-outcomes-20260804-r1/focused-check.json",
+      "sha256": "0bf8cbde023937c1465e0170f8a9fbdac1d7c5e8a7160cc741416fcf3f4a24f9"
+    },
+    {
+      "name": "structural and source contract validation",
+      "status": "pass",
+      "evidence_path": ".cstar/validation/cstar-p0-full-batch-repair-typed-outcomes-20260804-r1/structural-check.json",
+      "sha256": "177e068f1cf6cec560754bd5b08120f910c46f5a3292f5b0105df7edbf2fbe68"
+    },
+    {
+      "name": "independent validator report",
+      "status": "pass",
+      "evidence_path": ".cstar/validation/cstar-p0-full-batch-repair-typed-outcomes-20260804-r1/report.md",
+      "sha256": "ce9f20a4c7ed6cf087065ff93b8782d280fe2f06fdcb741add967f6e0e65a1d4"
+    }
+  ]
+}

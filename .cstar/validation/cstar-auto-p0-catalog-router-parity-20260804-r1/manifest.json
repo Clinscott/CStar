@@ -1,0 +1,104 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:mcp:after-mechanism-closure-make-the-default-capabil-msf54o97",
+  "validation_id": "validation:cstar-auto-p0-catalog-router-parity-20260804-r1",
+  "reported_verdict": "REJECTED",
+  "artifacts": [
+    {
+      "path": ".agents/skill_registry.json",
+      "sha256": "bd6c1bd3b86f882257f1bb4e4e6a2b5f1eac547cb84904c7be5bc92db9137cc3",
+      "bytes": 6709
+    },
+    {
+      "path": ".agents/skills/corvus-forge/SKILL.md",
+      "sha256": "c768409d2911e8bcd38fb40370749836a6de0a9ceef26eb6770a10aaf1c665ae",
+      "bytes": 2038
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "016c9aa6413e853d5347ed7ce8cf7a1e48f140b749f617211aadcfc783e23eda",
+      "bytes": 2477
+    },
+    {
+      "path": ".agents/AGENTS.feature",
+      "sha256": "ecc7bda3216df9885381a88cbb072e7447f827b15eedb13fdc6d93c5807adff3",
+      "bytes": 4191
+    },
+    {
+      "path": "docs/architecture/SKILL_REGISTRY.md",
+      "sha256": "f7fd7e4babead470038a266e7584816c1e4ed492d0040d87d3d77bdf635ac73c",
+      "bytes": 4066
+    },
+    {
+      "path": "docs/integrations/host_native_skill_contract.md",
+      "sha256": "57d1ccdb188a9b80dd49fa8e0aa707b5697330bbf7b680171cd4864ee5500b94",
+      "bytes": 5777
+    },
+    {
+      "path": "docs/integrations/cstar-kernel-mcp.md",
+      "sha256": "88b44a7ebd1db0482a49e7233ab9fc4dc92ab09e293c6d7f3395a5cf03ec6752",
+      "bytes": 79402
+    },
+    {
+      "path": "src/node/core/commands/capability_discovery.ts",
+      "sha256": "75f9b3b0505ce76d90beb0736658db5df6d8b41b426ffe57cc0402e3714ebe2f",
+      "bytes": 15818
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_tool_catalog.test.ts",
+      "sha256": "d29f4df5e8d8b52bb60ef9ec1932c6bc1fbbdec92b931963e98bae6327841760",
+      "bytes": 7515
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_capability_compatibility_discovery.test.ts",
+      "sha256": "458647c9aebe3be835f45804fe51d9c9b083a8ac35a8b060752e5285bb89affb",
+      "bytes": 4783
+    },
+    {
+      "path": ".cstar/validation/cstar-auto-p0-catalog-router-parity-20260804-r1/report.md",
+      "sha256": "f642f18341b8d8356ef4220409e44783ef963cfd9f265a91c57ad6edd43bcd9d",
+      "bytes": 3148
+    },
+    {
+      "path": ".cstar/validation/cstar-auto-p0-catalog-router-parity-20260804-r1/focused-check.json",
+      "sha256": "70e376fb6f6b8719cef1b65e7e8dec7a860653b74a66e2ee1c3fd514cbd22a72",
+      "bytes": 1324
+    },
+    {
+      "path": ".cstar/validation/cstar-auto-p0-catalog-router-parity-20260804-r1/docs-check.json",
+      "sha256": "11e61e9b1dc9db283810f5e08a60fd692bf2efc57b5e6a6f83a7be9c3048a820",
+      "bytes": 2279
+    },
+    {
+      "path": ".cstar/validation/cstar-auto-p0-catalog-router-parity-20260804-r1/structural-check.json",
+      "sha256": "0cd65d440ecc58cc1f220668434e2aabd0d64551725c7b245f225b4d86044228",
+      "bytes": 2511
+    }
+  ],
+  "checks": [
+    {
+      "name": "focused_set_04_catalog_router_behavior",
+      "status": "pass",
+      "evidence_path": ".cstar/validation/cstar-auto-p0-catalog-router-parity-20260804-r1/focused-check.json",
+      "sha256": "70e376fb6f6b8719cef1b65e7e8dec7a860653b74a66e2ee1c3fd514cbd22a72"
+    },
+    {
+      "name": "registry_router_documentation_and_materialization_contracts",
+      "status": "fail",
+      "evidence_path": ".cstar/validation/cstar-auto-p0-catalog-router-parity-20260804-r1/docs-check.json",
+      "sha256": "11e61e9b1dc9db283810f5e08a60fd692bf2efc57b5e6a6f83a7be9c3048a820"
+    },
+    {
+      "name": "typecheck_diff_and_line_budget",
+      "status": "pass",
+      "evidence_path": ".cstar/validation/cstar-auto-p0-catalog-router-parity-20260804-r1/structural-check.json",
+      "sha256": "0cd65d440ecc58cc1f220668434e2aabd0d64551725c7b245f225b4d86044228"
+    },
+    {
+      "name": "independent_scope_and_semantic_review",
+      "status": "fail",
+      "evidence_path": ".cstar/validation/cstar-auto-p0-catalog-router-parity-20260804-r1/report.md",
+      "sha256": "f642f18341b8d8356ef4220409e44783ef963cfd9f265a91c57ad6edd43bcd9d"
+    }
+  ]
+}

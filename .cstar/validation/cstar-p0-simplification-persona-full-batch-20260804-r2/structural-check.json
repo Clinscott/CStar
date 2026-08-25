@@ -1,0 +1,136 @@
+{
+  "schema": "cstar.independent_validation_check.v1",
+  "check": "structural_scope_hash_and_line_audit",
+  "status": "pass",
+  "line_audit": {
+    "changed_source_test_files": 80,
+    "maximum_lines": 500,
+    "maximum_path": "src/tools/cstar-kernel-mcp/tools/augury_mission_binding.ts",
+    "all_at_most_500": true,
+    "over_500": []
+  },
+  "test_context_scope": {
+    "source_assignments_to_NODE_TEST_CONTEXT": 0,
+    "test_fixture_scoping": "set and restored within test fixtures",
+    "status": "pass"
+  },
+  "accepted_manifest_reconciliation": [
+    {
+      "validation_id": "validation:cstar-auto-p0-outcome-deadline-telemetry-20260804-r2",
+      "manifest_sha256": "5cc9772fc416f92213427303d7456d6166c9f59c5ca602eea8021b26e74e84bc",
+      "reported_verdict": "ACCEPTED",
+      "artifact_count": 7,
+      "current_exact_matches": 7,
+      "current_mismatches": 0,
+      "missing": 0,
+      "status": "pass"
+    },
+    {
+      "validation_id": "validation:cstar-auto-p0-independent-validation-ticket-20260804-r1",
+      "manifest_sha256": "c09dfeadcc87cb8ffe840d64a5ac7e74f1e722277b56411c3c2ba9ad9dafa4e2",
+      "reported_verdict": "ACCEPTED",
+      "artifact_count": 12,
+      "current_exact_matches": 12,
+      "current_mismatches": 0,
+      "missing": 0,
+      "status": "pass"
+    },
+    {
+      "validation_id": "validation:cstar-auto-p0-codex-host-worker-consumption-20260804-r1",
+      "manifest_sha256": "3e55b46284ff2917b0677cadb5279738f894d14f5c1c73f613cec34124954c60",
+      "reported_verdict": "ACCEPTED",
+      "artifact_count": 14,
+      "current_exact_matches": 12,
+      "current_mismatches": 2,
+      "missing": 0,
+      "superseded_by": "validation:cstar-p0-full-batch-repair-host-handoff-20260804-r2",
+      "superseded_paths": [
+        {
+          "path": "src/tools/cstar-kernel-mcp/tools/forge_execute.ts",
+          "historical_sha256": "e45966cca28e2bd732103fec727098ace20291ec998476ff8cea2e2dfc20da28",
+          "current_sha256": "61ca3d98f16e33b375ca6830d811a414430c59657c5ff5abaf5d4e17cc65a253",
+          "repair_manifest_sha256": "61ca3d98f16e33b375ca6830d811a414430c59657c5ff5abaf5d4e17cc65a253"
+        },
+        {
+          "path": "src/tools/pennyone/intel/forge_host_worker_dispatch.ts",
+          "historical_sha256": "7ee338843f5e669972663300163a9c0a395e484ebefe882b9459ffc711383347",
+          "current_sha256": "bcd2e57499bab4d48743e42302f6a379ad08ac2e5f45b5d10c9605de165662bb",
+          "repair_manifest_sha256": "bcd2e57499bab4d48743e42302f6a379ad08ac2e5f45b5d10c9605de165662bb"
+        }
+      ],
+      "unresolved_mismatches": 0,
+      "status": "pass_superseded_history"
+    },
+    {
+      "validation_id": "validation:cstar-auto-p0-catalog-router-parity-20260804-r2",
+      "manifest_sha256": "d0637e466cad52c4080e27489d075e359afd149a69377ce95503578ad7960c17",
+      "reported_verdict": "ACCEPTED",
+      "artifact_count": 15,
+      "current_exact_matches": 15,
+      "current_mismatches": 0,
+      "missing": 0,
+      "status": "pass"
+    },
+    {
+      "validation_id": "validation:cstar-p0-full-batch-repair-typed-outcomes-20260804-r1",
+      "manifest_sha256": "f8fe7bbf04f87d1d74fbec4f0d2d48f1771ac529f4beea3165b7db313b381cff",
+      "reported_verdict": "ACCEPTED",
+      "artifact_count": 9,
+      "current_exact_matches": 9,
+      "current_mismatches": 0,
+      "missing": 0,
+      "status": "pass"
+    },
+    {
+      "validation_id": "validation:cstar-p0-full-batch-repair-validation-ticket-20260804-r1",
+      "manifest_sha256": "aa7346c801fadf106bd8aeea4486b25af82f05bdf37582ac4198d6eeb53b148f",
+      "reported_verdict": "ACCEPTED",
+      "artifact_count": 14,
+      "current_exact_matches": 14,
+      "current_mismatches": 0,
+      "missing": 0,
+      "status": "pass"
+    },
+    {
+      "validation_id": "validation:cstar-p0-full-batch-repair-host-handoff-20260804-r2",
+      "manifest_sha256": "8a7723f0dfaa2ed8b4d6340aead03101a1a47e8fc9b65efbcc08fe62a5df5636",
+      "reported_verdict": "ACCEPTED",
+      "artifact_count": 20,
+      "current_exact_matches": 20,
+      "current_mismatches": 0,
+      "missing": 0,
+      "status": "pass"
+    }
+  ],
+  "reconciliation_totals": {
+    "accepted_manifests": 7,
+    "direct_exact_matches": 89,
+    "historical_superseded_entries": 2,
+    "unresolved_hash_mismatches": 0,
+    "missing_artifacts": 0
+  },
+  "scope": {
+    "worktree": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803",
+    "validator_source_or_test_edits": false,
+    "writes_outside_receipt_dir": false,
+    "provider_or_network_activity": false,
+    "restart_or_reload": false,
+    "git_mutation": false,
+    "install_or_rebuild": false,
+    "runtime_activation": false
+  },
+  "receipt_constraints": {
+    "receipt_dir": ".cstar/validation/cstar-p0-simplification-persona-full-batch-20260804-r2/",
+    "requested_output_files": [
+      "report.md",
+      "full-unit-check.json",
+      "contracts-distribution-check.json",
+      "structural-check.json",
+      "manifest.json"
+    ],
+    "manifest_max_artifacts": 50,
+    "manifest_self_reference": false,
+    "artifact_paths_unique": true,
+    "passing_hash_evidence_paths_unique": true
+  }
+}

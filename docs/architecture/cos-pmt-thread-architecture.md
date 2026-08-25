@@ -83,9 +83,20 @@ does not own CStar implementation, Forge delivery, or production rollout.
 ### Corvus Forge
 
 Corvus Forge builds implementation through the durable
-`cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute -> private Hermes cstar-hub ->
-minimax/MiniMax-M3` path. Its delivery remains unverified until independent
-validation is recorded through CStar. Forge does not approve its own rollout.
+`cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute ->
+cstar_forge_swarm_plan -> direct host-native workers ->
+cstar_forge_swarm_update -> separate read-only aggregator ->
+cstar_forge_swarm_complete -> DELIVERED_UNVERIFIED -> independent
+cstar_record_result` path on active connection `forge-native-codex-swarm-v1`.
+The plan uses one to three useful direct workers with disjoint ownership, no
+descendants, one attempt, and zero retry, replay, replacement, or fallback.
+Requested selector and reasoning remain immutable packet inputs; actual identity
+is separate host-attested evidence and is `unreported` absent attestation. The
+retained Codex-host state-only handoff and consumer, private Hermes/MiniMax
+adapter, and AutoBot are historical, legacy, retired, or generation-tombstoned
+evidence only, never current or alternate execution routes. Delivery remains
+unverified until independent validation is recorded through CStar. Forge does
+not approve its own rollout.
 
 ### CorvusEye
 
@@ -95,8 +106,9 @@ it does not perform the originating work it judges.
 
 ### MM
 
-MM is legacy and has no active estate-routing, synthesis, ownership, or relay
-role. Current work routes from CoS through CStar to the appropriate spoke.
+MM is inactive and has no active routing, synthesis, ownership, relay, review,
+or execution role. Current work routes from CoS through CStar to the appropriate
+spoke.
 
 ## Goal Lifecycle
 

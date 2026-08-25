@@ -1,0 +1,18 @@
+{
+  "live_hall_opened_readonly": true,
+  "rows": [
+    {
+      "authorization_profile": "autonomous_dispatch_policy_v1",
+      "count": 1
+    },
+    {
+      "authorization_profile": "exact_request_challenge_v1",
+      "count": 1
+    },
+    {
+      "authorization_profile": "root_user_forge_intent_v1",
+      "count": 8
+    }
+  ]
+}
+exit_code=0

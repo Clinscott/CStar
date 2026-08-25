@@ -1,4 +1,3 @@
-import Database from 'better-sqlite3';
 import { database } from './database.js';
 import { parseJson, stringifyJson } from './schema.js';
 

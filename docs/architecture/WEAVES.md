@@ -56,12 +56,19 @@ Multi-step Corvus work is represented explicitly:
 5. Commit, push, merge, install, restart, deploy, holdout, and production claims
    remain separate operator gates.
 
-The durable build sequence is:
+The durable current native build sequence is:
 
-`cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute -> private Hermes cstar-hub / requested minimax MiniMax-M3 -> delivered_unverified -> independent cstar_record_result`
+`cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute -> cstar_forge_swarm_plan -> direct host-native workers -> cstar_forge_swarm_update -> separate read-only aggregator -> cstar_forge_swarm_complete -> DELIVERED_UNVERIFIED -> independent cstar_record_result`
 
-This private adapter is part of the sealed Forge lane. It does not restore
-public AutoBot, direct Hermes dispatch, or general model-owned orchestration.
+The active connection is `forge-native-codex-swarm-v1`. It uses one to three
+useful direct workers with disjoint ownership, no descendants, one attempt, and
+zero retry, replay, replacement, or fallback, followed by a separate read-only
+aggregator. Requested selector and reasoning remain immutable packet inputs;
+actual identity is `unreported` without distinct host attestation. The retained
+Codex-host state-only handoff and consumer, private Hermes/MiniMax adapter, and
+AutoBot are historical, legacy, retired, or generation-tombstoned evidence
+only. They are never current, default, target, recovery, replacement, or
+fallback routes and cannot restore general model-owned orchestration.
 
 ## Compatibility Requirements
 

@@ -1,0 +1,104 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:mcp:make-current-v3-forge-execution-consume-the-dura-msf54nyu",
+  "validation_id": "validation:cstar-auto-p0-codex-host-worker-consumption-20260804-r1",
+  "reported_verdict": "ACCEPTED",
+  "artifacts": [
+    {
+      "path": "src/tools/cstar-kernel-mcp/contracts/worker_jobs.ts",
+      "sha256": "c74b06adb7b4c6843c581505fa8a29a28830f3f9d348d2468340a52932dfef1b",
+      "bytes": 15473
+    },
+    {
+      "path": "src/types/worker_job.ts",
+      "sha256": "36a377e26e22a7afa2365133df043e99feea8da5042a79016c1ad815cdcefe4c",
+      "bytes": 7828
+    },
+    {
+      "path": "src/tools/pennyone/intel/worker_job_validation.ts",
+      "sha256": "ebe32fe9ec23d733a73eddd262f2b266c5e1f427eedd89198feeacd9b1271319",
+      "bytes": 6185
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/forge_execute.ts",
+      "sha256": "e45966cca28e2bd732103fec727098ace20291ec998476ff8cea2e2dfc20da28",
+      "bytes": 24500
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/forge_execute_contract.ts",
+      "sha256": "40a3c0011f341cc2a2f97838e7bb4c4c5f59c9d758531a4e77338c3bb9b5d2c5",
+      "bytes": 2685
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/forge_execute_reservation.ts",
+      "sha256": "7e724ac421e8cf599f50b3a0ef371828f9de45212cdc55ec28e1bed78fc7dc66",
+      "bytes": 3804
+    },
+    {
+      "path": "src/tools/pennyone/intel/forge_host_worker_dispatch.ts",
+      "sha256": "7ee338843f5e669972663300163a9c0a395e484ebefe882b9459ffc711383347",
+      "bytes": 25792
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_durable_execution.test.ts",
+      "sha256": "ed5eee08bc6626840bf995abcadd69cf3f3cc3e9de0806ece057db7366ff2cca",
+      "bytes": 22305
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_execute_authority.test.ts",
+      "sha256": "9a77cdb9337129d3fbfd4ecacf923b951cbcca0b211d49aaf9e959a1b5a7b149",
+      "bytes": 3500
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_codex_host_worker_dispatch.test.ts",
+      "sha256": "01a4ff9b01afecc6c770e0b2a3412169772477d46224353a684649486b159b6b",
+      "bytes": 7526
+    },
+    {
+      "path": ".cstar/validation/cstar-auto-p0-codex-host-worker-consumption-20260804-r1/report.md",
+      "sha256": "409e061cb9da8791a09263a3a03e5154d0ae7a7190f23eb754f334988a77a981",
+      "bytes": 3923
+    },
+    {
+      "path": ".cstar/validation/cstar-auto-p0-codex-host-worker-consumption-20260804-r1/focused-check.json",
+      "sha256": "8ad14827133e70464258b186c81646c44b35b75bd85712b29ee9a37e4531aa62",
+      "bytes": 970
+    },
+    {
+      "path": ".cstar/validation/cstar-auto-p0-codex-host-worker-consumption-20260804-r1/adjacent-check.json",
+      "sha256": "5997953ae53dfbf18785cd4184489b47c98466937ee15874013a8fd28c9eeb5f",
+      "bytes": 1412
+    },
+    {
+      "path": ".cstar/validation/cstar-auto-p0-codex-host-worker-consumption-20260804-r1/structural-check.json",
+      "sha256": "0a3a514e4d77b9ec3c06078da144747f322eb1d12b5fb629f17840acf951960a",
+      "bytes": 1584
+    }
+  ],
+  "checks": [
+    {
+      "name": "focused_set_03_lifecycle",
+      "status": "pass",
+      "evidence_path": ".cstar/validation/cstar-auto-p0-codex-host-worker-consumption-20260804-r1/focused-check.json",
+      "sha256": "8ad14827133e70464258b186c81646c44b35b75bd85712b29ee9a37e4531aa62"
+    },
+    {
+      "name": "adjacent_ticket_runtime_typecheck",
+      "status": "pass",
+      "evidence_path": ".cstar/validation/cstar-auto-p0-codex-host-worker-consumption-20260804-r1/adjacent-check.json",
+      "sha256": "5997953ae53dfbf18785cd4184489b47c98466937ee15874013a8fd28c9eeb5f"
+    },
+    {
+      "name": "structural_scope_byte_stability",
+      "status": "pass",
+      "evidence_path": ".cstar/validation/cstar-auto-p0-codex-host-worker-consumption-20260804-r1/structural-check.json",
+      "sha256": "0a3a514e4d77b9ec3c06078da144747f322eb1d12b5fb629f17840acf951960a"
+    },
+    {
+      "name": "semantic_host_job_contract_review",
+      "status": "pass",
+      "evidence_path": ".cstar/validation/cstar-auto-p0-codex-host-worker-consumption-20260804-r1/report.md",
+      "sha256": "409e061cb9da8791a09263a3a03e5154d0ae7a7190f23eb754f334988a77a981"
+    }
+  ]
+}

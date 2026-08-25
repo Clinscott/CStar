@@ -17,22 +17,34 @@ import {
     isForgeGoalResumeProjectionJson,
     validateForgeGoalResumeAuthorizationInput,
 } from './forge_goal_resume_authorization_policy.js';
+import {
+    isForgeGoalResumeV2ProjectionJson,
+    validateForgeGoalResumeV2AuthorizationInput,
+} from '../../cstar-kernel-mcp/tools/forge_goal_resume_v2_authority.js';
+import {
+    assertForgeRootRepairContinuationAuthorization,
+    getForgeRootRepairBinding,
+    isForgeRootRepairContinuationReference,
+} from './forge_request_root_repair_binding.js';
 
 export function parseForgeAuthorizationIntent(input: AuthorizeForgeRequestInput) {
+    const goalResumeV2Projection = input.authorization_profile === ROOT_USER_FORGE_INTENT_PROFILE
+        && isForgeGoalResumeV2ProjectionJson(input.operator_intent_json);
     const goalProjection = input.authorization_profile === ROOT_USER_FORGE_INTENT_PROFILE
+        && !goalResumeV2Projection
         && isForgeGoalResumeProjectionJson(input.operator_intent_json);
     const naturalProjection = input.authorization_profile === ROOT_USER_FORGE_INTENT_PROFILE
-        && !goalProjection
+        && !goalProjection && !goalResumeV2Projection
         ? parseForgeOperatorIntentProjection(input.operator_intent_json)
         : null;
-    return { goalProjection, naturalProjection };
+    return { goalProjection, goalResumeV2Projection, naturalProjection };
 }
 
 export function forgeAuthorizationRecordCountIsValid(
     input: AuthorizeForgeRequestInput,
     intent: ReturnType<typeof parseForgeAuthorizationIntent>,
 ): boolean {
-    const multiRecord = intent.goalProjection
+    const multiRecord = intent.goalProjection || intent.goalResumeV2Projection
         || ['explicit_request_receipt_binding', 'explicit_mission_record_binding']
             .includes(intent.naturalProjection?.requester_lineage_mode ?? '');
     return multiRecord
@@ -50,6 +62,9 @@ export function resolveForgeRequestAuthorizationBinding(args: {
     const { db, request, input, existingAuthorization, intent } = args;
     const goalAuthorization = intent.goalProjection
         ? validateForgeGoalResumeAuthorizationInput({ request, input, existingAuthorization })
+        : null;
+    const goalResumeV2Authorization = intent.goalResumeV2Projection
+        ? validateForgeGoalResumeV2AuthorizationInput({ db, request, input, existingAuthorization })
         : null;
     const naturalProjection = intent.naturalProjection;
     if (naturalProjection?.requester_lineage_mode === 'same_turn_request') {
@@ -81,7 +96,22 @@ export function resolveForgeRequestAuthorizationBinding(args: {
             throw new Error('forge_operator_intent_request_receipt_binding_invalid');
         }
     }
-    const expectedBinding = goalAuthorization?.expected_binding_sha256 ?? (naturalProjection
+    if (isForgeRootRepairContinuationReference(input.operator_authorization_ref)) {
+        const binding = getForgeRootRepairBinding(db, request.request_id);
+        if (!binding || !naturalProjection
+            || naturalProjection.action !== binding.action
+            || naturalProjection.requester_lineage_mode !== 'explicit_request_receipt_binding'
+            || naturalProjection.subject.kind !== 'bead'
+            || naturalProjection.subject.value !== binding.bead_id
+            || naturalProjection.subject.repo_id !== binding.repo_id) {
+            throw new Error('forge_root_repair_continuation_projection_invalid');
+        }
+    }
+    assertForgeRootRepairContinuationAuthorization({
+        db, request, input, existingAuthorization,
+    });
+    const expectedBinding = goalAuthorization?.expected_binding_sha256
+        ?? goalResumeV2Authorization?.expected_binding_sha256 ?? (naturalProjection
         ? hashRootUserForgeIntentBinding({
             request,
             projection: naturalProjection,

@@ -1,0 +1,5 @@
+
+> corvusstar@1.0.1 typecheck
+> tsc --noEmit -p tsconfig.json
+
+exit_code=0

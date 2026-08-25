@@ -1,0 +1,68 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:mcp:repair-aggregate-full-suite-current-v3-codex-hos-msfai02i",
+  "validation_id": "validation:cstar-p0-full-batch-repair-host-handoff-20260804-r1",
+  "reported_verdict": "REJECTED",
+  "artifacts": [
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/forge_execute.ts",
+      "sha256": "61ca3d98f16e33b375ca6830d811a414430c59657c5ff5abaf5d4e17cc65a253",
+      "bytes": 24562
+    },
+    {
+      "path": "src/tools/pennyone/intel/forge_host_worker_dispatch.ts",
+      "sha256": "bcd2e57499bab4d48743e42302f6a379ad08ac2e5f45b5d10c9605de165662bb",
+      "bytes": 26168
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/contracts/runtime.ts",
+      "sha256": "9d019ebf7505dfca782a8d702df3fc6299e88cee0c541a08d0fbf923714b1f8a",
+      "bytes": 10593
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/forge_execute_reservation.ts",
+      "sha256": "7e724ac421e8cf599f50b3a0ef371828f9de45212cdc55ec28e1bed78fc7dc66",
+      "bytes": 3804
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/contracts/worker_jobs.ts",
+      "sha256": "c74b06adb7b4c6843c581505fa8a29a28830f3f9d348d2468340a52932dfef1b",
+      "bytes": 15473
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_preprovider_execute_integration.test.ts",
+      "sha256": "334ecd7cb9c80cd0e479cf2c78fb7d8411439234b13f5eaf03f8f213527d3b3b",
+      "bytes": 10999
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_codex_host_worker_dispatch.test.ts",
+      "sha256": "01a4ff9b01afecc6c770e0b2a3412169772477d46224353a684649486b159b6b",
+      "bytes": 7526
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts",
+      "sha256": "0b32401d6411bb431be9456142ca172e388f8283133920c903bd842d2046b3a1",
+      "bytes": 12554
+    }
+  ],
+  "checks": [
+    {
+      "name": "prescribed focused suite and typecheck",
+      "status": "pass",
+      "evidence_path": ".cstar/validation/cstar-p0-full-batch-repair-host-handoff-20260804-r1/focused-check.json",
+      "sha256": "c0973bd8e83538d809f38fe77959be75daf6da00c32fc886e9f8c01706fe56f1"
+    },
+    {
+      "name": "source contract, whitespace, and line policy review",
+      "status": "pass",
+      "evidence_path": ".cstar/validation/cstar-p0-full-batch-repair-host-handoff-20260804-r1/structural-check.json",
+      "sha256": "78b4addc6b0a8cc0c80b4b0aa1115b0f808e05b129044a2ff69f0caa74edc4d3"
+    },
+    {
+      "name": "independent validator report",
+      "status": "pass",
+      "evidence_path": ".cstar/validation/cstar-p0-full-batch-repair-host-handoff-20260804-r1/report.md",
+      "sha256": "50d91239abc6a2ea0f5f8704d062bd7b1c99f4e252127636f554f53166d44f5d"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+command: scoped git diff --check plus wc -l/stat/hash verification
+tracked_diff_check: pass
+untracked_focused_test_diff_check: pass (no whitespace errors)
+production_lines: 262
+focused_test_lines: 311
+production_bytes: 12287
+focused_test_bytes: 13713
+production_sha256: 41145399ac03c49e325c0a18d0b0dbbc9340c28cf65a5fe0d248e71b2d84936f
+focused_test_sha256: 33698fd80c3c423a1651a805cb035c4f174acde774a501a4fe3690d871adc533
+status: pass

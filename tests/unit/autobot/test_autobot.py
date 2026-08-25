@@ -55,7 +55,12 @@ def test_durable_forge_is_the_only_registered_implementation_lane() -> None:
     repair_route = registry["intent_grammar"]["REPAIR"]
     forge = registry["entries"]["corvus-forge"]
     catalog = _read("src/tools/cstar-kernel-mcp/contracts/tool_catalog.ts")
-    contract = _read("docs/operations/corvus-forge-skill-spec.md")
+    contract = " ".join(
+        _read("docs/integrations/host_native_skill_contract.md").split()
+    )
+    forge_lane = contract.split("## Lane-Specific Rules", 1)[1].split(
+        "- `researcher`", 1
+    )[0]
 
     assert build_route["default_path"] == "cstar_forge_request"
     assert repair_route["default_path"] == "cstar_forge_request"
@@ -63,16 +68,31 @@ def test_durable_forge_is_the_only_registered_implementation_lane() -> None:
     assert forge["entry_surface"] == "host-only"
     assert "name: 'cstar_forge_request'" in catalog
     assert "name: 'cstar_forge_execute'" in catalog
-    assert (
-        "cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute -> private Hermes cstar-hub"
-        in contract.replace("\n", " ")
-    )
+    assert "active connection `forge-native-codex-swarm-v1`" in forge_lane
+    assert "cstar_forge_request -> cstar_forge_authorize -> cstar_forge_execute" in forge_lane
+    assert "cstar_forge_swarm_plan -> direct host-native workers" in forge_lane
+    assert "cstar_forge_swarm_update -> separate read-only aggregator" in forge_lane
+    assert "cstar_forge_swarm_complete -> DELIVERED_UNVERIFIED" in forge_lane
+    assert "independent cstar_record_result" in forge_lane
+    assert "one to three useful direct workers" in forge_lane
+    assert "disjoint ownership" in forge_lane
+    assert "no descendants" in forge_lane
+    assert "one attempt" in forge_lane
+    assert "zero retry, replay, replacement, or fallback" in forge_lane
 
 
 def test_retirement_contract_forbids_environment_reactivation() -> None:
     integration = _read("docs/integrations/cstar-kernel-mcp.md")
     flat = " ".join(integration.split())
+    boundary = flat.split("`cstar_autobot` is decommissioned", 1)[1].split(
+        "---", 1
+    )[0]
 
     assert "`cstar_autobot` is decommissioned" in flat
     assert "No environment variable reactivates it." in flat
-    assert "Live implementation uses only `cstar_forge_request`" in flat
+    assert "retained Codex-host state-only handoff and consumer" in boundary
+    assert "private Hermes/MiniMax adapter" in boundary
+    assert "and AutoBot" in boundary
+    assert "historical, legacy, retired, or generation-tombstoned evidence only" in boundary
+    assert "never current, default, target, recovery, replacement, or fallback routes" in boundary
+    assert "current native connection is separate" in boundary

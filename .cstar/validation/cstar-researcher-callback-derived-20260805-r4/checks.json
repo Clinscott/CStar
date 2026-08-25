@@ -1,0 +1,91 @@
+{
+  "schema": "cstar.independent_validation_checks.v1",
+  "bead_id": "bead:mcp:repair-cstar-researcher-request-so-the-kernel-de-msg5pl64",
+  "validation_id": "validation:cstar-researcher-callback-derived-20260805-r4",
+  "reported_verdict": "ACCEPTED",
+  "requested_model": "gpt-5.6-luna",
+  "actual_model": "unreported",
+  "validator_role": "independent_luna_max_validator",
+  "candidate_hashes_match": true,
+  "artifacts": [
+    {
+      "path": "work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/src/tools/cstar-kernel-mcp/contracts/schemas.ts",
+      "sha256": "259728283efdb653f21f8ffdcc587bbe922d8563bf64bc830e66b6c2467f85a3",
+      "bytes": 8690,
+      "lines": 132
+    },
+    {
+      "path": "work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/src/tools/cstar-kernel-mcp/tools/dispatch_request.ts",
+      "sha256": "960fe4af7342f3c08300a65c7733f16fe6fe3d2bbde1a9c4d49d9c2b6debfc69",
+      "bytes": 14643,
+      "lines": 365
+    },
+    {
+      "path": "work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/tests/unit/cstar-kernel-mcp/test_dispatch_requests.test.ts",
+      "sha256": "cff14d1ac525d8395ebbb355227ae86688123c70c41bbbeeecfaa3985caeaf37",
+      "bytes": 16672,
+      "lines": 352
+    },
+    {
+      "path": "work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/tests/features/cstar_durable_work_routing_and_recovery.feature",
+      "sha256": "67cbe80af1984052a3b84b114c51e28386f96ca2d03e6a125785c6bfcfd2dbf2",
+      "bytes": 4168,
+      "lines": 76
+    }
+  ],
+  "checks": [
+    {
+      "name": "sterling_lore_callback_repair_validation",
+      "status": "pass",
+      "focused_tests": {
+        "command": "PATH=/home/morderith/.nvm/versions/node/v25.8.1/bin:$PATH node scripts/run-tsx.mjs --test --test-concurrency=2 tests/unit/cstar-kernel-mcp/test_dispatch_requests.test.ts tests/unit/cstar-kernel-mcp/test_dispatch_action_authority.test.ts tests/unit/cstar-kernel-mcp/test_tool_catalog.test.ts",
+        "exit_code": 0,
+        "tests": 30,
+        "suites": 3,
+        "passed": 30,
+        "failed": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "typecheck": {
+        "command": "PATH=/home/morderith/.nvm/versions/node/v25.8.1/bin:$PATH npm run typecheck",
+        "exit_code": 0
+      },
+      "diff_check": {
+        "command": "git diff --check",
+        "exit_code": 0
+      },
+      "feature_contract_fidelity": {
+        "status": "pass",
+        "scenario_count": 10,
+        "verified_requirements": [
+          "CStar kernel owns durable lifecycle transitions.",
+          "Pure classification routes implementation to cstar_forge_request and evidence to cstar_researcher_request without lifecycle effects.",
+          "Unsupported, retired, host-only, dynamic, and generic legacy adapters fail closed before effects.",
+          "Recovery and reaper classification remains pure and preserves original assignment context.",
+          "Legacy completion reconciliation cannot persist a receipt; cstar_record_result remains explicit.",
+          "Researcher omitted callbacks derive one decision-bound CSTAR_RESEARCHER_RESULT:<decision_id> packet for source_callback_thread_id.",
+          "Explicit callback compatibility remains bounded and Forge request/execute callback contracts remain required.",
+          "Callback normalization grants no provider, spend, source, retry, execution, or authority effect."
+        ]
+      },
+      "r3_reacceptance": {
+        "status": "pass",
+        "evidence": "All three r3-accepted candidate hashes remain exact; the new Sterling Lore feature hash and 76-line bound also match the supplied candidate."
+      }
+    }
+  ],
+  "independence": {
+    "source_inspected": true,
+    "provider_calls": 0,
+    "cstar_calls": 0,
+    "researcher_calls": 0,
+    "forge_calls": 0,
+    "restart": false,
+    "install": false,
+    "git_mutation": false,
+    "source_edit": false,
+    "scope_expansion": false
+  }
+}

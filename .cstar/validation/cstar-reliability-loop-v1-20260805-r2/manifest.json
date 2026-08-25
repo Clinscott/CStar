@@ -1,0 +1,452 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "validation_id": "validation:cstar-reliability-loop-v1-20260805-r2",
+  "bead_id": "bead:mcp:turn-the-accepted-sprt-autoresearcher-gungnir-fi-msg4t12q",
+  "reported_verdict": "REJECTED",
+  "independent": true,
+  "validator_role": "independent_cstar_validator_replacement",
+  "validator_identity": {
+    "thread_id": "unreported",
+    "task_complete_turn_id": "unreported",
+    "requested_model": "gpt-5.6-luna",
+    "requested_reasoning": "max",
+    "actual_model": "unreported",
+    "actual_reasoning": "unreported",
+    "actual_identity_source": "host_not_exposed"
+  },
+  "repository": {
+    "code_root": ".",
+    "worktree_head_sha256": "afbbc1770ec6a7a2adc15b83f91c5586ac2525c0",
+    "branch": "codex/cstar-state-only-luna-host-seam-batch1-20260803"
+  },
+  "source_test_scope": {
+    "scope_paths_artifact": ".cstar/validation/cstar-reliability-loop-v1-20260805-r2/scoped_paths.txt",
+    "pre_hashes_artifact": ".cstar/validation/cstar-reliability-loop-v1-20260805-r2/pre_hashes.tsv",
+    "post_hashes_artifact": ".cstar/validation/cstar-reliability-loop-v1-20260805-r2/post_hashes.tsv",
+    "scoped_path_count": 107,
+    "changed_source_test_count": 96,
+    "pre_post_path_set_drift": false,
+    "pre_post_content_or_byte_drift": false,
+    "drift_check_artifact": ".cstar/validation/cstar-reliability-loop-v1-20260805-r2/drift-check.txt"
+  },
+  "lore_paths": [
+    "tests/features/cstar_reliability_loop.feature",
+    "tests/features/cstar_validation_evidence_root.feature",
+    "tests/features/cstar_sprt_autoresearcher.feature"
+  ],
+  "isolation_paths": [
+    "tests/unit/cstar-kernel-mcp/test_augury_bead_result.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_code_control_root_separation.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_dispatch_requests.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_reliability_loop.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_reliability_loop_result.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_sterling_repository_root_binding.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_validation_evidence_root.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_validation_ticket_spoke_result.test.ts",
+    "tests/unit/test_cstar_reliability_loop_skill.py"
+  ],
+  "commands": {
+    "focused_tests": {
+      "command": "/home/morderith/.nvm/versions/node/v25.8.1/bin/node scripts/run-tsx.mjs --test --test-concurrency=2  tests/unit/cstar-kernel-mcp/test_augury_bead_result.test.ts  tests/unit/cstar-kernel-mcp/test_code_control_root_separation.test.ts  tests/unit/cstar-kernel-mcp/test_dispatch_requests.test.ts  tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts  tests/unit/cstar-kernel-mcp/test_reliability_loop.test.ts  tests/unit/cstar-kernel-mcp/test_reliability_loop_result.test.ts  tests/unit/cstar-kernel-mcp/test_sterling_repository_root_binding.test.ts  tests/unit/cstar-kernel-mcp/test_validation_evidence_root.test.ts  tests/unit/cstar-kernel-mcp/test_validation_ticket_spoke_result.test.ts",
+      "timeout_seconds": 180,
+      "exit_code": 0
+    },
+    "typecheck": {
+      "command": "npm run typecheck",
+      "node_path": "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+      "node_version": "v25.8.1",
+      "timeout_seconds": 180,
+      "exit_code": 0
+    },
+    "python_skill_check": {
+      "command": "/usr/bin/python3 -m unittest tests.unit.test_cstar_reliability_loop_skill",
+      "timeout_seconds": 180,
+      "exit_code": 5,
+      "tests_run": 0
+    },
+    "diff_check": {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    "line_count": {
+      "command": "wc -l on every touched production/test source",
+      "files": 96,
+      "over_500_lines": 0
+    }
+  },
+  "counts": {
+    "focused_tests": 86,
+    "focused_pass": 86,
+    "focused_fail": 0,
+    "focused_cancelled": 0,
+    "focused_skipped": 0,
+    "focused_todo": 0,
+    "focused_suites": 10,
+    "source_test_files": 96,
+    "source_test_line_count_violations": 0,
+    "checks_total": 9,
+    "checks_pass": 7,
+    "checks_fail": 2,
+    "artifacts_total": 48
+  },
+  "execution_boundaries": {
+    "cstar_mcp_invoked": false,
+    "source_edited": false,
+    "git_mutated": false,
+    "restart_install_activation_performed": false,
+    "sprt_runner_executed": false,
+    "reliability_tests_used_synthetic_receipts_only": true,
+    "persistent_validation_writes_outside_allowed_directory": false
+  },
+  "artifacts": [
+    {
+      "path": ".agents/skills/cstar-reliability-loop/SKILL.md",
+      "sha256": "54ea0de97b0e5ada81bf8d5d697cb962d354029e09da3aa6a94322cabacf8e2f",
+      "bytes": 2966
+    },
+    {
+      "path": ".agents/skills/cstar-reliability-loop/references/reliability-continuation.schema.json",
+      "sha256": "ae462ae308ada26cde61d5b516e74c5e9537ef9a6065e909029e3859fd4c00eb",
+      "bytes": 4049
+    },
+    {
+      "path": ".agents/skills/cstar-sprt-autoresearcher/SKILL.md",
+      "sha256": "925b72845760be82e53600fbe231a7d009e8090c6c201ebff3e002369fec9754",
+      "bytes": 6955
+    },
+    {
+      "path": "src/node/core/sterling_mandate.ts",
+      "sha256": "2cb1c515b25cd997890bf304609e61d43dfb185569e8c1a9d27a068b3195561e",
+      "bytes": 11039
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/contracts/schemas.ts",
+      "sha256": "259728283efdb653f21f8ffdcc587bbe922d8563bf64bc830e66b6c2467f85a3",
+      "bytes": 8690
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/contracts/validation_evidence_root.ts",
+      "sha256": "1731998ce42232317b681f1b4efb142997f1fa9834b917441ab644c298f23a20",
+      "bytes": 1230
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/register_core_tools.ts",
+      "sha256": "07fae8a93cd41cf9064bffe80122986bc8efbd819d659a4ff20e6b2ffb005eaa",
+      "bytes": 20469
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/bead.ts",
+      "sha256": "85a3f5b09f9ead714ebc8e10bcd95aba4c87b5773e04c42659453d2b8d30dd9b",
+      "bytes": 12348
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/dispatch_request.ts",
+      "sha256": "960fe4af7342f3c08300a65c7733f16fe6fe3d2bbde1a9c4d49d9c2b6debfc69",
+      "bytes": 14643
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/host_workflow_validation.ts",
+      "sha256": "57b702151c7cd80866a34a0925ecf11316a70ded6892c88ac15b9bd9fe373b91",
+      "bytes": 22145
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/reliability_loop.ts",
+      "sha256": "ff91bc417a8c5e3e7ed5c0cf201fc3e8b17bc3dddbf428a7d1bd2d1d293d3c1f",
+      "bytes": 24409
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/result.ts",
+      "sha256": "7c3a4874f3cdb3e18c4fc6ffd0cffba117c3d784cbd5f3d6327e86ce2b495147",
+      "bytes": 23668
+    },
+    {
+      "path": "tests/features/cstar_reliability_loop.feature",
+      "sha256": "ec7719d36f330e7b4512cd2047b6507507485946573baef4b12b81e438e92fab",
+      "bytes": 3380
+    },
+    {
+      "path": "tests/features/cstar_validation_evidence_root.feature",
+      "sha256": "69b039a4ca9af6c74df87c536b3115dc9a5fd91f1e18a747a5760e54e8c1d217",
+      "bytes": 669
+    },
+    {
+      "path": "tests/features/cstar_sprt_autoresearcher.feature",
+      "sha256": "fd64d528f230419a24d1d8d7cbbb61a52f360a5ae7edd50da3f9fb930a1bc112",
+      "bytes": 4409
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_augury_bead_result.test.ts",
+      "sha256": "5f9777aa7e1328032260c43b9611557c842db0f4e09c9be84d84c1339eadfb12",
+      "bytes": 22250
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_code_control_root_separation.test.ts",
+      "sha256": "d286f4e7e6621f409f3d50b12527d406248d6687f1440bc00cbf5fb3b82c303a",
+      "bytes": 13262
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_dispatch_requests.test.ts",
+      "sha256": "cff14d1ac525d8395ebbb355227ae86688123c70c41bbbeeecfaa3985caeaf37",
+      "bytes": 16672
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts",
+      "sha256": "3cf4fc4668688e23ae567019ae733c54de6b5dae36ca5e497a5c77e350cf5ff5",
+      "bytes": 20104
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_reliability_loop.test.ts",
+      "sha256": "59ff8b69b33d7114a4fa130a5258b2cb1fc678658d54a9cce33ba8a64e3cde38",
+      "bytes": 16149
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_reliability_loop_result.test.ts",
+      "sha256": "1e821153f6506bd9c79eb33749b48867df2bb06d6f63a17ed28a3098492e77e3",
+      "bytes": 6931
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_sterling_repository_root_binding.test.ts",
+      "sha256": "18ba4e94b680bc00a2b9d2fdccd3f44f1479002a6fdbf7423574d4272e75cbc4",
+      "bytes": 9182
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_validation_evidence_root.test.ts",
+      "sha256": "b668d3edf7a963531f09f1f9ae6c2d22372671af81acf9efae33686c243139f4",
+      "bytes": 4327
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_validation_ticket_spoke_result.test.ts",
+      "sha256": "9dd3c0fbf230d614d5d798e9274cbe3c1c07c207632c236cc83861064f1d21ae",
+      "bytes": 22417
+    },
+    {
+      "path": "tests/unit/test_cstar_reliability_loop_skill.py",
+      "sha256": "ef73b402e1ad29d17a9591b0a33e476c8f0aadc23d83efdf5028eda220680d76",
+      "bytes": 4392
+    },
+    {
+      "path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r2/pre_state.txt",
+      "sha256": "de8ba561cbe96b4d494adf71b2eb7d26020ea97873b40402e746330dd33388eb",
+      "bytes": 6500
+    },
+    {
+      "path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r2/scoped_paths.txt",
+      "sha256": "5f79bbe0c214287f4ea1aab5a7aeb0b12d5d999b73423eaa762b1575a9378a1c",
+      "bytes": 6395
+    },
+    {
+      "path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r2/pre_hashes.tsv",
+      "sha256": "e4ff15bf33616e1386b479e5c2e6e4746b8715cbedf15a4a6f40fea128aa9c19",
+      "bytes": 13940
+    },
+    {
+      "path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r2/focused-tests.txt",
+      "sha256": "331e58a5dccc5a6ba8166bfe48fe24964382b0c973c0c6ac8216bb4639b13a82",
+      "bytes": 9190
+    },
+    {
+      "path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r2/focused-tests.exit",
+      "sha256": "bde294368bfed77c2cddf8cec271d398aee9cdbab3b26e1059281bd33adb0120",
+      "bytes": 12
+    },
+    {
+      "path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r2/typecheck.txt",
+      "sha256": "8bfbaa963e79a8de53af5b48f4c67f318eb1ca29b7601121f6ccb9149733ed56",
+      "bytes": 131
+    },
+    {
+      "path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r2/typecheck.exit",
+      "sha256": "189a09376999d69650b3ab1d84201d1116699ce2739b8b8555adc1e36095ef90",
+      "bytes": 22
+    },
+    {
+      "path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r2/python-unittest.txt",
+      "sha256": "a90bfa51373740961c8c086a67ca4621c7504f9b4a7561157ace39dcc022ae33",
+      "bytes": 132
+    },
+    {
+      "path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r2/python-unittest.exit",
+      "sha256": "120ada2aceaa3dccce1becfb0559eaf3e7f386c28b09af13f39c960abd4ff8a5",
+      "bytes": 28
+    },
+    {
+      "path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r2/diff-check.txt",
+      "sha256": "a813056a2859c796326b3dccc185e094b7e499952112cd4aeea671cf5b9a7929",
+      "bytes": 27
+    },
+    {
+      "path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r2/line-counts.tsv",
+      "sha256": "89c36d3d787ad31cd90aeeb75d30dc42d02204b467e258df6a8dac85c87d23c4",
+      "bytes": 6651
+    },
+    {
+      "path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r2/line-count-violations.txt",
+      "sha256": "379db11020a0951b3221aef34a344040a2a61034627f164518203f6e80198af5",
+      "bytes": 37
+    },
+    {
+      "path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r2/line-count-summary.txt",
+      "sha256": "5a72c589e11ed36240705741d979ff0457a78fb534d225cb666abe69243f451b",
+      "bytes": 51
+    },
+    {
+      "path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r2/hub-reliability-root-probe.txt",
+      "sha256": "1b7a0b86b538b2c7580190dd6fd617afe39c8095b91d8213834eaae50bf04e1c",
+      "bytes": 812
+    },
+    {
+      "path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r2/hub-reliability-root-probe.exit",
+      "sha256": "0789e753f91768a1a57aaaf35aa7df36bde5a0834659dd2ee41ad42c98f4721c",
+      "bytes": 18
+    },
+    {
+      "path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r2/adversarial-review.txt",
+      "sha256": "65654e6ecd4ff453aa409f9fe0abd6342ce7f2d7585d3c6671f6f4264a04e32d",
+      "bytes": 3509
+    },
+    {
+      "path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r2/post_paths.txt",
+      "sha256": "5f79bbe0c214287f4ea1aab5a7aeb0b12d5d999b73423eaa762b1575a9378a1c",
+      "bytes": 6395
+    },
+    {
+      "path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r2/post_hashes.tsv",
+      "sha256": "e4ff15bf33616e1386b479e5c2e6e4746b8715cbedf15a4a6f40fea128aa9c19",
+      "bytes": 13940
+    },
+    {
+      "path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r2/drift-check.txt",
+      "sha256": "8b4d4e0e12c64ce0b78b02a9c7773e7d74fbbbe82ff84b69a6ae3f16ebb61040",
+      "bytes": 112
+    },
+    {
+      "path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r2/post-status.txt",
+      "sha256": "30856bea95decce507396c5dc3e4a90a1fb65dd1210f8e5d7f35c1e61b1895ba",
+      "bytes": 6888
+    },
+    {
+      "path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r2/sprt-recovery1/receipt.json",
+      "sha256": "cc894aebd4bf9f61cfab46ede5ee8a0df612d752d871db28d2fbadf270c36c1d",
+      "bytes": 43375
+    },
+    {
+      "path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r2/sprt-recovery1/receipt.sha256",
+      "sha256": "67782b5bed9aa19efaa700f3658da0164f40121e7d7ee6b2b831c448ca358341",
+      "bytes": 79
+    },
+    {
+      "path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r2/sprt-recovery1-verification.txt",
+      "sha256": "a3c3a23be9d9640fc4a0a4b915b845afbb78bdf1828e106d0197a30e5cb1a641",
+      "bytes": 1388
+    }
+  ],
+  "checks": [
+    {
+      "name": "focused Node isolation suite",
+      "status": "pass",
+      "evidence_path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r2/focused-tests.txt",
+      "sha256": "331e58a5dccc5a6ba8166bfe48fe24964382b0c973c0c6ac8216bb4639b13a82",
+      "bytes": 9190
+    },
+    {
+      "name": "Node 25 typecheck",
+      "status": "pass",
+      "evidence_path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r2/typecheck.txt",
+      "sha256": "8bfbaa963e79a8de53af5b48f4c67f318eb1ca29b7601121f6ccb9149733ed56",
+      "bytes": 131
+    },
+    {
+      "name": "required Python unittest execution",
+      "status": "fail",
+      "evidence_path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r2/python-unittest.txt",
+      "sha256": "a90bfa51373740961c8c086a67ca4621c7504f9b4a7561157ace39dcc022ae33",
+      "bytes": 132
+    },
+    {
+      "name": "git diff whitespace check",
+      "status": "pass",
+      "evidence_path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r2/diff-check.txt",
+      "sha256": "a813056a2859c796326b3dccc185e094b7e499952112cd4aeea671cf5b9a7929",
+      "bytes": 27
+    },
+    {
+      "name": "touched source/test line-count gate",
+      "status": "pass",
+      "evidence_path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r2/line-count-summary.txt",
+      "sha256": "5a72c589e11ed36240705741d979ff0457a78fb534d225cb666abe69243f451b",
+      "bytes": 51
+    },
+    {
+      "name": "pre/post source/test drift check",
+      "status": "pass",
+      "evidence_path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r2/drift-check.txt",
+      "sha256": "8b4d4e0e12c64ce0b78b02a9c7773e7d74fbbbe82ff84b69a6ae3f16ebb61040",
+      "bytes": 112
+    },
+    {
+      "name": "adversarial root/reliability/authority review",
+      "status": "fail",
+      "evidence_path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r2/adversarial-review.txt",
+      "sha256": "65654e6ecd4ff453aa409f9fe0abd6342ce7f2d7585d3c6671f6f4264a04e32d",
+      "bytes": 3509
+    },
+    {
+      "name": "Lore and Isolation paths included",
+      "status": "pass",
+      "evidence_path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r2/scoped_paths.txt",
+      "sha256": "5f79bbe0c214287f4ea1aab5a7aeb0b12d5d999b73423eaa762b1575a9378a1c",
+      "bytes": 6395
+    },
+    {
+      "name": "corrected SPRT/Gungnir receipt checksum and metrics",
+      "status": "pass",
+      "evidence_path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r2/sprt-recovery1-verification.txt",
+      "sha256": "a3c3a23be9d9640fc4a0a4b915b845afbb78bdf1828e106d0197a30e5cb1a641",
+      "bytes": 1388
+    }
+  ],
+  "rejection_reasons": [
+    "required Python unittest command exited 5 after running zero tests because the target module defines pytest-style test functions and no unittest.TestCase",
+    "hub reliability receipt verification uses recordedRoot instead of the resolved hub beadRepositoryRoot, rejecting a code-root receipt when code and control roots are separate"
+  ],
+  "sprt_recovery_receipt": {
+    "receipt_path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r2/sprt-recovery1/receipt.json",
+    "checksum_path": ".cstar/validation/cstar-reliability-loop-v1-20260805-r2/sprt-recovery1/receipt.sha256",
+    "checksum_verified": true,
+    "receipt_sha256": "cc894aebd4bf9f61cfab46ede5ee8a0df612d752d871db28d2fbadf270c36c1d",
+    "receipt_bytes": 43375,
+    "checksum_file_bytes": 79,
+    "schema": "cstar.workflow_sprt_autoresearcher.v1",
+    "runner_mode": "host_only_deterministic",
+    "sprt_verdict": "ACCEPTED",
+    "workflow_score": 100,
+    "passed": 11,
+    "failed": 0,
+    "total": 11,
+    "sprt": {
+      "alpha": 0.05,
+      "beta": 0.1,
+      "p0": 0.01,
+      "p1": 0.2,
+      "llr": -2.344025370068,
+      "lower_boundary": -2.251291798606,
+      "upper_boundary": 2.890371757896,
+      "raw_status": "ACCEPT"
+    },
+    "gungnir": {
+      "schema": "cstar.gungnir_evidence.v1",
+      "version": "1.0",
+      "overall_score": 9.502863636363637,
+      "scored_count": 11,
+      "candidate_count": 13,
+      "excluded_count": 2,
+      "authority": "heuristic_evidence_only",
+      "aggregate_evidence_sha256": "ebbb57bf505d78c580bd1ffd1bef4a3abf31b698ae4ff288b9fbaea270368f9e"
+    },
+    "cstar_acceptance": "UNVERIFIED",
+    "cstar_record_result_called": false,
+    "runner_rerun_in_this_task": false
+  },
+  "notes": "Corrected SPRT/Gungnir receipt was independently checksum-verified and its verdict/metrics were inspected; both receipt files are manifest artifacts. The receipt reports SPRT ACCEPTED but CStar acceptance remains UNVERIFIED because independent cstar_record_result was not called. SPRT runner was not rerun in this task. This manifest is a local independent-validation input and was not sent to CStar MCP or recorded as lifecycle state."
+}

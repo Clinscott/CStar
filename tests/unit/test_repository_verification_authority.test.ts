@@ -73,6 +73,9 @@ describe('non-authoritative repository verification evidence', () => {
 
         assert.ok(discovered.includes('tests/unit/corvus-forge/test_forge_delegate_evidence.test.mjs'));
         assert.ok(discovered.includes('tests/integration/ipc/test_ipc_boundary.test.ts'));
+        assert.ok(discovered.includes('tests/unit/corvus-forge/test_native_swarm_packet.test.mjs'));
+        assert.ok(discovered.includes('tests/unit/corvus-forge/test_native_swarm_receipt.test.mjs'));
+        assert.ok(discovered.includes('tests/integration/cstar_forge_native_swarm_canary.test.ts'));
         assert.ok(discovered.every((entry) => !entry.startsWith('tests/quarantine/')));
         assert.deepEqual(nodeStep?.args.slice(4), discovered);
         assert.deepEqual(
@@ -202,6 +205,7 @@ describe('non-authoritative repository verification evidence', () => {
         assert.equal(receipt.cstar_acceptance, false);
         assert.equal(receipt.hall_mutation, false);
         assert.equal(receipt.outcome, 'commands_passed');
+        assert.doesNotMatch(JSON.stringify(receipt), /DELIVERED_UNVERIFIED|LIFECYCLE_ACCEPTED/u);
         assert.deepEqual(receipt.command_list, [
             { id: 'node-tests', argv: ['node-test'] },
             { id: 'python-tests', argv: ['python-test'] },

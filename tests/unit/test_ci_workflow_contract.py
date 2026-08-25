@@ -48,7 +48,9 @@ TEMP_ENV_LINES = [
 def test_ci_uses_the_validated_lock_and_explicit_python_executable() -> None:
     workflow = CI.read_text(encoding="utf-8")
 
-    assert "node-version: 22" in workflow
+    assert "node-version-file: .nvmrc" in workflow
+    assert "node-version: 22" not in workflow
+    assert "npm run validate:runtime" in workflow
     assert "fail-fast: false" in workflow
     assert re.findall(
         r"^\s+os:\s*\[(.*?)\]\s*$",

@@ -51,7 +51,7 @@ function request(): DispatchRequestArgs {
 }
 
 describe('CStar code/control root separation', () => {
-    it('routes host-validation source evidence through code root while Hall remains control-root state', () => {
+    it('routes host-validation evidence through the registered bead root while Hall remains control-root state', () => {
         const resultSource = fs.readFileSync(
             path.join(PROJECT_ROOT, 'src/tools/cstar-kernel-mcp/tools/result.ts'),
             'utf-8',
@@ -62,13 +62,30 @@ describe('CStar code/control root separation', () => {
         );
         assert.match(
             resultSource,
-            /verifyHostWorkflowValidationEvidence\(\s*CODE_ROOT,/,
+            /root = registry\.getRoot\(\);/,
+        );
+        assert.match(resultSource, /openForgeReadDb\(root\)/);
+        assert.match(
+            resultSource,
+            /resolveValidationEvidenceRoot\(\s*repoId,\s*recordedRoot,\s*CODE_ROOT,\s*CONTROL_ROOT\s*\)/,
+        );
+        assert.match(
+            resultSource,
+            /verifyHostWorkflowValidationEvidence\(\s*beadRepositoryRoot,/,
+        );
+        assert.match(resultSource, /getForgeWritableDb\(root\)/);
+        assert.match(
+            resultSource,
+            /const bead = readHandle\.db\.prepare\([\s\S]*JOIN hall_repositories r ON r\.repo_id = b\.repo_id/,
         );
         assert.match(beadSource, /target_path:\s*bead\.target_path/);
         assert.match(
             beadSource,
-            /evidence_manifest\?\.schema === 'cstar\.validation-evidence\.v3'\s*\? CODE_ROOT : hubRoot/,
+            /listHallRepositories\(hubRoot\)[\s\S]*find\(\(row\) => row\.repo_id === bead\.repo_id\)/,
         );
+        assert.match(beadSource, /resolveValidationEvidenceRoot\(\s*bead\.repo_id,/);
+        assert.match(beadSource, /sterling_bead_repository_binding_missing/);
+        assert.doesNotMatch(beadSource, /evidence_manifest\?\.schema === 'cstar\.validation-evidence\.v3'\s*\? CODE_ROOT/);
     });
 
     it('resolves dispatch contracts and the private Forge adapter from code root only', () => {

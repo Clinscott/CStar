@@ -1,0 +1,122 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:mcp:repair-aggregate-full-suite-spoke-root-and-valid-msfahzq7",
+  "validation_id": "validation:cstar-p0-full-batch-repair-validation-ticket-20260804-r1",
+  "reported_verdict": "ACCEPTED",
+  "worktree": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803",
+  "requested_model": "gpt-5.6-luna/max",
+  "actual_model": "gpt-5",
+  "artifact_count": 14,
+  "artifacts": [
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/result.ts",
+      "sha256": "ef02a8101246618d09693a028626629324757f69ebe13db4f3c7717298e27241",
+      "bytes": 16223,
+      "role": "result_persistence_source"
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/host_workflow_validation.ts",
+      "sha256": "57b702151c7cd80866a34a0925ecf11316a70ded6892c88ac15b9bd9fe373b91",
+      "bytes": 22145,
+      "role": "host_validation_source"
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/tools/validation_evidence.ts",
+      "sha256": "cc237efa20c89833683b0da9348fbb7becc04691587f5bdcb44b3e013f33723f",
+      "bytes": 11514,
+      "role": "evidence_root_source"
+    },
+    {
+      "path": "src/tools/pennyone/intel/validation_ticket_controller.ts",
+      "sha256": "34f933f0d98e98e47a40cf66a6163f3fa3a66ce116f1303130341b3d17aa2e22",
+      "bytes": 14844,
+      "role": "validator_ticket_source"
+    },
+    {
+      "path": "src/tools/pennyone/intel/forge_validation_controller.ts",
+      "sha256": "e257caba3ca9000387c85453a9e23128d276a648e70ee8e582dc76d47315417b",
+      "bytes": 19544,
+      "role": "forge_validation_source"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_code_control_root_separation.test.ts",
+      "sha256": "da980c65eab29281c9ef60a96838ccfeb74cf74b6301b1321398c4824b771bf7",
+      "bytes": 12891,
+      "role": "owned_root_separation_test"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_legacy_v2_public_path.test.ts",
+      "sha256": "f8d0e57d203959e7f30522233e85752730ebd276e8a081864356ac52113b3e41",
+      "bytes": 21311,
+      "role": "owned_legacy_ticket_test"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_terminal_forge_validation_linkage.test.ts",
+      "sha256": "33bebac79b459158303fbc52aa83cbd7653d1c151655bae982f97444918f3e59",
+      "bytes": 10399,
+      "role": "terminal_linkage_test"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_validation_evidence_type_boundary.test.ts",
+      "sha256": "34e11be86204fc3a58842076d3db5a86c07bc47c0319c9bdf39bb5ebc1913cd6",
+      "bytes": 7216,
+      "role": "evidence_boundary_test"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts",
+      "sha256": "3cf4fc4668688e23ae567019ae733c54de6b5dae36ca5e497a5c77e350cf5ff5",
+      "bytes": 20104,
+      "role": "host_validation_test"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_validation_ticket_spoke_result.test.ts",
+      "sha256": "9dd3c0fbf230d614d5d798e9274cbe3c1c07c207632c236cc83861064f1d21ae",
+      "bytes": 22417,
+      "role": "ticket_spoke_test"
+    },
+    {
+      "path": ".cstar/validation/cstar-p0-full-batch-repair-validation-ticket-20260804-r1/report.md",
+      "sha256": "8bc3c8b872d54baae63dfc6e5afbdae5b3a92c20c8dfd67c43e09265896ece00",
+      "bytes": 3523,
+      "role": "validation_report"
+    },
+    {
+      "path": ".cstar/validation/cstar-p0-full-batch-repair-validation-ticket-20260804-r1/focused-check.json",
+      "sha256": "d1e2ae95d288fca3eba0698e22c69ab0db743a4d8d86c31cb2be47ca8a65fdec",
+      "bytes": 1806,
+      "role": "focused_check"
+    },
+    {
+      "path": ".cstar/validation/cstar-p0-full-batch-repair-validation-ticket-20260804-r1/structural-check.json",
+      "sha256": "1b92a2c200498544b9e4ce3d763fd74b1ed415ac72bc84c39fb0619f2ea64f9b",
+      "bytes": 2479,
+      "role": "structural_check"
+    }
+  ],
+  "checks": [
+    {
+      "name": "focused_repair_validation_ticket_and_spoke_root",
+      "status": "pass",
+      "evidence_path": ".cstar/validation/cstar-p0-full-batch-repair-validation-ticket-20260804-r1/focused-check.json",
+      "sha256": "d1e2ae95d288fca3eba0698e22c69ab0db743a4d8d86c31cb2be47ca8a65fdec"
+    },
+    {
+      "name": "typecheck_diff_and_line_audit",
+      "status": "pass",
+      "evidence_path": ".cstar/validation/cstar-p0-full-batch-repair-validation-ticket-20260804-r1/structural-check.json",
+      "sha256": "1b92a2c200498544b9e4ce3d763fd74b1ed415ac72bc84c39fb0619f2ea64f9b"
+    },
+    {
+      "name": "owned_test_and_source_contract_review",
+      "status": "pass",
+      "evidence_path": ".cstar/validation/cstar-p0-full-batch-repair-validation-ticket-20260804-r1/report.md",
+      "sha256": "8bc3c8b872d54baae63dfc6e5afbdae5b3a92c20c8dfd67c43e09265896ece00"
+    }
+  ],
+  "constraints": {
+    "artifact_paths_unique": true,
+    "manifest_self_reference": false,
+    "passing_hash_evidence_paths_unique": true,
+    "receipt_directory_only_write": true
+  }
+}
