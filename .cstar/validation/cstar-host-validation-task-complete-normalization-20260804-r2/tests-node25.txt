@@ -1,0 +1,6 @@
+Validation: validation:cstar-host-validation-task-complete-normalization-20260804-r2
+Command: /home/morderith/.nvm/versions/node/v25.8.1/bin/node scripts/run-tsx.mjs --test tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts tests/unit/cstar-kernel-mcp/test_host_workflow_message.test.ts
+Runtime: Node v25.8.1
+Result: 3/3 host-workflow task-complete message normalization tests passed.
+Result: 16/16 host-workflow independent validation tests passed.
+Totals: 2 suites, 19 tests, 19 pass, 0 fail, 0 cancelled, 0 skipped, exit 0.

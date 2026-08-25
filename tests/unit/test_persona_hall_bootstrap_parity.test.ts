@@ -11,6 +11,7 @@ import {
     migrateLegacyHallRecords,
     upsertHallRepository,
 } from '../../src/tools/pennyone/intel/database.ts';
+import { setCanonicalPersonaState } from '../../src/tools/pennyone/intel/persona_state.ts';
 import {
     buildPersonaProjectionMetadata,
     readHallPersonaProjection,
@@ -54,7 +55,8 @@ describe('TypeScript Hall persona bootstrap and migration parity', () => {
         assert.equal(readHallPersonaProjection(root), null);
     });
 
-    it('preserves an existing explicit Hall projection because legacy migration is retired', () => {
+    it('projects dedicated persona state while legacy migration is retired', () => {
+        setCanonicalPersonaState(root, 'A.L.F.R.E.D.');
         upsertHallRepository({
             root_path: root,
             name: path.basename(root),

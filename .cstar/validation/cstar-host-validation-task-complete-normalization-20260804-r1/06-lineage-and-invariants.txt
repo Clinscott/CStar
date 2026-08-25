@@ -1,0 +1,27 @@
+final structural audit:
+- host_workflow_message.ts:1-25 validates the citation block shape; :31-44
+  accepts exact equality or only one final block plus an optional separator
+  before that block.
+- host_workflow_validation.ts:211-217 retains UUID validation, root-thread
+  distinction, and session lookup.
+- :230-251 retains the single primary session-meta requirement and depth-one
+  subagent lineage/root/parent/fork/thread-source checks.
+- :255-275 retains final-answer extraction, final-size limit, raw final-record
+  sha256, and final timestamp handling.
+- :278-299 retains task-complete identity/type checks, raw task-complete-record
+  sha256, matcher failure envelope, and final/event/completed-at timestamp
+  bounds.
+- :300-317 retains later-completion/later-activity detection and latest-turn
+  rejection.
+- :319-326 retains stale/future receipt bounds and exact manifest-sha256 plus
+  validation-id binding in the validator final answer.
+- :343-363 retains manifest sha256 verification and bead/validation-id/verdict
+  scope checks.
+- :435-471 retains v3 validator identity, recorder identity, parent-thread,
+  session hash, final-record hash, task-complete-record hash, and completed-at
+  independence fields.
+
+The tracked diff shows the only change inside verifyValidatorSession's message
+gate is the raw equality comparison becoming the imported helper call at the
+task-complete comparison. The raw records and all listed gates remain wired.
+The focused host-validation tests cover the gate regressions and passed 16/16.

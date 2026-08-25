@@ -1,0 +1,14 @@
+{
+  "control_root": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-reliability-loop-v1-20260805-r2/root-probe/control",
+  "code_root": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-reliability-loop-v1-20260805-r2/root-probe/code",
+  "control_result": {
+    "present": true,
+    "verified": false,
+    "error": "reliability_receipt_unreadable:path_outside_root:/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-reliability-loop-v1-20260805-r2/root-probe/code/receipt.json"
+  },
+  "code_result": {
+    "present": true,
+    "verified": false,
+    "error": "reliability_receipt_schema_invalid"
+  }
+}

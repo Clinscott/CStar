@@ -1,11 +1,7 @@
 import { z } from 'zod';
 import type { HallBeadStatus, HallBeadTargetKind } from '../../types/hall.js';
-import {
-    dispatchRequestSchema,
-    forgeAuthorizeSchema,
-    forgeExecuteSchema,
-    forgeRequestSchema,
-} from './contracts/schemas.js';
+import { recordResultInputSchema } from './contracts/record_result_input.js';
+import { auguryMissionBoundaryTransportSchema } from './contracts/augury_mission_schema.js';
 import {
     getCstarKernelToolCatalogEntry,
     type CstarKernelToolName,
@@ -16,10 +12,6 @@ import { handleAugury } from './tools/augury.js';
 import { handleBead } from './tools/bead.js';
 import { handleManifest, handleSkillInfo, handleSpokeJournal } from './tools/capability.js';
 import { handleEvolve } from './tools/evolve.js';
-import { handleForgeExecute } from './tools/forge_execute.js';
-import { handleForgeAuthorize } from './tools/forge_authorize.js';
-import { handleResearcherRequest } from './tools/dispatch_request.js';
-import { handleForgeRequest } from './tools/forge_request.js';
 import { handleGoalResume } from './tools/goal_resume.js';
 import { handleDoctor, handleHallMaintenance, handleHallSearch, handleHandoff, handleVerifyPlan } from './tools/hall.js';
 import { handleEngramRecord, handleWarGameScore } from './tools/war_game.js';
@@ -34,6 +26,7 @@ import { handleSpokeBeadImport } from './tools/spoke_bead_import.js';
 import { handleStatus } from './tools/status.js';
 import { handleTelemetry } from './tools/telemetry.js';
 import { handleWarden } from './tools/warden.js';
+import { registerWorkflowTools } from './register_workflow_tools.js';
 
 type ServerWithTool = { tool: (...args: any[]) => unknown };
 type ToolHandler = (args: any, context?: McpRequestContext) => Promise<any>;
@@ -102,6 +95,7 @@ export function registerCoreTools(server: ServerWithTool, instrumentTool: Instru
             target_paths: z.array(z.string()).optional().describe('Optional target paths'),
             scope: z.string().optional().describe('Optional scope'),
             bead_id: z.string().optional().describe('Optional bead id for route provenance; Augury does not write or link TokenPath advice'),
+            mission_boundary: auguryMissionBoundaryTransportSchema.optional(),
         },
         handleAugury,
     );
@@ -164,13 +158,22 @@ export function registerCoreTools(server: ServerWithTool, instrumentTool: Instru
         instrumentTool,
         'cstar_goal_resume',
         {
-            repair_bead_id: z.string().min(1).max(240).describe('Active repair bead that owns the continuity record'),
-            continued_bead_id: z.string().min(1).max(240).optional().describe('Optional active mission bead being continued'),
-            decision_id: z.string().min(1).max(240).optional().describe('Optional CStar decision correlated with the resumed goal'),
-            host_goal_objective_sha256: z.string().regex(/^[a-fA-F0-9]{64}$/).describe('Hash of the unchanged host goal objective'),
-            host_goal_snapshot_sha256: z.string().regex(/^[a-fA-F0-9]{64}$/).describe('Hash of the bounded blocked host-goal snapshot'),
-            observed_host_status: z.literal('blocked').describe('Host status remains blocked; this action never mutates it'),
-            host_resume_capability: z.literal('unavailable').describe('Observed absence of a supported host blocked-to-active transition'),
+            forge_request_receipt_id: z.string().regex(/^dispatch-forge-[a-f0-9]{32}$/)
+                .describe('Exact immutable Forge request receipt id; request-bound authority is derived by the kernel'),
+            request_sha256: z.string().regex(/^[a-f0-9]{64}$/)
+                .describe('Exact lowercase SHA-256 of the stored canonical Forge request; no normalization is applied'),
+            host_goal_projection: z.object({
+                schema: z.literal('cstar.host_get_goal_projection.v1'),
+                threadId: z.string().min(1).max(240),
+                objective: z.string().min(1).max(65_536)
+                    .describe('Exact objective text; SHA-256 covers its UTF-8 bytes without trim or Unicode normalization and raw text is never stored'),
+                status: z.literal('blocked'),
+                tokensUsed: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
+                timeUsedSeconds: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
+                createdAt: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
+                updatedAt: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
+                hostResumeCapability: z.literal('unavailable'),
+            }).strict().describe('Exact host projection; counters are transient and excluded from canonical receipt material'),
         },
         handleGoalResume,
     );
@@ -205,31 +208,7 @@ export function registerCoreTools(server: ServerWithTool, instrumentTool: Instru
         server,
         instrumentTool,
         'cstar_record_result',
-        {
-            bead_id: z.string().describe('Target bead id'),
-            verdict: z.enum(['ACCEPTED', 'REJECTED', 'INCONCLUSIVE', 'SUCCESS', 'FAILURE']).describe('Reported validation verdict'),
-            notes: z.string().optional().describe('Compact validation notes'),
-            validation_id: z.string().optional().describe('Caller-stable validation id for idempotent recording'),
-            forge_execution_receipt_id: z.string().optional().describe('Forge execution receipt to finalize only after this independent validation'),
-            host_validation_receipt: z.object({
-                validator_thread_id: z.string().regex(/^[0-9a-f-]{36}$/i),
-                validator_turn_id: z.string().regex(/^[0-9a-f-]{36}$/i),
-                manifest_path: z.string().min(1),
-                manifest_sha256: z.string().regex(/^[a-fA-F0-9]{64}$/),
-            }).strict().optional().describe('Depth-one validator receipt recorded by the canonical root CoS for host-workflow validation'),
-            validation_evidence: z.object({
-                artifacts: z.array(z.object({
-                    path: z.string().min(1),
-                    sha256: z.string().regex(/^[a-fA-F0-9]{64}$/),
-                })).min(1).max(50),
-                checks: z.array(z.object({
-                    name: z.string().min(1).max(240),
-                    status: z.enum(['pass', 'fail']),
-                    evidence_path: z.string().min(1),
-                    sha256: z.string().regex(/^[a-fA-F0-9]{64}$/),
-                })).min(1).max(25),
-            }).strict().optional().describe('Hash-verified local evidence; CStar derives validator identity and independence against the exact Forge receipt'),
-        },
+        recordResultInputSchema,
         handleRecordResult,
     );
 
@@ -357,6 +336,8 @@ export function registerCoreTools(server: ServerWithTool, instrumentTool: Instru
         {
             persona: z.enum(['O.D.I.N.', 'A.L.F.R.E.D.'])
                 .describe('Exact persona state applied only from the next workflow boundary'),
+            expected_current: z.enum(['O.D.I.N.', 'A.L.F.R.E.D.']).optional()
+                .describe('Optional exact current persona required for compare-and-set'),
         },
         handlePersonaSet,
     );
@@ -428,36 +409,5 @@ export function registerCoreTools(server: ServerWithTool, instrumentTool: Instru
         handleTelemetry,
     );
 
-    registerCatalogTool(
-        server,
-        instrumentTool,
-        'cstar_researcher_request',
-        dispatchRequestSchema,
-        handleResearcherRequest,
-    );
-
-    registerCatalogTool(
-        server,
-        instrumentTool,
-        'cstar_forge_request',
-        forgeRequestSchema,
-        handleForgeRequest,
-    );
-
-    registerCatalogTool(
-        server,
-        instrumentTool,
-        'cstar_forge_authorize',
-        forgeAuthorizeSchema,
-        handleForgeAuthorize,
-    );
-
-    registerCatalogTool(
-        server,
-        instrumentTool,
-        'cstar_forge_execute',
-        forgeExecuteSchema,
-        handleForgeExecute,
-    );
-
+    registerWorkflowTools(server, instrumentTool);
 }

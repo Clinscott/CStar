@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "cstar.reliability_continuation.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "state", "risk_tier", "proof_summary", "validation_binding", "authority_effect", "next_action"],
+  "properties": {
+    "schema": {"const": "cstar.reliability_continuation.v1"},
+    "state": {"enum": ["working", "repairing", "accepted", "operator_decision_required"]},
+    "risk_tier": {"enum": ["routine", "elevated", "critical"]},
+    "proof_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["validation_persisted", "validation_authority", "reported_verdict", "stored_verdict", "reliability_receipt_present", "reliability_receipt_verified", "reason"],
+      "properties": {
+        "validation_persisted": {"type": "boolean"},
+        "validation_authority": {"type": "string"},
+        "reported_verdict": {"type": "string"},
+        "stored_verdict": {"type": ["string", "null"]},
+        "reliability_receipt_present": {"type": "boolean"},
+        "reliability_receipt_verified": {"type": "boolean"},
+        "reason": {"type": "string"},
+        "sprt_verdict": {"type": "string"},
+        "trials": {"$ref": "#/$defs/trials"},
+        "gungnir": {"$ref": "#/$defs/gungnir"}
+      }
+    },
+    "validation_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["validation_id", "validation_evidence_sha256", "reliability_receipt_path", "reliability_receipt_sha256"],
+      "properties": {
+        "validation_id": {"type": "string"},
+        "validation_evidence_sha256": {"type": ["string", "null"]},
+        "reliability_receipt_path": {"type": ["string", "null"]},
+        "reliability_receipt_sha256": {"type": ["string", "null"]}
+      }
+    },
+    "authority_effect": {"const": "process_only"},
+    "next_action": {"type": "string"},
+    "repair_bead_create_draft": {"$ref": "#/$defs/repair_draft"}
+  },
+  "$defs": {
+    "trials": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["passed", "failed", "total", "max"],
+      "properties": {
+        "passed": {"type": "integer", "minimum": 0},
+        "failed": {"type": "integer", "minimum": 0},
+        "total": {"type": "integer", "minimum": 0},
+        "max": {"type": "integer", "minimum": 1}
+      }
+    },
+    "gungnir": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["overall_score", "scored_count", "candidate_count", "excluded_count", "aggregate_evidence_sha256"],
+      "properties": {
+        "overall_score": {"type": "number", "minimum": 0, "maximum": 10},
+        "scored_count": {"type": "integer", "minimum": 1},
+        "candidate_count": {"type": "integer", "minimum": 1},
+        "excluded_count": {"type": "integer", "minimum": 0},
+        "aggregate_evidence_sha256": {"type": "string", "pattern": "^[a-fA-F0-9]{64}$"}
+      }
+    },
+    "repair_draft": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["action", "bead_id", "repository_binding", "target_kind", "rationale", "acceptance_criteria", "status", "metadata", "idempotency_key"],
+      "properties": {
+        "action": {"const": "create"},
+        "bead_id": {"type": "string"},
+        "repository_binding": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["repo_id"],
+          "properties": {"repo_id": {"type": "string", "minLength": 1}}
+        },
+        "target_kind": {"type": "string"},
+        "target_path": {"type": ["string", "null"]},
+        "target_ref": {"type": ["string", "null"]},
+        "rationale": {"type": "string"},
+        "acceptance_criteria": {"type": "string"},
+        "checker_shell": {"type": ["string", "null"]},
+        "contract_refs": {"type": "array", "items": {"type": "string"}},
+        "status": {"const": "OPEN"},
+        "metadata": {"type": "object"},
+        "idempotency_key": {"type": "string", "pattern": "^[a-fA-F0-9]{64}$"}
+      }
+    }
+  }
+}

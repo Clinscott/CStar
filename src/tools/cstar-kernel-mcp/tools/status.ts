@@ -24,16 +24,24 @@ export function buildStatusPersonaProjection(
 ): Record<string, unknown> {
     const persona = parseCanonicalPersona(personaName);
     if (!persona || projectionStatus === 'unavailable'
+        || projectionStatus === 'canonical_state_invalid'
+        || projectionStatus === 'canonical_state_unavailable'
         || projectionStatus === 'bounded_config_invalid'
         || projectionStatus === 'bounded_config_reader_unavailable') {
         const reportedStatus = projectionStatus === 'bounded_config_invalid'
             || projectionStatus === 'bounded_config_reader_unavailable'
+            || projectionStatus === 'canonical_state_invalid'
+            || projectionStatus === 'canonical_state_unavailable'
             ? projectionStatus : 'unavailable';
         const freshnessGap = projectionStatus === 'bounded_config_invalid'
             ? 'active_persona_configuration_invalid'
             : projectionStatus === 'bounded_config_reader_unavailable'
                 ? 'active_persona_reader_unavailable'
-                : 'active_persona_projection_unavailable';
+                : projectionStatus === 'canonical_state_invalid'
+                    ? 'active_persona_state_invalid'
+                    : projectionStatus === 'canonical_state_unavailable'
+                        ? 'active_persona_state_unavailable'
+                        : 'active_persona_projection_unavailable';
         return {
             persona: null,
             persona_projection_status: reportedStatus,

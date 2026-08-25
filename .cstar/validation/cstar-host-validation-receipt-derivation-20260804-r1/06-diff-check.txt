@@ -1,0 +1,3 @@
+command: git diff --check -- src/tools/cstar-kernel-mcp/tools/host_workflow_validation.ts tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts docs/integrations/cstar-kernel-mcp.md
+exit_status: 0
+result: no whitespace errors

@@ -1,0 +1,31 @@
+{
+  "schema": "cstar.focused_validation_check.v1",
+  "bead_id": "bead:mcp:repair-aggregate-full-suite-typed-outcome-expect-msfahzf9",
+  "validation_id": "validation:cstar-p0-full-batch-repair-typed-outcomes-20260804-r1",
+  "runtime": {
+    "node": "v25.8.1",
+    "path_prefix": "/home/morderith/.nvm/versions/node/v25.8.1/bin"
+  },
+  "command": "node scripts/run-tsx.mjs --test tests/unit/cstar-kernel-mcp/test_dispatch_action_authority.test.ts tests/unit/cstar-kernel-mcp/test_dispatch_requests.test.ts tests/unit/cstar-kernel-mcp/test_forge_execute.test.ts tests/unit/cstar-kernel-mcp/test_forge_set_manifest_autonomous_dispatch.test.ts tests/unit/cstar-kernel-mcp/test_typed_outcomes.test.ts tests/unit/cstar-kernel-mcp/test_mcp_outcome_deadline_instrumentation.test.ts",
+  "tests": {
+    "passed": 53,
+    "failed": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "suites": 6,
+    "duration_ms": 16856.047245,
+    "suite_counts": {
+      "structured dispatch action authority": 6,
+      "CStar MCP dispatch request tools": 11,
+      "CStar MCP Forge execute tool": 16,
+      "same-root autonomous SET Forge dispatch": 10,
+      "SET-01 MCP outcome and deadline instrumentation": 4,
+      "typed MCP outcomes": 6
+    }
+  },
+  "typecheck": {
+    "command": "npm run typecheck",
+    "status": "pass",
+    "exit_code": 0
+  }
+}

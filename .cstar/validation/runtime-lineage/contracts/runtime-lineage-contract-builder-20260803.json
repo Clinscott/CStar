@@ -1,0 +1,173 @@
+{
+  "schema": "cstar.runtime_lineage_contract_builder_receipt.v1",
+  "status": "READY_FOR_INDEPENDENT_VALIDATION",
+  "decision_id": "decision:cstar-state-only-luna-host-seam-batch1-20260803",
+  "bead_id": "bead:cstar:state-only-luna-host-seam-batch1-20260803:parent:02-runner-transport-contracts",
+  "host_goal_id": "019fca13-17c3-7881-87b4-a1f1b7c8a589",
+  "worktree": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803",
+  "head": "afbbc1770ec6a7a2adc15b83f91c5586ac2525c0",
+  "scope": "runtime-lineage contracts only; state-only CStar and Codex-hosted Luna Max Forge/Researcher evidence",
+  "preimages": [
+    {
+      "path": "src/tools/cstar-kernel-mcp/contracts/runtime_lineage.ts",
+      "sha256": "6aba0a8d6033867bc1da5c0f59144c158a10b7b8831d3561b37915670e73d8e5",
+      "status": "modified_preimage"
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/contracts/worker_jobs.ts",
+      "sha256": "d31404d0f4cda4940e3d118238574717686348c5d3ab598a06de5c4ea6b6a8a6",
+      "status": "modified_preimage"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_runtime_readiness.test.ts",
+      "sha256": "cd0c06d2002a73dc527aaa910cc6cc0b1902bfcd8210fc354ed1b42f7b898a36",
+      "status": "modified_preimage"
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/contracts/runtime_lineage_forge.ts",
+      "sha256": null,
+      "status": "new"
+    },
+    {
+      "path": ".agents/skills/corvus-forge/runtime/host-manifest.json",
+      "sha256": null,
+      "status": "new"
+    },
+    {
+      "path": ".agents/skills/corvus-forge/runtime/host-manifest.schema.json",
+      "sha256": null,
+      "status": "new"
+    },
+    {
+      "path": ".agents/skills/corvus-forge/scripts/codex_host_runtime_lineage.mjs",
+      "sha256": null,
+      "status": "new"
+    },
+    {
+      "path": "tests/features/cstar_autonomous_hermes_dispatch_policy.feature",
+      "sha256": null,
+      "status": "new"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_runtime_lineage_codex_host.test.ts",
+      "sha256": null,
+      "status": "new"
+    }
+  ],
+  "postimages": [
+    {
+      "path": "src/tools/cstar-kernel-mcp/contracts/runtime_lineage.ts",
+      "sha256": "a44c6669801048ff0ec326bfa776cd577f2b509403b4f720665f620cb11113"
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/contracts/runtime_lineage_forge.ts",
+      "sha256": "4cd69cc299d2a238d9c21c8df5cd01d1a2acd223d9bae514ca77ec7ce6cdfdf1"
+    },
+    {
+      "path": "src/tools/cstar-kernel-mcp/contracts/worker_jobs.ts",
+      "sha256": "521e729590c875668ee42dfedbd2232721294764481b1d16369b2a3cbec2794e"
+    },
+    {
+      "path": ".agents/skills/corvus-forge/runtime/host-manifest.json",
+      "sha256": "63ff3b31feb9991501c0cd3a4a300cc4bb1f259145e9781e9d6f03409c8d69ef"
+    },
+    {
+      "path": ".agents/skills/corvus-forge/runtime/host-manifest.schema.json",
+      "sha256": "bdeeae11caaff13209ab45306a84d5354d7f170341b44e6563d57a2db7c3ab78"
+    },
+    {
+      "path": ".agents/skills/corvus-forge/scripts/codex_host_runtime_lineage.mjs",
+      "sha256": "12aa42315ac98396fc7438cf14065b611bff3f152fbf763ce8277412943535c0"
+    },
+    {
+      "path": "tests/features/cstar_autonomous_hermes_dispatch_policy.feature",
+      "sha256": "7aa983df0c74a3821d835279c41a684be3aef752d10ab4f79d5785cf48b80641"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_forge_runtime_readiness.test.ts",
+      "sha256": "42ce333447b07d19b0567b1c5df16380a15c01f162d4b1596847f3164095328b"
+    },
+    {
+      "path": "tests/unit/cstar-kernel-mcp/test_runtime_lineage_codex_host.test.ts",
+      "sha256": "c53f91aff5b0e1cde71979c97f79c1a7d01297205be80a4fb56d576eecea054a"
+    }
+  ],
+  "runtime_contract": {
+    "schema": "cstar.forge_host_runtime_manifest.v2",
+    "manifest_version": "host_v2",
+    "runner_owner": "codex-host",
+    "workflow_surfaces": ["forge", "researcher"],
+    "requested_model": "gpt-5.6-luna",
+    "requested_reasoning": "max",
+    "selector_status": "enforced",
+    "actual_identity": null,
+    "actual_identity_status": "unreported",
+    "transport": "codex-host",
+    "optional_transport": "hermes:x-grok",
+    "hermes_runner_or_provider": false,
+    "kernel_provider_launcher": null,
+    "executable_launcher_present": false,
+    "cognition_launch": false,
+    "provider_requests_started": 0,
+    "network_accessed": false,
+    "legacy_v1_decoder": {
+      "readable": true,
+      "actionable": false,
+      "runner_owner": "legacy-hermes",
+      "historical_model": "MiniMax-M3"
+    },
+    "manifest_sha256": "63ff3b31feb9991501c0cd3a4a300cc4bb1f259145e9781e9d6f03409c8d69ef",
+    "schema_sha256": "bdeeae11caaff13209ab45306a84d5354d7f170341b44e6563d57a2db7c3ab78",
+    "generator_sha256": "12aa42315ac98396fc7438cf14065b611bff3f152fbf763ce8277412943535c0",
+    "content_sha256": "e6cb46c52ed3aa3f7f4298c70e21a8ef876ca939220d1d78e4958dd0ab685371",
+    "receipt_sha256": "cff50e5b798693ea4cb95061acc267ed9f44aad85ff53a8874fd1f2e2c31ef57"
+  },
+  "dependency_evidence": {
+    "receipt_path": ".cstar/validation/runtime-lineage/dependencies/node-modules-materialization-20260803.json",
+    "receipt_sha256": "6631b5a173bd70038f73b35ef2f3f20e4c190d3205a911f8dfd199ce8dc26689",
+    "status": "verified",
+    "node_modules_realpath_matches_root": true,
+    "installed_lock_sha256": "17444f155c3c718d9a9d4197b7c6b794314b2c13a653f48a98fdc6737dbbf270",
+    "native_artifact_sha256": "2cbc7eb7f9da445e6221244aeae015716659780944ce165e428046c7b2bc78eb",
+    "native_artifact_runtime_smoke": "verified"
+  },
+  "runtime_node_selection": {
+    "selected_path": "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+    "selected_version": "v25.8.1",
+    "selected_module_abi": "141",
+    "default_node_version": "v26.5.0",
+    "default_module_abi": "147",
+    "selection_reason": "verified better-sqlite3 artifact is ABI 141; Node 26 would fail to load it",
+    "activation_requirement": "activation worker must make this runtime selection deterministic; this child did not edit the launcher"
+  },
+  "validation": {
+    "generator_syntax": "node --check: pass",
+    "manifest_and_schema_json": "parse: pass",
+    "focused_command": "node scripts/run-tsx.mjs --test --test-concurrency=1 tests/unit/cstar-kernel-mcp/test_runtime_lineage_codex_host.test.ts tests/unit/cstar-kernel-mcp/test_forge_runtime_readiness.test.ts tests/unit/cstar-kernel-mcp/test_runtime_native_artifacts.test.ts tests/unit/cstar-kernel-mcp/test_worker_job_lifecycle_binding.test.ts tests/unit/cstar-kernel-mcp/test_forge_hermes_runtime_evidence.test.ts tests/unit/cstar-kernel-mcp/test_forge_bound_preflight.test.ts",
+    "focused_result": "46 tests, 6 suites, 46 passed, 0 failed",
+    "relevant_command": "node scripts/run-tsx.mjs --test --test-concurrency=2 tests/unit/cstar-kernel-mcp/test_runtime_lineage_codex_host.test.ts tests/unit/cstar-kernel-mcp/test_forge_runtime_readiness.test.ts tests/unit/cstar-kernel-mcp/test_runtime_native_artifacts.test.ts tests/unit/cstar-kernel-mcp/test_worker_job_lifecycle_binding.test.ts tests/unit/cstar-kernel-mcp/test_worker_job_subordinate_migration.test.ts tests/unit/cstar-kernel-mcp/test_file_size_contract.test.ts tests/unit/cstar-kernel-mcp/test_code_control_root_separation.test.ts tests/unit/cstar-kernel-mcp/test_forge_hermes_runtime_evidence.test.ts tests/unit/cstar-kernel-mcp/test_forge_bound_preflight.test.ts",
+    "relevant_result": "61 tests, 9 suites, 61 passed, 0 failed",
+    "typecheck": "npm run typecheck under Node v25.8.1: pass",
+    "diff_check": "git diff --check: pass",
+    "stable_hash_passes": 2,
+    "line_limit": {
+      "max_lines": 472,
+      "limit": 500,
+      "files_checked": 7
+    }
+  },
+  "prohibitions_observed": [
+    "no CStar MCP, Hall, SQLite, or direct lifecycle mutation",
+    "no provider or network call",
+    "no Forge execution or Researcher execution",
+    "no install, rebuild, symlink, or launcher mutation",
+    "no Git index/history mutation, commit, push, merge, PR, deploy, or reload",
+    "no secrets, credentials, config, cleanup, or destructive action"
+  ],
+  "independent_validation": {
+    "status": "required_next",
+    "performed_by_this_goal": false,
+    "next_lane": "distinct independent validator",
+    "cstar_record_result": "not attempted because CStar MCP is unavailable"
+  }
+}

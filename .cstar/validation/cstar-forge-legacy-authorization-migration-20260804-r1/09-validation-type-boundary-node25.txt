@@ -1,0 +1,7 @@
+command: node scripts/run-tsx.mjs --test tests/unit/cstar-kernel-mcp/test_validation_evidence_type_boundary.test.ts
+runtime: node v25.8.1
+suite: Forge validation evidence type boundary
+tests: 3
+passed: 3
+failed: 0
+status: pass

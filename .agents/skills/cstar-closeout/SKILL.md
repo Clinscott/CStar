@@ -17,7 +17,7 @@ separate gates.
    Add `--include-path <path>` only for artifacts whose hashes belong in the
    packet. Never include secrets or raw high-volume evidence.
    For a Codex activation gate, run
-   `scripts/inspect_codex_activation.py --root <CStar> --estate-root <Corvus>`.
+   `.agents/skills/cstar-closeout/scripts/inspect_codex_activation.py --root <CStar> --estate-root <Corvus>`.
    It checks source, personal staging, installed lineage, marketplace uniqueness,
    and static MCP wrapper precedence without reading secret values or mutating
    host state. It always leaves live proof and activation operator-gated.

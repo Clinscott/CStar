@@ -1,0 +1,51 @@
+{
+  "actual_model": null,
+  "actual_reasoning": null,
+  "autoresearcher": {
+    "failed_stage_fingerprints": [
+      {
+        "fingerprint": "2885825cc510aab627e159a7",
+        "output_sha256": null,
+        "reason": "runner_error",
+        "stage": "runner_preflight",
+        "trial": 0
+      }
+    ],
+    "mode": "proposal_only",
+    "next_action": "dispatch_repair_bead"
+  },
+  "cstar_acceptance": "UNVERIFIED",
+  "error": "candidate source is not a file: .agents/skills/cstar-reliability-loop/schemas/reliability-receipt.schema.json",
+  "external_effects": {
+    "deployment": false,
+    "direct_hall_sqlite_writes": false,
+    "git_mutation": false,
+    "install_activation_restart": false,
+    "live_mcp": false,
+    "live_provider": false,
+    "live_source": false,
+    "network": false,
+    "production": false,
+    "receipt_write": false,
+    "secrets_or_config": false
+  },
+  "failed": 0,
+  "failed_stage_fingerprints": [
+    {
+      "fingerprint": "2885825cc510aab627e159a7",
+      "output_sha256": null,
+      "reason": "runner_error",
+      "stage": "runner_preflight",
+      "trial": 0
+    }
+  ],
+  "passed": 0,
+  "requested_model": "gpt-5.6-luna",
+  "requested_reasoning": "max",
+  "runner_mode": "host_only_deterministic",
+  "schema": "cstar.workflow_sprt_autoresearcher.v1",
+  "sprt_verdict": "INCONCLUSIVE",
+  "stop_reason": "runner_error",
+  "total": 0,
+  "workflow_score": 0.0
+}

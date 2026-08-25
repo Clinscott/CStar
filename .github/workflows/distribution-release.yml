@@ -13,13 +13,24 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up Node.js 20
+    - name: Set up Node.js from the canonical runtime policy
       uses: actions/setup-node@v4
       with:
-        node-version: 20
+        node-version-file: .nvmrc
 
-    - name: Install dependencies
-      run: npm install --legacy-peer-deps
+    - name: Install exact npm release
+      run: npm install --global npm@11.11.0 --ignore-scripts --no-audit --no-fund
+
+    - name: Install locked dependencies
+      run: npm ci --ignore-scripts --no-audit --no-fund
+
+    - name: Build the required native runtime dependency
+      run: npm rebuild better-sqlite3 --foreground-scripts --no-audit --no-fund
+      env:
+        npm_config_build_from_source: 'true'
+
+    - name: Validate the canonical runtime policy
+      run: npm run validate:runtime
 
     - name: Generate distribution artifacts
       run: |

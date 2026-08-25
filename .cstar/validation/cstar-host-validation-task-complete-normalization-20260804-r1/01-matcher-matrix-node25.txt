@@ -1,0 +1,24 @@
+command:
+  /home/morderith/.nvm/versions/node/v25.8.1/bin/node --import ./node_modules/tsx/dist/loader.mjs --input-type=module -
+runtime: node v25.8.1; npm 11.11.0
+source: src/tools/cstar-kernel-mcp/tools/host_workflow_message.ts:1-45
+
+Independent matrix result: 14/14 cases passed.
+- exact equality: accepted
+- one trailing well-formed citation block without separator: accepted
+- one trailing well-formed citation block with LF separator: accepted
+- arbitrary truncation: rejected
+- prefix mismatch: rejected
+- suffix mismatch: rejected
+- malformed structure: rejected
+- malformed entry: rejected
+- multiple citation blocks: rejected
+- in-body citation block: rejected
+- citation-only mismatch: rejected
+- trailing newline after the citation block: rejected
+- ordinary mismatch: rejected
+- wrong citation block order: rejected
+
+The helper therefore permits exact equality or a single final well-formed
+<oai-mem-citation> block whose omission is the only difference. The test also
+confirmed the block cannot be followed by an extra newline or body text.

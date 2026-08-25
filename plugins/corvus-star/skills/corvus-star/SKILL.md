@@ -44,13 +44,15 @@ metadata:
 - Use direct Codex thread tools for read/list/send when exposed; session JSONL fallback is read-only degraded mode, not an execution or assignment surface.
 - CoS owns estate sequencing, bounded Green/Yellow execution, evidence packaging, lifecycle updates, and closeout.
 - Start or resume one host goal for every non-trivial mission, keep one plan step in progress, and close the goal only after CStar lifecycle state and validation agree.
-- Before the first CStar mutation or provider attempt of each local day, follow `docs/operations/cstar-goal-driven-daily-bootstrap.md` for Codex/Hermes freshness; updates do not authorize a restart.
+- Before the first CStar mutation or provider attempt of each local day, follow `docs/operations/cstar-goal-driven-daily-bootstrap.md` for Codex-host and explicitly selected legacy-adapter freshness; updates do not authorize a restart.
 - Forge builds implementation; Researcher gathers evidence; CorvusEye evaluates and red-teams.
 - PMTs are project-scoped information repositories only. Query only the mapped PMT for bounded context and send a compact state update after meaningful work.
-- MM is legacy and has no active estate-routing role.
+- MM is inactive and has no active routing, synthesis, ownership, relay, review, or execution role.
 - Preserve operator gates for acceptance, dispatch, implementation bypass, commit, push, merge, post, deletion, restarts, deploys, and secret/config mutation.
 - Keep high-volume collectors outside beads; collectors write receipts or artifacts, then bounded proposals/results enter CStar.
-- Public AutoBot is decommissioned. Forge alone may use its private CStar -> Hermes -> MiniMax-M3 adapter after an authorized execute transition.
+- Public AutoBot is decommissioned. Current Forge v3 persists a Codex-host state-only handoff; private Hermes/MiniMax adapters remain explicit legacy v2 compatibility and are never a fallback.
+- After `host_handoff_queued` or `host_handoff_replayed`, run `npm run consume:forge-host-handoff` with the exact returned handoff path, hash, request, execution, attempt, and target-scope fields before exposing executable job data. The read-only consumer fails closed on unsafe filesystem or binding drift and leaves lifecycle, ticket, provider, and cleanup state untouched.
+- The consumer receipt means only `ready_for_host_execution` at a sequential filesystem boundary; it does not claim validation, Forge finalization, host execution, or filesystem-wide atomicity across the final identity check and later opens.
 - Choose Luna, Terra, or Sol only through a host surface that exposes an enforceable selector. Record requested and actual identity separately; use `unreported` when actual identity is absent.
 - Keep host-specific packaging separate from kernel logic.
 - Treat `native-session` and `exec-bridge` capabilities as host-routed work, and `supported` capabilities as kernel-backed launch surfaces.
@@ -69,7 +71,7 @@ metadata:
 - Foundational CStar work uses `Scope: brain:CStar`; use `Scope: spoke:<name>` only when a spoke is explicit.
 - Do not echo a full Augury block unless the operator asks for the route packet.
 
-## Kernel MCP Tools (28)
+## Kernel MCP Tools (30)
 
 The `cstar-kernel` MCP server is the authoritative kernel surface — invoke these tools directly via MCP rather than shelling out to `./cstar` whenever the needed primitive exists. Tool classes declare bounded effects; observed runtime remains evidence and cannot grant authority. Full API reference: `docs/integrations/cstar-kernel-mcp.md`.
 
@@ -100,7 +102,9 @@ The `cstar-kernel` MCP server is the authoritative kernel surface — invoke the
 - `cstar_researcher_request` (REQUEST) — Create a CStar-native no-spend Researcher request receipt.
 - `cstar_forge_request` (REQUEST) — Persist an immutable no-spend Forge request; machine challenge material stays hidden from the normal operator workflow.
 - `cstar_forge_authorize` (MUTATION) — Bind one explicit root-user build instruction or immutable CStar goal-continuation receipt to one unchanged pending Forge request; performs no provider call.
-- `cstar_forge_execute` (EXECUTION) — Atomically run one provider attempt through the private Hermes/MiniMax adapter, with durable replay, independently validated pre-provider continuity, and delivered-pending-validation semantics.
+- `cstar_forge_execute` (EXECUTION) — Atomically persist or replay the current Codex-host state-only Forge handoff with zero CStar provider/cognition launch; explicitly selected legacy Hermes/MiniMax attempts retain durable replay, independently validated continuity, and delivered-pending-validation semantics.
+- `cstar_mission` (REQUEST) — Compatibility-first ordinary bounded mission coordinator; derives immutable identifiers and hashes, persists host-owned queue intent when authorized, and never launches workers, providers, or Forge authority.
+- `cstar_forge_host_complete` (MUTATION) — Record a host-reported Forge completion boundary without treating delivery as independent validation or lifecycle success.
 
 ## Context Budget
 - Never preload Hall memory, logs, full registry dumps, or complete bead ledgers.
@@ -120,4 +124,5 @@ The `cstar-kernel` MCP server is the authoritative kernel surface — invoke the
 - This list is generated from `.agents/skill_registry.json` and may be empty when no Codex executable capabilities are registered.
 - `corvus-forge` (SKILL, native-session, host-workflow, kernel fallback forbidden)
 - `cstar-closeout` (SKILL, native-session, host-workflow, kernel fallback forbidden)
+- `cstar-reliability-loop` (SKILL, native-session, host-workflow, kernel fallback forbidden)
 - `researcher` (SKILL, native-session, host-workflow, kernel fallback forbidden)

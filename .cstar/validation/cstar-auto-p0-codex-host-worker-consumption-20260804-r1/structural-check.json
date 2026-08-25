@@ -1,0 +1,33 @@
+{
+  "check": "set_03_structural_integrity",
+  "status": "pass",
+  "max_lines": 490,
+  "line_limit": 500,
+  "byte_stability": "pass",
+  "changed_set": [
+    "src/tools/cstar-kernel-mcp/contracts/worker_jobs.ts",
+    "src/types/worker_job.ts",
+    "src/tools/pennyone/intel/worker_job_validation.ts",
+    "src/tools/cstar-kernel-mcp/tools/forge_execute.ts",
+    "src/tools/cstar-kernel-mcp/tools/forge_execute_contract.ts",
+    "src/tools/cstar-kernel-mcp/tools/forge_execute_reservation.ts",
+    "src/tools/pennyone/intel/forge_host_worker_dispatch.ts",
+    "tests/unit/cstar-kernel-mcp/test_forge_durable_execution.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_forge_execute_authority.test.ts",
+    "tests/unit/cstar-kernel-mcp/test_forge_codex_host_worker_dispatch.test.ts"
+  ],
+  "line_counts": {
+    "src/tools/cstar-kernel-mcp/contracts/worker_jobs.ts": 362,
+    "src/types/worker_job.ts": 286,
+    "src/tools/pennyone/intel/worker_job_validation.ts": 170,
+    "src/tools/cstar-kernel-mcp/tools/forge_execute.ts": 490,
+    "src/tools/cstar-kernel-mcp/tools/forge_execute_contract.ts": 62,
+    "src/tools/cstar-kernel-mcp/tools/forge_execute_reservation.ts": 103,
+    "src/tools/pennyone/intel/forge_host_worker_dispatch.ts": 306,
+    "tests/unit/cstar-kernel-mcp/test_forge_durable_execution.test.ts": 438,
+    "tests/unit/cstar-kernel-mcp/test_forge_execute_authority.test.ts": 77,
+    "tests/unit/cstar-kernel-mcp/test_forge_codex_host_worker_dispatch.test.ts": 143
+  },
+  "unrelated_dirty_worktree": "present_and_preserved",
+  "unrelated_paths_attributed_to_set_03": false
+}

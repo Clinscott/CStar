@@ -1,0 +1,8 @@
+COMMAND: npm run typecheck
+NODE: v25.8.1
+NPM: 11.11.0
+
+> corvusstar@1.0.1 typecheck
+> tsc --noEmit -p tsconfig.json
+
+EXIT_CODE: 0

@@ -15,6 +15,7 @@ import {
     saveHallMountedSpoke,
     upsertHallRepository,
 } from '../../src/tools/pennyone/intel/database.js';
+import { setCanonicalPersonaState } from '../../src/tools/pennyone/intel/persona_state.js';
 import { registry } from '../../src/tools/pennyone/pathRegistry.js';
 import { buildPersonaProjectionMetadata } from '../../src/tools/pennyone/persona_projection.js';
 import { buildHallRepositoryId, normalizeHallPath } from '../../src/types/hall.js';
@@ -79,6 +80,7 @@ describe('read-only StateRegistry compatibility boundary', () => {
             created_at: 1,
             updated_at: 2,
         });
+        setCanonicalPersonaState(root, 'O.D.I.N.');
         return repoId;
     }
 

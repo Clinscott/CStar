@@ -70,6 +70,17 @@ export function buildForgeAuthorizationChallenge(
         || (executionGrantSha256 !== undefined && !SHA256.test(executionGrantSha256))) {
         throw new Error('forge_authorization_challenge_binding_invalid');
     }
+    const runtimeLineage = executionGrantSha256
+        ? [
+            'legacy_v2_provider=hermes',
+            'legacy_v2_model=minimax/MiniMax-M3',
+        ]
+        : [
+            'transport=codex-host',
+            'requested_selector=gpt-5.6-luna',
+            'requested_reasoning=max',
+            'actual_identity=unreported',
+        ];
     return [
         'CSTAR_FORGE_AUTHORIZE',
         executionGrantSha256 ? 'v2-compat-v1' : 'v1',
@@ -82,8 +93,7 @@ export function buildForgeAuthorizationChallenge(
         'retry_limit=0',
         'fixture_policy=synthetic_only',
         'live_source=false',
-        'provider=hermes',
-        'model=minimax/MiniMax-M3',
+        ...runtimeLineage,
     ].join(' ');
 }
 

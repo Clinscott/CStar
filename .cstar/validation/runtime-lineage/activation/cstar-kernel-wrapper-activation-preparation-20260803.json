@@ -1,0 +1,175 @@
+{
+  "schema": "cstar.runtime_lineage_activation_preparation.v1",
+  "recorded_at": "2026-08-03T20:44:26-04:00",
+  "host_goal": {
+    "thread_id": "019fca36-9118-7673-9734-1bf42c467a10",
+    "requested_model": "gpt-5.6-luna",
+    "requested_reasoning": "max",
+    "actual_model": null,
+    "actual_model_source": "unreported",
+    "status": "complete"
+  },
+  "decision_id": "decision:cstar-state-only-luna-host-seam-batch1-20260803",
+  "bead_id": "bead:cstar:state-only-luna-host-seam-batch1-20260803:parent:01-baseline",
+  "accepted_runtime_report": {
+    "path": ".cstar/validation/runtime-lineage/independent/luna-max-independent-runtime-lineage-codex-host-batch1-20260803-r2.json",
+    "sha256": "3ba155a0486dee03354d69b4b26203072a1e8406c13ab4e8a63f48c5003c85eb"
+  },
+  "write_scope": [
+    "/home/morderith/.codex/bin/wsl/cstar-kernel-mcp-wrapper",
+    "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/runtime-lineage/activation/cstar-kernel-wrapper-activation-preparation-20260803.json"
+  ],
+  "wrapper": {
+    "path": "/home/morderith/.codex/bin/wsl/cstar-kernel-mcp-wrapper",
+    "preimage_sha256": "fa340355e2a68fda6780eeab9e29f6a1b072151a9d80da87df8657a0bc8470b3",
+    "postimage_sha256": "038ed8a93027b66c1248928e7b961b6a34cac865e30cbaeabc3eb140324821fc",
+    "preimage_mode_uid_gid": "755:1000:1000",
+    "postimage_mode_uid_gid": "755:1000:1000",
+    "syntax_check": "passed",
+    "diff": {
+      "status": "bounded_expected_change",
+      "removed": [
+        "export PATH=\"/home/morderith/.nvm/versions/node/v25.8.1/bin:$PATH\"",
+        "export CSTAR_CONTROL_ROOT=\"/home/morderith/Corvus/CStar\"",
+        "exec /home/morderith/.nvm/versions/node/v25.8.1/bin/node \\\n+"
+      ],
+      "added": [
+        "CSTAR_CONTROL_ROOT=/home/morderith/Corvus/CStar \\\n+",
+        "  /home/morderith/.nvm/versions/node/v25.8.1/bin/node \\\n+"
+      ],
+      "unchanged": [
+        "#!/usr/bin/env bash",
+        "set -euo pipefail",
+        "  /home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/bin/cstar-kernel-mcp.js \"$@\""
+      ],
+      "final_invocation": "CSTAR_CONTROL_ROOT=/home/morderith/Corvus/CStar /home/morderith/.nvm/versions/node/v25.8.1/bin/node /home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/bin/cstar-kernel-mcp.js"
+    }
+  },
+  "runtime_artifacts": {
+    "node": {
+      "path": "/home/morderith/.nvm/versions/node/v25.8.1/bin/node",
+      "exists": true,
+      "executable": true,
+      "sha256": "b1d316a8ae095c4f4c159bb906bdd3e6a0ed6f7026a7a75dd00898f2cef24e41",
+      "version": "v25.8.1",
+      "abi": "141",
+      "mode_uid_gid": "755:1000:1000"
+    },
+    "kernel_entry": {
+      "path": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/bin/cstar-kernel-mcp.js",
+      "exists": true,
+      "executable": true,
+      "sha256": "37a8fdddfbbeda5fee7ee11ee1e0b2e3430e76f355ccfb0f3b4c205dbc9baf79",
+      "mode_uid_gid": "755:1000:1000"
+    },
+    "native_runtime_smoke": {
+      "path": "node_modules/better-sqlite3/build/Release/better_sqlite3.node",
+      "sha256": "2cbc7eb7f9da445e6221244aeae015716659780944ce165e428046c7b2bc78eb",
+      "bytes": 2139624,
+      "node_abi": "141",
+      "result": "passed"
+    }
+  },
+  "standalone_mcp_probe": {
+    "launcher": "/home/morderith/.codex/bin/wsl/cstar-kernel-mcp-wrapper",
+    "path_isolation": "/usr/bin:/bin",
+    "requests": [
+      "initialize",
+      "notifications/initialized",
+      "tools/list",
+      "tools/call:cstar_doctor",
+      "tools/call:cstar_status"
+    ],
+    "initialize": {
+      "result": "passed",
+      "server": "cstar-kernel",
+      "version": "3.1.0",
+      "protocol": "2024-11-05"
+    },
+    "tools": {
+      "count": 28,
+      "required_tools_present": [
+        "cstar_doctor",
+        "cstar_status"
+      ]
+    },
+    "doctor": {
+      "status": "healthy",
+      "score": 100,
+      "warnings": [],
+      "checks": {
+        "database": true,
+        "registry": true,
+        "augury": true,
+        "root_binding": true,
+        "dependency_lineage": true,
+        "forge_runtime_manifest": true,
+        "forge_readiness": true
+      },
+      "code_root": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803",
+      "dependency_lineage": "verified_lock_match",
+      "forge_ready": true,
+      "runtime_manifest_version": "host_v2"
+    },
+    "status": {
+      "persona": "O.D.I.N.",
+      "hall_reachable": true,
+      "code_root": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803",
+      "control_root": "/home/morderith/Corvus/CStar",
+      "binding_mode": "live_launcher",
+      "dependency_lineage": "verified_lock_match",
+      "readiness": {
+        "kernel_root_binding": true,
+        "dependency_lineage": true,
+        "forge_runtime_manifest": true,
+        "forge": true,
+        "forge_failures": []
+      },
+      "host_runtime_proof": {
+        "manifest_version": "host_v2",
+        "runner_owner": "codex-host",
+        "requested_model": "gpt-5.6-luna",
+        "requested_reasoning": "max",
+        "selector_status": "enforced",
+        "actual_identity": null,
+        "transport": "codex-host",
+        "executable_launcher_present": false,
+        "provider_requests_started": 0,
+        "network_accessed": false,
+        "cognition_launch": false
+      }
+    },
+    "termination": {
+      "wrapper_exit_code": 0,
+      "wrapper_signal": null,
+      "forced": false,
+      "stderr": "[cstar-kernel] exiting: SIGTERM",
+      "interpretation": "normal stdin-close child shutdown; no persistent process remained"
+    }
+  },
+  "recovered_iteration": {
+    "initial_probe": {
+      "result": "failed_before_mcp_initialize",
+      "exit_code": 127,
+      "error": "bash treated exec CSTAR_CONTROL_ROOT=... as a command name"
+    },
+    "repair": "removed only the incompatible exec token while retaining the exact inline assignment and absolute Node invocation",
+    "final_probe": "passed"
+  },
+  "lifecycle_and_safety": {
+    "cstar_mcp_lifecycle_mutation": false,
+    "hall_bypass": false,
+    "cstar_record_result": "not attempted; no supported lifecycle persistence surface was requested",
+    "restart_or_reload": "not performed",
+    "desktop_or_persistent_process_killed": false,
+    "source_config_git_dependency_secret_mutation": false,
+    "provider_requests_started": 0,
+    "network_accessed": false,
+    "write_scope_respected": true
+  },
+  "activation": {
+    "normal_codex_restart_is_sole_remaining_activation_action": true,
+    "basis": "wrapper and successor runtime are independently verified; no reload or restart was performed",
+    "post_restart_requirement": "run supported live CStar verification and lifecycle recording before treating activation as complete"
+  }
+}
