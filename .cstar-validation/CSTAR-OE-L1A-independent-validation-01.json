@@ -1,0 +1,26 @@
+{
+  "schema": "cstar.host_validation_pointer.v1",
+  "validation_id": "CSTAR-OE-L1A-INDEPENDENT-VALIDATION-01",
+  "verdict": "REJECTED",
+  "bead_id": "bead:mcp:cstar-oe-l1a-contract-policy-recovery",
+  "validator_thread_id": "019ffb53-71ec-7e92-8a98-ed4ef309f2fe",
+  "validator_turn_id": "019ffb53-7344-77f0-82cc-f1500580bafe",
+  "external_manifest": {
+    "path": "/home/morderith/Corvus/CStar/work/receipts/operating-efficiency/CSTAR-OE-L1A-independent-validation-01-reject.json",
+    "sha256": "04b456ff21a0c450d4718c452e965a212f26c095ab79056f7e132e3219fcb6fd"
+  },
+  "subject_delivery_receipt_sha256": "054e735ecc709d9d079b5c8ee081393f2485ea07502f8339e250898ffb361a6f",
+  "checks": [
+    {"name": "typecheck", "status": "pass"},
+    {"name": "focused_policy_tests", "status": "pass", "tests": 9, "failed": 0},
+    {"name": "prototype_pollution_review", "status": "fail"}
+  ],
+  "finding": {
+    "code": "CSTAR_NATIVE_TASK_PROTOTYPE_MUTATION_PATH",
+    "severity": "MATERIAL",
+    "file": "src/core/native_task_control/canonical.ts",
+    "lines": [239, 263]
+  },
+  "source_acceptance_credit": 0,
+  "control_artifact_not_source_implementation": true
+}
