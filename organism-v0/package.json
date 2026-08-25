@@ -1,0 +1,13 @@
+{
+  "name": "@corvus/organism-v0",
+  "version": "0.0.0-s00",
+  "private": true,
+  "type": "module",
+  "description": "Corvus Organism Kernel v0 S00 foundation primitives.",
+  "engines": {
+    "node": ">=25.8.1"
+  },
+  "scripts": {
+    "test:canonical": "node --import tsx --test tests/canonical_hashes.test.ts"
+  }
+}
