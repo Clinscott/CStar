@@ -1,0 +1,14 @@
+cstar_status=AWAKE
+kernel_hall_reachable=true
+runtime_code_root=/home/morderith/Corvus/CStar/work/truth/cstar-master-20260730
+runtime_control_root=/home/morderith/Corvus/CStar
+runtime_lineage=separated_live_launcher
+validator_role=distinct_independent_validator
+validator_thread_id=019fc2f3-c00a-7570-ac32-6831fd13376c
+validator_turn_id=019fc2f3-c0d7-7861-a5f2-15d75538a6ce
+recorder_parent_thread_id=019f71dc-af61-7a73-a72d-1ec3a638a011
+implementation_owner_thread_id=019fc2e1-590b-7e72-9e2e-5702a69bbbe8
+cstar_mutation=not_performed
+worker_launch=not_performed
+provider_attempt=not_performed
+git_write=not_performed

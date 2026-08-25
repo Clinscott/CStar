@@ -1,0 +1,25 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:cstar:auto-a1-mission-authority-20260802",
+  "validation_id": "validation:cstar-auto-a1-mission-authority-20260802:c368d65dafe30df691e7d98c42c9a9a4b59f6b0a",
+  "reported_verdict": "REJECTED",
+  "artifacts": [
+    {"path":"src/tools/cstar-kernel-mcp/contracts/automatic_mission.ts","sha256":"ecd338987ac0fb91b6e2f1df60abba458bb5c0772861c4ec0789255852e069e9"},
+    {"path":"src/tools/cstar-kernel-mcp/tools/automatic_mission.ts","sha256":"4882953430ec3fe45fb7938eccbe3828411f08a957efdbc2e81c8008239bbd9e"},
+    {"path":"src/tools/pennyone/intel/automatic_mission_authority.ts","sha256":"c92333556a738fee81acc3070557e7c2544eba5a80c9f4f8d0af5ab043aaa29a"},
+    {"path":"src/tools/pennyone/intel/automatic_mission_controller.ts","sha256":"b783545d4100b445298ebcf1630609121e005b3059cec96c85419ebcaa6a93a6"},
+    {"path":"src/tools/pennyone/intel/automatic_mission_schema.ts","sha256":"9e837dc5eec8a856bea32c02fe6fa031d71a9e9638ec5d55611745678b7fa408"},
+    {"path":"src/types/automatic_mission.ts","sha256":"7637ce92ad755ceb2b3d1fb4a977bd783fa044167f39ebb8485b1f44a02c0890"},
+    {"path":"tests/features/cstar_automatic_mission_authority.feature","sha256":"1d3e09bf0d38f3a45c340f7de13b02f021bdc6e5a435c141a68db0db6a3b01c7"},
+    {"path":"tests/unit/cstar-kernel-mcp/test_automatic_mission_authority.test.ts","sha256":"e25028f58949e0d2070973968e0654775e3d5015fe4b172ad199c9bc8574f234"},
+    {"path":"tests/unit/cstar-kernel-mcp/test_automatic_mission_state.test.ts","sha256":"ede31b93c71f2927add0fae301cd028e9440515323df091a6dc6857029eb1048"}
+  ],
+  "checks": [
+    {"name":"lineage and exact nine-path allowlist","status":"pass","evidence_path":"validation/a1-host-v3/lineage-and-allowlist.txt","sha256":"3d524f6ced7de8db085360c4c86690952dfd425ba9d7e0076fd218cc27a4d7b1"},
+    {"name":"focused A1 tests and compatibility suites","status":"pass","evidence_path":"validation/a1-host-v3/focused-and-compatibility-tests.txt","sha256":"f8d5cbeadaff7c97b1a695048d29323af0c98ac98f4b94f9407335a7f1e8ad53"},
+    {"name":"adversarial authority probe","status":"pass","evidence_path":"validation/a1-host-v3/adversarial-authority-probe.txt","sha256":"952ddfb4b1d28fc2f9d13a5beedd030c00020dd336c961cb76d7b8b99a0a3f11"},
+    {"name":"SET contract and authority boundary review","status":"pass","evidence_path":"validation/a1-host-v3/contract-and-boundary-review.txt","sha256":"4845d4cbe4fb34980de38c64dd629c43f211c8a9c7d72238aa3fa3bd25ca2adc"},
+    {"name":"typecheck line and source hash checks","status":"pass","evidence_path":"validation/a1-host-v3/static-and-source-hashes.txt","sha256":"45b6160445a396a3efbb154cb4e91065a203a6c4883429d2c4d174bfca130cec"},
+    {"name":"CStar route and no-mutation boundary","status":"pass","evidence_path":"validation/a1-host-v3/route-and-authority.txt","sha256":"e346edebbf34569016c9418216e7b6697bb7f9ddf0ddd0d9924a0a3295918f16"}
+  ]
+}

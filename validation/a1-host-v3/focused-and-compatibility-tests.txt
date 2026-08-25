@@ -1,0 +1,11 @@
+focused_command=node scripts/run-tsx.mjs --test --test-concurrency=2 tests/unit/cstar-kernel-mcp/test_automatic_mission_authority.test.ts tests/unit/cstar-kernel-mcp/test_automatic_mission_state.test.ts
+focused_tests=15
+focused_pass=15
+focused_fail=0
+compatibility_suites=6
+compatibility_tests=113
+compatibility_pass=113
+compatibility_fail=0
+compatibility_suites_detail=natural_language_authorization,goal_resume_multirecord_identity,goal_resume,legacy_v2_continuity,multirecord_authorization,set_manifest_authorization
+typecheck_command=npm run typecheck
+typecheck=pass

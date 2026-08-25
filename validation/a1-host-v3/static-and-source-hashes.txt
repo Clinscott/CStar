@@ -1,0 +1,8 @@
+line_count_total=2113
+max_touched_file_lines=446
+max_touched_file_limit=500
+diff_check=pass
+typecheck=pass
+source_hashes_are_sha256=pass
+source_files=9
+no_tracked_edits=pass
