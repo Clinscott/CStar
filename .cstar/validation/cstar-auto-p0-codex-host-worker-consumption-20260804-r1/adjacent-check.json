@@ -1,0 +1,37 @@
+{
+  "check": "set_03_adjacent_and_runtime",
+  "runtime": {
+    "node": "v25.8.1",
+    "npm": "11.11.0",
+    "path_prefix": "/home/morderith/.nvm/versions/node/v25.8.1/bin"
+  },
+  "exact_adjacent_command": {
+    "command": "node scripts/run-tsx.mjs --test tests/unit/cstar-kernel-mcp/test_codex_host_worker_runtime_lineage.test.ts tests/unit/cstar-kernel-mcp/test_validation_ticket_spoke_result.test.ts tests/unit/cstar-kernel-mcp/test_terminal_forge_validation_linkage.test.ts",
+    "suites": 2,
+    "tests": 9,
+    "passed": 9,
+    "failed": 0,
+    "status": "pass",
+    "requested_runtime_path": "tests/unit/cstar-kernel-mcp/test_codex_host_worker_runtime_lineage.test.ts",
+    "requested_runtime_path_present": false,
+    "note": "The runner completed the two present suites; the requested runtime filename is absent in this worktree and was not treated as executed."
+  },
+  "runtime_lineage_equivalent": {
+    "command": "node scripts/run-tsx.mjs --test tests/unit/cstar-kernel-mcp/test_runtime_lineage_codex_host.test.ts",
+    "suites": 1,
+    "tests": 7,
+    "passed": 7,
+    "failed": 0,
+    "status": "pass",
+    "path": "tests/unit/cstar-kernel-mcp/test_runtime_lineage_codex_host.test.ts"
+  },
+  "typecheck": {
+    "command": "npm run typecheck",
+    "status": "pass"
+  },
+  "diff_check": {
+    "command": "git diff --check",
+    "status": "pass"
+  },
+  "status": "pass_with_filename_reconciliation"
+}

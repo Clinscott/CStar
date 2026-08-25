@@ -1,0 +1,4 @@
+command: npm run typecheck
+runtime: node v25.8.1, npm 12.0.0
+result: tsc --noEmit -p tsconfig.json completed with exit 0
+status: pass

@@ -2,12 +2,13 @@
 
 ## Scope
 
-This is the invocation contract for the three current capabilities marked
+This is the invocation contract for the four current capabilities marked
 `entry_surface: host-only` in `.agents/skill_registry.json`:
 
 - `corvus-forge`;
-- `researcher`; and
-- `cstar-closeout`.
+- `researcher`;
+- `cstar-closeout`; and
+- `cstar-reliability-loop`.
 
 They are agent-native procedures. They are not public shell commands, runtime
 models, or dispatcher-owned executions.
@@ -99,18 +100,35 @@ make the skill terminal-executable.
 
 ## Lane-Specific Rules
 
-- `corvus-forge` uses only the durable request/execute/result lifecycle. The
-  private Hermes `cstar-hub` MiniMax-M3 adapter is sealed inside Forge; direct
-  Hermes and public AutoBot remain retired. Requested and actual model identity
-  are recorded separately.
+- `corvus-forge` uses the durable request -> authorize -> execute -> independent
+  record_result lifecycle. Current v3 execute persists a Codex-host state-only
+  handoff with `runner_owner: "codex-host"`, requested `gpt-5.6-luna`/`max`,
+  `host_launch_required: true`, and no provider, cognition, or CStar launch at
+  handoff. The private Hermes `cstar-hub` MiniMax-M3 adapter is explicit legacy
+  v2 compatibility only; direct Hermes and public AutoBot remain retired.
+  Requested selector and host-attested actual identity are recorded separately;
+  actual is `unreported`/`null` without attestation.
+  After `host_handoff_queued` or `host_handoff_replayed`, the active host must
+  invoke `npm run consume:forge-host-handoff` with the exact returned path,
+  hashes, request, execution, attempt, and scope fields. The command is an
+  intrinsic read-only host boundary: it uses no-follow descriptor checks and a
+  final target/output identity revalidation, returns no job on drift, and does
+  not mutate lifecycle state, Hall/SQLite, validation tickets, or provider
+  state. Its `ready_for_host_execution` receipt does not remove the sequential
+  TOCTOU boundary before later host opens/execution.
 - `researcher` uses authorized Researcher source lanes. New live collection or
   source expansion remains operator-gated.
 - `cstar-closeout` assembles evidence and handoff state first. Stage, commit,
   push, merge, install, cache reconciliation, restart, and deploy are separate
   actions requiring their applicable explicit grants.
+- `cstar-reliability-loop` coordinates bounded validation and automatic repair
+  continuation; CStar records state, Forge implements, and an independent
+  validator accepts.
 
 PMTs may be queried only as mapped project information repositories and may
-receive a compact `STATE_UPDATE`; they grant no authority. MM is legacy.
+receive a compact `STATE_UPDATE`; they grant no ownership, execution, approval,
+review, routing, monitoring, or lifecycle authority. MM is inactive and has no
+active routing, synthesis, ownership, relay, review, or execution role.
 
 ## Failure Behavior
 

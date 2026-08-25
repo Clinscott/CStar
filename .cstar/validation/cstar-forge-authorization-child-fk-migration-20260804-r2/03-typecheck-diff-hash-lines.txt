@@ -1,0 +1,9 @@
+validation_id=validation:cstar-forge-authorization-child-fk-migration-20260804-r2
+runtime=/home/morderith/.nvm/versions/node/v25.8.1/bin/node v25.8.1; npm 11.11.0
+typecheck=/home/morderith/.nvm/versions/node/v25.8.1/bin/npm run typecheck; tsc --noEmit -p tsconfig.json exit 0
+scoped_git_diff_check=git diff --check exit 0; untracked pinned-file trailing-blank audit passed
+artifact=src/tools/pennyone/intel/forge_authorization_schema.ts sha256=e1779144d27256560e0dbb3ff210c16a4a4e6eb340646cb0ed9cb56978d33502 bytes=19960 lines=427
+artifact=tests/unit/cstar-kernel-mcp/test_forge_authorization_schema_profiles.test.ts sha256=78554da446cfb7eac7d206078431f1bfff21be99a5d915f2ace0f1108a7700e3 bytes=14340 lines=332
+artifact=tests/unit/cstar-kernel-mcp/test_forge_authorization_schema_legacy_duplicates.test.ts sha256=33698fd80c3c423a1651a805cb035c4f174815588bc1f4de3ec4b650c65ed31f7 bytes=13713 lines=311
+line_limit=all pinned source/test files <=500 lines
+

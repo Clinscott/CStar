@@ -1,0 +1,10 @@
+validation_id=validation:cstar-forge-authorization-child-fk-migration-20260804-r2
+runtime=/home/morderith/.nvm/versions/node/v25.8.1/bin/node v25.8.1
+database=/home/morderith/Corvus/CStar/.stats/pennyone.db
+open_mode=better-sqlite3 readonly=true fileMustExist=true; mutation_attempted=false; exit 0
+two_readonly_snapshots=identical
+total_authorization_rows=10
+profile_counts=autonomous_dispatch_policy_v1:1; exact_request_challenge_v1:1; root_user_forge_intent_v1:8
+child_table_seen=hall_forge_mission_grant_requests
+live_fixture_isolation=disposable fixture used :memory: only; no live Hall handle passed to ensureForgeAuthorizationSchema
+

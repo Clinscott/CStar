@@ -154,7 +154,42 @@ export const CSTAR_KERNEL_TOOL_CATALOG = [
     {
         name: 'cstar_forge_execute',
         toolClass: 'EXECUTION',
-        description: 'Atomically run one provider attempt through the private Hermes/MiniMax adapter, with durable replay, independently validated pre-provider continuity, and delivered-pending-validation semantics.',
+        description: 'Atomically persist or replay the current Codex-host state-only Forge handoff with zero CStar provider/cognition launch; explicitly selected legacy Hermes/MiniMax attempts retain durable replay, independently validated continuity, and delivered-pending-validation semantics.',
+    },
+    {
+        name: 'cstar_mission',
+        toolClass: 'REQUEST',
+        description: 'Compatibility-first ordinary bounded mission coordinator; derives immutable identifiers and hashes, persists host-owned queue intent when authorized, and never launches workers, providers, or Forge authority.',
+    },
+    {
+        name: 'cstar_forge_host_complete',
+        toolClass: 'MUTATION',
+        description: 'Record a host-reported Forge completion boundary without treating delivery as independent validation or lifecycle success.',
+    },
+    {
+        name: 'cstar_forge_swarm_plan',
+        toolClass: 'MUTATION',
+        description: 'Record a deterministic native Forge direct-sibling plan; it does not launch workers or grant lifecycle authority.',
+    },
+    {
+        name: 'cstar_forge_swarm_status',
+        toolClass: 'READ',
+        description: 'Read native Forge run, worker receipt, and delivery projections without schema initialization or state mutation.',
+    },
+    {
+        name: 'cstar_forge_swarm_update',
+        toolClass: 'MUTATION',
+        description: 'Record one bounded native reservation, plan, worker receipt, or authority intersection with no fallback or retry dispatch.',
+    },
+    {
+        name: 'cstar_forge_swarm_complete',
+        toolClass: 'MUTATION',
+        description: 'Aggregate complete native direct-sibling receipts to DELIVERED_UNVERIFIED; independent validation remains required.',
+    },
+    {
+        name: 'cstar_forge_swarm_cancel',
+        toolClass: 'MUTATION',
+        description: 'Request native cancellation using the exact CStar control lease; cancellation never implies acceptance.',
     },
 ] as const satisfies readonly CstarKernelToolCatalogShape[];
 

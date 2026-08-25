@@ -1,0 +1,8 @@
+command: node scripts/run-tsx.mjs --test tests/unit/cstar-kernel-mcp/test_operator_authorization.test.ts tests/unit/cstar-kernel-mcp/test_codex_request_identity.test.ts
+runtime: node v25.8.1; npm 11.11.0
+exit_status: 0
+suites: 3
+tests: 36
+passed: 36
+failed: 0
+coverage: root-user authorization 11/11; request identity 7/7; canonical root-user turn scanner 18/18

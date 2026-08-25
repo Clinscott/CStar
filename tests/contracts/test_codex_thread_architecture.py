@@ -48,7 +48,7 @@ def test_cos_user_pmt_and_mm_authority_boundaries_are_explicit():
         "When an in-scope project has a mapped PMT, CoS must read one bounded context packet.",
         "Luna for routine retrieval, Terra for conflicting-context synthesis, and Sol for high-stakes",
         "requested and actual identity separately; absent a reported identity, actual is `unreported`.",
-        "MM is legacy and has no active estate-routing, synthesis, ownership, or relay",
+        "MM is inactive and has no active routing, synthesis, ownership, relay, review, or execution role",
     ]
 
     for phrase in required:

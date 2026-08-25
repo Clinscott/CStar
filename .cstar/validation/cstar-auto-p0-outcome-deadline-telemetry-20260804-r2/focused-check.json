@@ -1,0 +1,27 @@
+{
+  "validation_id": "validation:cstar-auto-p0-outcome-deadline-telemetry-20260804-r2",
+  "command": "node scripts/run-tsx.mjs --test tests/unit/cstar-kernel-mcp/test_typed_outcomes.test.ts tests/unit/cstar-kernel-mcp/test_read_deadlines.test.ts tests/unit/cstar-kernel-mcp/test_mcp_outcome_deadline_instrumentation.test.ts tests/unit/cstar-kernel-mcp/test_augury_bead_result.test.ts",
+  "status": "pass",
+  "exit_code": 0,
+  "tests": 34,
+  "suites": 4,
+  "passed": 34,
+  "failed": 0,
+  "observations": {
+    "canonical_outcomes": [
+      "ok",
+      "needs_input",
+      "guardrail_block",
+      "domain_terminal",
+      "transport_error",
+      "internal_error"
+    ],
+    "read_default_deadline_ms": 5000,
+    "read_hard_max_deadline_ms": 30000,
+    "timeout_code": "read_deadline_exceeded",
+    "cancellation_code": "read_cancelled",
+    "legacy_recorded_compatibility": true,
+    "explicit_negative_persistence_cases": true,
+    "guardrail_and_domain_terminal_mcp_is_error": false
+  }
+}

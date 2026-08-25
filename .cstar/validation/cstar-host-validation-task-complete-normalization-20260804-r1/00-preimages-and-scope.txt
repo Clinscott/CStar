@@ -1,0 +1,32 @@
+independent validator: Luna Max
+bead_id: bead:mcp:codex-stores-the-trailing-memory-citation-in-the-mseqdiaw
+decision_id: decision:cstar-host-validation-task-complete-normalization-20260804
+validator_session_id: 019fcd24-67ba-7452-afc6-b068be3b4d86
+validator_turn_id: 019fcd24-68d7-7d82-8ef7-950152ffef5c
+
+Allowlisted final source/test paths:
+- src/tools/cstar-kernel-mcp/tools/host_workflow_validation.ts
+- src/tools/cstar-kernel-mcp/tools/host_workflow_message.ts
+- tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts
+- tests/unit/cstar-kernel-mcp/test_host_workflow_message.test.ts
+
+Supplied preimages, as recorded in the builder session before its apply-patch:
+- src/tools/cstar-kernel-mcp/tools/host_workflow_validation.ts
+  sha256=d22a022f2406e3bf3057e00e377f89f193f801c31738dc72e557f4c5729edfab
+  lines=492
+- tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts
+  sha256=c746f59784f9cb9e7abc7add473971112e50b561400d55318f64738687a2f522
+  lines=438
+
+The preimage record is the read-only local session log
+/home/morderith/.codex/sessions/2026/08/04/rollout-2026-08-04T10-07-29-019fcd19-d1db-7592-8cfc-ccef4f3f0727.jsonl,
+builder session 019fcd19-d1db-7592-8cfc-ccef4f3f0727, turn
+019fcd19-d2f6-7833-bb51-943762c100c1. The recorded preimage check occurs
+before the builder patch that added the helper and focused tests. The final
+hashes and line counts were independently recomputed below; the final hashes
+are expected to differ from the preimages because the requested repair was
+applied. The validator did not edit or reconstruct the preimage files.
+
+No source, test, documentation, Git, Hall, CStar lifecycle, dependency,
+secret, config, restart, install, or Forge mutation was performed by this
+validator. Only files under this validation-artifact directory were written.

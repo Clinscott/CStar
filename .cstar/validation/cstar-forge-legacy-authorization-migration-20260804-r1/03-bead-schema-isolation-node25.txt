@@ -1,0 +1,7 @@
+command: node scripts/run-tsx.mjs --test tests/unit/cstar-kernel-mcp/test_bead_forge_schema_isolation.test.ts
+runtime: node v25.8.1
+suite: ordinary bead writes are isolated from Forge authorization migration
+tests: 2
+passed: 2
+failed: 0
+status: pass

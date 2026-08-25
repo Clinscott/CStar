@@ -1,0 +1,108 @@
+HEAD
+afbbc1770ec6a7a2adc15b83f91c5586ac2525c0
+BRANCH
+codex/cstar-state-only-luna-host-seam-batch1-20260803
+STATUS_SOURCE_TEST
+ M src/core/engine/gungnir/calculus.ts
+ M src/node/core/commands/capability_discovery.ts
+ M src/node/core/sterling_mandate.ts
+ M src/tools/cstar-kernel-mcp/contracts/responses.ts
+ M src/tools/cstar-kernel-mcp/contracts/runtime_lineage.ts
+ M src/tools/cstar-kernel-mcp/contracts/schemas.ts
+ M src/tools/cstar-kernel-mcp/contracts/worker_jobs.ts
+ M src/tools/cstar-kernel-mcp/register_core_tools.ts
+ M src/tools/cstar-kernel-mcp/telemetry/usage.ts
+ M src/tools/cstar-kernel-mcp/tools/augury.ts
+ M src/tools/cstar-kernel-mcp/tools/automatic_mission.ts
+ M src/tools/cstar-kernel-mcp/tools/bead.ts
+ M src/tools/cstar-kernel-mcp/tools/dispatch_request.ts
+ M src/tools/cstar-kernel-mcp/tools/forge_execute.ts
+ M src/tools/cstar-kernel-mcp/tools/forge_execute_contract.ts
+ M src/tools/cstar-kernel-mcp/tools/forge_execute_reservation.ts
+ M src/tools/cstar-kernel-mcp/tools/forge_set_manifest_signal.ts
+ M src/tools/cstar-kernel-mcp/tools/host_workflow_validation.ts
+ M src/tools/cstar-kernel-mcp/tools/persona_set.ts
+ M src/tools/cstar-kernel-mcp/tools/result.ts
+ M src/tools/cstar-kernel-mcp/tools/status.ts
+ M src/tools/cstar-kernel-mcp/tools/validation_evidence.ts
+ M src/tools/pennyone/intel/automatic_mission_controller.ts
+ M src/tools/pennyone/intel/forge_authorization_schema.ts
+ M src/tools/pennyone/intel/forge_validation_controller.ts
+ M src/tools/pennyone/intel/schema.ts
+ M src/tools/pennyone/intel/schema_tables_core.ts
+ M src/tools/pennyone/intel/schema_tables_runtime.ts
+ M src/tools/pennyone/intel/worker_job_validation.ts
+ M src/tools/pennyone/persona_projection.ts
+ M src/types/worker_job.ts
+ M tests/features/cstar_durable_work_routing_and_recovery.feature
+ M tests/unit/cstar-kernel-mcp/forge_natural_authorization_test_support.ts
+ M tests/unit/cstar-kernel-mcp/test_augury_bead_result.test.ts
+ M tests/unit/cstar-kernel-mcp/test_automatic_mission_state.test.ts
+ M tests/unit/cstar-kernel-mcp/test_code_control_root_separation.test.ts
+ M tests/unit/cstar-kernel-mcp/test_dispatch_action_authority.test.ts
+ M tests/unit/cstar-kernel-mcp/test_dispatch_requests.test.ts
+ M tests/unit/cstar-kernel-mcp/test_forge_adapter_project_root.test.ts
+ M tests/unit/cstar-kernel-mcp/test_forge_durable_execution.test.ts
+ M tests/unit/cstar-kernel-mcp/test_forge_execute.test.ts
+ M tests/unit/cstar-kernel-mcp/test_forge_execute_authority.test.ts
+ M tests/unit/cstar-kernel-mcp/test_forge_legacy_v2_public_path.test.ts
+ M tests/unit/cstar-kernel-mcp/test_forge_preprovider_execute_integration.test.ts
+ M tests/unit/cstar-kernel-mcp/test_forge_runtime_lifecycle_gate.test.ts
+ M tests/unit/cstar-kernel-mcp/test_forge_runtime_readiness.test.ts
+ M tests/unit/cstar-kernel-mcp/test_forge_set_manifest_autonomous_dispatch.test.ts
+ M tests/unit/cstar-kernel-mcp/test_host_workflow_validation.test.ts
+ M tests/unit/cstar-kernel-mcp/test_persona_set.test.ts
+ M tests/unit/cstar-kernel-mcp/test_persona_status_boundary.test.ts
+ M tests/unit/cstar-kernel-mcp/test_tool_catalog.test.ts
+?? .agents/skills/cstar-reliability-loop/
+?? .agents/skills/cstar-sprt-autoresearcher/
+?? src/core/engine/gungnir/python_syntax.ts
+?? src/tools/cstar-kernel-mcp/contracts/augury_mission.ts
+?? src/tools/cstar-kernel-mcp/contracts/augury_mission_schema.ts
+?? src/tools/cstar-kernel-mcp/contracts/forge_child_request_template.ts
+?? src/tools/cstar-kernel-mcp/contracts/record_result_input.ts
+?? src/tools/cstar-kernel-mcp/contracts/runtime_lineage_forge.ts
+?? src/tools/cstar-kernel-mcp/contracts/validation_evidence_root.ts
+?? src/tools/cstar-kernel-mcp/tools/augury_mission_binding.ts
+?? src/tools/cstar-kernel-mcp/tools/augury_mission_binding_v2.ts
+?? src/tools/cstar-kernel-mcp/tools/augury_mission_dispatch_controller.ts
+?? src/tools/cstar-kernel-mcp/tools/augury_mission_natural_translation.ts
+?? src/tools/cstar-kernel-mcp/tools/forge_set_manifest_consumption.ts
+?? src/tools/cstar-kernel-mcp/tools/forge_set_manifest_natural_revocation.ts
+?? src/tools/cstar-kernel-mcp/tools/host_workflow_message.ts
+?? src/tools/cstar-kernel-mcp/tools/reliability_loop.ts
+?? src/tools/pennyone/intel/augury_mission_child_template_binding.ts
+?? src/tools/pennyone/intel/augury_mission_receipt_controller.ts
+?? src/tools/pennyone/intel/augury_mission_receipt_schema.ts
+?? src/tools/pennyone/intel/augury_mission_receipt_validation.ts
+?? src/tools/pennyone/intel/augury_mission_receipt_validation_v2.ts
+?? src/tools/pennyone/intel/automatic_mission_dispatch_store.ts
+?? src/tools/pennyone/intel/forge_host_worker_dispatch.ts
+?? src/tools/pennyone/intel/persona_state.ts
+?? src/tools/pennyone/intel/validation_ticket_controller.ts
+?? tests/features/cstar_autonomous_hermes_dispatch_policy.feature
+?? tests/features/cstar_reliability_loop.feature
+?? tests/features/cstar_sprt_autoresearcher.feature
+?? tests/features/cstar_validation_evidence_root.feature
+?? tests/unit/cstar-kernel-mcp/forge_set_manifest_natural_revocation_test_cases.ts
+?? tests/unit/cstar-kernel-mcp/test_augury_natural_translation_integration.test.ts
+?? tests/unit/cstar-kernel-mcp/test_automatic_mission_durable_dispatch.test.ts
+?? tests/unit/cstar-kernel-mcp/test_bead_forge_schema_isolation.test.ts
+?? tests/unit/cstar-kernel-mcp/test_capability_compatibility_discovery.test.ts
+?? tests/unit/cstar-kernel-mcp/test_forge_authorization_schema_legacy_duplicates.test.ts
+?? tests/unit/cstar-kernel-mcp/test_forge_authorization_schema_profiles.test.ts
+?? tests/unit/cstar-kernel-mcp/test_forge_codex_host_worker_dispatch.test.ts
+?? tests/unit/cstar-kernel-mcp/test_forge_set_manifest_natural_translation.test.ts
+?? tests/unit/cstar-kernel-mcp/test_host_workflow_message.test.ts
+?? tests/unit/cstar-kernel-mcp/test_mcp_outcome_deadline_instrumentation.test.ts
+?? tests/unit/cstar-kernel-mcp/test_reliability_loop.test.ts
+?? tests/unit/cstar-kernel-mcp/test_reliability_loop_result.test.ts
+?? tests/unit/cstar-kernel-mcp/test_runtime_lineage_codex_host.test.ts
+?? tests/unit/cstar-kernel-mcp/test_sterling_repository_root_binding.test.ts
+?? tests/unit/cstar-kernel-mcp/test_validation_evidence_root.test.ts
+?? tests/unit/cstar-kernel-mcp/test_validation_ticket_spoke_result.test.ts
+?? tests/unit/cstar-kernel-mcp/validation_ticket_test_helpers.ts
+?? tests/unit/test_cstar_reliability_loop_skill.py
+?? tests/unit/test_cstar_sprt_autoresearcher.py
+?? tests/unit/test_cstar_sprt_autoresearcher_gungnir.py
+?? tests/unit/test_gungnir_python_syntax.test.ts

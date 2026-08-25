@@ -1,0 +1,37 @@
+{
+  "schema": "cstar.independent_validation_input.v1",
+  "bead_id": "bead:mcp:repair-cstar-researcher-request-so-the-kernel-de-msg5pl64",
+  "validation_id": "validation:cstar-researcher-callback-derived-20260805-r2",
+  "reported_verdict": "REJECTED",
+  "requested_model": "gpt-5.6-luna",
+  "actual_model": "unreported",
+  "validator_role": "independent_luna_max_validator",
+  "artifacts": [
+    {
+      "path": "work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/src/tools/cstar-kernel-mcp/contracts/schemas.ts",
+      "sha256": "259728283efdb653f21f8ffdcc587bbe922d8563bf64bc830e66b6c2467f85a3",
+      "bytes": 8690
+    },
+    {
+      "path": "work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/src/tools/cstar-kernel-mcp/tools/dispatch_request.ts",
+      "sha256": "09d2da4b3f6f5bb6ecc6b2fac5bc1b116c4d1fef9c7c538368613483e431a600",
+      "bytes": 14469
+    },
+    {
+      "path": "work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/tests/unit/cstar-kernel-mcp/test_dispatch_requests.test.ts",
+      "sha256": "95179ce157a1bfe8338c7b593215c90aad53155bd8cc95276eef8f8aa1b1dd0d",
+      "bytes": 15714
+    }
+  ],
+  "checks": [
+    {
+      "name": "independent_callback_repair_review",
+      "status": "pass",
+      "evidence_path": "work/pr-worktrees/cstar-state-only-luna-host-seam-batch1-20260803/.cstar/validation/cstar-researcher-callback-derived-20260805-r2/checks.json",
+      "sha256": "55c9184cbb4b0344e1a410e5f92bd64797aa0e59c2b8fbfc39014ce9aad97839"
+    }
+  ],
+  "defects": [
+    "npm run typecheck exits 2 at the review point; the separate in-flight reliability lane was not inspected or attributed."
+  ]
+}
