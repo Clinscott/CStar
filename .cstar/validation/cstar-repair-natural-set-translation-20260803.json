@@ -1,0 +1,87 @@
+{
+  "schema": "cstar.worker_repair_receipt.v1",
+  "bead_id": "bead:cstar:repair-natural-set-translation-20260803",
+  "decision_id": "decision:cstar-state-only-luna-host-seam-batch1-20260803",
+  "worker_goal_id": "019fc8a7-f1f2-7670-9b2e-2667f4441161",
+  "worker_role": "luna_max_implementation",
+  "worktree": "/home/morderith/Corvus/CStar/work/pr-worktrees/cstar-auto-20260802",
+  "branch": "codex/cstar-automatic-internal-machinery-refactor-20260802",
+  "base_head": "afbbc1770ec6a7a2adc15b83f91c5586ac2525c0",
+  "changed_paths": [
+    "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_signal.ts",
+    "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_consumption.ts",
+    "tests/unit/cstar-kernel-mcp/test_forge_set_manifest_natural_translation.test.ts"
+  ],
+  "preimage_sha256": {
+    "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_signal.ts": "3ab47243d2c3231e5d37b4940e87ef3947046717404a453f0f4e49c9129ff367",
+    "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_consumption.ts": null,
+    "tests/unit/cstar-kernel-mcp/test_forge_set_manifest_natural_translation.test.ts": null,
+    "live_truth:src/tools/cstar-kernel-mcp/tools/forge_set_manifest_signal.ts": "89a5aa771d7bf2c7d65741e2353c7e4c06a3fc744dd375c6846298848c0e60df"
+  },
+  "postimage_sha256": {
+    "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_signal.ts": "a759ddc66f00fb40461c57ba4e256f9b19bfd2f81e6cbdcd6e75c06ac5f0c05e",
+    "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_consumption.ts": "d11e137d12ffebabc01336b6b18c9ae3bf872b5796eb07d9bd73fab7bb76aa41",
+    "tests/unit/cstar-kernel-mcp/test_forge_set_manifest_natural_translation.test.ts": "33dc7f51ac8b14ee35be6fa10037e42dc7d47898aed29eb6a933ff12289cea91"
+  },
+  "implementation": {
+    "legacy_set_grammar_preserved": true,
+    "natural_operative_grammar": "exact full-string Do it with case/whitespace normalization and one terminal period",
+    "translation_schema": "cstar.forge_set_manifest_natural_translation.v1",
+    "binding": [
+      "scope_id",
+      "mission_decision_id",
+      "proposed_parent_bead_id",
+      "design_sha256",
+      "target_set_sha256",
+      "complete ordered turn record-set hash",
+      "selected operative record hash and index"
+    ],
+    "consumption": "one-use deterministic key checked against read-only Hall mission/grant/request/authorization projections; state-only translation, no provider/spend/retry authority",
+    "fail_closed_cases": [
+      "questions",
+      "conditionals",
+      "quoted/example/reported prose",
+      "modal/discussion/recommendation prose",
+      "first-person/scoped denial",
+      "terse or scoped revocation",
+      "duplicate operative records",
+      "stale/future/noncanonical/nested identity",
+      "non-CStar scope binding"
+    ]
+  },
+  "verification": {
+    "focused_command": "node scripts/run-tsx.mjs --test --test-concurrency=2 tests/unit/cstar-kernel-mcp/test_forge_set_manifest_natural_translation.test.ts tests/unit/cstar-kernel-mcp/test_forge_set_manifest_authorization.test.ts tests/unit/cstar-kernel-mcp/test_forge_set_manifest_autonomous_dispatch.test.ts tests/unit/cstar-kernel-mcp/test_automatic_mission_authority.test.ts tests/unit/cstar-kernel-mcp/test_automatic_mission_state.test.ts tests/unit/cstar-kernel-mcp/test_forge_authorization_one_shot.test.ts tests/unit/cstar-kernel-mcp/test_forge_multirecord_authorization.test.ts tests/unit/cstar-kernel-mcp/test_codex_request_identity.test.ts tests/unit/cstar-kernel-mcp/test_operator_authorization.test.ts",
+    "focused_tests": 143,
+    "focused_suites": 10,
+    "focused_pass": 143,
+    "focused_fail": 0,
+    "typecheck_command": "npm run typecheck",
+    "typecheck_exit": 0,
+    "diff_check_command": "git diff --check",
+    "diff_check_exit": 0,
+    "line_counts": {
+      "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_signal.ts": 478,
+      "src/tools/cstar-kernel-mcp/tools/forge_set_manifest_consumption.ts": 55,
+      "tests/unit/cstar-kernel-mcp/test_forge_set_manifest_natural_translation.test.ts": 200
+    },
+    "live_truth_preimage_check": "unchanged",
+    "synthetic_only": true,
+    "provider_attempts": 0,
+    "network_calls": 0
+  },
+  "lifecycle": {
+    "cstar_augury_called": false,
+    "batch_boundary_materialized": false,
+    "independent_cstar_record_result": "not_applicable_to_worker_source_receipt",
+    "commit_created": false,
+    "push_merge_deploy": false,
+    "activation_performed": false,
+    "scoped_reload_required_after_acceptance": true,
+    "status": "focused_verified_pending_distinct_validator"
+  },
+  "caveats": [
+    "The candidate branch predates the uncommitted Augury-v2 caller stack in live truth; this receipt delivers the reusable signal-boundary seam and does not copy or mutate that dirty stack.",
+    "The v2 caller must pass its already-validated binding and persist/consume the returned one-use key in CStar state before materialization; this worker did not materialize the boundary.",
+    "A distinct validator and, only after acceptance, a scoped CStar kernel reload are required for live proof."
+  ]
+}

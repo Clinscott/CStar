@@ -15,8 +15,10 @@ import {
     MAX_CODEX_SESSION_FILE_BYTES,
     resolveCodexSessionsRoot,
 } from './codex_session_locator.js';
+import { tryGetReadDb } from '../../pennyone/intel/database.js';
 import type { VerifiedCodexRequestIdentity } from './operator_authorization.js';
 import { isForgeAuthorityRevocation } from './forge_revocation.js';
+import { isForgeSetIdentityConsumed } from './forge_set_manifest_consumption.js';
 
 export const FORGE_SET_AUTHORIZATION_AGE_MS = 24 * 60 * 60 * 1_000;
 
@@ -44,6 +46,40 @@ interface SetRecord extends VerifiedForgeSetSignal {
     timestamp: string;
 }
 
+export interface AuguryMissionV2SetBinding {
+    schema: 'cstar.augury_mission_binding.v2';
+    version: 2;
+    scope_id: 'brain:CStar';
+    mission_decision_id: string;
+    proposed_parent_bead_id: string;
+    design_sha256: string;
+    target_set_sha256: string;
+}
+
+export interface VerifiedForgeNaturalSetTranslation {
+    schema: 'cstar.forge_set_manifest_natural_translation.v1';
+    instruction: 'do_it';
+    normalized_text: 'do it';
+    authority_effect: 'deterministic_translation_only';
+    scope_id: 'brain:CStar';
+    mission_decision_id: string;
+    proposed_parent_bead_id: string;
+    design_sha256: string;
+    target_set_sha256: string;
+    thread_id: string;
+    turn_id: string;
+    turn_record_set_sha256: string;
+    turn_record_count: number;
+    selected_record_sha256: string;
+    selected_record_index: number;
+    selected_content: Array<{ type: 'input_text'; text: string }>;
+    consumption: {
+        mode: 'one_use';
+        status: 'unspent';
+        key_sha256: string;
+    };
+}
+
 function sha256(value: string): string {
     return createHash('sha256').update(value, 'utf-8').digest('hex');
 }
@@ -58,6 +94,53 @@ function isExactSet(text: string): boolean {
     const candidate = normalized.endsWith('.')
         ? normalized.slice(0, -1).trimEnd() : normalized;
     return candidate.toLocaleLowerCase('en-US') === 'set';
+}
+
+function normalizedExactDirective(text: string): string {
+    if (/[^A-Za-z. \t\r\n]/u.test(text)) return '';
+    const normalized = text.replace(/[ \t\r\n]+/g, ' ').trim();
+    const candidate = normalized.endsWith('.')
+        ? normalized.slice(0, -1).trimEnd() : normalized;
+    if (candidate.endsWith('.')) return '';
+    return candidate.toLocaleLowerCase('en-US');
+}
+
+function isExactCoSDoIt(text: string): boolean {
+    return normalizedExactDirective(text) === 'do it';
+}
+
+/**
+ * Non-operative records are allowed only when they are plainly informational.
+ * Authority-shaped prose is never interpreted; it makes the turn ambiguous.
+ */
+function isAuthorityShapedNaturalSetContext(text: string): boolean {
+    if (isForgeSetAuthorityRevocation(text)) return true;
+    return /[?"'`“”‘’]/u.test(text)
+        || /\b(?:if|maybe|could|would|should|whether|recommend|recommended|discussion|discuss|report|reported|example|mention|mentioned|without|no)\b/iu.test(text)
+        || /\b(?:authorize|authorization|approve|approval|allow|permission|permit|execute|implement|build|continue|resume|proceed|dispatch|forge|set|do\s+it)\b/iu.test(text);
+}
+
+function assertAuguryMissionV2SetBinding(binding: AuguryMissionV2SetBinding): void {
+    const boundedReference = /^(?:decision|bead):[a-z0-9][a-z0-9._-]*(?::[a-z0-9][a-z0-9._-]*)*$/u;
+    const hash = /^[a-f0-9]{64}$/u;
+    if (!isRecord(binding)
+        || JSON.stringify(Object.keys(binding).sort()) !== JSON.stringify([
+            'design_sha256', 'mission_decision_id', 'proposed_parent_bead_id',
+            'schema', 'scope_id', 'target_set_sha256', 'version',
+        ])
+        || binding.schema !== 'cstar.augury_mission_binding.v2'
+        || binding.version !== 2
+        || binding.scope_id !== 'brain:CStar'
+        || typeof binding.mission_decision_id !== 'string'
+        || !boundedReference.test(binding.mission_decision_id)
+        || typeof binding.proposed_parent_bead_id !== 'string'
+        || !boundedReference.test(binding.proposed_parent_bead_id)
+        || typeof binding.design_sha256 !== 'string'
+        || !hash.test(binding.design_sha256)
+        || typeof binding.target_set_sha256 !== 'string'
+        || !hash.test(binding.target_set_sha256)) {
+        throw new Error('forge_set_manifest_natural_binding_invalid');
+    }
 }
 
 function mentionsSetInstruction(text: string): boolean {
@@ -206,6 +289,113 @@ export function readExactForgeSetSignal(
     return {
         record_sha256: matches[0]!.record_sha256,
         content: matches[0]!.content,
+    };
+}
+
+/**
+ * Translate one exact CoS direct imperative for an already-bound Augury v2
+ * mission. This is not a natural-language authority parser: the operative
+ * grammar is one full-string directive and the returned record is one-use,
+ * state-only evidence for the v2 caller to consume.
+ */
+export function readExactForgeNaturalSetTranslation(
+    identity: VerifiedCodexRequestIdentity,
+    binding: AuguryMissionV2SetBinding,
+    now = Date.now(),
+): VerifiedForgeNaturalSetTranslation | null {
+    assertAuguryMissionV2SetBinding(binding);
+    const sessionFile = findCodexSessionFile(resolveCodexSessionsRoot(), identity.thread_id);
+    const canonical = createCanonicalCodexUserTurnAccumulator(
+        identity.thread_id,
+        identity.turn_id,
+        now,
+        FORGE_SET_AUTHORIZATION_AGE_MS,
+        false,
+    );
+    const records: SetRecord[] = [];
+    const projection = createCodexPlatformContextProjection((record) => {
+        const parsed = parseSetRecord(record, identity.turn_id);
+        if (parsed) {
+            if (isForgeSetAuthorityRevocation(parsed.text)) {
+                throw new Error('forge_set_manifest_natural_signal_revoked');
+            }
+            records.push(parsed);
+        }
+        const classification = classifyCodexSessionRecord(record.row);
+        if (classification.kind !== 'canonical-root-user'
+            || classification.turnId === identity.turn_id) return;
+        const payload = isRecord(record.row.payload) ? record.row.payload : undefined;
+        const content = Array.isArray(payload?.content) ? payload.content : [];
+        if (content.every((entry) => isRecord(entry)
+            && entry.type === 'input_text' && typeof entry.text === 'string')) {
+            const text = content.map((entry) => (entry as { text: string }).text).join('');
+            if (isForgeSetAuthorityRevocation(text)) {
+                throw new Error('forge_set_manifest_natural_signal_revoked');
+            }
+        }
+    });
+    scanFixedCodexSession(sessionFile, MAX_CODEX_SESSION_FILE_BYTES, (record) => {
+        canonical.consume(record);
+        projection.consume(record);
+    });
+    projection.finish();
+    const turn = canonical.finish();
+    assertCompleteOrderedTurn(identity, turn, records);
+    if (turn.recordSha256 !== identity.turn_record_sha256
+        || turn.recordSetSha256 !== identity.turn_record_set_sha256
+        || turn.recordCount !== identity.turn_record_count
+        || turn.firstTimestamp !== identity.turn_first_timestamp
+        || turn.timestamp !== identity.turn_timestamp) {
+        throw new Error('forge_set_manifest_request_identity_drift');
+    }
+
+    const matches = records.filter((record) => isExactCoSDoIt(record.text));
+    if (matches.length === 0) return null;
+    if (matches.length !== 1 || records.some((record) => (
+        record !== matches[0] && isAuthorityShapedNaturalSetContext(record.text)
+    ))) {
+        throw new Error('forge_set_manifest_natural_signal_ambiguous');
+    }
+    const selected = matches[0]!;
+    const selectedIndex = records.indexOf(selected);
+    const db = tryGetReadDb();
+    if (db && isForgeSetIdentityConsumed(db, {
+        thread_id: identity.thread_id,
+        turn_id: identity.turn_id,
+        record_sha256: selected.record_sha256,
+        record_set_sha256: identity.turn_record_set_sha256,
+    })) {
+        throw new Error('forge_set_manifest_natural_signal_consumed');
+    }
+    const keySha256 = sha256(JSON.stringify({
+        schema: 'cstar.forge_set_manifest_natural_translation_consumption.v1',
+        thread_id: identity.thread_id,
+        turn_id: identity.turn_id,
+        turn_record_set_sha256: identity.turn_record_set_sha256,
+        selected_record_sha256: selected.record_sha256,
+        mission_decision_id: binding.mission_decision_id,
+        proposed_parent_bead_id: binding.proposed_parent_bead_id,
+        design_sha256: binding.design_sha256,
+        target_set_sha256: binding.target_set_sha256,
+    }));
+    return {
+        schema: 'cstar.forge_set_manifest_natural_translation.v1',
+        instruction: 'do_it',
+        normalized_text: 'do it',
+        authority_effect: 'deterministic_translation_only',
+        scope_id: binding.scope_id,
+        mission_decision_id: binding.mission_decision_id,
+        proposed_parent_bead_id: binding.proposed_parent_bead_id,
+        design_sha256: binding.design_sha256,
+        target_set_sha256: binding.target_set_sha256,
+        thread_id: identity.thread_id,
+        turn_id: identity.turn_id,
+        turn_record_set_sha256: identity.turn_record_set_sha256,
+        turn_record_count: identity.turn_record_count,
+        selected_record_sha256: selected.record_sha256,
+        selected_record_index: selectedIndex,
+        selected_content: selected.content,
+        consumption: { mode: 'one_use', status: 'unspent', key_sha256: keySha256 },
     };
 }
 
