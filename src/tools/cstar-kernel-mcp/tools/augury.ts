@@ -14,7 +14,7 @@ import {
     resolveIntentCategoryFromGrammar,
 } from '../../../node/core/runtime/host_workflows/chant_parser.js';
 import { mcpGuardrail, textResponse } from '../contracts/responses.js';
-import { CODE_ROOT } from '../contracts/runtime.js';
+import { CODE_ROOT, KERNEL_ROOT_BINDING_MODE } from '../contracts/runtime.js';
 import { buildTokenPathQuarantineStatus } from '../telemetry/token_path.js';
 import {
     callerRequestedActiveSessionContinuity,
@@ -22,6 +22,20 @@ import {
     detectAuguryTargetDivergence,
     resolveAuguryCurrentIntentCategory,
 } from './augury_routing.js';
+import type {
+    AnyAuguryMissionBoundaryInput,
+    AuguryMissionReceipt,
+} from '../contracts/augury_mission.js';
+import { auguryMissionBoundarySchema } from '../contracts/augury_mission_schema.js';
+import type { McpRequestContext } from '../contracts/request_context.js';
+import {
+    finalizeAuguryMissionBoundary,
+    prepareAuguryMissionBoundary,
+} from './augury_mission_binding.js';
+import {
+    dispatchAuguryMissionBoundary,
+    resolveAuguryMissionCodeRoot,
+} from './augury_mission_dispatch_controller.js';
 
 type KernelCouncilExpert = {
     signature_question?: string;
@@ -29,9 +43,64 @@ type KernelCouncilExpert = {
     selection_candidates?: unknown[];
 };
 
-export async function handleAugury({ prompt, inferred_intent, target_paths, scope }: { prompt: string, inferred_intent?: string, target_paths?: string[], scope?: string, bead_id?: string }) {
+function publicAuguryTier(tier: string | undefined): string {
+    const normalized = tier?.trim() || 'SKILL';
+    return normalized.toUpperCase() === 'WEAVE' ? 'SKILL' : normalized;
+}
+
+function publicAugurySelection(selection: string | undefined): string | undefined {
+    if (selection === undefined) return undefined;
+    return selection.replace(/^(\s*)WEAVE(\s*:)/i, '$1SKILL$2');
+}
+
+function parseMissionBoundary(value: unknown): AnyAuguryMissionBoundaryInput {
+    const parsed = auguryMissionBoundarySchema.safeParse(value);
+    if (!parsed.success) throw new Error('augury_mission_boundary_incomplete');
+    return parsed.data;
+}
+
+export async function handleAugury({
+    prompt,
+    inferred_intent,
+    target_paths,
+    scope,
+    mission_boundary,
+}: {
+    prompt: string;
+    inferred_intent?: string;
+    target_paths?: string[];
+    scope?: string;
+    bead_id?: string;
+    mission_boundary?: unknown;
+}, requestContext?: McpRequestContext) {
     try {
         const root = registry.getRoot();
+        const parsedMissionBoundary = mission_boundary === undefined
+            ? undefined : parseMissionBoundary(mission_boundary);
+        const liveMissionCodeRoot = KERNEL_ROOT_BINDING_MODE === 'library_default'
+            && Boolean(process.env.NODE_TEST_CONTEXT)
+            && parsedMissionBoundary?.repository.root_path === root
+            ? root : CODE_ROOT;
+        const expectedMissionCodeRoot = parsedMissionBoundary
+            ? resolveAuguryMissionCodeRoot({
+                boundary: parsedMissionBoundary,
+                live_code_root: liveMissionCodeRoot,
+                control_root: root,
+            })
+            : liveMissionCodeRoot;
+        const preparedMission = parsedMissionBoundary
+            ? await prepareAuguryMissionBoundary({
+                boundary: parsedMissionBoundary,
+                expected_root: expectedMissionCodeRoot,
+                request_context: requestContext,
+                top_level_target_paths: target_paths,
+                top_level_scope: scope,
+            })
+            : undefined;
+        if (preparedMission) {
+            target_paths = [...preparedMission.target_paths];
+            scope = preparedMission.scope_id;
+        }
         let explain: ReturnType<typeof buildAuguryExplainPayload>;
         let activeSession: ReturnType<typeof resolveActivePlanningSession> = null;
         let activeHandoff: ReturnType<typeof buildTraceAgentHandoffPayload> = null;
@@ -73,7 +142,7 @@ export async function handleAugury({ prompt, inferred_intent, target_paths, scop
             ? {
                 intent_category: deterministicMatch.category,
                 default_path: deterministicMatch.default_path,
-                tier: deterministicMatch.tier,
+                tier: publicAuguryTier(deterministicMatch.tier),
                 matched_trigger: deterministicMatch.matched_trigger,
                 grammar_source: grammarSource,
             }
@@ -84,7 +153,7 @@ export async function handleAugury({ prompt, inferred_intent, target_paths, scop
         const sessionProvenance = explain.status === 'available' && explain.route
             ? {
                 intent_category: explain.route.intent_category,
-                selection: explain.route.designation,
+                selection: publicAugurySelection(explain.route.designation),
             }
             : null;
         const targetDivergence = detectAuguryTargetDivergence(target_paths, sessionTargetPaths, root);
@@ -178,7 +247,7 @@ export async function handleAugury({ prompt, inferred_intent, target_paths, scop
                 intent_category: resolvedIntentCategory,
                 intent: explain.route.intent,
                 scope: explain.scope?.value || scope || 'brain:CStar',
-                selection: explain.route.designation,
+                selection: publicAugurySelection(explain.route.designation),
                 expert: expert?.id,
                 expert_label: expert?.label,
                 expert_lens: expert?.lens,
@@ -194,7 +263,7 @@ export async function handleAugury({ prompt, inferred_intent, target_paths, scop
             // non-authoritative background, not route truth.
             resolvedIntentCategory = deterministicMatch.category;
             routingSource = 'deterministic';
-            const selectionTier = deterministicMatch.tier || 'SKILL';
+            const selectionTier = publicAuguryTier(deterministicMatch.tier);
             const selectionName = deterministicMatch.default_path || 'cstar-kernel';
             const selectedExpert = selectCouncilExpert({
                 intent_category: resolvedIntentCategory,
@@ -331,9 +400,28 @@ export async function handleAugury({ prompt, inferred_intent, target_paths, scop
         }
 
         result.token_path = buildTokenPathQuarantineStatus();
+        if (preparedMission) {
+            const receipt = finalizeAuguryMissionBoundary({
+                prepared: preparedMission,
+                route: result,
+            });
+            Object.assign(result, dispatchAuguryMissionBoundary({
+                receipt: receipt as AuguryMissionReceipt,
+                expected_code_root: expectedMissionCodeRoot,
+                expected_control_root: root,
+                replay: parsedMissionBoundary?.replay,
+            }));
+        }
 
         return textResponse(result);
     } catch (error: any) {
+        if (mission_boundary !== undefined
+            && /^augury_mission_[a-z0-9_]+$/.test(error?.message ?? '')) {
+            return textResponse({
+                error_code: error.message,
+                error: error.message,
+            }, true);
+        }
         return textResponse({ error: error.message }, true);
     }
 }
