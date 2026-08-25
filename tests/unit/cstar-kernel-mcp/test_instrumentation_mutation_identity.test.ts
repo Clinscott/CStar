@@ -72,7 +72,6 @@ function validForgeRequest(overrides: Partial<ForgeRequestArgs> = {}): ForgeRequ
         retry_policy: { budget: 0, spent: 0 },
         callback_contract: { expected_packet: 'TELEMETRY_BOUNDARY', callback_required: true },
         package_locks: [],
-        execution_adapter_ref: 'cstar-forge-hermes-minimax-worker-adapter',
         ...overrides,
     };
 }
@@ -210,14 +209,20 @@ describe('MCP instrumentation authorization boundary', () => {
         const root = makeTelemetryRoot();
         const state = path.join(root, '.agents', 'state');
         const stats = path.join(root, '.stats');
-
         const goal = await instrumentTool('cstar_goal_resume', handleGoalResume)({
-            repair_bead_id: 'bead:repair:telemetry-boundary',
-            decision_id: 'decision:telemetry-boundary',
-            host_goal_objective_sha256: 'a'.repeat(64),
-            host_goal_snapshot_sha256: 'b'.repeat(64),
-            observed_host_status: 'blocked',
-            host_resume_capability: 'unavailable',
+            forge_request_receipt_id: `dispatch-forge-${'1'.repeat(32)}`,
+            request_sha256: '2'.repeat(64),
+            host_goal_projection: {
+                schema: 'cstar.host_get_goal_projection.v1',
+                threadId: 'telemetry-host-goal-thread',
+                objective: 'Synthetic telemetry host goal.',
+                status: 'blocked',
+                tokensUsed: 0,
+                timeUsedSeconds: 0,
+                createdAt: 1,
+                updatedAt: 2,
+                hostResumeCapability: 'unavailable',
+            },
         });
         const bead = await instrumentTool('cstar_bead', handleBead)({
             action: 'create',

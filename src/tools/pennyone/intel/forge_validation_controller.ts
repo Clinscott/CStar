@@ -4,8 +4,10 @@ import type Database from 'better-sqlite3';
 import type { HallForgeAttemptRecord, HallForgeRequestRecord } from '../../../types/forge.js';
 import {
     type HallValidationEvidenceManifestV2,
+    type HallValidationEvidenceManifestV3,
     hashValidationEvidenceManifest,
     isValidationEvidenceManifestV2StructurallyValid,
+    isValidationEvidenceManifestV3StructurallyValid,
     stableValidationEvidenceJson,
     VALIDATION_EVIDENCE_SHA256,
 } from '../../../types/validation_evidence.js';
@@ -20,6 +22,21 @@ import {
     bindForgeContinuationRepairValidation,
     getForgeContinuationByAttempt,
 } from './forge_continuation_controller.js';
+export {
+    consumeForgeValidationTicket,
+    consumeIndependentValidatorTicket,
+    deriveIndependentValidatorIdentity,
+    issueForgeValidationTicket,
+    issueIndependentValidatorTicket,
+} from './validation_ticket_controller.js';
+export type {
+    ConsumedValidationTicket,
+    IndependentValidatorIdentity,
+    ValidationTicketConsumeInput,
+    ValidationTicketIssueInput,
+    ValidationTicketIssueResult,
+    VerifiedValidationIdentityInput,
+} from './validation_ticket_controller.js';
 
 export interface RecordForgeDeliveryInput {
     attempt_id: string;
@@ -38,8 +55,12 @@ export interface RecordForgeDeliveryInput {
 export interface FinalizeForgeValidationInput {
     execution_receipt_id: string;
     validation_id: string;
+    validation_authority?: ForgeValidationAuthority;
     now?: number;
 }
+
+type ForgeValidationAuthority = 'verified_v2' | 'verified_v3';
+type ForgeValidationManifest = HallValidationEvidenceManifestV2 | HallValidationEvidenceManifestV3;
 
 export function resolveForgeValidationSubject(
     db: Database.Database,
@@ -72,7 +93,7 @@ export function resolveForgeValidationSubject(
             target_paths_sha256: request.target_paths_sha256,
             attempt_id: attempt.attempt_id,
             result_artifact_sha256: attempt.result_artifact_sha256 ?? null,
-            adapter_ref: attempt.adapter_ref,
+            adapter_ref: attempt.adapter_ref || null,
             adapter_version: attempt.adapter_version ?? null,
             external_execution_id: attempt.external_execution_id ?? null,
             requester_thread_id: request.requester_thread_id,
@@ -91,35 +112,44 @@ export function resolveForgeValidationSubject(
 function verifiedValidationManifest(
     db: Database.Database,
     validationId: string,
+    authority: ForgeValidationAuthority,
 ): {
-    manifest: HallValidationEvidenceManifestV2;
+    manifest: ForgeValidationManifest;
     evidence_sha256: string;
     repository_id: string;
     bead_id: string;
     verdict: string;
     notes: string;
+    authority: ForgeValidationAuthority;
 } {
     const row = db.prepare(`
         SELECT repo_id, bead_id, verdict, notes, authority_class, evidence_sha256,
                validator_identity, validator_identity_source, evidence_manifest_json
         FROM hall_validation_runs WHERE validation_id = ?
     `).get(validationId) as Record<string, unknown> | undefined;
-    if (!row) throw new Error('forge_validation_receipt_not_found');
-    let manifest: HallValidationEvidenceManifestV2;
+    if (!row) throw new Error(authority === 'verified_v2'
+        ? 'forge_validation_receipt_not_found'
+        : 'forge_terminal_validation_requires_verified_evidence_v2_or_v3');
+    let manifest: ForgeValidationManifest;
     try { manifest = JSON.parse(String(row.evidence_manifest_json)); } catch {
         throw new Error('forge_validation_manifest_invalid');
     }
     const evidenceSha256 = String(row.evidence_sha256 ?? '');
-    const identitySourceAllowed = manifest.validator_identity_source === 'codex_request_meta'
-        || (manifest.validator_identity_source === 'test_fixture' && Boolean(process.env.NODE_TEST_CONTEXT));
-    if (row.authority_class !== 'verified_v2'
-        || manifest.schema !== 'cstar.validation-evidence.v2'
-        || !isValidationEvidenceManifestV2StructurallyValid(manifest)
+    const identitySourceAllowed = authority === 'verified_v2'
+        ? manifest.validator_identity_source === 'codex_request_meta'
+            || (manifest.validator_identity_source === 'test_fixture' && Boolean(process.env.NODE_TEST_CONTEXT))
+        : manifest.validator_identity_source === 'codex_subagent_receipt'
+            || (manifest.validator_identity_source === 'test_fixture' && Boolean(process.env.NODE_TEST_CONTEXT));
+    const schemaValid = authority === 'verified_v2'
+        ? isValidationEvidenceManifestV2StructurallyValid(manifest)
+        : isValidationEvidenceManifestV3StructurallyValid(manifest);
+    if (row.authority_class !== authority
+        || !schemaValid
         || manifest.validator_identity !== row.validator_identity
         || manifest.validator_identity_source !== row.validator_identity_source
         || !identitySourceAllowed || !VALIDATION_EVIDENCE_SHA256.test(evidenceSha256)
         || hashValidationEvidenceManifest(manifest) !== evidenceSha256) {
-        throw new Error('forge_terminal_validation_requires_verified_evidence_v2');
+        throw new Error(`forge_terminal_validation_requires_verified_evidence_${authority.slice('verified_'.length)}`);
     }
     return {
         manifest,
@@ -128,6 +158,7 @@ function verifiedValidationManifest(
         bead_id: String(row.bead_id),
         verdict: String(row.verdict),
         notes: String(row.notes ?? ''),
+        authority,
     };
 }
 
@@ -177,6 +208,38 @@ export function assertForgeValidationManifestCurrent(
         || manifest.request_thread_id === subject.requester_thread_id
         || manifest.request_thread_id === subject.executor_thread_id) {
         throw new Error('forge_validation_subject_or_independence_mismatch');
+    }
+    return { attempt, request };
+}
+
+function assertHostForgeValidationManifestCurrent(
+    db: Database.Database,
+    manifest: HallValidationEvidenceManifestV3,
+    executionReceiptId: string,
+    validationId: string,
+): { attempt: HallForgeAttemptRecord; request: HallForgeRequestRecord } {
+    const resolved = resolveForgeValidationSubject(db, {
+        execution_receipt_id: executionReceiptId,
+        repository_id: manifest.subject.repository_id,
+        bead_id: manifest.subject.bead_id,
+    });
+    const { attempt, request, subject } = resolved;
+    const ticket = db.prepare(`
+        SELECT repo_id, bead_id, execution_receipt_id, attempt_id, scope_sha256,
+               validator_thread_id, validator_turn_id, consumed_at, consumed_validation_id
+        FROM hall_forge_validation_tickets WHERE consumed_validation_id = ?
+    `).get(validationId) as Record<string, unknown> | undefined;
+    if (!ticket
+        || ticket.repo_id !== subject.repository_id
+        || ticket.bead_id !== subject.bead_id
+        || ticket.execution_receipt_id !== subject.work_receipt_id
+        || ticket.attempt_id !== subject.attempt_id
+        || ticket.scope_sha256 !== subject.target_paths_sha256
+        || ticket.validator_thread_id !== manifest.independence.validator_thread_id
+        || ticket.validator_turn_id !== manifest.independence.validator_turn_id
+        || ticket.consumed_validation_id !== validationId
+        || !Number.isSafeInteger(ticket.consumed_at)) {
+        throw new Error('forge_validation_ticket_binding_invalid');
     }
     return { attempt, request };
 }
@@ -235,18 +298,37 @@ export function finalizeForgeValidation(
     mode: 'delivery_finalization' | 'terminal_evidence_link' | 'continuation_repair_binding';
     execution_status_changed: boolean;
 } {
+    const requestedAuthority = input.validation_authority ?? 'verified_v2';
+    if (requestedAuthority !== 'verified_v2' && requestedAuthority !== 'verified_v3') {
+        throw new Error('forge_terminal_validation_requires_verified_evidence_v2');
+    }
     const now = input.now ?? Date.now();
     const finish = db.transaction(() => {
-        const verified = verifiedValidationManifest(db, input.validation_id);
+        const verified = verifiedValidationManifest(
+            db, input.validation_id, requestedAuthority,
+        );
         const outcome = forgeValidationOutcome(verified.verdict);
         const notesSha256 = createHash('sha256').update(verified.notes, 'utf-8').digest('hex');
         const manifest = verified.manifest;
-        if (manifest.subject.work_receipt_id !== input.execution_receipt_id
-            || manifest.subject.repository_id !== verified.repository_id
-            || manifest.subject.bead_id !== verified.bead_id) {
-            throw new Error('forge_validation_receipt_subject_mismatch');
+        let attempt: HallForgeAttemptRecord;
+        let request: HallForgeRequestRecord;
+        if (manifest.schema === 'cstar.validation-evidence.v2') {
+            if (manifest.subject.work_receipt_id !== input.execution_receipt_id
+                || manifest.subject.repository_id !== verified.repository_id
+                || manifest.subject.bead_id !== verified.bead_id) {
+                throw new Error('forge_validation_receipt_subject_mismatch');
+            }
+            ({ attempt, request } = assertForgeValidationManifestCurrent(db, manifest));
+        } else {
+            if (manifest.subject.repository_id !== verified.repository_id
+                || manifest.subject.bead_id !== verified.bead_id
+                || manifest.subject.validation_id !== input.validation_id) {
+                throw new Error('forge_validation_receipt_subject_mismatch');
+            }
+            ({ attempt, request } = assertHostForgeValidationManifestCurrent(
+                db, manifest, input.execution_receipt_id, input.validation_id,
+            ));
         }
-        const { attempt, request } = assertForgeValidationManifestCurrent(db, manifest);
         const continuation = getForgeContinuationByAttempt(db, attempt.attempt_id);
         const continuationRepair = attempt.status === 'FAILED_RETRYABLE'
             && continuation?.status === 'PENDING_REPAIR';
@@ -303,7 +385,7 @@ export function finalizeForgeValidation(
                 attempt.validation_id === input.validation_id
                 && attempt.validation_verdict === verified.verdict
                 && attempt.validation_notes_sha256 === notesSha256
-                && attempt.validation_authority === 'verified_v2'
+                && attempt.validation_authority === verified.authority
                 && attempt.validation_evidence_sha256 === verified.evidence_sha256
             ) {
                 return {
@@ -329,7 +411,7 @@ export function finalizeForgeValidation(
                 input.validation_id,
                 verified.verdict,
                 notesSha256,
-                'verified_v2',
+                verified.authority,
                 verified.evidence_sha256,
                 now,
                 attempt.attempt_id,
@@ -355,7 +437,7 @@ export function finalizeForgeValidation(
             input.validation_id,
             verified.verdict,
             notesSha256,
-            'verified_v2',
+            verified.authority,
             verified.evidence_sha256,
             now,
             now,

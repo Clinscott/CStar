@@ -5,7 +5,8 @@ in `AGENTS.md`, after platform/operator safety and global Corvus invariants.
 
 - CStar kernel MCP owns durable lifecycle state and supported receipts.
 - CoS coordinates; Forge implements; Researcher researches; an independent lane
-  validates. PMTs are information-only and MM has no active routing role.
+  validates. PMTs are information-only. MM is inactive and has no active
+  routing, synthesis, ownership, relay, review, or execution role.
 - Forge uses request, authorize, execute, and independent validation.
 - Persona is explicit workflow state, selected with `cstar_persona_set` only at
   a workflow boundary. It never changes scope, authority, or operator gates.

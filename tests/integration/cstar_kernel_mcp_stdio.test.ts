@@ -266,7 +266,10 @@ describe('cstar-kernel-mcp stdio launcher', () => {
         const listResp = await client.request('tools/list', {});
         assert.ok(listResp.result, `tools/list returned error: ${JSON.stringify(listResp.error)}`);
         assert.ok(Array.isArray(listResp.result.tools), 'tools/list result must contain a tools array');
-        const tools = listResp.result.tools as Array<{ name: string }>;
+        const tools = listResp.result.tools as Array<{
+            name: string;
+            inputSchema?: { required?: unknown; properties?: Record<string, unknown> };
+        }>;
         const actualNames = tools.map((t) => t.name).sort();
         const duplicateNames = actualNames.filter((name, index) => actualNames.indexOf(name) !== index);
         const expectedNames = [...CSTAR_KERNEL_TOOL_NAMES].sort();
@@ -278,6 +281,15 @@ describe('cstar-kernel-mcp stdio launcher', () => {
             `tools/list drifted from the documented inventory; got: ${actualNames.join(', ')}`,
         );
         assert.ok(!actualNames.includes('cstar_autobot'), 'decommissioned cstar_autobot must stay absent');
+        const hostCompletion = tools.find((tool) => tool.name === 'cstar_forge_host_complete');
+        assert.ok(hostCompletion?.inputSchema, 'host completion must expose its input schema');
+        const hostFields = Object.keys(hostCompletion.inputSchema.properties ?? {});
+        for (const field of [
+            'schema', 'forge_request_receipt_id', 'request_sha256', 'execution_receipt_id',
+            'attempt_id', 'scope_sha256', 'handoff_sha256', 'job', 'artifact_manifest',
+        ]) {
+            assert.ok(hostFields.includes(field), `host completion schema must expose ${field}`);
+        }
     });
 
     it('keeps tool schemas independent of protocol session state for stateless MCP readiness', async () => {
