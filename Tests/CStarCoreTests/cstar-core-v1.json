@@ -1,0 +1,88 @@
+{
+  "contract": "cstar.core.v1",
+  "states": [
+    "constructed",
+    "submitted",
+    "observed",
+    "disposed"
+  ],
+  "events": [
+    "construct",
+    "submit",
+    "observe",
+    "dispose"
+  ],
+  "rejection": "invalid_transition",
+  "rules": {
+    "no_state_is_unconstructed": true,
+    "all_unlisted_pairs_reject": true,
+    "rejection_preserves_caller_state": true,
+    "run_each_vector_twice": true
+  },
+  "vectors": [
+    {
+      "id": "construct",
+      "prior": null,
+      "event": "construct",
+      "result": {
+        "accepted": "constructed"
+      }
+    },
+    {
+      "id": "submit",
+      "prior": "constructed",
+      "event": "submit",
+      "result": {
+        "accepted": "submitted"
+      }
+    },
+    {
+      "id": "observe",
+      "prior": "submitted",
+      "event": "observe",
+      "result": {
+        "accepted": "observed"
+      }
+    },
+    {
+      "id": "dispose-observed",
+      "prior": "observed",
+      "event": "dispose",
+      "result": {
+        "accepted": "disposed"
+      }
+    },
+    {
+      "id": "dispose-before-submit",
+      "prior": "constructed",
+      "event": "dispose",
+      "result": {
+        "accepted": "disposed"
+      }
+    },
+    {
+      "id": "reject-submit-without-state",
+      "prior": null,
+      "event": "submit",
+      "result": {
+        "rejected": "invalid_transition"
+      }
+    },
+    {
+      "id": "reject-observe-before-submit",
+      "prior": "constructed",
+      "event": "observe",
+      "result": {
+        "rejected": "invalid_transition"
+      }
+    },
+    {
+      "id": "reject-terminal-reuse",
+      "prior": "disposed",
+      "event": "construct",
+      "result": {
+        "rejected": "invalid_transition"
+      }
+    }
+  ]
+}

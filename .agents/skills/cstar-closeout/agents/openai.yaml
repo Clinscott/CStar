@@ -1,4 +1,0 @@
-interface:
-  display_name: "CStar Closeout"
-  short_description: "Prepare evidence-backed gated session closeout"
-  default_prompt: "Use $cstar-closeout to prepare a gated handoff and closeout packet."
