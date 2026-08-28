@@ -38,9 +38,9 @@ Every unlisted pair returns `rejected(invalid_transition)`. The reducer is pure,
 
 `cstar-core-v1.json` is the complete machine-readable contract and fixture set. It uses no schema dialect, resolver, code generator, URL, package, or validation framework.
 
-Each vector supplies a prior state, an event, and the exact ASCII JSON result with one final LF. The future test harness runs every vector twice and requires byte-identical results. Five vectors are the complete legal table; three sample illegal pairs verify rejection and terminal behavior.
+Each vector supplies a prior state, an event, and the expected typed result. A test-only adapter loads this local data and compares Swift enum values; CStarCore itself has no serializer. The future test harness runs every vector twice. Five vectors are the complete legal table; three sample illegal pairs verify rejection and terminal behavior.
 
-Hashes and authoritative replay are deliberately absent. Organism hashes its journal with Apple-provided APIs after admission; CStarCore does not duplicate that work.
+Serialization, hashes, and authoritative replay are deliberately absent. Organism serializes and hashes its journal with Apple-provided APIs after admission; CStarCore does not duplicate that work.
 
 ## K.I.S.S. implementation gate
 
