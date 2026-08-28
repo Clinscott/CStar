@@ -4,13 +4,14 @@ Status: proposed by the implementation PR for #46. This document grants no runti
 
 ## Decision
 
-GitHub is a human repository and pull-request ledger only. CStar has no GitHub Actions workflows, hosted runners, marketplace actions, scheduled jobs, provider dispatch, release publishers, or required external status checks.
+GitHub is a human repository and pull-request ledger only. The proposed GitHub surface has no Actions workflows, Gemini command definitions, hosted runners, scheduled jobs, provider dispatch, release publishers, or required external status checks. Legacy runtime source elsewhere remains inert historical material pending #48.
 
 All validation runs locally and offline on the operator-controlled macOS or iOS development environment, using checked-in first-party source and Apple toolchains already supplied by the operating system. Validation results may be recorded in the pull-request conversation for human review; GitHub does not execute or decide them.
 
 ## Removed active surfaces
 
 - All eight GitHub Actions workflow files.
+- All five orphaned `.github/commands/gemini-*.toml` command definitions.
 - Six Gemini workflows, including hourly triage and issue, comment, pull-request, and review dispatch.
 - The tag and manual host-distribution release workflow.
 - The Node, Python, npm, pip, Bubblewrap, SQLite rebuild, Forge runtime, provider, and release-bundle paths from active automation.
@@ -35,6 +36,7 @@ These are disposition records, not activation or migration instructions.
 | Surface | Before | After |
 | --- | ---: | ---: |
 | GitHub Actions workflow files | 8 | 0 |
+| GitHub Gemini command definitions | 5 | 0 |
 | Provider or autonomous workflows | 6 | 0 |
 | Host-distribution publishers | 1 | 0 |
 | Scheduled workflows | 1 | 0 |
@@ -46,7 +48,7 @@ These are disposition records, not activation or migration instructions.
 
 ## K.I.S.S. and sovereignty proof
 
-- Delete every workflow; retain no replacement.
+- Delete every workflow and its orphaned GitHub command definitions; retain no replacement.
 - Add no executable source, runner configuration, package, compatibility facade, or hosted gate.
 - Keep GitHub limited to human review, discussion, and immutable history.
 - Run future checks only from small first-party local commands that work with networking disabled.
