@@ -1,2 +1,0 @@
-# Existing AGENTS.qmd
-This is a legacy file.

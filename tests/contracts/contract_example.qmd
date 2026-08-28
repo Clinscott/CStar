@@ -1,8 +1,0 @@
-# Premium Export Contract
-
-> [!NOTE]
-> This is a Domain-Specific Test Contract for the Empire Framework.
-
-GIVEN User is Premium [$]
-WHEN User clicks "Export PDF"
-THEN download starts

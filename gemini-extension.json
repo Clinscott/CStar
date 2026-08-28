@@ -1,7 +1,0 @@
-{
-  "name": "corvus-star",
-  "version": "1.0.1",
-  "description": "Archived Corvus Star compatibility material. No runtime or workflow integration is registered.",
-  "contextFileName": "GEMINI.md",
-  "mcpServers": {}
-}
