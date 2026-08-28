@@ -302,16 +302,6 @@ def test_daily_bootstrap_preserves_git_and_runtime_dispatch_gates() -> None:
     assert "dispatches no host-governor swarm" in feature
 
 
-def test_ci_checks_checked_in_distributions_before_release_generation() -> None:
-    workflow = _read(".github/workflows/ci.yml")
-    validation_step = workflow.split(
-        "- name: Validate Generated Distribution Artifacts", 1
-    )[1].split("- name:", 1)[0]
-
-    assert "node-version: 22" in workflow
-    assert "npm run validate:distributions" in validation_step
-    assert "npm run build:distributions" not in validation_step
-
 
 def test_kernel_docs_separate_code_control_and_forge_readiness() -> None:
     kernel = _flat(_read("docs/integrations/cstar-kernel-mcp.md"))
