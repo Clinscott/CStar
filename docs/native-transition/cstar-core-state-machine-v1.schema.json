@@ -1,0 +1,768 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CStarCore v1 golden-vector suite",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schema_id",
+    "schema_version",
+    "canonical_profile",
+    "core_scenarios",
+    "organism_boundary_scenarios"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "./cstar-core-state-machine-v1.schema.json"
+    },
+    "schema_id": {
+      "const": "cstar.core.golden_vectors.v1"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "canonical_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "format",
+        "key_order",
+        "array_order",
+        "numbers",
+        "explicit_nulls",
+        "terminal_newline",
+        "digest"
+      ],
+      "properties": {
+        "format": {
+          "const": "compact_json"
+        },
+        "key_order": {
+          "const": "recursive_utf16_code_unit"
+        },
+        "array_order": {
+          "const": "preserved"
+        },
+        "numbers": {
+          "const": "nonnegative_safe_integers"
+        },
+        "explicit_nulls": {
+          "const": true
+        },
+        "terminal_newline": {
+          "const": true
+        },
+        "digest": {
+          "const": "sha256"
+        }
+      }
+    },
+    "core_scenarios": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/vector_scenario"
+      }
+    },
+    "organism_boundary_scenarios": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/organism_boundary_scenario"
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "identifier": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "safe_integer": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "outcome",
+        "evidence_hash"
+      ],
+      "properties": {
+        "outcome": {
+          "enum": [
+            "delivered_unverified",
+            "failed",
+            "cancelled",
+            "unknown"
+          ]
+        },
+        "evidence_hash": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "operator_decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decision_hash"
+      ],
+      "properties": {
+        "decision_hash": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "validation_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidence_hash"
+      ],
+      "properties": {
+        "evidence_hash": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "effect_intent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "intent_id",
+        "effect_type",
+        "capability",
+        "payload_hash"
+      ],
+      "properties": {
+        "intent_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "effect_type": {
+          "const": "capability_request"
+        },
+        "capability": {
+          "$ref": "#/$defs/identifier"
+        },
+        "payload_hash": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "construct_payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lifecycle_id",
+        "definition_hash"
+      ],
+      "properties": {
+        "lifecycle_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "definition_hash": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "submit_payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "effect_intents"
+      ],
+      "properties": {
+        "effect_intents": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/effect_intent"
+          }
+        }
+      }
+    },
+    "observe_payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "submission_hash",
+        "outcome",
+        "evidence_hash"
+      ],
+      "properties": {
+        "submission_hash": {
+          "$ref": "#/$defs/sha256"
+        },
+        "outcome": {
+          "enum": [
+            "delivered_unverified",
+            "failed",
+            "cancelled",
+            "unknown"
+          ]
+        },
+        "evidence_hash": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "dispose_payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "disposal_hash"
+      ],
+      "properties": {
+        "disposal_hash": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "payload": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/construct_payload"
+        },
+        {
+          "$ref": "#/$defs/submit_payload"
+        },
+        {
+          "$ref": "#/$defs/observe_payload"
+        },
+        {
+          "$ref": "#/$defs/dispose_payload"
+        }
+      ]
+    },
+    "state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_id",
+        "schema_version",
+        "lifecycle_id",
+        "scope",
+        "phase",
+        "revision",
+        "authority_generation",
+        "policy_hash",
+        "reducer_hash",
+        "journal_binding_hash",
+        "definition_hash",
+        "submission_hash",
+        "observation",
+        "disposal_hash",
+        "last_event_id",
+        "last_logical_time"
+      ],
+      "properties": {
+        "schema_id": {
+          "const": "cstar.core.state.v1"
+        },
+        "schema_version": {
+          "const": "1.0.0"
+        },
+        "lifecycle_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "scope": {
+          "$ref": "#/$defs/identifier"
+        },
+        "phase": {
+          "enum": [
+            "constructed",
+            "submitted",
+            "observed",
+            "disposed"
+          ]
+        },
+        "revision": {
+          "$ref": "#/$defs/safe_integer"
+        },
+        "authority_generation": {
+          "$ref": "#/$defs/identifier"
+        },
+        "policy_hash": {
+          "$ref": "#/$defs/sha256"
+        },
+        "reducer_hash": {
+          "$ref": "#/$defs/sha256"
+        },
+        "journal_binding_hash": {
+          "$ref": "#/$defs/sha256"
+        },
+        "definition_hash": {
+          "$ref": "#/$defs/sha256"
+        },
+        "submission_hash": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/sha256"
+            }
+          ]
+        },
+        "observation": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/observation"
+            }
+          ]
+        },
+        "disposal_hash": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/sha256"
+            }
+          ]
+        },
+        "last_event_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "last_logical_time": {
+          "$ref": "#/$defs/safe_integer"
+        }
+      }
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_id",
+        "schema_version",
+        "policy_hash",
+        "reducer_hash",
+        "journal_binding_hash",
+        "scope",
+        "authority_generation",
+        "prior_revision",
+        "event_id",
+        "idempotency_key",
+        "event_type",
+        "payload",
+        "logical_time",
+        "operator_decision",
+        "validation_evidence"
+      ],
+      "properties": {
+        "schema_id": {
+          "const": "cstar.core.event.v1"
+        },
+        "schema_version": {
+          "const": "1.0.0"
+        },
+        "policy_hash": {
+          "$ref": "#/$defs/sha256"
+        },
+        "reducer_hash": {
+          "$ref": "#/$defs/sha256"
+        },
+        "journal_binding_hash": {
+          "$ref": "#/$defs/sha256"
+        },
+        "scope": {
+          "$ref": "#/$defs/identifier"
+        },
+        "authority_generation": {
+          "$ref": "#/$defs/identifier"
+        },
+        "prior_revision": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/safe_integer"
+            }
+          ]
+        },
+        "event_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "idempotency_key": {
+          "$ref": "#/$defs/identifier"
+        },
+        "event_type": {
+          "enum": [
+            "construct",
+            "submit",
+            "observe",
+            "dispose"
+          ]
+        },
+        "payload": {
+          "$ref": "#/$defs/payload"
+        },
+        "logical_time": {
+          "$ref": "#/$defs/safe_integer"
+        },
+        "operator_decision": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/operator_decision"
+            }
+          ]
+        },
+        "validation_evidence": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/validation_evidence"
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "oneOf": [
+            {
+              "properties": {
+                "event_type": {
+                  "const": "construct"
+                },
+                "prior_revision": {
+                  "type": "null"
+                },
+                "payload": {
+                  "$ref": "#/$defs/construct_payload"
+                }
+              }
+            },
+            {
+              "properties": {
+                "event_type": {
+                  "const": "submit"
+                },
+                "prior_revision": {
+                  "$ref": "#/$defs/safe_integer"
+                },
+                "payload": {
+                  "$ref": "#/$defs/submit_payload"
+                }
+              }
+            },
+            {
+              "properties": {
+                "event_type": {
+                  "const": "observe"
+                },
+                "prior_revision": {
+                  "$ref": "#/$defs/safe_integer"
+                },
+                "payload": {
+                  "$ref": "#/$defs/observe_payload"
+                }
+              }
+            },
+            {
+              "properties": {
+                "event_type": {
+                  "const": "dispose"
+                },
+                "prior_revision": {
+                  "$ref": "#/$defs/safe_integer"
+                },
+                "payload": {
+                  "$ref": "#/$defs/dispose_payload"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "prior_state_hash",
+        "candidate_state",
+        "candidate_state_hash",
+        "effect_intents",
+        "replay_token"
+      ],
+      "properties": {
+        "prior_state_hash": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/sha256"
+            }
+          ]
+        },
+        "candidate_state": {
+          "$ref": "#/$defs/state"
+        },
+        "candidate_state_hash": {
+          "$ref": "#/$defs/sha256"
+        },
+        "effect_intents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/effect_intent"
+          }
+        },
+        "replay_token": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "rejection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "message",
+        "event_id",
+        "prior_revision"
+      ],
+      "properties": {
+        "code": {
+          "enum": [
+            "CSTAR_SCHEMA_UNSUPPORTED",
+            "CSTAR_STATE_REQUIRED",
+            "CSTAR_STATE_ALREADY_EXISTS",
+            "CSTAR_EVENT_TYPE_UNSUPPORTED",
+            "CSTAR_ENVELOPE_BINDING_MISMATCH",
+            "CSTAR_REVISION_MISMATCH",
+            "CSTAR_LOGICAL_TIME_REGRESSION",
+            "CSTAR_PAYLOAD_INVALID",
+            "CSTAR_SUBMISSION_HASH_MISMATCH",
+            "CSTAR_INVALID_TRANSITION"
+          ]
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 96
+        },
+        "event_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "prior_revision": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/safe_integer"
+            }
+          ]
+        }
+      }
+    },
+    "transition_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_id",
+        "schema_version",
+        "candidate",
+        "rejection"
+      ],
+      "properties": {
+        "schema_id": {
+          "const": "cstar.core.transition_result.v1"
+        },
+        "schema_version": {
+          "const": "1.0.0"
+        },
+        "candidate": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/candidate"
+            }
+          ]
+        },
+        "rejection": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/rejection"
+            }
+          ]
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "candidate": {
+              "$ref": "#/$defs/candidate"
+            },
+            "rejection": {
+              "type": "null"
+            }
+          }
+        },
+        {
+          "properties": {
+            "candidate": {
+              "type": "null"
+            },
+            "rejection": {
+              "$ref": "#/$defs/rejection"
+            }
+          }
+        }
+      ]
+    },
+    "vector_step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "step_id",
+        "prior_state",
+        "event",
+        "expected_result",
+        "expected_state",
+        "expected_result_canonical",
+        "expected_result_sha256",
+        "repeat"
+      ],
+      "properties": {
+        "step_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "prior_state": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/state"
+            }
+          ]
+        },
+        "event": {
+          "$ref": "#/$defs/event"
+        },
+        "expected_result": {
+          "$ref": "#/$defs/transition_result"
+        },
+        "expected_state": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/state"
+            }
+          ]
+        },
+        "expected_result_canonical": {
+          "type": "string",
+          "minLength": 2
+        },
+        "expected_result_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "repeat": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2
+        }
+      }
+    },
+    "vector_scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scenario_id",
+        "description",
+        "steps"
+      ],
+      "properties": {
+        "scenario_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/vector_step"
+          }
+        }
+      }
+    },
+    "organism_boundary_scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scenario_id",
+        "condition",
+        "expected_action",
+        "expected_code",
+        "cstar_core_called",
+        "effects_reserved"
+      ],
+      "properties": {
+        "scenario_id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "condition": {
+          "$ref": "#/$defs/identifier"
+        },
+        "expected_action": {
+          "enum": [
+            "return_recorded_result_bytes",
+            "reject_before_core"
+          ]
+        },
+        "expected_code": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "enum": [
+                "ORGANISM_IDEMPOTENCY_CONFLICT",
+                "ORGANISM_EVENT_ID_CONFLICT",
+                "ORGANISM_AUTHORITY_GENERATION_STALE",
+                "ORGANISM_AUTHORITY_GENERATION_REVOKED",
+                "ORGANISM_AUTHORITY_GENERATION_UNKNOWN",
+                "ORGANISM_PRIOR_REVISION_MISMATCH"
+              ]
+            }
+          ]
+        },
+        "cstar_core_called": {
+          "const": false
+        },
+        "effects_reserved": {
+          "const": false
+        }
+      }
+    }
+  }
+}

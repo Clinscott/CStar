@@ -1,0 +1,1246 @@
+{
+  "$schema": "./cstar-core-state-machine-v1.schema.json",
+  "schema_id": "cstar.core.golden_vectors.v1",
+  "schema_version": "1.0.0",
+  "canonical_profile": {
+    "format": "compact_json",
+    "key_order": "recursive_utf16_code_unit",
+    "array_order": "preserved",
+    "numbers": "nonnegative_safe_integers",
+    "explicit_nulls": true,
+    "terminal_newline": true,
+    "digest": "sha256"
+  },
+  "core_scenarios": [
+    {
+      "scenario_id": "full-lifecycle",
+      "description": "construct, submit one inert capability intent, observe delivery without authority, then dispose",
+      "steps": [
+        {
+          "step_id": "construct",
+          "prior_state": null,
+          "event": {
+            "schema_id": "cstar.core.event.v1",
+            "schema_version": "1.0.0",
+            "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+            "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+            "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+            "scope": "scope.lifecycle-full",
+            "authority_generation": "generation-0001",
+            "prior_revision": null,
+            "event_id": "lifecycle-full-construct",
+            "idempotency_key": "idem-lifecycle-full-construct",
+            "event_type": "construct",
+            "payload": {
+              "lifecycle_id": "lifecycle-full",
+              "definition_hash": "4444444444444444444444444444444444444444444444444444444444444444"
+            },
+            "logical_time": 1,
+            "operator_decision": null,
+            "validation_evidence": null
+          },
+          "expected_result": {
+            "schema_id": "cstar.core.transition_result.v1",
+            "schema_version": "1.0.0",
+            "candidate": {
+              "prior_state_hash": null,
+              "candidate_state": {
+                "schema_id": "cstar.core.state.v1",
+                "schema_version": "1.0.0",
+                "lifecycle_id": "lifecycle-full",
+                "scope": "scope.lifecycle-full",
+                "phase": "constructed",
+                "revision": 0,
+                "authority_generation": "generation-0001",
+                "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+                "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+                "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+                "definition_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+                "submission_hash": null,
+                "observation": null,
+                "disposal_hash": null,
+                "last_event_id": "lifecycle-full-construct",
+                "last_logical_time": 1
+              },
+              "candidate_state_hash": "dbe97c1dc4836d7095b2f7650943204e72078e098e48fe029b04fc8c8cf8b139",
+              "effect_intents": [],
+              "replay_token": "d652ac41b917eb2c23b3e0a83a0962312fc79300bbf4ecff93383b624c3a6efa"
+            },
+            "rejection": null
+          },
+          "expected_state": {
+            "schema_id": "cstar.core.state.v1",
+            "schema_version": "1.0.0",
+            "lifecycle_id": "lifecycle-full",
+            "scope": "scope.lifecycle-full",
+            "phase": "constructed",
+            "revision": 0,
+            "authority_generation": "generation-0001",
+            "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+            "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+            "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+            "definition_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+            "submission_hash": null,
+            "observation": null,
+            "disposal_hash": null,
+            "last_event_id": "lifecycle-full-construct",
+            "last_logical_time": 1
+          },
+          "expected_result_canonical": "{\"candidate\":{\"candidate_state\":{\"authority_generation\":\"generation-0001\",\"definition_hash\":\"4444444444444444444444444444444444444444444444444444444444444444\",\"disposal_hash\":null,\"journal_binding_hash\":\"3333333333333333333333333333333333333333333333333333333333333333\",\"last_event_id\":\"lifecycle-full-construct\",\"last_logical_time\":1,\"lifecycle_id\":\"lifecycle-full\",\"observation\":null,\"phase\":\"constructed\",\"policy_hash\":\"1111111111111111111111111111111111111111111111111111111111111111\",\"reducer_hash\":\"2222222222222222222222222222222222222222222222222222222222222222\",\"revision\":0,\"schema_id\":\"cstar.core.state.v1\",\"schema_version\":\"1.0.0\",\"scope\":\"scope.lifecycle-full\",\"submission_hash\":null},\"candidate_state_hash\":\"dbe97c1dc4836d7095b2f7650943204e72078e098e48fe029b04fc8c8cf8b139\",\"effect_intents\":[],\"prior_state_hash\":null,\"replay_token\":\"d652ac41b917eb2c23b3e0a83a0962312fc79300bbf4ecff93383b624c3a6efa\"},\"rejection\":null,\"schema_id\":\"cstar.core.transition_result.v1\",\"schema_version\":\"1.0.0\"}\n",
+          "expected_result_sha256": "c66db49bf787849fbd2a368dc06df1aa9a09e53b60a4557bd398a7cdda5c0e69",
+          "repeat": 1
+        },
+        {
+          "step_id": "submit",
+          "prior_state": {
+            "schema_id": "cstar.core.state.v1",
+            "schema_version": "1.0.0",
+            "lifecycle_id": "lifecycle-full",
+            "scope": "scope.lifecycle-full",
+            "phase": "constructed",
+            "revision": 0,
+            "authority_generation": "generation-0001",
+            "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+            "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+            "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+            "definition_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+            "submission_hash": null,
+            "observation": null,
+            "disposal_hash": null,
+            "last_event_id": "lifecycle-full-construct",
+            "last_logical_time": 1
+          },
+          "event": {
+            "schema_id": "cstar.core.event.v1",
+            "schema_version": "1.0.0",
+            "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+            "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+            "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+            "scope": "scope.lifecycle-full",
+            "authority_generation": "generation-0001",
+            "prior_revision": 0,
+            "event_id": "lifecycle-full-submit",
+            "idempotency_key": "idem-lifecycle-full-submit",
+            "event_type": "submit",
+            "payload": {
+              "effect_intents": [
+                {
+                  "intent_id": "lifecycle-full-intent-001",
+                  "effect_type": "capability_request",
+                  "capability": "native.test.echo",
+                  "payload_hash": "5555555555555555555555555555555555555555555555555555555555555555"
+                }
+              ]
+            },
+            "logical_time": 2,
+            "operator_decision": null,
+            "validation_evidence": null
+          },
+          "expected_result": {
+            "schema_id": "cstar.core.transition_result.v1",
+            "schema_version": "1.0.0",
+            "candidate": {
+              "prior_state_hash": "dbe97c1dc4836d7095b2f7650943204e72078e098e48fe029b04fc8c8cf8b139",
+              "candidate_state": {
+                "schema_id": "cstar.core.state.v1",
+                "schema_version": "1.0.0",
+                "lifecycle_id": "lifecycle-full",
+                "scope": "scope.lifecycle-full",
+                "phase": "submitted",
+                "revision": 1,
+                "authority_generation": "generation-0001",
+                "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+                "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+                "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+                "definition_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+                "submission_hash": "843482a39a65405e645e35e282297e4dd089e9df486469dbdd899f5c964b8531",
+                "observation": null,
+                "disposal_hash": null,
+                "last_event_id": "lifecycle-full-submit",
+                "last_logical_time": 2
+              },
+              "candidate_state_hash": "4b261c1cf75b948bc996b1e65aa782e4cd10455793211d0e06b7c8ff3745defe",
+              "effect_intents": [
+                {
+                  "intent_id": "lifecycle-full-intent-001",
+                  "effect_type": "capability_request",
+                  "capability": "native.test.echo",
+                  "payload_hash": "5555555555555555555555555555555555555555555555555555555555555555"
+                }
+              ],
+              "replay_token": "ad1b630d708be952d2eea438026e2f1b416c55a9cc1da975d602a471844e77f2"
+            },
+            "rejection": null
+          },
+          "expected_state": {
+            "schema_id": "cstar.core.state.v1",
+            "schema_version": "1.0.0",
+            "lifecycle_id": "lifecycle-full",
+            "scope": "scope.lifecycle-full",
+            "phase": "submitted",
+            "revision": 1,
+            "authority_generation": "generation-0001",
+            "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+            "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+            "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+            "definition_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+            "submission_hash": "843482a39a65405e645e35e282297e4dd089e9df486469dbdd899f5c964b8531",
+            "observation": null,
+            "disposal_hash": null,
+            "last_event_id": "lifecycle-full-submit",
+            "last_logical_time": 2
+          },
+          "expected_result_canonical": "{\"candidate\":{\"candidate_state\":{\"authority_generation\":\"generation-0001\",\"definition_hash\":\"4444444444444444444444444444444444444444444444444444444444444444\",\"disposal_hash\":null,\"journal_binding_hash\":\"3333333333333333333333333333333333333333333333333333333333333333\",\"last_event_id\":\"lifecycle-full-submit\",\"last_logical_time\":2,\"lifecycle_id\":\"lifecycle-full\",\"observation\":null,\"phase\":\"submitted\",\"policy_hash\":\"1111111111111111111111111111111111111111111111111111111111111111\",\"reducer_hash\":\"2222222222222222222222222222222222222222222222222222222222222222\",\"revision\":1,\"schema_id\":\"cstar.core.state.v1\",\"schema_version\":\"1.0.0\",\"scope\":\"scope.lifecycle-full\",\"submission_hash\":\"843482a39a65405e645e35e282297e4dd089e9df486469dbdd899f5c964b8531\"},\"candidate_state_hash\":\"4b261c1cf75b948bc996b1e65aa782e4cd10455793211d0e06b7c8ff3745defe\",\"effect_intents\":[{\"capability\":\"native.test.echo\",\"effect_type\":\"capability_request\",\"intent_id\":\"lifecycle-full-intent-001\",\"payload_hash\":\"5555555555555555555555555555555555555555555555555555555555555555\"}],\"prior_state_hash\":\"dbe97c1dc4836d7095b2f7650943204e72078e098e48fe029b04fc8c8cf8b139\",\"replay_token\":\"ad1b630d708be952d2eea438026e2f1b416c55a9cc1da975d602a471844e77f2\"},\"rejection\":null,\"schema_id\":\"cstar.core.transition_result.v1\",\"schema_version\":\"1.0.0\"}\n",
+          "expected_result_sha256": "f801e455cc71d77dd6a5604da72890a27958e6aec54fd579c6725dcbd1464946",
+          "repeat": 1
+        },
+        {
+          "step_id": "observe",
+          "prior_state": {
+            "schema_id": "cstar.core.state.v1",
+            "schema_version": "1.0.0",
+            "lifecycle_id": "lifecycle-full",
+            "scope": "scope.lifecycle-full",
+            "phase": "submitted",
+            "revision": 1,
+            "authority_generation": "generation-0001",
+            "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+            "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+            "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+            "definition_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+            "submission_hash": "843482a39a65405e645e35e282297e4dd089e9df486469dbdd899f5c964b8531",
+            "observation": null,
+            "disposal_hash": null,
+            "last_event_id": "lifecycle-full-submit",
+            "last_logical_time": 2
+          },
+          "event": {
+            "schema_id": "cstar.core.event.v1",
+            "schema_version": "1.0.0",
+            "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+            "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+            "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+            "scope": "scope.lifecycle-full",
+            "authority_generation": "generation-0001",
+            "prior_revision": 1,
+            "event_id": "lifecycle-full-observe",
+            "idempotency_key": "idem-lifecycle-full-observe",
+            "event_type": "observe",
+            "payload": {
+              "submission_hash": "843482a39a65405e645e35e282297e4dd089e9df486469dbdd899f5c964b8531",
+              "outcome": "delivered_unverified",
+              "evidence_hash": "6666666666666666666666666666666666666666666666666666666666666666"
+            },
+            "logical_time": 3,
+            "operator_decision": null,
+            "validation_evidence": {
+              "evidence_hash": "6666666666666666666666666666666666666666666666666666666666666666"
+            }
+          },
+          "expected_result": {
+            "schema_id": "cstar.core.transition_result.v1",
+            "schema_version": "1.0.0",
+            "candidate": {
+              "prior_state_hash": "4b261c1cf75b948bc996b1e65aa782e4cd10455793211d0e06b7c8ff3745defe",
+              "candidate_state": {
+                "schema_id": "cstar.core.state.v1",
+                "schema_version": "1.0.0",
+                "lifecycle_id": "lifecycle-full",
+                "scope": "scope.lifecycle-full",
+                "phase": "observed",
+                "revision": 2,
+                "authority_generation": "generation-0001",
+                "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+                "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+                "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+                "definition_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+                "submission_hash": "843482a39a65405e645e35e282297e4dd089e9df486469dbdd899f5c964b8531",
+                "observation": {
+                  "outcome": "delivered_unverified",
+                  "evidence_hash": "6666666666666666666666666666666666666666666666666666666666666666"
+                },
+                "disposal_hash": null,
+                "last_event_id": "lifecycle-full-observe",
+                "last_logical_time": 3
+              },
+              "candidate_state_hash": "451cc1d26fc91f4bf88c8f9908e5fc6fb05ffb825734152791a3036a1bba834c",
+              "effect_intents": [],
+              "replay_token": "50a6799ea9735ed8427e3c64306944ca731e780274d1a6b06461a464b8731a32"
+            },
+            "rejection": null
+          },
+          "expected_state": {
+            "schema_id": "cstar.core.state.v1",
+            "schema_version": "1.0.0",
+            "lifecycle_id": "lifecycle-full",
+            "scope": "scope.lifecycle-full",
+            "phase": "observed",
+            "revision": 2,
+            "authority_generation": "generation-0001",
+            "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+            "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+            "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+            "definition_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+            "submission_hash": "843482a39a65405e645e35e282297e4dd089e9df486469dbdd899f5c964b8531",
+            "observation": {
+              "outcome": "delivered_unverified",
+              "evidence_hash": "6666666666666666666666666666666666666666666666666666666666666666"
+            },
+            "disposal_hash": null,
+            "last_event_id": "lifecycle-full-observe",
+            "last_logical_time": 3
+          },
+          "expected_result_canonical": "{\"candidate\":{\"candidate_state\":{\"authority_generation\":\"generation-0001\",\"definition_hash\":\"4444444444444444444444444444444444444444444444444444444444444444\",\"disposal_hash\":null,\"journal_binding_hash\":\"3333333333333333333333333333333333333333333333333333333333333333\",\"last_event_id\":\"lifecycle-full-observe\",\"last_logical_time\":3,\"lifecycle_id\":\"lifecycle-full\",\"observation\":{\"evidence_hash\":\"6666666666666666666666666666666666666666666666666666666666666666\",\"outcome\":\"delivered_unverified\"},\"phase\":\"observed\",\"policy_hash\":\"1111111111111111111111111111111111111111111111111111111111111111\",\"reducer_hash\":\"2222222222222222222222222222222222222222222222222222222222222222\",\"revision\":2,\"schema_id\":\"cstar.core.state.v1\",\"schema_version\":\"1.0.0\",\"scope\":\"scope.lifecycle-full\",\"submission_hash\":\"843482a39a65405e645e35e282297e4dd089e9df486469dbdd899f5c964b8531\"},\"candidate_state_hash\":\"451cc1d26fc91f4bf88c8f9908e5fc6fb05ffb825734152791a3036a1bba834c\",\"effect_intents\":[],\"prior_state_hash\":\"4b261c1cf75b948bc996b1e65aa782e4cd10455793211d0e06b7c8ff3745defe\",\"replay_token\":\"50a6799ea9735ed8427e3c64306944ca731e780274d1a6b06461a464b8731a32\"},\"rejection\":null,\"schema_id\":\"cstar.core.transition_result.v1\",\"schema_version\":\"1.0.0\"}\n",
+          "expected_result_sha256": "bc20dfd80ecdc7a1f76f331986c215932ba2407702f2e8548cef79224d08610a",
+          "repeat": 1
+        },
+        {
+          "step_id": "dispose",
+          "prior_state": {
+            "schema_id": "cstar.core.state.v1",
+            "schema_version": "1.0.0",
+            "lifecycle_id": "lifecycle-full",
+            "scope": "scope.lifecycle-full",
+            "phase": "observed",
+            "revision": 2,
+            "authority_generation": "generation-0001",
+            "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+            "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+            "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+            "definition_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+            "submission_hash": "843482a39a65405e645e35e282297e4dd089e9df486469dbdd899f5c964b8531",
+            "observation": {
+              "outcome": "delivered_unverified",
+              "evidence_hash": "6666666666666666666666666666666666666666666666666666666666666666"
+            },
+            "disposal_hash": null,
+            "last_event_id": "lifecycle-full-observe",
+            "last_logical_time": 3
+          },
+          "event": {
+            "schema_id": "cstar.core.event.v1",
+            "schema_version": "1.0.0",
+            "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+            "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+            "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+            "scope": "scope.lifecycle-full",
+            "authority_generation": "generation-0001",
+            "prior_revision": 2,
+            "event_id": "lifecycle-full-dispose",
+            "idempotency_key": "idem-lifecycle-full-dispose",
+            "event_type": "dispose",
+            "payload": {
+              "disposal_hash": "7777777777777777777777777777777777777777777777777777777777777777"
+            },
+            "logical_time": 4,
+            "operator_decision": null,
+            "validation_evidence": null
+          },
+          "expected_result": {
+            "schema_id": "cstar.core.transition_result.v1",
+            "schema_version": "1.0.0",
+            "candidate": {
+              "prior_state_hash": "451cc1d26fc91f4bf88c8f9908e5fc6fb05ffb825734152791a3036a1bba834c",
+              "candidate_state": {
+                "schema_id": "cstar.core.state.v1",
+                "schema_version": "1.0.0",
+                "lifecycle_id": "lifecycle-full",
+                "scope": "scope.lifecycle-full",
+                "phase": "disposed",
+                "revision": 3,
+                "authority_generation": "generation-0001",
+                "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+                "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+                "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+                "definition_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+                "submission_hash": "843482a39a65405e645e35e282297e4dd089e9df486469dbdd899f5c964b8531",
+                "observation": {
+                  "outcome": "delivered_unverified",
+                  "evidence_hash": "6666666666666666666666666666666666666666666666666666666666666666"
+                },
+                "disposal_hash": "7777777777777777777777777777777777777777777777777777777777777777",
+                "last_event_id": "lifecycle-full-dispose",
+                "last_logical_time": 4
+              },
+              "candidate_state_hash": "f793277622818e2ce7ed2c6163231754afdc57790fd66e6c265f7b2bd6c1f2e6",
+              "effect_intents": [],
+              "replay_token": "4a16984aec448cc2b7d6a9aa9d841bd65f838de28db5187939e49cf9d4359cd9"
+            },
+            "rejection": null
+          },
+          "expected_state": {
+            "schema_id": "cstar.core.state.v1",
+            "schema_version": "1.0.0",
+            "lifecycle_id": "lifecycle-full",
+            "scope": "scope.lifecycle-full",
+            "phase": "disposed",
+            "revision": 3,
+            "authority_generation": "generation-0001",
+            "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+            "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+            "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+            "definition_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+            "submission_hash": "843482a39a65405e645e35e282297e4dd089e9df486469dbdd899f5c964b8531",
+            "observation": {
+              "outcome": "delivered_unverified",
+              "evidence_hash": "6666666666666666666666666666666666666666666666666666666666666666"
+            },
+            "disposal_hash": "7777777777777777777777777777777777777777777777777777777777777777",
+            "last_event_id": "lifecycle-full-dispose",
+            "last_logical_time": 4
+          },
+          "expected_result_canonical": "{\"candidate\":{\"candidate_state\":{\"authority_generation\":\"generation-0001\",\"definition_hash\":\"4444444444444444444444444444444444444444444444444444444444444444\",\"disposal_hash\":\"7777777777777777777777777777777777777777777777777777777777777777\",\"journal_binding_hash\":\"3333333333333333333333333333333333333333333333333333333333333333\",\"last_event_id\":\"lifecycle-full-dispose\",\"last_logical_time\":4,\"lifecycle_id\":\"lifecycle-full\",\"observation\":{\"evidence_hash\":\"6666666666666666666666666666666666666666666666666666666666666666\",\"outcome\":\"delivered_unverified\"},\"phase\":\"disposed\",\"policy_hash\":\"1111111111111111111111111111111111111111111111111111111111111111\",\"reducer_hash\":\"2222222222222222222222222222222222222222222222222222222222222222\",\"revision\":3,\"schema_id\":\"cstar.core.state.v1\",\"schema_version\":\"1.0.0\",\"scope\":\"scope.lifecycle-full\",\"submission_hash\":\"843482a39a65405e645e35e282297e4dd089e9df486469dbdd899f5c964b8531\"},\"candidate_state_hash\":\"f793277622818e2ce7ed2c6163231754afdc57790fd66e6c265f7b2bd6c1f2e6\",\"effect_intents\":[],\"prior_state_hash\":\"451cc1d26fc91f4bf88c8f9908e5fc6fb05ffb825734152791a3036a1bba834c\",\"replay_token\":\"4a16984aec448cc2b7d6a9aa9d841bd65f838de28db5187939e49cf9d4359cd9\"},\"rejection\":null,\"schema_id\":\"cstar.core.transition_result.v1\",\"schema_version\":\"1.0.0\"}\n",
+          "expected_result_sha256": "7e22d903a1a652c0e84fe53effdf054590529920028d520cc005673ef85474ef",
+          "repeat": 1
+        }
+      ]
+    },
+    {
+      "scenario_id": "cancelled-lifecycle",
+      "description": "cancellation arrives as typed observation evidence before disposal",
+      "steps": [
+        {
+          "step_id": "construct",
+          "prior_state": null,
+          "event": {
+            "schema_id": "cstar.core.event.v1",
+            "schema_version": "1.0.0",
+            "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+            "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+            "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+            "scope": "scope.lifecycle-cancelled",
+            "authority_generation": "generation-0001",
+            "prior_revision": null,
+            "event_id": "lifecycle-cancelled-construct",
+            "idempotency_key": "idem-lifecycle-cancelled-construct",
+            "event_type": "construct",
+            "payload": {
+              "lifecycle_id": "lifecycle-cancelled",
+              "definition_hash": "4444444444444444444444444444444444444444444444444444444444444444"
+            },
+            "logical_time": 1,
+            "operator_decision": null,
+            "validation_evidence": null
+          },
+          "expected_result": {
+            "schema_id": "cstar.core.transition_result.v1",
+            "schema_version": "1.0.0",
+            "candidate": {
+              "prior_state_hash": null,
+              "candidate_state": {
+                "schema_id": "cstar.core.state.v1",
+                "schema_version": "1.0.0",
+                "lifecycle_id": "lifecycle-cancelled",
+                "scope": "scope.lifecycle-cancelled",
+                "phase": "constructed",
+                "revision": 0,
+                "authority_generation": "generation-0001",
+                "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+                "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+                "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+                "definition_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+                "submission_hash": null,
+                "observation": null,
+                "disposal_hash": null,
+                "last_event_id": "lifecycle-cancelled-construct",
+                "last_logical_time": 1
+              },
+              "candidate_state_hash": "75a7dad459ad062c2195c03ed6eaa8624512989a2af840d088094d2a2b97278e",
+              "effect_intents": [],
+              "replay_token": "8f21b7a4e2741a108ebc31815c88d4e12262d362b4fe3de522c76c9b66971036"
+            },
+            "rejection": null
+          },
+          "expected_state": {
+            "schema_id": "cstar.core.state.v1",
+            "schema_version": "1.0.0",
+            "lifecycle_id": "lifecycle-cancelled",
+            "scope": "scope.lifecycle-cancelled",
+            "phase": "constructed",
+            "revision": 0,
+            "authority_generation": "generation-0001",
+            "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+            "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+            "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+            "definition_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+            "submission_hash": null,
+            "observation": null,
+            "disposal_hash": null,
+            "last_event_id": "lifecycle-cancelled-construct",
+            "last_logical_time": 1
+          },
+          "expected_result_canonical": "{\"candidate\":{\"candidate_state\":{\"authority_generation\":\"generation-0001\",\"definition_hash\":\"4444444444444444444444444444444444444444444444444444444444444444\",\"disposal_hash\":null,\"journal_binding_hash\":\"3333333333333333333333333333333333333333333333333333333333333333\",\"last_event_id\":\"lifecycle-cancelled-construct\",\"last_logical_time\":1,\"lifecycle_id\":\"lifecycle-cancelled\",\"observation\":null,\"phase\":\"constructed\",\"policy_hash\":\"1111111111111111111111111111111111111111111111111111111111111111\",\"reducer_hash\":\"2222222222222222222222222222222222222222222222222222222222222222\",\"revision\":0,\"schema_id\":\"cstar.core.state.v1\",\"schema_version\":\"1.0.0\",\"scope\":\"scope.lifecycle-cancelled\",\"submission_hash\":null},\"candidate_state_hash\":\"75a7dad459ad062c2195c03ed6eaa8624512989a2af840d088094d2a2b97278e\",\"effect_intents\":[],\"prior_state_hash\":null,\"replay_token\":\"8f21b7a4e2741a108ebc31815c88d4e12262d362b4fe3de522c76c9b66971036\"},\"rejection\":null,\"schema_id\":\"cstar.core.transition_result.v1\",\"schema_version\":\"1.0.0\"}\n",
+          "expected_result_sha256": "e36004d3e04e235330baae2bf2c300ff2a4fd2f33d66e9a2d03f19a405a26659",
+          "repeat": 1
+        },
+        {
+          "step_id": "submit",
+          "prior_state": {
+            "schema_id": "cstar.core.state.v1",
+            "schema_version": "1.0.0",
+            "lifecycle_id": "lifecycle-cancelled",
+            "scope": "scope.lifecycle-cancelled",
+            "phase": "constructed",
+            "revision": 0,
+            "authority_generation": "generation-0001",
+            "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+            "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+            "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+            "definition_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+            "submission_hash": null,
+            "observation": null,
+            "disposal_hash": null,
+            "last_event_id": "lifecycle-cancelled-construct",
+            "last_logical_time": 1
+          },
+          "event": {
+            "schema_id": "cstar.core.event.v1",
+            "schema_version": "1.0.0",
+            "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+            "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+            "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+            "scope": "scope.lifecycle-cancelled",
+            "authority_generation": "generation-0001",
+            "prior_revision": 0,
+            "event_id": "lifecycle-cancelled-submit",
+            "idempotency_key": "idem-lifecycle-cancelled-submit",
+            "event_type": "submit",
+            "payload": {
+              "effect_intents": [
+                {
+                  "intent_id": "lifecycle-cancelled-intent-001",
+                  "effect_type": "capability_request",
+                  "capability": "native.test.echo",
+                  "payload_hash": "5555555555555555555555555555555555555555555555555555555555555555"
+                }
+              ]
+            },
+            "logical_time": 2,
+            "operator_decision": null,
+            "validation_evidence": null
+          },
+          "expected_result": {
+            "schema_id": "cstar.core.transition_result.v1",
+            "schema_version": "1.0.0",
+            "candidate": {
+              "prior_state_hash": "75a7dad459ad062c2195c03ed6eaa8624512989a2af840d088094d2a2b97278e",
+              "candidate_state": {
+                "schema_id": "cstar.core.state.v1",
+                "schema_version": "1.0.0",
+                "lifecycle_id": "lifecycle-cancelled",
+                "scope": "scope.lifecycle-cancelled",
+                "phase": "submitted",
+                "revision": 1,
+                "authority_generation": "generation-0001",
+                "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+                "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+                "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+                "definition_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+                "submission_hash": "c78fd8632683d414a8570c41bee5ea0cab3ed002e70c0b389570c82eccdbfe6e",
+                "observation": null,
+                "disposal_hash": null,
+                "last_event_id": "lifecycle-cancelled-submit",
+                "last_logical_time": 2
+              },
+              "candidate_state_hash": "153dd392ed31658e772e5aed80e6f183c484308103def900c4c38c2a4360a6db",
+              "effect_intents": [
+                {
+                  "intent_id": "lifecycle-cancelled-intent-001",
+                  "effect_type": "capability_request",
+                  "capability": "native.test.echo",
+                  "payload_hash": "5555555555555555555555555555555555555555555555555555555555555555"
+                }
+              ],
+              "replay_token": "1a44bbcb8b1a6cd3e6348397ca5f495f65daa7ba5129379f12129169ad3ac6a6"
+            },
+            "rejection": null
+          },
+          "expected_state": {
+            "schema_id": "cstar.core.state.v1",
+            "schema_version": "1.0.0",
+            "lifecycle_id": "lifecycle-cancelled",
+            "scope": "scope.lifecycle-cancelled",
+            "phase": "submitted",
+            "revision": 1,
+            "authority_generation": "generation-0001",
+            "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+            "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+            "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+            "definition_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+            "submission_hash": "c78fd8632683d414a8570c41bee5ea0cab3ed002e70c0b389570c82eccdbfe6e",
+            "observation": null,
+            "disposal_hash": null,
+            "last_event_id": "lifecycle-cancelled-submit",
+            "last_logical_time": 2
+          },
+          "expected_result_canonical": "{\"candidate\":{\"candidate_state\":{\"authority_generation\":\"generation-0001\",\"definition_hash\":\"4444444444444444444444444444444444444444444444444444444444444444\",\"disposal_hash\":null,\"journal_binding_hash\":\"3333333333333333333333333333333333333333333333333333333333333333\",\"last_event_id\":\"lifecycle-cancelled-submit\",\"last_logical_time\":2,\"lifecycle_id\":\"lifecycle-cancelled\",\"observation\":null,\"phase\":\"submitted\",\"policy_hash\":\"1111111111111111111111111111111111111111111111111111111111111111\",\"reducer_hash\":\"2222222222222222222222222222222222222222222222222222222222222222\",\"revision\":1,\"schema_id\":\"cstar.core.state.v1\",\"schema_version\":\"1.0.0\",\"scope\":\"scope.lifecycle-cancelled\",\"submission_hash\":\"c78fd8632683d414a8570c41bee5ea0cab3ed002e70c0b389570c82eccdbfe6e\"},\"candidate_state_hash\":\"153dd392ed31658e772e5aed80e6f183c484308103def900c4c38c2a4360a6db\",\"effect_intents\":[{\"capability\":\"native.test.echo\",\"effect_type\":\"capability_request\",\"intent_id\":\"lifecycle-cancelled-intent-001\",\"payload_hash\":\"5555555555555555555555555555555555555555555555555555555555555555\"}],\"prior_state_hash\":\"75a7dad459ad062c2195c03ed6eaa8624512989a2af840d088094d2a2b97278e\",\"replay_token\":\"1a44bbcb8b1a6cd3e6348397ca5f495f65daa7ba5129379f12129169ad3ac6a6\"},\"rejection\":null,\"schema_id\":\"cstar.core.transition_result.v1\",\"schema_version\":\"1.0.0\"}\n",
+          "expected_result_sha256": "1b7fd94bc2d8e7f38e45126f380ee90e81ce6a4b61788a51629ce09bd21efcf3",
+          "repeat": 1
+        },
+        {
+          "step_id": "observe",
+          "prior_state": {
+            "schema_id": "cstar.core.state.v1",
+            "schema_version": "1.0.0",
+            "lifecycle_id": "lifecycle-cancelled",
+            "scope": "scope.lifecycle-cancelled",
+            "phase": "submitted",
+            "revision": 1,
+            "authority_generation": "generation-0001",
+            "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+            "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+            "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+            "definition_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+            "submission_hash": "c78fd8632683d414a8570c41bee5ea0cab3ed002e70c0b389570c82eccdbfe6e",
+            "observation": null,
+            "disposal_hash": null,
+            "last_event_id": "lifecycle-cancelled-submit",
+            "last_logical_time": 2
+          },
+          "event": {
+            "schema_id": "cstar.core.event.v1",
+            "schema_version": "1.0.0",
+            "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+            "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+            "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+            "scope": "scope.lifecycle-cancelled",
+            "authority_generation": "generation-0001",
+            "prior_revision": 1,
+            "event_id": "lifecycle-cancelled-observe",
+            "idempotency_key": "idem-lifecycle-cancelled-observe",
+            "event_type": "observe",
+            "payload": {
+              "submission_hash": "c78fd8632683d414a8570c41bee5ea0cab3ed002e70c0b389570c82eccdbfe6e",
+              "outcome": "cancelled",
+              "evidence_hash": "9999999999999999999999999999999999999999999999999999999999999999"
+            },
+            "logical_time": 3,
+            "operator_decision": {
+              "decision_hash": "8888888888888888888888888888888888888888888888888888888888888888"
+            },
+            "validation_evidence": {
+              "evidence_hash": "9999999999999999999999999999999999999999999999999999999999999999"
+            }
+          },
+          "expected_result": {
+            "schema_id": "cstar.core.transition_result.v1",
+            "schema_version": "1.0.0",
+            "candidate": {
+              "prior_state_hash": "153dd392ed31658e772e5aed80e6f183c484308103def900c4c38c2a4360a6db",
+              "candidate_state": {
+                "schema_id": "cstar.core.state.v1",
+                "schema_version": "1.0.0",
+                "lifecycle_id": "lifecycle-cancelled",
+                "scope": "scope.lifecycle-cancelled",
+                "phase": "observed",
+                "revision": 2,
+                "authority_generation": "generation-0001",
+                "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+                "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+                "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+                "definition_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+                "submission_hash": "c78fd8632683d414a8570c41bee5ea0cab3ed002e70c0b389570c82eccdbfe6e",
+                "observation": {
+                  "outcome": "cancelled",
+                  "evidence_hash": "9999999999999999999999999999999999999999999999999999999999999999"
+                },
+                "disposal_hash": null,
+                "last_event_id": "lifecycle-cancelled-observe",
+                "last_logical_time": 3
+              },
+              "candidate_state_hash": "8bc15a13f091a672e00fdd3ea602d021616476cedd28babfe6d590023d312003",
+              "effect_intents": [],
+              "replay_token": "1c94ada78cd05cbe612989e9c769d87704840fc33db535e1293d9c0c91817164"
+            },
+            "rejection": null
+          },
+          "expected_state": {
+            "schema_id": "cstar.core.state.v1",
+            "schema_version": "1.0.0",
+            "lifecycle_id": "lifecycle-cancelled",
+            "scope": "scope.lifecycle-cancelled",
+            "phase": "observed",
+            "revision": 2,
+            "authority_generation": "generation-0001",
+            "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+            "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+            "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+            "definition_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+            "submission_hash": "c78fd8632683d414a8570c41bee5ea0cab3ed002e70c0b389570c82eccdbfe6e",
+            "observation": {
+              "outcome": "cancelled",
+              "evidence_hash": "9999999999999999999999999999999999999999999999999999999999999999"
+            },
+            "disposal_hash": null,
+            "last_event_id": "lifecycle-cancelled-observe",
+            "last_logical_time": 3
+          },
+          "expected_result_canonical": "{\"candidate\":{\"candidate_state\":{\"authority_generation\":\"generation-0001\",\"definition_hash\":\"4444444444444444444444444444444444444444444444444444444444444444\",\"disposal_hash\":null,\"journal_binding_hash\":\"3333333333333333333333333333333333333333333333333333333333333333\",\"last_event_id\":\"lifecycle-cancelled-observe\",\"last_logical_time\":3,\"lifecycle_id\":\"lifecycle-cancelled\",\"observation\":{\"evidence_hash\":\"9999999999999999999999999999999999999999999999999999999999999999\",\"outcome\":\"cancelled\"},\"phase\":\"observed\",\"policy_hash\":\"1111111111111111111111111111111111111111111111111111111111111111\",\"reducer_hash\":\"2222222222222222222222222222222222222222222222222222222222222222\",\"revision\":2,\"schema_id\":\"cstar.core.state.v1\",\"schema_version\":\"1.0.0\",\"scope\":\"scope.lifecycle-cancelled\",\"submission_hash\":\"c78fd8632683d414a8570c41bee5ea0cab3ed002e70c0b389570c82eccdbfe6e\"},\"candidate_state_hash\":\"8bc15a13f091a672e00fdd3ea602d021616476cedd28babfe6d590023d312003\",\"effect_intents\":[],\"prior_state_hash\":\"153dd392ed31658e772e5aed80e6f183c484308103def900c4c38c2a4360a6db\",\"replay_token\":\"1c94ada78cd05cbe612989e9c769d87704840fc33db535e1293d9c0c91817164\"},\"rejection\":null,\"schema_id\":\"cstar.core.transition_result.v1\",\"schema_version\":\"1.0.0\"}\n",
+          "expected_result_sha256": "cbd19fb12b6178d68c11249295d1cb712ac8c522aa94614a7d28b121fad65fde",
+          "repeat": 1
+        },
+        {
+          "step_id": "dispose",
+          "prior_state": {
+            "schema_id": "cstar.core.state.v1",
+            "schema_version": "1.0.0",
+            "lifecycle_id": "lifecycle-cancelled",
+            "scope": "scope.lifecycle-cancelled",
+            "phase": "observed",
+            "revision": 2,
+            "authority_generation": "generation-0001",
+            "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+            "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+            "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+            "definition_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+            "submission_hash": "c78fd8632683d414a8570c41bee5ea0cab3ed002e70c0b389570c82eccdbfe6e",
+            "observation": {
+              "outcome": "cancelled",
+              "evidence_hash": "9999999999999999999999999999999999999999999999999999999999999999"
+            },
+            "disposal_hash": null,
+            "last_event_id": "lifecycle-cancelled-observe",
+            "last_logical_time": 3
+          },
+          "event": {
+            "schema_id": "cstar.core.event.v1",
+            "schema_version": "1.0.0",
+            "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+            "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+            "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+            "scope": "scope.lifecycle-cancelled",
+            "authority_generation": "generation-0001",
+            "prior_revision": 2,
+            "event_id": "lifecycle-cancelled-dispose",
+            "idempotency_key": "idem-lifecycle-cancelled-dispose",
+            "event_type": "dispose",
+            "payload": {
+              "disposal_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "logical_time": 4,
+            "operator_decision": null,
+            "validation_evidence": null
+          },
+          "expected_result": {
+            "schema_id": "cstar.core.transition_result.v1",
+            "schema_version": "1.0.0",
+            "candidate": {
+              "prior_state_hash": "8bc15a13f091a672e00fdd3ea602d021616476cedd28babfe6d590023d312003",
+              "candidate_state": {
+                "schema_id": "cstar.core.state.v1",
+                "schema_version": "1.0.0",
+                "lifecycle_id": "lifecycle-cancelled",
+                "scope": "scope.lifecycle-cancelled",
+                "phase": "disposed",
+                "revision": 3,
+                "authority_generation": "generation-0001",
+                "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+                "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+                "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+                "definition_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+                "submission_hash": "c78fd8632683d414a8570c41bee5ea0cab3ed002e70c0b389570c82eccdbfe6e",
+                "observation": {
+                  "outcome": "cancelled",
+                  "evidence_hash": "9999999999999999999999999999999999999999999999999999999999999999"
+                },
+                "disposal_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "last_event_id": "lifecycle-cancelled-dispose",
+                "last_logical_time": 4
+              },
+              "candidate_state_hash": "9236cf02a25bf186b39d4f086f505c983399e9034cfeddd6aa54eba9685a96b5",
+              "effect_intents": [],
+              "replay_token": "4ff8edc726d194105f9f1e4b694ce1ab3554e86eea685337088c7b123e1af3ba"
+            },
+            "rejection": null
+          },
+          "expected_state": {
+            "schema_id": "cstar.core.state.v1",
+            "schema_version": "1.0.0",
+            "lifecycle_id": "lifecycle-cancelled",
+            "scope": "scope.lifecycle-cancelled",
+            "phase": "disposed",
+            "revision": 3,
+            "authority_generation": "generation-0001",
+            "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+            "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+            "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+            "definition_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+            "submission_hash": "c78fd8632683d414a8570c41bee5ea0cab3ed002e70c0b389570c82eccdbfe6e",
+            "observation": {
+              "outcome": "cancelled",
+              "evidence_hash": "9999999999999999999999999999999999999999999999999999999999999999"
+            },
+            "disposal_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "last_event_id": "lifecycle-cancelled-dispose",
+            "last_logical_time": 4
+          },
+          "expected_result_canonical": "{\"candidate\":{\"candidate_state\":{\"authority_generation\":\"generation-0001\",\"definition_hash\":\"4444444444444444444444444444444444444444444444444444444444444444\",\"disposal_hash\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"journal_binding_hash\":\"3333333333333333333333333333333333333333333333333333333333333333\",\"last_event_id\":\"lifecycle-cancelled-dispose\",\"last_logical_time\":4,\"lifecycle_id\":\"lifecycle-cancelled\",\"observation\":{\"evidence_hash\":\"9999999999999999999999999999999999999999999999999999999999999999\",\"outcome\":\"cancelled\"},\"phase\":\"disposed\",\"policy_hash\":\"1111111111111111111111111111111111111111111111111111111111111111\",\"reducer_hash\":\"2222222222222222222222222222222222222222222222222222222222222222\",\"revision\":3,\"schema_id\":\"cstar.core.state.v1\",\"schema_version\":\"1.0.0\",\"scope\":\"scope.lifecycle-cancelled\",\"submission_hash\":\"c78fd8632683d414a8570c41bee5ea0cab3ed002e70c0b389570c82eccdbfe6e\"},\"candidate_state_hash\":\"9236cf02a25bf186b39d4f086f505c983399e9034cfeddd6aa54eba9685a96b5\",\"effect_intents\":[],\"prior_state_hash\":\"8bc15a13f091a672e00fdd3ea602d021616476cedd28babfe6d590023d312003\",\"replay_token\":\"4ff8edc726d194105f9f1e4b694ce1ab3554e86eea685337088c7b123e1af3ba\"},\"rejection\":null,\"schema_id\":\"cstar.core.transition_result.v1\",\"schema_version\":\"1.0.0\"}\n",
+          "expected_result_sha256": "91adf92417df10ac07036d40d2a6d890b8b717c85b46efa34e19e6e9b02a2d99",
+          "repeat": 1
+        }
+      ]
+    },
+    {
+      "scenario_id": "pre-submit-dispose",
+      "description": "a constructed lifecycle may be abandoned before submission",
+      "steps": [
+        {
+          "step_id": "construct",
+          "prior_state": null,
+          "event": {
+            "schema_id": "cstar.core.event.v1",
+            "schema_version": "1.0.0",
+            "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+            "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+            "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+            "scope": "scope.presubmit",
+            "authority_generation": "generation-0001",
+            "prior_revision": null,
+            "event_id": "presubmit-construct",
+            "idempotency_key": "idem-presubmit-construct",
+            "event_type": "construct",
+            "payload": {
+              "lifecycle_id": "presubmit",
+              "definition_hash": "4444444444444444444444444444444444444444444444444444444444444444"
+            },
+            "logical_time": 10,
+            "operator_decision": null,
+            "validation_evidence": null
+          },
+          "expected_result": {
+            "schema_id": "cstar.core.transition_result.v1",
+            "schema_version": "1.0.0",
+            "candidate": {
+              "prior_state_hash": null,
+              "candidate_state": {
+                "schema_id": "cstar.core.state.v1",
+                "schema_version": "1.0.0",
+                "lifecycle_id": "presubmit",
+                "scope": "scope.presubmit",
+                "phase": "constructed",
+                "revision": 0,
+                "authority_generation": "generation-0001",
+                "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+                "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+                "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+                "definition_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+                "submission_hash": null,
+                "observation": null,
+                "disposal_hash": null,
+                "last_event_id": "presubmit-construct",
+                "last_logical_time": 10
+              },
+              "candidate_state_hash": "756dcb3904e533b815e8f0c16d927c948d56837a5e2b081bdaa26a498fcf9d00",
+              "effect_intents": [],
+              "replay_token": "cb321216ccb8ecc25d10d0f1e46160373bd70e4be6df412a4b1e4be493f3f4c1"
+            },
+            "rejection": null
+          },
+          "expected_state": {
+            "schema_id": "cstar.core.state.v1",
+            "schema_version": "1.0.0",
+            "lifecycle_id": "presubmit",
+            "scope": "scope.presubmit",
+            "phase": "constructed",
+            "revision": 0,
+            "authority_generation": "generation-0001",
+            "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+            "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+            "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+            "definition_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+            "submission_hash": null,
+            "observation": null,
+            "disposal_hash": null,
+            "last_event_id": "presubmit-construct",
+            "last_logical_time": 10
+          },
+          "expected_result_canonical": "{\"candidate\":{\"candidate_state\":{\"authority_generation\":\"generation-0001\",\"definition_hash\":\"4444444444444444444444444444444444444444444444444444444444444444\",\"disposal_hash\":null,\"journal_binding_hash\":\"3333333333333333333333333333333333333333333333333333333333333333\",\"last_event_id\":\"presubmit-construct\",\"last_logical_time\":10,\"lifecycle_id\":\"presubmit\",\"observation\":null,\"phase\":\"constructed\",\"policy_hash\":\"1111111111111111111111111111111111111111111111111111111111111111\",\"reducer_hash\":\"2222222222222222222222222222222222222222222222222222222222222222\",\"revision\":0,\"schema_id\":\"cstar.core.state.v1\",\"schema_version\":\"1.0.0\",\"scope\":\"scope.presubmit\",\"submission_hash\":null},\"candidate_state_hash\":\"756dcb3904e533b815e8f0c16d927c948d56837a5e2b081bdaa26a498fcf9d00\",\"effect_intents\":[],\"prior_state_hash\":null,\"replay_token\":\"cb321216ccb8ecc25d10d0f1e46160373bd70e4be6df412a4b1e4be493f3f4c1\"},\"rejection\":null,\"schema_id\":\"cstar.core.transition_result.v1\",\"schema_version\":\"1.0.0\"}\n",
+          "expected_result_sha256": "5098dc7f4e9cf9608a42af7e5e1bcc9d8cb844525677661c8403e3cc74758549",
+          "repeat": 1
+        },
+        {
+          "step_id": "dispose",
+          "prior_state": {
+            "schema_id": "cstar.core.state.v1",
+            "schema_version": "1.0.0",
+            "lifecycle_id": "presubmit",
+            "scope": "scope.presubmit",
+            "phase": "constructed",
+            "revision": 0,
+            "authority_generation": "generation-0001",
+            "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+            "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+            "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+            "definition_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+            "submission_hash": null,
+            "observation": null,
+            "disposal_hash": null,
+            "last_event_id": "presubmit-construct",
+            "last_logical_time": 10
+          },
+          "event": {
+            "schema_id": "cstar.core.event.v1",
+            "schema_version": "1.0.0",
+            "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+            "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+            "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+            "scope": "scope.presubmit",
+            "authority_generation": "generation-0001",
+            "prior_revision": 0,
+            "event_id": "presubmit-dispose",
+            "idempotency_key": "idem-presubmit-dispose",
+            "event_type": "dispose",
+            "payload": {
+              "disposal_hash": "7777777777777777777777777777777777777777777777777777777777777777"
+            },
+            "logical_time": 11,
+            "operator_decision": null,
+            "validation_evidence": null
+          },
+          "expected_result": {
+            "schema_id": "cstar.core.transition_result.v1",
+            "schema_version": "1.0.0",
+            "candidate": {
+              "prior_state_hash": "756dcb3904e533b815e8f0c16d927c948d56837a5e2b081bdaa26a498fcf9d00",
+              "candidate_state": {
+                "schema_id": "cstar.core.state.v1",
+                "schema_version": "1.0.0",
+                "lifecycle_id": "presubmit",
+                "scope": "scope.presubmit",
+                "phase": "disposed",
+                "revision": 1,
+                "authority_generation": "generation-0001",
+                "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+                "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+                "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+                "definition_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+                "submission_hash": null,
+                "observation": null,
+                "disposal_hash": "7777777777777777777777777777777777777777777777777777777777777777",
+                "last_event_id": "presubmit-dispose",
+                "last_logical_time": 11
+              },
+              "candidate_state_hash": "64a6f41ec2c63f9fb3bd5ff806eb574ba0bd35430a50578c6b0764a2f1c679ff",
+              "effect_intents": [],
+              "replay_token": "5da7b58b8d04a8996c05afec3dc2f2b9e7aabd966591601be102a2cd1866cb6b"
+            },
+            "rejection": null
+          },
+          "expected_state": {
+            "schema_id": "cstar.core.state.v1",
+            "schema_version": "1.0.0",
+            "lifecycle_id": "presubmit",
+            "scope": "scope.presubmit",
+            "phase": "disposed",
+            "revision": 1,
+            "authority_generation": "generation-0001",
+            "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+            "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+            "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+            "definition_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+            "submission_hash": null,
+            "observation": null,
+            "disposal_hash": "7777777777777777777777777777777777777777777777777777777777777777",
+            "last_event_id": "presubmit-dispose",
+            "last_logical_time": 11
+          },
+          "expected_result_canonical": "{\"candidate\":{\"candidate_state\":{\"authority_generation\":\"generation-0001\",\"definition_hash\":\"4444444444444444444444444444444444444444444444444444444444444444\",\"disposal_hash\":\"7777777777777777777777777777777777777777777777777777777777777777\",\"journal_binding_hash\":\"3333333333333333333333333333333333333333333333333333333333333333\",\"last_event_id\":\"presubmit-dispose\",\"last_logical_time\":11,\"lifecycle_id\":\"presubmit\",\"observation\":null,\"phase\":\"disposed\",\"policy_hash\":\"1111111111111111111111111111111111111111111111111111111111111111\",\"reducer_hash\":\"2222222222222222222222222222222222222222222222222222222222222222\",\"revision\":1,\"schema_id\":\"cstar.core.state.v1\",\"schema_version\":\"1.0.0\",\"scope\":\"scope.presubmit\",\"submission_hash\":null},\"candidate_state_hash\":\"64a6f41ec2c63f9fb3bd5ff806eb574ba0bd35430a50578c6b0764a2f1c679ff\",\"effect_intents\":[],\"prior_state_hash\":\"756dcb3904e533b815e8f0c16d927c948d56837a5e2b081bdaa26a498fcf9d00\",\"replay_token\":\"5da7b58b8d04a8996c05afec3dc2f2b9e7aabd966591601be102a2cd1866cb6b\"},\"rejection\":null,\"schema_id\":\"cstar.core.transition_result.v1\",\"schema_version\":\"1.0.0\"}\n",
+          "expected_result_sha256": "b1527b13701fa2ce9daffa693deb927b22ec7e887675774c3998d76358d71b19",
+          "repeat": 1
+        }
+      ]
+    },
+    {
+      "scenario_id": "invalid-observe-before-submit",
+      "description": "an illegal transition returns a stable rejection and retains prior state",
+      "steps": [
+        {
+          "step_id": "construct",
+          "prior_state": null,
+          "event": {
+            "schema_id": "cstar.core.event.v1",
+            "schema_version": "1.0.0",
+            "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+            "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+            "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+            "scope": "scope.invalid",
+            "authority_generation": "generation-0001",
+            "prior_revision": null,
+            "event_id": "invalid-construct",
+            "idempotency_key": "idem-invalid-construct",
+            "event_type": "construct",
+            "payload": {
+              "lifecycle_id": "invalid",
+              "definition_hash": "4444444444444444444444444444444444444444444444444444444444444444"
+            },
+            "logical_time": 20,
+            "operator_decision": null,
+            "validation_evidence": null
+          },
+          "expected_result": {
+            "schema_id": "cstar.core.transition_result.v1",
+            "schema_version": "1.0.0",
+            "candidate": {
+              "prior_state_hash": null,
+              "candidate_state": {
+                "schema_id": "cstar.core.state.v1",
+                "schema_version": "1.0.0",
+                "lifecycle_id": "invalid",
+                "scope": "scope.invalid",
+                "phase": "constructed",
+                "revision": 0,
+                "authority_generation": "generation-0001",
+                "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+                "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+                "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+                "definition_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+                "submission_hash": null,
+                "observation": null,
+                "disposal_hash": null,
+                "last_event_id": "invalid-construct",
+                "last_logical_time": 20
+              },
+              "candidate_state_hash": "f765fe90a1794e4108aa38ac3d08fcdeab9af986f6b66b813f5a9f7ef7c28293",
+              "effect_intents": [],
+              "replay_token": "39a666ac6279735505fc1e29db14ef11b6ed203e72f805bcd4f3c06158c74f61"
+            },
+            "rejection": null
+          },
+          "expected_state": {
+            "schema_id": "cstar.core.state.v1",
+            "schema_version": "1.0.0",
+            "lifecycle_id": "invalid",
+            "scope": "scope.invalid",
+            "phase": "constructed",
+            "revision": 0,
+            "authority_generation": "generation-0001",
+            "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+            "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+            "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+            "definition_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+            "submission_hash": null,
+            "observation": null,
+            "disposal_hash": null,
+            "last_event_id": "invalid-construct",
+            "last_logical_time": 20
+          },
+          "expected_result_canonical": "{\"candidate\":{\"candidate_state\":{\"authority_generation\":\"generation-0001\",\"definition_hash\":\"4444444444444444444444444444444444444444444444444444444444444444\",\"disposal_hash\":null,\"journal_binding_hash\":\"3333333333333333333333333333333333333333333333333333333333333333\",\"last_event_id\":\"invalid-construct\",\"last_logical_time\":20,\"lifecycle_id\":\"invalid\",\"observation\":null,\"phase\":\"constructed\",\"policy_hash\":\"1111111111111111111111111111111111111111111111111111111111111111\",\"reducer_hash\":\"2222222222222222222222222222222222222222222222222222222222222222\",\"revision\":0,\"schema_id\":\"cstar.core.state.v1\",\"schema_version\":\"1.0.0\",\"scope\":\"scope.invalid\",\"submission_hash\":null},\"candidate_state_hash\":\"f765fe90a1794e4108aa38ac3d08fcdeab9af986f6b66b813f5a9f7ef7c28293\",\"effect_intents\":[],\"prior_state_hash\":null,\"replay_token\":\"39a666ac6279735505fc1e29db14ef11b6ed203e72f805bcd4f3c06158c74f61\"},\"rejection\":null,\"schema_id\":\"cstar.core.transition_result.v1\",\"schema_version\":\"1.0.0\"}\n",
+          "expected_result_sha256": "3b1831e139adcbaa80c77bb3981286a4d5003ce9d6308035414bdf6d83b92f4a",
+          "repeat": 1
+        },
+        {
+          "step_id": "observe-before-submit",
+          "prior_state": {
+            "schema_id": "cstar.core.state.v1",
+            "schema_version": "1.0.0",
+            "lifecycle_id": "invalid",
+            "scope": "scope.invalid",
+            "phase": "constructed",
+            "revision": 0,
+            "authority_generation": "generation-0001",
+            "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+            "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+            "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+            "definition_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+            "submission_hash": null,
+            "observation": null,
+            "disposal_hash": null,
+            "last_event_id": "invalid-construct",
+            "last_logical_time": 20
+          },
+          "event": {
+            "schema_id": "cstar.core.event.v1",
+            "schema_version": "1.0.0",
+            "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+            "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+            "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+            "scope": "scope.invalid",
+            "authority_generation": "generation-0001",
+            "prior_revision": 0,
+            "event_id": "invalid-observe",
+            "idempotency_key": "idem-invalid-observe",
+            "event_type": "observe",
+            "payload": {
+              "submission_hash": "5555555555555555555555555555555555555555555555555555555555555555",
+              "outcome": "unknown",
+              "evidence_hash": "6666666666666666666666666666666666666666666666666666666666666666"
+            },
+            "logical_time": 21,
+            "operator_decision": null,
+            "validation_evidence": null
+          },
+          "expected_result": {
+            "schema_id": "cstar.core.transition_result.v1",
+            "schema_version": "1.0.0",
+            "candidate": null,
+            "rejection": {
+              "code": "CSTAR_INVALID_TRANSITION",
+              "message": "event is not legal from the prior phase",
+              "event_id": "invalid-observe",
+              "prior_revision": 0
+            }
+          },
+          "expected_state": {
+            "schema_id": "cstar.core.state.v1",
+            "schema_version": "1.0.0",
+            "lifecycle_id": "invalid",
+            "scope": "scope.invalid",
+            "phase": "constructed",
+            "revision": 0,
+            "authority_generation": "generation-0001",
+            "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+            "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+            "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+            "definition_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+            "submission_hash": null,
+            "observation": null,
+            "disposal_hash": null,
+            "last_event_id": "invalid-construct",
+            "last_logical_time": 20
+          },
+          "expected_result_canonical": "{\"candidate\":null,\"rejection\":{\"code\":\"CSTAR_INVALID_TRANSITION\",\"event_id\":\"invalid-observe\",\"message\":\"event is not legal from the prior phase\",\"prior_revision\":0},\"schema_id\":\"cstar.core.transition_result.v1\",\"schema_version\":\"1.0.0\"}\n",
+          "expected_result_sha256": "536ffec19cb397a67bd379651517f071e614f4061cf064f8ba4da9f36a763ae7",
+          "repeat": 1
+        }
+      ]
+    },
+    {
+      "scenario_id": "exact-input-determinism",
+      "description": "the same state and event produce byte-identical candidate output",
+      "steps": [
+        {
+          "step_id": "same-input-twice",
+          "prior_state": null,
+          "event": {
+            "schema_id": "cstar.core.event.v1",
+            "schema_version": "1.0.0",
+            "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+            "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+            "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+            "scope": "scope.deterministic",
+            "authority_generation": "generation-0001",
+            "prior_revision": null,
+            "event_id": "deterministic-construct",
+            "idempotency_key": "idem-deterministic-construct",
+            "event_type": "construct",
+            "payload": {
+              "lifecycle_id": "deterministic",
+              "definition_hash": "4444444444444444444444444444444444444444444444444444444444444444"
+            },
+            "logical_time": 30,
+            "operator_decision": null,
+            "validation_evidence": null
+          },
+          "expected_result": {
+            "schema_id": "cstar.core.transition_result.v1",
+            "schema_version": "1.0.0",
+            "candidate": {
+              "prior_state_hash": null,
+              "candidate_state": {
+                "schema_id": "cstar.core.state.v1",
+                "schema_version": "1.0.0",
+                "lifecycle_id": "deterministic",
+                "scope": "scope.deterministic",
+                "phase": "constructed",
+                "revision": 0,
+                "authority_generation": "generation-0001",
+                "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+                "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+                "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+                "definition_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+                "submission_hash": null,
+                "observation": null,
+                "disposal_hash": null,
+                "last_event_id": "deterministic-construct",
+                "last_logical_time": 30
+              },
+              "candidate_state_hash": "712730083829c0d49d724ab6227a688ebdf913e48ba547536c023b985735b398",
+              "effect_intents": [],
+              "replay_token": "b5138a568c7c3f169179d6e68b8f86db4451eec62a608b544ecfa0623b47432c"
+            },
+            "rejection": null
+          },
+          "expected_state": {
+            "schema_id": "cstar.core.state.v1",
+            "schema_version": "1.0.0",
+            "lifecycle_id": "deterministic",
+            "scope": "scope.deterministic",
+            "phase": "constructed",
+            "revision": 0,
+            "authority_generation": "generation-0001",
+            "policy_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+            "reducer_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+            "journal_binding_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+            "definition_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+            "submission_hash": null,
+            "observation": null,
+            "disposal_hash": null,
+            "last_event_id": "deterministic-construct",
+            "last_logical_time": 30
+          },
+          "expected_result_canonical": "{\"candidate\":{\"candidate_state\":{\"authority_generation\":\"generation-0001\",\"definition_hash\":\"4444444444444444444444444444444444444444444444444444444444444444\",\"disposal_hash\":null,\"journal_binding_hash\":\"3333333333333333333333333333333333333333333333333333333333333333\",\"last_event_id\":\"deterministic-construct\",\"last_logical_time\":30,\"lifecycle_id\":\"deterministic\",\"observation\":null,\"phase\":\"constructed\",\"policy_hash\":\"1111111111111111111111111111111111111111111111111111111111111111\",\"reducer_hash\":\"2222222222222222222222222222222222222222222222222222222222222222\",\"revision\":0,\"schema_id\":\"cstar.core.state.v1\",\"schema_version\":\"1.0.0\",\"scope\":\"scope.deterministic\",\"submission_hash\":null},\"candidate_state_hash\":\"712730083829c0d49d724ab6227a688ebdf913e48ba547536c023b985735b398\",\"effect_intents\":[],\"prior_state_hash\":null,\"replay_token\":\"b5138a568c7c3f169179d6e68b8f86db4451eec62a608b544ecfa0623b47432c\"},\"rejection\":null,\"schema_id\":\"cstar.core.transition_result.v1\",\"schema_version\":\"1.0.0\"}\n",
+          "expected_result_sha256": "8752e1adc74da9e805759a38e0c69fa6f2c331b989be12d832e00258f55241d0",
+          "repeat": 2
+        }
+      ]
+    }
+  ],
+  "organism_boundary_scenarios": [
+    {
+      "scenario_id": "exact-idempotency-replay",
+      "condition": "same_idempotency_key_same_event_hash",
+      "expected_action": "return_recorded_result_bytes",
+      "expected_code": null,
+      "cstar_core_called": false,
+      "effects_reserved": false
+    },
+    {
+      "scenario_id": "idempotency-conflict",
+      "condition": "same_idempotency_key_different_event_hash",
+      "expected_action": "reject_before_core",
+      "expected_code": "ORGANISM_IDEMPOTENCY_CONFLICT",
+      "cstar_core_called": false,
+      "effects_reserved": false
+    },
+    {
+      "scenario_id": "event-id-conflict",
+      "condition": "same_event_id_different_event_hash",
+      "expected_action": "reject_before_core",
+      "expected_code": "ORGANISM_EVENT_ID_CONFLICT",
+      "cstar_core_called": false,
+      "effects_reserved": false
+    },
+    {
+      "scenario_id": "stale-generation",
+      "condition": "authority_generation_is_stale",
+      "expected_action": "reject_before_core",
+      "expected_code": "ORGANISM_AUTHORITY_GENERATION_STALE",
+      "cstar_core_called": false,
+      "effects_reserved": false
+    },
+    {
+      "scenario_id": "revoked-generation",
+      "condition": "authority_generation_is_revoked",
+      "expected_action": "reject_before_core",
+      "expected_code": "ORGANISM_AUTHORITY_GENERATION_REVOKED",
+      "cstar_core_called": false,
+      "effects_reserved": false
+    },
+    {
+      "scenario_id": "unknown-generation",
+      "condition": "authority_generation_is_unknown",
+      "expected_action": "reject_before_core",
+      "expected_code": "ORGANISM_AUTHORITY_GENERATION_UNKNOWN",
+      "cstar_core_called": false,
+      "effects_reserved": false
+    },
+    {
+      "scenario_id": "authoritative-revision-mismatch",
+      "condition": "prior_revision_differs_from_authoritative_journal",
+      "expected_action": "reject_before_core",
+      "expected_code": "ORGANISM_PRIOR_REVISION_MISMATCH",
+      "cstar_core_called": false,
+      "effects_reserved": false
+    }
+  ]
+}
