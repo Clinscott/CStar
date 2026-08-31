@@ -40,7 +40,7 @@ Every unlisted pair returns `rejected(invalid_transition)`. The reducer is pure,
 
 `Tests/CStarCoreTests/cstar-core-v1.json` is the complete machine-readable contract and fixture set. It uses no schema dialect, resolver, code generator, URL, package, or validation framework.
 
-Each vector supplies a prior state, an event, and the expected typed result. SwiftPM bundles this file into the test target. A test-only adapter uses Foundation to decode it, maps its strings immediately to the three public enums, and runs every vector twice. CStarCore itself imports nothing and has no loader, parser, serializer, or filesystem access. Five vectors are the complete legal table; three sample illegal pairs verify rejection and terminal behavior.
+Each vector supplies a prior state, an event, and the expected typed result. SwiftPM bundles this file into the test target. A test-only adapter uses Foundation to decode it and maps its strings immediately to the three public enums. CStarCore itself imports nothing and has no loader, parser, serializer, or filesystem access. The twenty vectors are the complete Cartesian product of the five prior-state inputs—no state plus the four stored states—and the four events. Five rows accept and fifteen reject. The test proves that every pair occurs exactly once and runs every row twice.
 
 Serialization, hashes, and authoritative replay are deliberately absent. Organism serializes and hashes its journal with Apple-provided APIs after admission; CStarCore does not duplicate that work.
 

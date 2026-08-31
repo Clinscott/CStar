@@ -1,17 +1,7 @@
 {
   "contract": "cstar.core.v1",
-  "states": [
-    "constructed",
-    "submitted",
-    "observed",
-    "disposed"
-  ],
-  "events": [
-    "construct",
-    "submit",
-    "observe",
-    "dispose"
-  ],
+  "states": ["constructed", "submitted", "observed", "disposed"],
+  "events": ["construct", "submit", "observe", "dispose"],
   "rejection": "invalid_transition",
   "rules": {
     "no_state_is_unconstructed": true,
@@ -20,69 +10,29 @@
     "run_each_vector_twice": true
   },
   "vectors": [
-    {
-      "id": "construct",
-      "prior": null,
-      "event": "construct",
-      "result": {
-        "accepted": "constructed"
-      }
-    },
-    {
-      "id": "submit",
-      "prior": "constructed",
-      "event": "submit",
-      "result": {
-        "accepted": "submitted"
-      }
-    },
-    {
-      "id": "observe",
-      "prior": "submitted",
-      "event": "observe",
-      "result": {
-        "accepted": "observed"
-      }
-    },
-    {
-      "id": "dispose-observed",
-      "prior": "observed",
-      "event": "dispose",
-      "result": {
-        "accepted": "disposed"
-      }
-    },
-    {
-      "id": "dispose-before-submit",
-      "prior": "constructed",
-      "event": "dispose",
-      "result": {
-        "accepted": "disposed"
-      }
-    },
-    {
-      "id": "reject-submit-without-state",
-      "prior": null,
-      "event": "submit",
-      "result": {
-        "rejected": "invalid_transition"
-      }
-    },
-    {
-      "id": "reject-observe-before-submit",
-      "prior": "constructed",
-      "event": "observe",
-      "result": {
-        "rejected": "invalid_transition"
-      }
-    },
-    {
-      "id": "reject-terminal-reuse",
-      "prior": "disposed",
-      "event": "construct",
-      "result": {
-        "rejected": "invalid_transition"
-      }
-    }
+    {"id":"none-construct","prior":null,"event":"construct","result":{"accepted":"constructed"}},
+    {"id":"none-submit","prior":null,"event":"submit","result":{"rejected":"invalid_transition"}},
+    {"id":"none-observe","prior":null,"event":"observe","result":{"rejected":"invalid_transition"}},
+    {"id":"none-dispose","prior":null,"event":"dispose","result":{"rejected":"invalid_transition"}},
+
+    {"id":"constructed-construct","prior":"constructed","event":"construct","result":{"rejected":"invalid_transition"}},
+    {"id":"constructed-submit","prior":"constructed","event":"submit","result":{"accepted":"submitted"}},
+    {"id":"constructed-observe","prior":"constructed","event":"observe","result":{"rejected":"invalid_transition"}},
+    {"id":"constructed-dispose","prior":"constructed","event":"dispose","result":{"accepted":"disposed"}},
+
+    {"id":"submitted-construct","prior":"submitted","event":"construct","result":{"rejected":"invalid_transition"}},
+    {"id":"submitted-submit","prior":"submitted","event":"submit","result":{"rejected":"invalid_transition"}},
+    {"id":"submitted-observe","prior":"submitted","event":"observe","result":{"accepted":"observed"}},
+    {"id":"submitted-dispose","prior":"submitted","event":"dispose","result":{"rejected":"invalid_transition"}},
+
+    {"id":"observed-construct","prior":"observed","event":"construct","result":{"rejected":"invalid_transition"}},
+    {"id":"observed-submit","prior":"observed","event":"submit","result":{"rejected":"invalid_transition"}},
+    {"id":"observed-observe","prior":"observed","event":"observe","result":{"rejected":"invalid_transition"}},
+    {"id":"observed-dispose","prior":"observed","event":"dispose","result":{"accepted":"disposed"}},
+
+    {"id":"disposed-construct","prior":"disposed","event":"construct","result":{"rejected":"invalid_transition"}},
+    {"id":"disposed-submit","prior":"disposed","event":"submit","result":{"rejected":"invalid_transition"}},
+    {"id":"disposed-observe","prior":"disposed","event":"observe","result":{"rejected":"invalid_transition"}},
+    {"id":"disposed-dispose","prior":"disposed","event":"dispose","result":{"rejected":"invalid_transition"}}
   ]
 }
