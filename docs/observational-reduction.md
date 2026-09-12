@@ -26,6 +26,8 @@ The caller bounds the lifetime and size of an execution record. Unknown opaque m
 
 The accepted occurrence list and separate conflict bodies are retained. An identical source event is a duplicate even when received with a different ingestion sequence. Body equality includes the supplied digest, typed fact, source sequence, normalization version, and completeness. The same identity with a changed retained body creates an explicit conflict without overwriting or adding an accepted occurrence. Equal content under distinct identities remains distinct work.
 
+Identity conflicts also invalidate the affected projection fields: connectivity becomes conflict, and disputed lifecycle or interruption evidence becomes unknown. Retaining the accepted body does not certify its interpretation.
+
 Accepted observations use supplied ingestion sequence for stable record order, with source ID, identity scope, and event ID as deterministic tie breaks. Sequence collisions are diagnosed. Source sequences are comparable only within one source. Arrival order alone cannot decide which of several conflicting artifact versions or connection reports is current. Unordered evidence remains uncertain.
 
 For identical recorded inputs, state and diagnostics are deterministic. `ExecutionState.currentReducerVersion` is 2. Recorded normalization versions remain part of every observation; mixed versions are diagnosed. Codable conformance supports caller-owned recording and replay. Byte-canonical encoding, if needed, requires a caller encoder with stable key ordering.

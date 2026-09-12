@@ -118,6 +118,45 @@ final class ObservationTests: XCTestCase {
         XCTAssertEqual(replay([connected, disconnected, unordered]).connectivity, .conflict)
     }
 
+    func testConflictingConnectionAndHostStopBodiesMakeAffectedFieldsUncertain() {
+        let connected = observation("connection", 1, source: 1, .connectionChanged(.connected), digest: "body-a")
+        let disconnected = observation("connection", 2, source: 1, .connectionChanged(.disconnected), digest: "body-b")
+        let conflict = replay([connected, disconnected])
+        XCTAssertEqual(conflict.connectivity, .conflict)
+        XCTAssertEqual(conflict.observations, [connected])
+        XCTAssertEqual(conflict.identityConflicts.first?.conflictingObservation, disconnected)
+
+        let stopped = observation("connection", 3, source: 1, .hostStopped, digest: "body-c")
+        for pair in [[stopped, connected], [connected, stopped]] {
+            let state = replay(pair)
+            XCTAssertEqual(state.connectivity, .conflict)
+            XCTAssertEqual(state.lifecycle, .unknown)
+            XCTAssertEqual(state.outcome, .conflict)
+        }
+    }
+
+    func testConflictingInterruptionBodiesCannotClaimConfirmationOrKnownLifecycle() {
+        let started = observation("start", 1, .executionStarted)
+        let confirmed = observation("interrupt", 2, source: 2, .interruptionConfirmed, digest: "body-a")
+        let requested = observation("interrupt", 3, source: 2, .interruptionRequested, digest: "body-b")
+        for pair in [[confirmed, requested], [requested, confirmed]] {
+            let state = replay([started] + pair)
+            XCTAssertEqual(state.interruption, .unknown)
+            XCTAssertEqual(state.lifecycle, .unknown)
+            XCTAssertEqual(state.outcome, .conflict)
+            XCTAssertEqual(state.occurrenceCount, 2)
+        }
+    }
+
+    func testConflictingExecutionBodyMakesLifecycleUncertain() {
+        let started = observation("same", 1, source: 1, .executionStarted, digest: "body-a")
+        let ended = observation("same", 2, source: 1, .executionEnded(outcome: .succeeded), digest: "body-b")
+        for pair in [[started, ended], [ended, started]] {
+            XCTAssertEqual(replay(pair).lifecycle, .unknown)
+            XCTAssertEqual(replay(pair).outcome, .conflict)
+        }
+    }
+
     func testGapsTruncationAndUnknownKindsDoNotEraseFacts() {
         let unknown = observation("unknown", 1, .unknown(kind: "future-kind", metadata: .init(text: "opaque")))
         let gap = observation("gap", 2, .coverageGap(reason: "source cursor gap"))

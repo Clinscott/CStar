@@ -1,6 +1,6 @@
 public enum Lifecycle: String, Codable, Sendable { case unknown, started, ended }
 public enum Outcome: String, Codable, Sendable { case unknown, succeeded, failed, cancelled, conflict }
-public enum Interruption: String, Codable, Sendable { case none, requested, confirmed }
+public enum Interruption: String, Codable, Sendable { case none, requested, confirmed, unknown }
 
 public struct Diagnostic: Codable, Sendable, Equatable {
     public enum Code: String, Codable, Sendable {

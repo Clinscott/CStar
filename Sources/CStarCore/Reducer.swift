@@ -131,6 +131,29 @@ private func project(occurrences: [Observation], conflicts: [IdentityConflict]) 
     } else if let value = connectionValues.first {
         state.connectivity = Connectivity(rawValue: value) ?? .unknown
     }
+    // A conflicting body cannot leave an affected field looking certain merely because
+    // the first body was retained as the accepted occurrence.
+    let acceptedByIdentity = Dictionary(occurrences.map { ($0.identity, $0) }, uniquingKeysWith: { first, _ in first })
+    for conflict in conflicts {
+        let affected = [acceptedByIdentity[conflict.acceptedIdentity]?.fact, conflict.conflictingObservation.fact]
+        for fact in affected.compactMap({ $0 }) {
+            switch fact {
+            case .connectionChanged:
+                state.connectivity = .conflict
+            case .hostStopped:
+                state.connectivity = .conflict
+                state.lifecycle = .unknown
+            case .interruptionRequested:
+                state.interruption = .unknown
+            case .interruptionConfirmed:
+                state.interruption = .unknown
+                state.lifecycle = .unknown
+            case .executionStarted, .executionEnded:
+                state.lifecycle = .unknown
+            default: break
+            }
+        }
+    }
     for conflict in state.identityConflicts {
         state.diagnostics.append(.init(code: .identityConflict, eventIDs: [conflict.acceptedIdentity]))
     }
