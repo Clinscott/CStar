@@ -1,22 +1,24 @@
 # CStar
 
-CStarCore is Corvus's inactive, non-authoritative lifecycle state machine for macOS and iOS.
+CStarCore is a pure observation reducer for Swift on macOS and iOS.
 
 It answers one question:
 
 ```text
-reduce(State?, Event) -> Result
+reduce(state: ExecutionState, observation: Observation) -> Reduction
 ```
 
-The core has one Swift source file, no framework imports, no external packages, no I/O, and no host authority. Organism owns admission, policy, journaling, effects, evidence, identifiers, time, cancellation, and serialization.
+It preserves explicit execution facts and derives lifecycle, connectivity, outcome, operations, artifact/check associations, usage samples, and factual diagnostics. Missing starts and late results remain observable. A host stop is not objective success; an interruption request is not confirmed interruption. Conflicting evidence never silently overwrites an accepted occurrence.
 
-- Contract: [`docs/native-transition/cstar-core-v1.md`](docs/native-transition/cstar-core-v1.md)
-- Vectors: [`Tests/CStarCoreTests/cstar-core-v1.json`](Tests/CStarCoreTests/cstar-core-v1.json)
-- Local validation: `swift test` with network access disabled
+The core imports no frameworks, has no external packages or I/O, and generates no identifiers or time. The caller owns normalization, source trust, execution correlation, persistence, hashing, UI, and every host action. Codable types describe data without performing serialization or storage themselves.
+
+- Contract: [`docs/observational-reduction.md`](docs/observational-reduction.md)
+- Vectors: [`Tests/CStarCoreTests/observational-v2.json`](Tests/CStarCoreTests/observational-v2.json)
+- Local validation: `swift test -Xswiftc -warnings-as-errors -Xswiftc -gnone`
 
 GitHub is only the human review ledger. The repository contains no Actions workflows or hosted validation.
 
-The retired TypeScript, Python, MCP, daemon, database, provider, installer, and distribution implementations remain available in Git history at `e97a9f97326d051e6c798f07a047b6365d0fa500`.
+Earlier control-plane implementations and the replaced transition algebra remain available in ordinary Git history. The active library includes no compatibility aliases or host-control runtime.
 
 ## License
 
