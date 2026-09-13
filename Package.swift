@@ -13,7 +13,7 @@ let package = Package(
         .testTarget(
             name: "CStarCoreTests",
             dependencies: ["CStarCore"],
-            resources: [.copy("cstar-core-v1.json")]
+            resources: [.copy("observational-v2.json")]
         ),
     ]
 )

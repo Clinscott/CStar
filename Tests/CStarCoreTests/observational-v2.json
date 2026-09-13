@@ -1,0 +1,16 @@
+{
+  "contract": "cstar.observation.v2",
+  "vectors": [
+    {"id":"missing-start", "facts":["operation-failed"], "lifecycle":"unknown", "outcome":"unknown", "operations":1, "diagnostic":"startUnavailable"},
+    {"id":"late-start", "facts":["operation-failed", "operation-started"], "lifecycle":"unknown", "outcome":"unknown", "operations":1, "diagnostic":null},
+    {"id":"host-stop", "facts":["started", "stopped"], "lifecycle":"ended", "outcome":"unknown", "operations":0, "diagnostic":null},
+    {"id":"disconnected", "facts":["started", "disconnected"], "lifecycle":"started", "outcome":"unknown", "operations":0, "diagnostic":null},
+    {"id":"interruption-request", "facts":["started", "interruption-requested"], "lifecycle":"started", "outcome":"unknown", "operations":0, "diagnostic":null},
+    {"id":"interruption-confirmation", "facts":["started", "interruption-requested", "interruption-confirmed"], "lifecycle":"ended", "outcome":"unknown", "operations":0, "diagnostic":null},
+    {"id":"terminal-conflict", "facts":["started", "failed", "succeeded"], "lifecycle":"ended", "outcome":"conflict", "operations":0, "diagnostic":"terminalConflict"},
+    {"id":"completed", "facts":["started", "succeeded"], "lifecycle":"ended", "outcome":"succeeded", "operations":0, "diagnostic":null},
+    {"id":"cancelled", "facts":["started", "cancelled"], "lifecycle":"ended", "outcome":"cancelled", "operations":0, "diagnostic":null},
+    {"id":"opaque", "facts":["unknown"], "lifecycle":"unknown", "outcome":"unknown", "operations":0, "diagnostic":"unknownKind"},
+    {"id":"source-gap", "facts":["gap"], "lifecycle":"unknown", "outcome":"unknown", "operations":0, "diagnostic":"sourceGap"}
+  ]
+}
