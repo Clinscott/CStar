@@ -80,11 +80,18 @@ public struct OpaqueMetadata: Codable, Sendable, Equatable {
     public let truncated: Bool
 
     public init(text: String) {
-        // Bound bytes, including text containing unusually long combining-character sequences.
-        var prefix = String(decoding: text.utf8.prefix(1_024), as: UTF8.self)
-        while prefix.utf8.count > 1_024 { prefix.removeLast() }
-        self.text = prefix
-        self.truncated = prefix != text
+        // Bound bytes by whole scalars of the input: a byte cut inside a scalar would decode to a
+        // replacement character the source never sent. Long combining sequences cost nothing extra.
+        var prefix = String.UnicodeScalarView()
+        var bytes = 0
+        for scalar in text.unicodeScalars {
+            let width = UTF8.width(scalar)
+            guard bytes + width <= 1_024 else { break }
+            prefix.append(scalar)
+            bytes += width
+        }
+        self.text = String(prefix)
+        self.truncated = bytes < text.utf8.count
     }
 
     public init(from decoder: any Decoder) throws {
