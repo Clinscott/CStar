@@ -178,6 +178,21 @@ final class ObservationTests: XCTestCase {
         XCTAssertTrue(decoded.truncated)
     }
 
+    func testUnknownMetadataKeepsOnlyWholeScalarsOfTheInput() {
+        // The cut falls inside a four-byte scalar at every offset; no replacement character may appear.
+        for pad in 1_018...1_024 {
+            let text = String(repeating: "a", count: pad) + "\u{1F600}" + "tail"
+            let metadata = OpaqueMetadata(text: text)
+            XCTAssertLessThanOrEqual(metadata.text.utf8.count, 1_024)
+            XCTAssertTrue(metadata.truncated)
+            XCTAssertFalse(metadata.text.unicodeScalars.contains("\u{FFFD}"), "pad \(pad)")
+            XCTAssertTrue(text.unicodeScalars.starts(with: metadata.text.unicodeScalars), "pad \(pad)")
+        }
+        let exact = String(repeating: "a", count: 1_020) + "\u{1F600}"
+        XCTAssertEqual(OpaqueMetadata(text: exact).text, exact)
+        XCTAssertFalse(OpaqueMetadata(text: exact).truncated)
+    }
+
     func testSameIdentityWithChangedDigestIsConflictEvenIfProjectedFactMatches() {
         let one = observation("same", 1, .executionStarted, digest: "body-a")
         let two = observation("same", 2, .executionStarted, digest: "body-b")
