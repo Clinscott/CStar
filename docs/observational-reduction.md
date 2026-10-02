@@ -32,6 +32,31 @@ Accepted observations use supplied ingestion sequence for stable record order, w
 
 For identical recorded inputs, state and diagnostics are deterministic. `ExecutionState.currentReducerVersion` is 2. Recorded normalization versions remain part of every observation; mixed versions are diagnosed. Codable conformance supports caller-owned recording and replay. Byte-canonical encoding, if needed, requires a caller encoder with stable key ordering.
 
+## Caller-owned batches
+
+`reduce(state:observations:) -> BatchReduction` accepts a supplied seed and an
+ordered array of observations. Its final state and ordered `dispositions` equal
+sequential calls to `reduce(state:observation:)` over those same inputs. It does
+not return intermediate projections; a caller that needs them may reduce each
+prefix. `BatchReduction` supports Codable, Sendable and Equatable without changing
+the existing state wire format or reducer version.
+
+An empty array returns the seed exactly, including decoded legacy ordering and
+derived fields. A nonempty batch first performs the existing scalar reduction,
+which sorts and projects even when its input is a duplicate. The remaining inputs
+use identity and retained-body buckets; a digest alone never establishes body
+equality. Final ordering and factual projection use the existing methods. A
+duplicate-only remainder preserves the first scalar result. Legacy seeds with
+duplicate accepted identities use sequential reduction throughout, preserving
+the old array-first accepted-body decision before each sort.
+
+This removes repeated projection from ordinary canonical ledger tails. It does
+not promise a complexity bound for arbitrary conflict buckets or the factual
+projection itself, and legacy fallback still has sequential cost. It establishes
+neither a caller's read latency nor storage, compaction, checkpoint, installation
+or live-capture acceptance. Hosts still own those boundaries. No current or
+historical stored seed is rewritten by this pure function.
+
 ## Factual interpretation
 
 - Lifecycle, connectivity, outcome, and interruption are independent fields.
@@ -47,5 +72,12 @@ For identical recorded inputs, state and diagnostics are deterministic. `Executi
 ## Local verification
 
 The checked-in observational vectors run twice, with serialization/reopening after each prefix. Additional tests cover late delivery, duplicate/conflicting identity, independent equal-content operations, disconnection, interruption, terminal conflict, exact artifact/check association, inclusive and unknown usage, opaque metadata bounds, and deterministic replay. These are kernel tests, not proof of a particular host's capture, persistence, or display.
+
+Batch checks compare every supplied prefix with the unchanged scalar oracle,
+including encoded wire equality and batch round trips. They cover empty and
+noncanonical decoded seeds, duplicate accepted identities, duplicate-only and
+conflict-only tails, out-of-order and tied ingestion, every retained-body field,
+independent identities, artifact/check and usage evidence, and bounded generated
+mixed streams. The same observational vectors also exercise batch prefixes.
 
 The library has no framework imports, package dependencies, clocks, generated IDs, shell entry points, networking, model calls, storage, callbacks, or authority policy. Build and test locally; GitHub is a human review ledger and has no Actions automation.

@@ -194,3 +194,93 @@ private func appendCoverage(_ event: Observation, to diagnostics: inout [Diagnos
     default: break
     }
 }
+
+/// Pure batch reduction with the same final state and input dispositions as
+/// sequential calls to `reduce(state:observation:)`. The caller still owns
+/// correlation, ordering, persistence and all host actions.
+public func reduce(state: ExecutionState, observations: [Observation]) -> BatchReduction {
+    guard let first = observations.first else {
+        // A caller may have decoded a legacy seed with noncanonical fields.
+        // No supplied input means no normalization or projection of that seed.
+        return BatchReduction(state: state, dispositions: [])
+    }
+
+    var identities = Set<ObservationIdentity>()
+    if state.observations.contains(where: { !identities.insert($0.identity).inserted }) {
+        // Legacy seeds can contain several accepted bodies for one identity.
+        // Preserve the scalar reducer's array-first decision and subsequent
+        // sorting exactly rather than choosing a new accepted body in an index.
+        var current = state
+        var dispositions: [Reduction.Disposition] = []
+        for observation in observations {
+            let reduction = reduce(state: current, observation: observation)
+            current = reduction.state
+            dispositions.append(reduction.disposition)
+        }
+        return BatchReduction(state: current, dispositions: dispositions)
+    }
+
+    // A nonempty scalar call always projects, even for a duplicate input.
+    // Apply it before indexing so decoded seed order and derived fields have
+    // exactly the same first-input normalization as the sequential oracle.
+    let initial = reduce(state: state, observation: first)
+    if observations.count == 1 {
+        return BatchReduction(state: initial.state, dispositions: [initial.disposition])
+    }
+    var occurrences = initial.state.observations
+    var conflicts = initial.state.identityConflicts
+    var accepted = Dictionary(uniqueKeysWithValues: occurrences.map { ($0.identity, $0) })
+    var conflictingBodies: [RetainedConflictKey: [Observation]] = [:]
+    for conflict in conflicts {
+        let key = RetainedConflictKey(identity: conflict.acceptedIdentity, observation: conflict.conflictingObservation)
+        conflictingBodies[key, default: []].append(conflict.conflictingObservation)
+    }
+    var dispositions = [initial.disposition]
+    var changed = false
+
+    for observation in observations.dropFirst() {
+        let disposition: Reduction.Disposition
+        if let original = accepted[observation.identity] {
+            let key = RetainedConflictKey(identity: observation.identity, observation: observation)
+            if original.hasSameRetainedBody(as: observation)
+                || conflictingBodies[key, default: []].contains(where: { $0.hasSameRetainedBody(as: observation) }) {
+                disposition = .duplicate
+            } else {
+                conflicts.append(.init(acceptedIdentity: original.identity, conflictingObservation: observation))
+                conflictingBodies[key, default: []].append(observation)
+                disposition = .conflict
+                changed = true
+            }
+        } else {
+            occurrences.append(observation)
+            accepted[observation.identity] = observation
+            disposition = .accepted
+            changed = true
+        }
+        dispositions.append(disposition)
+    }
+
+    // Duplicate-only remaining inputs cannot change the already normalized seed.
+    let result = changed
+        ? project(occurrences: occurrences.sorted(by: recordedOrder), conflicts: conflicts)
+        : initial.state
+    return BatchReduction(state: result, dispositions: dispositions)
+}
+
+/// Bucket only fields used by retained-body equality that are already hashable.
+/// The typed fact must still compare equal inside a bucket: a digest is not proof.
+private struct RetainedConflictKey: Hashable {
+    let identity: ObservationIdentity
+    let sourceSequence: UInt64?
+    let normalizationVersion: UInt32
+    let retainedBodyDigest: String
+    let completeness: String
+
+    init(identity: ObservationIdentity, observation: Observation) {
+        self.identity = identity
+        sourceSequence = observation.sourceSequence
+        normalizationVersion = observation.normalizationVersion
+        retainedBodyDigest = observation.retainedBodyDigest
+        completeness = observation.completeness.rawValue
+    }
+}

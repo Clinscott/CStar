@@ -8,6 +8,11 @@ It answers one question:
 reduce(state: ExecutionState, observation: Observation) -> Reduction
 ```
 
+For a caller-owned ledger tail, `reduce(state:observations:) -> BatchReduction`
+returns the same final state and one disposition per input as sequential calls.
+It accumulates admitted facts before the final projection; it performs no host
+action or storage. Empty tails preserve the exact supplied seed.
+
 It preserves explicit execution facts and derives lifecycle, connectivity, outcome, operations, artifact/check associations, usage samples, and factual diagnostics. Missing starts and late results remain observable. A host stop is not objective success; an interruption request is not confirmed interruption. Conflicting evidence never silently overwrites an accepted occurrence.
 
 The core imports no frameworks, has no external packages or I/O, and generates no identifiers or time. The caller owns normalization, source trust, execution correlation, persistence, hashing, UI, and every host action. Codable types describe data without performing serialization or storage themselves.
