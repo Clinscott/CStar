@@ -26,6 +26,12 @@ final class ContractTests: XCTestCase {
             let inputs = try vector.facts.enumerated().map { index, name in
                 observation("\(vector.id)-\(index)", UInt64(index), try XCTUnwrap(facts[name]))
             }
+            for count in 0...inputs.count {
+                let prefix = Array(inputs.prefix(count))
+                let batch = reduce(state: ExecutionState(), observations: prefix)
+                XCTAssertEqual(batch.state, replay(prefix), "\(vector.id) batch prefix\(count)")
+                XCTAssertEqual(batch.dispositions, Array(repeating: .accepted, count: count))
+            }
             for _ in 1...2 {
                 var state = ExecutionState()
                 for input in inputs {

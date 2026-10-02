@@ -97,3 +97,11 @@ public struct Reduction: Codable, Sendable, Equatable {
     /// Current factual diagnostics; a late start may resolve a missing-start diagnostic.
     public var diagnostics: [Diagnostic] { state.diagnostics }
 }
+
+/// The final factual state and one admission disposition per supplied input.
+/// Intermediate projections remain available by reducing each prefix separately.
+public struct BatchReduction: Codable, Sendable, Equatable {
+    public let state: ExecutionState
+    public let dispositions: [Reduction.Disposition]
+    public var diagnostics: [Diagnostic] { state.diagnostics }
+}
